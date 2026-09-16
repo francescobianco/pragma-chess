@@ -4,18 +4,20 @@ APP        := $(BUILD_DIR)/gui/qt/pragma-chess
 
 GENERATOR := $(if $(shell command -v ninja),-G Ninja,)
 
-.PHONY: help start build run test configure clean deps
+PREFIX ?= $(HOME)/.local
+
+.PHONY: help start build run test install desktop-dev configure clean deps
 
 help: ## Show available targets
 	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-10s %s\n", $$1, $$2}'
 
-start: configure ## Launch the GUI and rebuild/restart it on every source change
+start: configure desktop-dev ## Launch the GUI and rebuild/restart it on every source change
 	@BUILD_DIR=$(BUILD_DIR) ./scripts/dev-watch.sh
 
 build: configure ## Build the GUI once
 	@cmake --build $(BUILD_DIR)
 
-run: build ## Build and launch the GUI (no watching)
+run: build desktop-dev ## Build and launch the GUI (no watching)
 	@./$(APP)
 
 test: build ## Build and run the tests
@@ -31,6 +33,15 @@ $(BUILD_DIR)/CMakeFiles/Makefile.cmake:
 		exit 1; \
 	fi
 	@cmake -S . -B $(BUILD_DIR) $(GENERATOR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+
+install: build ## Install the app, its menu entry and icon (PREFIX, default ~/.local)
+	@cmake --install $(BUILD_DIR) --prefix $(PREFIX)
+	@-update-desktop-database $(PREFIX)/share/applications 2>/dev/null
+	@-gtk-update-icon-cache -q -t $(PREFIX)/share/icons/hicolor 2>/dev/null
+
+# Wayland desktops take the dock icon from an installed .desktop entry.
+desktop-dev: ## Show the app icon for the development build (user menu entry)
+	@BUILD_DIR=$(BUILD_DIR) ./scripts/install-dev-desktop.sh
 
 clean: ## Remove the build directory
 	@rm -rf $(BUILD_DIR)

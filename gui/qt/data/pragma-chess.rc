@@ -1,0 +1,2 @@
+// Windows executable icon (Explorer, taskbar, shortcuts).
+IDI_ICON1 ICON "icons/pragma-chess.ico"

@@ -32,6 +32,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/BoardState.h
     src/app/ChessPosition.cpp
     src/app/ChessPosition.h
+    src/app/DatabaseOutline.cpp
+    src/app/DatabaseOutline.h
     src/app/EngineEvaluation.cpp
     src/app/EngineEvaluation.h
     src/app/Explainer.cpp
@@ -126,6 +128,22 @@ qt_add_executable(pragma-chess
 target_include_directories(pragma-chess PRIVATE src)
 target_link_libraries(pragma-chess PRIVATE pragma-chess-core Qt6::Widgets Qt6::Sql yaml-cpp::yaml-cpp)
 
+# Application icon, generated from data/icons/pragma-chess.png by scripts/make-icons.py.
+set(APP_ICON_SIZES 16 22 24 32 48 64 128 256)
+set(APP_ICON_FILES)
+foreach(size IN LISTS APP_ICON_SIZES)
+    list(APPEND APP_ICON_FILES data/icons/hicolor/${size}x${size}/apps/${APP_ID}.png)
+endforeach()
+# Embedded for the window icon, available even when the app is not installed.
+qt_add_resources(pragma-chess appicon PREFIX /icons BASE data/icons FILES ${APP_ICON_FILES})
+if(WIN32)
+    target_sources(pragma-chess PRIVATE data/pragma-chess.rc)
+elseif(APPLE)
+    set(APP_ICNS data/icons/pragma-chess.icns)
+    set_source_files_properties(${APP_ICNS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(pragma-chess PRIVATE ${APP_ICNS})
+endif()
+
 if(TARGET Qt6::Svg)
     target_link_libraries(pragma-chess PRIVATE Qt6::Svg)
     target_compile_definitions(pragma-chess PRIVATE PRAGMA_HAS_SVG)
@@ -146,6 +164,7 @@ set_target_properties(pragma-chess PROPERTIES
     MACOSX_BUNDLE ON
     MACOSX_BUNDLE_GUI_IDENTIFIER "${APP_ID}"
     MACOSX_BUNDLE_BUNDLE_NAME "Pragma Chess"
+    MACOSX_BUNDLE_ICON_FILE pragma-chess.icns
 )
 
 # Command line "Explain", for tuning it on real lines (see docs/explain-tuning.md).
@@ -174,4 +193,6 @@ install(TARGETS pragma-chess
 if(UNIX AND NOT APPLE)
     install(FILES data/${APP_ID}.desktop
         DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+    install(DIRECTORY data/icons/hicolor
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/icons)
 endif()

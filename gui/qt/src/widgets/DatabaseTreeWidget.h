@@ -1,28 +1,40 @@
 #pragma once
 
+#include <QSet>
 #include <QTreeWidget>
 
 class GameDatabase;
+class QTimer;
 
-/// Navigation next to the games list: the databases of the user's folder
-/// and, under the open one, all its games and the sources it syncs with.
+/// A part of the database chosen in the tree.
+struct GameCategory {
+    enum class Kind { All, EcoLetter, Eco, Event, Year, Source };
+    Kind kind = Kind::All;
+    /// ECO letter or code, event name or year.
+    QString value;
+    qint64 sourceId = 0;
+
+    bool operator==(const GameCategory &) const = default;
+};
+
+/// Navigation next to the games list: the open database and, under it, its
+/// games by ECO code, tournament and year, and the sources it syncs with.
+/// Only values some game actually has are listed, with their game counts.
 class DatabaseTreeWidget : public QTreeWidget {
     Q_OBJECT
 
 public:
     explicit DatabaseTreeWidget(QWidget *parent = nullptr);
 
-    /// The open database, shown expanded (may be null).
+    /// Shows a database (may be null) with all its games selected.
     void setDatabase(const GameDatabase *database);
-    /// Rescans the databases folder and the sources, keeping the selection.
+    /// Recounts the games, keeping the selection and the expanded nodes.
     void refresh();
-    /// Selects "All Games" of the open database.
-    void selectAllGames();
+    /// Refreshes shortly, coalescing bursts (e.g. games arriving from a sync).
+    void scheduleRefresh();
 
 Q_SIGNALS:
-    void databaseRequested(const QString &path);
-    void allGamesSelected();
-    void sourceSelected(qint64 sourceId);
+    void categorySelected(const GameCategory &category);
     void connectSourceRequested();
     void manageSourcesRequested();
     void syncSourceRequested(qint64 sourceId);
@@ -31,11 +43,13 @@ protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
 private:
-    enum class Node { Database, AllGames, Sources, Source };
+    enum class Node { Database, EcoGroup, EcoLetter, Eco, Tournaments, Event, Years, Year, Sources, Source };
 
     void onCurrentItemChanged(QTreeWidgetItem *current);
     static Node nodeOf(const QTreeWidgetItem *item);
+    static QString keyOf(const QTreeWidgetItem *item);
 
     const GameDatabase *m_database = nullptr;
     bool m_refreshing = false;
+    QTimer *m_refreshTimer;
 };

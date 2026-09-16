@@ -8,6 +8,7 @@ struct Project;
 
 class BoardWidget;
 class DatabaseTreeWidget;
+struct GameCategory;
 class GameFilterProxyModel;
 class QSplitter;
 class CapturedPiecesWidget;
@@ -65,7 +66,8 @@ private:
     void syncBoard();
     void updateNavigationActions();
     void updateGameCount();
-    void showSourceGames(qint64 sourceId);
+    /// Shows the games of a part of the database chosen in the tree.
+    void showCategory(const GameCategory &category);
 
     // Entering games move by move.
     void newGame();
@@ -143,7 +145,7 @@ private:
     DatabaseTreeWidget *m_databaseTree;
     /// Databases tree | games list, inside the Games dock.
     QSplitter *m_gamesSplitter;
-    /// Source whose games the list shows, or 0 for all games.
+    /// Source whose games the list shows, or 0; its game ids change during a sync.
     qint64 m_filterSource = 0;
     QLabel *m_gameCountLabel;
     QLabel *m_syncLabel;

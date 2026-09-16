@@ -1,18 +1,24 @@
 #include "GameFilterProxyModel.h"
 
-#include "GameListModel.h"
+#include "app/GameDatabase.h"
 
-void GameFilterProxyModel::setGameIds(const std::optional<QSet<qint64>> &ids)
+void GameFilterProxyModel::setDatabase(const GameDatabase *database)
 {
-    // Qt 6.4 has no beginFilterChange(); invalidateFilter() re-evaluates every row.
-    m_ids = ids;
+    m_database = database;
+    m_predicate = {};
     invalidateFilter();
 }
 
-bool GameFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+void GameFilterProxyModel::setPredicate(const Predicate &predicate)
 {
-    if (!m_ids)
+    // Qt 6.4 has no beginFilterChange(); invalidateFilter() re-evaluates every row.
+    m_predicate = predicate;
+    invalidateFilter();
+}
+
+bool GameFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &) const
+{
+    if (!m_predicate || !m_database || sourceRow >= m_database->gameCount())
         return true;
-    const QModelIndex number = sourceModel()->index(sourceRow, GameListModel::Number, sourceParent);
-    return m_ids->contains(number.data().toLongLong());
+    return m_predicate(m_database->header(sourceRow));
 }

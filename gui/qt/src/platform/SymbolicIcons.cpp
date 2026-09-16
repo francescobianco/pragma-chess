@@ -28,6 +28,7 @@ enum class Shape {
     About,
     Explain,
     NewGame,
+    Database,
 };
 
 /// Paints a shape on a 16×16 grid with the given color.
@@ -178,6 +179,21 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         painter->drawLine(QPointF(10.5, 4.5), QPointF(15.5, 4.5));
         break;
     }
+    case Shape::Database: {
+        // A cylinder: three stacked discs.
+        painter->drawEllipse(QRectF(2.75, 1.75, 10.5, 3.5));
+        QPainterPath body;
+        body.moveTo(2.75, 3.5);
+        body.lineTo(2.75, 12.5);
+        body.arcTo(QRectF(2.75, 10.75, 10.5, 3.5), 180, 180);
+        body.lineTo(13.25, 3.5);
+        painter->drawPath(body);
+        QPainterPath middle;
+        middle.moveTo(2.75, 8);
+        middle.arcTo(QRectF(2.75, 6.25, 10.5, 3.5), 180, 180);
+        painter->drawPath(middle);
+        break;
+    }
     case Shape::About:
         painter->drawEllipse(QPointF(8, 8), 6, 6);
         painter->drawLine(QPointF(8, 7.25), QPointF(8, 11));
@@ -262,6 +278,7 @@ QIcon icon(const QString &name)
         {QStringLiteral("help-about"), Shape::About},
         {QStringLiteral("pragma-explain"), Shape::Explain},
         {QStringLiteral("pragma-new-game"), Shape::NewGame},
+        {QStringLiteral("pragma-database"), Shape::Database},
     };
     const auto it = shapes.constFind(name);
     if (it == shapes.cend())

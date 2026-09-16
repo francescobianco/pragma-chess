@@ -1,25 +1,33 @@
 #pragma once
 
-#include <QSet>
+#include "app/GameRecord.h"
+
 #include <QSortFilterProxyModel>
 
-#include <optional>
+#include <functional>
 
-/// Sorts the games list and, when a set of game ids is given (e.g. the games
-/// of one source), shows only those games.
+class GameDatabase;
+
+/// Sorts the games list and, with a predicate on the game headers (an ECO
+/// code, an event, a year, the games of a source…), shows only those games.
 class GameFilterProxyModel : public QSortFilterProxyModel {
     Q_OBJECT
 
 public:
+    using Predicate = std::function<bool(const GameRecord &header)>;
+
     using QSortFilterProxyModel::QSortFilterProxyModel;
 
-    /// Database ids to show, or nothing for all games.
-    void setGameIds(const std::optional<QSet<qint64>> &ids);
-    bool isFiltered() const { return m_ids.has_value(); }
+    /// The database whose headers the predicate is given; rows map 1:1 to its indices.
+    void setDatabase(const GameDatabase *database);
+    /// Games to show, or an empty predicate for all games.
+    void setPredicate(const Predicate &predicate);
+    bool isFiltered() const { return bool(m_predicate); }
 
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
 
 private:
-    std::optional<QSet<qint64>> m_ids;
+    const GameDatabase *m_database = nullptr;
+    Predicate m_predicate;
 };

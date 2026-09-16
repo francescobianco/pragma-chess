@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 
 #include "app/ClassicGames.h"
+#include "app/DatabaseOutline.h"
 #include "dialogs/ConnectSourceWizard.h"
 #include "dialogs/GameInfoDialog.h"
 #include "dialogs/ManageSourcesDialog.h"
@@ -173,11 +174,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_sourceSync, &SourceSync::gamesImported, this, [this] {
         m_gameListModel->refreshAppended();
         if (m_filterSource != 0)
-            showSourceGames(m_filterSource); // New games of the source shown.
+            showCategory({GameCategory::Kind::Source, QString(), m_filterSource}); // Its new games too.
         updateGameCount();
-        m_databaseTree->refresh();
+        m_databaseTree->scheduleRefresh();
     });
-    connect(m_sourceSync, &SourceSync::sourcesChanged, m_databaseTree, &DatabaseTreeWidget::refresh);
+    connect(m_sourceSync, &SourceSync::sourcesChanged, m_databaseTree, &DatabaseTreeWidget::scheduleRefresh);
     connect(m_sourceSync, &SourceSync::activityChanged, this, [this](const QString &text) {
         m_syncLabel->setText(text);
         m_syncLabel->setVisible(!text.isEmpty());
@@ -542,12 +543,7 @@ void MainWindow::createDocks()
     connect(m_gameView, &QTableView::activated, this, &MainWindow::openGame);
 
     m_databaseTree = new DatabaseTreeWidget;
-    connect(m_databaseTree, &DatabaseTreeWidget::databaseRequested, this, [this](const QString &path) {
-        // Deferred: opening replaces the tree's contents while it is handling the click.
-        QMetaObject::invokeMethod(this, [this, path] { openDatabaseFile(path); }, Qt::QueuedConnection);
-    });
-    connect(m_databaseTree, &DatabaseTreeWidget::allGamesSelected, this, [this] { showSourceGames(0); });
-    connect(m_databaseTree, &DatabaseTreeWidget::sourceSelected, this, &MainWindow::showSourceGames);
+    connect(m_databaseTree, &DatabaseTreeWidget::categorySelected, this, &MainWindow::showCategory);
     connect(m_databaseTree, &DatabaseTreeWidget::connectSourceRequested, this, &MainWindow::connectSource);
     connect(m_databaseTree, &DatabaseTreeWidget::manageSourcesRequested, this, &MainWindow::manageSources);
     connect(m_databaseTree, &DatabaseTreeWidget::syncSourceRequested, this,
@@ -588,7 +584,7 @@ void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
     updateDatabaseActions();
     updateGameActions();
     m_filterSource = 0;
-    m_gameListProxy->setGameIds(std::nullopt);
+    m_gameListProxy->setDatabase(m_database.get());
     m_databaseTree->setDatabase(m_database.get());
     m_sourceSync->setDatabase(m_database.get());
 }
@@ -654,11 +650,36 @@ void MainWindow::updateGameCount()
     m_gameCountLabel->setText(tr("%1 — %2").arg(m_database->name(), count));
 }
 
-void MainWindow::showSourceGames(qint64 sourceId)
+void MainWindow::showCategory(const GameCategory &category)
 {
-    m_filterSource = m_database ? sourceId : 0;
-    m_gameListProxy->setGameIds(m_filterSource != 0 ? std::optional<QSet<qint64>>(m_database->sourceGameIds(sourceId))
-                                                    : std::nullopt);
+    using Kind = GameCategory::Kind;
+    m_filterSource = category.kind == Kind::Source ? category.sourceId : 0;
+    GameFilterProxyModel::Predicate predicate;
+    const QString value = category.value;
+    switch (category.kind) {
+    case Kind::All:
+        break;
+    case Kind::EcoLetter:
+        predicate = [value](const GameRecord &game) { return DatabaseOutline::ecoCode(game.eco).startsWith(value); };
+        break;
+    case Kind::Eco:
+        predicate = [value](const GameRecord &game) { return DatabaseOutline::ecoCode(game.eco) == value; };
+        break;
+    case Kind::Event:
+        predicate = [value](const GameRecord &game) { return DatabaseOutline::eventName(game.event) == value; };
+        break;
+    case Kind::Year:
+        predicate = [year = value.toInt()](const GameRecord &game) { return DatabaseOutline::year(game.date) == year; };
+        break;
+    case Kind::Source:
+        if (m_database) {
+            predicate = [ids = m_database->sourceGameIds(category.sourceId)](const GameRecord &game) {
+                return ids.contains(game.id);
+            };
+        }
+        break;
+    }
+    m_gameListProxy->setPredicate(predicate);
     updateGameCount();
 }
 

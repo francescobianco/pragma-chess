@@ -57,7 +57,11 @@ int main(int argc, char *argv[])
     QApplication::setApplicationVersion(QStringLiteral(APP_VERSION));
     // Lets GNOME and KDE match windows to the installed .desktop entry.
     QGuiApplication::setDesktopFileName(QStringLiteral(APP_ID));
-    QApplication::setWindowIcon(QIcon::fromTheme(QStringLiteral("applications-games")));
+    // The installed theme icon when there is one, the embedded logo otherwise.
+    QIcon appIcon;
+    for (int size : {16, 22, 24, 32, 48, 64, 128, 256})
+        appIcon.addFile(QStringLiteral(":/icons/hicolor/%1x%1/apps/" APP_ID ".png").arg(size), QSize(size, size));
+    QApplication::setWindowIcon(QIcon::fromTheme(QStringLiteral(APP_ID), appIcon));
 
 #ifdef Q_OS_UNIX
     installTerminationHandler(app);

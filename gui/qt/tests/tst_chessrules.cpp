@@ -1,5 +1,6 @@
 #include "app/AdvantageProbe.h"
 #include "app/ChessPosition.h"
+#include "app/DatabaseOutline.h"
 #include "app/MoveExplanation.h"
 #include "app/Pgn.h"
 #include "app/SqliteGameDatabase.h"
@@ -320,6 +321,27 @@ private Q_SLOTS:
         QVERIFY2(explanation.summary.contains(QStringLiteral("It becomes concrete after 1.e4 e5 2.Nf3.")),
                  qPrintable(explanation.summary));
         QVERIFY(!explanation.trace.isEmpty());
+    }
+
+    void outlinesDatabases()
+    {
+        const auto game = [](const char *eco, const char *event, const char *date) {
+            GameRecord record;
+            record.eco = QString::fromLatin1(eco);
+            record.event = QString::fromLatin1(event);
+            record.date = QString::fromLatin1(date);
+            return record;
+        };
+        DatabaseOutline outline;
+        for (const GameRecord &record : {game("E10", "Linares", "2001.02.03"), game("e11a", "Linares", "2001.??.??"),
+                                         game("B90", "?", "????.??.??"), game("", "Casual", "1851.06.21")})
+            outline.add(record);
+        QCOMPARE(outline.eco.keys(), (QStringList{"B", "E"}));
+        QCOMPARE(outline.eco.value("E").value("E11"), 1);
+        QCOMPARE(outline.events.value("Linares"), 2);
+        QVERIFY(!outline.events.contains("?"));
+        QCOMPARE(outline.years.keys(), (QList<int>{1851, 2001}));
+        QCOMPARE(DatabaseOutline::ecoCode(QStringLiteral("F10")), QString());
     }
 
     void parsesLichessGames()

@@ -59,7 +59,15 @@ make start   # build, launch, and rebuild + restart on every change under gui/qt
 make run     # build and launch once
 make build   # build only
 make test    # build and run the tests
+make install # install for the current user in ~/.local (PREFIX=/usr/local for everyone)
 ```
+
+`make install` adds the menu entry and the icon, so the desktop shows the
+Pragma Chess logo in the launcher, dock and window list.
+
+`make start` and `make run` register the development build the same way for
+the current user (`make desktop-dev`), because on Wayland the dock only shows
+the icon of an installed menu entry.
 
 `make start` keeps the running window if a build fails, so you can fix the
 error and save again. It uses `inotifywait` when available and falls back to

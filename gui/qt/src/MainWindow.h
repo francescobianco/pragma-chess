@@ -1,0 +1,147 @@
+#pragma once
+
+#include <QMainWindow>
+
+#include <memory>
+
+struct Project;
+
+class BoardWidget;
+class GameDatabase;
+class GameListModel;
+class GameSession;
+class MoveListModel;
+class QAction;
+class QDockWidget;
+class QLabel;
+class QLineEdit;
+class QMenu;
+class QSortFilterProxyModel;
+class QTableView;
+class QTimer;
+
+class MainWindow : public QMainWindow {
+    Q_OBJECT
+
+public:
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow() override;
+
+    /// Opens a .pch project file, e.g. one passed on the command line.
+    bool openProjectFile(const QString &path);
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
+    void moveEvent(QMoveEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+
+private:
+    enum class Workspace { Analysis, Database, OpeningPreparation };
+
+    void createActions();
+    void createMenus();
+    void createToolBar();
+    void createDocks();
+    void createStatusBar();
+
+    QDockWidget *addDock(const QString &objectName, const QString &title, QWidget *widget,
+                         Qt::DockWidgetArea area);
+
+    void setDatabase(std::unique_ptr<GameDatabase> database);
+    void openGame(const QModelIndex &proxyIndex);
+    void syncBoard();
+    void updateNavigationActions();
+    void updateGameCount();
+
+    // Projects (.pch): the File menu saves and restores the whole environment.
+    void newProject();
+    void openProject();
+    bool saveProject();
+    bool saveProjectAs();
+    /// Asks to save a modified project. Returns false if the user cancels.
+    bool maybeSaveProject();
+    void addRecentProject(const QString &path);
+    void rebuildRecentProjectsMenu();
+    Project captureProject() const;
+    void applyProject(const Project &project, bool openFirstGameIfNone);
+    void updateWindowTitle();
+    void updateProjectModified();
+
+    void newDatabase();
+    void openDatabase();
+    bool openDatabaseFile(const QString &path);
+    void openInitialDatabase(const QString &preferredPath);
+    void saveDatabase();
+    void saveDatabaseAs();
+    void rebuildDatabasesMenu();
+    void updateDatabaseActions();
+    void copyFen();
+    void pasteFen();
+    void applyWorkspace(Workspace workspace);
+    void saveWorkspaceAs();
+    void rebuildWorkspaceMenu();
+    void showAbout();
+
+    // Session persistence: the current project state (saved or not) and the
+    // window geometry are stored per user (QSettings) shortly after they change
+    // and restored on the next launch.
+    void restoreSession();
+    void saveSession();
+    void scheduleSaveSession();
+
+    std::unique_ptr<GameDatabase> m_database;
+    GameSession *m_session;
+    GameListModel *m_gameListModel;
+    QSortFilterProxyModel *m_gameListProxy;
+    MoveListModel *m_moveListModel;
+
+    BoardWidget *m_board;
+    QTableView *m_moveView;
+    QTableView *m_gameView;
+    QLineEdit *m_searchField;
+    QLabel *m_gameCountLabel;
+
+    QDockWidget *m_movesDock;
+    QDockWidget *m_gamesDock;
+    QDockWidget *m_openingTreeDock;
+    QDockWidget *m_engineDock;
+
+    QString m_projectPath;
+    QString m_savedProjectYaml;
+    QString m_engineName;
+    bool m_engineAnalyzing = false;
+
+    QAction *m_newProjectAction;
+    QAction *m_openProjectAction;
+    QAction *m_saveProjectAction;
+    QAction *m_saveProjectAsAction;
+    QMenu *m_recentProjectsMenu;
+
+    QAction *m_newDatabaseAction;
+    QAction *m_openDatabaseAction;
+    QAction *m_saveDatabaseAction;
+    QAction *m_saveDatabaseAsAction;
+    QAction *m_showDatabasesFolderAction;
+    QAction *m_quitAction;
+    QAction *m_copyFenAction;
+    QAction *m_pasteFenAction;
+    QAction *m_firstMoveAction;
+    QAction *m_previousMoveAction;
+    QAction *m_nextMoveAction;
+    QAction *m_lastMoveAction;
+    QAction *m_flipBoardAction;
+    QAction *m_coordinatesAction;
+    QAction *m_findAction;
+    QAction *m_startEngineAction;
+    QAction *m_aboutAction;
+    QAction *m_aboutQtAction;
+
+    QTimer *m_saveTimer = nullptr;
+    bool m_restoringSession = false;
+    /// Source row of the open game in the database, or -1 (e.g. a pasted FEN).
+    qint64 m_openGameIndex = -1;
+
+    QMenu *m_viewMenu;
+    QMenu *m_workspaceMenu;
+    QMenu *m_databasesMenu;
+};

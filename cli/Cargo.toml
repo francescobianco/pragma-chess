@@ -1,0 +1,15 @@
+[package]
+name = "chessdb-cli"
+description = "Command line interface for the chess database engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "chessdb"
+path = "src/main.rs"
+
+[dependencies]
+chessdb-core.workspace = true
+clap.workspace = true
+anyhow.workspace = true

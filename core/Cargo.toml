@@ -1,0 +1,9 @@
+[package]
+name = "chessdb-core"
+description = "Chess database engine: chess model, PGN, storage, position index and search"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+rusqlite.workspace = true

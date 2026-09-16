@@ -1,0 +1,24 @@
+[workspace]
+resolver = "2"
+members = ["core", "cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/francescobianco/pragma-chess"
+
+[workspace.dependencies]
+chessdb-core = { path = "core" }
+rusqlite = { version = "0.40", features = ["bundled"] }
+clap = { version = "4.6", features = ["derive"] }
+anyhow = "1"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+debug = 1
+
+# Move generation is hot even in tests (perft): optimize it in dev builds too.
+[profile.dev.package.chessdb-core]
+opt-level = 3

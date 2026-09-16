@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Pragma Chess
+GenericName=Chess Database
+Comment=Browse, search and analyze chess game databases
+Exec=pragma-chess %F
+Icon=applications-games
+Terminal=false
+Categories=Game;BoardGame;
+Keywords=chess;database;pgn;opening;
+MimeType=application/x-chess-pgn;
+StartupWMClass=pragma-chess

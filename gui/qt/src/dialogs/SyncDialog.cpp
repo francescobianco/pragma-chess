@@ -32,6 +32,10 @@ SyncDialog::SyncDialog(const SyncSettings &settings, FolderSync *sync, QWidget *
     , m_tls(new QCheckBox(tr("Use TLS (FTPS)")))
     , m_folder(new QLineEdit(settings.folder))
     , m_url(new QLineEdit(settings.url.toString()))
+    , m_repository(new QLineEdit(settings.repository))
+    , m_branch(new QLineEdit(settings.branch))
+    , m_passwordLabel(new QLabel(tr("&Password:")))
+    , m_note(new QLabel)
     , m_user(new QLineEdit(settings.user))
     , m_password(new QLineEdit(settings.password))
     , m_status(new QLabel)
@@ -50,6 +54,7 @@ SyncDialog::SyncDialog(const SyncSettings &settings, FolderSync *sync, QWidget *
     m_service->addItem(tr("Off"), int(SyncSettings::Service::None));
     m_service->addItem(tr("FTP"), int(SyncSettings::Service::Ftp));
     m_service->addItem(tr("WebDAV"), int(SyncSettings::Service::WebDav));
+    m_service->addItem(tr("Git repository"), int(SyncSettings::Service::Git));
     m_service->setCurrentIndex(m_service->findData(int(settings.service)));
 
     // FTP
@@ -78,16 +83,30 @@ SyncDialog::SyncDialog(const SyncSettings &settings, FolderSync *sync, QWidget *
     m_url->setPlaceholderText(QStringLiteral("https://cloud.example.com/remote.php/dav/files/me/Pragma"));
     webdavForm->addRow(tr("&Address:"), m_url);
 
+    // Git
+    auto *git = new QWidget;
+    auto *gitForm = new QFormLayout(git);
+    gitForm->setContentsMargins(0, 0, 0, 0);
+    m_repository->setPlaceholderText(QStringLiteral("git@github.com:me/chess.git"));
+    gitForm->addRow(tr("&Repository:"), m_repository);
+    m_branch->setPlaceholderText(QStringLiteral("main"));
+    gitForm->addRow(tr("&Branch:"), m_branch);
+
     m_pages->addWidget(new QWidget);
     m_pages->addWidget(ftp);
     m_pages->addWidget(webdav);
+    m_pages->addWidget(git);
 
     auto *form = new QFormLayout;
     form->addRow(tr("S&ervice:"), m_service);
     form->addRow(m_pages);
     m_password->setEchoMode(QLineEdit::Password);
     form->addRow(tr("&User:"), m_user);
-    form->addRow(tr("&Password:"), m_password);
+    m_passwordLabel->setBuddy(m_password);
+    form->addRow(m_passwordLabel, m_password);
+    m_note->setWordWrap(true);
+    m_note->setEnabled(false);
+    form->addRow(QString(), m_note);
 
     m_status->setWordWrap(true);
     m_status->setTextInteractionFlags(Qt::TextSelectableByMouse);
@@ -128,6 +147,8 @@ SyncSettings SyncDialog::settings() const
     result.tls = m_tls->isChecked();
     result.folder = m_folder->text().trimmed();
     result.url = QUrl::fromUserInput(m_url->text().trimmed());
+    result.repository = m_repository->text().trimmed();
+    result.branch = m_branch->text().trimmed().isEmpty() ? QStringLiteral("main") : m_branch->text().trimmed();
     result.user = m_user->text();
     result.password = m_password->text();
     return result;
@@ -141,6 +162,14 @@ void SyncDialog::updateFields()
     for (QWidget *widget : {static_cast<QWidget *>(m_user), static_cast<QWidget *>(m_password),
                             static_cast<QWidget *>(m_testButton), static_cast<QWidget *>(m_syncButton)})
         widget->setEnabled(on);
+    const bool git = service == SyncSettings::Service::Git;
+    m_passwordLabel->setText(git ? tr("&Token:") : tr("&Password:"));
+    m_note->setText(git ? tr("The files stay where they are: each sync copies them into a clone kept by "
+                             "Pragma Chess, commits and pushes. SSH repositories use your SSH keys; for "
+                             "HTTPS enter a user and an access token, or leave them empty to use Git's "
+                             "credential helper.")
+                        : QString());
+    m_note->setVisible(git);
     updateStatus();
 }
 
@@ -172,9 +201,16 @@ void SyncDialog::testConnection()
 
     RemoteStore::Result result;
     QEventLoop loop;
-    store->read(QLatin1String(SyncManifest::fileName), [&](const RemoteStore::Result &read) {
-        result = read;
-        loop.quit();
+    store->begin([&](const RemoteStore::Result &begun) {
+        if (!begun.ok) {
+            result = begun;
+            loop.quit();
+            return;
+        }
+        store->read(QLatin1String(SyncManifest::fileName), [&](const RemoteStore::Result &read) {
+            result = read;
+            loop.quit();
+        });
     });
     QTimer::singleShot(60000, &loop, &QEventLoop::quit);
     loop.exec(QEventLoop::ExcludeUserInputEvents);

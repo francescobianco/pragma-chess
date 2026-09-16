@@ -391,11 +391,11 @@ private Q_SLOTS:
         const QMap<QString, QString> base{{"same.pdb", "a"}, {"edited-here.pdb", "a"}, {"edited-there.pdb", "a"},
                                           {"deleted-here.pdb", "a"}, {"deleted-there.pdb", "a"},
                                           {"edited-both.pdb", "a"}, {"deleted-here-edited-there.pdb", "a"},
-                                          {"edited-here-deleted-there.pdb", "a"}};
+                                          {"edited-here-deleted-there.pdb", "a"}, {"dropped-from-manifest.pch", "a"}};
         const QList<SyncAction> actions = planSync(
             local({{"same.pdb", "a"}, {"edited-here.pdb", "b"}, {"edited-there.pdb", "a"}, {"deleted-there.pdb", "a"},
                    {"edited-both.pdb", "b"}, {"edited-here-deleted-there.pdb", "b"}, {"new-here.pch", "n"},
-                   {"new-both-same.pdb", "s"}, {"new-both-different.pdb", "x"}}),
+                   {"new-both-same.pdb", "s"}, {"new-both-different.pdb", "x"}, {"dropped-from-manifest.pch", "a"}}),
             base,
             remote({{"same.pdb", "a"}, {"edited-here.pdb", "a"}, {"edited-there.pdb", "c"}, {"deleted-here.pdb", "a"},
                     {"deleted-there.pdb", ""}, {"edited-both.pdb", "c"}, {"deleted-here-edited-there.pdb", "c"},
@@ -406,6 +406,8 @@ private Q_SLOTS:
             {Kind::Download, "deleted-here-edited-there.pdb"},
             {Kind::DeleteRemote, "deleted-here.pdb"},
             {Kind::DeleteLocal, "deleted-there.pdb"},
+            // Absent without a deletion record (a lost manifest update): put it back.
+            {Kind::Upload, "dropped-from-manifest.pch"},
             {Kind::KeepBoth, "edited-both.pdb"},
             {Kind::Upload, "edited-here-deleted-there.pdb"},
             {Kind::Upload, "edited-here.pdb"},

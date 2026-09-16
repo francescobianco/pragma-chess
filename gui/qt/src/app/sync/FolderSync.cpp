@@ -11,11 +11,18 @@
 #include <QJsonObject>
 #include <QSaveFile>
 #include <QTemporaryFile>
+#include <QTimer>
+#include <QUuid>
 
 namespace {
 
 /// Rounds of "the manifest changed meanwhile, start over" before giving up.
 constexpr int kMaxRounds = 3;
+/// A lock older than this was left by a device that stopped mid-sync.
+constexpr qint64 kLockExpirySeconds = 180;
+/// Waiting for another device's lock: tries, and the pause between them.
+constexpr int kLockTries = 20;
+constexpr int kLockPauseMs = 3000;
 
 bool isSyncedName(const QString &name)
 {
@@ -87,7 +94,96 @@ void FolderSync::sync()
     }
     m_running = true;
     Q_EMIT started();
-    attempt(1);
+    if (m_store->publishesAtomically()) {
+        attempt(1);
+        return;
+    }
+    const int generation = m_generation;
+    acquireLock(kLockTries, [this, generation](const QString &error) {
+        if (generation != m_generation)
+            return;
+        if (!error.isEmpty()) {
+            finish(error, 0);
+            return;
+        }
+        attempt(1);
+    });
+}
+
+void FolderSync::acquireLock(int tries, std::function<void(const QString &error)> done)
+{
+    const int generation = m_generation;
+    const QString lock = QLatin1String(SyncManifest::lockFileName);
+    m_store->read(lock, [this, tries, done, lock, generation](const RemoteStore::Result &held) {
+        if (generation != m_generation)
+            return;
+        if (!held.ok) {
+            done(held.error);
+            return;
+        }
+        // "token device iso-time"
+        const QList<QByteArray> fields = held.data.trimmed().split(' ');
+        const QDateTime since = QDateTime::fromString(QString::fromLatin1(fields.value(2)), Qt::ISODate);
+        const bool heldByOther = !held.notFound && fields.value(0) != m_lockToken && since.isValid()
+            && since.secsTo(QDateTime::currentDateTimeUtc()) < kLockExpirySeconds;
+        if (heldByOther) {
+            if (tries <= 1) {
+                done(tr("%1 is syncing; trying again later.").arg(QString::fromUtf8(fields.value(1))));
+                return;
+            }
+            Q_EMIT progress(tr("Waiting for %1 to finish syncing…").arg(QString::fromUtf8(fields.value(1))));
+            QTimer::singleShot(kLockPauseMs, this, [this, tries, done] { acquireLock(tries - 1, done); });
+            return;
+        }
+        m_lockToken = QUuid::createUuid().toByteArray(QUuid::WithoutBraces);
+        const QByteArray content = m_lockToken + ' ' + m_device.toUtf8().replace(' ', '_') + ' '
+            + QDateTime::currentDateTimeUtc().toString(Qt::ISODate).toLatin1();
+        m_store->write(lock, content, [this, tries, done, lock, generation](const RemoteStore::Result &written) {
+            if (generation != m_generation)
+                return;
+            if (!written.ok) {
+                done(written.error);
+                return;
+            }
+            // Two devices may write at once: the lock is ours only if our token stayed.
+            QTimer::singleShot(700, this, [this, tries, done, lock, generation] {
+                m_store->read(lock, [this, tries, done, generation](const RemoteStore::Result &check) {
+                    if (generation != m_generation)
+                        return;
+                    if (check.ok && check.data.trimmed().startsWith(m_lockToken)) {
+                        done(QString());
+                        return;
+                    }
+                    m_lockToken.clear();
+                    if (tries <= 1) {
+                        done(tr("Another device is syncing; trying again later."));
+                        return;
+                    }
+                    QTimer::singleShot(kLockPauseMs, this, [this, tries, done] { acquireLock(tries - 1, done); });
+                });
+            });
+        });
+    });
+}
+
+void FolderSync::releaseLock(std::function<void()> then)
+{
+    if (m_lockToken.isEmpty() || !m_store) {
+        then();
+        return;
+    }
+    const QByteArray token = m_lockToken;
+    m_lockToken.clear();
+    const QString lock = QLatin1String(SyncManifest::lockFileName);
+    const QPointer<RemoteStore> store = m_store;
+    m_store->read(lock, [store, lock, token, then](const RemoteStore::Result &held) {
+        // Never remove a lock another device took after ours expired.
+        if (!store || !held.ok || held.notFound || !held.data.trimmed().startsWith(token)) {
+            then();
+            return;
+        }
+        store->remove(lock, [then](const RemoteStore::Result &) { then(); });
+    });
 }
 
 void FolderSync::attempt(int round)
@@ -98,6 +194,13 @@ void FolderSync::attempt(int round)
     run->round = round;
     run->local = scanLocal();
 
+    m_store->begin([this, run, generation](const RemoteStore::Result &begun) {
+    if (generation != m_generation)
+        return;
+    if (!begun.ok) {
+        finish(begun.error, 0);
+        return;
+    }
     m_store->read(QLatin1String(SyncManifest::fileName), [this, run, generation](const RemoteStore::Result &result) {
         if (generation != m_generation)
             return;
@@ -118,6 +221,7 @@ void FolderSync::attempt(int round)
         run->updated = run->remote;
         run->base = m_base;
         execute(run, 0);
+    });
     });
 }
 
@@ -267,6 +371,35 @@ void FolderSync::commit(std::shared_ptr<Run> run)
         finish(QString(), 0);
         return;
     }
+    run->updated.revision = run->remote.revision + 1;
+    run->updated.updatedBy = m_device;
+    run->updated.updatedAt = QDateTime::currentDateTimeUtc();
+
+    if (m_store->publishesAtomically()) {
+        // The store refuses to publish over another device's sync: start over then.
+        m_store->write(QLatin1String(SyncManifest::fileName), run->updated.toJson(),
+                       [this, run, generation](const RemoteStore::Result &written) {
+                           if (generation != m_generation)
+                               return;
+                           if (!written.ok) {
+                               finish(written.error, run->changes);
+                               return;
+                           }
+                           m_store->publish([this, run, generation](const RemoteStore::Result &published) {
+                               if (generation != m_generation)
+                                   return;
+                               if (published.outdated && run->round < kMaxRounds) {
+                                   attempt(run->round + 1);
+                                   return;
+                               }
+                               if (published.ok)
+                                   m_base = run->base;
+                               finish(published.ok ? QString() : published.error, run->changes);
+                           });
+                       });
+        return;
+    }
+
     // Written last, and only if no other device synced meanwhile.
     m_store->read(QLatin1String(SyncManifest::fileName), [this, run, generation](const RemoteStore::Result &result) {
         if (generation != m_generation)
@@ -286,9 +419,6 @@ void FolderSync::commit(std::shared_ptr<Run> run)
             attempt(run->round + 1);
             return;
         }
-        run->updated.revision = run->remote.revision + 1;
-        run->updated.updatedBy = m_device;
-        run->updated.updatedAt = QDateTime::currentDateTimeUtc();
         m_store->write(QLatin1String(SyncManifest::fileName), run->updated.toJson(),
                        [this, run, generation](const RemoteStore::Result &written) {
                            if (generation != m_generation)
@@ -302,6 +432,15 @@ void FolderSync::commit(std::shared_ptr<Run> run)
 
 void FolderSync::finish(const QString &errorMessage, int changes)
 {
+    if (!m_lockToken.isEmpty()) {
+        // Other devices may start as soon as this one says it finished.
+        const int generation = m_generation;
+        releaseLock([this, errorMessage, changes, generation] {
+            if (generation == m_generation)
+                finish(errorMessage, changes);
+        });
+        return;
+    }
     m_running = false;
     m_lastError = errorMessage;
     if (errorMessage.isEmpty())

@@ -27,6 +27,8 @@ struct SyncFileState {
 /// hashes, so each device can tell what changed where since it last synced.
 struct SyncManifest {
     static constexpr char fileName[] = ".pragma-chess.sync";
+    /// Held while a device syncs with a store that cannot publish atomically.
+    static constexpr char lockFileName[] = ".pragma-chess.lock";
     static constexpr int formatVersion = 1;
 
     /// Incremented by every sync that changes the remote folder; a device
@@ -76,7 +78,8 @@ struct SyncAction {
 /// remote content and the content both had when this device last synced
 /// (`base`). A side that still has the base content did not change it; when
 /// both changed, nothing is lost: edits win over deletions and different
-/// edits keep both files.
+/// edits keep both files. Local files are only deleted for an explicit
+/// deletion record in the manifest, never because a path is missing from it.
 QList<SyncAction> planSync(const QMap<QString, LocalFileState> &local, const QMap<QString, QString> &base,
                            const SyncManifest &remote);
 

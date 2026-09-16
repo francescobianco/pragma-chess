@@ -65,6 +65,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/sync/FolderSync.h
     src/app/sync/FtpStore.cpp
     src/app/sync/FtpStore.h
+    src/app/sync/GitStore.cpp
+    src/app/sync/GitStore.h
     src/app/sync/RemoteStore.h
     src/app/sync/SyncManifest.cpp
     src/app/sync/SyncManifest.h

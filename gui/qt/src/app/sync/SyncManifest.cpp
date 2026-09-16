@@ -88,7 +88,12 @@ QList<SyncAction> planSync(const QMap<QString, LocalFileState> &local, const QMa
             continue;
         }
         using Kind = SyncAction::Kind;
-        if (localHash == baseHash) // Only the remote side changed.
+        const bool remoteDeleted = remote.files.contains(path) && remote.files.value(path).deleted;
+        if (localHash == baseHash && remoteHash.isEmpty() && !remoteDeleted) {
+            // Missing from the manifest without a deletion record: another device's
+            // manifest replaced ours. Never delete on that; put the file back.
+            actions << SyncAction{Kind::Upload, path};
+        } else if (localHash == baseHash) // Only the remote side changed.
             actions << SyncAction{remoteHash.isEmpty() ? Kind::DeleteLocal : Kind::Download, path};
         else if (remoteHash == baseHash) // Only this side changed.
             actions << SyncAction{localHash.isEmpty() ? Kind::DeleteRemote : Kind::Upload, path};

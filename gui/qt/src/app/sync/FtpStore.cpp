@@ -6,6 +6,7 @@
 #include <QSslConfiguration>
 #include <QSslSocket>
 #include <QTimer>
+#include <QUuid>
 
 namespace {
 
@@ -457,7 +458,7 @@ void FtpStore::storeAndRename(const QString &path, std::function<QByteArray(qint
 {
     const int generation = m_generation;
     makeFolders(path, [this, path, source, done, generation] {
-        const QString partial = path + QStringLiteral(".part");
+        const QString partial = QStringLiteral("%1.%2.part").arg(path, QUuid::createUuid().toString(QUuid::Id128).left(8));
         store(partial, source, [this, path, partial, done, generation](const Result &stored) {
             if (generation != m_generation)
                 return;

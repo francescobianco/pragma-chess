@@ -40,6 +40,10 @@ private:
     QCheckBox *m_tls;
     QLineEdit *m_folder;
     QLineEdit *m_url;
+    QLineEdit *m_repository;
+    QLineEdit *m_branch;
+    QLabel *m_passwordLabel;
+    QLabel *m_note;
     QLineEdit *m_user;
     QLineEdit *m_password;
     QLabel *m_status;

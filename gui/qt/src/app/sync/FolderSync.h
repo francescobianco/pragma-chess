@@ -47,6 +47,11 @@ private:
     struct Run;
 
     void attempt(int round);
+    /// Takes the remote lock (stores that cannot publish atomically), waiting
+    /// while another device holds it; `done` gets an error or nothing.
+    void acquireLock(int tries, std::function<void(const QString &error)> done);
+    /// Removes the remote lock if this device still holds it, then calls `then`.
+    void releaseLock(std::function<void()> then);
     void execute(std::shared_ptr<Run> run, qsizetype index);
     void commit(std::shared_ptr<Run> run);
     void finish(const QString &errorMessage, int changes);
@@ -63,6 +68,8 @@ private:
     bool m_running = false;
     bool m_again = false;
     int m_generation = 0;
+    /// Token written in the lock file while this device holds it.
+    QByteArray m_lockToken;
 
     /// Content hash of each file as of the last sync, by relative path.
     QMap<QString, QString> m_base;

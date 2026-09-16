@@ -17,6 +17,8 @@ public:
         bool ok = false;
         /// The file does not exist (not an error for reads and removals).
         bool notFound = false;
+        /// publish() was refused because another device published first.
+        bool outdated = false;
         QString error;
         /// Content, for read().
         QByteArray data;
@@ -27,6 +29,15 @@ public:
 
     /// "ftp://user@host:21/Chess", for telling folders apart; no password.
     virtual QString identity() const = 0;
+
+    /// Called before a sync reads anything, e.g. to bring a local clone up to date.
+    virtual void begin(Callback done) { done(success()); }
+    /// Whether changes only reach the server with publish(), which refuses them
+    /// (Result::outdated) if another device published meanwhile. Stores that
+    /// write directly need the sync to check the manifest before writing it.
+    virtual bool publishesAtomically() const { return false; }
+    /// Makes the changes of this sync visible to other devices.
+    virtual void publish(Callback done) { done(success()); }
 
     /// Reads a small file (the sync manifest) into memory.
     virtual void read(const QString &path, Callback done) = 0;

@@ -10,7 +10,7 @@ class RemoteStore;
 /// Stored in the user's settings; the password too, until it moves to the
 /// system keychain (it never goes into the synced folder).
 struct SyncSettings {
-    enum class Service { None, Ftp, WebDav };
+    enum class Service { None, Ftp, WebDav, Git };
 
     Service service = Service::None;
     // FTP
@@ -20,6 +20,9 @@ struct SyncSettings {
     QString folder;
     // WebDAV
     QUrl url;
+    // Git: repository URL (SSH or HTTPS) and branch; the password is an HTTPS token.
+    QString repository;
+    QString branch = QStringLiteral("main");
     // Both
     QString user;
     QString password;

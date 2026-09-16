@@ -167,22 +167,29 @@ cargo run -p chessdb-cli -- <args>
 ## Folder sync
 
 File ▸ Sync… keeps the Pragma folder (databases, projects) the same on several
-computers through a folder on an FTP (optionally FTPS) or WebDAV server.
+computers through a folder on an FTP (optionally FTPS) or WebDAV server, or a
+Git repository.
 
 - `app/sync/` (core library): `RemoteStore` with `FtpStore` (own client on
   QSslSocket: passive mode, binary, upload as `.part` then rename) and
-  `WebDavStore` (PUT to `.part` then MOVE). `SyncManifest` is the remote
+  `WebDavStore` (PUT to `.part` then MOVE), both uploading under unique
+  temporary names and serialized between devices by a `.pragma-chess.lock`
+  file with an owner token and expiry; `GitStore` (the git command on a clone
+  in AppLocalData, never on the real files: begin() fetches and resets the
+  clone, publish() commits and pushes, a refused push restarts the sync). `SyncManifest` is the remote
   `.pragma-chess.sync` (files with SHA-256, tombstones, a revision);
   `planSync` is the pure three-way decision (local, remote, last synced base),
-  unit-tested; `FolderSync` runs it, writes the manifest last and starts over
-  if another device changed it. Conflicts keep both files, local deletions go
+  unit-tested; local files are only deleted for an explicit tombstone, never
+  because a path is missing from the manifest. `FolderSync` runs it, writes
+  the manifest last and starts over if another device changed it. Conflicts keep both files, local deletions go
   to the trash, uploads send a snapshot copy.
 - The base and a hash cache live per device in AppLocalData
   (`folder-sync.json`), never in the synced folder. Settings and password are
   in the user's settings (`SyncSettings`; keychain is a TODO).
 - The open database is closed while the sync replaces it and opened again.
-- To test for real, run pyftpdlib / wsgidav locally and two `FolderSync`
-  instances with separate folders and state files.
+- To test for real, run pyftpdlib / wsgidav locally (or a bare Git repo) and
+  two `FolderSync` instances with separate folders and state files, including
+  both syncing at the same time.
 
 ## Game sources
 

@@ -5,6 +5,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QSaveFile>
+#include <QUuid>
 
 WebDavStore::WebDavStore(const QUrl &folder, const QString &user, const QString &password, QObject *parent)
     : RemoteStore(parent)
@@ -186,7 +187,7 @@ void WebDavStore::upload(const QString &localFile, const QString &path, Callback
             delete file;
             return;
         }
-        const QString partial = path + QStringLiteral(".part");
+        const QString partial = QStringLiteral("%1.%2.part").arg(path, QUuid::createUuid().toString(QUuid::Id128).left(8));
         QNetworkRequest request(urlFor(partial));
         request.setHeader(QNetworkRequest::UserAgentHeader, QByteArrayLiteral("PragmaChess/" APP_VERSION));
         if (!m_user.isEmpty())

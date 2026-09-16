@@ -14,6 +14,8 @@ public:
     explicit GameSession(QObject *parent = nullptr);
 
     void setGame(const GameRecord &game);
+    /// Updates players, event, date, … of the open game, keeping moves and ply.
+    void setHeader(const GameRecord &header);
     const GameRecord &game() const { return m_game; }
 
     int ply() const { return m_ply; }
@@ -33,6 +35,7 @@ public:
 
 Q_SIGNALS:
     void gameChanged();
+    void headerChanged();
     void plyChanged(int ply);
 
 private:

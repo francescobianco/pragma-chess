@@ -24,6 +24,8 @@ qt_add_executable(pragma-chess
     src/main.cpp
     src/MainWindow.cpp
     src/MainWindow.h
+    src/dialogs/GameInfoDialog.cpp
+    src/dialogs/GameInfoDialog.h
     src/app/BoardState.cpp
     src/app/BoardState.h
     src/app/ClassicGames.cpp
@@ -35,6 +37,8 @@ qt_add_executable(pragma-chess
     src/app/GameSession.cpp
     src/app/GameSession.h
     src/app/SqliteGameDatabase.cpp
+    src/app/UciEngine.cpp
+    src/app/UciEngine.h
     src/app/SqliteGameDatabase.h
     src/app/UserFolders.cpp
     src/app/UserFolders.h
@@ -47,6 +51,12 @@ qt_add_executable(pragma-chess
     src/widgets/BoardPanel.cpp
     src/widgets/BoardPanel.h
     src/widgets/BoardWidget.cpp
+    src/widgets/EnginePanel.cpp
+    src/widgets/EnginePanel.h
+    src/widgets/EvaluationBar.cpp
+    src/widgets/EvaluationBar.h
+    src/widgets/GameHeaderWidget.cpp
+    src/widgets/GameHeaderWidget.h
     src/widgets/BoardWidget.h
 )
 

@@ -1,6 +1,8 @@
 #include "BoardPanel.h"
 
 #include "BoardWidget.h"
+#include "EvaluationBar.h"
+#include "GameHeaderWidget.h"
 
 #include <QAction>
 #include <QEvent>
@@ -8,6 +10,9 @@
 #include <QToolButton>
 
 namespace {
+
+// Gap between the evaluation bar and the board.
+constexpr int kBarSpacing = 6;
 
 QToolButton *controlButton(QAction *action)
 {
@@ -21,12 +26,17 @@ QToolButton *controlButton(QAction *action)
 
 } // namespace
 
-BoardPanel::BoardPanel(BoardWidget *board, const Actions &actions, QWidget *parent)
+BoardPanel::BoardPanel(BoardWidget *board, EvaluationBar *evaluationBar, GameHeaderWidget *header,
+                       const Actions &actions, QWidget *parent)
     : QWidget(parent)
     , m_board(board)
+    , m_evaluationBar(evaluationBar)
+    , m_header(header)
     , m_controls(new QWidget(this))
 {
     m_board->setParent(this);
+    m_evaluationBar->setParent(this);
+    m_header->setParent(this);
     m_controls->setAccessibleName(tr("Game controls"));
 
     auto *layout = new QHBoxLayout(m_controls);
@@ -47,14 +57,16 @@ BoardPanel::BoardPanel(BoardWidget *board, const Actions &actions, QWidget *pare
 QSize BoardPanel::sizeHint() const
 {
     const QSize board = m_board->sizeHint();
-    return {board.width(), board.height() + m_controls->sizeHint().height()};
+    return {m_evaluationBar->sizeHint().width() + kBarSpacing + board.width(),
+            m_header->sizeHint().height() + board.height() + m_controls->sizeHint().height()};
 }
 
 QSize BoardPanel::minimumSizeHint() const
 {
     const QSize board = m_board->minimumSizeHint();
     const QSize controls = m_controls->minimumSizeHint();
-    return {qMax(board.width(), controls.width()), board.height() + controls.height()};
+    return {m_evaluationBar->sizeHint().width() + kBarSpacing + qMax(board.width(), controls.width()),
+            m_header->sizeHint().height() + board.height() + controls.height()};
 }
 
 bool BoardPanel::event(QEvent *event)
@@ -77,19 +89,34 @@ void BoardPanel::constrainWidth()
 {
     // The panel is never wider than the board can be tall. As the central
     // widget of the main window, the space it cannot take goes to the docks.
-    const int maxWidth = qMax(minimumSizeHint().width(), height() - m_controls->sizeHint().height());
+    const int maxWidth = qMax(minimumSizeHint().width(),
+                              m_evaluationBar->sizeHint().width() + kBarSpacing + height()
+                                  - m_header->sizeHint().height() - m_controls->sizeHint().height());
     if (maximumWidth() != maxWidth)
         setMaximumWidth(maxWidth);
 }
 
 void BoardPanel::layoutChildren()
 {
+    // Group: [bar][gap][header / board / controls], centered in the panel.
+    const int barWidth = m_evaluationBar->sizeHint().width();
+    const int headerHeight = m_header->sizeHint().height();
     const int controlsHeight = m_controls->sizeHint().height();
-    const int minimumWidth = m_controls->minimumSizeHint().width();
-    const int side = qMax(0, qMin(width(), height() - controlsHeight));
-    const int controlsWidth = qMin(width(), qMax(side, minimumWidth));
-    const int top = (height() - side - controlsHeight) / 2;
+    const int minimumControlsWidth = m_controls->minimumSizeHint().width();
+    const int side = qMax(0, qMin(width() - barWidth - kBarSpacing, height() - headerHeight - controlsHeight));
+    const int controlsWidth = qMin(width() - barWidth - kBarSpacing, qMax(side, minimumControlsWidth));
+    const int groupWidth = barWidth + kBarSpacing + side;
+    const int left = (width() - groupWidth) / 2;
+    const int top = (height() - headerHeight - side - controlsHeight) / 2;
+    const int boardLeft = left + barWidth + kBarSpacing;
+    const int boardTop = top + headerHeight;
 
-    m_board->setGeometry((width() - side) / 2, top, side, side);
-    m_controls->setGeometry((width() - controlsWidth) / 2, top + side, controlsWidth, controlsHeight);
+    m_board->setGeometry(boardLeft, boardTop, side, side);
+    // The board paints inside a small margin; align the bar and header with the squares.
+    const QRect squares = m_board->boardArea().translated(boardLeft, boardTop);
+    m_evaluationBar->setGeometry(squares.left() - kBarSpacing - barWidth, squares.top(), barWidth,
+                                 squares.height());
+    m_header->setGeometry(squares.left(), top, squares.width(), headerHeight);
+    m_controls->setGeometry(boardLeft + (side - controlsWidth) / 2, top + headerHeight + side,
+                            controlsWidth, controlsHeight);
 }

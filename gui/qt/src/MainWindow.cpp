@@ -1,14 +1,19 @@
 #include "MainWindow.h"
 
 #include "app/ClassicGames.h"
+#include "dialogs/GameInfoDialog.h"
 #include "app/GameSession.h"
 #include "app/Project.h"
 #include "app/SqliteGameDatabase.h"
+#include "app/UciEngine.h"
 #include "app/UserFolders.h"
 #include "models/GameListModel.h"
 #include "models/MoveListModel.h"
 #include "widgets/BoardPanel.h"
 #include "widgets/BoardWidget.h"
+#include "widgets/EnginePanel.h"
+#include "widgets/EvaluationBar.h"
+#include "widgets/GameHeaderWidget.h"
 
 #include <QAction>
 #include <QApplication>
@@ -73,6 +78,9 @@ MainWindow::MainWindow(QWidget *parent)
     , m_gameListProxy(new QSortFilterProxyModel(this))
     , m_moveListModel(new MoveListModel(m_session, this))
     , m_board(new BoardWidget)
+    , m_evaluationBar(new EvaluationBar)
+    , m_gameHeader(new GameHeaderWidget)
+    , m_engine(new UciEngine(this))
 {
     setDockOptions(AnimatedDocks | AllowTabbedDocks | AllowNestedDocks);
 
@@ -82,7 +90,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_gameListProxy->setSortRole(Qt::DisplayRole);
 
     createActions();
-    setCentralWidget(new BoardPanel(m_board, {m_firstMoveAction, m_previousMoveAction, m_nextMoveAction,
+    setCentralWidget(new BoardPanel(m_board, m_evaluationBar, m_gameHeader, {m_firstMoveAction, m_previousMoveAction, m_nextMoveAction,
                                               m_lastMoveAction, m_flipBoardAction}));
     createDocks();
     createMenus();
@@ -90,7 +98,21 @@ MainWindow::MainWindow(QWidget *parent)
     createStatusBar();
 
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateWindowTitle);
+    connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateGameHeader);
+    connect(m_session, &GameSession::headerChanged, this, &MainWindow::updateWindowTitle);
+    connect(m_session, &GameSession::headerChanged, this, &MainWindow::updateGameHeader);
+    connect(m_gameHeader, &GameHeaderWidget::activated, this, &MainWindow::editGameInfo);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::syncBoard);
+    connect(m_session, &GameSession::plyChanged, this, &MainWindow::analyzeCurrentPosition);
+    connect(m_engine, &UciEngine::evaluationChanged, this, [this](const EngineEvaluation &evaluation) {
+        m_evaluationBar->setEvaluation(evaluation);
+        m_enginePanel->setEvaluation(evaluation);
+    });
+    connect(m_engine, &UciEngine::nameChanged, m_enginePanel, &EnginePanel::setEngineName);
+    connect(m_engine, &UciEngine::failed, this, [this](const QString &message) {
+        m_startEngineAction->setChecked(false);
+        m_enginePanel->setStatus(tr("The engine stopped: %1").arg(message));
+    });
     connect(m_board, &BoardWidget::navigateRequested, this,
             [this](int steps) { m_session->goToPly(m_session->ply() + steps); });
 
@@ -109,6 +131,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_searchField, &QLineEdit::textChanged, this, &MainWindow::scheduleSaveSession);
     connect(m_flipBoardAction, &QAction::toggled, this, &MainWindow::scheduleSaveSession);
     connect(m_coordinatesAction, &QAction::toggled, this, &MainWindow::scheduleSaveSession);
+    connect(m_startEngineAction, &QAction::toggled, this, &MainWindow::scheduleSaveSession);
     const QHeaderView *gameHeader = m_gameView->horizontalHeader();
     connect(gameHeader, &QHeaderView::sectionMoved, this, &MainWindow::scheduleSaveSession);
     connect(gameHeader, &QHeaderView::sectionResized, this, &MainWindow::scheduleSaveSession);
@@ -205,6 +228,7 @@ void MainWindow::createActions()
     m_flipBoardAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
     m_flipBoardAction->setCheckable(true);
     connect(m_flipBoardAction, &QAction::toggled, m_board, &BoardWidget::setFlipped);
+    connect(m_flipBoardAction, &QAction::toggled, m_evaluationBar, &EvaluationBar::setFlipped);
 
     m_coordinatesAction = new QAction(tr("Show &Coordinates"), this);
     m_coordinatesAction->setCheckable(true);
@@ -220,11 +244,12 @@ void MainWindow::createActions()
         m_searchField->selectAll();
     });
 
-    m_startEngineAction = new QAction(themeIcon("system-run", QStyle::SP_MediaPlay),
-                                      tr("&Start Analysis"), this);
+    m_startEngineAction = new QAction(themeIcon("media-playback-start", QStyle::SP_MediaPlay),
+                                      tr("&Analyze"), this);
     m_startEngineAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_E));
-    m_startEngineAction->setEnabled(false);
-    m_startEngineAction->setToolTip(tr("UCI engine support is not available yet"));
+    m_startEngineAction->setCheckable(true);
+    m_startEngineAction->setToolTip(tr("Analyze the position with the engine"));
+    connect(m_startEngineAction, &QAction::toggled, this, &MainWindow::setAnalysisEnabled);
 
     m_aboutAction = new QAction(themeIcon("help-about", QStyle::SP_MessageBoxInformation),
                                 tr("&About Pragma Chess"), this);
@@ -335,11 +360,9 @@ void MainWindow::createDocks()
     });
     m_movesDock = addDock(QStringLiteral("movesDock"), tr("Moves"), m_moveView, Qt::RightDockWidgetArea);
 
-    auto *startEngine = new QPushButton(m_startEngineAction->text().remove(QLatin1Char('&')));
-    startEngine->setEnabled(false);
-    m_engineDock = addDock(QStringLiteral("engineDock"), tr("Engine"),
-                           placeholder(tr("No UCI engine configured."), startEngine),
-                           Qt::RightDockWidgetArea);
+    m_enginePanel = new EnginePanel(m_startEngineAction);
+    m_enginePanel->setEngineName(tr("Stockfish"));
+    m_engineDock = addDock(QStringLiteral("engineDock"), tr("Engine"), m_enginePanel, Qt::RightDockWidgetArea);
 
     m_openingTreeDock = addDock(QStringLiteral("openingTreeDock"), tr("Opening Tree"),
                                 placeholder(tr("The opening tree is built from the position index "
@@ -642,6 +665,75 @@ void MainWindow::updateDatabaseActions()
     m_saveDatabaseAsAction->setEnabled(hasDatabase);
 }
 
+void MainWindow::setAnalysisEnabled(bool enabled)
+{
+    m_startEngineAction->setText(enabled ? tr("Stop &Analysis") : tr("&Analyze"));
+    m_startEngineAction->setIcon(enabled ? themeIcon("media-playback-stop", QStyle::SP_MediaStop)
+                                         : themeIcon("media-playback-start", QStyle::SP_MediaPlay));
+
+    if (!enabled) {
+        m_engine->stopAnalysis();
+        m_evaluationBar->setEvaluation(std::nullopt);
+        m_enginePanel->setEvaluation(std::nullopt);
+        m_enginePanel->setStatus(QString());
+        return;
+    }
+
+    if (!m_engine->isRunning()) {
+        const QString command = m_engineName.isEmpty() ? QStringLiteral("stockfish") : m_engineName;
+        const QString executable = UciEngine::findExecutable(command);
+        if (executable.isEmpty() || !m_engine->start(executable)) {
+            m_enginePanel->setStatus(tr("The UCI engine “%1” was not found. Install Stockfish "
+                                        "or choose another engine.").arg(command));
+            // Defer so the action's toggle finishes before being reverted.
+            QMetaObject::invokeMethod(m_startEngineAction, [this] { m_startEngineAction->setChecked(false); },
+                                      Qt::QueuedConnection);
+            return;
+        }
+        m_engineName = command;
+    }
+    m_enginePanel->setStatus(tr("Analyzing…"));
+    analyzeCurrentPosition();
+}
+
+void MainWindow::analyzeCurrentPosition()
+{
+    if (!m_startEngineAction->isChecked() || !m_engine->isRunning())
+        return;
+    const GameRecord &game = m_session->game();
+    QStringList moves;
+    moves.reserve(m_session->ply());
+    for (int i = 0; i < m_session->ply(); ++i)
+        moves << game.moves.at(i).uci;
+    m_engine->analyze(game.startFen, moves, m_session->board().sideToMove());
+}
+
+void MainWindow::updateGameHeader()
+{
+    const bool editable = m_database && m_openGameIndex >= 0 && m_openGameIndex < m_database->gameCount();
+    m_gameHeader->setGame(m_session->game(), editable);
+}
+
+void MainWindow::editGameInfo()
+{
+    if (!m_database || m_openGameIndex < 0 || m_openGameIndex >= m_database->gameCount())
+        return;
+
+    GameInfoDialog dialog(m_session->game(), this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    const GameRecord edited = dialog.game();
+    QString error;
+    if (!m_database->updateHeader(m_openGameIndex, edited, &error)) {
+        QMessageBox::warning(this, tr("Game Information"),
+                             tr("Could not save the game information: %1").arg(error));
+        return;
+    }
+    m_gameListModel->refreshRow(int(m_openGameIndex));
+    m_session->setHeader(m_database->header(m_openGameIndex));
+}
+
 void MainWindow::copyFen()
 {
     const QString fen = m_session->board().fen();
@@ -825,7 +917,7 @@ Project MainWindow::captureProject() const
     project.showCoordinates = m_coordinatesAction->isChecked();
     project.gameSearch = m_searchField->text();
     project.engineName = m_engineName;
-    project.engineAnalyzing = m_engineAnalyzing;
+    project.engineAnalyzing = m_startEngineAction->isChecked();
     project.layout = saveState();
     return project;
 }
@@ -841,12 +933,14 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
     m_coordinatesAction->setChecked(project.showCoordinates);
     m_searchField->setText(project.gameSearch);
     m_engineName = project.engineName;
-    m_engineAnalyzing = project.engineAnalyzing;
 
     openInitialDatabase(project.databasePath);
 
     bool opened = false;
-    if (m_database && project.gameId >= 0 && m_database->location() == project.databasePath) {
+    // A project without a database path refers to whichever default database was opened.
+    const bool sameDatabase = m_database
+        && (project.databasePath.isEmpty() || m_database->location() == project.databasePath);
+    if (sameDatabase && project.gameId >= 0) {
         for (qint64 index = 0; index < m_database->gameCount() && !opened; ++index) {
             if (m_database->header(index).id != project.gameId)
                 continue;
@@ -879,6 +973,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
             m_session->setGame(GameRecord());
     }
     m_session->goToPly(project.ply);
+    m_startEngineAction->setChecked(project.engineAnalyzing);
 
     m_restoringSession = wasRestoring;
 }

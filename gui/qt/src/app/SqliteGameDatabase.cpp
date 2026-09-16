@@ -313,3 +313,51 @@ bool SqliteGameDatabase::saveCopy(const QString &path, QString *errorMessage) co
     }
     return true;
 }
+
+bool SqliteGameDatabase::updateHeader(qint64 index, const GameRecord &header, QString *errorMessage)
+{
+    if (index < 0 || index >= m_headers.size()) {
+        setError(errorMessage, QObject::tr("The game does not exist."));
+        return false;
+    }
+
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    db.transaction();
+    NameTable players(db, QStringLiteral("players"));
+    NameTable events(db, QStringLiteral("events"));
+    NameTable sites(db, QStringLiteral("sites"));
+
+    QSqlQuery update(db);
+    update.prepare(QStringLiteral(
+        "UPDATE games SET white_id = ?, black_id = ?, event_id = ?, site_id = ?, date = ?,"
+        " round = ?, result = ?, white_elo = ?, black_elo = ?, eco = ? WHERE id = ?"));
+    update.addBindValue(players.idFor(header.white));
+    update.addBindValue(players.idFor(header.black));
+    update.addBindValue(events.idFor(header.event));
+    update.addBindValue(sites.idFor(header.site));
+    update.addBindValue(nullIfEmpty(header.date));
+    update.addBindValue(nullIfEmpty(header.round));
+    update.addBindValue(nullIfEmpty(header.result));
+    update.addBindValue(nullIfZero(header.whiteElo));
+    update.addBindValue(nullIfZero(header.blackElo));
+    update.addBindValue(nullIfEmpty(header.eco));
+    update.addBindValue(m_headers.at(index).id);
+    if (!update.exec() || !db.commit()) {
+        setError(errorMessage, update.lastError().isValid() ? update.lastError().text() : db.lastError().text());
+        db.rollback();
+        return false;
+    }
+
+    GameRecord &cached = m_headers[index];
+    cached.white = header.white;
+    cached.black = header.black;
+    cached.whiteElo = header.whiteElo;
+    cached.blackElo = header.blackElo;
+    cached.event = header.event;
+    cached.site = header.site;
+    cached.date = header.date;
+    cached.round = header.round;
+    cached.result = header.result;
+    cached.eco = header.eco;
+    return true;
+}

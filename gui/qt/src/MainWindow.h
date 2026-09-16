@@ -7,6 +7,10 @@
 struct Project;
 
 class BoardWidget;
+class EnginePanel;
+class EvaluationBar;
+class GameHeaderWidget;
+class UciEngine;
 class GameDatabase;
 class GameListModel;
 class GameSession;
@@ -75,6 +79,10 @@ private:
     void saveDatabaseAs();
     void rebuildDatabasesMenu();
     void updateDatabaseActions();
+    void setAnalysisEnabled(bool enabled);
+    void analyzeCurrentPosition();
+    void editGameInfo();
+    void updateGameHeader();
     void copyFen();
     void pasteFen();
     void applyWorkspace(Workspace workspace);
@@ -96,6 +104,10 @@ private:
     MoveListModel *m_moveListModel;
 
     BoardWidget *m_board;
+    EvaluationBar *m_evaluationBar;
+    GameHeaderWidget *m_gameHeader;
+    EnginePanel *m_enginePanel;
+    UciEngine *m_engine;
     QTableView *m_moveView;
     QTableView *m_gameView;
     QLineEdit *m_searchField;
@@ -109,7 +121,6 @@ private:
     QString m_projectPath;
     QString m_savedProjectYaml;
     QString m_engineName;
-    bool m_engineAnalyzing = false;
 
     QAction *m_newProjectAction;
     QAction *m_openProjectAction;

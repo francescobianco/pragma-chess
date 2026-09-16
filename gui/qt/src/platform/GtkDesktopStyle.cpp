@@ -27,6 +27,9 @@ int GtkDesktopStyle::styleHint(StyleHint hint, const QStyleOption *option, const
     // GTK never underlines menu mnemonics (they still work with Alt).
     if (hint == SH_UnderlineShortcut)
         return 0;
+    // GTK dialog buttons are text only.
+    if (hint == SH_DialogButtonBox_ButtonsHaveIcons)
+        return 0;
     return QProxyStyle::styleHint(hint, option, widget, returnData);
 }
 

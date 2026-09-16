@@ -26,6 +26,10 @@ public:
     /// Full game including moves.
     virtual std::optional<GameRecord> loadGame(qint64 index) const = 0;
 
+    /// Replaces the header information (players, event, date, result, …) of
+    /// the game at `index`. Moves are left untouched.
+    virtual bool updateHeader(qint64 index, const GameRecord &header, QString *errorMessage) = 0;
+
     /// Whether there are changes not yet written to `location()`.
     virtual bool isModified() const = 0;
 

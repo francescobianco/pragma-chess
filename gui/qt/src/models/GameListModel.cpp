@@ -14,6 +14,11 @@ void GameListModel::setDatabase(const GameDatabase *database)
     endResetModel();
 }
 
+void GameListModel::refreshRow(int row)
+{
+    Q_EMIT dataChanged(index(row, 0), index(row, ColumnCount - 1));
+}
+
 int GameListModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid() || !m_database)

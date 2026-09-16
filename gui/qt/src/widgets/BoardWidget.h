@@ -23,6 +23,9 @@ public:
     bool showCoordinates() const { return m_showCoordinates; }
     void setShowCoordinates(bool show);
 
+    /// Area covered by the squares, in widget coordinates.
+    QRect boardArea() const { return boardRect().toAlignedRect(); }
+
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
 

@@ -31,6 +31,17 @@ void GameSession::setGame(const GameRecord &game)
     Q_EMIT plyChanged(m_ply);
 }
 
+void GameSession::setHeader(const GameRecord &header)
+{
+    const QList<MoveRecord> moves = m_game.moves;
+    const QString startFen = m_game.startFen;
+    m_game = header;
+    m_game.moves = moves;
+    m_game.startFen = startFen;
+    m_game.plyCount = int(moves.size());
+    Q_EMIT headerChanged();
+}
+
 int GameSession::lastMoveFrom() const
 {
     if (m_ply == 0)

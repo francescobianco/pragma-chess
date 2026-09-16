@@ -3,10 +3,13 @@
 #include <QWidget>
 
 class BoardWidget;
+class EvaluationBar;
+class GameHeaderWidget;
 class QAction;
 class QToolButton;
 
-/// The board with its game controls directly underneath. The board stays
+/// The board with the game header above, the evaluation bar on its left and
+/// the game controls directly underneath. The board stays
 /// square and the control bar always matches its width, whatever the space.
 /// The panel never grows wider than the board's available height, so the
 /// surrounding docks take up any extra horizontal space.
@@ -22,7 +25,8 @@ public:
         QAction *flip;
     };
 
-    BoardPanel(BoardWidget *board, const Actions &actions, QWidget *parent = nullptr);
+    BoardPanel(BoardWidget *board, EvaluationBar *evaluationBar, GameHeaderWidget *header,
+               const Actions &actions, QWidget *parent = nullptr);
 
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
@@ -36,5 +40,7 @@ private:
     void layoutChildren();
 
     BoardWidget *m_board;
+    EvaluationBar *m_evaluationBar;
+    GameHeaderWidget *m_header;
     QWidget *m_controls;
 };

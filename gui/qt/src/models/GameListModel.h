@@ -14,6 +14,8 @@ public:
     explicit GameListModel(QObject *parent = nullptr);
 
     void setDatabase(const GameDatabase *database);
+    /// Call after the header of the game in `row` changed in the database.
+    void refreshRow(int row);
 
     int rowCount(const QModelIndex &parent = {}) const override;
     int columnCount(const QModelIndex &parent = {}) const override;

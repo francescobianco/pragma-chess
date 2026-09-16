@@ -100,9 +100,6 @@ private:
     void showNextFrame();
     /// Ends a sequence without restoring the board.
     void endSequence();
-    const QPainterPath &glyphPath(PieceType type) const;
-    /// Piece rendered from the SVG piece set, or a null pixmap if unavailable.
-    QPixmap piecePixmap(Piece piece, int pixelSize) const;
 
     BoardState m_board;
     int m_lastMoveFrom = -1;
@@ -135,6 +132,4 @@ private:
     QTimer *m_sequenceTimer;
     /// Progress (0–1) of the piece sliding to the last move's target.
     QVariantAnimation *m_slide;
-    mutable std::array<QPainterPath, 7> m_glyphs;
-    mutable QHash<quint32, QPixmap> m_pieceCache;
 };

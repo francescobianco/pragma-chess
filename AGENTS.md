@@ -155,8 +155,31 @@ cargo run -p chessdb-cli -- <args>
 ## File formats and user data
 
 - **`.pdb` database**: SQLite with `PRAGMA application_id` = `PRAG` and schema
-  version in `PRAGMA user_version`. Changing the schema means bumping the
-  version and handling older files.
+  version in `PRAGMA user_version` (currently 2). Changing the schema means
+  bumping the version and upgrading older files in `SqliteGameDatabase::open`.
+  Version 2 added `sources` (connected sources, settings and sync state as
+  JSON) and `game_sources` (which source each imported game came from, by
+  external id, so a sync never imports a game twice).
+
+## Game sources
+
+Database ▸ Connect Source… adds an external source (lichess.org, chess.com) to
+the open database; Database ▸ Manage Sources… syncs, edits, signs in again or
+removes them. The tree left of the games list shows the sources and filters
+the list by source.
+
+- `app/sources/` (core library, Qt Network): `SourceCatalog` lists the kinds
+  and creates a `SourceFetch` per kind (`ChessComFetch`: public monthly
+  archives; `LichessFetch`: NDJSON export, needs an OAuth token from
+  `LichessSignIn`, PKCE with a loopback redirect). `SourceSync` syncs the
+  sources of the open database in the background, one at a time, when it is
+  opened and every 20 minutes, moving each source's cursor only after its
+  games are stored.
+- Tokens live in `SourceCredentials` (user settings, keyed by source uuid),
+  never in the `.pdb`, which may be shared. The system keychain is a TODO.
+- Parsers (`parseGame`) are pure and unit-tested with recorded JSON; keep new
+  kinds the same way. Be gentle with the sites' APIs when testing (one request
+  at a time, send `SourceFetch::userAgent()`).
 - **`.pch` project**: YAML (yaml-cpp, system package or fetched by CMake)
   capturing database, open game/ply (or the moves of a game not saved to the
   database), board orientation, engine, window layout.

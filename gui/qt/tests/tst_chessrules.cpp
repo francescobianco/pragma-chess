@@ -2,6 +2,12 @@
 #include "app/ChessPosition.h"
 #include "app/MoveExplanation.h"
 #include "app/Pgn.h"
+#include "app/SqliteGameDatabase.h"
+#include "app/sources/ChessComFetch.h"
+#include "app/sources/LichessFetch.h"
+
+#include <QJsonDocument>
+#include <QTemporaryDir>
 
 #include <QTest>
 
@@ -116,6 +122,22 @@ private Q_SLOTS:
         QVERIFY(!ChessPosition::fromFen(QStringLiteral("8/8/8/8/8/8/8/8 w - - 0 1")));
         // The side that just moved cannot be in check.
         QVERIFY(!ChessPosition::fromFen(QStringLiteral("4k3/8/8/8/8/8/8/4R1K1 w - - 0 1")));
+    }
+
+    void capturedPieces()
+    {
+        const ChessPosition start = ChessPosition::startingPosition();
+        const ChessPosition position = afterMoves(QString(), {"e2e4", "d7d5", "e4d5", "d8d5", "b1c3", "d5a5"});
+        const PieceCounts captured = position.capturedSince(start);
+        QCOMPARE(captured[int(Side::Black)][int(PieceType::Pawn)], 1);
+        QCOMPARE(captured[int(Side::White)][int(PieceType::Pawn)], 1);
+        QCOMPARE(captured[int(Side::White)][int(PieceType::Knight)], 0);
+
+        // A promoted pawn is not a captured one; the queen it became is not "negative".
+        const ChessPosition promoted = afterMoves(QStringLiteral("4k3/P7/8/8/8/8/8/4K3 w - - 0 1"), {"a7a8q"});
+        const PieceCounts none = promoted.capturedSince(*ChessPosition::fromFen(QStringLiteral("4k3/P7/8/8/8/8/8/4K3 w - - 0 1")));
+        QCOMPARE(none[int(Side::White)][int(PieceType::Pawn)], 0);
+        QCOMPARE(none[int(Side::White)][int(PieceType::Queen)], 0);
     }
 
     void attackers()
@@ -298,6 +320,101 @@ private Q_SLOTS:
         QVERIFY2(explanation.summary.contains(QStringLiteral("It becomes concrete after 1.e4 e5 2.Nf3.")),
                  qPrintable(explanation.summary));
         QVERIFY(!explanation.trace.isEmpty());
+    }
+
+    void parsesLichessGames()
+    {
+        // Built from a byte string: moc cannot read raw string literals holding braces.
+        const QJsonObject game = QJsonDocument::fromJson(
+            "{\"id\": \"q7ZvsdUF\", \"rated\": true, \"variant\": \"standard\", \"speed\": \"blitz\","
+            " \"createdAt\": 1700000000000, \"status\": \"mate\", \"winner\": \"white\","
+            " \"moves\": \"e4 e5 Bc4 Nc6 Qh5 Nf6 Qxf7#\","
+            " \"players\": {\"white\": {\"user\": {\"name\": \"Alice\"}, \"rating\": 1850},"
+            " \"black\": {\"user\": {\"name\": \"Bob\"}, \"rating\": 1790}},"
+            " \"opening\": {\"eco\": \"C23\", \"name\": \"Bishop's Opening\"}}").object();
+        const std::optional<ImportedGame> imported = LichessFetch::parseGame(game);
+        QVERIFY(imported);
+        QCOMPARE(imported->externalId, QStringLiteral("q7ZvsdUF"));
+        QCOMPARE(imported->game.white, QStringLiteral("Alice"));
+        QCOMPARE(imported->game.blackElo, 1790);
+        QCOMPARE(imported->game.result, QStringLiteral("1-0"));
+        QCOMPARE(imported->game.date, QStringLiteral("2023.11.14"));
+        QCOMPARE(imported->game.eco, QStringLiteral("C23"));
+        QCOMPARE(imported->game.moves.size(), 7);
+        QCOMPARE(imported->game.site, QStringLiteral("https://lichess.org/q7ZvsdUF"));
+
+        QJsonObject ongoing = game;
+        ongoing.insert(QStringLiteral("status"), QStringLiteral("started"));
+        QVERIFY(!LichessFetch::parseGame(ongoing));
+        QJsonObject chess960 = game;
+        chess960.insert(QStringLiteral("variant"), QStringLiteral("chess960"));
+        QVERIFY(!LichessFetch::parseGame(chess960));
+    }
+
+    void parsesChessComGames()
+    {
+        QJsonObject game;
+        game.insert(QStringLiteral("url"), QStringLiteral("https://www.chess.com/game/live/692667823"));
+        game.insert(QStringLiteral("uuid"), QStringLiteral("82282996-91e2-11de-8000-000000010001"));
+        game.insert(QStringLiteral("rules"), QStringLiteral("chess"));
+        game.insert(QStringLiteral("end_time"), 1389052479);
+        game.insert(QStringLiteral("pgn"), QStringLiteral(
+            "[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[Date \"2014.01.06\"]\n[Result \"1-0\"]\n[ECO \"C25\"]\n\n"
+            "1. e4 {[%clk 0:03:00]} 1... e5 {[%clk 0:03:00]} 2. Nc3 {[%clk 0:02:57.6]} 1-0"));
+        game.insert(QStringLiteral("white"), QJsonObject{{"username", "Hikaru"}, {"rating", 2354}});
+        game.insert(QStringLiteral("black"), QJsonObject{{"username", "Godswill"}, {"rating", 2167}});
+        const std::optional<ImportedGame> imported = ChessComFetch::parseGame(game);
+        QVERIFY(imported);
+        QCOMPARE(imported->externalId, QStringLiteral("82282996-91e2-11de-8000-000000010001"));
+        QCOMPARE(imported->game.white, QStringLiteral("Hikaru"));
+        QCOMPARE(imported->game.whiteElo, 2354);
+        QCOMPARE(imported->game.date, QStringLiteral("2014.01.06"));
+        QCOMPARE(imported->game.eco, QStringLiteral("C25"));
+        QCOMPARE(imported->game.moves.size(), 3);
+
+        game.insert(QStringLiteral("rules"), QStringLiteral("crazyhouse"));
+        QVERIFY(!ChessComFetch::parseGame(game));
+    }
+
+    void storesSourcesAndSkipsKnownGames()
+    {
+        QTemporaryDir dir;
+        QString error;
+        const std::unique_ptr<SqliteGameDatabase> database =
+            SqliteGameDatabase::create(dir.filePath(QStringLiteral("test.pdb")), {}, &error);
+        QVERIFY2(database, qPrintable(error));
+
+        GameSource source;
+        source.kind = QStringLiteral("chesscom");
+        source.account = QStringLiteral("hikaru");
+        source.settings.insert(QLatin1String(SourceSettings::ratedOnly), true);
+        QVERIFY2(database->addSource(source, &error), qPrintable(error));
+        QVERIFY(source.id > 0);
+        QVERIFY(!source.uuid.isEmpty());
+
+        ImportedGame game;
+        game.externalId = QStringLiteral("a");
+        game.game.white = QStringLiteral("Hikaru");
+        game.game.moves = {MoveRecord{QStringLiteral("e4"), QStringLiteral("e2e4")}};
+        ImportedGame other = game;
+        other.externalId = QStringLiteral("b");
+        QCOMPARE(database->importGames(source.id, {game, other}, &error), 2);
+        QCOMPARE(database->importGames(source.id, {game}, &error), 0); // Already imported.
+        QCOMPARE(database->gameCount(), 2);
+
+        source.state.insert(QStringLiteral("month"), QStringLiteral("2024/05"));
+        source.lastError = QStringLiteral("offline");
+        QVERIFY(database->updateSource(source, &error));
+        const QList<GameSource> stored = database->sources();
+        QCOMPARE(stored.size(), 1);
+        QCOMPARE(stored.first().importedGames, 2);
+        QCOMPARE(stored.first().state.value(QStringLiteral("month")).toString(), QStringLiteral("2024/05"));
+        QCOMPARE(stored.first().lastError, QStringLiteral("offline"));
+        QCOMPARE(database->sourceGameIds(source.id).size(), 2);
+
+        QVERIFY(database->removeSource(source.id, &error));
+        QVERIFY(database->sources().isEmpty());
+        QCOMPARE(database->gameCount(), 2); // Imported games stay.
     }
 
 private:

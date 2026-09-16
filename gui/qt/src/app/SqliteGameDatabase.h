@@ -28,6 +28,12 @@ public:
     std::optional<GameRecord> loadGame(qint64 index) const override;
     qint64 addGame(const GameRecord &game, QString *errorMessage) override;
     bool updateHeader(qint64 index, const GameRecord &header, QString *errorMessage) override;
+    QList<GameSource> sources() const override;
+    bool addSource(GameSource &source, QString *errorMessage) override;
+    bool updateSource(const GameSource &source, QString *errorMessage) override;
+    bool removeSource(qint64 sourceId, QString *errorMessage) override;
+    QSet<qint64> sourceGameIds(qint64 sourceId) const override;
+    int importGames(qint64 sourceId, const QList<ImportedGame> &games, QString *errorMessage) override;
     bool isModified() const override { return false; }
     bool saveCopy(const QString &path, QString *errorMessage) const override;
 

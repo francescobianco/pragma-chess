@@ -11,6 +11,7 @@ void GameListModel::setDatabase(const GameDatabase *database)
 {
     beginResetModel();
     m_database = database;
+    m_rows = database ? int(database->gameCount()) : 0;
     endResetModel();
 }
 
@@ -19,11 +20,19 @@ void GameListModel::refreshRow(int row)
     Q_EMIT dataChanged(index(row, 0), index(row, ColumnCount - 1));
 }
 
+void GameListModel::refreshAppended()
+{
+    const int count = m_database ? int(m_database->gameCount()) : 0;
+    if (count <= m_rows)
+        return;
+    beginInsertRows(QModelIndex(), m_rows, count - 1);
+    m_rows = count;
+    endInsertRows();
+}
+
 int GameListModel::rowCount(const QModelIndex &parent) const
 {
-    if (parent.isValid() || !m_database)
-        return 0;
-    return int(m_database->gameCount());
+    return parent.isValid() ? 0 : m_rows;
 }
 
 int GameListModel::columnCount(const QModelIndex &parent) const

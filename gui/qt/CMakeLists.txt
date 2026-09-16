@@ -1,4 +1,4 @@
-find_package(Qt6 6.4 REQUIRED COMPONENTS Widgets Sql)
+find_package(Qt6 6.4 REQUIRED COMPONENTS Widgets Sql Network)
 # Vector piece sets need Qt SVG; without it the board falls back to font glyphs.
 find_package(Qt6 6.4 QUIET COMPONENTS Svg)
 find_package(Qt6 6.4 QUIET COMPONENTS Test)
@@ -44,10 +44,25 @@ qt_add_library(pragma-chess-core STATIC
     src/app/Pgn.h
     src/app/UciEngine.cpp
     src/app/UciEngine.h
+    src/app/sources/ChessComFetch.cpp
+    src/app/sources/ChessComFetch.h
+    src/app/sources/GameSource.h
+    src/app/sources/LichessFetch.cpp
+    src/app/sources/LichessFetch.h
+    src/app/sources/LichessSignIn.cpp
+    src/app/sources/LichessSignIn.h
+    src/app/sources/SourceCatalog.cpp
+    src/app/sources/SourceCatalog.h
+    src/app/sources/SourceCredentials.cpp
+    src/app/sources/SourceCredentials.h
+    src/app/sources/SourceFetch.cpp
+    src/app/sources/SourceFetch.h
+    src/app/sources/SourceSync.cpp
+    src/app/sources/SourceSync.h
 )
 target_include_directories(pragma-chess-core PUBLIC src)
-target_link_libraries(pragma-chess-core PUBLIC Qt6::Core)
-target_compile_definitions(pragma-chess-core PUBLIC QT_NO_KEYWORDS)
+target_link_libraries(pragma-chess-core PUBLIC Qt6::Core Qt6::Network)
+target_compile_definitions(pragma-chess-core PUBLIC QT_NO_KEYWORDS APP_VERSION="${PROJECT_VERSION}")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(PRAGMA_WARNINGS -Wall -Wextra -Wpedantic)
@@ -58,8 +73,14 @@ qt_add_executable(pragma-chess
     src/main.cpp
     src/MainWindow.cpp
     src/MainWindow.h
+    src/dialogs/ConnectSourceWizard.cpp
+    src/dialogs/ConnectSourceWizard.h
     src/dialogs/GameInfoDialog.cpp
     src/dialogs/GameInfoDialog.h
+    src/dialogs/ManageSourcesDialog.cpp
+    src/dialogs/ManageSourcesDialog.h
+    src/dialogs/SourceSettingsWidget.cpp
+    src/dialogs/SourceSettingsWidget.h
     src/app/ClassicGames.cpp
     src/app/ClassicGames.h
     src/app/GameDatabase.h
@@ -76,6 +97,8 @@ qt_add_executable(pragma-chess
     src/platform/GtkDesktopStyle.h
     src/platform/SymbolicIcons.cpp
     src/platform/SymbolicIcons.h
+    src/models/GameFilterProxyModel.cpp
+    src/models/GameFilterProxyModel.h
     src/models/GameListModel.cpp
     src/models/GameListModel.h
     src/models/MoveListModel.cpp
@@ -83,7 +106,13 @@ qt_add_executable(pragma-chess
     src/widgets/BoardPanel.cpp
     src/widgets/BoardPanel.h
     src/widgets/BoardWidget.cpp
+    src/widgets/CapturedPiecesWidget.cpp
+    src/widgets/CapturedPiecesWidget.h
+    src/widgets/PieceRenderer.cpp
+    src/widgets/PieceRenderer.h
     src/widgets/CentralArea.cpp
+    src/widgets/DatabaseTreeWidget.cpp
+    src/widgets/DatabaseTreeWidget.h
     src/widgets/CentralArea.h
     src/widgets/EnginePanel.cpp
     src/widgets/EnginePanel.h
@@ -107,7 +136,6 @@ else()
 endif()
 target_compile_definitions(pragma-chess PRIVATE
     APP_ID="${APP_ID}"
-    APP_VERSION="${PROJECT_VERSION}"
     QT_NO_KEYWORDS
 )
 
@@ -128,8 +156,10 @@ set_target_properties(pragma-explain PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTAB
 
 # Tested without a display.
 if(TARGET Qt6::Test)
-    qt_add_executable(tst_chessrules tests/tst_chessrules.cpp)
-    target_link_libraries(tst_chessrules PRIVATE pragma-chess-core Qt6::Test)
+    qt_add_executable(tst_chessrules tests/tst_chessrules.cpp
+        src/app/SqliteGameDatabase.cpp
+        src/app/SqliteGameDatabase.h)
+    target_link_libraries(tst_chessrules PRIVATE pragma-chess-core Qt6::Sql Qt6::Test)
     target_compile_options(tst_chessrules PRIVATE ${PRAGMA_WARNINGS})
     set_target_properties(tst_chessrules PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
     add_test(NAME chessrules COMMAND tst_chessrules)

@@ -17,6 +17,9 @@ enum class SanStyle { Letters, Figurines };
 /// "e8=Q" → "e8=♕". Castling and pawn moves are unchanged.
 QString figurineSan(const QString &san);
 
+/// Counts of pieces by side and type: `counts[int(side)][int(type)]`.
+using PieceCounts = std::array<std::array<int, 7>, 2>;
+
 /// A move between two squares (a1 = 0 ... h8 = 63), with the promotion piece
 /// for pawns reaching the last rank. Castling is the king moving two files.
 struct ChessMove {
@@ -81,6 +84,9 @@ public:
     /// Material from White's point of view, in centipawns (P=100 … Q=900).
     int material() const;
     static int pieceValue(PieceType type);
+    /// Pieces of each side taken off the board between `start` and this
+    /// position. A pawn that promoted is not counted as captured.
+    PieceCounts capturedSince(const ChessPosition &start) const;
 
     /// SAN moves of a UCI line with move numbers ("12.Nf3 Nc6 13.d4", "12…Nc6").
     /// Stops at the first illegal move or after `maxPlies`.

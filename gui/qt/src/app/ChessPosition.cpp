@@ -656,6 +656,33 @@ int ChessPosition::pieceValue(PieceType type)
     return 0;
 }
 
+PieceCounts ChessPosition::capturedSince(const ChessPosition &start) const
+{
+    const auto count = [](const ChessPosition &position) {
+        PieceCounts counts{};
+        for (const Piece &piece : position.m_squares)
+            ++counts[int(piece.side)][int(piece.type)];
+        return counts;
+    };
+    const PieceCounts before = count(start);
+    const PieceCounts now = count(*this);
+
+    PieceCounts captured{};
+    for (int side = 0; side < 2; ++side) {
+        int promotions = 0;
+        for (PieceType type : {PieceType::Knight, PieceType::Bishop, PieceType::Rook, PieceType::Queen}) {
+            const int difference = before[side][int(type)] - now[side][int(type)];
+            if (difference > 0)
+                captured[side][int(type)] = difference;
+            else
+                promotions -= difference; // More than at the start: promoted pawns.
+        }
+        const int missingPawns = before[side][int(PieceType::Pawn)] - now[side][int(PieceType::Pawn)];
+        captured[side][int(PieceType::Pawn)] = qMax(0, missingPawns - promotions);
+    }
+    return captured;
+}
+
 int ChessPosition::material() const
 {
     int total = 0;

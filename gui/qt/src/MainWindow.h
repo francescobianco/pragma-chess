@@ -7,6 +7,10 @@
 struct Project;
 
 class BoardWidget;
+class DatabaseTreeWidget;
+class GameFilterProxyModel;
+class QSplitter;
+class CapturedPiecesWidget;
 class EnginePanel;
 class EvaluationBar;
 class Explainer;
@@ -21,9 +25,9 @@ class QDockWidget;
 class QLabel;
 class QMainWindow;
 class QMenu;
-class QSortFilterProxyModel;
 class QTableView;
 class QTimer;
+class SourceSync;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -61,6 +65,7 @@ private:
     void syncBoard();
     void updateNavigationActions();
     void updateGameCount();
+    void showSourceGames(qint64 sourceId);
 
     // Entering games move by move.
     void newGame();
@@ -95,6 +100,9 @@ private:
     void saveDatabaseAs();
     void rebuildDatabasesMenu();
     void updateDatabaseActions();
+    // External sources of games (lichess.org, chess.com, …), synced in the background.
+    void connectSource();
+    void manageSources();
     void setAnalysisEnabled(bool enabled);
     void analyzeCurrentPosition();
     void editGameInfo();
@@ -118,7 +126,7 @@ private:
     std::unique_ptr<GameDatabase> m_database;
     GameSession *m_session;
     GameListModel *m_gameListModel;
-    QSortFilterProxyModel *m_gameListProxy;
+    GameFilterProxyModel *m_gameListProxy;
     MoveListModel *m_moveListModel;
 
     BoardWidget *m_board;
@@ -126,12 +134,20 @@ private:
     QMainWindow *m_sidebar;
     EvaluationBar *m_evaluationBar;
     GameHeaderWidget *m_gameHeader;
+    CapturedPiecesWidget *m_capturedPieces;
     EnginePanel *m_enginePanel;
     UciEngine *m_engine;
     Explainer *m_explainer;
     QTableView *m_moveView;
     QTableView *m_gameView;
+    DatabaseTreeWidget *m_databaseTree;
+    /// Databases tree | games list, inside the Games dock.
+    QSplitter *m_gamesSplitter;
+    /// Source whose games the list shows, or 0 for all games.
+    qint64 m_filterSource = 0;
     QLabel *m_gameCountLabel;
+    QLabel *m_syncLabel;
+    SourceSync *m_sourceSync;
 
     QDockWidget *m_movesDock;
     QDockWidget *m_gamesDock;
@@ -157,6 +173,8 @@ private:
     QAction *m_saveDatabaseAction;
     QAction *m_saveDatabaseAsAction;
     QAction *m_showDatabasesFolderAction;
+    QAction *m_connectSourceAction;
+    QAction *m_manageSourcesAction;
     QAction *m_quitAction;
     QAction *m_copyFenAction;
     QAction *m_pasteFenAction;

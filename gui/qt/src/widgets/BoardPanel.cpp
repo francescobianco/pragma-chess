@@ -1,12 +1,13 @@
 #include "BoardPanel.h"
 
 #include "BoardWidget.h"
+#include "CapturedPiecesWidget.h"
 #include "EvaluationBar.h"
 #include "GameHeaderWidget.h"
 
 #include <QAction>
 #include <QEvent>
-#include <QHBoxLayout>
+#include <QGridLayout>
 #include <QToolButton>
 
 namespace {
@@ -27,7 +28,7 @@ QToolButton *controlButton(QAction *action)
 } // namespace
 
 BoardPanel::BoardPanel(BoardWidget *board, EvaluationBar *evaluationBar, GameHeaderWidget *header,
-                       const Actions &actions, QWidget *parent)
+                       CapturedPiecesWidget *capturedPieces, const Actions &actions, QWidget *parent)
     : QWidget(parent)
     , m_board(board)
     , m_evaluationBar(evaluationBar)
@@ -39,19 +40,23 @@ BoardPanel::BoardPanel(BoardWidget *board, EvaluationBar *evaluationBar, GameHea
     m_header->setParent(this);
     m_controls->setAccessibleName(tr("Game controls"));
 
-    auto *layout = new QHBoxLayout(m_controls);
+    // Three columns: captured pieces at the left edge, navigation centered
+    // under the board, the flip button at the right edge. The side columns
+    // stretch equally so the navigation stays centered.
+    auto *layout = new QGridLayout(m_controls);
     layout->setContentsMargins(8, 4, 8, 4);
-    layout->setSpacing(2);
+    layout->setHorizontalSpacing(8);
 
-    // Keep the navigation buttons centered under the board, with the flip
-    // button at the edge; the leading spacer balances its width.
-    QToolButton *flip = controlButton(actions.flip);
-    layout->addSpacing(flip->sizeHint().width());
-    layout->addStretch();
+    auto *navigation = new QHBoxLayout;
+    navigation->setSpacing(2);
     for (QAction *action : {actions.first, actions.previous, actions.explain, actions.next, actions.last})
-        layout->addWidget(controlButton(action));
-    layout->addStretch();
-    layout->addWidget(flip);
+        navigation->addWidget(controlButton(action));
+
+    layout->addWidget(capturedPieces, 0, 0, Qt::AlignLeft | Qt::AlignVCenter);
+    layout->addLayout(navigation, 0, 1, Qt::AlignCenter);
+    layout->addWidget(controlButton(actions.flip), 0, 2, Qt::AlignRight | Qt::AlignVCenter);
+    layout->setColumnStretch(0, 1);
+    layout->setColumnStretch(2, 1);
 }
 
 QSize BoardPanel::sizeHint() const

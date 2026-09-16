@@ -1,6 +1,10 @@
 #pragma once
 
 #include "GameRecord.h"
+#include "sources/GameSource.h"
+
+#include <QList>
+#include <QSet>
 
 #include <optional>
 
@@ -32,6 +36,20 @@ public:
     /// Replaces the header information (players, event, date, result, …) of
     /// the game at `index`. Moves are left untouched.
     virtual bool updateHeader(qint64 index, const GameRecord &header, QString *errorMessage) = 0;
+
+    /// External sources of games connected to the database.
+    virtual QList<GameSource> sources() const = 0;
+    /// Connects a source; fills in its id (and uuid and creation time if empty).
+    virtual bool addSource(GameSource &source, QString *errorMessage) = 0;
+    /// Stores the settings, state, errors and sync time of a source.
+    virtual bool updateSource(const GameSource &source, QString *errorMessage) = 0;
+    /// Disconnects a source. Games already imported from it stay.
+    virtual bool removeSource(qint64 sourceId, QString *errorMessage) = 0;
+    /// Database ids of the games imported from a source.
+    virtual QSet<qint64> sourceGameIds(qint64 sourceId) const = 0;
+    /// Appends the games not imported from the source before (by external id).
+    /// Returns how many were added, or -1 on failure.
+    virtual int importGames(qint64 sourceId, const QList<ImportedGame> &games, QString *errorMessage) = 0;
 
     /// Whether there are changes not yet written to `location()`.
     virtual bool isModified() const = 0;

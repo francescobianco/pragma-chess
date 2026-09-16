@@ -38,6 +38,14 @@ game never changes it: the new line becomes an unsaved game.
 before the last move: the refutation of a mistake, the material a move wins,
 a mate it allows or misses. It starts the engine if needed.
 
+### Sources
+
+*Database ▸ Connect Source…* connects the games of a lichess.org or chess.com
+account to the open database. They are imported and kept up to date in the
+background while the database is open; *Database ▸ Manage Sources…* syncs,
+edits, signs in again or removes sources. lichess.org needs signing in, which
+happens in the browser.
+
 ### Build
 
 Debian/Ubuntu dependencies:

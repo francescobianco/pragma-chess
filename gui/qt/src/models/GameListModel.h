@@ -16,6 +16,8 @@ public:
     void setDatabase(const GameDatabase *database);
     /// Call after the header of the game in `row` changed in the database.
     void refreshRow(int row);
+    /// Call after games were appended to the database.
+    void refreshAppended();
 
     int rowCount(const QModelIndex &parent = {}) const override;
     int columnCount(const QModelIndex &parent = {}) const override;
@@ -24,4 +26,5 @@ public:
 
 private:
     const GameDatabase *m_database = nullptr;
+    int m_rows = 0;
 };

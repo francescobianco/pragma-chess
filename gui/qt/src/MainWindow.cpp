@@ -1,7 +1,9 @@
 #include "MainWindow.h"
 
 #include "app/ClassicGames.h"
+#include "dialogs/ConnectSourceWizard.h"
 #include "dialogs/GameInfoDialog.h"
+#include "dialogs/ManageSourcesDialog.h"
 #include "app/Explainer.h"
 #include "app/GameSession.h"
 #include "app/Pgn.h"
@@ -9,12 +11,17 @@
 #include "app/SqliteGameDatabase.h"
 #include "app/UciEngine.h"
 #include "app/UserFolders.h"
+#include "app/sources/SourceCatalog.h"
+#include "app/sources/SourceSync.h"
+#include "models/GameFilterProxyModel.h"
 #include "models/GameListModel.h"
 #include "models/MoveListModel.h"
 #include "platform/SymbolicIcons.h"
 #include "widgets/BoardPanel.h"
 #include "widgets/BoardWidget.h"
+#include "widgets/CapturedPiecesWidget.h"
 #include "widgets/CentralArea.h"
+#include "widgets/DatabaseTreeWidget.h"
 #include "widgets/EnginePanel.h"
 #include "widgets/EvaluationBar.h"
 #include "widgets/GameHeaderWidget.h"
@@ -42,7 +49,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSettings>
-#include <QSortFilterProxyModel>
+#include <QSplitter>
 #include <QStandardPaths>
 #include <QStatusBar>
 #include <QTableView>
@@ -94,14 +101,16 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_session(new GameSession(this))
     , m_gameListModel(new GameListModel(this))
-    , m_gameListProxy(new QSortFilterProxyModel(this))
+    , m_gameListProxy(new GameFilterProxyModel(this))
     , m_moveListModel(new MoveListModel(m_session, this))
     , m_board(new BoardWidget)
     , m_sidebar(new QMainWindow)
     , m_evaluationBar(new EvaluationBar)
     , m_gameHeader(new GameHeaderWidget)
+    , m_capturedPieces(new CapturedPiecesWidget)
     , m_engine(new UciEngine(this))
     , m_explainer(new Explainer(this))
+    , m_sourceSync(new SourceSync(this))
 {
     setDockOptions(AnimatedDocks | AllowTabbedDocks | AllowNestedDocks);
     m_sidebar->setWindowFlags(Qt::Widget);
@@ -112,7 +121,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_gameListProxy->setSortRole(Qt::DisplayRole);
 
     createActions();
-    auto *boardPanel = new BoardPanel(m_board, m_evaluationBar, m_gameHeader,
+    auto *boardPanel = new BoardPanel(m_board, m_evaluationBar, m_gameHeader, m_capturedPieces,
                                       {m_firstMoveAction, m_previousMoveAction, m_explainAction,
                                        m_nextMoveAction, m_lastMoveAction, m_flipBoardAction});
     setCentralWidget(new CentralArea(boardPanel, m_sidebar));
@@ -161,6 +170,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_board, &BoardWidget::navigateRequested, this,
             [this](int steps) { m_session->goToPly(m_session->ply() + steps); });
     connect(m_board, &BoardWidget::moveRequested, this, &MainWindow::playBoardMove);
+    connect(m_sourceSync, &SourceSync::gamesImported, this, [this] {
+        m_gameListModel->refreshAppended();
+        if (m_filterSource != 0)
+            showSourceGames(m_filterSource); // New games of the source shown.
+        updateGameCount();
+        m_databaseTree->refresh();
+    });
+    connect(m_sourceSync, &SourceSync::sourcesChanged, m_databaseTree, &DatabaseTreeWidget::refresh);
+    connect(m_sourceSync, &SourceSync::activityChanged, this, [this](const QString &text) {
+        m_syncLabel->setText(text);
+        m_syncLabel->setVisible(!text.isEmpty());
+    });
 
     m_saveTimer = new QTimer(this);
     m_saveTimer->setSingleShot(true);
@@ -181,6 +202,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(gameHeader, &QHeaderView::sectionMoved, this, &MainWindow::scheduleSaveSession);
     connect(gameHeader, &QHeaderView::sectionResized, this, &MainWindow::scheduleSaveSession);
     connect(gameHeader, &QHeaderView::sortIndicatorChanged, this, &MainWindow::scheduleSaveSession);
+    connect(m_gamesSplitter, &QSplitter::splitterMoved, this, &MainWindow::scheduleSaveSession);
     for (QDockWidget *dock : findChildren<QDockWidget *>()) {
         connect(dock, &QDockWidget::visibilityChanged, this, &MainWindow::scheduleSaveSession);
         connect(dock, &QDockWidget::topLevelChanged, this, &MainWindow::scheduleSaveSession);
@@ -234,6 +256,13 @@ void MainWindow::createActions()
         QDesktopServices::openUrl(QUrl::fromLocalFile(UserFolders::databasesDir()));
     });
 
+    m_connectSourceAction = new QAction(tr("Connect &Source…"), this);
+    m_connectSourceAction->setToolTip(tr("Import and keep in sync the games of a lichess.org or chess.com account"));
+    connect(m_connectSourceAction, &QAction::triggered, this, &MainWindow::connectSource);
+
+    m_manageSourcesAction = new QAction(tr("&Manage Sources…"), this);
+    connect(m_manageSourcesAction, &QAction::triggered, this, &MainWindow::manageSources);
+
     m_quitAction = new QAction(themeIcon("application-exit", QStyle::SP_DialogCloseButton),
                                tr("&Quit"), this);
     m_quitAction->setShortcut(QKeySequence::Quit);
@@ -274,6 +303,7 @@ void MainWindow::createActions()
     m_flipBoardAction->setCheckable(true);
     connect(m_flipBoardAction, &QAction::toggled, m_board, &BoardWidget::setFlipped);
     connect(m_flipBoardAction, &QAction::toggled, m_evaluationBar, &EvaluationBar::setFlipped);
+    connect(m_flipBoardAction, &QAction::toggled, m_capturedPieces, &CapturedPiecesWidget::setFlipped);
 
     m_coordinatesAction = new QAction(tr("Show &Coordinates"), this);
     m_coordinatesAction->setCheckable(true);
@@ -406,6 +436,9 @@ void MainWindow::createMenus()
     m_databasesMenu = database->addMenu(themeIcon("folder", QStyle::SP_DirIcon), tr("&Databases"));
     connect(m_databasesMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildDatabasesMenu);
     database->addSeparator();
+    database->addAction(m_connectSourceAction);
+    database->addAction(m_manageSourcesAction);
+    database->addSeparator();
     database->addAction(m_saveDatabaseAction);
     database->addAction(m_saveDatabaseAsAction);
 
@@ -507,17 +540,44 @@ void MainWindow::createDocks()
     m_gameView->horizontalHeader()->setStretchLastSection(true);
     m_gameView->horizontalHeader()->setSectionsMovable(true);
     connect(m_gameView, &QTableView::activated, this, &MainWindow::openGame);
-    m_gamesDock = addDock(this, QStringLiteral("gamesDock"), tr("Games"), m_gameView, Qt::BottomDockWidgetArea);
+
+    m_databaseTree = new DatabaseTreeWidget;
+    connect(m_databaseTree, &DatabaseTreeWidget::databaseRequested, this, [this](const QString &path) {
+        // Deferred: opening replaces the tree's contents while it is handling the click.
+        QMetaObject::invokeMethod(this, [this, path] { openDatabaseFile(path); }, Qt::QueuedConnection);
+    });
+    connect(m_databaseTree, &DatabaseTreeWidget::allGamesSelected, this, [this] { showSourceGames(0); });
+    connect(m_databaseTree, &DatabaseTreeWidget::sourceSelected, this, &MainWindow::showSourceGames);
+    connect(m_databaseTree, &DatabaseTreeWidget::connectSourceRequested, this, &MainWindow::connectSource);
+    connect(m_databaseTree, &DatabaseTreeWidget::manageSourcesRequested, this, &MainWindow::manageSources);
+    connect(m_databaseTree, &DatabaseTreeWidget::syncSourceRequested, this,
+            [this](qint64 id) { m_sourceSync->syncSource(id); });
+
+    // A vertical ruler between the tree and the list resizes them.
+    m_gamesSplitter = new QSplitter(Qt::Horizontal);
+    m_gamesSplitter->setObjectName(QStringLiteral("gamesSplitter"));
+    m_gamesSplitter->setChildrenCollapsible(false);
+    m_gamesSplitter->addWidget(m_databaseTree);
+    m_gamesSplitter->addWidget(m_gameView);
+    m_gamesSplitter->setStretchFactor(0, 0);
+    m_gamesSplitter->setStretchFactor(1, 1);
+    m_gamesSplitter->setSizes({220, 800});
+    m_gamesDock = addDock(this, QStringLiteral("gamesDock"), tr("Games"), m_gamesSplitter, Qt::BottomDockWidgetArea);
 }
 
 void MainWindow::createStatusBar()
 {
+    m_syncLabel = new QLabel;
+    m_syncLabel->hide();
+    statusBar()->addPermanentWidget(m_syncLabel);
+
     m_gameCountLabel = new QLabel;
     statusBar()->addPermanentWidget(m_gameCountLabel);
 }
 
 void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
 {
+    m_sourceSync->setDatabase(nullptr); // Before the old database goes away.
     m_gameListModel->setDatabase(nullptr);
     m_database = std::move(database);
     m_gameListModel->setDatabase(m_database.get());
@@ -527,6 +587,10 @@ void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
     updateGameCount();
     updateDatabaseActions();
     updateGameActions();
+    m_filterSource = 0;
+    m_gameListProxy->setGameIds(std::nullopt);
+    m_databaseTree->setDatabase(m_database.get());
+    m_sourceSync->setDatabase(m_database.get());
 }
 
 void MainWindow::openGame(const QModelIndex &proxyIndex)
@@ -544,6 +608,7 @@ void MainWindow::openGame(const QModelIndex &proxyIndex)
 void MainWindow::syncBoard()
 {
     m_board->setBoard(frameFor(m_session->position(), m_session->lastMoveFrom(), m_session->lastMoveTo()));
+    m_capturedPieces->setCaptured(m_session->position().capturedSince(m_session->initialPosition()));
     QMultiHash<int, int> legalMoves;
     for (const ChessMove &move : m_session->position().legalMoves())
         legalMoves.insert(move.from, move.to);
@@ -581,8 +646,20 @@ void MainWindow::updateGameCount()
         return;
     }
     const qint64 total = m_database->gameCount();
-    const QString count = total == 1 ? tr("1 game") : tr("%1 games").arg(QLocale().toString(total));
+    const qint64 shown = m_gameListProxy->rowCount();
+    const QLocale locale;
+    const QString count = m_gameListProxy->isFiltered()
+        ? tr("%1 of %2 games").arg(locale.toString(shown), locale.toString(total))
+        : total == 1 ? tr("1 game") : tr("%1 games").arg(locale.toString(total));
     m_gameCountLabel->setText(tr("%1 — %2").arg(m_database->name(), count));
+}
+
+void MainWindow::showSourceGames(qint64 sourceId)
+{
+    m_filterSource = m_database ? sourceId : 0;
+    m_gameListProxy->setGameIds(m_filterSource != 0 ? std::optional<QSet<qint64>>(m_database->sourceGameIds(sourceId))
+                                                    : std::nullopt);
+    updateGameCount();
 }
 
 void MainWindow::newDatabase()
@@ -780,6 +857,36 @@ void MainWindow::updateDatabaseActions()
     const bool hasDatabase = m_database != nullptr;
     m_saveDatabaseAction->setEnabled(hasDatabase && (m_database->isModified() || m_database->location().isEmpty()));
     m_saveDatabaseAsAction->setEnabled(hasDatabase);
+    m_connectSourceAction->setEnabled(hasDatabase);
+    m_manageSourcesAction->setEnabled(hasDatabase);
+}
+
+void MainWindow::connectSource()
+{
+    if (!m_database)
+        return;
+    ConnectSourceWizard wizard(m_database->name(), this);
+    if (wizard.exec() != QDialog::Accepted)
+        return;
+    GameSource source = wizard.source();
+    QString error;
+    if (!m_database->addSource(source, &error)) {
+        QMessageBox::warning(this, tr("Connect Source"), tr("Could not connect the source: %1").arg(error));
+        return;
+    }
+    m_sourceSync->syncSource(source.id);
+    m_databaseTree->refresh();
+    statusBar()->showMessage(tr("Connected %1 to %2").arg(SourceCatalog::displayName(source), m_database->name()), 5000);
+}
+
+void MainWindow::manageSources()
+{
+    if (!m_database)
+        return;
+    ManageSourcesDialog dialog(m_database.get(), m_sourceSync, this);
+    connect(&dialog, &ManageSourcesDialog::connectRequested, this, &MainWindow::connectSource);
+    dialog.exec();
+    m_databaseTree->refresh();
 }
 
 void MainWindow::setAnalysisEnabled(bool enabled)
@@ -1088,6 +1195,7 @@ void MainWindow::restoreSession()
         resize(1280, 820);
 
     QHeaderView *gameHeader = m_gameView->horizontalHeader();
+    m_gamesSplitter->restoreState(settings.value(QStringLiteral("games/splitter")).toByteArray());
     if (gameHeader->restoreState(settings.value(QStringLiteral("games/header")).toByteArray()))
         m_gameView->sortByColumn(gameHeader->sortIndicatorSection(), gameHeader->sortIndicatorOrder());
 
@@ -1124,6 +1232,7 @@ void MainWindow::saveSession()
     QSettings settings;
     settings.setValue(QStringLiteral("window/geometry"), saveGeometry());
     settings.setValue(QStringLiteral("games/header"), m_gameView->horizontalHeader()->saveState());
+    settings.setValue(QStringLiteral("games/splitter"), m_gamesSplitter->saveState());
     settings.setValue(QStringLiteral("session/project"), captureProject().toYaml());
     settings.setValue(QStringLiteral("session/projectPath"), m_projectPath);
     // Superseded by session/project.

@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QHash>
+#include <QJsonDocument>
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -14,7 +15,7 @@ namespace {
 
 // "PRAG" — lets other tools (and `file`) identify Pragma databases.
 constexpr int kApplicationId = 0x50524147;
-constexpr int kSchemaVersion = 1;
+constexpr int kSchemaVersion = 2;
 
 const char *const kSchema[] = {
     "CREATE TABLE players (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
@@ -37,6 +38,36 @@ const char *const kSchema[] = {
     "CREATE INDEX games_white ON games(white_id)",
     "CREATE INDEX games_black ON games(black_id)",
 };
+
+// Version 2: external sources of games and where each imported game came from.
+const char *const kSourcesSchema[] = {
+    "CREATE TABLE IF NOT EXISTS sources ("
+    " id INTEGER PRIMARY KEY,"
+    " uuid TEXT NOT NULL UNIQUE,"
+    " kind TEXT NOT NULL,"
+    " account TEXT NOT NULL,"
+    " settings TEXT NOT NULL DEFAULT '{}',"
+    " state TEXT NOT NULL DEFAULT '{}',"
+    " enabled INTEGER NOT NULL DEFAULT 1,"
+    " created_at TEXT NOT NULL,"
+    " last_sync_at TEXT,"
+    " last_error TEXT)",
+    "CREATE TABLE IF NOT EXISTS game_sources ("
+    " game_id INTEGER NOT NULL REFERENCES games(id),"
+    " source_id INTEGER NOT NULL REFERENCES sources(id),"
+    " external_id TEXT NOT NULL,"
+    " UNIQUE (source_id, external_id))",
+};
+
+QString toJsonText(const QJsonObject &object)
+{
+    return QString::fromUtf8(QJsonDocument(object).toJson(QJsonDocument::Compact));
+}
+
+QJsonObject fromJsonText(const QString &text)
+{
+    return QJsonDocument::fromJson(text.toUtf8()).object();
+}
 
 void setError(QString *errorMessage, const QString &message)
 {
@@ -198,6 +229,10 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::create(const QString &pa
         if (!query.exec(QString::fromLatin1(statement)))
             return fail(query.lastError().text());
     }
+    for (const char *statement : kSourcesSchema) {
+        if (!query.exec(QString::fromLatin1(statement)))
+            return fail(query.lastError().text());
+    }
 
     GameInserter inserter(db);
     for (const GameRecord &game : games) {
@@ -244,7 +279,23 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::open(const QString &path
                                    .arg(info.fileName()));
         return nullptr;
     }
+    const int version = query.value(0).toInt();
     query.finish();
+
+    // Upgrade older files in place; each step only adds tables.
+    if (version < 2) {
+        db.transaction();
+        bool upgraded = true;
+        for (const char *statement : kSourcesSchema)
+            upgraded = upgraded && query.exec(QString::fromLatin1(statement));
+        upgraded = upgraded && query.exec(QStringLiteral("PRAGMA user_version = 2"));
+        if (!upgraded || !db.commit()) {
+            db.rollback();
+            setError(errorMessage, QObject::tr("Could not upgrade “%1”: %2")
+                                       .arg(info.fileName(), query.lastError().text()));
+            return nullptr;
+        }
+    }
 
     if (!database->loadHeaders(errorMessage))
         return nullptr;
@@ -405,4 +456,158 @@ bool SqliteGameDatabase::updateHeader(qint64 index, const GameRecord &header, QS
     cached.result = header.result;
     cached.eco = header.eco;
     return true;
+}
+
+QList<GameSource> SqliteGameDatabase::sources() const
+{
+    QList<GameSource> result;
+    QSqlQuery query(QSqlDatabase::database(m_connectionName));
+    if (!query.exec(QStringLiteral(
+            "SELECT s.id, s.uuid, s.kind, s.account, s.settings, s.state, s.enabled, s.created_at,"
+            " s.last_sync_at, s.last_error, (SELECT COUNT(*) FROM game_sources g WHERE g.source_id = s.id)"
+            " FROM sources s ORDER BY s.id")))
+        return result;
+    while (query.next()) {
+        GameSource source;
+        source.id = query.value(0).toLongLong();
+        source.uuid = query.value(1).toString();
+        source.kind = query.value(2).toString();
+        source.account = query.value(3).toString();
+        source.settings = fromJsonText(query.value(4).toString());
+        source.state = fromJsonText(query.value(5).toString());
+        source.enabled = query.value(6).toBool();
+        source.createdAt = QDateTime::fromString(query.value(7).toString(), Qt::ISODate);
+        source.lastSyncAt = QDateTime::fromString(query.value(8).toString(), Qt::ISODate);
+        source.lastError = query.value(9).toString();
+        source.importedGames = query.value(10).toLongLong();
+        result << source;
+    }
+    return result;
+}
+
+bool SqliteGameDatabase::addSource(GameSource &source, QString *errorMessage)
+{
+    if (source.uuid.isEmpty())
+        source.uuid = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    if (!source.createdAt.isValid())
+        source.createdAt = QDateTime::currentDateTimeUtc();
+
+    QSqlQuery insert(QSqlDatabase::database(m_connectionName));
+    insert.prepare(QStringLiteral(
+        "INSERT INTO sources (uuid, kind, account, settings, state, enabled, created_at)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?)"));
+    insert.addBindValue(source.uuid);
+    insert.addBindValue(source.kind);
+    insert.addBindValue(source.account);
+    insert.addBindValue(toJsonText(source.settings));
+    insert.addBindValue(toJsonText(source.state));
+    insert.addBindValue(source.enabled);
+    insert.addBindValue(source.createdAt.toString(Qt::ISODate));
+    if (!insert.exec()) {
+        setError(errorMessage, insert.lastError().text());
+        return false;
+    }
+    source.id = insert.lastInsertId().toLongLong();
+    return true;
+}
+
+bool SqliteGameDatabase::updateSource(const GameSource &source, QString *errorMessage)
+{
+    QSqlQuery update(QSqlDatabase::database(m_connectionName));
+    update.prepare(QStringLiteral(
+        "UPDATE sources SET account = ?, settings = ?, state = ?, enabled = ?, last_sync_at = ?, last_error = ?"
+        " WHERE id = ?"));
+    update.addBindValue(source.account);
+    update.addBindValue(toJsonText(source.settings));
+    update.addBindValue(toJsonText(source.state));
+    update.addBindValue(source.enabled);
+    update.addBindValue(source.lastSyncAt.isValid() ? QVariant(source.lastSyncAt.toString(Qt::ISODate)) : QVariant());
+    update.addBindValue(nullIfEmpty(source.lastError));
+    update.addBindValue(source.id);
+    if (!update.exec()) {
+        setError(errorMessage, update.lastError().text());
+        return false;
+    }
+    return true;
+}
+
+bool SqliteGameDatabase::removeSource(qint64 sourceId, QString *errorMessage)
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    db.transaction();
+    QSqlQuery query(db);
+    query.prepare(QStringLiteral("DELETE FROM game_sources WHERE source_id = ?"));
+    query.addBindValue(sourceId);
+    bool ok = query.exec();
+    query.prepare(QStringLiteral("DELETE FROM sources WHERE id = ?"));
+    query.addBindValue(sourceId);
+    ok = ok && query.exec();
+    if (!ok || !db.commit()) {
+        setError(errorMessage, query.lastError().isValid() ? query.lastError().text() : db.lastError().text());
+        db.rollback();
+        return false;
+    }
+    return true;
+}
+
+int SqliteGameDatabase::importGames(qint64 sourceId, const QList<ImportedGame> &games, QString *errorMessage)
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    db.transaction();
+    GameInserter inserter(db);
+    QSqlQuery known(db);
+    known.prepare(QStringLiteral("SELECT 1 FROM game_sources WHERE source_id = ? AND external_id = ?"));
+    QSqlQuery link(db);
+    link.prepare(QStringLiteral("INSERT INTO game_sources (game_id, source_id, external_id) VALUES (?, ?, ?)"));
+
+    QList<GameRecord> added;
+    for (const ImportedGame &imported : games) {
+        known.addBindValue(sourceId);
+        known.addBindValue(imported.externalId);
+        if (!known.exec()) {
+            setError(errorMessage, known.lastError().text());
+            db.rollback();
+            return -1;
+        }
+        const bool alreadyImported = known.next();
+        known.finish();
+        if (alreadyImported)
+            continue;
+
+        const qint64 id = inserter.insert(imported.game);
+        link.addBindValue(id);
+        link.addBindValue(sourceId);
+        link.addBindValue(imported.externalId);
+        if (id == 0 || !link.exec()) {
+            setError(errorMessage, id == 0 ? inserter.errorText() : link.lastError().text());
+            db.rollback();
+            return -1;
+        }
+        GameRecord header = imported.game;
+        header.id = id;
+        header.plyCount = int(imported.game.moves.size());
+        header.moves.clear();
+        added << header;
+    }
+    if (!db.commit()) {
+        setError(errorMessage, db.lastError().text());
+        db.rollback();
+        return -1;
+    }
+    m_headers += added;
+    return int(added.size());
+}
+
+QSet<qint64> SqliteGameDatabase::sourceGameIds(qint64 sourceId) const
+{
+    QSet<qint64> ids;
+    QSqlQuery query(QSqlDatabase::database(m_connectionName));
+    query.setForwardOnly(true);
+    query.prepare(QStringLiteral("SELECT game_id FROM game_sources WHERE source_id = ?"));
+    query.addBindValue(sourceId);
+    if (query.exec()) {
+        while (query.next())
+            ids.insert(query.value(0).toLongLong());
+    }
+    return ids;
 }

@@ -94,6 +94,14 @@ void UciEngine::analyze(const QString &startFen, const QStringList &uciMoves, Si
     }
 }
 
+void UciEngine::setOption(const QString &name, const QString &value)
+{
+    m_optionValues.removeIf([&](const auto &option) { return option.first == name; });
+    m_optionValues.append({name, value});
+    if (m_state == State::Idle)
+        send("setoption name " + name.toUtf8() + " value " + value.toUtf8());
+}
+
 void UciEngine::stopAnalysis()
 {
     m_pending.reset();
@@ -138,6 +146,8 @@ void UciEngine::handleLine(const QByteArray &line)
         }
         if (m_options.contains(QLatin1String("UCI_AnalyseMode")))
             send("setoption name UCI_AnalyseMode value true");
+        for (const auto &[name, value] : std::as_const(m_optionValues))
+            send("setoption name " + name.toUtf8() + " value " + value.toUtf8());
         send("isready");
     } else if (command == "readyok") {
         if (m_state == State::Initializing) {
@@ -220,7 +230,10 @@ void UciEngine::startPendingSearch()
         go += " infinite";
 
     m_searchSide = m_pending->sideToMove;
+    const bool clearHash = m_pending->limit.clearHash;
     m_pending.reset();
+    if (clearHash)
+        send("ucinewgame");
     send(position);
     send(go);
     m_state = State::Searching;

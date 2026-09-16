@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ChessPosition.h"
+#include "ExplanationSearch.h"
 #include "MoveExplanation.h"
 
 #include <QHash>
@@ -8,17 +9,12 @@
 
 #include <optional>
 
-class QTimer;
-class UciEngine;
-
-/// Drives the "Explain" command: collects the evaluation of the position on
-/// the board and of the position before the last move, and turns the two into
-/// a MoveExplanation.
+/// Drives the "Explain" command of the desktop client.
 ///
-/// The position on the board is evaluated by the main analysis, which feeds
-/// its results in through setCurrentEvaluation(). The previous position is
-/// searched to a fixed depth by a second engine process, unless it was
-/// already evaluated deeply enough (e.g. while stepping through the game).
+/// The move on the board is analyzed by an ExplanationSearch with the same
+/// settings as the command line tool, so both explain a move identically and
+/// the explanation does not change while an analysis deepens. Finished
+/// analyses are kept, so explaining a move again is immediate.
 class Explainer : public QObject {
     Q_OBJECT
 
@@ -35,22 +31,18 @@ public:
     void setPosition(const ChessPosition &position, const std::optional<ChessPosition> &before,
                      const std::optional<ChessMove> &played);
 
-    /// Evaluation of the position on the board, from the main analysis.
-    void setCurrentEvaluation(const EngineEvaluation &evaluation);
-
 Q_SIGNALS:
     /// The explanation for the current position; without arrows and with a
-    /// progress summary while the evaluations are not deep enough yet.
+    /// progress summary while the engine is still searching.
     void explanationChanged(const MoveExplanation &explanation);
 
 private:
-    void remember(const QString &positionKey, const EngineEvaluation &evaluation);
-    std::optional<EngineEvaluation> deepEnough(const ChessPosition &position) const;
-    void searchPreviousPosition();
-    void scheduleUpdate();
-    void update();
+    QString currentKey() const;
+    static QString keyFor(const ExplanationAnalysis &analysis);
+    void explain();
+    void show(const MoveExplanation &explanation);
 
-    UciEngine *m_engine;
+    ExplanationSearch *m_search;
     QString m_engineExecutable;
     bool m_enabled = false;
 
@@ -58,11 +50,6 @@ private:
     std::optional<ChessPosition> m_before;
     std::optional<ChessMove> m_played;
 
-    /// Deepest evaluation seen for each position, by ChessPosition::positionKey().
-    QHash<QString, EngineEvaluation> m_evaluations;
-    /// Position the second engine is searching.
-    QString m_searchingKey;
-
-    QTimer *m_updateTimer;
+    QHash<QString, ExplanationAnalysis> m_analyses;
     std::optional<MoveExplanation> m_shown;
 };

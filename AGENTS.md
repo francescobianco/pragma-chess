@@ -48,6 +48,8 @@ gui/qt/
   resources/pieces/    SVG piece sets (Good Companion)
   data/                .desktop file
   tests/               Qt Test executables (added to CMake only if Qt Test is found)
+  tools/explain/       pragma-explain, the "Explain" command line tool
+docs/                  design and tuning notes (explain-tuning.md)
 scripts/dev-watch.sh   rebuild + restart loop used by `make start`
 ```
 
@@ -64,9 +66,13 @@ scripts/dev-watch.sh   rebuild + restart loop used by `make start`
   and some modules declared in `core/src/chess/mod.rs` (`san`, `zobrist`) are
   not in the repository yet, so `cargo build` does not currently succeed.
   Don't assume Rust code is wired up; check before relying on it.
+- Non-widget code (rules, engine driver, Explain, PGN) is the static library
+  `pragma-chess-core` (Qt Core only), linked by the app, the tools and tests.
 - Tests: `gui/qt/tests/tst_chessrules.cpp` (Qt Test, no display needed) covers
-  `ChessPosition` with perft counts and the "Explain" logic with synthetic
-  engine lines. There are no widget tests.
+  `ChessPosition` with perft counts, PGN/SAN parsing and the "Explain" logic
+  with synthetic engine lines. There are no widget tests.
+- SAN is shown with figurines (♘f3) in the desktop client; the clipboard, PGN
+  and the command line use letters.
 
 ## Explain
 
@@ -79,10 +85,21 @@ playing a move turns it off, and the user asks again at the next move.
   every change here. It replays the engine's principal variation and finds
   where the evaluation becomes concrete: material won once exchanges, checks
   and recaptures are over (and stays won for a few plies), or a mate.
-- `app/Explainer.*` — gathers the evaluations: the current position from the
-  main analysis, the previous position from a second, depth-limited engine
-  process, with a cache by position.
-- `widgets/BoardWidget` only paints `BoardArrow`s and lost-piece rings.
+- `app/ExplanationSearch.*` — the engine searches for an explanation
+  (positions before and after the move at fixed depth, then the line probe)
+  with `ExplainSettings`. Shared by the desktop client and `pragma-explain`,
+  so both show the same explanation: never explain from the live analysis.
+- `app/Explainer.*` — desktop controller: runs ExplanationSearch on the
+  configured engine and caches finished analyses by move.
+- `app/AdvantageProbe.*` — pure: where an advantage becomes concrete, from
+  shallow searches along the principal variation and searches by depth.
+- `widgets/BoardWidget` only paints `BoardArrow`s and lost-piece rings, and
+  plays `BoardFrame` sequences (a forced mate from `MoveExplanation::playback`)
+  with a red frame, restoring the position on `stopSequence()`.
+- `tools/explain` builds `pragma-explain`, the same explanation on the command
+  line with a trace. **Tuning happens there**: read
+  [docs/explain-tuning.md](docs/explain-tuning.md) first, and log feedback
+  and decisions in it. Enrich the explanation, don't replace what works.
 
 ## Build and run
 
@@ -93,6 +110,7 @@ make deps     # apt install Qt 6 (base, svg, sqlite driver), cmake, ninja, inoti
 make build    # configure (build/, Debug, Ninja if present) and build
 make run      # build and launch build/gui/qt/pragma-chess
 make test     # build and run the tests (ctest)
+./build/gui/qt/pragma-explain --trace "1.e4 e5 2.Nf3 d6 3.Nxe5"   # Explain on the command line
 make start    # launch, rebuild and restart on every change (interactive, long-running)
 make clean
 ```

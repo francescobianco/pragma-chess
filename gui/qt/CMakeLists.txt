@@ -23,33 +23,52 @@ qt_standard_project_setup()
 
 set(APP_ID "io.github.francescobianco.PragmaChess")
 
+# Chess rules, engine driver and "Explain" logic: Qt Core only, shared by the
+# desktop client, the command line tools and the tests.
+qt_add_library(pragma-chess-core STATIC
+    src/app/AdvantageProbe.cpp
+    src/app/AdvantageProbe.h
+    src/app/BoardState.cpp
+    src/app/BoardState.h
+    src/app/ChessPosition.cpp
+    src/app/ChessPosition.h
+    src/app/EngineEvaluation.cpp
+    src/app/EngineEvaluation.h
+    src/app/Explainer.cpp
+    src/app/Explainer.h
+    src/app/ExplanationSearch.cpp
+    src/app/ExplanationSearch.h
+    src/app/MoveExplanation.cpp
+    src/app/MoveExplanation.h
+    src/app/Pgn.cpp
+    src/app/Pgn.h
+    src/app/UciEngine.cpp
+    src/app/UciEngine.h
+)
+target_include_directories(pragma-chess-core PUBLIC src)
+target_link_libraries(pragma-chess-core PUBLIC Qt6::Core)
+target_compile_definitions(pragma-chess-core PUBLIC QT_NO_KEYWORDS)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    set(PRAGMA_WARNINGS -Wall -Wextra -Wpedantic)
+endif()
+target_compile_options(pragma-chess-core PRIVATE ${PRAGMA_WARNINGS})
+
 qt_add_executable(pragma-chess
     src/main.cpp
     src/MainWindow.cpp
     src/MainWindow.h
     src/dialogs/GameInfoDialog.cpp
     src/dialogs/GameInfoDialog.h
-    src/app/BoardState.cpp
-    src/app/BoardState.h
-    src/app/ChessPosition.cpp
-    src/app/ChessPosition.h
     src/app/ClassicGames.cpp
     src/app/ClassicGames.h
     src/app/GameDatabase.h
     src/app/GameRecord.h
     src/app/Project.cpp
     src/app/Project.h
-    src/app/EngineEvaluation.cpp
-    src/app/EngineEvaluation.h
-    src/app/Explainer.cpp
-    src/app/Explainer.h
     src/app/GameSession.cpp
     src/app/GameSession.h
-    src/app/MoveExplanation.cpp
-    src/app/MoveExplanation.h
     src/app/SqliteGameDatabase.cpp
-    src/app/UciEngine.cpp
-    src/app/UciEngine.h
     src/app/SqliteGameDatabase.h
     src/app/UserFolders.cpp
     src/app/UserFolders.h
@@ -76,7 +95,7 @@ qt_add_executable(pragma-chess
 )
 
 target_include_directories(pragma-chess PRIVATE src)
-target_link_libraries(pragma-chess PRIVATE Qt6::Widgets Qt6::Sql yaml-cpp::yaml-cpp)
+target_link_libraries(pragma-chess PRIVATE pragma-chess-core Qt6::Widgets Qt6::Sql yaml-cpp::yaml-cpp)
 
 if(TARGET Qt6::Svg)
     target_link_libraries(pragma-chess PRIVATE Qt6::Svg)
@@ -92,9 +111,7 @@ target_compile_definitions(pragma-chess PRIVATE
     QT_NO_KEYWORDS
 )
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(pragma-chess PRIVATE -Wall -Wextra -Wpedantic)
-endif()
+target_compile_options(pragma-chess PRIVATE ${PRAGMA_WARNINGS})
 
 set_target_properties(pragma-chess PROPERTIES
     WIN32_EXECUTABLE ON
@@ -103,21 +120,17 @@ set_target_properties(pragma-chess PROPERTIES
     MACOSX_BUNDLE_BUNDLE_NAME "Pragma Chess"
 )
 
-# Rules and "Explain" logic are plain C++ on Qt Core, tested without a display.
+# Command line "Explain", for tuning it on real lines (see docs/explain-tuning.md).
+qt_add_executable(pragma-explain tools/explain/main.cpp)
+target_link_libraries(pragma-explain PRIVATE pragma-chess-core)
+target_compile_options(pragma-explain PRIVATE ${PRAGMA_WARNINGS})
+set_target_properties(pragma-explain PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
+
+# Tested without a display.
 if(TARGET Qt6::Test)
-    qt_add_executable(tst_chessrules
-        tests/tst_chessrules.cpp
-        src/app/BoardState.cpp
-        src/app/ChessPosition.cpp
-        src/app/EngineEvaluation.cpp
-        src/app/MoveExplanation.cpp
-    )
-    target_include_directories(tst_chessrules PRIVATE src)
-    target_link_libraries(tst_chessrules PRIVATE Qt6::Core Qt6::Test)
-    target_compile_definitions(tst_chessrules PRIVATE QT_NO_KEYWORDS)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        target_compile_options(tst_chessrules PRIVATE -Wall -Wextra -Wpedantic)
-    endif()
+    qt_add_executable(tst_chessrules tests/tst_chessrules.cpp)
+    target_link_libraries(tst_chessrules PRIVATE pragma-chess-core Qt6::Test)
+    target_compile_options(tst_chessrules PRIVATE ${PRAGMA_WARNINGS})
     set_target_properties(tst_chessrules PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
     add_test(NAME chessrules COMMAND tst_chessrules)
 else()

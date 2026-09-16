@@ -11,6 +11,21 @@
 
 #include <array>
 
+class QTimer;
+class QVariantAnimation;
+
+/// How a king is marked on the board.
+enum class KingMark { None, Check, Mate };
+
+/// A position to show, with the move that led to it and the king in check or mated.
+struct BoardFrame {
+    BoardState board;
+    int lastMoveFrom = -1;
+    int lastMoveTo = -1;
+    int markedKing = -1;
+    KingMark kingMark = KingMark::None;
+};
+
 /// Renders a chess position and lets the user pick moves by clicking or
 /// dragging pieces. Knows nothing about games, databases or the rules: the
 /// moves it offers are the ones given to setLegalMoves().
@@ -21,7 +36,7 @@ public:
     explicit BoardWidget(QWidget *parent = nullptr);
 
     /// Shows a position; clears the selection and the explanation arrows.
-    void setBoard(const BoardState &board, int lastMoveFrom = -1, int lastMoveTo = -1);
+    void setBoard(const BoardFrame &frame);
     const BoardState &board() const { return m_board; }
 
     /// Moves the user may enter, as origin square → target squares.
@@ -29,6 +44,14 @@ public:
 
     /// Arrows and lost-piece rings explaining the position.
     void setExplanation(const QList<BoardArrow> &arrows, const QList<int> &lostPieces);
+
+    /// Plays positions one after the other, sliding the moving piece, and
+    /// holds the last one; e.g. a forced mate. The board frame turns red and
+    /// moves cannot be entered until stopSequence() or setBoard().
+    void playSequence(const QList<BoardFrame> &frames);
+    /// Stops a sequence and shows the position it started from again.
+    void stopSequence();
+    bool isShowingSequence() const { return m_sequenceActive; }
 
     bool isFlipped() const { return m_flipped; }
     void setFlipped(bool flipped);
@@ -70,7 +93,13 @@ private:
     int squareAt(const QPointF &point) const;
     void paintPiece(QPainter &painter, Piece piece, const QRectF &rect) const;
     void paintArrow(QPainter &painter, const BoardArrow &arrow) const;
+    /// A soft red glow under a king in check or mated, and a "+" or "#" badge above it.
+    void paintKingGlow(QPainter &painter) const;
+    void paintKingBadge(QPainter &painter) const;
     void clearSelection();
+    void showNextFrame();
+    /// Ends a sequence without restoring the board.
+    void endSequence();
     const QPainterPath &glyphPath(PieceType type) const;
     /// Piece rendered from the SVG piece set, or a null pixmap if unavailable.
     QPixmap piecePixmap(Piece piece, int pixelSize) const;
@@ -95,6 +124,17 @@ private:
 
     QList<BoardArrow> m_arrows;
     QList<int> m_lostPieces;
+
+    QList<BoardFrame> m_frames;
+    qsizetype m_nextFrame = 0;
+    bool m_sequenceActive = false;
+    int m_markedKing = -1;
+    KingMark m_kingMark = KingMark::None;
+    /// Board and last move to show again when the sequence is stopped.
+    BoardFrame m_beforeSequence;
+    QTimer *m_sequenceTimer;
+    /// Progress (0–1) of the piece sliding to the last move's target.
+    QVariantAnimation *m_slide;
     mutable std::array<QPainterPath, 7> m_glyphs;
     mutable QHash<quint32, QPixmap> m_pieceCache;
 };

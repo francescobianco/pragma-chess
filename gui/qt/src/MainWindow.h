@@ -101,6 +101,8 @@ private:
     void updateGameHeader();
     void copyFen();
     void pasteFen();
+    /// Edit ▸ Copy: puts `text` on the clipboard and confirms with `message`.
+    void copyText(const QString &text, const QString &message);
     void applyWorkspace(Workspace workspace);
     void saveWorkspaceAs();
     void rebuildWorkspaceMenu();
@@ -140,6 +142,9 @@ private:
     QString m_savedProjectYaml;
     QString m_engineName;
     QString m_engineExecutable;
+    /// Latest engine line (SAN) and explanation, for Edit ▸ Copy.
+    QString m_engineLine;
+    QString m_explanationText;
 
     QAction *m_newProjectAction;
     QAction *m_openProjectAction;

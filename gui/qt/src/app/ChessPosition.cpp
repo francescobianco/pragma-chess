@@ -64,6 +64,26 @@ int castlingMask(int square)
 
 } // namespace
 
+QString figurineSan(const QString &san)
+{
+    const auto figurine = [](QChar letter) -> QChar {
+        switch (letter.unicode()) {
+        case 'K': return QChar(0x2654);
+        case 'Q': return QChar(0x2655);
+        case 'R': return QChar(0x2656);
+        case 'B': return QChar(0x2657);
+        case 'N': return QChar(0x2658);
+        default: return letter;
+        }
+    };
+    QString text = san;
+    if (!text.isEmpty())
+        text[0] = figurine(text.at(0));
+    if (const qsizetype promotion = text.indexOf(QLatin1Char('=')); promotion >= 0 && promotion + 1 < text.size())
+        text[promotion + 1] = figurine(text.at(promotion + 1));
+    return text;
+}
+
 QString ChessMove::uci() const
 {
     QString text = BoardState::squareName(from) + BoardState::squareName(to);
@@ -465,6 +485,68 @@ std::optional<ChessMove> ChessPosition::moveFromUci(QStringView uci) const
     return move;
 }
 
+std::optional<ChessMove> ChessPosition::moveFromSan(QStringView san) const
+{
+    QString text;
+    for (QChar c : san) {
+        if (!QStringView(u"+#!?x=").contains(c))
+            text += c;
+    }
+    if (text.endsWith(QLatin1String("e.p.")))
+        text.chop(4);
+    text.replace(QLatin1Char('0'), QLatin1Char('O'));
+
+    const int kingHome = m_sideToMove == Side::White ? 4 : 60;
+    const bool longCastle = text == QLatin1String("O-O-O");
+    if (longCastle || text == QLatin1String("O-O")) {
+        const ChessMove castle{kingHome, kingHome + (longCastle ? -2 : 2)};
+        if (m_squares[kingHome].type == PieceType::King && isLegal(castle))
+            return castle;
+        return std::nullopt;
+    }
+
+    PieceType promotion = PieceType::None;
+    if (text.size() >= 3 && QStringView(u"QRBN").contains(text.back()) && text.at(text.size() - 2).isDigit()) {
+        promotion = typeFromLetter(text.back());
+        text.chop(1);
+    }
+    if (text.size() < 2)
+        return std::nullopt;
+    const int target = BoardState::squareFromName(QStringView(text).right(2));
+    if (target < 0)
+        return std::nullopt;
+
+    PieceType type = PieceType::Pawn;
+    QStringView disambiguation = QStringView(text).left(text.size() - 2);
+    if (!disambiguation.isEmpty() && QStringView(u"KQRBN").contains(disambiguation.front())) {
+        type = typeFromLetter(disambiguation.front());
+        disambiguation = disambiguation.mid(1);
+    }
+
+    std::optional<ChessMove> found;
+    for (const ChessMove &move : legalMoves()) {
+        if (move.to != target || m_squares[move.from].type != type)
+            continue;
+        if (move.promotion != promotion)
+            continue;
+        bool matches = true;
+        for (QChar c : disambiguation) {
+            if (c >= QLatin1Char('a') && c <= QLatin1Char('h'))
+                matches = matches && move.from % 8 == c.unicode() - 'a';
+            else if (c >= QLatin1Char('1') && c <= QLatin1Char('8'))
+                matches = matches && move.from / 8 == c.unicode() - '1';
+            else
+                matches = false;
+        }
+        if (!matches)
+            continue;
+        if (found)
+            return std::nullopt; // Ambiguous.
+        found = move;
+    }
+    return found;
+}
+
 Piece ChessPosition::capturedPiece(const ChessMove &move) const
 {
     const Piece mover = m_squares[move.from];
@@ -588,7 +670,7 @@ QString ChessPosition::moveNumberText() const
                                        : QStringLiteral("%1…").arg(m_fullMove);
 }
 
-QString ChessPosition::lineText(const QStringList &uciMoves, int maxPlies) const
+QString ChessPosition::lineText(const QStringList &uciMoves, int maxPlies, SanStyle style) const
 {
     QStringList parts;
     ChessPosition position = *this;
@@ -596,7 +678,7 @@ QString ChessPosition::lineText(const QStringList &uciMoves, int maxPlies) const
         const std::optional<ChessMove> move = position.moveFromUci(uciMoves.at(i));
         if (!move)
             break;
-        const QString san = position.san(*move);
+        const QString san = style == SanStyle::Figurines ? figurineSan(position.san(*move)) : position.san(*move);
         if (i == 0 || position.sideToMove() == Side::White)
             parts << position.moveNumberText() + san;
         else

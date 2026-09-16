@@ -4,6 +4,7 @@
 #include "dialogs/GameInfoDialog.h"
 #include "app/Explainer.h"
 #include "app/GameSession.h"
+#include "app/Pgn.h"
 #include "app/Project.h"
 #include "app/SqliteGameDatabase.h"
 #include "app/UciEngine.h"
@@ -58,6 +59,17 @@ QIcon themeIcon(const char *name, QStyle::StandardPixmap)
 {
     // Flat monochrome icons that follow the theme's text color.
     return SymbolicIcons::icon(QString::fromLatin1(name));
+}
+
+/// A position to show, with its last move and the king in check or mated marked.
+BoardFrame frameFor(const ChessPosition &position, int lastMoveFrom, int lastMoveTo)
+{
+    BoardFrame frame{position.boardState(), lastMoveFrom, lastMoveTo};
+    if (position.inCheck()) {
+        frame.markedKing = position.kingSquare(position.sideToMove());
+        frame.kingMark = position.legalMoves().isEmpty() ? KingMark::Mate : KingMark::Check;
+    }
+    return frame;
 }
 
 QWidget *placeholder(const QString &text, QWidget *extra = nullptr)
@@ -119,12 +131,27 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::analyzeCurrentPosition);
     connect(m_engine, &UciEngine::evaluationChanged, this, [this](const EngineEvaluation &evaluation) {
         m_evaluationBar->setEvaluation(evaluation);
-        m_enginePanel->setEvaluation(evaluation, m_session->position().lineText(evaluation.pv, 12));
-        m_explainer->setCurrentEvaluation(evaluation);
+        m_engineLine = m_session->position().lineText(evaluation.pv);
+        m_enginePanel->setEvaluation(evaluation, m_session->position().lineText(evaluation.pv, 12, SanStyle::Figurines));
     });
     connect(m_explainer, &Explainer::explanationChanged, this, [this](const MoveExplanation &explanation) {
         m_board->setExplanation(explanation.arrows, explanation.lostPieces);
+        // A forced mate is shown by playing it; the board returns when Explain is turned off.
+        QList<BoardFrame> frames;
+        ChessPosition position = m_session->position();
+        for (const QString &uci : explanation.playback) {
+            const std::optional<ChessMove> move = position.moveFromUci(uci);
+            if (!move)
+                break;
+            position.play(*move);
+            frames << frameFor(position, move->from, move->to);
+        }
+        if (frames.isEmpty())
+            m_board->stopSequence();
+        else
+            m_board->playSequence(frames);
         m_enginePanel->setExplanation(explanation.summary);
+        m_explanationText = explanation.summary;
     });
     connect(m_engine, &UciEngine::nameChanged, m_enginePanel, &EnginePanel::setEngineName);
     connect(m_engine, &UciEngine::failed, this, [this](const QString &message) {
@@ -299,7 +326,51 @@ void MainWindow::createMenus()
     file->addAction(m_quitAction);
 
     QMenu *edit = menuBar()->addMenu(tr("&Edit"));
-    edit->addAction(m_copyFenAction);
+    QMenu *copy = edit->addMenu(themeIcon("edit-copy", QStyle::SP_FileIcon), tr("&Copy"));
+    QAction *copyMovesToHere = copy->addAction(tr("&Moves up to Current Position"), this, [this] {
+        copyText(Pgn::moveText(m_session->game(), m_session->ply()), tr("Moves up to the current position copied"));
+    });
+    copyMovesToHere->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_C));
+    QAction *copyAllMoves = copy->addAction(tr("&All Moves"), this, [this] {
+        copyText(Pgn::moveText(m_session->game()), tr("Moves copied"));
+    });
+    QAction *copyCurrentMove = copy->addAction(tr("Current &Move"), this, [this] {
+        const int ply = m_session->ply();
+        if (ply > 0)
+            copyText(m_session->positionAt(ply - 1).lineText({m_session->game().moves.at(ply - 1).uci}),
+                     tr("Move copied"));
+    });
+    copy->addSeparator();
+    QAction *copyPgn = copy->addAction(tr("Game as &PGN"), this, [this] {
+        copyText(Pgn::game(m_session->game()), tr("Game copied as PGN"));
+    });
+    QAction *copyPgnToHere = copy->addAction(tr("Game up to Current Position as P&GN"), this, [this] {
+        copyText(Pgn::game(m_session->game(), m_session->ply()), tr("Game up to the current position copied as PGN"));
+    });
+    copy->addSeparator();
+    copy->addAction(tr("Position (&FEN)"), this, &MainWindow::copyFen);
+    copy->addSeparator();
+    QAction *copyEngineLine = copy->addAction(tr("&Engine Line"), this, [this] {
+        copyText(m_engineLine, tr("Engine line copied"));
+    });
+    QAction *copyExplanation = copy->addAction(tr("E&xplanation"), this, [this] {
+        copyText(m_explanationText, tr("Explanation copied"));
+    });
+    const auto updateCopyActions = [=, this] {
+        const bool hasMoves = m_session->plyCount() > 0;
+        copyMovesToHere->setEnabled(m_session->ply() > 0);
+        copyCurrentMove->setEnabled(m_session->ply() > 0);
+        copyAllMoves->setEnabled(hasMoves);
+        copyPgnToHere->setEnabled(m_session->ply() > 0);
+        copyPgn->setEnabled(true);
+        copyEngineLine->setEnabled(m_startEngineAction->isChecked() && !m_engineLine.isEmpty());
+        copyExplanation->setEnabled(m_explainAction->isChecked() && !m_explanationText.isEmpty());
+    };
+    connect(copy, &QMenu::aboutToShow, this, updateCopyActions);
+    connect(m_session, &GameSession::plyChanged, this, updateCopyActions); // Keeps shortcuts in step.
+    connect(m_session, &GameSession::gameChanged, this, updateCopyActions);
+    updateCopyActions();
+    edit->addSeparator();
     edit->addAction(m_pasteFenAction);
 
     m_viewMenu = menuBar()->addMenu(tr("&View"));
@@ -472,11 +543,12 @@ void MainWindow::openGame(const QModelIndex &proxyIndex)
 
 void MainWindow::syncBoard()
 {
-    m_board->setBoard(m_session->board(), m_session->lastMoveFrom(), m_session->lastMoveTo());
+    m_board->setBoard(frameFor(m_session->position(), m_session->lastMoveFrom(), m_session->lastMoveTo()));
     QMultiHash<int, int> legalMoves;
     for (const ChessMove &move : m_session->position().legalMoves())
         legalMoves.insert(move.from, move.to);
     m_board->setLegalMoves(legalMoves);
+    m_engineLine.clear();
     // An explanation belongs to one move: moving on turns it off until asked again.
     m_explainAction->setChecked(false);
     updateExplainer();
@@ -770,8 +842,10 @@ void MainWindow::setExplainEnabled(bool enabled)
         return;
     }
     m_explainer->setEnabled(false);
+    m_board->stopSequence();
     m_board->setExplanation({}, {});
     m_enginePanel->setExplanation(QString());
+    m_explanationText.clear();
 }
 
 void MainWindow::updateExplainer()
@@ -895,6 +969,14 @@ void MainWindow::copyFen()
 {
     QGuiApplication::clipboard()->setText(m_session->position().fen());
     statusBar()->showMessage(tr("FEN copied to clipboard"), 3000);
+}
+
+void MainWindow::copyText(const QString &text, const QString &message)
+{
+    if (text.isEmpty())
+        return;
+    QGuiApplication::clipboard()->setText(text);
+    statusBar()->showMessage(message, 3000);
 }
 
 void MainWindow::pasteFen()

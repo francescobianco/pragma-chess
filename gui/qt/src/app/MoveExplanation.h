@@ -41,6 +41,11 @@ struct MoveExplanation {
     QList<int> lostPieces;
     /// Plain-text summary, e.g. "Blunder (+0.3 → −2.9). Black wins a knight: 14…Bxf2+ 15.Kxf2 Ng4+".
     QString summary;
+    /// Moves (UCI) to play on the board, from the position shown, to demonstrate
+    /// the explanation: a forced mate, played to the end.
+    QStringList playback;
+    /// How the explanation was reached, when ExplanationInput::trace is set (for tuning).
+    QStringList trace;
 
     bool operator==(const MoveExplanation &) const = default;
 };
@@ -55,6 +60,18 @@ struct ExplanationInput {
     /// Position on the board and its evaluation.
     ChessPosition after;
     EngineEvaluation afterEvaluation;
+
+    /// Optional enrichment from AdvantageProbe: the ply of `afterEvaluation.pv`
+    /// from which a shallow search already agrees with the deep evaluation,
+    /// i.e. where the advantage shows on the board. Used when no material or
+    /// mate explains the evaluation.
+    std::optional<int> concretePly;
+
+    /// How moves are written in the summary.
+    SanStyle sanStyle = SanStyle::Letters;
+
+    /// Fill MoveExplanation::trace.
+    bool trace = false;
 };
 
 /// Explains the evaluation of a position by comparing it with the position

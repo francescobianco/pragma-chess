@@ -6,6 +6,8 @@
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QTimer>
+#include <QVariantAnimation>
 #include <QWheelEvent>
 
 #include <cmath>
@@ -21,6 +23,12 @@ const QColor kDarkSquare(0xb5, 0x88, 0x63);
 const QColor kLastMove(0xcd, 0xd2, 0x6a, 0xb0);
 const QColor kSelected(0x64, 0x9f, 0x5a, 0xa0);
 const QColor kMoveHint(0x14, 0x33, 0x0f, 0x48);
+const QColor kSequenceFrame(0xd4, 0x3f, 0x32);
+constexpr qreal kCornerRadius = 4;
+/// Pauses of a played sequence: before the first move and between moves.
+constexpr int kSequenceStartMs = 500;
+constexpr int kSequenceStepMs = 1100;
+constexpr int kSlideMs = 320;
 
 QColor arrowColor(BoardArrow::Kind kind)
 {
@@ -53,17 +61,30 @@ char16_t glyphFor(PieceType type)
 BoardWidget::BoardWidget(QWidget *parent)
     : QWidget(parent)
     , m_board(BoardState::startingPosition())
+    , m_sequenceTimer(new QTimer(this))
+    , m_slide(new QVariantAnimation(this))
 {
+    m_sequenceTimer->setSingleShot(true);
+    connect(m_sequenceTimer, &QTimer::timeout, this, &BoardWidget::showNextFrame);
+    m_slide->setStartValue(0.0);
+    m_slide->setEndValue(1.0);
+    m_slide->setDuration(kSlideMs);
+    m_slide->setEasingCurve(QEasingCurve::OutCubic);
+    connect(m_slide, &QVariantAnimation::valueChanged, this, [this] { update(); });
+
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setFocusPolicy(Qt::StrongFocus);
     setAccessibleName(tr("Chessboard"));
 }
 
-void BoardWidget::setBoard(const BoardState &board, int lastMoveFrom, int lastMoveTo)
+void BoardWidget::setBoard(const BoardFrame &frame)
 {
-    m_board = board;
-    m_lastMoveFrom = lastMoveFrom;
-    m_lastMoveTo = lastMoveTo;
+    endSequence();
+    m_board = frame.board;
+    m_lastMoveFrom = frame.lastMoveFrom;
+    m_lastMoveTo = frame.lastMoveTo;
+    m_markedKing = frame.markedKing;
+    m_kingMark = frame.kingMark;
     m_arrows.clear();
     m_lostPieces.clear();
     clearSelection();
@@ -84,6 +105,58 @@ void BoardWidget::setExplanation(const QList<BoardArrow> &arrows, const QList<in
         return;
     m_arrows = arrows;
     m_lostPieces = lostPieces;
+    update();
+}
+
+void BoardWidget::playSequence(const QList<BoardFrame> &frames)
+{
+    if (!m_sequenceActive)
+        m_beforeSequence = {m_board, m_lastMoveFrom, m_lastMoveTo, m_markedKing, m_kingMark};
+    clearSelection();
+    m_frames = frames;
+    m_nextFrame = 0;
+    m_sequenceActive = true;
+    m_sequenceTimer->start(kSequenceStartMs);
+    update();
+}
+
+void BoardWidget::stopSequence()
+{
+    if (!m_sequenceActive)
+        return;
+    const BoardFrame original = m_beforeSequence;
+    endSequence();
+    m_board = original.board;
+    m_lastMoveFrom = original.lastMoveFrom;
+    m_lastMoveTo = original.lastMoveTo;
+    m_markedKing = original.markedKing;
+    m_kingMark = original.kingMark;
+    update();
+}
+
+void BoardWidget::endSequence()
+{
+    m_sequenceTimer->stop();
+    m_slide->stop();
+    m_frames.clear();
+    m_sequenceActive = false;
+}
+
+void BoardWidget::showNextFrame()
+{
+    if (!m_sequenceActive || m_nextFrame >= m_frames.size())
+        return;
+    const BoardFrame &frame = m_frames.at(m_nextFrame++);
+    m_board = frame.board;
+    m_lastMoveFrom = frame.lastMoveFrom;
+    m_lastMoveTo = frame.lastMoveTo;
+    m_markedKing = frame.markedKing;
+    m_kingMark = frame.kingMark;
+    m_slide->stop();
+    if (m_lastMoveFrom >= 0 && m_lastMoveTo >= 0)
+        m_slide->start();
+    if (m_nextFrame < m_frames.size())
+        m_sequenceTimer->start(kSequenceStepMs);
     update();
 }
 
@@ -227,6 +300,10 @@ void BoardWidget::paintEvent(QPaintEvent *)
     const QRectF board = boardRect();
     const qreal size = board.width() / 8;
 
+    QPainterPath rounded;
+    rounded.addRoundedRect(board, kCornerRadius, kCornerRadius);
+    painter.save();
+    painter.setClipPath(rounded);
     for (int square = 0; square < 64; ++square) {
         const QRectF rect = squareRect(square);
         const bool light = (square / 8 + square % 8) % 2 == 1;
@@ -261,12 +338,35 @@ void BoardWidget::paintEvent(QPaintEvent *)
 
     if (m_selected >= 0)
         painter.fillRect(squareRect(m_selected), kSelected);
+    painter.restore();
 
+    // A neutral frame; red while a sequence (e.g. a mate) is being shown.
+    constexpr qreal frameWidth = 2.0;
+    QColor frameColor = palette().color(QPalette::WindowText);
+    frameColor.setAlphaF(0.28);
+    painter.setPen(QPen(m_sequenceActive ? kSequenceFrame : frameColor, frameWidth));
+    painter.setBrush(Qt::NoBrush);
+    const qreal outset = frameWidth / 2;
+    painter.drawRoundedRect(board.adjusted(-outset, -outset, outset, outset), kCornerRadius + outset,
+                            kCornerRadius + outset);
+
+    const bool sliding = m_slide->state() == QAbstractAnimation::Running && m_lastMoveTo >= 0;
+    // A king in check or mated is marked once the move has landed.
+    const bool markKing = m_markedKing >= 0 && m_kingMark != KingMark::None && !sliding;
+    if (markKing)
+        paintKingGlow(painter);
     for (int square = 0; square < 64; ++square) {
         const Piece piece = m_board.at(square);
-        if (piece.isNull() || (m_dragging && square == m_selected))
+        if (piece.isNull() || (m_dragging && square == m_selected) || (sliding && square == m_lastMoveTo))
             continue;
         paintPiece(painter, piece, squareRect(square));
+    }
+    if (sliding) {
+        const qreal progress = m_slide->currentValue().toReal();
+        const QRectF from = squareRect(m_lastMoveFrom);
+        const QRectF to = squareRect(m_lastMoveTo);
+        paintPiece(painter, m_board.at(m_lastMoveTo),
+                   from.translated((to.topLeft() - from.topLeft()) * progress));
     }
 
     // Targets of the selected piece: dots on empty squares, rings on captures.
@@ -286,14 +386,18 @@ void BoardWidget::paintEvent(QPaintEvent *)
         }
     }
 
-    for (int square : std::as_const(m_lostPieces)) {
+    // Arrows belong to the position the sequence started from.
+    for (int square : m_sequenceActive ? QList<int>() : m_lostPieces) {
         painter.setPen(QPen(arrowColor(BoardArrow::Kind::Refutation), qMax(2.0, size * 0.06)));
         painter.setBrush(Qt::NoBrush);
         const qreal inset = size * 0.07;
         painter.drawEllipse(squareRect(square).adjusted(inset, inset, -inset, -inset));
     }
-    for (const BoardArrow &arrow : std::as_const(m_arrows))
+    for (const BoardArrow &arrow : m_sequenceActive ? QList<BoardArrow>() : m_arrows)
         paintArrow(painter, arrow);
+
+    if (markKing)
+        paintKingBadge(painter);
 
     if (m_dragging && m_selected >= 0) {
         QRectF rect(0, 0, size, size);
@@ -305,7 +409,7 @@ void BoardWidget::paintEvent(QPaintEvent *)
     if (hasFocus() && m_keyboardFocus) {
         painter.setPen(QPen(palette().color(QPalette::Highlight), 2));
         painter.setBrush(Qt::NoBrush);
-        painter.drawRect(board.adjusted(-1, -1, 1, 1));
+        painter.drawRoundedRect(board.adjusted(-4, -4, 4, 4), kCornerRadius + 4, kCornerRadius + 4);
     }
 }
 
@@ -330,6 +434,44 @@ void BoardWidget::paintPiece(QPainter &painter, Piece piece, const QRectF &rect)
                         qMax(1.0, size * 0.025), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     painter.setBrush(white ? QColor(0xfa, 0xfa, 0xfa) : QColor(0x22, 0x22, 0x22));
     painter.drawPath(path);
+}
+
+void BoardWidget::paintKingGlow(QPainter &painter) const
+{
+    const QRectF rect = squareRect(m_markedKing);
+    const qreal size = rect.width();
+    // Lighter for a check than for a mate.
+    const int alpha = m_kingMark == KingMark::Mate ? 0xc0 : 0x80;
+    QRadialGradient glow(rect.center(), size * 0.55);
+    glow.setColorAt(0.0, QColor(0xd4, 0x3f, 0x32, alpha));
+    glow.setColorAt(0.55, QColor(0xd4, 0x3f, 0x32, alpha * 3 / 5));
+    glow.setColorAt(1.0, QColor(0xd4, 0x3f, 0x32, 0x00));
+    painter.save();
+    painter.setClipRect(rect);
+    painter.fillRect(rect, glow);
+    painter.restore();
+}
+
+void BoardWidget::paintKingBadge(QPainter &painter) const
+{
+    // The chess sign in the corner of the king's square: "+" check, "#" mate.
+    const QRectF rect = squareRect(m_markedKing);
+    const qreal size = rect.width();
+    const qreal radius = size * 0.14;
+    const QPointF badge(rect.right() - radius - size * 0.04, rect.top() + radius + size * 0.04);
+    QColor fill = kSequenceFrame;
+    if (m_kingMark == KingMark::Check)
+        fill.setAlpha(0xd8);
+    painter.setPen(QPen(QColor(255, 255, 255, 220), qMax(1.0, size * 0.02)));
+    painter.setBrush(fill);
+    painter.drawEllipse(badge, radius, radius);
+    QFont font = this->font();
+    font.setPixelSize(qMax(8, int(radius * 1.3)));
+    font.setBold(true);
+    painter.setFont(font);
+    painter.setPen(Qt::white);
+    painter.drawText(QRectF(badge.x() - radius, badge.y() - radius, 2 * radius, 2 * radius), Qt::AlignCenter,
+                     m_kingMark == KingMark::Mate ? QStringLiteral("#") : QStringLiteral("+"));
 }
 
 void BoardWidget::paintArrow(QPainter &painter, const BoardArrow &arrow) const
@@ -402,6 +544,10 @@ void BoardWidget::paintArrow(QPainter &painter, const BoardArrow &arrow) const
 
 void BoardWidget::mousePressEvent(QMouseEvent *event)
 {
+    if (m_sequenceActive) {
+        QWidget::mousePressEvent(event); // The shown position is not the one to play from.
+        return;
+    }
     if (event->button() != Qt::LeftButton) {
         clearSelection();
         QWidget::mousePressEvent(event);

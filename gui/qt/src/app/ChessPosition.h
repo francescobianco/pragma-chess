@@ -9,6 +9,14 @@
 #include <array>
 #include <optional>
 
+/// How SAN is written: letters (PGN, clipboard, command line) or figurines
+/// ("♘f3") for display.
+enum class SanStyle { Letters, Figurines };
+
+/// Replaces the piece letters of one SAN move with figurines: "Nxe5+" → "♘xe5+",
+/// "e8=Q" → "e8=♕". Castling and pawn moves are unchanged.
+QString figurineSan(const QString &san);
+
 /// A move between two squares (a1 = 0 ... h8 = 63), with the promotion piece
 /// for pawns reaching the last rank. Castling is the king moving two files.
 struct ChessMove {
@@ -50,6 +58,10 @@ public:
     bool isLegal(const ChessMove &move) const;
     /// The legal move written in UCI notation, if any.
     std::optional<ChessMove> moveFromUci(QStringView uci) const;
+    /// The legal move written in SAN, if exactly one matches. Lenient like
+    /// people write: check marks, annotations, "x" and "=" are optional,
+    /// "0-0" means castling and extra disambiguation is accepted.
+    std::optional<ChessMove> moveFromSan(QStringView san) const;
 
     /// Plays a legal move.
     void play(const ChessMove &move);
@@ -72,7 +84,7 @@ public:
 
     /// SAN moves of a UCI line with move numbers ("12.Nf3 Nc6 13.d4", "12…Nc6").
     /// Stops at the first illegal move or after `maxPlies`.
-    QString lineText(const QStringList &uciMoves, int maxPlies = -1) const;
+    QString lineText(const QStringList &uciMoves, int maxPlies = -1, SanStyle style = SanStyle::Letters) const;
     /// "12." for White, "12…" for Black to move.
     QString moveNumberText() const;
 

@@ -27,14 +27,31 @@ start_app() {
     app_pid=$!
 }
 
+MARKER="$BUILD_DIR/.dev-watch-build-start"
+
+# Files changed after the marker, i.e. while the last build was running.
+changed_during_build() {
+    [[ -n "$(find "${WATCH_PATHS[@]}" -type f -newer "$MARKER" -print -quit 2>/dev/null)" ]]
+}
+
+# Builds until the sources stop changing: edits saved while a build runs are
+# not seen by the watcher, and would otherwise leave a half-updated app running.
 build() {
-    log "building…"
-    if cmake --build "$BUILD_DIR"; then
+    while true; do
+        log "building…"
+        touch "$MARKER"
+        if ! cmake --build "$BUILD_DIR"; then
+            log "build FAILED — keeping the previous instance running"
+            return 1
+        fi
+        if changed_during_build; then
+            log "sources changed during the build, building again"
+            sleep 0.2
+            continue
+        fi
         log "build ok"
         return 0
-    fi
-    log "build FAILED — keeping the previous instance running"
-    return 1
+    done
 }
 
 # Fingerprint of the watched files: path + modification time.

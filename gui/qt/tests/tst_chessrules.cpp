@@ -1,5 +1,7 @@
+#include "app/AdvantageProbe.h"
 #include "app/ChessPosition.h"
 #include "app/MoveExplanation.h"
+#include "app/Pgn.h"
 
 #include <QTest>
 
@@ -96,6 +98,11 @@ private Q_SLOTS:
         QCOMPARE(castle.san(*castle.moveFromUci(u"e8c8")), QStringLiteral("O-O-O"));
         QCOMPARE(castle.lineText({"e8g8"}), QStringLiteral("1…O-O"));
 
+        QCOMPARE(figurineSan(QStringLiteral("Nxe5+")), QStringLiteral("♘xe5+"));
+        QCOMPARE(figurineSan(QStringLiteral("exd8=Q#")), QStringLiteral("exd8=♕#"));
+        QCOMPARE(figurineSan(QStringLiteral("O-O")), QStringLiteral("O-O"));
+        QCOMPARE(start.lineText({"e2e4", "e7e5", "g1f3"}, -1, SanStyle::Figurines), QStringLiteral("1.e4 e5 2.♘f3"));
+
         const ChessPosition fool = afterMoves(QString(), {"f2f3", "e7e5", "g2g4"});
         QCOMPARE(fool.san(*fool.moveFromUci(u"d8h4")), QStringLiteral("Qh4#"));
 
@@ -149,6 +156,35 @@ private Q_SLOTS:
         QCOMPARE(explanation.arrows.size(), 4); // The better move and the three moves of the sequence.
     }
 
+    void focusesLongRealizations()
+    {
+        // Evergreen game, 15…Qf5: the knight only falls eleven plies later (20…Nxe5 21.Rxe5).
+        // Drawing the whole sequence says nothing; the decisive jump does.
+        ExplanationInput input;
+        QString error;
+        const std::optional<Pgn::ParsedLine> game = Pgn::parseLine(
+            QStringLiteral("1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4 Bxb4 5.c3 Ba5 6.d4 exd4 7.O-O d3 8.Qb3 Qf6 9.e5 Qg6 "
+                           "10.Re1 Nge7 11.Ba3 b5 12.Qxb5 Rb8 13.Qa4 Bb6 14.Nbd2 Bb7 15.Ne4"),
+            QString(), &error);
+        QVERIFY2(game, qPrintable(error));
+        QStringList moves;
+        for (const MoveRecord &move : game->moves)
+            moves << move.uci;
+        input = inputFor(moves, QStringLiteral("g6f5"), centipawns(140, {"d3d2", "e4d2"}),
+                         centipawns(430, {"c4d3", "f5e6", "a1d1", "e8g8", "e4g5", "e6h6", "d3h7", "g8h8", "d1d7",
+                                          "c6e5", "e1e5", "f7f6"}));
+        const MoveExplanation explanation = explainPosition(input);
+        QCOMPARE(explanation.verdict, MoveExplanation::Verdict::Mistake);
+        QCOMPARE(explanation.arrows,
+                 (QList<BoardArrow>{{BoardState::squareFromName(u"c6"), BoardState::squareFromName(u"e5"),
+                                     BoardArrow::Kind::Reply, 1},
+                                    {BoardState::squareFromName(u"e1"), BoardState::squareFromName(u"e5"),
+                                     BoardArrow::Kind::Refutation, 2}}));
+        QCOMPARE(explanation.lostPieces, QList<int>{BoardState::squareFromName(u"c6")});
+        QVERIFY2(explanation.summary.contains(QStringLiteral("20.Rxd7 Nxe5 21.Rxe5.")), qPrintable(explanation.summary));
+        QVERIFY(explanation.playback.isEmpty()); // Only mates are played.
+    }
+
     void explainsAllowedMate()
     {
         EngineEvaluation mate;
@@ -162,6 +198,7 @@ private Q_SLOTS:
         QVERIFY(explanation.arrows.contains(BoardArrow{BoardState::squareFromName(u"d8"), BoardState::squareFromName(u"h4"),
                                                        BoardArrow::Kind::Refutation, 1}));
         QVERIFY2(explanation.summary.contains(QStringLiteral("Black mates in 1: 2…Qh4#")), qPrintable(explanation.summary));
+        QCOMPARE(explanation.playback, QStringList{"d8h4"});
     }
 
     void explainsWinningCapture()
@@ -173,6 +210,94 @@ private Q_SLOTS:
         QCOMPARE(explanation.verdict, MoveExplanation::Verdict::Best);
         QVERIFY2(explanation.summary.contains(QStringLiteral("Best move (−1.9). Black wins a knight: 3…exd4.")),
                  qPrintable(explanation.summary));
+    }
+
+    void pgn()
+    {
+        GameRecord game;
+        game.white = QStringLiteral("Anderssen, Adolf");
+        game.black = QStringLiteral("Kieseritzky, Lionel");
+        game.result = QStringLiteral("1-0");
+        for (const char *uci : {"e2e4", "e7e5", "f2f4", "e5f4"})
+            game.moves << MoveRecord{QString(), QString::fromLatin1(uci)};
+
+        QCOMPARE(Pgn::moveText(game, 3), QStringLiteral("1.e4 e5 2.f4"));
+        QCOMPARE(Pgn::game(game),
+                 QStringLiteral("[Event \"?\"]\n[Site \"?\"]\n[Date \"????.??.??\"]\n[Round \"?\"]\n"
+                                "[White \"Anderssen, Adolf\"]\n[Black \"Kieseritzky, Lionel\"]\n[Result \"1-0\"]\n\n"
+                                "1.e4 e5 2.f4 exf4 1-0\n"));
+        // Cut before the end: the result is unknown.
+        QVERIFY(Pgn::game(game, 2).endsWith(QStringLiteral("\n1.e4 e5 *\n")));
+
+        game.startFen = QStringLiteral("4k3/8/8/8/8/8/4P3/4K3 b - - 0 1");
+        game.moves = {MoveRecord{QString(), QStringLiteral("e8d7")}};
+        QVERIFY(Pgn::game(game).contains(QStringLiteral("[SetUp \"1\"]\n[FEN \"4k3/8/8/8/8/8/4P3/4K3 b - - 0 1\"]")));
+        QCOMPARE(Pgn::moveText(game), QStringLiteral("1…Kd7"));
+    }
+
+    void parsesPastedLines()
+    {
+        QString error;
+        const std::optional<Pgn::ParsedLine> pgn = Pgn::parseLine(
+            QStringLiteral("[Event \"Casual\"]\n1. e4 e5 {open game} 2.Nf3 (2.f4!? exf4) d6?! 3.Nxe5?? $4 dxe5 0-1"),
+            QString(), &error);
+        QVERIFY2(pgn, qPrintable(error));
+        QStringList uci;
+        for (const MoveRecord &move : pgn->moves)
+            uci << move.uci;
+        QCOMPARE(uci, (QStringList{"e2e4", "e7e5", "g1f3", "d7d6", "f3e5", "d6e5"}));
+        QCOMPARE(pgn->moves.at(4).san, QStringLiteral("Nxe5"));
+
+        const std::optional<Pgn::ParsedLine> loose = Pgn::parseLine(
+            QStringLiteral("1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.Bg5 e6 7.f4 Be7 8.Qf3 Qc7 9.0-0-0 Nbd7"),
+            QString(), &error);
+        QVERIFY2(loose, qPrintable(error));
+        QCOMPARE(loose->moves.at(16).uci, QStringLiteral("e1c1"));
+
+        const std::optional<Pgn::ParsedLine> fromFen = Pgn::parseLine(
+            QStringLiteral("1... Kd7 2. e4"), QStringLiteral("4k3/8/8/8/8/8/4P3/4K3 b - - 0 1"), &error);
+        QVERIFY2(fromFen && fromFen->moves.size() == 2, qPrintable(error));
+
+        QVERIFY(!Pgn::parseLine(QStringLiteral("1.e4 e5 2.Ke3"), QString(), &error));
+        QVERIFY(error.contains(QStringLiteral("Ke3")));
+
+        const ChessPosition knights = *ChessPosition::fromFen(QStringLiteral("4k3/8/8/8/8/8/8/1N2KN2 w - - 0 1"));
+        QVERIFY(!knights.moveFromSan(u"Nd2")); // Ambiguous.
+        QCOMPARE(knights.moveFromSan(u"Nfd2")->from, BoardState::squareFromName(u"f1"));
+        QCOMPARE(knights.moveFromSan(u"N1h2")->from, BoardState::squareFromName(u"f1")); // Extra disambiguation.
+    }
+
+    void probesFindWhereTheAdvantageShows()
+    {
+        const auto score = [](int cp, int depth = 0) {
+            EngineEvaluation evaluation;
+            evaluation.centipawns = cp;
+            evaluation.depth = depth;
+            return evaluation;
+        };
+        // The engine needs depth 7 to see the +3.
+        QCOMPARE(AdvantageProbe::settledDepth({score(20, 1), score(40, 5), score(290, 7), score(310, 8), score(300, 9)}),
+                 std::optional<int>(7));
+        // Shallow searches along the line only agree after two forced moves.
+        QCOMPARE(AdvantageProbe::concretePly({score(10), score(30), score(280), score(320)}, score(300)),
+                 std::optional<int>(2));
+        QCOMPARE(AdvantageProbe::concretePly({score(10), score(30)}, score(300)), std::nullopt);
+    }
+
+    void concretePlyGuidesQuietExplanations()
+    {
+        ExplanationInput input;
+        input.after = ChessPosition::startingPosition();
+        input.afterEvaluation = centipawns(20, {"e2e4", "e7e5", "g1f3", "b8c6"});
+        QCOMPARE(explainPosition(input).arrows.size(), 2);
+
+        input.concretePly = 3;
+        input.trace = true;
+        const MoveExplanation explanation = explainPosition(input);
+        QCOMPARE(explanation.arrows.size(), 3);
+        QVERIFY2(explanation.summary.contains(QStringLiteral("It becomes concrete after 1.e4 e5 2.Nf3.")),
+                 qPrintable(explanation.summary));
+        QVERIFY(!explanation.trace.isEmpty());
     }
 
 private:

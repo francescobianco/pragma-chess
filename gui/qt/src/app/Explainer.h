@@ -31,6 +31,11 @@ public:
     void setPosition(const ChessPosition &position, const std::optional<ChessPosition> &before,
                      const std::optional<ChessMove> &played);
 
+    /// The live analysis of the position on the board. A mate or a 0.00 it
+    /// finds after a long search guides the explanation (see
+    /// ExplanationAnalysis::acceptsHint); anything else is ignored.
+    void setLiveEvaluation(const EngineEvaluation &evaluation);
+
 Q_SIGNALS:
     /// The explanation for the current position; without arrows and with a
     /// progress summary while the engine is still searching.
@@ -51,5 +56,8 @@ private:
     std::optional<ChessMove> m_played;
 
     QHash<QString, ExplanationAnalysis> m_analyses;
+    std::optional<EngineEvaluation> m_hint;
+    /// Score of the hint the shown explanation used, to explain again only when it changes.
+    QString m_usedHint;
     std::optional<MoveExplanation> m_shown;
 };

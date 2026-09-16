@@ -13,7 +13,27 @@ std::optional<EngineEvaluation> ExplanationAnalysis::afterEvaluation() const
     return afterByDepth.isEmpty() ? std::nullopt : std::optional<EngineEvaluation>(afterByDepth.last());
 }
 
-ExplanationInput ExplanationAnalysis::input(SanStyle style, bool trace) const
+bool ExplanationAnalysis::acceptsHint(const EngineEvaluation &hint) const
+{
+    const std::optional<EngineEvaluation> searched = afterEvaluation();
+    if (hint.pv.isEmpty() || (searched && hint.depth < searched->depth))
+        return false;
+    const bool mate = hint.isMate && hint.mateIn > 0;
+    const bool draw = !hint.isMate && hint.centipawns == 0;
+    // Only what a long analysis finds and a fixed-depth search may miss.
+    if (mate ? searched && searched->isMate : !draw || (searched && !searched->isMate && searched->centipawns == 0))
+        return false;
+    ChessPosition position = after;
+    for (const QString &uci : hint.pv) {
+        const std::optional<ChessMove> move = position.moveFromUci(uci);
+        if (!move)
+            return false;
+        position.play(*move);
+    }
+    return true;
+}
+
+ExplanationInput ExplanationAnalysis::input(SanStyle style, bool trace, const std::optional<EngineEvaluation> &hint) const
 {
     ExplanationInput input;
     input.before = before;
@@ -24,6 +44,16 @@ ExplanationInput ExplanationAnalysis::input(SanStyle style, bool trace) const
         input.afterEvaluation = *evaluation;
         if (!probe.isEmpty())
             input.concretePly = AdvantageProbe::concretePly(probe, *evaluation);
+    }
+    if (hint && acceptsHint(*hint)) {
+        input.evaluationNote = QStringLiteral("hint from the live analysis: %1 at depth %2 replaces %3")
+                                   .arg(hint->text()).arg(hint->depth)
+                                   .arg(input.afterEvaluation.pv.isEmpty() && !afterEvaluation()
+                                            ? QStringLiteral("no evaluation")
+                                            : QStringLiteral("%1 at depth %2").arg(input.afterEvaluation.text())
+                                                  .arg(input.afterEvaluation.depth));
+        input.afterEvaluation = *hint;
+        input.concretePly.reset(); // The probe followed the other line.
     }
     input.sanStyle = style;
     input.trace = trace;
@@ -121,7 +151,7 @@ void ExplanationSearch::onSearchFinished()
     case Stage::Probe: {
         if (!m_current.isEmpty())
             m_analysis.probe << m_current.last();
-        const QStringList &pv = m_analysis.afterEvaluation()->pv;
+        const QStringList pv = m_analysis.afterEvaluation()->pv; // A copy: afterEvaluation() returns a temporary.
         const qsizetype ply = m_analysis.probe.size() - 1; // Moves played to reach the position just searched.
         std::optional<ChessMove> next;
         if (!m_current.isEmpty() && ply < pv.size() && ply < m_settings.probePlies)

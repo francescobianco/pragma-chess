@@ -74,7 +74,14 @@ variation (PV).
    blocked — and holds the mate, marking the mated king with a soft red glow
    and a small "#"; turning Explain off or moving to another move restores the
    position. The tool prints it as `playback`.
-6. **Depth probe** (printed, not used yet): the depth from which a position's
+6. **Hints from the live analysis**: the desktop client passes the live
+   analysis of the position on the board. A mate or a 0.00 (theoretical or
+   technical draw) that the fixed-depth search missed, found at a depth at
+   least as deep and with a playable line, replaces the searched evaluation
+   (`ExplanationAnalysis::acceptsHint`); everything else is ignored, so the
+   explanation stays reproducible. The tool takes the same hint with
+   `--hint-mate`, `--hint-draw`, `--hint-line`, `--hint-depth`.
+7. **Depth probe** (printed, not used yet): the depth from which a position's
    score stays with the final one — how far ahead the advantage lies.
 
 Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
@@ -149,3 +156,10 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   and a "#" badge) when the mate lands.
 - 2026-09-16 — A king in check is marked too, lighter than a mate (glow and a
   "+" badge); both marks show on every board, not only in playback.
+
+- 2026-09-16 — King's Gambit line after 14…Bxc3: "there is a mate in 12 but
+  Explain did not play it". Depth 20 sees +13; Stockfish finds the mate only
+  from depth 28 (≈11 s single thread, mate in 14 from depth 30). Decision
+  (author's idea): the live analysis guides Explain, only for mates and
+  0.00. Mates are also replayed to the end (they were cut at 16 plies, so a
+  long mate could not be played). Test `usesLiveAnalysisHints`.

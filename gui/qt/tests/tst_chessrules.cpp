@@ -1,11 +1,13 @@
 #include "app/AdvantageProbe.h"
 #include "app/ChessPosition.h"
 #include "app/DatabaseOutline.h"
+#include "app/ExplanationSearch.h"
 #include "app/MoveExplanation.h"
 #include "app/Pgn.h"
 #include "app/SqliteGameDatabase.h"
 #include "app/sources/ChessComFetch.h"
 #include "app/sources/LichessFetch.h"
+#include "app/sync/SyncManifest.h"
 
 #include <QJsonDocument>
 #include <QTemporaryDir>
@@ -321,6 +323,113 @@ private Q_SLOTS:
         QVERIFY2(explanation.summary.contains(QStringLiteral("It becomes concrete after 1.e4 e5 2.Nf3.")),
                  qPrintable(explanation.summary));
         QVERIFY(!explanation.trace.isEmpty());
+    }
+
+    void usesLiveAnalysisHints()
+    {
+        // 14…Bxc3: depth 20 sees +13, the live analysis found a mate in 14 at depth 32.
+        QString error;
+        const std::optional<Pgn::ParsedLine> game = Pgn::parseLine(
+            QStringLiteral("1.e4 e5 2.f4 exf4 3.Nf3 Nc6 4.Bc4 Nf6 5.Nc3 Bc5 6.d4 Bb6 7.Bxf4 O-O 8.O-O Re8 9.e5 Ng4 "
+                           "10.Kh1 Kh8 11.Ng5 Nh6 12.Qd3 g6 13.Nge4 Bxd4 14.Bxh6 Bxc3"),
+            QString(), &error);
+        QVERIFY2(game, qPrintable(error));
+        ExplanationAnalysis analysis;
+        analysis.after = ChessPosition::startingPosition();
+        for (const MoveRecord &move : game->moves)
+            analysis.after.play(*analysis.after.moveFromUci(move.uci));
+        analysis.afterByDepth = {centipawns(1315, {"d3c3", "e8e5"})};
+        analysis.afterByDepth.first().depth = 20;
+
+        EngineEvaluation mate;
+        mate.isMate = true;
+        mate.mateIn = 14;
+        mate.mating = Side::White;
+        mate.depth = 32;
+        mate.pv = QString::fromLatin1("d3c3 d7d5 e5d6 f7f6 f1f6 e8e5 f6f7 c8e6 c4e6 d8g8 d6c7 a8c8 e4g5 c8e8 a1f1 b7b5 "
+                                      "f7f8 e8f8 f1f8 g8f8 g5f7 f8f7 c7c8q c6d8 c3e5 h8g8 c8d8").split(QLatin1Char(' '));
+        QVERIFY(analysis.acceptsHint(mate));
+
+        const MoveExplanation explanation = explainPosition(analysis.input(SanStyle::Letters, true, mate));
+        QCOMPARE(explanation.playback.size(), 27); // The whole mate, not only the first plies.
+        QVERIFY(explanation.summary.contains(QStringLiteral("White mates in 14")));
+        QVERIFY(explanation.trace.first().startsWith(QStringLiteral("hint from the live analysis")));
+
+        EngineEvaluation shallow = mate;
+        shallow.depth = 12;
+        QVERIFY(!analysis.acceptsHint(shallow)); // Not deeper than the search.
+        EngineEvaluation plusTwo = centipawns(200, mate.pv);
+        plusTwo.depth = 40;
+        QVERIFY(!analysis.acceptsHint(plusTwo)); // Only mates and draws guide the explanation.
+        EngineEvaluation draw = centipawns(0, {"d3c3"});
+        draw.depth = 40;
+        QVERIFY(analysis.acceptsHint(draw));
+        EngineEvaluation illegal = mate;
+        illegal.pv = QStringList{"e2e4"};
+        QVERIFY(!analysis.acceptsHint(illegal));
+    }
+
+    void plansFolderSync()
+    {
+        using Kind = SyncAction::Kind;
+        const auto local = [](std::initializer_list<std::pair<const char *, const char *>> files) {
+            QMap<QString, LocalFileState> map;
+            for (const auto &[path, hash] : files)
+                map.insert(QString::fromLatin1(path), LocalFileState{QString::fromLatin1(hash), 1, QDateTime()});
+            return map;
+        };
+        const auto remote = [](std::initializer_list<std::pair<const char *, const char *>> files) {
+            SyncManifest manifest;
+            for (const auto &[path, hash] : files) {
+                SyncFileState state;
+                state.hash = QString::fromLatin1(hash);
+                state.deleted = state.hash.isEmpty();
+                manifest.files.insert(QString::fromLatin1(path), state);
+            }
+            return manifest;
+        };
+        const QMap<QString, QString> base{{"same.pdb", "a"}, {"edited-here.pdb", "a"}, {"edited-there.pdb", "a"},
+                                          {"deleted-here.pdb", "a"}, {"deleted-there.pdb", "a"},
+                                          {"edited-both.pdb", "a"}, {"deleted-here-edited-there.pdb", "a"},
+                                          {"edited-here-deleted-there.pdb", "a"}};
+        const QList<SyncAction> actions = planSync(
+            local({{"same.pdb", "a"}, {"edited-here.pdb", "b"}, {"edited-there.pdb", "a"}, {"deleted-there.pdb", "a"},
+                   {"edited-both.pdb", "b"}, {"edited-here-deleted-there.pdb", "b"}, {"new-here.pch", "n"},
+                   {"new-both-same.pdb", "s"}, {"new-both-different.pdb", "x"}}),
+            base,
+            remote({{"same.pdb", "a"}, {"edited-here.pdb", "a"}, {"edited-there.pdb", "c"}, {"deleted-here.pdb", "a"},
+                    {"deleted-there.pdb", ""}, {"edited-both.pdb", "c"}, {"deleted-here-edited-there.pdb", "c"},
+                    {"edited-here-deleted-there.pdb", ""}, {"new-there.pdb", "t"}, {"new-both-same.pdb", "s"},
+                    {"new-both-different.pdb", "y"}}));
+
+        const QList<SyncAction> expected{
+            {Kind::Download, "deleted-here-edited-there.pdb"},
+            {Kind::DeleteRemote, "deleted-here.pdb"},
+            {Kind::DeleteLocal, "deleted-there.pdb"},
+            {Kind::KeepBoth, "edited-both.pdb"},
+            {Kind::Upload, "edited-here-deleted-there.pdb"},
+            {Kind::Upload, "edited-here.pdb"},
+            {Kind::Download, "edited-there.pdb"},
+            {Kind::KeepBoth, "new-both-different.pdb"},
+            {Kind::Record, "new-both-same.pdb"},
+            {Kind::Upload, "new-here.pch"},
+            {Kind::Download, "new-there.pdb"},
+        };
+        QCOMPARE(actions, expected);
+
+        // A manifest survives a round trip, tombstones included.
+        SyncManifest manifest = remote({{"Databases/Games.pdb", "abc"}, {"Projects/Old.pch", ""}});
+        manifest.revision = 7;
+        manifest.updatedBy = QStringLiteral("laptop");
+        const std::optional<SyncManifest> read = SyncManifest::fromJson(manifest.toJson(), nullptr);
+        QVERIFY(read);
+        QCOMPARE(read->revision, 7);
+        QCOMPARE(read->files.value("Databases/Games.pdb").hash, QStringLiteral("abc"));
+        QVERIFY(read->files.value("Projects/Old.pch").deleted);
+
+        QCOMPARE(conflictPath(QStringLiteral("Databases/Games.pdb"), QStringLiteral("laptop"),
+                              QDateTime(QDate(2026, 9, 17), QTime(10, 30))),
+                 QStringLiteral("Databases/Games (conflict, laptop, 2026-09-17 10.30).pdb"));
     }
 
     void outlinesDatabases()

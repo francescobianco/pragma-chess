@@ -5,6 +5,7 @@
 #include "dialogs/ConnectSourceWizard.h"
 #include "dialogs/GameInfoDialog.h"
 #include "dialogs/ManageSourcesDialog.h"
+#include "dialogs/SyncDialog.h"
 #include "app/Explainer.h"
 #include "app/GameSession.h"
 #include "app/Pgn.h"
@@ -14,6 +15,8 @@
 #include "app/UserFolders.h"
 #include "app/sources/SourceCatalog.h"
 #include "app/sources/SourceSync.h"
+#include "app/sync/FolderSync.h"
+#include "app/sync/RemoteStore.h"
 #include "models/GameFilterProxyModel.h"
 #include "models/GameListModel.h"
 #include "models/MoveListModel.h"
@@ -112,6 +115,8 @@ MainWindow::MainWindow(QWidget *parent)
     , m_engine(new UciEngine(this))
     , m_explainer(new Explainer(this))
     , m_sourceSync(new SourceSync(this))
+    , m_folderSync(new FolderSync(UserFolders::pragmaDir(), SyncSettings::statePath(), SyncSettings::deviceName(), this))
+    , m_syncTimer(new QTimer(this))
 {
     setDockOptions(AnimatedDocks | AllowTabbedDocks | AllowNestedDocks);
     m_sidebar->setWindowFlags(Qt::Widget);
@@ -130,6 +135,7 @@ MainWindow::MainWindow(QWidget *parent)
     createMenus();
     createToolBar();
     createStatusBar();
+    updateSeparatorStyle();
 
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateWindowTitle);
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateGameHeader);
@@ -141,6 +147,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::analyzeCurrentPosition);
     connect(m_engine, &UciEngine::evaluationChanged, this, [this](const EngineEvaluation &evaluation) {
         m_evaluationBar->setEvaluation(evaluation);
+        m_explainer->setLiveEvaluation(evaluation);
         m_engineLine = m_session->position().lineText(evaluation.pv);
         m_enginePanel->setEvaluation(evaluation, m_session->position().lineText(evaluation.pv, 12, SanStyle::Figurines));
     });
@@ -179,6 +186,50 @@ MainWindow::MainWindow(QWidget *parent)
         m_databaseTree->scheduleRefresh();
     });
     connect(m_sourceSync, &SourceSync::sourcesChanged, m_databaseTree, &DatabaseTreeWidget::scheduleRefresh);
+
+    // Folder sync with a server: every few minutes, and shortly after starting.
+    m_syncTimer->setInterval(5 * 60 * 1000);
+    connect(m_syncTimer, &QTimer::timeout, m_folderSync, &FolderSync::sync);
+    connect(m_folderSync, &FolderSync::started, this, [this] {
+        m_folderSyncLabel->setText(tr("Syncing…"));
+        m_folderSyncLabel->setToolTip(QString());
+        m_folderSyncLabel->show();
+    });
+    connect(m_folderSync, &FolderSync::progress, m_folderSyncLabel, &QLabel::setText);
+    connect(m_folderSync, &FolderSync::finished, this, [this](const QString &error, int changes) {
+        if (!error.isEmpty()) {
+            m_folderSyncLabel->setText(tr("Sync failed"));
+            m_folderSyncLabel->setToolTip(error);
+            return;
+        }
+        m_folderSyncLabel->hide();
+        if (changes > 0)
+            statusBar()->showMessage(tr("Synced %n file(s) with the server", nullptr, changes), 5000);
+    });
+    // A database the sync replaces is closed first and opened again after.
+    connect(m_folderSync, &FolderSync::localFileAboutToChange, this, [this](const QString &path) {
+        if (!m_database || QFileInfo(m_database->location()) != QFileInfo(path))
+            return;
+        m_reopenAfterSync = m_database->location();
+        m_reopenGameId = m_openGameIndex >= 0 ? m_database->header(m_openGameIndex).id : -1;
+        m_reopenPly = m_session->ply();
+        setDatabase(nullptr);
+    });
+    connect(m_folderSync, &FolderSync::localFileChanged, this, [this](const QString &path) {
+        if (m_reopenAfterSync.isEmpty() || QFileInfo(m_reopenAfterSync) != QFileInfo(path))
+            return;
+        const QString reopen = m_reopenAfterSync;
+        m_reopenAfterSync.clear();
+        if (!QFileInfo::exists(reopen)) {
+            openInitialDatabase(QString());
+            return;
+        }
+        Project project = captureProject();
+        project.databasePath = reopen;
+        project.gameId = m_reopenGameId;
+        project.ply = m_reopenPly;
+        applyProject(project, false);
+    });
     connect(m_sourceSync, &SourceSync::activityChanged, this, [this](const QString &text) {
         m_syncLabel->setText(text);
         m_syncLabel->setVisible(!text.isEmpty());
@@ -193,6 +244,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     applyWorkspace(Workspace::Database);
     restoreSession();
+    applySyncSettings();
 
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::scheduleSaveSession);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::scheduleSaveSession);
@@ -233,6 +285,10 @@ void MainWindow::createActions()
                                         tr("Save Project &As…"), this);
     m_saveProjectAsAction->setShortcut(QKeySequence::SaveAs);
     connect(m_saveProjectAsAction, &QAction::triggered, this, &MainWindow::saveProjectAs);
+
+    m_syncAction = new QAction(tr("S&ync…"), this);
+    m_syncAction->setToolTip(tr("Keep databases and projects the same on several computers through a server"));
+    connect(m_syncAction, &QAction::triggered, this, &MainWindow::openSyncDialog);
 
     m_newDatabaseAction = new QAction(themeIcon("document-new", QStyle::SP_FileIcon),
                                       tr("&New Database…"), this);
@@ -354,6 +410,8 @@ void MainWindow::createMenus()
     file->addAction(m_saveProjectAction);
     file->addAction(m_saveProjectAsAction);
     file->addSeparator();
+    file->addAction(m_syncAction);
+    file->addSeparator();
     file->addAction(m_quitAction);
 
     QMenu *edit = menuBar()->addMenu(tr("&Edit"));
@@ -470,6 +528,8 @@ QDockWidget *MainWindow::addDock(QMainWindow *host, const QString &objectName, c
 {
     auto *dock = new QDockWidget(title, host);
     dock->setObjectName(objectName);
+    // No close or float buttons: panels are shown and hidden from the View menu.
+    dock->setFeatures(QDockWidget::DockWidgetMovable);
     dock->setWidget(widget);
     host->addDockWidget(area, dock);
     return dock;
@@ -559,10 +619,16 @@ void MainWindow::createDocks()
     m_gamesSplitter->setStretchFactor(1, 1);
     m_gamesSplitter->setSizes({220, 800});
     m_gamesDock = addDock(this, QStringLiteral("gamesDock"), tr("Games"), m_gamesSplitter, Qt::BottomDockWidgetArea);
+    // The tree and the list speak for themselves: no title bar ("Games" stays in the View menu).
+    m_gamesDock->setTitleBarWidget(new QWidget(m_gamesDock));
 }
 
 void MainWindow::createStatusBar()
 {
+    m_folderSyncLabel = new QLabel;
+    m_folderSyncLabel->hide();
+    statusBar()->addPermanentWidget(m_folderSyncLabel);
+
     m_syncLabel = new QLabel;
     m_syncLabel->hide();
     statusBar()->addPermanentWidget(m_syncLabel);
@@ -898,6 +964,37 @@ void MainWindow::connectSource()
     m_sourceSync->syncSource(source.id);
     m_databaseTree->refresh();
     statusBar()->showMessage(tr("Connected %1 to %2").arg(SourceCatalog::displayName(source), m_database->name()), 5000);
+}
+
+void MainWindow::openSyncDialog()
+{
+    SyncDialog dialog(SyncSettings::load(), m_folderSync, this);
+    connect(&dialog, &SyncDialog::syncRequested, this, [this](const SyncSettings &settings) {
+        settings.save();
+        applySyncSettings();
+        m_folderSync->sync();
+    });
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+    dialog.settings().save();
+    applySyncSettings();
+}
+
+void MainWindow::applySyncSettings()
+{
+    const SyncSettings settings = SyncSettings::load();
+    RemoteStore *store = settings.createStore(this);
+    m_folderSync->setStore(store);
+    if (m_syncStore)
+        m_syncStore->deleteLater();
+    m_syncStore = store;
+    m_folderSyncLabel->hide();
+    if (!store) {
+        m_syncTimer->stop();
+        return;
+    }
+    m_syncTimer->start();
+    QTimer::singleShot(1500, m_folderSync, &FolderSync::sync);
 }
 
 void MainWindow::manageSources()
@@ -1527,6 +1624,31 @@ void MainWindow::moveEvent(QMoveEvent *event)
 {
     QMainWindow::moveEvent(event);
     scheduleSaveSession();
+}
+
+void MainWindow::updateSeparatorStyle()
+{
+    // A solid line along the whole separator, highlighted while hovered.
+    QColor line = palette().color(QPalette::WindowText);
+    line.setAlphaF(0.3);
+    const QColor hover = palette().color(QPalette::Highlight);
+    const auto rgba = [](const QColor &color) {
+        return QStringLiteral("rgba(%1, %2, %3, %4)").arg(color.red()).arg(color.green()).arg(color.blue()).arg(color.alpha());
+    };
+    const QString style = QStringLiteral("QMainWindow::separator { background: %1; width: 3px; height: 3px; }"
+                                         "QMainWindow::separator:hover { background: %2; }")
+                              .arg(rgba(line), rgba(hover));
+    for (QMainWindow *window : {static_cast<QMainWindow *>(this), m_sidebar}) {
+        if (window->styleSheet() != style)
+            window->setStyleSheet(style);
+    }
+}
+
+void MainWindow::changeEvent(QEvent *event)
+{
+    QMainWindow::changeEvent(event);
+    if (event->type() == QEvent::PaletteChange)
+        updateSeparatorStyle();
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)

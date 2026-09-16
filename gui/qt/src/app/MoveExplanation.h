@@ -67,6 +67,9 @@ struct ExplanationInput {
     /// mate explains the evaluation.
     std::optional<int> concretePly;
 
+    /// Why `afterEvaluation` is not the explanation's own search, for the trace.
+    QString evaluationNote;
+
     /// How moves are written in the summary.
     SanStyle sanStyle = SanStyle::Letters;
 

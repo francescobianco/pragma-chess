@@ -121,7 +121,35 @@ void printSearch(const char *label, const ChessPosition &position, const QList<E
 struct Options {
     bool trace = false;
     bool board = false;
+    /// Hint as the desktop client's live analysis would give it.
+    std::optional<int> hintMate;
+    bool hintDraw = false;
+    QString hintLine;
+    int hintDepth = 99;
 };
+
+/// The hint of the options for the position `after`, or nothing.
+std::optional<EngineEvaluation> hintFor(const Options &options, const ChessPosition &after)
+{
+    if (!options.hintMate && !options.hintDraw)
+        return std::nullopt;
+    EngineEvaluation hint;
+    hint.depth = options.hintDepth;
+    if (options.hintMate) {
+        hint.isMate = true;
+        hint.mateIn = qAbs(*options.hintMate);
+        hint.mating = *options.hintMate > 0 ? Side::White : Side::Black;
+    }
+    QString error;
+    const std::optional<Pgn::ParsedLine> line = Pgn::parseLine(options.hintLine, after.fen(), &error);
+    if (!line) {
+        err() << "Hint line: " << error << '\n';
+        return std::nullopt;
+    }
+    for (const MoveRecord &move : line->moves)
+        hint.pv << move.uci;
+    return hint;
+}
 
 bool explainPly(ExplanationSearch &search, const Pgn::ParsedLine &line, int ply, const Options &options)
 {
@@ -165,7 +193,11 @@ bool explainPly(ExplanationSearch &search, const Pgn::ParsedLine &line, int ply,
     if (options.board)
         printBoard(analysis->after);
 
-    const ExplanationInput input = analysis->input(SanStyle::Letters, options.trace);
+    const std::optional<EngineEvaluation> hint = hintFor(options, analysis->after);
+    if (hint)
+        out() << "hint    " << hint->text() << " at depth " << hint->depth << "  " << analysis->after.lineText(hint->pv, 10)
+              << (analysis->acceptsHint(*hint) ? "   (used)" : "   (ignored)") << '\n';
+    const ExplanationInput input = analysis->input(SanStyle::Letters, options.trace, hint);
     if (!analysis->probe.isEmpty()) {
         out() << "line probe  depth " << search.settings().probeDepth << ", agreeing within "
               << AdvantageProbe::kAgreement << " points with " << input.afterEvaluation.text() << '\n';
@@ -252,10 +284,23 @@ int main(int argc, char *argv[])
                                           QStringLiteral("path"), QStringLiteral("stockfish"));
     const QCommandLineOption traceOption({QStringLiteral("t"), QStringLiteral("trace")},
                                          QStringLiteral("Show how each explanation was reached."));
+    const QCommandLineOption hintMateOption(QStringLiteral("hint-mate"),
+                                            QStringLiteral("Hint of the live analysis: mate in n moves, positive "
+                                                           "for White, negative for Black."),
+                                            QStringLiteral("n"));
+    const QCommandLineOption hintDrawOption(QStringLiteral("hint-draw"),
+                                            QStringLiteral("Hint of the live analysis: 0.00, a draw."));
+    const QCommandLineOption hintLineOption(QStringLiteral("hint-line"),
+                                            QStringLiteral("The line of the hint, from the position explained."),
+                                            QStringLiteral("moves"));
+    const QCommandLineOption hintDepthOption(QStringLiteral("hint-depth"),
+                                             QStringLiteral("Depth the hint was found at."), QStringLiteral("d"),
+                                             QStringLiteral("99"));
     const QCommandLineOption boardOption({QStringLiteral("b"), QStringLiteral("board")},
                                          QStringLiteral("Draw the position after the move."));
     parser.addOptions({fenOption, fileOption, plyOption, allOption, depthOption, probeDepthOption, probePliesOption,
-                       threadsOption, hashOption, engineOption, traceOption, boardOption});
+                       threadsOption, hashOption, engineOption, traceOption, boardOption, hintMateOption,
+                       hintDrawOption, hintLineOption, hintDepthOption});
     parser.process(app);
 
     QString text = parser.positionalArguments().join(QLatin1Char(' '));
@@ -295,6 +340,11 @@ int main(int argc, char *argv[])
     Options options;
     options.trace = parser.isSet(traceOption);
     options.board = parser.isSet(boardOption);
+    if (parser.isSet(hintMateOption))
+        options.hintMate = parser.value(hintMateOption).toInt();
+    options.hintDraw = parser.isSet(hintDrawOption);
+    options.hintLine = parser.value(hintLineOption);
+    options.hintDepth = parser.value(hintDepthOption).toInt();
 
     ExplanationSearch search(settings);
     if (!search.start(executable)) {

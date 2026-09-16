@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QProcess>
+#include <QSignalBlocker>
 #include <QStandardPaths>
 #include <QThread>
 
@@ -64,6 +65,10 @@ void UciEngine::shutdown()
 {
     if (m_process->state() == QProcess::NotRunning)
         return;
+    // Waiting still reads the engine's output: a stopping engine reports nothing,
+    // since whoever listened may already be gone (e.g. a window being destroyed).
+    const QSignalBlocker blocker(this);
+    m_state = State::Stopped;
     send("stop");
     send("quit");
     if (!m_process->waitForFinished(1000))

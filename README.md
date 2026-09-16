@@ -46,6 +46,15 @@ background while the database is open; *Database ▸ Manage Sources…* syncs,
 edits, signs in again or removes sources. lichess.org needs signing in, which
 happens in the browser.
 
+### Sync between computers
+
+*File ▸ Sync…* connects the Pragma folder to a folder on an FTP or WebDAV
+server (Nextcloud, a NAS…). Every computer set up with the same server folder
+keeps the same databases and projects: changes are sent and received every few
+minutes, a `.pragma-chess.sync` file on the server tracks what changed where,
+edits made on two computers at once keep both files, and deleted files go to
+the trash.
+
 ### Build
 
 Debian/Ubuntu dependencies:

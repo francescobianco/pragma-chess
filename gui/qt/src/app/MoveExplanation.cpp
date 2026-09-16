@@ -12,6 +12,8 @@ constexpr int kMaxSearchPlies = 16;
 /// Plies after the realization during which the material must not come back.
 constexpr int kHoldPlies = 4;
 constexpr int kMaxArrows = 8;
+/// Mates are replayed to the end, so that they can be played on the board.
+constexpr int kMaxMatePlies = 100;
 /// Realizations longer than this are drawn focused on their decisive moves:
 /// a long sequence of arrows says nothing at a glance.
 constexpr int kFocusAbove = 3;
@@ -375,6 +377,8 @@ MoveExplanation explainPosition(const ExplanationInput &input)
     const bool comparable = input.before && input.played && input.beforeEvaluation;
     const Side toMove = after.sideToMove();
     const Side mover = opposite(toMove);
+    if (!input.evaluationNote.isEmpty())
+        note(input.evaluationNote);
     if (comparable) {
         explanation.verdict = classifyMove(*input.beforeEvaluation, afterEvaluation, mover, *input.played);
         note(QStringLiteral("verdict %1: %2's winning chances %3 -> %4 (drop %5)")
@@ -425,7 +429,7 @@ MoveExplanation explainPosition(const ExplanationInput &input)
             note(QStringLiteral("branch: the move allows mate"));
             addAlternative();
             addArrows(explanation, current, 0, current.plies(), toMove, BoardArrow::Kind::Refutation);
-            explanation.playback = mateToPlay(current);
+            explanation.playback = mateToPlay(replay(after, afterEvaluation.pv, kMaxMatePlies));
             explanation.summary = prefix
                 + tr("%1 mates in %2: %3.").arg(sideName(toMove)).arg(afterEvaluation.mateIn)
                       .arg(after.lineText(afterEvaluation.pv, kMaxArrows, input.sanStyle))
@@ -502,7 +506,7 @@ MoveExplanation explainPosition(const ExplanationInput &input)
     if (afterEvaluation.isMate && afterEvaluation.mateIn > 0) {
         note(QStringLiteral("branch: mate on the board"));
         addArrows(explanation, current, 0, current.plies(), favored, favoredKind);
-        explanation.playback = mateToPlay(current);
+        explanation.playback = mateToPlay(replay(after, afterEvaluation.pv, kMaxMatePlies));
         explanation.summary = prefix
             + tr("%1 mates in %2: %3.").arg(sideName(favored)).arg(afterEvaluation.mateIn)
                   .arg(after.lineText(afterEvaluation.pv, kMaxArrows, input.sanStyle));

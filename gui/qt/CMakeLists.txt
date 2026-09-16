@@ -61,6 +61,17 @@ qt_add_library(pragma-chess-core STATIC
     src/app/sources/SourceFetch.h
     src/app/sources/SourceSync.cpp
     src/app/sources/SourceSync.h
+    src/app/sync/FolderSync.cpp
+    src/app/sync/FolderSync.h
+    src/app/sync/FtpStore.cpp
+    src/app/sync/FtpStore.h
+    src/app/sync/RemoteStore.h
+    src/app/sync/SyncManifest.cpp
+    src/app/sync/SyncManifest.h
+    src/app/sync/SyncSettings.cpp
+    src/app/sync/SyncSettings.h
+    src/app/sync/WebDavStore.cpp
+    src/app/sync/WebDavStore.h
 )
 target_include_directories(pragma-chess-core PUBLIC src)
 target_link_libraries(pragma-chess-core PUBLIC Qt6::Core Qt6::Network)
@@ -81,6 +92,8 @@ qt_add_executable(pragma-chess
     src/dialogs/GameInfoDialog.h
     src/dialogs/ManageSourcesDialog.cpp
     src/dialogs/ManageSourcesDialog.h
+    src/dialogs/SyncDialog.cpp
+    src/dialogs/SyncDialog.h
     src/dialogs/SourceSettingsWidget.cpp
     src/dialogs/SourceSettingsWidget.h
     src/app/ClassicGames.cpp

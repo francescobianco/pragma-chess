@@ -29,6 +29,8 @@ class QMenu;
 class QTableView;
 class QTimer;
 class SourceSync;
+class FolderSync;
+class RemoteStore;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -43,6 +45,7 @@ public:
 protected:
     void closeEvent(QCloseEvent *event) override;
     void moveEvent(QMoveEvent *event) override;
+    void changeEvent(QEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
 
 private:
@@ -53,6 +56,8 @@ private:
     void createToolBar();
     void createDocks();
     void createStatusBar();
+    /// Full-length, visible lines between docked panels, in the palette's colors.
+    void updateSeparatorStyle();
 
     QDockWidget *addDock(QMainWindow *host, const QString &objectName, const QString &title,
                          QWidget *widget, Qt::DockWidgetArea area);
@@ -105,6 +110,10 @@ private:
     // External sources of games (lichess.org, chess.com, …), synced in the background.
     void connectSource();
     void manageSources();
+    // File ▸ Sync: the Pragma folder kept the same on several computers.
+    void openSyncDialog();
+    /// Uses the saved sync settings: connects to the server and syncs soon.
+    void applySyncSettings();
     void setAnalysisEnabled(bool enabled);
     void analyzeCurrentPosition();
     void editGameInfo();
@@ -150,6 +159,14 @@ private:
     QLabel *m_gameCountLabel;
     QLabel *m_syncLabel;
     SourceSync *m_sourceSync;
+    FolderSync *m_folderSync;
+    RemoteStore *m_syncStore = nullptr;
+    QTimer *m_syncTimer;
+    QLabel *m_folderSyncLabel;
+    /// The open database, while the sync replaces its file.
+    QString m_reopenAfterSync;
+    qint64 m_reopenGameId = -1;
+    int m_reopenPly = 0;
 
     QDockWidget *m_movesDock;
     QDockWidget *m_gamesDock;
@@ -168,6 +185,7 @@ private:
     QAction *m_openProjectAction;
     QAction *m_saveProjectAction;
     QAction *m_saveProjectAsAction;
+    QAction *m_syncAction;
     QMenu *m_recentProjectsMenu;
 
     QAction *m_newDatabaseAction;

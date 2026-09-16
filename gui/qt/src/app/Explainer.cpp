@@ -53,10 +53,23 @@ void Explainer::setPosition(const ChessPosition &position, const std::optional<C
     m_position = position;
     m_before = before;
     m_played = played;
+    m_hint.reset();
+    m_usedHint.clear();
     if (!m_enabled)
         return;
     // Old arrows must not linger on a new position, not even for a moment.
     m_shown.reset();
+    explain();
+}
+
+void Explainer::setLiveEvaluation(const EngineEvaluation &evaluation)
+{
+    m_hint = evaluation;
+    if (!m_enabled)
+        return;
+    const auto known = m_analyses.constFind(currentKey());
+    if (known == m_analyses.cend() || !known->acceptsHint(evaluation) || evaluation.text() == m_usedHint)
+        return;
     explain();
 }
 
@@ -74,7 +87,9 @@ void Explainer::explain()
 {
     const auto known = m_analyses.constFind(currentKey());
     if (known != m_analyses.cend()) {
-        show(explainPosition(known->input(SanStyle::Figurines)));
+        const bool hinted = m_hint && known->acceptsHint(*m_hint);
+        m_usedHint = hinted ? m_hint->text() : QString();
+        show(explainPosition(known->input(SanStyle::Figurines, false, m_hint)));
         return;
     }
 

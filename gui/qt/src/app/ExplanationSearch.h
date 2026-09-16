@@ -38,8 +38,16 @@ struct ExplanationAnalysis {
 
     std::optional<EngineEvaluation> beforeEvaluation() const;
     std::optional<EngineEvaluation> afterEvaluation() const;
-    /// Input for explainPosition(), with the concrete ply from the probe.
-    ExplanationInput input(SanStyle style = SanStyle::Letters, bool trace = false) const;
+    /// Whether an evaluation of `after` from elsewhere (the live analysis of
+    /// the desktop client) should be trusted over this analysis: only a mate
+    /// or a 0.00 (a theoretical or technical draw) the search did not see, from
+    /// a search at least as deep, with a line that can be played.
+    bool acceptsHint(const EngineEvaluation &hint) const;
+
+    /// Input for explainPosition(), with the concrete ply from the probe. An
+    /// accepted `hint` replaces the evaluation of `after`.
+    ExplanationInput input(SanStyle style = SanStyle::Letters, bool trace = false,
+                           const std::optional<EngineEvaluation> &hint = std::nullopt) const;
 };
 
 /// Runs the searches for an explanation on its own engine process: the

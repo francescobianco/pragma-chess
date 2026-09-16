@@ -164,6 +164,26 @@ cargo run -p chessdb-cli -- <args>
   JSON) and `game_sources` (which source each imported game came from, by
   external id, so a sync never imports a game twice).
 
+## Folder sync
+
+File ▸ Sync… keeps the Pragma folder (databases, projects) the same on several
+computers through a folder on an FTP (optionally FTPS) or WebDAV server.
+
+- `app/sync/` (core library): `RemoteStore` with `FtpStore` (own client on
+  QSslSocket: passive mode, binary, upload as `.part` then rename) and
+  `WebDavStore` (PUT to `.part` then MOVE). `SyncManifest` is the remote
+  `.pragma-chess.sync` (files with SHA-256, tombstones, a revision);
+  `planSync` is the pure three-way decision (local, remote, last synced base),
+  unit-tested; `FolderSync` runs it, writes the manifest last and starts over
+  if another device changed it. Conflicts keep both files, local deletions go
+  to the trash, uploads send a snapshot copy.
+- The base and a hash cache live per device in AppLocalData
+  (`folder-sync.json`), never in the synced folder. Settings and password are
+  in the user's settings (`SyncSettings`; keychain is a TODO).
+- The open database is closed while the sync replaces it and opened again.
+- To test for real, run pyftpdlib / wsgidav locally and two `FolderSync`
+  instances with separate folders and state files.
+
 ## Game sources
 
 Database ▸ Connect Source… adds an external source (lichess.org, chess.com) to

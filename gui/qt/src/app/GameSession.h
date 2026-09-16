@@ -1,10 +1,12 @@
 #pragma once
 
-#include "BoardState.h"
+#include "ChessPosition.h"
 #include "GameRecord.h"
 
 #include <QList>
 #include <QObject>
+
+#include <optional>
 
 /// The game currently open in a window and the ply being viewed.
 class GameSession : public QObject {
@@ -13,6 +15,8 @@ class GameSession : public QObject {
 public:
     explicit GameSession(QObject *parent = nullptr);
 
+    /// Opens a game. Moves are replayed from the start position and the game
+    /// is cut at the first illegal one; missing SAN is filled in.
     void setGame(const GameRecord &game);
     /// Updates players, event, date, … of the open game, keeping moves and ply.
     void setHeader(const GameRecord &header);
@@ -20,12 +24,22 @@ public:
 
     int ply() const { return m_ply; }
     int plyCount() const { return int(m_positions.size()) - 1; }
-    const BoardState &board() const { return m_positions.at(m_ply); }
-    const BoardState &initialBoard() const { return m_positions.first(); }
+    const ChessPosition &position() const { return m_positions.at(m_ply); }
+    const ChessPosition &positionAt(int ply) const { return m_positions.at(ply); }
+    const ChessPosition &initialPosition() const { return m_positions.first(); }
+    BoardState board() const { return position().boardState(); }
 
-    /// Squares of the move that led to the current ply, or -1 at the start.
+    /// The move that led to the current ply, if any.
+    std::optional<ChessMove> lastMove() const;
     int lastMoveFrom() const;
     int lastMoveTo() const;
+
+    /// Whether `move` is the move the game continues with from the current ply.
+    bool isNextMove(const ChessMove &move) const;
+    /// Plays a legal move at the current ply: steps forward if it is the next
+    /// move of the game, otherwise replaces the moves after the current ply.
+    /// Returns false if the move is illegal.
+    bool playMove(const ChessMove &move);
 
     void goToPly(int ply);
     void goToStart() { goToPly(0); }
@@ -40,6 +54,7 @@ Q_SIGNALS:
 
 private:
     GameRecord m_game;
-    QList<BoardState> m_positions;
+    QList<ChessPosition> m_positions;
+    QList<ChessMove> m_moves;
     int m_ply = 0;
 };

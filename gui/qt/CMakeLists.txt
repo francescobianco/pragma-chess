@@ -1,6 +1,7 @@
 find_package(Qt6 6.4 REQUIRED COMPONENTS Widgets Sql)
 # Vector piece sets need Qt SVG; without it the board falls back to font glyphs.
 find_package(Qt6 6.4 QUIET COMPONENTS Svg)
+find_package(Qt6 6.4 QUIET COMPONENTS Test)
 
 # Project files (.pch) are YAML. Prefer a system yaml-cpp, else fetch it.
 find_package(yaml-cpp 0.8 QUIET)
@@ -30,14 +31,22 @@ qt_add_executable(pragma-chess
     src/dialogs/GameInfoDialog.h
     src/app/BoardState.cpp
     src/app/BoardState.h
+    src/app/ChessPosition.cpp
+    src/app/ChessPosition.h
     src/app/ClassicGames.cpp
     src/app/ClassicGames.h
     src/app/GameDatabase.h
     src/app/GameRecord.h
     src/app/Project.cpp
     src/app/Project.h
+    src/app/EngineEvaluation.cpp
+    src/app/EngineEvaluation.h
+    src/app/Explainer.cpp
+    src/app/Explainer.h
     src/app/GameSession.cpp
     src/app/GameSession.h
+    src/app/MoveExplanation.cpp
+    src/app/MoveExplanation.h
     src/app/SqliteGameDatabase.cpp
     src/app/UciEngine.cpp
     src/app/UciEngine.h
@@ -93,6 +102,27 @@ set_target_properties(pragma-chess PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER "${APP_ID}"
     MACOSX_BUNDLE_BUNDLE_NAME "Pragma Chess"
 )
+
+# Rules and "Explain" logic are plain C++ on Qt Core, tested without a display.
+if(TARGET Qt6::Test)
+    qt_add_executable(tst_chessrules
+        tests/tst_chessrules.cpp
+        src/app/BoardState.cpp
+        src/app/ChessPosition.cpp
+        src/app/EngineEvaluation.cpp
+        src/app/MoveExplanation.cpp
+    )
+    target_include_directories(tst_chessrules PRIVATE src)
+    target_link_libraries(tst_chessrules PRIVATE Qt6::Core Qt6::Test)
+    target_compile_definitions(tst_chessrules PRIVATE QT_NO_KEYWORDS)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(tst_chessrules PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    set_target_properties(tst_chessrules PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
+    add_test(NAME chessrules COMMAND tst_chessrules)
+else()
+    message(STATUS "Qt Test not found: tests are not built")
+endif()
 
 include(GNUInstallDirs)
 install(TARGETS pragma-chess

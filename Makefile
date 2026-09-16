@@ -4,7 +4,7 @@ APP        := $(BUILD_DIR)/gui/qt/pragma-chess
 
 GENERATOR := $(if $(shell command -v ninja),-G Ninja,)
 
-.PHONY: help start build run configure clean deps
+.PHONY: help start build run test configure clean deps
 
 help: ## Show available targets
 	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-10s %s\n", $$1, $$2}'
@@ -17,6 +17,9 @@ build: configure ## Build the GUI once
 
 run: build ## Build and launch the GUI (no watching)
 	@./$(APP)
+
+test: build ## Build and run the tests
+	@ctest --test-dir $(BUILD_DIR) --output-on-failure
 
 configure: $(BUILD_DIR)/CMakeFiles/Makefile.cmake
 

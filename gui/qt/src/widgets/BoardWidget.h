@@ -1,23 +1,34 @@
 #pragma once
 
 #include "app/BoardState.h"
+#include "app/MoveExplanation.h"
 
 #include <QHash>
+#include <QMultiHash>
 #include <QPainterPath>
 #include <QPixmap>
 #include <QWidget>
 
 #include <array>
 
-/// Renders a chess position. Knows nothing about games or databases.
+/// Renders a chess position and lets the user pick moves by clicking or
+/// dragging pieces. Knows nothing about games, databases or the rules: the
+/// moves it offers are the ones given to setLegalMoves().
 class BoardWidget : public QWidget {
     Q_OBJECT
 
 public:
     explicit BoardWidget(QWidget *parent = nullptr);
 
+    /// Shows a position; clears the selection and the explanation arrows.
     void setBoard(const BoardState &board, int lastMoveFrom = -1, int lastMoveTo = -1);
     const BoardState &board() const { return m_board; }
+
+    /// Moves the user may enter, as origin square → target squares.
+    void setLegalMoves(const QMultiHash<int, int> &moves);
+
+    /// Arrows and lost-piece rings explaining the position.
+    void setExplanation(const QList<BoardArrow> &arrows, const QList<int> &lostPieces);
 
     bool isFlipped() const { return m_flipped; }
     void setFlipped(bool flipped);
@@ -39,9 +50,15 @@ public:
 Q_SIGNALS:
     /// Emitted on mouse wheel: negative steps go back, positive go forward.
     void navigateRequested(int steps);
+    /// The user moved a piece from `from` to `to`; `globalPosition` is where
+    /// the piece was dropped, e.g. to place a promotion menu.
+    void moveRequested(int from, int to, const QPoint &globalPosition);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
     void focusInEvent(QFocusEvent *event) override;
     void focusOutEvent(QFocusEvent *event) override;
@@ -49,6 +66,11 @@ protected:
 private:
     QRectF boardRect() const;
     QRectF squareRect(int square) const;
+    /// Square under a point in widget coordinates, or -1.
+    int squareAt(const QPointF &point) const;
+    void paintPiece(QPainter &painter, Piece piece, const QRectF &rect) const;
+    void paintArrow(QPainter &painter, const BoardArrow &arrow) const;
+    void clearSelection();
     const QPainterPath &glyphPath(PieceType type) const;
     /// Piece rendered from the SVG piece set, or a null pixmap if unavailable.
     QPixmap piecePixmap(Piece piece, int pixelSize) const;
@@ -60,6 +82,19 @@ private:
     bool m_showCoordinates = true;
     int m_wheelAccumulator = 0;
     bool m_keyboardFocus = false;
+
+    QMultiHash<int, int> m_legalMoves;
+    int m_selected = -1;
+    /// Mouse press on the selected piece that may turn into a drag.
+    QPointF m_pressPosition;
+    bool m_pressed = false;
+    bool m_dragging = false;
+    QPointF m_dragPosition;
+    /// Selecting an already selected piece deselects it on release (click-click).
+    bool m_deselectOnRelease = false;
+
+    QList<BoardArrow> m_arrows;
+    QList<int> m_lostPieces;
     mutable std::array<QPainterPath, 7> m_glyphs;
     mutable QHash<quint32, QPixmap> m_pieceCache;
 };

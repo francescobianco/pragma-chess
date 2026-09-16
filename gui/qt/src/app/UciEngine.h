@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BoardState.h"
+#include "EngineEvaluation.h"
 
 #include <QObject>
 #include <QStringList>
@@ -9,23 +9,10 @@
 
 class QProcess;
 
-/// An evaluation reported by an engine, always from White's point of view.
-struct EngineEvaluation {
-    bool isMate = false;
-    /// Centipawns, positive when White is better (when !isMate).
-    int centipawns = 0;
-    /// Moves to mate (when isMate); 0 means the position is already checkmate.
-    int mateIn = 0;
-    /// Side delivering mate (when isMate).
-    Side mating = Side::White;
+/// Bounds a search; zero fields mean no bound, all zero means infinite.
+struct SearchLimit {
     int depth = 0;
-    /// Principal variation in UCI notation.
-    QStringList pv;
-
-    /// Expected share of the game for White in [0, 1], used by evaluation bars.
-    double whiteShare() const;
-    /// Short human-readable score, e.g. "+1.3", "−0.4", "M3", "#".
-    QString text() const;
+    int moveTimeMs = 0;
 };
 
 /// Drives an external UCI engine (Stockfish or any other) through QProcess.
@@ -49,13 +36,16 @@ public:
     /// Name reported by the engine ("id name"), empty until known.
     QString name() const { return m_name; }
 
-    /// Starts (or restarts) infinite analysis of a position.
-    void analyze(const QString &startFen, const QStringList &uciMoves, Side sideToMove);
+    /// Starts (or restarts) the analysis of a position, infinite unless limited.
+    void analyze(const QString &startFen, const QStringList &uciMoves, Side sideToMove,
+                 SearchLimit limit = {});
     void stopAnalysis();
 
 Q_SIGNALS:
     void nameChanged(const QString &name);
     void evaluationChanged(const EngineEvaluation &evaluation);
+    /// A limited search reached its bound.
+    void searchFinished();
     void failed(const QString &message);
 
 private:
@@ -65,6 +55,7 @@ private:
         QString startFen;
         QStringList moves;
         Side sideToMove;
+        SearchLimit limit;
     };
 
     void send(const QByteArray &command);
@@ -79,5 +70,6 @@ private:
     QStringList m_options;
     std::optional<Request> m_pending;
     Side m_searchSide = Side::White;
+    bool m_searchLimited = false;
     QByteArray m_buffer;
 };

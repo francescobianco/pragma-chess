@@ -7,29 +7,6 @@
 #include <QStandardPaths>
 #include <QThread>
 
-#include <cmath>
-
-double EngineEvaluation::whiteShare() const
-{
-    if (isMate)
-        return mating == Side::White ? 1.0 : 0.0;
-    // Winning chances curve used by lichess, mapped from [-1, 1] to [0, 1].
-    const double winningChances = 2.0 / (1.0 + std::exp(-0.00368208 * centipawns)) - 1.0;
-    return 0.5 + 0.5 * winningChances;
-}
-
-QString EngineEvaluation::text() const
-{
-    if (isMate)
-        return mateIn == 0 ? QStringLiteral("#") : QStringLiteral("M%1").arg(mateIn);
-    const double pawns = centipawns / 100.0;
-    const QString number = std::abs(pawns) >= 10 ? QString::number(std::abs(pawns), 'f', 0)
-                                                 : QString::number(std::abs(pawns), 'f', 1);
-    if (number == QLatin1String("0.0"))
-        return number;
-    return (pawns > 0 ? QStringLiteral("+") : QStringLiteral("−")) + number;
-}
-
 UciEngine::UciEngine(QObject *parent)
     : QObject(parent)
     , m_process(new QProcess(this))
@@ -100,9 +77,10 @@ bool UciEngine::isRunning() const
     return m_process->state() != QProcess::NotRunning;
 }
 
-void UciEngine::analyze(const QString &startFen, const QStringList &uciMoves, Side sideToMove)
+void UciEngine::analyze(const QString &startFen, const QStringList &uciMoves, Side sideToMove,
+                        SearchLimit limit)
 {
-    m_pending = Request{startFen, uciMoves, sideToMove};
+    m_pending = Request{startFen, uciMoves, sideToMove, limit};
     switch (m_state) {
     case State::Idle:
         startPendingSearch();
@@ -171,7 +149,10 @@ void UciEngine::handleLine(const QByteArray &line)
             handleInfo(tokens);
     } else if (command == "bestmove") {
         if (m_state == State::Searching || m_state == State::Stopping) {
+            const bool reachedLimit = m_state == State::Searching && m_searchLimited;
             m_state = State::Idle;
+            if (reachedLimit)
+                Q_EMIT searchFinished();
             startPendingSearch();
         }
     }
@@ -229,9 +210,18 @@ void UciEngine::startPendingSearch()
     if (!m_pending->moves.isEmpty())
         position += " moves " + m_pending->moves.join(QLatin1Char(' ')).toLatin1();
 
+    QByteArray go("go");
+    if (m_pending->limit.depth > 0)
+        go += " depth " + QByteArray::number(m_pending->limit.depth);
+    if (m_pending->limit.moveTimeMs > 0)
+        go += " movetime " + QByteArray::number(m_pending->limit.moveTimeMs);
+    m_searchLimited = go != "go";
+    if (!m_searchLimited)
+        go += " infinite";
+
     m_searchSide = m_pending->sideToMove;
     m_pending.reset();
     send(position);
-    send("go infinite");
+    send(go);
     m_state = State::Searching;
 }

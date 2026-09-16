@@ -9,6 +9,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+enable_testing()
+
 # The chess database engine (core/, Rust) is built separately with Cargo.
 # The desktop client lives in gui/qt and talks to it through an interface
 # layer (gui/qt/src/app) so it can be developed on its own.

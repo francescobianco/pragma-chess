@@ -48,7 +48,7 @@ BoardPanel::BoardPanel(BoardWidget *board, EvaluationBar *evaluationBar, GameHea
     QToolButton *flip = controlButton(actions.flip);
     layout->addSpacing(flip->sizeHint().width());
     layout->addStretch();
-    for (QAction *action : {actions.first, actions.previous, actions.next, actions.last})
+    for (QAction *action : {actions.first, actions.previous, actions.explain, actions.next, actions.last})
         layout->addWidget(controlButton(action));
     layout->addStretch();
     layout->addWidget(flip);

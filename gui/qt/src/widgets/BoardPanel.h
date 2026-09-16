@@ -20,6 +20,8 @@ public:
     struct Actions {
         QAction *first;
         QAction *previous;
+        /// Sits between previous and next: explaining a move is part of stepping through a game.
+        QAction *explain;
         QAction *next;
         QAction *last;
         QAction *flip;

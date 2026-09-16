@@ -3,6 +3,7 @@
 #include <QByteArray>
 #include <QDir>
 #include <QString>
+#include <QStringList>
 
 #include <optional>
 
@@ -22,10 +23,11 @@ struct Project {
     int ply = 0;
     /// Starting position when no game is open (empty = standard position).
     QString startFen;
+    /// Moves (UCI) of a game that is not in the database, e.g. a new game.
+    QStringList moves;
 
     bool boardFlipped = false;
     bool showCoordinates = true;
-    QString gameSearch;
 
     /// UCI engine selected for analysis (empty = none) and whether it is running.
     QString engineName;

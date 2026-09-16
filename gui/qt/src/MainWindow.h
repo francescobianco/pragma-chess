@@ -9,6 +9,7 @@ struct Project;
 class BoardWidget;
 class EnginePanel;
 class EvaluationBar;
+class Explainer;
 class GameHeaderWidget;
 class UciEngine;
 class GameDatabase;
@@ -19,7 +20,6 @@ class QAction;
 class QDockWidget;
 class QLabel;
 class QMainWindow;
-class QLineEdit;
 class QMenu;
 class QSortFilterProxyModel;
 class QTableView;
@@ -61,6 +61,17 @@ private:
     void syncBoard();
     void updateNavigationActions();
     void updateGameCount();
+
+    // Entering games move by move.
+    void newGame();
+    void saveGameToDatabase();
+    /// Plays the move the user made on the board, asking for the promotion piece if needed.
+    void playBoardMove(int from, int to, const QPoint &globalPosition);
+    void updateGameActions();
+
+    /// "Explain": arrows on the board that justify the evaluation.
+    void setExplainEnabled(bool enabled);
+    void updateExplainer();
 
     // Projects (.pch): the File menu saves and restores the whole environment.
     void newProject();
@@ -115,9 +126,9 @@ private:
     GameHeaderWidget *m_gameHeader;
     EnginePanel *m_enginePanel;
     UciEngine *m_engine;
+    Explainer *m_explainer;
     QTableView *m_moveView;
     QTableView *m_gameView;
-    QLineEdit *m_searchField;
     QLabel *m_gameCountLabel;
 
     QDockWidget *m_movesDock;
@@ -128,6 +139,7 @@ private:
     QString m_projectPath;
     QString m_savedProjectYaml;
     QString m_engineName;
+    QString m_engineExecutable;
 
     QAction *m_newProjectAction;
     QAction *m_openProjectAction;
@@ -149,7 +161,9 @@ private:
     QAction *m_lastMoveAction;
     QAction *m_flipBoardAction;
     QAction *m_coordinatesAction;
-    QAction *m_findAction;
+    QAction *m_newGameAction;
+    QAction *m_saveGameAction;
+    QAction *m_explainAction;
     QAction *m_startEngineAction;
     QAction *m_aboutAction;
     QAction *m_aboutQtAction;

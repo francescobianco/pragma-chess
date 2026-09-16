@@ -87,6 +87,58 @@ private:
     QHash<QString, qint64> m_cache;
 };
 
+/// Inserts games with their players, events and sites.
+class GameInserter {
+public:
+    explicit GameInserter(QSqlDatabase db)
+        : m_players(db, QStringLiteral("players"))
+        , m_events(db, QStringLiteral("events"))
+        , m_sites(db, QStringLiteral("sites"))
+        , m_insert(db)
+    {
+        m_insert.prepare(QStringLiteral(
+            "INSERT INTO games (white_id, black_id, event_id, site_id, date, round, result,"
+            " white_elo, black_elo, eco, ply_count, start_fen, moves_san, moves_uci)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+    }
+
+    /// Returns the id of the new game, or 0 on failure.
+    qint64 insert(const GameRecord &game)
+    {
+        QStringList san;
+        QStringList uci;
+        for (const MoveRecord &move : game.moves) {
+            san << move.san;
+            uci << move.uci;
+        }
+        m_insert.addBindValue(m_players.idFor(game.white));
+        m_insert.addBindValue(m_players.idFor(game.black));
+        m_insert.addBindValue(m_events.idFor(game.event));
+        m_insert.addBindValue(m_sites.idFor(game.site));
+        m_insert.addBindValue(nullIfEmpty(game.date));
+        m_insert.addBindValue(nullIfEmpty(game.round));
+        m_insert.addBindValue(nullIfEmpty(game.result));
+        m_insert.addBindValue(nullIfZero(game.whiteElo));
+        m_insert.addBindValue(nullIfZero(game.blackElo));
+        m_insert.addBindValue(nullIfEmpty(game.eco));
+        m_insert.addBindValue(int(game.moves.size()));
+        m_insert.addBindValue(nullIfEmpty(game.startFen));
+        m_insert.addBindValue(san.join(QLatin1Char(' ')));
+        m_insert.addBindValue(uci.join(QLatin1Char(' ')));
+        if (!m_insert.exec())
+            return 0;
+        return m_insert.lastInsertId().toLongLong();
+    }
+
+    QString errorText() const { return m_insert.lastError().text(); }
+
+private:
+    NameTable m_players;
+    NameTable m_events;
+    NameTable m_sites;
+    QSqlQuery m_insert;
+};
+
 } // namespace
 
 SqliteGameDatabase::SqliteGameDatabase(QString path, QString connectionName)
@@ -147,37 +199,10 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::create(const QString &pa
             return fail(query.lastError().text());
     }
 
-    NameTable players(db, QStringLiteral("players"));
-    NameTable events(db, QStringLiteral("events"));
-    NameTable sites(db, QStringLiteral("sites"));
-    QSqlQuery insert(db);
-    insert.prepare(QStringLiteral(
-        "INSERT INTO games (white_id, black_id, event_id, site_id, date, round, result,"
-        " white_elo, black_elo, eco, ply_count, start_fen, moves_san, moves_uci)"
-        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+    GameInserter inserter(db);
     for (const GameRecord &game : games) {
-        QStringList san;
-        QStringList uci;
-        for (const MoveRecord &move : game.moves) {
-            san << move.san;
-            uci << move.uci;
-        }
-        insert.addBindValue(players.idFor(game.white));
-        insert.addBindValue(players.idFor(game.black));
-        insert.addBindValue(events.idFor(game.event));
-        insert.addBindValue(sites.idFor(game.site));
-        insert.addBindValue(nullIfEmpty(game.date));
-        insert.addBindValue(nullIfEmpty(game.round));
-        insert.addBindValue(nullIfEmpty(game.result));
-        insert.addBindValue(nullIfZero(game.whiteElo));
-        insert.addBindValue(nullIfZero(game.blackElo));
-        insert.addBindValue(nullIfEmpty(game.eco));
-        insert.addBindValue(int(game.moves.size()));
-        insert.addBindValue(nullIfEmpty(game.startFen));
-        insert.addBindValue(san.join(QLatin1Char(' ')));
-        insert.addBindValue(uci.join(QLatin1Char(' ')));
-        if (!insert.exec())
-            return fail(insert.lastError().text());
+        if (inserter.insert(game) == 0)
+            return fail(inserter.errorText());
     }
     if (!db.commit())
         return fail(db.lastError().text());
@@ -312,6 +337,26 @@ bool SqliteGameDatabase::saveCopy(const QString &path, QString *errorMessage) co
         return false;
     }
     return true;
+}
+
+qint64 SqliteGameDatabase::addGame(const GameRecord &game, QString *errorMessage)
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    db.transaction();
+    GameInserter inserter(db);
+    const qint64 id = inserter.insert(game);
+    if (id == 0 || !db.commit()) {
+        setError(errorMessage, id == 0 ? inserter.errorText() : db.lastError().text());
+        db.rollback();
+        return -1;
+    }
+
+    GameRecord header = game;
+    header.id = id;
+    header.plyCount = int(game.moves.size());
+    header.moves.clear();
+    m_headers << header;
+    return m_headers.size() - 1;
 }
 
 bool SqliteGameDatabase::updateHeader(qint64 index, const GameRecord &header, QString *errorMessage)

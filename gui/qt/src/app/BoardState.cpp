@@ -60,44 +60,6 @@ std::optional<BoardState> BoardState::fromFen(const QString &fen)
     return state;
 }
 
-bool BoardState::applyUci(const QString &uci)
-{
-    if (uci.size() < 4)
-        return false;
-    const int from = squareFromName(QStringView(uci).mid(0, 2));
-    const int to = squareFromName(QStringView(uci).mid(2, 2));
-    if (from < 0 || to < 0 || m_squares[from].isNull())
-        return false;
-
-    Piece piece = m_squares[from];
-    const int fileDelta = to % 8 - from % 8;
-
-    // En passant: a pawn moving diagonally onto an empty square.
-    if (piece.type == PieceType::Pawn && fileDelta != 0 && m_squares[to].isNull())
-        m_squares[(from / 8) * 8 + to % 8] = {};
-
-    // Castling: the king moves two files, bring the rook along.
-    if (piece.type == PieceType::King && (fileDelta == 2 || fileDelta == -2)) {
-        const int rank = from / 8;
-        const int rookFrom = rank * 8 + (fileDelta > 0 ? 7 : 0);
-        const int rookTo = rank * 8 + (fileDelta > 0 ? 5 : 3);
-        m_squares[rookTo] = m_squares[rookFrom];
-        m_squares[rookFrom] = {};
-    }
-
-    if (uci.size() >= 5) {
-        const PieceType promotion = typeFromChar(uci.at(4));
-        if (promotion != PieceType::None)
-            piece.type = promotion;
-    }
-
-    m_squares[to] = piece;
-    m_squares[from] = {};
-    m_sideToMove = m_sideToMove == Side::White ? Side::Black : Side::White;
-    m_fen.clear(); // Castling rights and clocks are unknown without the engine.
-    return true;
-}
-
 int BoardState::squareFromName(QStringView name)
 {
     if (name.size() != 2)

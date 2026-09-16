@@ -2,6 +2,7 @@
 
 #include "app/ClassicGames.h"
 #include "dialogs/GameInfoDialog.h"
+#include "app/Explainer.h"
 #include "app/GameSession.h"
 #include "app/Project.h"
 #include "app/SqliteGameDatabase.h"
@@ -24,6 +25,7 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QCloseEvent>
+#include <QDate>
 #include <QMoveEvent>
 #include <QResizeEvent>
 #include <QDockWidget>
@@ -34,6 +36,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QLocale>
+#include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPushButton>
@@ -86,6 +89,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_evaluationBar(new EvaluationBar)
     , m_gameHeader(new GameHeaderWidget)
     , m_engine(new UciEngine(this))
+    , m_explainer(new Explainer(this))
 {
     setDockOptions(AnimatedDocks | AllowTabbedDocks | AllowNestedDocks);
     m_sidebar->setWindowFlags(Qt::Widget);
@@ -93,14 +97,12 @@ MainWindow::MainWindow(QWidget *parent)
     m_sidebar->setDockOptions(AnimatedDocks | AllowTabbedDocks | AllowNestedDocks);
 
     m_gameListProxy->setSourceModel(m_gameListModel);
-    m_gameListProxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
-    m_gameListProxy->setFilterKeyColumn(-1);
     m_gameListProxy->setSortRole(Qt::DisplayRole);
 
     createActions();
     auto *boardPanel = new BoardPanel(m_board, m_evaluationBar, m_gameHeader,
-                                      {m_firstMoveAction, m_previousMoveAction, m_nextMoveAction,
-                                       m_lastMoveAction, m_flipBoardAction});
+                                      {m_firstMoveAction, m_previousMoveAction, m_explainAction,
+                                       m_nextMoveAction, m_lastMoveAction, m_flipBoardAction});
     setCentralWidget(new CentralArea(boardPanel, m_sidebar));
     createDocks();
     createMenus();
@@ -109,6 +111,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateWindowTitle);
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateGameHeader);
+    connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateGameActions);
     connect(m_session, &GameSession::headerChanged, this, &MainWindow::updateWindowTitle);
     connect(m_session, &GameSession::headerChanged, this, &MainWindow::updateGameHeader);
     connect(m_gameHeader, &GameHeaderWidget::activated, this, &MainWindow::editGameInfo);
@@ -116,7 +119,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::analyzeCurrentPosition);
     connect(m_engine, &UciEngine::evaluationChanged, this, [this](const EngineEvaluation &evaluation) {
         m_evaluationBar->setEvaluation(evaluation);
-        m_enginePanel->setEvaluation(evaluation);
+        m_enginePanel->setEvaluation(evaluation, m_session->position().lineText(evaluation.pv, 12));
+        m_explainer->setCurrentEvaluation(evaluation);
+    });
+    connect(m_explainer, &Explainer::explanationChanged, this, [this](const MoveExplanation &explanation) {
+        m_board->setExplanation(explanation.arrows, explanation.lostPieces);
+        m_enginePanel->setExplanation(explanation.summary);
     });
     connect(m_engine, &UciEngine::nameChanged, m_enginePanel, &EnginePanel::setEngineName);
     connect(m_engine, &UciEngine::failed, this, [this](const QString &message) {
@@ -125,6 +133,7 @@ MainWindow::MainWindow(QWidget *parent)
     });
     connect(m_board, &BoardWidget::navigateRequested, this,
             [this](int steps) { m_session->goToPly(m_session->ply() + steps); });
+    connect(m_board, &BoardWidget::moveRequested, this, &MainWindow::playBoardMove);
 
     m_saveTimer = new QTimer(this);
     m_saveTimer->setSingleShot(true);
@@ -138,7 +147,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::scheduleSaveSession);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::scheduleSaveSession);
-    connect(m_searchField, &QLineEdit::textChanged, this, &MainWindow::scheduleSaveSession);
     connect(m_flipBoardAction, &QAction::toggled, this, &MainWindow::scheduleSaveSession);
     connect(m_coordinatesAction, &QAction::toggled, this, &MainWindow::scheduleSaveSession);
     connect(m_startEngineAction, &QAction::toggled, this, &MainWindow::scheduleSaveSession);
@@ -245,14 +253,20 @@ void MainWindow::createActions()
     m_coordinatesAction->setChecked(true);
     connect(m_coordinatesAction, &QAction::toggled, m_board, &BoardWidget::setShowCoordinates);
 
-    m_findAction = new QAction(themeIcon("edit-find", QStyle::SP_FileDialogContentsView),
-                               tr("&Find Games…"), this);
-    m_findAction->setShortcut(QKeySequence::Find);
-    connect(m_findAction, &QAction::triggered, this, [this] {
-        m_gamesDock->show();
-        m_searchField->setFocus(Qt::ShortcutFocusReason);
-        m_searchField->selectAll();
-    });
+    m_newGameAction = new QAction(themeIcon("pragma-new-game", QStyle::SP_FileIcon), tr("&New Game"), this);
+    m_newGameAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_N));
+    m_newGameAction->setToolTip(tr("Start a game to enter move by move"));
+    connect(m_newGameAction, &QAction::triggered, this, &MainWindow::newGame);
+
+    m_saveGameAction = new QAction(themeIcon("document-save", QStyle::SP_DialogSaveButton),
+                                   tr("Save Game to &Database"), this);
+    connect(m_saveGameAction, &QAction::triggered, this, &MainWindow::saveGameToDatabase);
+
+    m_explainAction = new QAction(themeIcon("pragma-explain", QStyle::SP_MessageBoxQuestion), tr("E&xplain"), this);
+    m_explainAction->setShortcut(Qt::Key_E);
+    m_explainAction->setCheckable(true);
+    m_explainAction->setToolTip(tr("Explain the evaluation: show on the board what the last move allows or wins (E)"));
+    connect(m_explainAction, &QAction::toggled, this, &MainWindow::setExplainEnabled);
 
     m_startEngineAction = new QAction(themeIcon("media-playback-start", QStyle::SP_MediaPlay),
                                       tr("&Analyze"), this);
@@ -299,10 +313,15 @@ void MainWindow::createMenus()
     rebuildWorkspaceMenu();
 
     QMenu *game = menuBar()->addMenu(tr("&Game"));
+    game->addAction(m_newGameAction);
+    game->addAction(m_saveGameAction);
+    game->addSeparator();
     game->addAction(m_firstMoveAction);
     game->addAction(m_previousMoveAction);
     game->addAction(m_nextMoveAction);
     game->addAction(m_lastMoveAction);
+    game->addSeparator();
+    game->addAction(m_explainAction);
 
     QMenu *position = menuBar()->addMenu(tr("&Position"));
     position->addAction(m_flipBoardAction);
@@ -318,11 +337,10 @@ void MainWindow::createMenus()
     database->addSeparator();
     database->addAction(m_saveDatabaseAction);
     database->addAction(m_saveDatabaseAsAction);
-    database->addSeparator();
-    database->addAction(m_findAction);
 
     QMenu *engine = menuBar()->addMenu(tr("E&ngine"));
     engine->addAction(m_startEngineAction);
+    engine->addAction(m_explainAction);
 
     menuBar()->addMenu(tr("&Tools"))->setEnabled(false);
 
@@ -423,18 +441,6 @@ void MainWindow::createDocks()
 
 void MainWindow::createStatusBar()
 {
-    m_searchField = new QLineEdit;
-    m_searchField->setPlaceholderText(tr("Search games"));
-    m_searchField->setClearButtonEnabled(true);
-    m_searchField->addAction(themeIcon("edit-find", QStyle::SP_FileDialogContentsView),
-                             QLineEdit::LeadingPosition);
-    m_searchField->setMinimumWidth(260);
-    connect(m_searchField, &QLineEdit::textChanged, this, [this](const QString &text) {
-        m_gameListProxy->setFilterFixedString(text);
-        updateGameCount();
-    });
-    statusBar()->addWidget(m_searchField);
-
     m_gameCountLabel = new QLabel;
     statusBar()->addPermanentWidget(m_gameCountLabel);
 }
@@ -449,6 +455,7 @@ void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
 
     updateGameCount();
     updateDatabaseActions();
+    updateGameActions();
 }
 
 void MainWindow::openGame(const QModelIndex &proxyIndex)
@@ -466,6 +473,13 @@ void MainWindow::openGame(const QModelIndex &proxyIndex)
 void MainWindow::syncBoard()
 {
     m_board->setBoard(m_session->board(), m_session->lastMoveFrom(), m_session->lastMoveTo());
+    QMultiHash<int, int> legalMoves;
+    for (const ChessMove &move : m_session->position().legalMoves())
+        legalMoves.insert(move.from, move.to);
+    m_board->setLegalMoves(legalMoves);
+    // An explanation belongs to one move: moving on turns it off until asked again.
+    m_explainAction->setChecked(false);
+    updateExplainer();
 
     const QModelIndex current = m_moveListModel->indexForPly(m_session->ply());
     if (current.isValid()) {
@@ -495,11 +509,7 @@ void MainWindow::updateGameCount()
         return;
     }
     const qint64 total = m_database->gameCount();
-    const qint64 shown = m_gameListProxy->rowCount();
-    const QLocale locale;
-    const QString count = shown != total
-        ? tr("%1 of %2 games").arg(locale.toString(shown), locale.toString(total))
-        : total == 1 ? tr("1 game") : tr("%1 games").arg(locale.toString(total));
+    const QString count = total == 1 ? tr("1 game") : tr("%1 games").arg(QLocale().toString(total));
     m_gameCountLabel->setText(tr("%1 — %2").arg(m_database->name(), count));
 }
 
@@ -707,6 +717,7 @@ void MainWindow::setAnalysisEnabled(bool enabled)
                                          : themeIcon("media-playback-start", QStyle::SP_MediaPlay));
 
     if (!enabled) {
+        m_explainAction->setChecked(false); // Explaining needs the analysis.
         m_engine->stopAnalysis();
         m_evaluationBar->setEvaluation(std::nullopt);
         m_enginePanel->setEvaluation(std::nullopt);
@@ -726,6 +737,7 @@ void MainWindow::setAnalysisEnabled(bool enabled)
             return;
         }
         m_engineName = command;
+        m_engineExecutable = executable;
     }
     m_enginePanel->setStatus(tr("Analyzing…"));
     analyzeCurrentPosition();
@@ -740,18 +752,124 @@ void MainWindow::analyzeCurrentPosition()
     moves.reserve(m_session->ply());
     for (int i = 0; i < m_session->ply(); ++i)
         moves << game.moves.at(i).uci;
-    m_engine->analyze(game.startFen, moves, m_session->board().sideToMove());
+    m_engine->analyze(game.startFen, moves, m_session->position().sideToMove());
+}
+
+void MainWindow::setExplainEnabled(bool enabled)
+{
+    if (enabled) {
+        // Explaining starts the engine if it is off.
+        m_startEngineAction->setChecked(true);
+        if (!m_engine->isRunning()) {
+            QMetaObject::invokeMethod(m_explainAction, [this] { m_explainAction->setChecked(false); },
+                                      Qt::QueuedConnection);
+            return;
+        }
+        m_engineDock->show();
+        m_explainer->setEnabled(true, m_engineExecutable);
+        return;
+    }
+    m_explainer->setEnabled(false);
+    m_board->setExplanation({}, {});
+    m_enginePanel->setExplanation(QString());
+}
+
+void MainWindow::updateExplainer()
+{
+    const int ply = m_session->ply();
+    m_explainer->setPosition(m_session->position(),
+                             ply > 0 ? std::optional<ChessPosition>(m_session->positionAt(ply - 1)) : std::nullopt,
+                             m_session->lastMove());
+}
+
+void MainWindow::newGame()
+{
+    GameRecord game;
+    game.result = QStringLiteral("*");
+    game.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
+    m_gameView->clearSelection();
+    m_openGameIndex = -1;
+    m_session->setGame(game);
+    statusBar()->showMessage(tr("New game: enter the moves on the board"), 5000);
+}
+
+void MainWindow::playBoardMove(int from, int to, const QPoint &globalPosition)
+{
+    QList<ChessMove> candidates;
+    for (const ChessMove &move : m_session->position().legalMoves()) {
+        if (move.from == from && move.to == to)
+            candidates << move;
+    }
+    if (candidates.isEmpty())
+        return;
+
+    ChessMove move = candidates.first();
+    if (candidates.size() > 1) {
+        QMenu menu(this);
+        menu.setAccessibleName(tr("Promote to"));
+        const std::pair<PieceType, QString> pieces[] = {{PieceType::Queen, tr("Queen")},
+                                                        {PieceType::Rook, tr("Rook")},
+                                                        {PieceType::Bishop, tr("Bishop")},
+                                                        {PieceType::Knight, tr("Knight")}};
+        for (const auto &[type, name] : pieces)
+            menu.addAction(name)->setData(int(type));
+        const QAction *chosen = menu.exec(globalPosition);
+        if (!chosen)
+            return;
+        move.promotion = PieceType(chosen->data().toInt());
+    }
+
+    if (!m_session->isNextMove(move) && m_openGameIndex >= 0) {
+        // Never rewrite a stored game: the new line becomes a game of its own.
+        m_openGameIndex = -1;
+        m_gameView->clearSelection();
+        statusBar()->showMessage(tr("The game in the database is unchanged. Use Game ▸ Save Game to "
+                                    "Database to keep this line."), 8000);
+    }
+    m_session->playMove(move);
+}
+
+void MainWindow::saveGameToDatabase()
+{
+    if (!m_database || m_openGameIndex >= 0)
+        return;
+    QString error;
+    const qint64 index = m_database->addGame(m_session->game(), &error);
+    if (index < 0) {
+        QMessageBox::warning(this, tr("Save Game"), tr("Could not save the game: %1").arg(error));
+        return;
+    }
+
+    m_gameListModel->setDatabase(m_database.get());
+    m_openGameIndex = index;
+    const QModelIndex proxyIndex = m_gameListProxy->mapFromSource(m_gameListModel->index(int(index), 0));
+    if (proxyIndex.isValid()) {
+        m_gameView->selectRow(proxyIndex.row());
+        m_gameView->scrollTo(proxyIndex);
+    }
+    m_session->setHeader(m_database->header(index));
+    updateGameCount();
+    updateGameActions();
+    scheduleSaveSession();
+    statusBar()->showMessage(tr("Game saved to %1").arg(m_database->name()), 3000);
+}
+
+void MainWindow::updateGameActions()
+{
+    m_saveGameAction->setEnabled(m_database && m_openGameIndex < 0 && m_session->plyCount() > 0);
 }
 
 void MainWindow::updateGameHeader()
 {
-    const bool editable = m_database && m_openGameIndex >= 0 && m_openGameIndex < m_database->gameCount();
+    // Games not in the database (new games, pasted positions) are edited in memory.
+    const bool editable = m_openGameIndex < 0 || (m_database && m_openGameIndex < m_database->gameCount());
     m_gameHeader->setGame(m_session->game(), editable);
 }
 
 void MainWindow::editGameInfo()
 {
-    if (!m_database || m_openGameIndex < 0 || m_openGameIndex >= m_database->gameCount())
+    const bool inDatabase = m_openGameIndex >= 0;
+    if (inDatabase && (!m_database || m_openGameIndex >= m_database->gameCount()))
         return;
 
     GameInfoDialog dialog(m_session->game(), this);
@@ -759,6 +877,10 @@ void MainWindow::editGameInfo()
         return;
 
     const GameRecord edited = dialog.game();
+    if (!inDatabase) {
+        m_session->setHeader(edited);
+        return;
+    }
     QString error;
     if (!m_database->updateHeader(m_openGameIndex, edited, &error)) {
         QMessageBox::warning(this, tr("Game Information"),
@@ -771,20 +893,14 @@ void MainWindow::editGameInfo()
 
 void MainWindow::copyFen()
 {
-    const QString fen = m_session->board().fen();
-    if (fen.isEmpty()) {
-        statusBar()->showMessage(tr("FEN is only available for positions loaded from FEN "
-                                    "until the database engine is connected."), 5000);
-        return;
-    }
-    QGuiApplication::clipboard()->setText(fen);
+    QGuiApplication::clipboard()->setText(m_session->position().fen());
     statusBar()->showMessage(tr("FEN copied to clipboard"), 3000);
 }
 
 void MainWindow::pasteFen()
 {
     const QString text = QGuiApplication::clipboard()->text().trimmed();
-    if (!BoardState::fromFen(text)) {
+    if (!ChessPosition::fromFen(text)) {
         statusBar()->showMessage(tr("The clipboard does not contain a valid FEN"), 5000);
         return;
     }
@@ -945,11 +1061,13 @@ Project MainWindow::captureProject() const
             project.gameId = m_database->header(m_openGameIndex).id;
     }
     project.ply = m_session->ply();
-    if (project.gameId < 0)
+    if (project.gameId < 0) {
         project.startFen = m_session->game().startFen;
+        for (const MoveRecord &move : m_session->game().moves)
+            project.moves << move.uci;
+    }
     project.boardFlipped = m_flipBoardAction->isChecked();
     project.showCoordinates = m_coordinatesAction->isChecked();
-    project.gameSearch = m_searchField->text();
     project.engineName = m_engineName;
     project.engineAnalyzing = m_startEngineAction->isChecked();
     project.layout = saveLayout();
@@ -965,7 +1083,6 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         restoreLayout(project.layout);
     m_flipBoardAction->setChecked(project.boardFlipped);
     m_coordinatesAction->setChecked(project.showCoordinates);
-    m_searchField->setText(project.gameSearch);
     m_engineName = project.engineName;
 
     openInitialDatabase(project.databasePath);
@@ -982,7 +1099,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
             if (proxyIndex.isValid()) {
                 openGame(proxyIndex);
             } else if (std::optional<GameRecord> game = m_database->loadGame(index)) {
-                // Hidden by the search filter: open it anyway.
+                // Not shown in the games list: open it anyway.
                 m_gameView->clearSelection();
                 m_openGameIndex = index;
                 m_session->setGame(*game);
@@ -990,9 +1107,14 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
             opened = true;
         }
     }
-    if (!opened && project.gameId < 0 && BoardState::fromFen(project.startFen)) {
+    const bool unsavedGame = project.startFen.isEmpty() ? !project.moves.isEmpty()
+                                                        : ChessPosition::fromFen(project.startFen).has_value();
+    if (!opened && project.gameId < 0 && unsavedGame) {
         GameRecord game;
         game.startFen = project.startFen;
+        game.result = QStringLiteral("*");
+        for (const QString &uci : project.moves)
+            game.moves << MoveRecord{QString(), uci}; // SAN is filled in when the game is opened.
         m_gameView->clearSelection();
         m_openGameIndex = -1;
         m_session->setGame(game);

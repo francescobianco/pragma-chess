@@ -26,6 +26,8 @@ enum class Shape {
     Paste,
     Quit,
     About,
+    Explain,
+    NewGame,
 };
 
 /// Paints a shape on a 16×16 grid with the given color.
@@ -147,6 +149,35 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         painter->drawLine(QPointF(4, 4), QPointF(12, 12));
         painter->drawLine(QPointF(12, 4), QPointF(4, 12));
         break;
+    case Shape::Explain: {
+        // A light bulb: the idea behind the move.
+        QPainterPath bulb;
+        bulb.moveTo(6, 10.5);
+        bulb.cubicTo(6, 9, 3.25, 7.75, 3.25, 5.75);
+        bulb.cubicTo(3.25, 3.1, 5.4, 1.5, 8, 1.5);
+        bulb.cubicTo(10.6, 1.5, 12.75, 3.1, 12.75, 5.75);
+        bulb.cubicTo(12.75, 7.75, 10, 9, 10, 10.5);
+        bulb.closeSubpath();
+        painter->drawPath(bulb);
+        painter->drawLine(QPointF(6.25, 12.75), QPointF(9.75, 12.75));
+        painter->drawLine(QPointF(7, 14.75), QPointF(9, 14.75));
+        break;
+    }
+    case Shape::NewGame: {
+        // A pawn with a plus.
+        painter->drawEllipse(QPointF(6.5, 4.25), 2.25, 2.25);
+        QPainterPath body;
+        body.moveTo(4.75, 7.5);
+        body.lineTo(8.25, 7.5);
+        body.lineTo(9.5, 12);
+        body.lineTo(3.5, 12);
+        body.closeSubpath();
+        painter->drawPath(body);
+        painter->drawLine(QPointF(2.25, 14.25), QPointF(10.75, 14.25));
+        painter->drawLine(QPointF(13, 2), QPointF(13, 7));
+        painter->drawLine(QPointF(10.5, 4.5), QPointF(15.5, 4.5));
+        break;
+    }
     case Shape::About:
         painter->drawEllipse(QPointF(8, 8), 6, 6);
         painter->drawLine(QPointF(8, 7.25), QPointF(8, 11));
@@ -229,6 +260,8 @@ QIcon icon(const QString &name)
         {QStringLiteral("edit-paste"), Shape::Paste},
         {QStringLiteral("application-exit"), Shape::Quit},
         {QStringLiteral("help-about"), Shape::About},
+        {QStringLiteral("pragma-explain"), Shape::Explain},
+        {QStringLiteral("pragma-new-game"), Shape::NewGame},
     };
     const auto it = shapes.constFind(name);
     if (it == shapes.cend())

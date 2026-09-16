@@ -26,6 +26,9 @@ public:
     /// Full game including moves.
     virtual std::optional<GameRecord> loadGame(qint64 index) const = 0;
 
+    /// Appends a game (header and moves) and returns its index, or -1 on failure.
+    virtual qint64 addGame(const GameRecord &game, QString *errorMessage) = 0;
+
     /// Replaces the header information (players, event, date, result, …) of
     /// the game at `index`. Moves are left untouched.
     virtual bool updateHeader(qint64 index, const GameRecord &header, QString *errorMessage) = 0;

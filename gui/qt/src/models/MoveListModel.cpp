@@ -14,7 +14,7 @@ MoveListModel::MoveListModel(GameSession *session, QObject *parent)
 
 int MoveListModel::blackStartsOffset() const
 {
-    return m_session->initialBoard().sideToMove() == Side::Black ? 1 : 0;
+    return m_session->initialPosition().sideToMove() == Side::Black ? 1 : 0;
 }
 
 int MoveListModel::rowCount(const QModelIndex &parent) const

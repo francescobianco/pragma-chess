@@ -18,11 +18,15 @@ public:
 
     void setEngineName(const QString &name);
     void setStatus(const QString &status);
-    void setEvaluation(const std::optional<EngineEvaluation> &evaluation);
+    /// Score and depth, with the best line already written in SAN.
+    void setEvaluation(const std::optional<EngineEvaluation> &evaluation, const QString &line = QString());
+    /// Summary of the "Explain" command; empty hides it.
+    void setExplanation(const QString &text);
 
 private:
     QLabel *m_name;
     QLabel *m_score;
     QLabel *m_depth;
+    QLabel *m_explanation;
     QLabel *m_line;
 };

@@ -68,16 +68,14 @@ QString Project::toYaml(const QDir &baseDir) const
         out << YAML::Key << "id" << YAML::Value << static_cast<long long>(gameId);
     else if (!startFen.isEmpty())
         out << YAML::Key << "fen" << YAML::Value << toStd(startFen);
+    if (gameId < 0 && !moves.isEmpty())
+        out << YAML::Key << "moves" << YAML::Value << toStd(moves.join(QLatin1Char(' ')));
     out << YAML::Key << "ply" << YAML::Value << ply;
     out << YAML::EndMap;
 
     out << YAML::Key << "board" << YAML::Value << YAML::BeginMap;
     out << YAML::Key << "flipped" << YAML::Value << boardFlipped;
     out << YAML::Key << "coordinates" << YAML::Value << showCoordinates;
-    out << YAML::EndMap;
-
-    out << YAML::Key << "games" << YAML::Value << YAML::BeginMap;
-    out << YAML::Key << "search" << YAML::Value << YAML::DoubleQuoted << toStd(gameSearch);
     out << YAML::EndMap;
 
     out << YAML::Key << "engine" << YAML::Value << YAML::BeginMap;
@@ -125,12 +123,11 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     env.gameId = valueOf<long long>(game["id"], -1);
     env.ply = qMax(0, valueOf<int>(game["ply"], 0));
     env.startFen = fromNode(game["fen"]);
+    env.moves = fromNode(game["moves"]).split(QLatin1Char(' '), Qt::SkipEmptyParts);
 
     const YAML::Node board = root["board"];
     env.boardFlipped = valueOf<bool>(board["flipped"], false);
     env.showCoordinates = valueOf<bool>(board["coordinates"], true);
-
-    env.gameSearch = fromNode(root["games"]["search"]);
 
     const YAML::Node engine = root["engine"];
     env.engineName = fromNode(engine["name"]);

@@ -18,9 +18,8 @@ struct Piece {
 
 /// Board contents for display. Squares are indexed a1 = 0 ... h8 = 63.
 ///
-/// This is deliberately not a rules engine: move legality, SAN and hashing
-/// belong to the chess database engine. It only knows how to place pieces
-/// from a FEN and relocate them for an already validated move.
+/// This is deliberately not a rules engine (see ChessPosition): it only
+/// knows how to place pieces from a FEN.
 class BoardState {
 public:
     static BoardState startingPosition();
@@ -29,9 +28,6 @@ public:
     Piece at(int square) const { return m_squares[square]; }
     Side sideToMove() const { return m_sideToMove; }
     QString fen() const { return m_fen; }
-
-    /// Applies a UCI move (e.g. "e2e4", "e7e8q") that is known to be legal.
-    bool applyUci(const QString &uci);
 
     static int squareFromName(QStringView name);
     static QString squareName(int square);

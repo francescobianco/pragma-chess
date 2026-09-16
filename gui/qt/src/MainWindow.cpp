@@ -9,8 +9,10 @@
 #include "app/UserFolders.h"
 #include "models/GameListModel.h"
 #include "models/MoveListModel.h"
+#include "platform/SymbolicIcons.h"
 #include "widgets/BoardPanel.h"
 #include "widgets/BoardWidget.h"
+#include "widgets/CentralArea.h"
 #include "widgets/EnginePanel.h"
 #include "widgets/EvaluationBar.h"
 #include "widgets/GameHeaderWidget.h"
@@ -18,6 +20,7 @@
 #include <QAction>
 #include <QApplication>
 #include <QClipboard>
+#include <QDataStream>
 #include <QDesktopServices>
 #include <QDir>
 #include <QCloseEvent>
@@ -48,9 +51,10 @@ namespace {
 
 const auto kLayoutsGroup = QStringLiteral("workspaces");
 
-QIcon themeIcon(const char *name, QStyle::StandardPixmap fallback)
+QIcon themeIcon(const char *name, QStyle::StandardPixmap)
 {
-    return QIcon::fromTheme(QString::fromLatin1(name), qApp->style()->standardIcon(fallback));
+    // Flat monochrome icons that follow the theme's text color.
+    return SymbolicIcons::icon(QString::fromLatin1(name));
 }
 
 QWidget *placeholder(const QString &text, QWidget *extra = nullptr)
@@ -78,11 +82,15 @@ MainWindow::MainWindow(QWidget *parent)
     , m_gameListProxy(new QSortFilterProxyModel(this))
     , m_moveListModel(new MoveListModel(m_session, this))
     , m_board(new BoardWidget)
+    , m_sidebar(new QMainWindow)
     , m_evaluationBar(new EvaluationBar)
     , m_gameHeader(new GameHeaderWidget)
     , m_engine(new UciEngine(this))
 {
     setDockOptions(AnimatedDocks | AllowTabbedDocks | AllowNestedDocks);
+    m_sidebar->setWindowFlags(Qt::Widget);
+    m_sidebar->setObjectName(QStringLiteral("sidebar"));
+    m_sidebar->setDockOptions(AnimatedDocks | AllowTabbedDocks | AllowNestedDocks);
 
     m_gameListProxy->setSourceModel(m_gameListModel);
     m_gameListProxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
@@ -90,8 +98,10 @@ MainWindow::MainWindow(QWidget *parent)
     m_gameListProxy->setSortRole(Qt::DisplayRole);
 
     createActions();
-    setCentralWidget(new BoardPanel(m_board, m_evaluationBar, m_gameHeader, {m_firstMoveAction, m_previousMoveAction, m_nextMoveAction,
-                                              m_lastMoveAction, m_flipBoardAction}));
+    auto *boardPanel = new BoardPanel(m_board, m_evaluationBar, m_gameHeader,
+                                      {m_firstMoveAction, m_previousMoveAction, m_nextMoveAction,
+                                       m_lastMoveAction, m_flipBoardAction});
+    setCentralWidget(new CentralArea(boardPanel, m_sidebar));
     createDocks();
     createMenus();
     createToolBar();
@@ -332,14 +342,39 @@ void MainWindow::createToolBar()
     toolBar->addAction(m_startEngineAction);
 }
 
-QDockWidget *MainWindow::addDock(const QString &objectName, const QString &title, QWidget *widget,
-                                 Qt::DockWidgetArea area)
+QDockWidget *MainWindow::addDock(QMainWindow *host, const QString &objectName, const QString &title,
+                                 QWidget *widget, Qt::DockWidgetArea area)
 {
-    auto *dock = new QDockWidget(title, this);
+    auto *dock = new QDockWidget(title, host);
     dock->setObjectName(objectName);
     dock->setWidget(widget);
-    addDockWidget(area, dock);
+    host->addDockWidget(area, dock);
     return dock;
+}
+
+QByteArray MainWindow::saveLayout() const
+{
+    QByteArray layout;
+    QDataStream stream(&layout, QIODevice::WriteOnly);
+    stream << QByteArray("pragma-layout-2") << saveState() << m_sidebar->saveState();
+    return layout;
+}
+
+void MainWindow::restoreLayout(const QByteArray &layout)
+{
+    QDataStream stream(layout);
+    QByteArray magic;
+    QByteArray windowState;
+    QByteArray sidebarState;
+    stream >> magic;
+    if (magic != "pragma-layout-2") {
+        // Layouts from before the sidebar existed only hold the window state.
+        restoreState(layout);
+        return;
+    }
+    stream >> windowState >> sidebarState;
+    restoreState(windowState);
+    m_sidebar->restoreState(sidebarState);
 }
 
 void MainWindow::createDocks()
@@ -358,13 +393,13 @@ void MainWindow::createDocks()
         if (ply > 0)
             m_session->goToPly(ply);
     });
-    m_movesDock = addDock(QStringLiteral("movesDock"), tr("Moves"), m_moveView, Qt::RightDockWidgetArea);
+    m_movesDock = addDock(m_sidebar, QStringLiteral("movesDock"), tr("Moves"), m_moveView, Qt::RightDockWidgetArea);
 
     m_enginePanel = new EnginePanel(m_startEngineAction);
     m_enginePanel->setEngineName(tr("Stockfish"));
-    m_engineDock = addDock(QStringLiteral("engineDock"), tr("Engine"), m_enginePanel, Qt::RightDockWidgetArea);
+    m_engineDock = addDock(m_sidebar, QStringLiteral("engineDock"), tr("Engine"), m_enginePanel, Qt::RightDockWidgetArea);
 
-    m_openingTreeDock = addDock(QStringLiteral("openingTreeDock"), tr("Opening Tree"),
+    m_openingTreeDock = addDock(m_sidebar, QStringLiteral("openingTreeDock"), tr("Opening Tree"),
                                 placeholder(tr("The opening tree is built from the position index "
                                                "of the database engine.")),
                                 Qt::RightDockWidgetArea);
@@ -383,7 +418,7 @@ void MainWindow::createDocks()
     m_gameView->horizontalHeader()->setStretchLastSection(true);
     m_gameView->horizontalHeader()->setSectionsMovable(true);
     connect(m_gameView, &QTableView::activated, this, &MainWindow::openGame);
-    m_gamesDock = addDock(QStringLiteral("gamesDock"), tr("Games"), m_gameView, Qt::BottomDockWidgetArea);
+    m_gamesDock = addDock(this, QStringLiteral("gamesDock"), tr("Games"), m_gameView, Qt::BottomDockWidgetArea);
 }
 
 void MainWindow::createStatusBar()
@@ -767,7 +802,7 @@ void MainWindow::applyWorkspace(Workspace workspace)
         dock->setFloating(false);
     addDockWidget(Qt::BottomDockWidgetArea, m_gamesDock);
     for (QDockWidget *dock : right)
-        addDockWidget(Qt::RightDockWidgetArea, dock);
+        m_sidebar->addDockWidget(Qt::RightDockWidgetArea, dock);
 
     switch (workspace) {
     case Workspace::Analysis:
@@ -775,14 +810,14 @@ void MainWindow::applyWorkspace(Workspace workspace)
         m_openingTreeDock->hide();
         m_movesDock->show();
         m_engineDock->show();
-        resizeDocks({m_movesDock, m_engineDock}, {3, 2}, Qt::Vertical);
+        m_sidebar->resizeDocks({m_movesDock, m_engineDock}, {3, 2}, Qt::Vertical);
         break;
     case Workspace::Database:
         m_openingTreeDock->hide();
         m_gamesDock->show();
         m_movesDock->show();
         m_engineDock->show();
-        resizeDocks({m_movesDock, m_engineDock}, {3, 1}, Qt::Vertical);
+        m_sidebar->resizeDocks({m_movesDock, m_engineDock}, {3, 1}, Qt::Vertical);
         resizeDocks({m_gamesDock}, {220}, Qt::Vertical);
         break;
     case Workspace::OpeningPreparation:
@@ -790,11 +825,10 @@ void MainWindow::applyWorkspace(Workspace workspace)
         m_gamesDock->show();
         m_movesDock->show();
         m_openingTreeDock->show();
-        resizeDocks({m_openingTreeDock, m_movesDock}, {3, 2}, Qt::Vertical);
+        m_sidebar->resizeDocks({m_openingTreeDock, m_movesDock}, {3, 2}, Qt::Vertical);
         resizeDocks({m_gamesDock}, {220}, Qt::Vertical);
         break;
     }
-    resizeDocks({m_movesDock}, {280}, Qt::Horizontal);
 }
 
 void MainWindow::saveWorkspaceAs()
@@ -807,7 +841,7 @@ void MainWindow::saveWorkspaceAs()
     QSettings settings;
     settings.beginGroup(kLayoutsGroup);
     // Group keys can't contain slashes; keep the display name as the value's key.
-    settings.setValue(QString(name).replace(QLatin1Char('/'), QLatin1Char('_')), saveState());
+    settings.setValue(QString(name).replace(QLatin1Char('/'), QLatin1Char('_')), saveLayout());
     settings.endGroup();
     rebuildWorkspaceMenu();
 }
@@ -829,7 +863,7 @@ void MainWindow::rebuildWorkspaceMenu()
         for (const QString &name : saved) {
             m_workspaceMenu->addAction(name, this, [this, name] {
                 QSettings s;
-                restoreState(s.value(kLayoutsGroup + QLatin1Char('/') + name).toByteArray());
+                restoreLayout(s.value(kLayoutsGroup + QLatin1Char('/') + name).toByteArray());
             });
         }
     }
@@ -865,7 +899,7 @@ void MainWindow::restoreSession()
         applyProject(*project, false);
     } else {
         Project first; // First launch: default layout, first game of the default database.
-        first.layout = saveState();
+        first.layout = saveLayout();
         applyProject(first, true);
     }
 
@@ -918,7 +952,7 @@ Project MainWindow::captureProject() const
     project.gameSearch = m_searchField->text();
     project.engineName = m_engineName;
     project.engineAnalyzing = m_startEngineAction->isChecked();
-    project.layout = saveState();
+    project.layout = saveLayout();
     return project;
 }
 
@@ -928,7 +962,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
     m_restoringSession = true;
 
     if (!project.layout.isEmpty())
-        restoreState(project.layout);
+        restoreLayout(project.layout);
     m_flipBoardAction->setChecked(project.boardFlipped);
     m_coordinatesAction->setChecked(project.showCoordinates);
     m_searchField->setText(project.gameSearch);
@@ -987,7 +1021,7 @@ void MainWindow::newProject()
     if (m_database)
         project.databasePath = m_database->location();
     applyWorkspace(Workspace::Database);
-    project.layout = saveState();
+    project.layout = saveLayout();
     applyProject(project, false);
 
     m_projectPath.clear();

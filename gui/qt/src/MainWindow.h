@@ -18,6 +18,7 @@ class MoveListModel;
 class QAction;
 class QDockWidget;
 class QLabel;
+class QMainWindow;
 class QLineEdit;
 class QMenu;
 class QSortFilterProxyModel;
@@ -48,8 +49,12 @@ private:
     void createDocks();
     void createStatusBar();
 
-    QDockWidget *addDock(const QString &objectName, const QString &title, QWidget *widget,
-                         Qt::DockWidgetArea area);
+    QDockWidget *addDock(QMainWindow *host, const QString &objectName, const QString &title,
+                         QWidget *widget, Qt::DockWidgetArea area);
+
+    /// Layout of the main window and of the sidebar, as one blob.
+    QByteArray saveLayout() const;
+    void restoreLayout(const QByteArray &layout);
 
     void setDatabase(std::unique_ptr<GameDatabase> database);
     void openGame(const QModelIndex &proxyIndex);
@@ -104,6 +109,8 @@ private:
     MoveListModel *m_moveListModel;
 
     BoardWidget *m_board;
+    /// Hosts the sidebar docks next to the board (no central widget).
+    QMainWindow *m_sidebar;
     EvaluationBar *m_evaluationBar;
     GameHeaderWidget *m_gameHeader;
     EnginePanel *m_enginePanel;

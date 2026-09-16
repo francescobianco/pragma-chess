@@ -31,7 +31,7 @@ overrides it. On first launch the folder is seeded with `Classic Games.pdb`.
 Debian/Ubuntu dependencies:
 
 ```bash
-make deps    # sudo apt install build-essential cmake ninja-build qt6-base-dev libqt6sql6-sqlite inotify-tools
+make deps    # sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-svg-dev libqt6sql6-sqlite inotify-tools
 ```
 
 ```bash

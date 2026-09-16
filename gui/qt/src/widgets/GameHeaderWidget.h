@@ -29,12 +29,16 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
     void changeEvent(QEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
     void updateFonts();
+    /// Shrinks the players line when the board is too narrow for it.
+    void fitPlayersText();
 
     QLabel *m_players;
     QLabel *m_details;
+    QString m_detailsText;
     bool m_editable = false;
     bool m_hovered = false;
 };

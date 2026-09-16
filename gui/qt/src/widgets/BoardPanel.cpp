@@ -71,29 +71,23 @@ QSize BoardPanel::minimumSizeHint() const
 
 bool BoardPanel::event(QEvent *event)
 {
-    if (event->type() == QEvent::LayoutRequest) {
-        constrainWidth();
+    if (event->type() == QEvent::LayoutRequest)
         layoutChildren();
-    }
     return QWidget::event(event);
 }
 
 void BoardPanel::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
-    constrainWidth();
     layoutChildren();
 }
 
-void BoardPanel::constrainWidth()
+int BoardPanel::widthForHeight(int height) const
 {
-    // The panel is never wider than the board can be tall. As the central
-    // widget of the main window, the space it cannot take goes to the docks.
-    const int maxWidth = qMax(minimumSizeHint().width(),
-                              m_evaluationBar->sizeHint().width() + kBarSpacing + height()
-                                  - m_header->sizeHint().height() - m_controls->sizeHint().height());
-    if (maximumWidth() != maxWidth)
-        setMaximumWidth(maxWidth);
+    const int available = height - m_header->sizeHint().height() - m_controls->sizeHint().height();
+    const int boardSide = BoardWidget::sideForAvailable(available);
+    const int barAndGap = m_evaluationBar->sizeHint().width() + kBarSpacing;
+    return barAndGap + qMax(boardSide, m_controls->minimumSizeHint().width());
 }
 
 void BoardPanel::layoutChildren()

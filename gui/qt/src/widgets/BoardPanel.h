@@ -11,8 +11,8 @@ class QToolButton;
 /// The board with the game header above, the evaluation bar on its left and
 /// the game controls directly underneath. The board stays
 /// square and the control bar always matches its width, whatever the space.
-/// The panel never grows wider than the board's available height, so the
-/// surrounding docks take up any extra horizontal space.
+/// Its ideal width follows the height available to the board (see
+/// widthForHeight), so the board fills the panel without empty space.
 class BoardPanel : public QWidget {
     Q_OBJECT
 
@@ -28,6 +28,9 @@ public:
     BoardPanel(BoardWidget *board, EvaluationBar *evaluationBar, GameHeaderWidget *header,
                const Actions &actions, QWidget *parent = nullptr);
 
+    /// Width at which the board fills the panel for the given height.
+    int widthForHeight(int height) const;
+
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
 
@@ -36,7 +39,6 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
-    void constrainWidth();
     void layoutChildren();
 
     BoardWidget *m_board;

@@ -8,6 +8,10 @@
 
 #include <cmath>
 
+#ifdef PRAGMA_HAS_SVG
+#include <QSvgRenderer>
+#endif
+
 namespace {
 
 const QColor kLightSquare(0xf0, 0xd9, 0xb5);
@@ -74,10 +78,16 @@ QSize BoardWidget::minimumSizeHint() const
     return {200, 200};
 }
 
+int BoardWidget::sideForAvailable(int available)
+{
+    // Squares are whole pixels so that edges stay crisp.
+    const int squares = qMax(8, ((available - 2 * kMargin) / 8) * 8);
+    return squares + 2 * kMargin;
+}
+
 QRectF BoardWidget::boardRect() const
 {
-    const qreal margin = 8;
-    const qreal side = std::floor((qMin(width(), height()) - 2 * margin) / 8) * 8;
+    const qreal side = std::floor((qMin(width(), height()) - 2.0 * kMargin) / 8) * 8;
     return {(width() - side) / 2, (height() - side) / 2, side, side};
 }
 
@@ -113,6 +123,41 @@ const QPainterPath &BoardWidget::glyphPath(PieceType type) const
         path = t.map(path);
     }
     return path;
+}
+
+QPixmap BoardWidget::piecePixmap(Piece piece, int pixelSize) const
+{
+#ifdef PRAGMA_HAS_SVG
+    static const char roles[] = " PNBRQK";
+    if (pixelSize <= 0)
+        return {};
+    const quint32 key = quint32(pixelSize) << 8 | quint32(piece.type) << 1 | quint32(piece.side);
+    if (auto it = m_pieceCache.constFind(key); it != m_pieceCache.cend())
+        return *it;
+    if (m_pieceCache.size() > 64)
+        m_pieceCache.clear(); // Old sizes after a resize.
+
+    const QString file = QStringLiteral(":/resources/pieces/companion/%1%2.svg")
+                             .arg(piece.side == Side::White ? QLatin1Char('w') : QLatin1Char('b'))
+                             .arg(QLatin1Char(roles[int(piece.type)]));
+    QSvgRenderer renderer(file);
+    if (!renderer.isValid())
+        return {};
+    QPixmap pixmap(pixelSize, pixelSize);
+    pixmap.fill(Qt::transparent);
+    {
+        QPainter painter(&pixmap);
+        painter.setRenderHint(QPainter::Antialiasing);
+        renderer.render(&painter, QRectF(0, 0, pixelSize, pixelSize));
+    }
+    pixmap.setDevicePixelRatio(devicePixelRatioF());
+    m_pieceCache.insert(key, pixmap);
+    return pixmap;
+#else
+    Q_UNUSED(piece)
+    Q_UNUSED(pixelSize)
+    return {};
+#endif
 }
 
 void BoardWidget::paintEvent(QPaintEvent *)
@@ -160,6 +205,15 @@ void BoardWidget::paintEvent(QPaintEvent *)
         if (piece.isNull())
             continue;
         const QRectF rect = squareRect(square);
+
+        // Vector piece set (Good Companion, in the style of classic chess books).
+        const qreal dpr = devicePixelRatioF();
+        const QPixmap pixmap = piecePixmap(piece, qRound(size * dpr));
+        if (!pixmap.isNull()) {
+            painter.drawPixmap(rect.topLeft(), pixmap);
+            continue;
+        }
+
         const qreal glyphScale = size * (piece.type == PieceType::Pawn ? 0.66 : 0.8);
 
         QTransform t;

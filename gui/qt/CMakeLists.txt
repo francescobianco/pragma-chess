@@ -1,4 +1,6 @@
 find_package(Qt6 6.4 REQUIRED COMPONENTS Widgets Sql)
+# Vector piece sets need Qt SVG; without it the board falls back to font glyphs.
+find_package(Qt6 6.4 QUIET COMPONENTS Svg)
 
 # Project files (.pch) are YAML. Prefer a system yaml-cpp, else fetch it.
 find_package(yaml-cpp 0.8 QUIET)
@@ -44,6 +46,8 @@ qt_add_executable(pragma-chess
     src/app/UserFolders.h
     src/platform/GtkDesktopStyle.cpp
     src/platform/GtkDesktopStyle.h
+    src/platform/SymbolicIcons.cpp
+    src/platform/SymbolicIcons.h
     src/models/GameListModel.cpp
     src/models/GameListModel.h
     src/models/MoveListModel.cpp
@@ -51,6 +55,8 @@ qt_add_executable(pragma-chess
     src/widgets/BoardPanel.cpp
     src/widgets/BoardPanel.h
     src/widgets/BoardWidget.cpp
+    src/widgets/CentralArea.cpp
+    src/widgets/CentralArea.h
     src/widgets/EnginePanel.cpp
     src/widgets/EnginePanel.h
     src/widgets/EvaluationBar.cpp
@@ -62,6 +68,15 @@ qt_add_executable(pragma-chess
 
 target_include_directories(pragma-chess PRIVATE src)
 target_link_libraries(pragma-chess PRIVATE Qt6::Widgets Qt6::Sql yaml-cpp::yaml-cpp)
+
+if(TARGET Qt6::Svg)
+    target_link_libraries(pragma-chess PRIVATE Qt6::Svg)
+    target_compile_definitions(pragma-chess PRIVATE PRAGMA_HAS_SVG)
+    file(GLOB PIECE_SVGS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} resources/pieces/companion/*.svg)
+    qt_add_resources(pragma-chess pieces PREFIX / FILES ${PIECE_SVGS})
+else()
+    message(STATUS "Qt SVG not found: using font glyphs for chess pieces (install qt6-svg-dev)")
+endif()
 target_compile_definitions(pragma-chess PRIVATE
     APP_ID="${APP_ID}"
     APP_VERSION="${PROJECT_VERSION}"

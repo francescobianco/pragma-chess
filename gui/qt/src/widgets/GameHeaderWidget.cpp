@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QPainter>
 #include <QPainterPath>
+#include <QTextDocument>
 #include <QRegularExpression>
 #include <QVBoxLayout>
 
@@ -58,9 +59,10 @@ GameHeaderWidget::GameHeaderWidget(QWidget *parent)
     auto *layout = new QVBoxLayout(this);
     layout->setContentsMargins(10, 6, 10, 6);
     layout->setSpacing(1);
+    m_details->setTextFormat(Qt::PlainText);
+    m_players->setTextFormat(Qt::RichText);
     for (QLabel *label : {m_players, m_details}) {
         label->setAlignment(Qt::AlignCenter);
-        label->setTextFormat(Qt::RichText);
         label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
         label->setAttribute(Qt::WA_TransparentForMouseEvents);
         layout->addWidget(label);
@@ -70,9 +72,7 @@ GameHeaderWidget::GameHeaderWidget(QWidget *parent)
 
 void GameHeaderWidget::updateFonts()
 {
-    QFont players = font();
-    players.setPointSizeF(font().pointSizeF() * 1.3);
-    m_players->setFont(players);
+    fitPlayersText();
 
     QFont details = font();
     details.setItalic(true);
@@ -97,6 +97,7 @@ void GameHeaderWidget::setGame(const GameRecord &game, bool editable)
                                    .arg(tr("vs").toHtmlEscaped());
         m_players->setText(playerNameHtml(game.white) + versus + playerNameHtml(game.black));
     }
+    fitPlayersText();
 
     QStringList details;
     static const QRegularExpression year(QStringLiteral("^(\\d{4})"));
@@ -105,14 +106,40 @@ void GameHeaderWidget::setGame(const GameRecord &game, bool editable)
         details << match.captured(1);
     if (!isUnknown(game.event))
         details << game.event.trimmed();
-    m_details->setText(details.join(QStringLiteral(" · ")).toHtmlEscaped());
-    m_details->setVisible(!details.isEmpty() || editable);
-    if (details.isEmpty() && editable)
-        m_details->setText(tr("Add year and tournament").toHtmlEscaped());
+    m_detailsText = details.isEmpty() && editable ? tr("Add year and tournament")
+                                                  : details.join(QStringLiteral(" · "));
+    m_details->setVisible(!m_detailsText.isEmpty());
 
     setAccessibleDescription(QStringLiteral("%1 %2 %3. %4")
                                  .arg(game.white, tr("vs"), game.black, details.join(QStringLiteral(", "))));
     update();
+}
+
+void GameHeaderWidget::fitPlayersText()
+{
+    const int available = width() - layout()->contentsMargins().left() - layout()->contentsMargins().right();
+    QTextDocument document;
+    document.setDocumentMargin(0);
+    document.setHtml(m_players->text());
+
+    // Largest size between 1.3× and 0.6× the base font that fits the width.
+    QFont players = font();
+    for (qreal scale = 1.3; scale >= 0.6; scale -= 0.05) {
+        players.setPointSizeF(font().pointSizeF() * scale);
+        document.setDefaultFont(players);
+        if (available <= 0 || document.idealWidth() <= available)
+            break;
+    }
+    m_players->setFont(players);
+
+    // The details line keeps its size and is elided instead.
+    m_details->setText(m_details->fontMetrics().elidedText(m_detailsText, Qt::ElideRight, qMax(0, available)));
+}
+
+void GameHeaderWidget::resizeEvent(QResizeEvent *event)
+{
+    QWidget::resizeEvent(event);
+    fitPlayersText();
 }
 
 void GameHeaderWidget::paintEvent(QPaintEvent *)

@@ -17,6 +17,14 @@ class QVariantAnimation;
 /// How a king is marked on the board.
 enum class KingMark { None, Check, Mate };
 
+/// One piece travelling during an animated move. A move is usually one of
+/// these; castling is two, the king first and the rook after it.
+struct SlideStep {
+    int from = -1;
+    int to = -1;
+    Piece piece;
+};
+
 /// A position to show, with the move that led to it and the king in check or mated.
 struct BoardFrame {
     BoardState board;
@@ -101,9 +109,12 @@ private:
     void paintKingGlow(QPainter &painter) const;
     void paintKingBadge(QPainter &painter) const;
     void clearSelection();
-    /// Starts the slide of the last move and works out which pieces it
-    /// captures, so that they can stay until it lands.
-    void startSlide(const BoardState &before);
+    /// Starts the slide of the last move: works out what it takes (so captures
+    /// stay until the attacker lands) and what else it moves (so a castling
+    /// rook follows the king instead of teleporting with it).
+    void startSlide(const BoardState &before, int durationMs);
+    /// Animates the step m_slideStep, sharing `m_slideDurationMs` between them.
+    void startSlideStep();
     void showNextFrame();
     /// Ends a sequence without restoring the board.
     void endSequence();
@@ -145,4 +156,8 @@ private:
     /// only over when the attacker gets there. En passant is included, so the
     /// square is not always the move's target.
     QList<std::pair<int, Piece>> m_slideCaptures;
+    /// The move being animated, one travelling piece at a time.
+    QList<SlideStep> m_slideSteps;
+    qsizetype m_slideStep = 0;
+    int m_slideDurationMs = 0;
 };

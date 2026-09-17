@@ -324,8 +324,12 @@ turned on, after `NewTrainingDialog` asked for the colour (`m_trainingSide`);
   `kEngineMoveMs` (1.5 s), the piece growing inside a halo: it is deliberately
   slow, because the user did not make that move. Do not speed it up.
   A captured piece stays on its square for the whole slide and only goes when
-  the attacker lands (`BoardWidget::startSlide` works out what the move takes,
-  by colour, so en passant is covered and a castling rook is not).
+  the attacker lands, and castling is animated in two beats, the king first
+  and the rook after it. `BoardWidget::startSlide` derives both from the two
+  board states: pieces of the other side that changed are captures (en passant
+  included), pieces of the mover's own side that moved elsewhere become extra
+  `SlideStep`s. It never special-cases castling by name, so any move that
+  shifts a second piece animates properly.
 
 ## Working agreements
 

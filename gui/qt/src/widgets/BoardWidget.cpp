@@ -8,11 +8,12 @@
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QSet>
 #include <QTimer>
 #include <QVariantAnimation>
+#include <QWheelEvent>
 
 #include <cmath>
-#include <QWheelEvent>
 
 #include <cmath>
 
@@ -32,6 +33,8 @@ constexpr qreal kCornerRadius = 4;
 constexpr int kSequenceStartMs = 500;
 constexpr int kSequenceStepMs = 1100;
 constexpr int kSlideMs = 320;
+/// However the time is shared, a piece never crosses the board in a blink.
+constexpr int kMinimumSlideMs = 140;
 
 QColor arrowColor(BoardArrow::Kind kind)
 {
@@ -59,6 +62,17 @@ BoardWidget::BoardWidget(QWidget *parent)
     m_slide->setDuration(kSlideMs);
     m_slide->setEasingCurve(QEasingCurve::OutCubic);
     connect(m_slide, &QVariantAnimation::valueChanged, this, [this] { update(); });
+    connect(m_slide, &QVariantAnimation::finished, this, [this] {
+        // Castling lands the king, then sends the rook.
+        if (m_slideStep + 1 < m_slideSteps.size()) {
+            ++m_slideStep;
+            startSlideStep();
+            return;
+        }
+        m_slideSteps.clear();
+        m_slideCaptures.clear();
+        update();
+    });
 
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setFocusPolicy(Qt::StrongFocus);
@@ -71,6 +85,7 @@ void BoardWidget::setBoard(const BoardFrame &frame)
     m_slide->stop();
     m_slideEmphasis = false;
     m_slideCaptures.clear();
+    m_slideSteps.clear();
     m_slide->setDuration(kSlideMs);
     m_slide->setEasingCurve(QEasingCurve::OutCubic);
     m_board = frame.board;
@@ -92,22 +107,56 @@ void BoardWidget::setBoardAnimated(const BoardFrame &frame, int durationMs)
     if (frame.lastMoveFrom < 0 || frame.lastMoveTo < 0 || before.at(frame.lastMoveFrom).isNull())
         return;
     m_slideEmphasis = true;
-    m_slide->setDuration(qMax(1, durationMs));
     m_slide->setEasingCurve(QEasingCurve::InOutCubic);
-    startSlide(before);
+    startSlide(before, qMax(1, durationMs));
 }
 
-void BoardWidget::startSlide(const BoardState &before)
+void BoardWidget::startSlide(const BoardState &before, int durationMs)
 {
     m_slideCaptures.clear();
+    m_slideSteps.clear();
+    m_slideStep = 0;
+    m_slideDurationMs = durationMs;
+
     const Piece mover = before.at(m_lastMoveFrom);
+    m_slideSteps.append({m_lastMoveFrom, m_lastMoveTo, mover});
+
+    // Squares the mover's own side left, and the ones it took, apart from the
+    // move itself: castling is the only move that fills them.
+    QList<int> vacated;
+    QList<int> filled;
     for (int square = 0; square < 64; ++square) {
         const Piece was = before.at(square);
-        // Only the other side's pieces: a rook that castles moved, it did not die.
-        if (was.isNull() || was.side == mover.side || m_board.at(square) == was)
+        const Piece now = m_board.at(square);
+        if (was == now)
             continue;
-        m_slideCaptures.append({square, was});
+        // Only the other side's pieces are captured: a rook that castles moved.
+        if (!was.isNull() && was.side != mover.side)
+            m_slideCaptures.append({square, was});
+        if (!was.isNull() && was.side == mover.side && square != m_lastMoveFrom)
+            vacated << square;
+        if (!now.isNull() && now.side == mover.side && square != m_lastMoveTo)
+            filled << square;
     }
+    for (int from : std::as_const(vacated)) {
+        const Piece piece = before.at(from);
+        for (qsizetype i = 0; i < filled.size(); ++i) {
+            if (m_board.at(filled.at(i)) != piece)
+                continue;
+            m_slideSteps.append({from, filled.takeAt(i), piece});
+            break;
+        }
+    }
+
+    startSlideStep();
+}
+
+void BoardWidget::startSlideStep()
+{
+    // The first piece gets most of the time; the rook of a castling follows in
+    // what is left, so the whole move still takes as long as one move should.
+    const qreal share = m_slideSteps.size() < 2 ? 1.0 : (m_slideStep == 0 ? 0.6 : 0.4 / qreal(m_slideSteps.size() - 1));
+    m_slide->setDuration(qMax(kMinimumSlideMs, int(m_slideDurationMs * share)));
     m_slide->start();
 }
 
@@ -158,6 +207,8 @@ void BoardWidget::endSequence()
 {
     m_sequenceTimer->stop();
     m_slide->stop();
+    m_slideSteps.clear();
+    m_slideCaptures.clear();
     m_frames.clear();
     m_sequenceActive = false;
 }
@@ -175,7 +226,7 @@ void BoardWidget::showNextFrame()
     m_kingMark = frame.kingMark;
     m_slide->stop();
     if (m_lastMoveFrom >= 0 && m_lastMoveTo >= 0)
-        startSlide(before);
+        startSlide(before, kSlideMs);
     if (m_nextFrame < m_frames.size())
         m_sequenceTimer->start(kSequenceStepMs);
     update();
@@ -315,14 +366,21 @@ void BoardWidget::paintEvent(QPaintEvent *)
     painter.drawRoundedRect(board.adjusted(-outset, -outset, outset, outset), kCornerRadius + outset,
                             kCornerRadius + outset);
 
-    const bool sliding = m_slide->state() == QAbstractAnimation::Running && m_lastMoveTo >= 0;
+    const bool sliding = m_slide->state() == QAbstractAnimation::Running && !m_slideSteps.isEmpty();
+    // Pieces that have yet to travel are drawn where they still are, so the
+    // squares they are heading for stay empty until they get there.
+    QSet<int> arriving;
+    if (sliding) {
+        for (qsizetype i = m_slideStep; i < m_slideSteps.size(); ++i)
+            arriving.insert(m_slideSteps.at(i).to);
+    }
     // A king in check or mated is marked once the move has landed.
     const bool markKing = m_markedKing >= 0 && m_kingMark != KingMark::None && !sliding;
     if (markKing)
         paintKingGlow(painter);
     for (int square = 0; square < 64; ++square) {
         const Piece piece = m_board.at(square);
-        if (piece.isNull() || (m_dragging && square == m_selected) || (sliding && square == m_lastMoveTo))
+        if (piece.isNull() || (m_dragging && square == m_selected) || arriving.contains(square))
             continue;
         paintPiece(painter, piece, squareRect(square));
     }
@@ -330,10 +388,14 @@ void BoardWidget::paintEvent(QPaintEvent *)
         // A captured piece stands its ground until the attacker reaches it.
         for (const auto &[square, piece] : m_slideCaptures)
             paintPiece(painter, piece, squareRect(square));
+        // The rook of a castling waits on its corner for its turn.
+        for (qsizetype i = m_slideStep + 1; i < m_slideSteps.size(); ++i)
+            paintPiece(painter, m_slideSteps.at(i).piece, squareRect(m_slideSteps.at(i).from));
 
+        const SlideStep &step = m_slideSteps.at(m_slideStep);
         const qreal progress = m_slide->currentValue().toReal();
-        const QRectF from = squareRect(m_lastMoveFrom);
-        const QRectF to = squareRect(m_lastMoveTo);
+        const QRectF from = squareRect(step.from);
+        const QRectF to = squareRect(step.to);
         QRectF travelling = from.translated((to.topLeft() - from.topLeft()) * progress);
         if (m_slideEmphasis) {
             // The piece swells and carries a halo that fades in and out, so
@@ -347,7 +409,7 @@ void BoardWidget::paintEvent(QPaintEvent *)
             painter.setBrush(Qt::NoBrush);
             painter.drawEllipse(travelling.center(), travelling.width() * 0.52, travelling.width() * 0.52);
         }
-        paintPiece(painter, m_board.at(m_lastMoveTo), travelling);
+        paintPiece(painter, step.piece, travelling);
     }
 
     // Targets of the selected piece: dots on empty squares, rings on captures.

@@ -76,6 +76,7 @@ void BookPanel::rebuild()
     // A row, not a button, that goes one level up the tree: just an arrow in the Move column.
     auto *back = new QTreeWidgetItem(m_moves);
     back->setIcon(0, SymbolicIcons::icon(QStringLiteral("go-previous")));
+    back->setTextAlignment(0, Qt::AlignCenter); // The arrow sits in the middle of its cell.
     if (m_lastMove.isEmpty()) {
         back->setText(1, tr("Starting position"));
         back->setFlags(Qt::NoItemFlags);

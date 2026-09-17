@@ -16,6 +16,11 @@ void PaddedItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
     initStyleOption(&cell, index);
     const QStyle *style = cell.widget ? cell.widget->style() : QApplication::style();
 
+    // An icon on its own follows the alignment the item asks for; with text
+    // beside it, it stays where the style puts it.
+    if (cell.text.isEmpty() && !cell.icon.isNull())
+        cell.decorationAlignment = cell.displayAlignment;
+
     // Background over the whole cell, then the contents inside the padding.
     style->drawPrimitive(QStyle::PE_PanelItemViewItem, &cell, painter, cell.widget);
     cell.rect.adjust(m_horizontal, m_vertical, -m_horizontal, -m_vertical);

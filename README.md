@@ -49,6 +49,9 @@ hidden (the score is not), and you can only move your own pieces. The
 checkmate or stalemate that ends the game is stored in the open database with
 the result filled in. *Game ▸ New Game* switches training off again.
 
+The engine's answer crosses the board slowly, growing and wearing a halo, so
+a move you did not make is impossible to miss.
+
 ### Me, friends and opponents
 
 Right-click a player in the games list and choose *Who Is This?* ▸ *It's Me*,
@@ -87,6 +90,14 @@ collection; `pragma-book` builds and probes books on the command line.
 account; it applies the next time Pragma Chess starts.
 
 ### Sync between computers
+
+The first button of the toolbar, *Sync Now* (Ctrl+Y), syncs everything in one
+go and in the order that keeps the pieces consistent: the games of the
+connected sources come down into the database, the project file and the
+session are written, and only then does the folder go to the server. What is
+pushed is always what you are looking at. *File ▸ Sync Before Closing* does
+the same when Pragma Chess is closed; the same checkbox appears in the dialog
+that asks to save a modified project, and the choice is remembered.
 
 *File ▸ Sync…* connects the Pragma folder to a folder on an FTP or WebDAV
 server (Nextcloud, a NAS…) or to a Git repository. With Git the real files

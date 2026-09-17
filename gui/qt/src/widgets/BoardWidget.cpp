@@ -10,6 +10,8 @@
 #include <QPainter>
 #include <QTimer>
 #include <QVariantAnimation>
+
+#include <cmath>
 #include <QWheelEvent>
 
 #include <cmath>
@@ -23,6 +25,8 @@ const QColor kLastMove(0xcd, 0xd2, 0x6a, 0xb0);
 const QColor kSelected(0x64, 0x9f, 0x5a, 0xa0);
 const QColor kMoveHint(0x14, 0x33, 0x0f, 0x48);
 const QColor kSequenceFrame(0xd4, 0x3f, 0x32);
+/// Halo around a piece moving on its own, e.g. the engine's answer.
+const QColor kSlideHalo(0x2f, 0x8f, 0x44);
 constexpr qreal kCornerRadius = 4;
 /// Pauses of a played sequence: before the first move and between moves.
 constexpr int kSequenceStartMs = 500;
@@ -64,6 +68,10 @@ BoardWidget::BoardWidget(QWidget *parent)
 void BoardWidget::setBoard(const BoardFrame &frame)
 {
     endSequence();
+    m_slide->stop();
+    m_slideEmphasis = false;
+    m_slide->setDuration(kSlideMs);
+    m_slide->setEasingCurve(QEasingCurve::OutCubic);
     m_board = frame.board;
     m_lastMoveFrom = frame.lastMoveFrom;
     m_lastMoveTo = frame.lastMoveTo;
@@ -73,6 +81,19 @@ void BoardWidget::setBoard(const BoardFrame &frame)
     m_lostPieces.clear();
     clearSelection();
     update();
+}
+
+void BoardWidget::setBoardAnimated(const BoardFrame &frame, int durationMs)
+{
+    const BoardState before = m_board;
+    setBoard(frame);
+    // Nothing to slide when the piece was not on the board to begin with.
+    if (frame.lastMoveFrom < 0 || frame.lastMoveTo < 0 || before.at(frame.lastMoveFrom).isNull())
+        return;
+    m_slideEmphasis = true;
+    m_slide->setDuration(qMax(1, durationMs));
+    m_slide->setEasingCurve(QEasingCurve::InOutCubic);
+    m_slide->start();
 }
 
 void BoardWidget::setLegalMoves(const QMultiHash<int, int> &moves)
@@ -293,8 +314,20 @@ void BoardWidget::paintEvent(QPaintEvent *)
         const qreal progress = m_slide->currentValue().toReal();
         const QRectF from = squareRect(m_lastMoveFrom);
         const QRectF to = squareRect(m_lastMoveTo);
-        paintPiece(painter, m_board.at(m_lastMoveTo),
-                   from.translated((to.topLeft() - from.topLeft()) * progress));
+        QRectF travelling = from.translated((to.topLeft() - from.topLeft()) * progress);
+        if (m_slideEmphasis) {
+            // The piece swells and carries a halo that fades in and out, so
+            // the eye follows a move nobody asked for.
+            const qreal lift = std::sin(progress * M_PI);
+            const qreal grow = travelling.width() * 0.22 * lift;
+            travelling = travelling.adjusted(-grow, -grow, grow, grow);
+            QColor halo = kSlideHalo;
+            halo.setAlphaF(0.25 + 0.5 * lift);
+            painter.setPen(QPen(halo, qMax(2.0, size * 0.09)));
+            painter.setBrush(Qt::NoBrush);
+            painter.drawEllipse(travelling.center(), travelling.width() * 0.52, travelling.width() * 0.52);
+        }
+        paintPiece(painter, m_board.at(m_lastMoveTo), travelling);
     }
 
     // Targets of the selected piece: dots on empty squares, rings on captures.

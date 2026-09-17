@@ -7,6 +7,7 @@
 #include <QDateTime>
 #include <QMainWindow>
 
+#include <functional>
 #include <memory>
 
 struct Project;
@@ -38,6 +39,7 @@ class QTimer;
 class SourceSync;
 class FolderSync;
 class RemoteStore;
+class SyncPipeline;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -48,6 +50,10 @@ public:
 
     /// Opens a .pch project file, e.g. one passed on the command line.
     bool openProjectFile(const QString &path);
+
+    /// Closes without asking anything: the app was stopped from outside
+    /// (SIGTERM from `make start`, a session logout), not by the user.
+    void quitWithoutAsking();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -158,6 +164,12 @@ private:
     void manageSources();
     // File ▸ Sync: the Pragma folder kept the same on several computers.
     void openSyncDialog();
+    // Syncing everything, in order: the sources fill the database, the project
+    // file is written, then the folder goes to the server. SyncPipeline owns
+    // the order and the reporting, so new steps are one task away.
+    /// Builds the pipeline for this moment and runs it; `then` runs when it ends.
+    void syncNow(std::function<void()> then = {});
+    void updateSyncActions();
     /// Uses the saved sync settings: connects to the server and syncs soon.
     void applySyncSettings();
     void setAnalysisEnabled(bool enabled);
@@ -214,6 +226,11 @@ private:
     QLabel *m_syncLabel;
     SourceSync *m_sourceSync;
     FolderSync *m_folderSync;
+    SyncPipeline *m_syncPipeline;
+    /// Set while the window waits for a sync before closing for good.
+    bool m_closingAfterSync = false;
+    /// Set when the app was stopped from outside: close, ask nothing.
+    bool m_forcedQuit = false;
     RemoteStore *m_syncStore = nullptr;
     QTimer *m_syncTimer;
     QLabel *m_folderSyncLabel;
@@ -241,12 +258,16 @@ private:
     Side m_trainingSide = Side::White;
     /// A training move is being searched, so the analysis must not restart.
     bool m_trainingThinking = false;
+    /// The next board update is the engine's move: show it slowly.
+    bool m_animateNextBoard = false;
 
     QAction *m_newProjectAction;
     QAction *m_openProjectAction;
     QAction *m_saveProjectAction;
     QAction *m_saveProjectAsAction;
     QAction *m_syncAction;
+    QAction *m_syncNowAction;
+    QAction *m_syncBeforeClosingAction;
     QMenu *m_recentProjectsMenu;
 
     QAction *m_newDatabaseAction;

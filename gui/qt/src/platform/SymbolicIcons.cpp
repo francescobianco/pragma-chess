@@ -29,6 +29,7 @@ enum class Shape {
     Explain,
     NewGame,
     Database,
+    Sync,
 };
 
 /// Paints a shape on a 16×16 grid with the given color.
@@ -115,6 +116,17 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         painter->drawLine(QPointF(11, 3), QPointF(11, 13));
         painter->drawLine(QPointF(8.5, 10.5), QPointF(11, 13));
         painter->drawLine(QPointF(13.5, 10.5), QPointF(11, 13));
+        break;
+    }
+    case Shape::Sync: {
+        // Two arcs chasing each other: sync everything now.
+        const QRectF circle(3, 3, 10, 10);
+        painter->drawArc(circle, 40 * 16, 190 * 16);
+        painter->drawArc(circle, 220 * 16, 190 * 16);
+        painter->drawLine(QPointF(12.5, 6.5), QPointF(12.5, 3.5));
+        painter->drawLine(QPointF(12.5, 6.5), QPointF(9.5, 6.5));
+        painter->drawLine(QPointF(3.5, 9.5), QPointF(3.5, 12.5));
+        painter->drawLine(QPointF(3.5, 9.5), QPointF(6.5, 9.5));
         break;
     }
     case Shape::Play: {
@@ -279,6 +291,7 @@ QIcon icon(const QString &name)
         {QStringLiteral("pragma-explain"), Shape::Explain},
         {QStringLiteral("pragma-new-game"), Shape::NewGame},
         {QStringLiteral("pragma-database"), Shape::Database},
+        {QStringLiteral("view-refresh"), Shape::Sync},
     };
     const auto it = shapes.constFind(name);
     if (it == shapes.cend())

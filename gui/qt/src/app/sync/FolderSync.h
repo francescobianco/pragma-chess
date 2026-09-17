@@ -26,6 +26,8 @@ public:
 
     /// The remote folder to sync with (owned by the caller); null stops syncing.
     void setStore(RemoteStore *store);
+    /// Whether a server is configured, i.e. whether syncing the folder means anything.
+    bool hasStore() const { return !m_store.isNull(); }
 
     /// Starts a sync, or runs another one right after the current one.
     void sync();

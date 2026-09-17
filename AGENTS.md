@@ -194,6 +194,20 @@ Git repository.
   because a path is missing from the manifest. `FolderSync` runs it, writes
   the manifest last and starts over if another device changed it. Conflicts keep both files, local deletions go
   to the trash, uploads send a snapshot copy.
+- `app/sync/SyncPipeline` runs the sync **in order**, one `SyncTask` at a
+  time: `SourceSyncTask` (sources → database), a `SyncStepTask` for the
+  project file and one for the session, then `FolderSyncTask` (folder →
+  server). The order is the contract: what is pushed must be what the user
+  sees. Syncing will grow, so **add a task, do not widen `MainWindow::syncNow`**.
+  A task says whether it `isNeeded()` (skipped steps never report an error)
+  and whether it `isCritical()` (a normal failure is collected and the rest
+  still runs, so a server that is down does not block importing games).
+  The toolbar's Sync Now and "Sync before closing" both go through it;
+  closing waits for the pipeline with a timeout, so a dead server cannot keep
+  the window open.
+- `MainWindow::quitWithoutAsking()` exists because Qt 6 closes the windows on
+  `QApplication::quit()`: a SIGTERM (`make start`) must not raise the "save
+  before quitting?" dialog. Anything new in `closeEvent` has to honour it.
 - The base and a hash cache live per device in AppLocalData
   (`folder-sync.json`), never in the synced folder. Settings and password are
   in the user's settings (`SyncSettings`; keychain is a TODO).
@@ -296,6 +310,9 @@ turned on, after `NewTrainingDialog` asked for the colour (`m_trainingSide`);
 - Checkmate or stalemate fills in the result and saves the game to the open
   database through `saveGameToDatabase`, which is a no-op once it is stored.
 - The flag is not part of `Project`: a restarted client is not training.
+- The engine's move is shown with `BoardWidget::setBoardAnimated` over
+  `kEngineMoveMs` (1.5 s), the piece growing inside a halo: it is deliberately
+  slow, because the user did not make that move. Do not speed it up.
 
 ## Working agreements
 

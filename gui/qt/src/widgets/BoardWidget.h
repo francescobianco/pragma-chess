@@ -37,6 +37,10 @@ public:
 
     /// Shows a position; clears the selection and the explanation arrows.
     void setBoard(const BoardFrame &frame);
+    /// Same, but slides the piece of the last move over `durationMs` with a
+    /// halo around it: a move the user did not make (the engine's answer in
+    /// training) has to be impossible to miss.
+    void setBoardAnimated(const BoardFrame &frame, int durationMs);
     const BoardState &board() const { return m_board; }
 
     /// Moves the user may enter, as origin square → target squares.
@@ -132,4 +136,6 @@ private:
     QTimer *m_sequenceTimer;
     /// Progress (0–1) of the piece sliding to the last move's target.
     QVariantAnimation *m_slide;
+    /// Whether the slide is the loud kind: the piece grows and wears a halo.
+    bool m_slideEmphasis = false;
 };

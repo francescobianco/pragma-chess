@@ -83,6 +83,10 @@ qt_add_library(pragma-chess-core STATIC
     src/app/sync/RemoteStore.h
     src/app/sync/SyncManifest.cpp
     src/app/sync/SyncManifest.h
+    src/app/sync/SyncPipeline.cpp
+    src/app/sync/SyncPipeline.h
+    src/app/sync/SyncTasks.cpp
+    src/app/sync/SyncTasks.h
     src/app/sync/SyncSettings.cpp
     src/app/sync/SyncSettings.h
     src/app/sync/WebDavStore.cpp

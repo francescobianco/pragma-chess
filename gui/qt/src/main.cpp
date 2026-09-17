@@ -22,17 +22,20 @@ void onTerminationSignal(int)
     [[maybe_unused]] ssize_t written = ::write(signalFds[0], &byte, sizeof(byte));
 }
 
-// Turns SIGTERM/SIGINT/SIGHUP into a regular QApplication::quit(), so the
-// session is saved when the app is stopped from a terminal or by `make start`.
-void installTerminationHandler(QApplication &app)
+// Turns SIGTERM/SIGINT/SIGHUP into a clean quit, so the session is saved when
+// the app is stopped from a terminal or by `make start`, without any dialog.
+void installTerminationHandler(QApplication &app, MainWindow &window)
 {
     if (::socketpair(AF_UNIX, SOCK_STREAM, 0, signalFds) != 0)
         return;
     auto *notifier = new QSocketNotifier(signalFds[1], QSocketNotifier::Read, &app);
-    QObject::connect(notifier, &QSocketNotifier::activated, &app, [notifier] {
+    QObject::connect(notifier, &QSocketNotifier::activated, &app, [notifier, &window] {
         notifier->setEnabled(false);
         char byte;
         [[maybe_unused]] ssize_t bytesRead = ::read(signalFds[1], &byte, sizeof(byte));
+        // Qt 6 closes the windows on quit(), which would ask to save: a signal
+        // is not the user closing the window, so close without asking.
+        window.quitWithoutAsking();
         QApplication::quit();
     });
 
@@ -65,15 +68,15 @@ int main(int argc, char *argv[])
         appIcon.addFile(QStringLiteral(":/icons/hicolor/%1x%1/apps/" APP_ID ".png").arg(size), QSize(size, size));
     QApplication::setWindowIcon(QIcon::fromTheme(QStringLiteral(APP_ID), appIcon));
 
-#ifdef Q_OS_UNIX
-    installTerminationHandler(app);
-#endif
     // Respect an explicit user choice (-style / QT_STYLE_OVERRIDE).
     if (GtkDesktopStyle::isGtkBasedDesktop() && qEnvironmentVariableIsEmpty("QT_STYLE_OVERRIDE")
         && !app.arguments().contains(QStringLiteral("-style")))
         QApplication::setStyle(new GtkDesktopStyle);
 
     MainWindow window;
+#ifdef Q_OS_UNIX
+    installTerminationHandler(app, window);
+#endif
     window.show();
     // Project files passed on the command line (e.g. opened from the file manager).
     const QStringList arguments = app.arguments().mid(1);

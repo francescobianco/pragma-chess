@@ -26,6 +26,8 @@ public:
     /// Stops the sync of a source, e.g. before removing it.
     void cancelSource(qint64 sourceId);
     bool isSyncing() const { return m_fetch != nullptr; }
+    /// Whether the open database has any source to sync at all.
+    bool hasSources() const;
     /// Source being synced, or 0.
     qint64 currentSource() const { return m_current; }
 
@@ -36,6 +38,8 @@ Q_SIGNALS:
     void sourcesChanged();
     /// What is being synced, for the status bar; empty when idle.
     void activityChanged(const QString &text);
+    /// Every queued source has been synced. A manual sync waits for this.
+    void idle();
 
 private:
     void startNext();

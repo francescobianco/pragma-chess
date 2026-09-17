@@ -21,6 +21,8 @@
 #include "app/sources/SourceSync.h"
 #include "app/sync/FolderSync.h"
 #include "app/sync/RemoteStore.h"
+#include "app/sync/SyncPipeline.h"
+#include "app/sync/SyncTasks.h"
 #include "models/GameFilterProxyModel.h"
 #include "models/GameListModel.h"
 #include "models/MoveListModel.h"
@@ -39,6 +41,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QCheckBox>
 #include <QClipboard>
 #include <QDataStream>
 #include <QActionGroup>
@@ -81,6 +84,16 @@ constexpr int kRestoreWindowStateDelayMs = 250;
 /// enough to play well, shallow enough to answer at once.
 constexpr int kTrainingDepth = 12;
 
+/// How long the engine's move takes to cross the board, so that the user
+/// cannot miss what just happened.
+constexpr int kEngineMoveMs = 1500;
+
+/// Remembered choice of "Sync before closing".
+const auto kSyncBeforeClosingKey = QStringLiteral("sync/beforeClosing");
+
+/// How long closing waits for a sync before giving up on the server.
+constexpr int kCloseSyncTimeoutMs = 30000;
+
 QIcon themeIcon(const char *name, QStyle::StandardPixmap)
 {
     // Flat monochrome icons that follow the theme's text color.
@@ -115,6 +128,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_explainer(new Explainer(this))
     , m_sourceSync(new SourceSync(this))
     , m_folderSync(new FolderSync(UserFolders::pragmaDir(), SyncSettings::statePath(), SyncSettings::deviceName(), this))
+    , m_syncPipeline(new SyncPipeline(this))
     , m_syncTimer(new QTimer(this))
 {
     setDockOptions(AnimatedDocks | AllowTabbedDocks | AllowNestedDocks);
@@ -191,6 +205,26 @@ MainWindow::MainWindow(QWidget *parent)
         m_databaseTree->scheduleRefresh();
     });
     connect(m_sourceSync, &SourceSync::sourcesChanged, m_databaseTree, &DatabaseTreeWidget::scheduleRefresh);
+
+    // The whole sync, in order, from the toolbar button or before closing.
+    connect(m_syncPipeline, &SyncPipeline::started, this, [this] {
+        updateSyncActions();
+        m_folderSyncLabel->setToolTip(QString());
+        m_folderSyncLabel->show();
+    });
+    connect(m_syncPipeline, &SyncPipeline::taskStarted, this,
+            [this](const QString &name) { m_folderSyncLabel->setText(tr("Syncing %1…").arg(name)); });
+    connect(m_syncPipeline, &SyncPipeline::progress, m_folderSyncLabel, &QLabel::setText);
+    connect(m_syncPipeline, &SyncPipeline::finished, this, [this](const QStringList &errors) {
+        updateSyncActions();
+        if (errors.isEmpty()) {
+            m_folderSyncLabel->hide();
+            statusBar()->showMessage(tr("Everything is in sync"), 5000);
+            return;
+        }
+        m_folderSyncLabel->setText(tr("Sync failed"));
+        m_folderSyncLabel->setToolTip(errors.join(QLatin1Char('\n')));
+    });
 
     // Folder sync with a server: every few minutes, and shortly after starting.
     m_syncTimer->setInterval(5 * 60 * 1000);
@@ -292,6 +326,18 @@ void MainWindow::createActions()
                                         tr("Save Project &As…"), this);
     m_saveProjectAsAction->setShortcut(QKeySequence::SaveAs);
     connect(m_saveProjectAsAction, &QAction::triggered, this, &MainWindow::saveProjectAs);
+
+    m_syncNowAction = new QAction(themeIcon("view-refresh", QStyle::SP_BrowserReload), tr("S&ync Now"), this);
+    m_syncNowAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Y));
+    m_syncNowAction->setToolTip(tr("Sync the connected sources, save the project and send the folder to the server"));
+    connect(m_syncNowAction, &QAction::triggered, this, [this] { syncNow(); });
+
+    m_syncBeforeClosingAction = new QAction(tr("Sync &Before Closing"), this);
+    m_syncBeforeClosingAction->setCheckable(true);
+    m_syncBeforeClosingAction->setChecked(QSettings().value(kSyncBeforeClosingKey, false).toBool());
+    m_syncBeforeClosingAction->setToolTip(tr("Sync everything when Pragma Chess is closed"));
+    connect(m_syncBeforeClosingAction, &QAction::toggled, this,
+            [](bool on) { QSettings().setValue(kSyncBeforeClosingKey, on); });
 
     m_syncAction = new QAction(tr("S&ync…"), this);
     m_syncAction->setToolTip(tr("Keep databases and projects the same on several computers through a server"));
@@ -431,6 +477,8 @@ void MainWindow::createMenus()
     file->addAction(m_saveProjectAction);
     file->addAction(m_saveProjectAsAction);
     file->addSeparator();
+    file->addAction(m_syncNowAction);
+    file->addAction(m_syncBeforeClosingAction);
     file->addAction(m_syncAction);
     file->addSeparator();
     file->addAction(m_quitAction);
@@ -559,6 +607,9 @@ void MainWindow::createToolBar()
     toolBar->toggleViewAction()->setText(tr("&Toolbar"));
     toolBar->setObjectName(QStringLiteral("mainToolBar"));
     toolBar->setMovable(false);
+    // Syncing everything is the one button that stands on its own.
+    toolBar->addAction(m_syncNowAction);
+    toolBar->addSeparator();
     toolBar->addAction(m_newDatabaseAction);
     toolBar->addAction(m_openDatabaseAction);
     toolBar->addSeparator();
@@ -802,7 +853,13 @@ void MainWindow::setPlayerRole(const QString &player, PlayerRole role)
 
 void MainWindow::syncBoard()
 {
-    m_board->setBoard(frameFor(m_session->position(), m_session->lastMoveFrom(), m_session->lastMoveTo()));
+    const BoardFrame frame = frameFor(m_session->position(), m_session->lastMoveFrom(), m_session->lastMoveTo());
+    if (m_animateNextBoard) {
+        m_animateNextBoard = false;
+        m_board->setBoardAnimated(frame, kEngineMoveMs);
+    } else {
+        m_board->setBoard(frame);
+    }
     m_capturedPieces->setCaptured(m_session->position().capturedSince(m_session->initialPosition()));
     QMultiHash<int, int> legalMoves;
     // In training the user only moves their own colour; the engine answers by itself.
@@ -1346,6 +1403,49 @@ void MainWindow::applySyncSettings()
     QTimer::singleShot(1500, m_folderSync, &FolderSync::sync);
 }
 
+void MainWindow::syncNow(std::function<void()> then)
+{
+    if (m_syncPipeline->isRunning()) {
+        if (then)
+            connect(m_syncPipeline, &SyncPipeline::finished, this, [then](const QStringList &) { then(); },
+                    Qt::SingleShotConnection);
+        return;
+    }
+
+    m_syncPipeline->clear();
+    // The order is the point: games arrive first, the project is written with
+    // them, and only a folder holding both goes to the server.
+    m_syncPipeline->addTask(new SourceSyncTask(m_sourceSync));
+    if (!m_projectPath.isEmpty() && isWindowModified()) {
+        m_syncPipeline->addTask(new SyncStepTask(tr("Project"), [this] {
+            const Project project = captureProject();
+            QString error;
+            if (!project.saveToFile(m_projectPath, &error))
+                return error;
+            m_savedProjectYaml = project.toYaml();
+            addRecentProject(m_projectPath);
+            updateProjectModified();
+            return QString();
+        }));
+    }
+    // The session is what a sync without a project file has to offer.
+    m_syncPipeline->addTask(new SyncStepTask(tr("Session"), [this] {
+        saveSession();
+        return QString();
+    }));
+    m_syncPipeline->addTask(new FolderSyncTask(m_folderSync));
+
+    if (then)
+        connect(m_syncPipeline, &SyncPipeline::finished, this, [then](const QStringList &) { then(); },
+                Qt::SingleShotConnection);
+    m_syncPipeline->run();
+}
+
+void MainWindow::updateSyncActions()
+{
+    m_syncNowAction->setEnabled(!m_syncPipeline->isRunning());
+}
+
 void MainWindow::manageSources()
 {
     if (!m_database)
@@ -1555,6 +1655,7 @@ void MainWindow::finishEngineMove()
         m_enginePanel->setStatus(tr("The engine found no move to play."));
         return;
     }
+    m_animateNextBoard = true; // syncBoard() slides it across the board.
     playMove(*move);
 }
 
@@ -2115,8 +2216,58 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     scheduleSaveSession();
 }
 
+void MainWindow::quitWithoutAsking()
+{
+    m_forcedQuit = true;
+    close();
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    saveSession();
-    event->accept();
+    if (m_forcedQuit || m_closingAfterSync) { // Nothing left to ask.
+        saveSession();
+        event->accept();
+        return;
+    }
+
+    if (!m_projectPath.isEmpty() && isWindowModified()) {
+        QMessageBox box(this);
+        box.setWindowTitle(tr("Quit Pragma Chess"));
+        box.setIcon(QMessageBox::Question);
+        box.setText(tr("Save changes to “%1” before quitting?")
+                        .arg(QFileInfo(m_projectPath).completeBaseName()));
+        box.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        box.setDefaultButton(QMessageBox::Save);
+        // Remembered, so the choice only has to be made once.
+        auto *syncFirst = new QCheckBox(tr("Sync before closing"));
+        syncFirst->setChecked(m_syncBeforeClosingAction->isChecked());
+        box.setCheckBox(syncFirst);
+
+        const int answer = box.exec();
+        m_syncBeforeClosingAction->setChecked(syncFirst->isChecked());
+        if (answer == QMessageBox::Cancel) {
+            event->ignore();
+            return;
+        }
+        if (answer == QMessageBox::Save && !saveProject()) {
+            event->ignore();
+            return;
+        }
+    }
+
+    if (!m_syncBeforeClosingAction->isChecked()) {
+        saveSession();
+        event->accept();
+        return;
+    }
+
+    // Close once everything is synced, and anyway if the server keeps us waiting.
+    event->ignore();
+    m_closingAfterSync = true;
+    statusBar()->showMessage(tr("Syncing before closing…"));
+    QTimer::singleShot(kCloseSyncTimeoutMs, this, [this] {
+        if (m_closingAfterSync)
+            close();
+    });
+    syncNow([this] { close(); });
 }

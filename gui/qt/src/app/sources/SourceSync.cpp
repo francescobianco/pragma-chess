@@ -133,6 +133,18 @@ void SourceSync::startNext()
         return;
     }
     Q_EMIT activityChanged(QString());
+    Q_EMIT idle();
+}
+
+bool SourceSync::hasSources() const
+{
+    if (!m_database)
+        return false;
+    for (const GameSource &source : m_database->sources()) {
+        if (source.enabled)
+            return true;
+    }
+    return false;
 }
 
 void SourceSync::finishCurrent(const QString &errorMessage)

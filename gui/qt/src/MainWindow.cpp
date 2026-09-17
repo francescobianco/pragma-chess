@@ -419,7 +419,7 @@ void MainWindow::createActions()
     m_newGameAction->setToolTip(tr("Start a game to enter move by move"));
     connect(m_newGameAction, &QAction::triggered, this, &MainWindow::newGame);
 
-    m_newTrainingAction = new QAction(tr("New &Training…"), this);
+    m_newTrainingAction = new QAction(themeIcon("pragma-training", QStyle::SP_MediaPlay), tr("New &Training…"), this);
     m_newTrainingAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_T));
     m_newTrainingAction->setToolTip(tr("Start a game against the engine, choosing your colour"));
     connect(m_newTrainingAction, &QAction::triggered, this, &MainWindow::newTraining);
@@ -598,10 +598,8 @@ void MainWindow::createToolBar()
     // Syncing everything is the one button that stands on its own.
     toolBar->addAction(m_syncNowAction);
     toolBar->addSeparator();
-    toolBar->addAction(m_newDatabaseAction);
-    toolBar->addAction(m_openDatabaseAction);
-    toolBar->addSeparator();
-    toolBar->addAction(m_startEngineAction);
+    toolBar->addAction(m_newGameAction);
+    toolBar->addAction(m_newTrainingAction);
 }
 
 QDockWidget *MainWindow::addDock(QMainWindow *host, const QString &objectName, const QString &title,

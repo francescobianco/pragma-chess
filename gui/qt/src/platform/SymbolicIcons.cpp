@@ -30,6 +30,7 @@ enum class Shape {
     NewGame,
     Database,
     Sync,
+    Training,
 };
 
 /// Paints a shape on a 16×16 grid with the given color.
@@ -116,6 +117,15 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         painter->drawLine(QPointF(11, 3), QPointF(11, 13));
         painter->drawLine(QPointF(8.5, 10.5), QPointF(11, 13));
         painter->drawLine(QPointF(13.5, 10.5), QPointF(11, 13));
+        break;
+    }
+    case Shape::Training: {
+        // A target: a game played to practise, not to record.
+        painter->drawEllipse(QPointF(8, 8), 5.5, 5.5);
+        painter->drawEllipse(QPointF(8, 8), 2.5, 2.5);
+        painter->setBrush(color);
+        painter->drawEllipse(QPointF(8, 8), 0.9, 0.9);
+        painter->setBrush(Qt::NoBrush);
         break;
     }
     case Shape::Sync: {
@@ -292,6 +302,7 @@ QIcon icon(const QString &name)
         {QStringLiteral("pragma-new-game"), Shape::NewGame},
         {QStringLiteral("pragma-database"), Shape::Database},
         {QStringLiteral("view-refresh"), Shape::Sync},
+        {QStringLiteral("pragma-training"), Shape::Training},
     };
     const auto it = shapes.constFind(name);
     if (it == shapes.cend())

@@ -91,7 +91,8 @@ account; it applies the next time Pragma Chess starts.
 
 ### Sync between computers
 
-The first button of the toolbar, *Sync Now* (Ctrl+Y), syncs everything in one
+The toolbar holds three buttons: *Sync Now*, *New Game* and *New Training*.
+The first of them (Ctrl+Y) syncs everything in one
 go and in the order that keeps the pieces consistent: the games of the
 connected sources come down into the database, the project file and the
 session are written, and only then does the folder go to the server. What is

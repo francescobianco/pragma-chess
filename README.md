@@ -17,11 +17,13 @@ a localized chess folder in the home directory, next to Desktop and Documents:
 ~/Scacchi/Pragma/Databases/    (Italian)
 ```
 
-Projects are `.pch` files (YAML) saved from the File menu. A project captures
-the whole working environment — database, open game and move, board
-orientation, engine, window layout — and is stored by default in
-`~/Chess/Pragma/Projects/` (localized like the databases folder). The last
-session is restored automatically on startup, attached to its project file.
+Projects are `.pch` files (YAML) saved from the File menu. A project *is* the
+workspace: it captures the whole working environment — database, open game and
+move, board orientation, engine, which panels are visible and how much room
+each one takes — and is stored by default in `~/Chess/Pragma/Projects/`
+(localized like the databases folder). The last session is restored
+automatically on startup, attached to its project file. The *View* menu shows
+and hides the panels, and *View ▸ Reset Panel Layout* puts them back.
 
 An existing chess folder is reused if the language changes; `PRAGMA_CHESS_DIR`
 overrides it. On first launch the folder is seeded with `Classic Games.pdb`.
@@ -37,6 +39,15 @@ game never changes it: the new line becomes an unsaved game.
 `E`) shows why the evaluation is what it is compared with the position
 before the last move: the refutation of a mistake, the material a move wins,
 a mate it allows or misses. It starts the engine if needed.
+
+### Training against the engine
+
+*Game ▸ New Training…* asks which colour you want and starts a game in which
+the engine answers as the other one. It is a plain game with *Engine ▸
+Training Mode* switched on: while it is your move the engine's best line is
+hidden (the score is not), and you can only move your own pieces. The
+checkmate or stalemate that ends the game is stored in the open database with
+the result filled in. *Game ▸ New Game* switches training off again.
 
 ### Me, friends and opponents
 

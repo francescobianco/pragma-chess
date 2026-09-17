@@ -107,6 +107,8 @@ qt_add_executable(pragma-chess
     src/dialogs/GameInfoDialog.h
     src/dialogs/ManageSourcesDialog.cpp
     src/dialogs/ManageSourcesDialog.h
+    src/dialogs/NewTrainingDialog.cpp
+    src/dialogs/NewTrainingDialog.h
     src/dialogs/SyncDialog.cpp
     src/dialogs/SyncDialog.h
     src/dialogs/SourceSettingsWidget.cpp

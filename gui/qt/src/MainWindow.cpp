@@ -7,6 +7,7 @@
 #include "dialogs/ConnectSourceWizard.h"
 #include "dialogs/GameInfoDialog.h"
 #include "dialogs/ManageSourcesDialog.h"
+#include "dialogs/NewTrainingDialog.h"
 #include "dialogs/SyncDialog.h"
 #include "app/Explainer.h"
 #include "app/GameSession.h"
@@ -76,7 +77,9 @@ namespace {
 /// Delay before maximizing a window restored maximized, once it is mapped.
 constexpr int kRestoreWindowStateDelayMs = 250;
 
-const auto kLayoutsGroup = QStringLiteral("workspaces");
+/// Depth of the search that picks the engine's move in training: deep
+/// enough to play well, shallow enough to answer at once.
+constexpr int kTrainingDepth = 12;
 
 QIcon themeIcon(const char *name, QStyle::StandardPixmap)
 {
@@ -140,10 +143,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_session, &GameSession::headerChanged, this, &MainWindow::updateGameHeader);
     connect(m_gameHeader, &GameHeaderWidget::activated, this, &MainWindow::editGameInfo);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::syncBoard);
+    // Before the analysis: in training the engine's own search replaces it.
+    connect(m_session, &GameSession::plyChanged, this, &MainWindow::updateTraining);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::analyzeCurrentPosition);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::updateBookMoves);
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateBookMoves);
+    connect(m_engine, &UciEngine::searchFinished, this, &MainWindow::finishEngineMove);
     connect(m_engine, &UciEngine::evaluationChanged, this, [this](const EngineEvaluation &evaluation) {
+        m_lastEvaluation = evaluation;
         m_evaluationBar->setEvaluation(evaluation);
         m_explainer->setLiveEvaluation(evaluation);
         m_engineLine = m_session->position().lineText(evaluation.pv);
@@ -240,7 +247,7 @@ MainWindow::MainWindow(QWidget *parent)
     // quit() (e.g. on SIGTERM) does not deliver closeEvent, so save here as well.
     connect(qApp, &QCoreApplication::aboutToQuit, this, &MainWindow::saveSession);
 
-    applyWorkspace(Workspace::Database);
+    applyDefaultLayout();
     restoreBook();
     restoreSession();
     restoreOpeningNames(); // After the session, so the first launch still seeds Classic Games first.
@@ -362,6 +369,10 @@ void MainWindow::createActions()
     connect(m_flipBoardAction, &QAction::toggled, m_evaluationBar, &EvaluationBar::setFlipped);
     connect(m_flipBoardAction, &QAction::toggled, m_capturedPieces, &CapturedPiecesWidget::setFlipped);
 
+    m_defaultLayoutAction = new QAction(tr("&Reset Panel Layout"), this);
+    m_defaultLayoutAction->setToolTip(tr("Put the panels back where a new project starts"));
+    connect(m_defaultLayoutAction, &QAction::triggered, this, &MainWindow::applyDefaultLayout);
+
     m_coordinatesAction = new QAction(tr("Show &Coordinates"), this);
     m_coordinatesAction->setCheckable(true);
     m_coordinatesAction->setChecked(true);
@@ -371,6 +382,16 @@ void MainWindow::createActions()
     m_newGameAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_N));
     m_newGameAction->setToolTip(tr("Start a game to enter move by move"));
     connect(m_newGameAction, &QAction::triggered, this, &MainWindow::newGame);
+
+    m_newTrainingAction = new QAction(tr("New &Training…"), this);
+    m_newTrainingAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_T));
+    m_newTrainingAction->setToolTip(tr("Start a game against the engine, choosing your colour"));
+    connect(m_newTrainingAction, &QAction::triggered, this, &MainWindow::newTraining);
+
+    m_trainingModeAction = new QAction(tr("&Training Mode"), this);
+    m_trainingModeAction->setCheckable(true);
+    m_trainingModeAction->setToolTip(tr("The engine answers as the other colour and hides its line while you think"));
+    connect(m_trainingModeAction, &QAction::toggled, this, &MainWindow::setTrainingMode);
 
     m_saveGameAction = new QAction(themeIcon("document-save", QStyle::SP_DialogSaveButton),
                                    tr("Save Game to &Database"), this);
@@ -470,11 +491,11 @@ void MainWindow::createMenus()
     for (QDockWidget *dock : {m_gamesDock, m_movesDock, m_openingTreeDock, m_engineDock})
         m_viewMenu->addAction(dock->toggleViewAction());
     m_viewMenu->addSeparator();
-    m_workspaceMenu = m_viewMenu->addMenu(tr("&Workspace"));
-    rebuildWorkspaceMenu();
+    m_viewMenu->addAction(m_defaultLayoutAction);
 
     QMenu *game = menuBar()->addMenu(tr("&Game"));
     game->addAction(m_newGameAction);
+    game->addAction(m_newTrainingAction);
     game->addAction(m_saveGameAction);
     game->addSeparator();
     game->addAction(m_firstMoveAction);
@@ -499,6 +520,8 @@ void MainWindow::createMenus()
     QMenu *engine = menuBar()->addMenu(tr("E&ngine"));
     engine->addAction(m_startEngineAction);
     engine->addAction(m_explainAction);
+    engine->addSeparator();
+    engine->addAction(m_trainingModeAction);
 
     m_bookMenu = menuBar()->addMenu(tr("&Book"));
     connect(m_bookMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildBookMenu);
@@ -547,8 +570,9 @@ QDockWidget *MainWindow::addDock(QMainWindow *host, const QString &objectName, c
 {
     auto *dock = new QDockWidget(title, host);
     dock->setObjectName(objectName);
-    // No close or float buttons: panels are shown and hidden from the View menu.
-    dock->setFeatures(QDockWidget::DockWidgetMovable);
+    // Closable, or Qt would disable the toggleViewAction the View menu shows;
+    // the empty title bar set below keeps the close and float buttons hidden.
+    dock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable);
     dock->setWidget(widget);
     host->addDockWidget(area, dock);
     return dock;
@@ -558,7 +582,8 @@ QByteArray MainWindow::saveLayout() const
 {
     QByteArray layout;
     QDataStream stream(&layout, QIODevice::WriteOnly);
-    stream << QByteArray("pragma-layout-3") << saveState() << m_sidebar->saveState();
+    stream << QByteArray("pragma-layout-4") << saveState() << m_sidebar->saveState()
+           << m_gamesSplitter->saveState();
     return layout;
 }
 
@@ -568,8 +593,9 @@ void MainWindow::restoreLayout(const QByteArray &layout)
     QByteArray magic;
     QByteArray windowState;
     QByteArray sidebarState;
+    QByteArray splitterState;
     stream >> magic;
-    if (magic != "pragma-layout-3" && magic != "pragma-layout-2") {
+    if (magic != "pragma-layout-4" && magic != "pragma-layout-3" && magic != "pragma-layout-2") {
         // Layouts from before the sidebar existed only hold the window state.
         restoreState(layout);
         return;
@@ -577,8 +603,14 @@ void MainWindow::restoreLayout(const QByteArray &layout)
     stream >> windowState >> sidebarState;
     restoreState(windowState);
     // Version 2 stacked the opening tree under the moves: keep the default sidebar.
-    if (magic == "pragma-layout-3")
-        m_sidebar->restoreState(sidebarState);
+    if (magic == "pragma-layout-2")
+        return;
+    m_sidebar->restoreState(sidebarState);
+    // Version 4 added the tree | games list ruler inside the Games panel.
+    if (magic == "pragma-layout-4") {
+        stream >> splitterState;
+        m_gamesSplitter->restoreState(splitterState);
+    }
 }
 
 void MainWindow::createDocks()
@@ -773,8 +805,11 @@ void MainWindow::syncBoard()
     m_board->setBoard(frameFor(m_session->position(), m_session->lastMoveFrom(), m_session->lastMoveTo()));
     m_capturedPieces->setCaptured(m_session->position().capturedSince(m_session->initialPosition()));
     QMultiHash<int, int> legalMoves;
-    for (const ChessMove &move : m_session->position().legalMoves())
-        legalMoves.insert(move.from, move.to);
+    // In training the user only moves their own colour; the engine answers by itself.
+    if (!isEngineTurn()) {
+        for (const ChessMove &move : m_session->position().legalMoves())
+            legalMoves.insert(move.from, move.to);
+    }
     m_board->setLegalMoves(legalMoves);
     m_engineLine.clear();
     // An explanation belongs to one move: moving on turns it off until asked again.
@@ -1358,6 +1393,8 @@ void MainWindow::analyzeCurrentPosition()
 {
     if (!m_startEngineAction->isChecked() || !m_engine->isRunning())
         return;
+    if (m_trainingThinking) // The engine is searching the move it will play.
+        return;
     const GameRecord &game = m_session->game();
     QStringList moves;
     moves.reserve(m_session->ply());
@@ -1397,13 +1434,148 @@ void MainWindow::updateExplainer()
 
 void MainWindow::newGame()
 {
+    m_trainingModeAction->setChecked(false); // A plain new game is not a training one.
     GameRecord game;
     game.result = QStringLiteral("*");
     game.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
+    startGame(game);
+    statusBar()->showMessage(tr("New game: enter the moves on the board"), 5000);
+}
+
+void MainWindow::startGame(const GameRecord &game)
+{
     m_gameView->clearSelection();
     m_openGameIndex = -1;
     m_session->setGame(game);
-    statusBar()->showMessage(tr("New game: enter the moves on the board"), 5000);
+}
+
+void MainWindow::newTraining()
+{
+    NewTrainingDialog dialog(m_trainingSide, this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+    m_trainingSide = dialog.side();
+
+    // Who the user is, as the database already knows them from "Who Is This?".
+    QString me = tr("Me");
+    if (m_database) {
+        const PlayerRoles roles = m_database->playerRoles();
+        for (auto it = roles.constBegin(); it != roles.constEnd(); ++it) {
+            if (it.value() == PlayerRole::Me) {
+                me = it.key();
+                break;
+            }
+        }
+    }
+    const QString engineName = m_engine->name().isEmpty()
+        ? (m_engineName.isEmpty() ? tr("Engine") : m_engineName)
+        : m_engine->name();
+
+    GameRecord game;
+    game.event = tr("Training");
+    game.result = QStringLiteral("*");
+    game.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
+    game.white = m_trainingSide == Side::White ? me : engineName;
+    game.black = m_trainingSide == Side::White ? engineName : me;
+
+    m_flipBoardAction->setChecked(m_trainingSide == Side::Black); // Play from the bottom.
+    m_startEngineAction->setChecked(true); // The score stays visible throughout.
+    startGame(game);
+    m_trainingModeAction->setChecked(true);
+    updateTraining();                      // setChecked() is silent when the flag was already on.
+    statusBar()->showMessage(m_trainingSide == Side::White
+                                 ? tr("Training: you play White against %1").arg(engineName)
+                                 : tr("Training: you play Black against %1").arg(engineName),
+                             5000);
+}
+
+void MainWindow::setTrainingMode(bool enabled)
+{
+    if (!enabled) {
+        m_trainingThinking = false;
+        m_enginePanel->setLineHidden(false);
+    }
+    syncBoard(); // The user may not move for the engine.
+    updateTraining();
+}
+
+bool MainWindow::isEngineTurn() const
+{
+    return m_trainingModeAction->isChecked() && m_session->position().sideToMove() != m_trainingSide;
+}
+
+void MainWindow::updateTraining()
+{
+    const bool training = m_trainingModeAction->isChecked();
+    // The best line is the user's move: it may only be shown once they played.
+    m_enginePanel->setLineHidden(training && !isEngineTurn());
+    if (!training)
+        return;
+    // Looking back at an earlier move is not a turn to answer.
+    if (m_session->ply() != m_session->plyCount())
+        return;
+    const ChessPosition &position = m_session->position();
+    if (position.isCheckmate() || position.isStalemate()) {
+        recordTrainingResult();
+        return;
+    }
+    if (isEngineTurn())
+        playEngineMove();
+}
+
+void MainWindow::playEngineMove()
+{
+    if (m_trainingThinking)
+        return;
+    if (!m_engine->isRunning()) {
+        m_startEngineAction->setChecked(true); // Starts the engine, or reports why it cannot.
+        if (!m_engine->isRunning())
+            return;
+    }
+    const GameRecord &game = m_session->game();
+    QStringList moves;
+    moves.reserve(m_session->ply());
+    for (int i = 0; i < m_session->ply(); ++i)
+        moves << game.moves.at(i).uci;
+    m_trainingThinking = true;
+    m_lastEvaluation = {};
+    m_enginePanel->setStatus(tr("Thinking…"));
+    m_engine->analyze(game.startFen, moves, m_session->position().sideToMove(), {kTrainingDepth, 0, false});
+}
+
+void MainWindow::finishEngineMove()
+{
+    if (!m_trainingThinking)
+        return;
+    m_trainingThinking = false;
+    const std::optional<ChessMove> move = m_lastEvaluation.pv.isEmpty()
+        ? std::nullopt
+        : m_session->position().moveFromUci(m_lastEvaluation.pv.constFirst());
+    if (!move) {
+        m_enginePanel->setStatus(tr("The engine found no move to play."));
+        return;
+    }
+    playMove(*move);
+}
+
+void MainWindow::recordTrainingResult()
+{
+    const ChessPosition &position = m_session->position();
+    GameRecord game = m_session->game();
+    QString message;
+    if (position.isStalemate()) {
+        game.result = QStringLiteral("1/2-1/2");
+        message = tr("Stalemate: the training game is a draw.");
+    } else {
+        const bool whiteWon = position.sideToMove() == Side::Black;
+        game.result = whiteWon ? QStringLiteral("1-0") : QStringLiteral("0-1");
+        const bool userWon = (whiteWon ? Side::White : Side::Black) == m_trainingSide;
+        message = userWon ? tr("Checkmate: you won the training game.")
+                          : tr("Checkmate: the engine won the training game.");
+    }
+    m_session->setHeader(game);
+    saveGameToDatabase(); // Does nothing once the game is in the database.
+    statusBar()->showMessage(message, 8000);
 }
 
 void MainWindow::playBoardMove(int from, int to, const QPoint &globalPosition)
@@ -1537,7 +1709,7 @@ void MainWindow::pasteFen()
     m_session->setGame(game);
 }
 
-void MainWindow::applyWorkspace(Workspace workspace)
+void MainWindow::applyDefaultLayout()
 {
     const QList<QDockWidget *> right{m_movesDock, m_openingTreeDock, m_engineDock};
     for (QDockWidget *dock : {m_movesDock, m_gamesDock, m_openingTreeDock, m_engineDock})
@@ -1547,71 +1719,13 @@ void MainWindow::applyWorkspace(Workspace workspace)
         m_sidebar->addDockWidget(Qt::RightDockWidgetArea, dock);
     m_sidebar->splitDockWidget(m_movesDock, m_openingTreeDock, Qt::Horizontal);
 
-    switch (workspace) {
-    case Workspace::Analysis:
-        m_gamesDock->hide();
-        m_openingTreeDock->hide();
-        m_movesDock->show();
-        m_engineDock->show();
-        m_sidebar->resizeDocks({m_movesDock, m_engineDock}, {3, 2}, Qt::Vertical);
-        break;
-    case Workspace::Database:
-        m_openingTreeDock->hide();
-        m_gamesDock->show();
-        m_movesDock->show();
-        m_engineDock->show();
-        m_sidebar->resizeDocks({m_movesDock, m_engineDock}, {3, 1}, Qt::Vertical);
-        resizeDocks({m_gamesDock}, {220}, Qt::Vertical);
-        break;
-    case Workspace::OpeningPreparation:
-        m_engineDock->hide();
-        m_gamesDock->show();
-        m_movesDock->show();
-        m_openingTreeDock->show();
-        m_sidebar->resizeDocks({m_movesDock, m_openingTreeDock}, {2, 3}, Qt::Horizontal);
-        resizeDocks({m_gamesDock}, {220}, Qt::Vertical);
-        break;
-    }
-}
-
-void MainWindow::saveWorkspaceAs()
-{
-    bool ok = false;
-    const QString name = QInputDialog::getText(this, tr("Save Workspace"), tr("Workspace name:"),
-                                               QLineEdit::Normal, QString(), &ok).trimmed();
-    if (!ok || name.isEmpty())
-        return;
-    QSettings settings;
-    settings.beginGroup(kLayoutsGroup);
-    // Group keys can't contain slashes; keep the display name as the value's key.
-    settings.setValue(QString(name).replace(QLatin1Char('/'), QLatin1Char('_')), saveLayout());
-    settings.endGroup();
-    rebuildWorkspaceMenu();
-}
-
-void MainWindow::rebuildWorkspaceMenu()
-{
-    m_workspaceMenu->clear();
-    m_workspaceMenu->addAction(tr("&Analysis"), this, [this] { applyWorkspace(Workspace::Analysis); });
-    m_workspaceMenu->addAction(tr("&Database"), this, [this] { applyWorkspace(Workspace::Database); });
-    m_workspaceMenu->addAction(tr("&Opening Preparation"), this,
-                               [this] { applyWorkspace(Workspace::OpeningPreparation); });
-
-    QSettings settings;
-    settings.beginGroup(kLayoutsGroup);
-    const QStringList saved = settings.childKeys();
-    settings.endGroup();
-    if (!saved.isEmpty()) {
-        m_workspaceMenu->addSeparator();
-        for (const QString &name : saved) {
-            m_workspaceMenu->addAction(name, this, [this, name] {
-                QSettings s;
-                restoreLayout(s.value(kLayoutsGroup + QLatin1Char('/') + name).toByteArray());
-            });
-        }
-    }
-    m_workspaceMenu->addSeparator();
-    m_workspaceMenu->addAction(tr("&Save Current Workspace…"), this, &MainWindow::saveWorkspaceAs);
+    m_openingTreeDock->hide();
+    m_gamesDock->show();
+    m_movesDock->show();
+    m_engineDock->show();
+    m_sidebar->resizeDocks({m_movesDock, m_engineDock}, {3, 1}, Qt::Vertical);
+    resizeDocks({m_gamesDock}, {220}, Qt::Vertical);
+    m_gamesSplitter->setSizes({220, 800});
 }
 
 void MainWindow::showAbout()
@@ -1639,7 +1753,6 @@ void MainWindow::restoreSession()
         setWindowState(windowState() & ~m_restoredWindowState);
 
     QHeaderView *gameHeader = m_gameView->horizontalHeader();
-    m_gamesSplitter->restoreState(settings.value(QStringLiteral("games/splitter")).toByteArray());
     if (gameHeader->restoreState(settings.value(QStringLiteral("games/header")).toByteArray()))
         m_gameView->sortByColumn(gameHeader->sortIndicatorSection(), gameHeader->sortIndicatorOrder());
 
@@ -1679,12 +1792,13 @@ void MainWindow::saveSession()
     if (isVisible())
         settings.setValue(QStringLiteral("window/geometry"), saveGeometry());
     settings.setValue(QStringLiteral("games/header"), m_gameView->horizontalHeader()->saveState());
-    settings.setValue(QStringLiteral("games/splitter"), m_gamesSplitter->saveState());
     settings.setValue(QStringLiteral("session/project"), captureProject().toYaml());
     settings.setValue(QStringLiteral("session/projectPath"), m_projectPath);
     // Superseded by session/project.
+    // "workspaces" and "games/splitter" belong to the project (.pch) now.
     for (const char *key : {"window/state", "board", "games/search", "session/databasePath",
-                            "session/gameIndex", "session/startFen", "session/ply"})
+                            "session/gameIndex", "session/startFen", "session/ply",
+                            "games/splitter", "workspaces"})
         settings.remove(QString::fromLatin1(key));
 
     updateProjectModified();
@@ -1777,10 +1891,10 @@ void MainWindow::newProject()
     if (!maybeSaveProject())
         return;
 
-    Project project; // Same database, starting position, default workspace.
+    Project project; // Same database, starting position, default layout.
     if (m_database)
         project.databasePath = m_database->location();
-    applyWorkspace(Workspace::Database);
+    applyDefaultLayout();
     project.layout = saveLayout();
     applyProject(project, false);
 

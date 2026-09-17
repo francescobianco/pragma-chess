@@ -22,6 +22,9 @@ public:
     void setStatus(const QString &status);
     /// Score and depth, with the best line already written in SAN.
     void setEvaluation(const std::optional<EngineEvaluation> &evaluation, const QString &line = QString());
+    /// Keeps the best line out of sight while still showing the score, so that
+    /// training does not give the move away.
+    void setLineHidden(bool hidden);
     /// Summary of the "Explain" command; empty hides it.
     void setExplanation(const QString &text);
     /// The opening the game is in and the chosen opening book; empty values show a dash.
@@ -37,4 +40,9 @@ private:
     QLabel *m_eco;
     QLabel *m_opening;
     QLabel *m_book;
+    /// What m_line would show if it were not hidden.
+    QString m_lineText;
+    bool m_lineHidden = false;
+
+    void refreshLine();
 };

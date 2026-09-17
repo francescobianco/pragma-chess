@@ -100,7 +100,8 @@ void EnginePanel::setEngineName(const QString &name)
 
 void EnginePanel::setStatus(const QString &status)
 {
-    m_line->setText(status);
+    m_lineText = status;
+    refreshLine();
 }
 
 void EnginePanel::setExplanation(const QString &text)
@@ -118,7 +119,22 @@ void EnginePanel::setEvaluation(const std::optional<EngineEvaluation> &evaluatio
     }
     m_score->setText(evaluation->text());
     m_depth->setText(tr("Depth %1").arg(evaluation->depth));
-    m_line->setText(line.isEmpty() ? evaluation->pv.mid(0, 12).join(QLatin1Char(' ')) : line);
+    m_lineText = line.isEmpty() ? evaluation->pv.mid(0, 12).join(QLatin1Char(' ')) : line;
+    refreshLine();
+}
+
+void EnginePanel::setLineHidden(bool hidden)
+{
+    if (m_lineHidden == hidden)
+        return;
+    m_lineHidden = hidden;
+    refreshLine();
+}
+
+void EnginePanel::refreshLine()
+{
+    m_line->setText(m_lineHidden ? tr("The best line is hidden: it is your move.") : m_lineText);
+    m_line->setEnabled(!m_lineHidden);
 }
 
 void EnginePanel::setOpening(const OpeningNames::Name &opening)

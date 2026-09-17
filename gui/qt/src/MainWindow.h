@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/EngineEvaluation.h"
 #include "app/PlayerRole.h"
 #include "widgets/DatabaseTreeWidget.h"
 
@@ -56,8 +57,6 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
-    enum class Workspace { Analysis, Database, OpeningPreparation };
-
     void createActions();
     void createMenus();
     void createToolBar();
@@ -88,10 +87,28 @@ private:
 
     // Entering games move by move.
     void newGame();
+    /// Opens `game` as the game being entered, unlinked from the database.
+    void startGame(const GameRecord &game);
     void saveGameToDatabase();
     /// Plays the move the user made on the board, asking for the promotion piece if needed.
     void playBoardMove(int from, int to, const QPoint &globalPosition);
     void updateGameActions();
+
+    // Training: the user plays a colour and the engine answers with the other.
+    // There is no session, only the "Training Mode" flag of the Engine menu:
+    // "New Training" is a new game with the flag on, a plain new game turns it off.
+    /// Asks for the colour and starts a game against the engine.
+    void newTraining();
+    void setTrainingMode(bool enabled);
+    /// Whether the engine, not the user, owns the side to move.
+    bool isEngineTurn() const;
+    /// Hides the engine's line while the user thinks and lets the engine answer.
+    void updateTraining();
+    void playEngineMove();
+    /// Plays the move of the search started by playEngineMove().
+    void finishEngineMove();
+    /// Stores a finished training game in the open database, once.
+    void recordTrainingResult();
 
     /// "Explain": arrows on the board that justify the evaluation.
     void setExplainEnabled(bool enabled);
@@ -151,9 +168,8 @@ private:
     void pasteFen();
     /// Edit ▸ Copy: puts `text` on the clipboard and confirms with `message`.
     void copyText(const QString &text, const QString &message);
-    void applyWorkspace(Workspace workspace);
-    void saveWorkspaceAs();
-    void rebuildWorkspaceMenu();
+    /// Puts the panels back where they start: what a new project opens with.
+    void applyDefaultLayout();
     void showAbout();
 
     // Session persistence: the current project state (saved or not) and the
@@ -219,6 +235,12 @@ private:
     /// Latest engine line (SAN) and explanation, for Edit ▸ Copy.
     QString m_engineLine;
     QString m_explanationText;
+    /// Latest evaluation reported by the engine; its first move is the one it plays.
+    EngineEvaluation m_lastEvaluation;
+    /// The colour the user plays in training; the engine plays the other one.
+    Side m_trainingSide = Side::White;
+    /// A training move is being searched, so the analysis must not restart.
+    bool m_trainingThinking = false;
 
     QAction *m_newProjectAction;
     QAction *m_openProjectAction;
@@ -241,9 +263,12 @@ private:
     QAction *m_previousMoveAction;
     QAction *m_nextMoveAction;
     QAction *m_lastMoveAction;
+    QAction *m_defaultLayoutAction;
     QAction *m_flipBoardAction;
     QAction *m_coordinatesAction;
     QAction *m_newGameAction;
+    QAction *m_newTrainingAction;
+    QAction *m_trainingModeAction;
     QAction *m_saveGameAction;
     QAction *m_explainAction;
     QAction *m_startEngineAction;
@@ -258,7 +283,6 @@ private:
     qint64 m_openGameIndex = -1;
 
     QMenu *m_viewMenu;
-    QMenu *m_workspaceMenu;
     QMenu *m_databasesMenu;
     QMenu *m_bookMenu;
 };

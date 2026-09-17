@@ -232,6 +232,13 @@ a node filters the list through `GameFilterProxyModel`.
   capturing database, open game/ply (or the moves of a game not saved to the
   database), board orientation, engine, window layout.
   It is versioned; newer files are rejected with an error.
+  **The project is the workspace**: there is no separate workspace concept.
+  Anything about what the user is looking at belongs in `Project`, not in
+  QSettings. `layout` is the opaque blob of `MainWindow::saveLayout()` (magic
+  `pragma-layout-4`: window state, sidebar state, Games splitter state), so it
+  already carries which panels are visible and their proportions; give it a new
+  magic and keep reading the old ones when it grows. `View ▸ Reset Panel
+  Layout` (`applyDefaultLayout`) is what a new project starts with.
 - Default user folder: `~/Chess/Pragma/{Databases,Projects,Books}`, localized
   (e.g. `~/Scacchi/Pragma/…`); `PRAGMA_CHESS_DIR` overrides it. First launch
   seeds `Classic Games.pdb`. The last session is restored on startup.
@@ -270,6 +277,25 @@ the names are read again when the file changes.
 Engines are generic **UCI** processes (`UciEngine`, `QProcess`). Stockfish is
 only the default, found in `PATH` or common locations; never hard-wire
 Stockfish-specific behaviour. Scores are normalized to White's point of view.
+
+## Training
+
+Training is **a flag, not a session**: `Engine ▸ Training Mode`
+(`m_trainingModeAction`). `Game ▸ New Training…` is a new game with the flag
+turned on, after `NewTrainingDialog` asked for the colour (`m_trainingSide`);
+`Game ▸ New Game` turns it off. Everything lives in `MainWindow`
+(`updateTraining`, `playEngineMove`, `finishEngineMove`,
+`recordTrainingResult`) and uses the one analysis engine:
+
+- While the user is to move, `EnginePanel::setLineHidden` hides the best line
+  and keeps the score, and `syncBoard` gives the board no legal moves for the
+  engine's colour.
+- When the engine is to move, a fixed-depth search (`kTrainingDepth`) replaces
+  the infinite analysis (`analyzeCurrentPosition` steps aside while
+  `m_trainingThinking`) and its first PV move is played on `searchFinished`.
+- Checkmate or stalemate fills in the result and saves the game to the open
+  database through `saveGameToDatabase`, which is a no-op once it is stored.
+- The flag is not part of `Project`: a restarted client is not training.
 
 ## Working agreements
 

@@ -46,6 +46,7 @@ protected:
     void closeEvent(QCloseEvent *event) override;
     void moveEvent(QMoveEvent *event) override;
     void changeEvent(QEvent *event) override;
+    void showEvent(QShowEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
 
 private:
@@ -171,6 +172,7 @@ private:
     QDockWidget *m_movesDock;
     QDockWidget *m_gamesDock;
     QDockWidget *m_openingTreeDock;
+    QToolBar *m_mainToolBar = nullptr;
     QDockWidget *m_engineDock;
 
     QString m_projectPath;
@@ -213,6 +215,8 @@ private:
 
     QTimer *m_saveTimer = nullptr;
     bool m_restoringSession = false;
+    /// Maximized or full screen state to apply once the window is shown.
+    Qt::WindowStates m_restoredWindowState;
     /// Source row of the open game in the database, or -1 (e.g. a pasted FEN).
     qint64 m_openGameIndex = -1;
 

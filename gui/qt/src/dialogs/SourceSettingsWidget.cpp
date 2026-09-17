@@ -2,9 +2,11 @@
 
 #include "app/sources/LichessSignIn.h"
 #include "app/sources/SourceCredentials.h"
+#include "app/sources/TorneiOnlineFetch.h"
 
 #include <QApplication>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDateEdit>
 #include <QDesktopServices>
 #include <QEventLoop>
@@ -17,6 +19,7 @@
 #include <QNetworkReply>
 #include <QProgressDialog>
 #include <QPushButton>
+#include <QRegularExpressionValidator>
 #include <QTimer>
 
 SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString &sourceUuid, QWidget *parent)
@@ -49,9 +52,20 @@ SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString
         updateSignInStatus();
     }
 
-    m_account->setPlaceholderText(tr("Username on %1").arg(m_kind.name));
     m_account->setClearButtonEnabled(true);
-    form->addRow(tr("&Account:"), m_account);
+    if (m_kind.playerId) {
+        m_idType = new QComboBox;
+        m_idType->addItem(tr("ID FIDE"), QStringLiteral("fide"));
+        m_idType->addItem(tr("ID FSI"), QStringLiteral("fsi"));
+        form->addRow(tr("&Search by:"), m_idType);
+        m_account->setPlaceholderText(tr("Player ID number"));
+        m_account->setValidator(new QRegularExpressionValidator(QRegularExpression(QStringLiteral("\\d{1,12}")), m_account));
+        form->addRow(tr("&Player ID:"), m_account);
+        connect(m_idType, &QComboBox::currentIndexChanged, this, &SourceSettingsWidget::changed);
+    } else {
+        m_account->setPlaceholderText(tr("Username on %1").arg(m_kind.name));
+        form->addRow(tr("&Account:"), m_account);
+    }
 
     m_since->setCalendarPopup(true);
     m_since->setDisplayFormat(QLocale().dateFormat(QLocale::ShortFormat));
@@ -60,10 +74,19 @@ SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString
     sinceRow->addWidget(m_limitSince);
     sinceRow->addWidget(m_since);
     sinceRow->addStretch();
-    form->addRow(tr("Games:"), sinceRow);
-    form->addRow(QString(), m_ratedOnly);
+    if (m_kind.playerId) {
+        m_limitSince->setText(tr("Only tournaments started since"));
+        form->addRow(tr("Tournaments:"), sinceRow);
+        m_ratedOnly->hide();
+    } else {
+        form->addRow(tr("Games:"), sinceRow);
+        form->addRow(QString(), m_ratedOnly);
+    }
 
-    auto *note = new QLabel(tr("New games are added while the database is open."));
+    auto *note = new QLabel(m_kind.playerId ? tr("The site has no moves: each game is added with its players, "
+                                                 "round and result, ready for the moves to be entered. New "
+                                                 "tournaments are added while the database is open.")
+                                            : tr("New games are added while the database is open."));
     note->setWordWrap(true);
     note->setEnabled(false);
     form->addRow(QString(), note);
@@ -80,6 +103,11 @@ void SourceSettingsWidget::setSource(const GameSource &source)
     if (!since.isEmpty())
         m_since->setDate(QDate::fromString(since, Qt::ISODate));
     m_ratedOnly->setChecked(source.settings.value(QLatin1String(SourceSettings::ratedOnly)).toBool());
+    if (m_idType) {
+        const int index = m_idType->findData(source.settings.value(QLatin1String(TorneiOnlineSettings::idType)).toString());
+        m_idType->setCurrentIndex(qMax(index, 0));
+        m_player = source.settings.value(QLatin1String(TorneiOnlineSettings::player)).toString();
+    }
 }
 
 void SourceSettingsWidget::applyTo(GameSource &source) const
@@ -88,14 +116,20 @@ void SourceSettingsWidget::applyTo(GameSource &source) const
     source.settings.remove(QLatin1String(SourceSettings::since));
     if (m_limitSince->isChecked())
         source.settings.insert(QLatin1String(SourceSettings::since), m_since->date().toString(Qt::ISODate));
-    source.settings.insert(QLatin1String(SourceSettings::ratedOnly), m_ratedOnly->isChecked());
+    if (m_idType) {
+        source.settings.insert(QLatin1String(TorneiOnlineSettings::idType), m_idType->currentData().toString());
+        source.settings.insert(QLatin1String(TorneiOnlineSettings::player), m_player);
+    } else {
+        source.settings.insert(QLatin1String(SourceSettings::ratedOnly), m_ratedOnly->isChecked());
+    }
 }
 
 bool SourceSettingsWidget::validate(QString *errorMessage)
 {
     const QString account = m_account->text().trimmed();
     if (account.isEmpty()) {
-        *errorMessage = tr("Enter the account whose games to import.");
+        *errorMessage = m_kind.playerId ? tr("Enter the ID of the player whose games to import.")
+                                        : tr("Enter the account whose games to import.");
         return false;
     }
     if (m_kind.needsSignIn && SourceCredentials::token(m_uuid).isEmpty()) {
@@ -104,7 +138,10 @@ bool SourceSettingsWidget::validate(QString *errorMessage)
     }
 
     QNetworkAccessManager network;
-    QNetworkRequest request = SourceCatalog::accountRequest(m_kind.id, account);
+    GameSource source;
+    source.kind = m_kind.id;
+    applyTo(source);
+    QNetworkRequest request = SourceCatalog::accountRequest(source);
     request.setTransferTimeout(15000);
     QApplication::setOverrideCursor(Qt::BusyCursor);
     QNetworkReply *reply = network.get(request);
@@ -122,6 +159,15 @@ bool SourceSettingsWidget::validate(QString *errorMessage)
     if (reply->error() != QNetworkReply::NoError) {
         *errorMessage = tr("Could not check the account on %1: %2").arg(m_kind.name, reply->errorString());
         return false;
+    }
+    if (m_idType) {
+        const std::optional<TorneiOnlineFetch::Player> player =
+            TorneiOnlineFetch::parsePlayerSearch(TorneiOnlineFetch::decodePage(reply->readAll()), account);
+        if (!player) {
+            *errorMessage = tr("There is no player with %1 “%2” on %3.").arg(m_idType->currentText(), account, m_kind.name);
+            return false;
+        }
+        m_player = player->name;
     }
     return true;
 }

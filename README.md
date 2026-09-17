@@ -46,6 +46,11 @@ background while the database is open; *Database ▸ Manage Sources…* syncs,
 edits, signs in again or removes sources. lichess.org needs signing in, which
 happens in the browser.
 
+torneionline.com (the Italian federation's rating site) is found by FIDE or
+FSI ID: every game of the player's tournaments is added with players, Elo,
+tournament, round and result but no moves, since the site has none, ready for
+the moves to be entered by hand.
+
 ### Sync between computers
 
 *File ▸ Sync…* connects the Pragma folder to a folder on an FTP or WebDAV

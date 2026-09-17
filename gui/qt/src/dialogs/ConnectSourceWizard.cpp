@@ -80,7 +80,7 @@ void ConnectSourceWizard::initializePage(int id)
         m_settings = new SourceSettingsWidget(kind, m_uuid);
         m_settingsLayout->addWidget(m_settings);
         m_settingsKind = kind.id;
-        page(SettingsPage)->setTitle(tr("%1 Account").arg(kind.name));
+        page(SettingsPage)->setTitle(kind.playerId ? tr("%1 Player").arg(kind.name) : tr("%1 Account").arg(kind.name));
         page(SettingsPage)->setSubTitle(tr("Which games to import into “%1”.").arg(m_databaseName));
         connect(m_settings, &SourceSettingsWidget::changed, m_settingsError, &QWidget::hide);
     }

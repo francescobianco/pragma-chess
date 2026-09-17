@@ -6,6 +6,7 @@
 #include "app/Pgn.h"
 #include "app/SqliteGameDatabase.h"
 #include "app/sources/ChessComFetch.h"
+#include "app/sources/TorneiOnlineFetch.h"
 #include "app/sources/LichessFetch.h"
 #include "app/sync/SyncManifest.h"
 
@@ -507,6 +508,94 @@ private Q_SLOTS:
 
         game.insert(QStringLiteral("rules"), QStringLiteral("crazyhouse"));
         QVERIFY(!ChessComFetch::parseGame(game));
+    }
+
+    void parsesTorneiOnlinePages()
+    {
+        // Latin-1 page text around UTF-8 data from the site's database.
+        const QByteArray mixed = QByteArray("Citt\xe0 ") + QByteArray("54\xc2\xb0 OPEN");
+        QCOMPARE(TorneiOnlineFetch::decodePage(mixed), QStringLiteral("Città 54° OPEN"));
+
+        const QString search = QStringLiteral(
+            "<table><tr>\n<td><SPAN><B>Nome</B></SPAN></td></tr>\t\t\t<tr>\n"
+            "<td bgcolor=FFFFFF><SPAN class=tpolcorpo><A HREF=giocatori_d.php?progre=3489&tipo=a>BIANCO Francesco </A></SPAN></td>\n"
+            "<td bgcolor=FFFFFF><SPAN class=tpolcorpo>2N</SPAN></td>\n"
+            "<td bgcolor=FFFFFF><SPAN class=tpolcorpo>152159</SPAN></td>\n"
+            "<td bgcolor=FFFFFF><SPAN class=tpolcorpo><A HREF=https://ratings.fide.com/profile/896489 target=_blank>896489</A></SPAN></td>\n"
+            "</tr></table>");
+        const std::optional<TorneiOnlineFetch::Player> player = TorneiOnlineFetch::parsePlayerSearch(search, QStringLiteral("896489"));
+        QVERIFY(player);
+        QCOMPARE(player->progre, QStringLiteral("3489"));
+        QCOMPARE(player->name, QStringLiteral("BIANCO Francesco"));
+        QVERIFY(TorneiOnlineFetch::parsePlayerSearch(search, QStringLiteral("152159")));
+        QVERIFY(!TorneiOnlineFetch::parsePlayerSearch(search, QStringLiteral("89648")));
+
+        // Rows of the tournament list are not closed.
+        const QString tournaments = QStringLiteral(
+            "<b>Tornei disputati: 1</b><table><tr>\t\t\t<tr>\n"
+            "<td class=tpolthin><SPAN class=tpolcorpo><A HREF=tornei_d.php?codice=2601025A&tipo=p&ord=n&sen=a>2601025A</A>&nbsp;</SPAN></td>\n"
+            "<td class=tpolthin><SPAN class=tpolcorpo>CP TRAPANI 2026</SPAN></td>\n"
+            "<td class=tpolthin><SPAN class=tpolcorpo>TP</SPAN></td>\n"
+            "<td class=tpolthinleft><SPAN class=tpolcorpo>10-01-2026</SPAN></td>\n"
+            "<td class=tpolthinright><SPAN class=tpolcorpo>18-01-2026<BR></SPAN></td>\n"
+            "<td class=tpolthin><SPAN class=tpolcorpo>0</SPAN></td>\n"
+            "<tr>\t\t\t</table>");
+        const QList<TorneiOnlineFetch::Tournament> list = TorneiOnlineFetch::parseTournaments(tournaments);
+        QCOMPARE(list.size(), 1);
+        QCOMPARE(list.first().code, QStringLiteral("2601025A"));
+        QCOMPARE(list.first().name, QStringLiteral("CP TRAPANI 2026"));
+        QCOMPARE(list.first().start, QDate(2026, 1, 10));
+        QCOMPARE(list.first().end, QDate(2026, 1, 18));
+
+        const QString participants = QStringLiteral(
+            "<tr><td><A HREF=giocatori_d.php?progre=34890&tipo=a>x</A></td>"
+            "<td><A HREF=tornei_d.php?codice=2601025A&gix=3&tipo=g&ord=u&sen=a title=Cartellino>Other</A></td></tr>"
+            "<tr><td><A HREF=giocatori_d.php?progre=3489&tipo=a>x</A></td>"
+            "<td><A HREF=tornei_d.php?codice=2601025A&gix=8&tipo=g&ord=u&sen=a title=Cartellino>Bianco Francesco</A></td></tr>");
+        QCOMPARE(TorneiOnlineFetch::parseParticipantNumber(participants, QStringLiteral("3489")), QStringLiteral("8"));
+        QVERIFY(TorneiOnlineFetch::parseParticipantNumber(participants, QStringLiteral("1")).isEmpty());
+
+        const auto cardRow = [](const QStringList &values) {
+            QString row = QStringLiteral("<tr>");
+            for (const QString &value : values)
+                row += QStringLiteral("<td class=tpolthin><SPAN class=tpolcorpo>&nbsp;%1&nbsp;</SPAN></td>").arg(value);
+            return row + QStringLiteral("</tr>");
+        };
+        const QString card = QStringLiteral(
+            "<font color=FFFFFF>Cartellini giocatori</font><table><tr><td colspan=16><SPAN><CENTER>"
+            "<B>8 - Bianco Francesco &nbsp;&nbsp;<IMG SRC=img/flags/ITA.png></B></CENTER></SPAN></td></tr>"
+            "<tr><td colspan=16><SPAN><CENTER>&nbsp;<B>2N</B>&nbsp;&nbsp;Elo FIDE:  <B>1694</B></CENTER></td></tr>")
+            + cardRow({QString(), QStringLiteral("T"), QStringLiteral("C"), QStringLiteral("Num"), QStringLiteral("Ban"),
+                       QStringLiteral("Cat"), QStringLiteral("Avversario"), QStringLiteral("Fed"), QStringLiteral("FIDE"),
+                       QStringLiteral("Italia"), QStringLiteral("Diff"), QStringLiteral("Exp"), QStringLiteral("Ris"),
+                       QStringLiteral("F"), QStringLiteral("Elo"), QStringLiteral("Tot")})
+            + cardRow({QString(), "1", "N", "25", QString(), "NC", "Cammarata Elisa", "ITA", QString(), "1399",
+                       QString(), QString(), "1", QString(), "0", "1"})
+            + cardRow({QString(), "2", "B", "15", QString(), "2N", "Mancuso Luigi", "ITA", "1572", QString(), "122",
+                       "0.67", "&frac12;", QString(), "0", "1"})
+            + cardRow({QString(), "3", "B", "3", QString(), "1N", "Fontana Giulio", "ITA", "1809", QString(), "-115",
+                       "0.34", "0", QString(), "0", "1"})
+            + cardRow({QString(), "4", QString(), "0", QString(), QString(), QString(), QString(), QString(), QString(),
+                       QString(), QString(), "1", "F", "0", "2"}) // Bye.
+            + cardRow({QString(), "5", "N", "7", QString(), "NC", "Carollo Vito", "ITA", QString(), "1399", QString(),
+                       QString(), QString(), QString(), "0", "2"}) // Not played yet.
+            + QStringLiteral("</table>");
+        const QList<ImportedGame> games = TorneiOnlineFetch::parseScoreCard(card, list.first());
+        QCOMPARE(games.size(), 3);
+        QCOMPARE(games.at(0).externalId, QStringLiteral("2601025A/1"));
+        QCOMPARE(games.at(0).game.white, QStringLiteral("Cammarata Elisa"));
+        QCOMPARE(games.at(0).game.whiteElo, 1399);
+        QCOMPARE(games.at(0).game.black, QStringLiteral("Bianco Francesco"));
+        QCOMPARE(games.at(0).game.blackElo, 1694);
+        QCOMPARE(games.at(0).game.result, QStringLiteral("0-1"));
+        QCOMPARE(games.at(0).game.event, QStringLiteral("CP TRAPANI 2026"));
+        QCOMPARE(games.at(0).game.date, QStringLiteral("2026.01.10"));
+        QCOMPARE(games.at(0).game.round, QStringLiteral("1"));
+        QVERIFY(games.at(0).game.moves.isEmpty());
+        QCOMPARE(games.at(1).game.white, QStringLiteral("Bianco Francesco"));
+        QCOMPARE(games.at(1).game.blackElo, 1572);
+        QCOMPARE(games.at(1).game.result, QStringLiteral("1/2-1/2"));
+        QCOMPARE(games.at(2).game.result, QStringLiteral("0-1"));
     }
 
     void storesSourcesAndSkipsKnownGames()

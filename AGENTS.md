@@ -193,9 +193,9 @@ Git repository.
 
 ## Game sources
 
-Database ▸ Connect Source… adds an external source (lichess.org, chess.com) to
-the open database; Database ▸ Manage Sources… syncs, edits, signs in again or
-removes them.
+Database ▸ Connect Source… adds an external source (lichess.org, chess.com,
+torneionline.com) to the open database; Database ▸ Manage Sources… syncs,
+edits, signs in again or removes them.
 
 The tree left of the games list (`DatabaseTreeWidget`) shows only the open
 database, and under it ECO (letter → code), Tournaments, Years and Sources,
@@ -205,14 +205,17 @@ a node filters the list through `GameFilterProxyModel`.
 - `app/sources/` (core library, Qt Network): `SourceCatalog` lists the kinds
   and creates a `SourceFetch` per kind (`ChessComFetch`: public monthly
   archives; `LichessFetch`: NDJSON export, needs an OAuth token from
-  `LichessSignIn`, PKCE with a loopback redirect). `SourceSync` syncs the
-  sources of the open database in the background, one at a time, when it is
+  `LichessSignIn`, PKCE with a loopback redirect; `TorneiOnlineFetch`: HTML
+  pages of torneionline.com by FIDE/FSI ID, search → player's tournaments →
+  participant number → score card, one page a second, records without moves,
+  byes and forfeits skipped; pages mix Latin-1 and UTF-8). `SourceSync` syncs
+  the sources of the open database in the background, one at a time, when it is
   opened and every 20 minutes, moving each source's cursor only after its
   games are stored.
 - Tokens live in `SourceCredentials` (user settings, keyed by source uuid),
   never in the `.pdb`, which may be shared. The system keychain is a TODO.
-- Parsers (`parseGame`) are pure and unit-tested with recorded JSON; keep new
-  kinds the same way. Be gentle with the sites' APIs when testing (one request
+- Parsers (`parseGame`, `TorneiOnlineFetch::parse*`) are pure and unit-tested
+  with recorded JSON or HTML; keep new kinds the same way. Be gentle with the sites' APIs when testing (one request
   at a time, send `SourceFetch::userAgent()`).
 - **`.pch` project**: YAML (yaml-cpp, system package or fetched by CMake)
   capturing database, open game/ply (or the moves of a game not saved to the

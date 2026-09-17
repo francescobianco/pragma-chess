@@ -61,6 +61,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/sources/SourceFetch.h
     src/app/sources/SourceSync.cpp
     src/app/sources/SourceSync.h
+    src/app/sources/TorneiOnlineFetch.cpp
+    src/app/sources/TorneiOnlineFetch.h
     src/app/sync/FolderSync.cpp
     src/app/sync/FolderSync.h
     src/app/sync/FtpStore.cpp

@@ -6,6 +6,7 @@
 #include <QWidget>
 
 class QCheckBox;
+class QComboBox;
 class QDateEdit;
 class QLabel;
 class QLineEdit;
@@ -41,10 +42,14 @@ private:
 
     SourceKind m_kind;
     QString m_uuid;
+    /// FIDE or FSI, for kinds whose account is a player ID.
+    QComboBox *m_idType = nullptr;
     QLineEdit *m_account;
     QCheckBox *m_limitSince;
     QDateEdit *m_since;
     QCheckBox *m_ratedOnly;
+    /// The player's name found by validate(), for kinds with a player ID.
+    QString m_player;
     QLabel *m_signInStatus = nullptr;
     QPushButton *m_signInButton = nullptr;
 };

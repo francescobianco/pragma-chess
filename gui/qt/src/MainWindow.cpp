@@ -64,6 +64,9 @@
 
 namespace {
 
+/// Delay before maximizing a window restored maximized, once it is mapped.
+constexpr int kRestoreWindowStateDelayMs = 250;
+
 const auto kLayoutsGroup = QStringLiteral("workspaces");
 
 QIcon themeIcon(const char *name, QStyle::StandardPixmap)
@@ -132,8 +135,8 @@ MainWindow::MainWindow(QWidget *parent)
                                        m_nextMoveAction, m_lastMoveAction, m_flipBoardAction});
     setCentralWidget(new CentralArea(boardPanel, m_sidebar));
     createDocks();
-    createMenus();
     createToolBar();
+    createMenus();
     createStatusBar();
     updateSeparatorStyle();
 
@@ -466,6 +469,7 @@ void MainWindow::createMenus()
     m_viewMenu->addAction(m_flipBoardAction);
     m_viewMenu->addAction(m_coordinatesAction);
     m_viewMenu->addSeparator();
+    m_viewMenu->addAction(m_mainToolBar->toggleViewAction());
     for (QDockWidget *dock : {m_gamesDock, m_movesDock, m_openingTreeDock, m_engineDock})
         m_viewMenu->addAction(dock->toggleViewAction());
     m_viewMenu->addSeparator();
@@ -515,6 +519,8 @@ void MainWindow::createMenus()
 void MainWindow::createToolBar()
 {
     QToolBar *toolBar = addToolBar(tr("Main Toolbar"));
+    m_mainToolBar = toolBar;
+    toolBar->toggleViewAction()->setText(tr("&Toolbar"));
     toolBar->setObjectName(QStringLiteral("mainToolBar"));
     toolBar->setMovable(false);
     toolBar->addAction(m_newDatabaseAction);
@@ -539,7 +545,7 @@ QByteArray MainWindow::saveLayout() const
 {
     QByteArray layout;
     QDataStream stream(&layout, QIODevice::WriteOnly);
-    stream << QByteArray("pragma-layout-2") << saveState() << m_sidebar->saveState();
+    stream << QByteArray("pragma-layout-3") << saveState() << m_sidebar->saveState();
     return layout;
 }
 
@@ -550,14 +556,16 @@ void MainWindow::restoreLayout(const QByteArray &layout)
     QByteArray windowState;
     QByteArray sidebarState;
     stream >> magic;
-    if (magic != "pragma-layout-2") {
+    if (magic != "pragma-layout-3" && magic != "pragma-layout-2") {
         // Layouts from before the sidebar existed only hold the window state.
         restoreState(layout);
         return;
     }
     stream >> windowState >> sidebarState;
     restoreState(windowState);
-    m_sidebar->restoreState(sidebarState);
+    // Version 2 stacked the opening tree under the moves: keep the default sidebar.
+    if (magic == "pragma-layout-3")
+        m_sidebar->restoreState(sidebarState);
 }
 
 void MainWindow::createDocks()
@@ -586,6 +594,8 @@ void MainWindow::createDocks()
                                 placeholder(tr("The opening tree is built from the position index "
                                                "of the database engine.")),
                                 Qt::RightDockWidgetArea);
+    // The opening tree sits right of the moves, with a separator to resize both.
+    m_sidebar->splitDockWidget(m_movesDock, m_openingTreeDock, Qt::Horizontal);
 
     m_gameView = new QTableView;
     m_gameView->setModel(m_gameListProxy);
@@ -1226,6 +1236,7 @@ void MainWindow::applyWorkspace(Workspace workspace)
     addDockWidget(Qt::BottomDockWidgetArea, m_gamesDock);
     for (QDockWidget *dock : right)
         m_sidebar->addDockWidget(Qt::RightDockWidgetArea, dock);
+    m_sidebar->splitDockWidget(m_movesDock, m_openingTreeDock, Qt::Horizontal);
 
     switch (workspace) {
     case Workspace::Analysis:
@@ -1248,7 +1259,7 @@ void MainWindow::applyWorkspace(Workspace workspace)
         m_gamesDock->show();
         m_movesDock->show();
         m_openingTreeDock->show();
-        m_sidebar->resizeDocks({m_openingTreeDock, m_movesDock}, {3, 2}, Qt::Vertical);
+        m_sidebar->resizeDocks({m_movesDock, m_openingTreeDock}, {2, 3}, Qt::Horizontal);
         resizeDocks({m_gamesDock}, {220}, Qt::Vertical);
         break;
     }
@@ -1311,6 +1322,12 @@ void MainWindow::restoreSession()
     const QByteArray geometry = settings.value(QStringLiteral("window/geometry")).toByteArray();
     if (geometry.isEmpty() || !restoreGeometry(geometry))
         resize(1280, 820);
+    // A maximized state set before the window is mapped does not survive
+    // mapping (Qt's xcb plugin reads back the state the window manager has not
+    // applied yet): start normal and maximize once shown (showEvent).
+    m_restoredWindowState = windowState() & (Qt::WindowMaximized | Qt::WindowFullScreen);
+    if (m_restoredWindowState != Qt::WindowNoState)
+        setWindowState(windowState() & ~m_restoredWindowState);
 
     QHeaderView *gameHeader = m_gameView->horizontalHeader();
     m_gamesSplitter->restoreState(settings.value(QStringLiteral("games/splitter")).toByteArray());
@@ -1348,7 +1365,10 @@ void MainWindow::saveSession()
     m_saveTimer->stop();
 
     QSettings settings;
-    settings.setValue(QStringLiteral("window/geometry"), saveGeometry());
+    // Once closed, the window manager may have dropped the maximized state:
+    // keep the geometry saved while the window was still shown.
+    if (isVisible())
+        settings.setValue(QStringLiteral("window/geometry"), saveGeometry());
     settings.setValue(QStringLiteral("games/header"), m_gameView->horizontalHeader()->saveState());
     settings.setValue(QStringLiteral("games/splitter"), m_gamesSplitter->saveState());
     settings.setValue(QStringLiteral("session/project"), captureProject().toYaml());
@@ -1649,6 +1669,21 @@ void MainWindow::changeEvent(QEvent *event)
     QMainWindow::changeEvent(event);
     if (event->type() == QEvent::PaletteChange)
         updateSeparatorStyle();
+    else if (event->type() == QEvent::WindowStateChange)
+        scheduleSaveSession();
+}
+
+void MainWindow::showEvent(QShowEvent *event)
+{
+    QMainWindow::showEvent(event);
+    if (m_restoredWindowState == Qt::WindowNoState)
+        return;
+    const Qt::WindowStates state = std::exchange(m_restoredWindowState, Qt::WindowNoState);
+    // Once the window manager has mapped the window, so it keeps the state.
+    QTimer::singleShot(kRestoreWindowStateDelayMs, this, [this, state] {
+        if ((windowState() & state) != state)
+            setWindowState(windowState() | state);
+    });
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)

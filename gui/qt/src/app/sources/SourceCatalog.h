@@ -20,6 +20,8 @@ struct SourceKind {
     QString description;
     /// Whether the source needs signing in (OAuth) to download games.
     bool needsSignIn = false;
+    /// Whether the account is a federation player ID (FIDE or FSI) rather than a username.
+    bool playerId = false;
 };
 
 /// The kinds of sources Pragma Chess can sync with.
@@ -28,11 +30,12 @@ namespace SourceCatalog {
 QList<SourceKind> kinds();
 std::optional<SourceKind> kind(const QString &id);
 
-/// "lichess.org · DrNykterstein"
+/// "lichess.org · DrNykterstein", "torneionline.com · BIANCO Francesco (FIDE 896489)"
 QString displayName(const GameSource &source);
 
-/// A request answered with 200 when `account` exists on the site.
-QNetworkRequest accountRequest(const QString &kind, const QString &account);
+/// A request answered with 200 when `account` exists on the site; for kinds
+/// with a player ID, the search page to read with TorneiOnlineFetch.
+QNetworkRequest accountRequest(const GameSource &source);
 
 /// The fetch that downloads the new games of `source`, or nullptr for an unknown kind.
 SourceFetch *createFetch(const GameSource &source, QNetworkAccessManager *network, QObject *parent);

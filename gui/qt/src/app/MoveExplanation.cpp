@@ -395,8 +395,10 @@ MoveExplanation explainPosition(const ExplanationInput &input)
     // Only the branches that found neither material nor a mate ever say this,
     // so it must not promise a win that never comes: the line probe says the
     // evaluation is already on the board, not that something is about to fall.
+    // Pieces may well be captured in the line — what the probe found is that
+    // no lasting gain explains the score, not that nothing is ever taken.
     const QString concreteText = concretePly > 0
-        ? tr(" No material is at stake: the assessment is positional, clear after %1.")
+        ? tr(" No material explains it: the assessment is positional, clear after %1.")
               .arg(after.lineText(afterEvaluation.pv, concretePly, input.sanStyle))
         : QString();
     if (input.concretePly)

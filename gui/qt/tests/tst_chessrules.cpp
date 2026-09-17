@@ -333,7 +333,7 @@ private Q_SLOTS:
         const MoveExplanation explanation = explainPosition(input);
         QCOMPARE(explanation.arrows.size(), 3);
         QVERIFY2(explanation.summary.contains(
-                     QStringLiteral("the assessment is positional, clear after 1.e4 e5 2.Nf3.")),
+                     QStringLiteral("No material explains it: the assessment is positional, clear after 1.e4 e5 2.Nf3.")),
                  qPrintable(explanation.summary));
         QVERIFY(!explanation.trace.isEmpty());
     }
@@ -359,7 +359,7 @@ private Q_SLOTS:
         for (const BoardArrow &arrow : explanation.arrows) {
             QVERIFY2(arrow.kind != BoardArrow::Kind::Refutation, qPrintable(explanation.summary));
         }
-        QVERIFY2(explanation.summary.contains(QStringLiteral("No material is at stake")),
+        QVERIFY2(explanation.summary.contains(QStringLiteral("No material explains it")),
                  qPrintable(explanation.summary));
         QVERIFY2(!explanation.summary.contains(QStringLiteral("becomes concrete")),
                  qPrintable(explanation.summary));

@@ -179,3 +179,14 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   …", and the error fallback draws `Reply` (blue) instead of `Refutation`.
   Red stays the colour of material falling. Test
   `positionalDropIsNotAMaterialLoss`.
+- 2026-09-18 — Same position, on the longer line the desktop engine shows
+  (3…Nc6 4.d3 d5 5.Qg5 … 26.Kh1): "I think the pawn capture is there". It is:
+  19…Rxd4 and 24…gxh3 both take a pawn. Replaying the line and printing
+  `ChessPosition::material()` at every ply settles it — the balance swings
+  0, −100, 0, −300, **+200**, and *ends +200 for White*, who is nonetheless
+  −2.2: Black's advantage is the attack, not material. So "No material is at
+  stake" was wrong in the other direction, since pieces are captured all over
+  the line. The wording is now "No material explains it: the assessment is
+  positional", which is what the probe actually checked: no *lasting* gain,
+  not that nothing is ever taken. A side can even end up ahead in material
+  and still be losing.

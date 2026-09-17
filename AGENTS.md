@@ -323,6 +323,9 @@ turned on, after `NewTrainingDialog` asked for the colour (`m_trainingSide`);
 - The engine's move is shown with `BoardWidget::setBoardAnimated` over
   `kEngineMoveMs` (1.5 s), the piece growing inside a halo: it is deliberately
   slow, because the user did not make that move. Do not speed it up.
+  A captured piece stays on its square for the whole slide and only goes when
+  the attacker lands (`BoardWidget::startSlide` works out what the move takes,
+  by colour, so en passant is covered and a castling rook is not).
 
 ## Working agreements
 

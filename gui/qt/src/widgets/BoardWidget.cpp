@@ -70,6 +70,7 @@ void BoardWidget::setBoard(const BoardFrame &frame)
     endSequence();
     m_slide->stop();
     m_slideEmphasis = false;
+    m_slideCaptures.clear();
     m_slide->setDuration(kSlideMs);
     m_slide->setEasingCurve(QEasingCurve::OutCubic);
     m_board = frame.board;
@@ -93,6 +94,20 @@ void BoardWidget::setBoardAnimated(const BoardFrame &frame, int durationMs)
     m_slideEmphasis = true;
     m_slide->setDuration(qMax(1, durationMs));
     m_slide->setEasingCurve(QEasingCurve::InOutCubic);
+    startSlide(before);
+}
+
+void BoardWidget::startSlide(const BoardState &before)
+{
+    m_slideCaptures.clear();
+    const Piece mover = before.at(m_lastMoveFrom);
+    for (int square = 0; square < 64; ++square) {
+        const Piece was = before.at(square);
+        // Only the other side's pieces: a rook that castles moved, it did not die.
+        if (was.isNull() || was.side == mover.side || m_board.at(square) == was)
+            continue;
+        m_slideCaptures.append({square, was});
+    }
     m_slide->start();
 }
 
@@ -152,6 +167,7 @@ void BoardWidget::showNextFrame()
     if (!m_sequenceActive || m_nextFrame >= m_frames.size())
         return;
     const BoardFrame &frame = m_frames.at(m_nextFrame++);
+    const BoardState before = m_board;
     m_board = frame.board;
     m_lastMoveFrom = frame.lastMoveFrom;
     m_lastMoveTo = frame.lastMoveTo;
@@ -159,7 +175,7 @@ void BoardWidget::showNextFrame()
     m_kingMark = frame.kingMark;
     m_slide->stop();
     if (m_lastMoveFrom >= 0 && m_lastMoveTo >= 0)
-        m_slide->start();
+        startSlide(before);
     if (m_nextFrame < m_frames.size())
         m_sequenceTimer->start(kSequenceStepMs);
     update();
@@ -311,6 +327,10 @@ void BoardWidget::paintEvent(QPaintEvent *)
         paintPiece(painter, piece, squareRect(square));
     }
     if (sliding) {
+        // A captured piece stands its ground until the attacker reaches it.
+        for (const auto &[square, piece] : m_slideCaptures)
+            paintPiece(painter, piece, squareRect(square));
+
         const qreal progress = m_slide->currentValue().toReal();
         const QRectF from = squareRect(m_lastMoveFrom);
         const QRectF to = squareRect(m_lastMoveTo);

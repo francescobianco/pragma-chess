@@ -101,6 +101,9 @@ private:
     void paintKingGlow(QPainter &painter) const;
     void paintKingBadge(QPainter &painter) const;
     void clearSelection();
+    /// Starts the slide of the last move and works out which pieces it
+    /// captures, so that they can stay until it lands.
+    void startSlide(const BoardState &before);
     void showNextFrame();
     /// Ends a sequence without restoring the board.
     void endSequence();
@@ -138,4 +141,8 @@ private:
     QVariantAnimation *m_slide;
     /// Whether the slide is the loud kind: the piece grows and wears a halo.
     bool m_slideEmphasis = false;
+    /// Pieces the sliding move captures, still on their squares: a capture is
+    /// only over when the attacker gets there. En passant is included, so the
+    /// square is not always the move's target.
+    QList<std::pair<int, Piece>> m_slideCaptures;
 };

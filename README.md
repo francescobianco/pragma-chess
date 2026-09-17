@@ -51,6 +51,23 @@ FSI ID: every game of the player's tournaments is added with players, Elo,
 tournament, round and result but no moves, since the site has none, ready for
 the moves to be entered by hand.
 
+### Opening books
+
+The *Book* menu chooses a Polyglot opening book (`.bin`) from the Books folder
+(`~/Chess/Pragma/Books`) or anywhere else. The Opening Tree panel shows the
+book moves of the position on the board with their weight and the name of the
+opening each move leads to; click one to play it. Names come from an ordinary
+database, *Opening Names*, where each game is a named line (Event is the name):
+open it to add or rename variations, or choose another one (for instance in
+another language) in *Book ▸ Opening Names*. Pragma Chess ships *Pragma Openings*, built from the public domain
+[lichess chess-openings](https://github.com/lichess-org/chess-openings)
+collection; `pragma-book` builds and probes books on the command line.
+
+### Language
+
+*Options ▸ Language* chooses the language of the interface for your user
+account; it applies the next time Pragma Chess starts.
+
 ### Sync between computers
 
 *File ▸ Sync…* connects the Pragma folder to a folder on an FTP or WebDAV
@@ -68,7 +85,7 @@ the trash.
 Debian/Ubuntu dependencies:
 
 ```bash
-make deps    # sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-svg-dev libqt6sql6-sqlite inotify-tools
+make deps    # sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-svg-dev libqt6sql6-sqlite qt6-tools-dev qt6-l10n-tools inotify-tools
 ```
 
 ```bash

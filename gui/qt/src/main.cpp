@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "app/UiLanguage.h"
 #include "platform/GtkDesktopStyle.h"
 
 #include <QApplication>
@@ -55,6 +56,7 @@ int main(int argc, char *argv[])
     QApplication::setApplicationName(QStringLiteral("pragma-chess"));
     QApplication::setApplicationDisplayName(QStringLiteral("Pragma Chess"));
     QApplication::setApplicationVersion(QStringLiteral(APP_VERSION));
+    UiLanguage::install(app);
     // Lets GNOME and KDE match windows to the installed .desktop entry.
     QGuiApplication::setDesktopFileName(QStringLiteral(APP_ID));
     // The installed theme icon when there is one, the embedded logo otherwise.

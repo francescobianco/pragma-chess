@@ -47,4 +47,4 @@ clean: ## Remove the build directory
 	@rm -rf $(BUILD_DIR)
 
 deps: ## Install build dependencies (Debian/Ubuntu)
-	sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-svg-dev libqt6sql6-sqlite inotify-tools
+	sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-svg-dev libqt6sql6-sqlite qt6-tools-dev qt6-l10n-tools inotify-tools

@@ -1,6 +1,8 @@
 #include "EnginePanel.h"
 
 #include <QAction>
+#include <QFormLayout>
+#include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QToolButton>
@@ -13,6 +15,9 @@ EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
     , m_depth(new QLabel)
     , m_explanation(new QLabel)
     , m_line(new QLabel)
+    , m_eco(new QLabel)
+    , m_opening(new QLabel)
+    , m_book(new QLabel)
 {
     auto *layout = new QVBoxLayout(this);
 
@@ -51,7 +56,41 @@ EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
     m_line->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     layout->addWidget(m_line, 1);
 
+    // The opening and the book stay at the bottom while the line above changes length.
+    auto *separator = new QFrame;
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFrameShadow(QFrame::Plain);
+    separator->setEnabled(false);
+    layout->addWidget(separator);
+
+    auto *context = new QFormLayout;
+    context->setContentsMargins(0, 0, 0, 0);
+    context->setLabelAlignment(Qt::AlignLeft | Qt::AlignTop);
+    context->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+    const auto addRow = [context](const QString &title, QWidget *field) {
+        auto *label = new QLabel(title);
+        label->setEnabled(false);
+        context->addRow(label, field);
+    };
+    QFont ecoFont = m_eco->font();
+    ecoFont.setBold(true);
+    m_eco->setFont(ecoFont);
+    m_opening->setWordWrap(true);
+    m_opening->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    auto *opening = new QHBoxLayout;
+    opening->setContentsMargins(0, 0, 0, 0);
+    opening->addWidget(m_eco, 0, Qt::AlignTop);
+    opening->addWidget(m_opening, 1);
+    auto *openingField = new QWidget;
+    openingField->setLayout(opening);
+    addRow(tr("Opening"), openingField);
+    m_book->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    addRow(tr("Book"), m_book);
+    layout->addLayout(context);
+
     setEvaluation(std::nullopt);
+    setOpening({});
+    setBookName(QString());
 }
 
 void EnginePanel::setEngineName(const QString &name)
@@ -80,4 +119,16 @@ void EnginePanel::setEvaluation(const std::optional<EngineEvaluation> &evaluatio
     m_score->setText(evaluation->text());
     m_depth->setText(tr("Depth %1").arg(evaluation->depth));
     m_line->setText(line.isEmpty() ? evaluation->pv.mid(0, 12).join(QLatin1Char(' ')) : line);
+}
+
+void EnginePanel::setOpening(const OpeningNames::Name &opening)
+{
+    m_eco->setText(opening.eco);
+    m_eco->setVisible(!opening.eco.isEmpty());
+    m_opening->setText(opening.isEmpty() ? QStringLiteral("–") : opening.name);
+}
+
+void EnginePanel::setBookName(const QString &name)
+{
+    m_book->setText(name.isEmpty() ? QStringLiteral("–") : name);
 }

@@ -1,6 +1,8 @@
 #include "MainWindow.h"
 
 #include "app/ClassicGames.h"
+#include "app/OpeningNames.h"
+#include "app/PolyglotBook.h"
 #include "app/DatabaseOutline.h"
 #include "dialogs/ConnectSourceWizard.h"
 #include "dialogs/GameInfoDialog.h"
@@ -11,6 +13,7 @@
 #include "app/Pgn.h"
 #include "app/Project.h"
 #include "app/SqliteGameDatabase.h"
+#include "app/UiLanguage.h"
 #include "app/UciEngine.h"
 #include "app/UserFolders.h"
 #include "app/sources/SourceCatalog.h"
@@ -22,6 +25,7 @@
 #include "models/MoveListModel.h"
 #include "platform/SymbolicIcons.h"
 #include "widgets/BoardPanel.h"
+#include "widgets/BookPanel.h"
 #include "widgets/BoardWidget.h"
 #include "widgets/CapturedPiecesWidget.h"
 #include "widgets/CentralArea.h"
@@ -34,6 +38,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QDataStream>
+#include <QActionGroup>
 #include <QDesktopServices>
 #include <QDir>
 #include <QCloseEvent>
@@ -62,6 +67,8 @@
 #include <QUrl>
 #include <QVBoxLayout>
 
+#include <algorithm>
+
 namespace {
 
 /// Delay before maximizing a window restored maximized, once it is mapped.
@@ -84,22 +91,6 @@ BoardFrame frameFor(const ChessPosition &position, int lastMoveFrom, int lastMov
         frame.kingMark = position.legalMoves().isEmpty() ? KingMark::Mate : KingMark::Check;
     }
     return frame;
-}
-
-QWidget *placeholder(const QString &text, QWidget *extra = nullptr)
-{
-    auto *widget = new QWidget;
-    auto *layout = new QVBoxLayout(widget);
-    auto *label = new QLabel(text);
-    label->setAlignment(Qt::AlignCenter);
-    label->setWordWrap(true);
-    label->setEnabled(false);
-    layout->addStretch();
-    layout->addWidget(label);
-    if (extra)
-        layout->addWidget(extra, 0, Qt::AlignHCenter);
-    layout->addStretch();
-    return widget;
 }
 
 } // namespace
@@ -148,6 +139,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_gameHeader, &GameHeaderWidget::activated, this, &MainWindow::editGameInfo);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::syncBoard);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::analyzeCurrentPosition);
+    connect(m_session, &GameSession::plyChanged, this, &MainWindow::updateBookMoves);
+    connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateBookMoves);
     connect(m_engine, &UciEngine::evaluationChanged, this, [this](const EngineEvaluation &evaluation) {
         m_evaluationBar->setEvaluation(evaluation);
         m_explainer->setLiveEvaluation(evaluation);
@@ -246,7 +239,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(qApp, &QCoreApplication::aboutToQuit, this, &MainWindow::saveSession);
 
     applyWorkspace(Workspace::Database);
+    restoreBook();
     restoreSession();
+    restoreOpeningNames(); // After the session, so the first launch still seeds Classic Games first.
     applySyncSettings();
 
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::scheduleSaveSession);
@@ -329,7 +324,7 @@ void MainWindow::createActions()
     m_quitAction->setMenuRole(QAction::QuitRole);
     connect(m_quitAction, &QAction::triggered, this, &QWidget::close);
 
-    m_copyFenAction = new QAction(themeIcon("edit-copy", QStyle::SP_FileIcon), tr("&Copy FEN"), this);
+    m_copyFenAction = new QAction(themeIcon("edit-copy", QStyle::SP_FileIcon), tr("Position (&FEN)"), this);
     m_copyFenAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_C));
     connect(m_copyFenAction, &QAction::triggered, this, &MainWindow::copyFen);
 
@@ -440,7 +435,7 @@ void MainWindow::createMenus()
         copyText(Pgn::game(m_session->game(), m_session->ply()), tr("Game up to the current position copied as PGN"));
     });
     copy->addSeparator();
-    copy->addAction(tr("Position (&FEN)"), this, &MainWindow::copyFen);
+    copy->addAction(m_copyFenAction);
     copy->addSeparator();
     QAction *copyEngineLine = copy->addAction(tr("&Engine Line"), this, [this] {
         copyText(m_engineLine, tr("Engine line copied"));
@@ -487,12 +482,6 @@ void MainWindow::createMenus()
     game->addSeparator();
     game->addAction(m_explainAction);
 
-    QMenu *position = menuBar()->addMenu(tr("&Position"));
-    position->addAction(m_flipBoardAction);
-    position->addSeparator();
-    position->addAction(m_copyFenAction);
-    position->addAction(m_pasteFenAction);
-
     QMenu *database = menuBar()->addMenu(tr("&Database"));
     database->addAction(m_newDatabaseAction);
     database->addAction(m_openDatabaseAction);
@@ -509,7 +498,29 @@ void MainWindow::createMenus()
     engine->addAction(m_startEngineAction);
     engine->addAction(m_explainAction);
 
+    m_bookMenu = menuBar()->addMenu(tr("&Book"));
+    connect(m_bookMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildBookMenu);
+    rebuildBookMenu(); // Keeps the menu non-empty, so it shows on every platform.
+
     menuBar()->addMenu(tr("&Tools"))->setEnabled(false);
+
+    QMenu *options = menuBar()->addMenu(tr("&Options"));
+    QMenu *language = options->addMenu(tr("&Language"));
+    auto *languages = new QActionGroup(language);
+    for (const UiLanguage::Language &entry : UiLanguage::available()) {
+        QAction *action = language->addAction(entry.name);
+        action->setCheckable(true);
+        action->setActionGroup(languages);
+        action->setChecked(entry.code == UiLanguage::chosen());
+        const QString code = entry.code;
+        connect(action, &QAction::triggered, this, [this, code] {
+            if (code == UiLanguage::chosen())
+                return;
+            UiLanguage::setChosen(code);
+            QMessageBox::information(this, tr("Language"),
+                                     tr("The new language is used the next time Pragma Chess starts."));
+        });
+    }
 
     QMenu *help = menuBar()->addMenu(tr("&Help"));
     help->addAction(m_aboutAction);
@@ -590,10 +601,13 @@ void MainWindow::createDocks()
     m_enginePanel->setEngineName(tr("Stockfish"));
     m_engineDock = addDock(m_sidebar, QStringLiteral("engineDock"), tr("Engine"), m_enginePanel, Qt::RightDockWidgetArea);
 
-    m_openingTreeDock = addDock(m_sidebar, QStringLiteral("openingTreeDock"), tr("Opening Tree"),
-                                placeholder(tr("The opening tree is built from the position index "
-                                               "of the database engine.")),
+    m_bookPanel = new BookPanel;
+    connect(m_bookPanel, &BookPanel::moveActivated, this, &MainWindow::playMove);
+    m_openingTreeDock = addDock(m_sidebar, QStringLiteral("openingTreeDock"), tr("Opening Tree"), m_bookPanel,
                                 Qt::RightDockWidgetArea);
+    // The panels speak for themselves: no title bars (the names stay in the View menu).
+    for (QDockWidget *dock : {m_movesDock, m_openingTreeDock, m_engineDock})
+        dock->setTitleBarWidget(new QWidget(dock));
     // The opening tree sits right of the moves, with a separator to resize both.
     m_sidebar->splitDockWidget(m_movesDock, m_openingTreeDock, Qt::Horizontal);
 
@@ -949,6 +963,203 @@ void MainWindow::rebuildDatabasesMenu()
     m_databasesMenu->addAction(m_showDatabasesFolderAction);
 }
 
+void MainWindow::restoreBook()
+{
+    QSettings settings;
+    const QString key = QStringLiteral("book/path");
+    if (!settings.contains(key)) {
+        // First launch: seed the Books folder with the book built from named openings.
+        const QString seed = QDir(UserFolders::booksDir())
+                                 .filePath(QStringLiteral("Pragma Openings.") + QLatin1String(UserFolders::bookSuffix));
+        if (!QFile::exists(seed) && UserFolders::ensureBooksDir()) {
+            QFile::copy(QStringLiteral(":/books/pragma-openings.bin"), seed);
+            QFile::setPermissions(seed, QFile::ReadOwner | QFile::WriteOwner | QFile::ReadGroup | QFile::ReadOther);
+        }
+        chooseBook(QFile::exists(seed) ? seed : QString());
+        return;
+    }
+    const QString path = settings.value(key).toString();
+    if (path.isEmpty() || !QFile::exists(path)) {
+        chooseBook(QString());
+        return;
+    }
+    chooseBook(path);
+}
+
+void MainWindow::chooseBook(const QString &path)
+{
+    if (path.isEmpty()) {
+        m_book.reset();
+    } else {
+        auto book = std::make_unique<PolyglotBook>();
+        QString error;
+        if (!book->open(path, &error)) {
+            QMessageBox::warning(this, tr("Open Book"), tr("Could not open the book %1: %2")
+                                                            .arg(QDir::toNativeSeparators(path), error));
+            return;
+        }
+        m_book = std::move(book);
+    }
+    QSettings().setValue(QStringLiteral("book/path"), path);
+    const QString bookName = path.isEmpty() ? QString() : QFileInfo(path).completeBaseName();
+    m_bookPanel->setBookName(bookName);
+    m_enginePanel->setBookName(bookName);
+    updateBookMoves();
+}
+
+void MainWindow::openBookFile()
+{
+    UserFolders::ensureBooksDir();
+    const QString path = QFileDialog::getOpenFileName(this, tr("Open Book"), UserFolders::booksDir(),
+                                                      tr("Polyglot opening books (*.bin);;All files (*)"));
+    if (path.isEmpty())
+        return;
+    chooseBook(path);
+    if (m_book)
+        m_openingTreeDock->show();
+}
+
+void MainWindow::rebuildBookMenu()
+{
+    m_bookMenu->clear();
+    const QString current = m_book ? QFileInfo(m_book->path()).absoluteFilePath() : QString();
+    auto *group = new QActionGroup(m_bookMenu);
+
+    const QDir folder(UserFolders::booksDir());
+    QFileInfoList files = folder.entryInfoList({QStringLiteral("*.") + QLatin1String(UserFolders::bookSuffix)},
+                                               QDir::Files, QDir::Name);
+    // A book chosen outside the folder is listed too.
+    if (!current.isEmpty() && std::none_of(files.cbegin(), files.cend(), [&](const QFileInfo &file) {
+            return file.absoluteFilePath() == current;
+        }))
+        files.prepend(QFileInfo(current));
+    for (const QFileInfo &file : std::as_const(files)) {
+        QAction *action = m_bookMenu->addAction(file.completeBaseName());
+        action->setCheckable(true);
+        action->setActionGroup(group);
+        action->setToolTip(QDir::toNativeSeparators(file.absoluteFilePath()));
+        action->setChecked(file.absoluteFilePath() == current);
+        const QString path = file.absoluteFilePath();
+        connect(action, &QAction::triggered, this, [this, path] {
+            chooseBook(path);
+            if (m_book)
+                m_openingTreeDock->show();
+        });
+    }
+    QAction *none = m_bookMenu->addAction(tr("&No Book"));
+    none->setCheckable(true);
+    none->setActionGroup(group);
+    none->setChecked(current.isEmpty());
+    connect(none, &QAction::triggered, this, [this] { chooseBook(QString()); });
+
+    m_bookMenu->addSeparator();
+    QMenu *names = m_bookMenu->addMenu(tr("Opening &Names"));
+    names->setToolTip(tr("The database whose games name the openings and variations"));
+    auto *namesGroup = new QActionGroup(names);
+    const QDir databases(UserFolders::databasesDir());
+    const QFileInfoList databaseFiles = databases.entryInfoList(
+        {QStringLiteral("*.") + QLatin1String(UserFolders::databaseSuffix)}, QDir::Files, QDir::Name);
+    for (const QFileInfo &file : databaseFiles) {
+        QAction *action = names->addAction(file.completeBaseName());
+        action->setCheckable(true);
+        action->setActionGroup(namesGroup);
+        const QString path = file.absoluteFilePath();
+        action->setChecked(QFileInfo(m_openingNamesPath).absoluteFilePath() == path);
+        connect(action, &QAction::triggered, this, [this, path] { chooseOpeningNames(path); });
+    }
+    QAction *noNames = names->addAction(tr("No Names"));
+    noNames->setCheckable(true);
+    noNames->setActionGroup(namesGroup);
+    noNames->setChecked(m_openingNamesPath.isEmpty());
+    connect(noNames, &QAction::triggered, this, [this] { chooseOpeningNames(QString()); });
+
+    m_bookMenu->addSeparator();
+    m_bookMenu->addAction(tr("&Open Book…"), this, &MainWindow::openBookFile);
+    m_bookMenu->addAction(themeIcon("folder-open", QStyle::SP_DirOpenIcon), tr("Show Books &Folder"), this, [] {
+        UserFolders::ensureBooksDir();
+        QDesktopServices::openUrl(QUrl::fromLocalFile(UserFolders::booksDir()));
+    });
+}
+
+void MainWindow::updateBookMoves()
+{
+    reloadOpeningNamesIfChanged();
+    const ChessPosition &position = m_session->position();
+    const QList<PolyglotBook::Move> moves = m_book ? m_book->moves(position) : QList<PolyglotBook::Move>();
+    QList<OpeningNames::Name> names;
+    OpeningNames::Name opening;
+    if (m_openingNames) {
+        for (const PolyglotBook::Move &move : moves) {
+            ChessPosition next = position;
+            next.play(move.move);
+            names << m_openingNames->name(next);
+        }
+        // The game is still in the last opening it passed through.
+        for (int ply = m_session->ply(); ply >= 0 && opening.isEmpty(); --ply)
+            opening = m_openingNames->name(m_session->positionAt(ply));
+    }
+    m_enginePanel->setOpening(opening);
+    m_bookPanel->setMoves(position, moves, names);
+}
+
+void MainWindow::restoreOpeningNames()
+{
+    QSettings settings;
+    const QString key = QStringLiteral("book/openingNames");
+    if (settings.contains(key)) {
+        const QString path = settings.value(key).toString();
+        chooseOpeningNames(QFile::exists(path) ? path : QString());
+        return;
+    }
+    // First launch: the named openings of lichess-org/chess-openings, as a database.
+    const QString seed = QDir(UserFolders::databasesDir())
+                             .filePath(tr("Opening Names") + QLatin1Char('.') + QLatin1String(UserFolders::databaseSuffix));
+    if (!QFile::exists(seed) && UserFolders::ensureDatabasesDir()) {
+        QFile tsv(QStringLiteral(":/openings/lichess-openings.tsv"));
+        QString error;
+        if (!tsv.open(QIODevice::ReadOnly)
+            || !SqliteGameDatabase::create(seed, OpeningNames::gamesFromTsv(QString::fromUtf8(tsv.readAll())), &error))
+            statusBar()->showMessage(tr("Could not create %1: %2").arg(QDir::toNativeSeparators(seed), error));
+    }
+    chooseOpeningNames(QFile::exists(seed) ? seed : QString());
+}
+
+void MainWindow::chooseOpeningNames(const QString &path)
+{
+    QSettings().setValue(QStringLiteral("book/openingNames"), path);
+    m_openingNamesPath = path;
+    m_openingNames.reset();
+    m_openingNamesSize = -1;
+    updateBookMoves(); // Reads the names.
+}
+
+void MainWindow::reloadOpeningNamesIfChanged()
+{
+    if (m_openingNamesPath.isEmpty())
+        return;
+    const QFileInfo file(m_openingNamesPath);
+    if (m_openingNames && file.lastModified() == m_openingNamesModified && file.size() == m_openingNamesSize)
+        return;
+    m_openingNamesModified = file.lastModified();
+    m_openingNamesSize = file.size();
+
+    QString error;
+    const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(m_openingNamesPath, &error);
+    if (!database) {
+        m_openingNames = std::make_unique<OpeningNames>();
+        statusBar()->showMessage(tr("Could not read the opening names in %1: %2")
+                                     .arg(QDir::toNativeSeparators(m_openingNamesPath), error), 8000);
+        return;
+    }
+    QList<GameRecord> games;
+    games.reserve(database->gameCount());
+    for (qint64 index = 0; index < database->gameCount(); ++index) {
+        if (std::optional<GameRecord> game = database->loadGame(index))
+            games << *game;
+    }
+    m_openingNames = std::make_unique<OpeningNames>(games);
+}
+
 void MainWindow::updateDatabaseActions()
 {
     const bool hasDatabase = m_database != nullptr;
@@ -1128,6 +1339,11 @@ void MainWindow::playBoardMove(int from, int to, const QPoint &globalPosition)
         move.promotion = PieceType(chosen->data().toInt());
     }
 
+    playMove(move);
+}
+
+void MainWindow::playMove(const ChessMove &move)
+{
     if (!m_session->isNextMove(move) && m_openGameIndex >= 0) {
         // Never rewrite a stored game: the new line becomes a game of its own.
         m_openGameIndex = -1;

@@ -90,6 +90,16 @@ QString projectsDir()
     return QDir(pragmaDir()).filePath(QStringLiteral("Projects"));
 }
 
+QString booksDir()
+{
+    return QDir(pragmaDir()).filePath(QStringLiteral("Books"));
+}
+
+bool ensureBooksDir()
+{
+    return QDir().mkpath(booksDir());
+}
+
 bool ensureProjectsDir()
 {
     return QDir().mkpath(projectsDir());

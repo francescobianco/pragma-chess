@@ -56,6 +56,10 @@ public:
     Side sideToMove() const { return m_sideToMove; }
     int kingSquare(Side side) const;
     int fullMoveNumber() const { return m_fullMove; }
+    /// Bits: 1 = White O-O, 2 = White O-O-O, 4 = Black O-O, 8 = Black O-O-O.
+    int castlingRights() const { return m_castling; }
+    /// The square a pawn can capture en passant on, or -1.
+    int enPassantSquare() const { return m_enPassant; }
 
     QList<ChessMove> legalMoves() const;
     bool isLegal(const ChessMove &move) const;

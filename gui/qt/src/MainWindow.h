@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QDateTime>
 #include <QMainWindow>
 
 #include <memory>
@@ -21,6 +22,10 @@ class GameDatabase;
 class GameListModel;
 class GameSession;
 class MoveListModel;
+class BookPanel;
+struct ChessMove;
+class OpeningNames;
+class PolyglotBook;
 class QAction;
 class QDockWidget;
 class QLabel;
@@ -107,6 +112,23 @@ private:
     void saveDatabase();
     void saveDatabaseAs();
     void rebuildDatabasesMenu();
+
+    // Opening books (Book menu, shown in the Opening Tree dock).
+    /// Opens the book chosen last time; on first launch seeds and chooses the default one.
+    void restoreBook();
+    /// Opens a Polyglot book and remembers the choice; an empty path chooses no book.
+    void chooseBook(const QString &path);
+    void openBookFile();
+    void rebuildBookMenu();
+    void updateBookMoves();
+    /// Chooses the database whose games name the openings; empty for none.
+    void chooseOpeningNames(const QString &path);
+    /// On first launch, seeds and chooses the Opening Names database.
+    void restoreOpeningNames();
+    /// Reads the names again when their database changed since they were read.
+    void reloadOpeningNamesIfChanged();
+    /// Plays a move chosen outside the board, keeping a stored game unchanged.
+    void playMove(const ChessMove &move);
     void updateDatabaseActions();
     // External sources of games (lichess.org, chess.com, …), synced in the background.
     void connectSource();
@@ -148,6 +170,13 @@ private:
     GameHeaderWidget *m_gameHeader;
     CapturedPiecesWidget *m_capturedPieces;
     EnginePanel *m_enginePanel;
+    BookPanel *m_bookPanel;
+    std::unique_ptr<PolyglotBook> m_book;
+    std::unique_ptr<OpeningNames> m_openingNames;
+    QString m_openingNamesPath;
+    /// Modification time and size of the names database when it was read.
+    QDateTime m_openingNamesModified;
+    qint64 m_openingNamesSize = -1;
     UciEngine *m_engine;
     Explainer *m_explainer;
     QTableView *m_moveView;
@@ -223,4 +252,5 @@ private:
     QMenu *m_viewMenu;
     QMenu *m_workspaceMenu;
     QMenu *m_databasesMenu;
+    QMenu *m_bookMenu;
 };

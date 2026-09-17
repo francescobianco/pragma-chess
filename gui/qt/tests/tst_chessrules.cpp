@@ -3,13 +3,16 @@
 #include "app/DatabaseOutline.h"
 #include "app/ExplanationSearch.h"
 #include "app/MoveExplanation.h"
+#include "app/OpeningNames.h"
 #include "app/Pgn.h"
+#include "app/PolyglotBook.h"
 #include "app/SqliteGameDatabase.h"
 #include "app/sources/ChessComFetch.h"
 #include "app/sources/TorneiOnlineFetch.h"
 #include "app/sources/LichessFetch.h"
 #include "app/sync/SyncManifest.h"
 
+#include <QFile>
 #include <QJsonDocument>
 #include <QTemporaryDir>
 
@@ -508,6 +511,101 @@ private Q_SLOTS:
 
         game.insert(QStringLiteral("rules"), QStringLiteral("crazyhouse"));
         QVERIFY(!ChessComFetch::parseGame(game));
+    }
+
+    void namesOpeningsFromGames()
+    {
+        const QList<GameRecord> games = OpeningNames::gamesFromTsv(QStringLiteral(
+            "eco\tname\tpgn\n"
+            "B20\tSicilian Defense\t1. e4 c5\n"
+            "B90\tSicilian Defense: Najdorf Variation\t1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6\n"
+            "B50\tSicilian Defense: Modern Variations\t1. e4 c5 2. Nf3 d6\n"
+            "B50\tSicilian Defense: Longer Transposition\t1. Nf3 c5 2. e4 d6\n"
+            "A00\tBroken\t1. e5\n"));
+        QCOMPARE(games.size(), 4);
+        QCOMPARE(games.first().eco, QStringLiteral("B20"));
+        QCOMPARE(games.first().event, QStringLiteral("Sicilian Defense"));
+        QCOMPARE(games.first().moves.size(), 2);
+
+        const OpeningNames names(games);
+        QCOMPARE(names.size(), 3);
+        ChessPosition position = ChessPosition::startingPosition();
+        QVERIFY(names.name(position).isEmpty());
+        for (const char *uci : {"e2e4", "c7c5"})
+            position.play(*position.moveFromUci(QString::fromLatin1(uci)));
+        QCOMPARE(names.name(position).name, QStringLiteral("Sicilian Defense"));
+        QCOMPARE(names.name(position).eco, QStringLiteral("B20"));
+        position.play(*position.moveFromUci(u"g1f3"));
+        QVERIFY(names.name(position).isEmpty()); // Only positions where a line ends are named.
+        position.play(*position.moveFromUci(u"d7d6"));
+        // Both lines reach this position: the one written first and shorter or equal keeps it.
+        QCOMPARE(names.name(position).name, QStringLiteral("Sicilian Defense: Modern Variations"));
+    }
+
+    void computesPolyglotKeys()
+    {
+        // Reference keys of the Polyglot format specification.
+        const QList<std::pair<QStringList, quint64>> lines{
+            {{}, Q_UINT64_C(0x463b96181691fc9c)},
+            {{"e2e4"}, Q_UINT64_C(0x823c9b50fd114196)},
+            {{"e2e4", "d7d5"}, Q_UINT64_C(0x0756b94461c50fb0)},
+            {{"e2e4", "d7d5", "e4e5"}, Q_UINT64_C(0x662fafb965db29d4)},
+            {{"e2e4", "d7d5", "e4e5", "f7f5"}, Q_UINT64_C(0x22a48b5a8e47ff78)},
+            {{"e2e4", "d7d5", "e4e5", "f7f5", "e1e2"}, Q_UINT64_C(0x652a607ca3f242c1)},
+            {{"e2e4", "d7d5", "e4e5", "f7f5", "e1e2", "e8f7"}, Q_UINT64_C(0x00fdd303c946bdd9)},
+            {{"a2a4", "b7b5", "h2h4", "b5b4", "c2c4"}, Q_UINT64_C(0x3c8123ea7b067637)},
+            {{"a2a4", "b7b5", "h2h4", "b5b4", "c2c4", "b4c3", "a1a3"}, Q_UINT64_C(0x5c3f9b829b279560)},
+        };
+        for (const auto &[moves, key] : lines) {
+            ChessPosition position = ChessPosition::startingPosition();
+            for (const QString &uci : moves)
+                position.play(*position.moveFromUci(uci));
+            QCOMPARE(QString::number(PolyglotBook::key(position), 16), QString::number(key, 16));
+        }
+    }
+
+    void readsPolyglotBooks()
+    {
+        ChessPosition start = ChessPosition::startingPosition();
+        const ChessPosition castling =
+            *ChessPosition::fromFen(QStringLiteral("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1"));
+        const ChessMove shortCastle = *castling.moveFromUci(u"e1g1");
+        QCOMPARE(PolyglotBook::encodeMove(castling, shortCastle), quint16((0 << 9) | (4 << 6) | (0 << 3) | 7));
+        QCOMPARE(PolyglotBook::decodeMove(castling, PolyglotBook::encodeMove(castling, shortCastle)), shortCastle);
+        const ChessMove longCastle = *castling.moveFromUci(u"e1c1");
+        QCOMPARE(PolyglotBook::decodeMove(castling, PolyglotBook::encodeMove(castling, longCastle)), longCastle);
+
+        const quint64 startKey = PolyglotBook::key(start);
+        QList<PolyglotBook::Entry> entries{
+            {startKey, PolyglotBook::encodeMove(start, *start.moveFromUci(u"d2d4")), 30},
+            {Q_UINT64_C(0x0000000000000001), 0, 1},
+            {startKey, PolyglotBook::encodeMove(start, *start.moveFromUci(u"e2e4")), 70},
+            {Q_UINT64_C(0xffffffffffffffff), 0, 1},
+            {startKey, quint16((1 << 9) | (4 << 6) | (4 << 3) | 4), 5}, // e2e5: illegal.
+        };
+        QTemporaryDir dir;
+        QFile file(dir.filePath(QStringLiteral("book.bin")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write(PolyglotBook::write(entries));
+        file.close();
+
+        PolyglotBook book;
+        QString error;
+        QVERIFY2(book.open(file.fileName(), &error), qPrintable(error));
+        const QList<PolyglotBook::Move> moves = book.moves(start);
+        QCOMPARE(moves.size(), 2);
+        QCOMPARE(moves.at(0).move.uci(), QStringLiteral("e2e4"));
+        QCOMPARE(moves.at(0).weight, 70);
+        QCOMPARE(moves.at(1).move.uci(), QStringLiteral("d2d4"));
+        start.play(moves.at(0).move);
+        QVERIFY(book.moves(start).isEmpty());
+
+        QFile broken(dir.filePath(QStringLiteral("broken.bin")));
+        QVERIFY(broken.open(QIODevice::WriteOnly));
+        broken.write("not a book");
+        broken.close();
+        QVERIFY(!book.open(broken.fileName(), &error));
+        QVERIFY(!book.isOpen());
     }
 
     void parsesTorneiOnlinePages()

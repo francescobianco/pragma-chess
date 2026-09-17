@@ -2,6 +2,8 @@ find_package(Qt6 6.4 REQUIRED COMPONENTS Widgets Sql Network)
 # Vector piece sets need Qt SVG; without it the board falls back to font glyphs.
 find_package(Qt6 6.4 QUIET COMPONENTS Svg)
 find_package(Qt6 6.4 QUIET COMPONENTS Test)
+# Translations of the interface (translations/*.ts) need Qt Linguist's tools.
+find_package(Qt6 6.4 QUIET COMPONENTS LinguistTools)
 
 # Project files (.pch) are YAML. Prefer a system yaml-cpp, else fetch it.
 find_package(yaml-cpp 0.8 QUIET)
@@ -42,10 +44,17 @@ qt_add_library(pragma-chess-core STATIC
     src/app/ExplanationSearch.h
     src/app/MoveExplanation.cpp
     src/app/MoveExplanation.h
+    src/app/OpeningNames.cpp
+    src/app/OpeningNames.h
     src/app/Pgn.cpp
     src/app/Pgn.h
+    src/app/PolyglotBook.cpp
+    src/app/PolyglotBook.h
+    src/app/PolyglotRandom.cpp
     src/app/UciEngine.cpp
     src/app/UciEngine.h
+    src/app/UiLanguage.cpp
+    src/app/UiLanguage.h
     src/app/sources/ChessComFetch.cpp
     src/app/sources/ChessComFetch.h
     src/app/sources/GameSource.h
@@ -124,6 +133,8 @@ qt_add_executable(pragma-chess
     src/models/MoveListModel.h
     src/widgets/BoardPanel.cpp
     src/widgets/BoardPanel.h
+    src/widgets/BookPanel.cpp
+    src/widgets/BookPanel.h
     src/widgets/BoardWidget.cpp
     src/widgets/CapturedPiecesWidget.cpp
     src/widgets/CapturedPiecesWidget.h
@@ -152,6 +163,19 @@ foreach(size IN LISTS APP_ICON_SIZES)
     list(APPEND APP_ICON_FILES data/icons/hicolor/${size}x${size}/apps/${APP_ID}.png)
 endforeach()
 # Embedded for the window icon, available even when the app is not installed.
+# Interface translations, loaded by UiLanguage from :/i18n.
+file(GLOB PRAGMA_TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/translations/pragma-chess_*.ts)
+if(TARGET Qt6::lrelease AND PRAGMA_TS_FILES)
+    qt_add_translations(pragma-chess TS_FILES ${PRAGMA_TS_FILES} RESOURCE_PREFIX /i18n)
+elseif(PRAGMA_TS_FILES)
+    message(STATUS "Qt Linguist tools not found: the interface is built in English only")
+endif()
+
+# The opening book seeded into the Books folder on first launch.
+qt_add_resources(pragma-chess books PREFIX /books BASE resources/books FILES resources/books/pragma-openings.bin)
+# The named openings seeded as the Opening Names database on first launch.
+qt_add_resources(pragma-chess openings PREFIX /openings BASE resources/openings
+    FILES resources/openings/lichess-openings.tsv)
 qt_add_resources(pragma-chess appicon PREFIX /icons BASE data/icons FILES ${APP_ICON_FILES})
 if(WIN32)
     target_sources(pragma-chess PRIVATE data/pragma-chess.rc)
@@ -189,6 +213,12 @@ qt_add_executable(pragma-explain tools/explain/main.cpp)
 target_link_libraries(pragma-explain PRIVATE pragma-chess-core)
 target_compile_options(pragma-explain PRIVATE ${PRAGMA_WARNINGS})
 set_target_properties(pragma-explain PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
+
+# Builds and reads Polyglot opening books (see tools/book/main.cpp).
+qt_add_executable(pragma-book tools/book/main.cpp)
+target_link_libraries(pragma-book PRIVATE pragma-chess-core)
+target_compile_options(pragma-book PRIVATE ${PRAGMA_WARNINGS})
+set_target_properties(pragma-book PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
 
 # Tested without a display.
 if(TARGET Qt6::Test)

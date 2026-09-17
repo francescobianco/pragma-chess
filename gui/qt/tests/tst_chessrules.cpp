@@ -332,9 +332,37 @@ private Q_SLOTS:
         input.trace = true;
         const MoveExplanation explanation = explainPosition(input);
         QCOMPARE(explanation.arrows.size(), 3);
-        QVERIFY2(explanation.summary.contains(QStringLiteral("It becomes concrete after 1.e4 e5 2.Nf3.")),
+        QVERIFY2(explanation.summary.contains(
+                     QStringLiteral("the assessment is positional, clear after 1.e4 e5 2.Nf3.")),
                  qPrintable(explanation.summary));
         QVERIFY(!explanation.trace.isEmpty());
+    }
+
+    /// 1.e4 e5 2.Qg4 Nf6 3.Qf5: the evaluation drops but no material is lost.
+    /// The explanation used to draw a red refutation arrow and say the
+    /// advantage "becomes concrete", which reads as a piece falling.
+    void positionalDropIsNotAMaterialLoss()
+    {
+        // Stockfish 16, depth 20, from pragma-explain --trace.
+        const ExplanationInput input = inputFor(
+            {"e2e4", "e7e5", "d1g4", "g8f6"}, QStringLiteral("g4f5"),
+            centipawns(-90, {"g4g3", "f8e7", "f1c4", "e8g8", "d2d3", "c7c6", "b1c3", "d7d5"}),
+            centipawns(-220, {"b8c6", "f5f3", "d7d5", "e4d5", "c8g4", "f3g3", "d8d5", "b1c3"}));
+        ExplanationInput probed = input;
+        probed.concretePly = 1; // Where the shallow probe agrees with depth 20.
+
+        const MoveExplanation explanation = explainPosition(probed);
+        QCOMPARE(explanation.verdict, MoveExplanation::Verdict::Inaccuracy);
+        QVERIFY(explanation.playback.isEmpty());
+        // Nothing falls, so nothing is ringed and no arrow shouts "refutation".
+        QVERIFY(explanation.lostPieces.isEmpty());
+        for (const BoardArrow &arrow : explanation.arrows) {
+            QVERIFY2(arrow.kind != BoardArrow::Kind::Refutation, qPrintable(explanation.summary));
+        }
+        QVERIFY2(explanation.summary.contains(QStringLiteral("No material is at stake")),
+                 qPrintable(explanation.summary));
+        QVERIFY2(!explanation.summary.contains(QStringLiteral("becomes concrete")),
+                 qPrintable(explanation.summary));
     }
 
     void usesLiveAnalysisHints()

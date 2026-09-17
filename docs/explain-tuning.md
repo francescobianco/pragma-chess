@@ -65,9 +65,11 @@ variation (PV).
 4. **Line probe enrichment**: every position of
    the PV is searched at a small depth; the first ply from which the shallow
    score agrees with the deep one (within 10 winning-chance points, until the
-   end of the probe) is where the advantage *becomes concrete*. When no
-   material or mate explains the evaluation, the arrows and the summary go up
-   to that ply instead of a fixed two plies.
+   end of the probe) is where the evaluation stops depending on deep
+   calculation. When no material or mate explains the evaluation, the arrows
+   and the summary go up to that ply instead of a fixed two plies — and the
+   summary says the assessment is positional, because this ply is *not* a
+   material claim.
 5. **Mate playback**: when the explained line is a forced mate that ends in
    checkmate (`MoveExplanation::playback`), the desktop plays it on the board
    — pieces slide, the 2 px board frame turns from neutral to red, input is
@@ -163,3 +165,17 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   (author's idea): the live analysis guides Explain, only for mates and
   0.00. Mates are also replayed to the end (they were cut at 16 plies, so a
   long mate could not be played). Test `usesLiveAnalysisHints`.
+
+- 2026-09-18 — 1.e4 e5 2.Qg4 Nf6 3.Qf5: "the explanation is not clear, it
+  looks like material is lost". Nothing falls: the material probe says "not
+  realized within 17 plies" and the drop (−0.9 → −2.2) is positional, Black
+  develops with tempo against the queen. Two things said otherwise: the
+  opponent's continuation was drawn as a red `Refutation` arrow, the colour of
+  material falling, and the summary said "It becomes concrete after 3…Nc6" —
+  the line probe's "concrete" (the shallow score already agrees with the deep
+  one) read as "a piece is about to go". Decision: that sentence is only ever
+  emitted by the two branches that found neither material nor mate, so it now
+  says "No material is at stake: the assessment is positional, clear after
+  …", and the error fallback draws `Reply` (blue) instead of `Refutation`.
+  Red stays the colour of material falling. Test
+  `positionalDropIsNotAMaterialLoss`.

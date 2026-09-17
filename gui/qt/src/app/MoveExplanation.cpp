@@ -392,8 +392,12 @@ MoveExplanation explainPosition(const ExplanationInput &input)
     // Moves of the principal variation to show when nothing more concrete is found.
     const int concretePly = input.concretePly.value_or(0);
     const int fallbackPlies = concretePly > 0 ? qMin(concretePly, kMaxArrows) : 2;
+    // Only the branches that found neither material nor a mate ever say this,
+    // so it must not promise a win that never comes: the line probe says the
+    // evaluation is already on the board, not that something is about to fall.
     const QString concreteText = concretePly > 0
-        ? tr(" It becomes concrete after %1.").arg(after.lineText(afterEvaluation.pv, concretePly, input.sanStyle))
+        ? tr(" No material is at stake: the assessment is positional, clear after %1.")
+              .arg(after.lineText(afterEvaluation.pv, concretePly, input.sanStyle))
         : QString();
     if (input.concretePly)
         note(QStringLiteral("line probe: concrete at ply %1").arg(*input.concretePly));
@@ -487,7 +491,9 @@ MoveExplanation explainPosition(const ExplanationInput &input)
         // Nothing concrete within reach: show how the opponent takes over.
         note(QStringLiteral("branch: no material or mate, showing %1 plies of the line").arg(fallbackPlies));
         addAlternative();
-        addArrows(explanation, current, 0, fallbackPlies, toMove, BoardArrow::Kind::Refutation);
+        // Not a refutation: nothing is won here, so the opponent's continuation
+        // is drawn as a reply. Red is the colour of material falling.
+        addArrows(explanation, current, 0, fallbackPlies, toMove, BoardArrow::Kind::Reply);
         explanation.summary = prefix + better.trimmed();
         if (!concreteText.isEmpty())
             explanation.summary += concreteText;

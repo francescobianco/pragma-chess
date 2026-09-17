@@ -38,7 +38,9 @@ game never changes it: the new line becomes an unsaved game.
 **Explain** (the light bulb between the previous and next move buttons, or
 `E`) shows why the evaluation is what it is compared with the position
 before the last move: the refutation of a mistake, the material a move wins,
-a mate it allows or misses. It starts the engine if needed.
+a mate it allows or misses. It starts the engine if needed: the border of the
+board breathes while the engine is looking and turns blue when the answer is
+on the board.
 
 ### Training against the engine
 

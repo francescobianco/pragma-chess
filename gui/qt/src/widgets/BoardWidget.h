@@ -17,6 +17,16 @@ class QVariantAnimation;
 /// How a king is marked on the board.
 enum class KingMark { None, Check, Mate };
 
+/// What the border around the board is saying.
+enum class BoardBorder {
+    /// Nothing in particular.
+    Plain,
+    /// Waiting for the engine to explain the move: the border breathes.
+    Thinking,
+    /// An explanation is on the board: the border is blue, like its arrows.
+    Explained,
+};
+
 /// One piece travelling during an animated move. A move is usually one of
 /// these; castling is two, the king first and the rook after it.
 struct SlideStep {
@@ -56,6 +66,9 @@ public:
 
     /// Arrows and lost-piece rings explaining the position.
     void setExplanation(const QList<BoardArrow> &arrows, const QList<int> &lostPieces);
+
+    /// What the border says: a sequence being played still overrides it.
+    void setBorder(BoardBorder border);
 
     /// Plays positions one after the other, sliding the moving piece, and
     /// holds the last one; e.g. a forced mate. The board frame turns red and
@@ -150,6 +163,9 @@ private:
     QTimer *m_sequenceTimer;
     /// Progress (0–1) of the piece sliding to the last move's target.
     QVariantAnimation *m_slide;
+    BoardBorder m_border = BoardBorder::Plain;
+    /// Drives the breathing border while an explanation is being searched.
+    QVariantAnimation *m_pulse;
     /// Whether the slide is the loud kind: the piece grows and wears a halo.
     bool m_slideEmphasis = false;
     /// Pieces the sliding move captures, still on their squares: a capture is

@@ -185,6 +185,9 @@ MainWindow::MainWindow(QWidget *parent)
             m_board->playSequence(frames);
         m_enginePanel->setExplanation(explanation.summary);
         m_explanationText = explanation.summary;
+        // The border stops breathing and turns blue, but only for an answer.
+        const bool explained = !explanation.summary.isEmpty() || !explanation.arrows.isEmpty();
+        m_board->setBorder(explained ? BoardBorder::Explained : BoardBorder::Plain);
     });
     connect(m_engine, &UciEngine::nameChanged, m_enginePanel, &EnginePanel::setEngineName);
     connect(m_engine, &UciEngine::failed, this, [this](const QString &message) {
@@ -1500,10 +1503,12 @@ void MainWindow::setExplainEnabled(bool enabled)
             return;
         }
         m_engineDock->show();
+        m_board->setBorder(BoardBorder::Thinking); // Until the engine answers.
         m_explainer->setEnabled(true, m_engineExecutable);
         return;
     }
     m_explainer->setEnabled(false);
+    m_board->setBorder(BoardBorder::Plain);
     m_board->stopSequence();
     m_board->setExplanation({}, {});
     m_enginePanel->setExplanation(QString());

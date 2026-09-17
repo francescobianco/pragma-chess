@@ -26,6 +26,12 @@ const QColor kLastMove(0xcd, 0xd2, 0x6a, 0xb0);
 const QColor kSelected(0x64, 0x9f, 0x5a, 0xa0);
 const QColor kMoveHint(0x14, 0x33, 0x0f, 0x48);
 const QColor kSequenceFrame(0xd4, 0x3f, 0x32);
+/// The border of a board showing an explanation, the blue of its reply arrows.
+/// Only its colour ever changes: the border stays the same two pixels.
+const QColor kExplainFrame(0x3a, 0x6e, 0xb5);
+constexpr qreal kFrameWidth = 2.0;
+/// One breath of the border while the engine is being waited for.
+constexpr int kPulseMs = 1100;
 /// Halo around a piece moving on its own, e.g. the engine's answer.
 const QColor kSlideHalo(0x2f, 0x8f, 0x44);
 constexpr qreal kCornerRadius = 4;
@@ -35,6 +41,14 @@ constexpr int kSequenceStepMs = 1100;
 constexpr int kSlideMs = 320;
 /// However the time is shared, a piece never crosses the board in a blink.
 constexpr int kMinimumSlideMs = 140;
+
+/// `from` at t = 0, `to` at t = 1, alpha included.
+QColor blend(const QColor &from, const QColor &to, qreal t)
+{
+    const auto mix = [t](qreal a, qreal b) { return a + (b - a) * t; };
+    return QColor::fromRgbF(mix(from.redF(), to.redF()), mix(from.greenF(), to.greenF()),
+                            mix(from.blueF(), to.blueF()), mix(from.alphaF(), to.alphaF()));
+}
 
 QColor arrowColor(BoardArrow::Kind kind)
 {
@@ -54,7 +68,16 @@ BoardWidget::BoardWidget(QWidget *parent)
     , m_board(BoardState::startingPosition())
     , m_sequenceTimer(new QTimer(this))
     , m_slide(new QVariantAnimation(this))
+    , m_pulse(new QVariantAnimation(this))
 {
+    // A plain 0 → 1 loop; the paint turns it into a breath, so the border does
+    // not snap back when the animation starts over.
+    m_pulse->setStartValue(0.0);
+    m_pulse->setEndValue(1.0);
+    m_pulse->setDuration(kPulseMs);
+    m_pulse->setLoopCount(-1);
+    connect(m_pulse, &QVariantAnimation::valueChanged, this, [this] { update(); });
+
     m_sequenceTimer->setSingleShot(true);
     connect(m_sequenceTimer, &QTimer::timeout, this, &BoardWidget::showNextFrame);
     m_slide->setStartValue(0.0);
@@ -77,6 +100,18 @@ BoardWidget::BoardWidget(QWidget *parent)
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setFocusPolicy(Qt::StrongFocus);
     setAccessibleName(tr("Chessboard"));
+}
+
+void BoardWidget::setBorder(BoardBorder border)
+{
+    if (m_border == border)
+        return;
+    m_border = border;
+    if (border == BoardBorder::Thinking)
+        m_pulse->start();
+    else
+        m_pulse->stop();
+    update();
 }
 
 void BoardWidget::setBoard(const BoardFrame &frame)
@@ -356,13 +391,23 @@ void BoardWidget::paintEvent(QPaintEvent *)
         painter.fillRect(squareRect(m_selected), kSelected);
     painter.restore();
 
-    // A neutral frame; red while a sequence (e.g. a mate) is being shown.
-    constexpr qreal frameWidth = 2.0;
-    QColor frameColor = palette().color(QPalette::WindowText);
-    frameColor.setAlphaF(0.28);
-    painter.setPen(QPen(m_sequenceActive ? kSequenceFrame : frameColor, frameWidth));
+    // A neutral frame; red while a sequence (e.g. a mate) is being shown, and
+    // blue for an explanation, breathing while the engine is still looking.
+    QColor plain = palette().color(QPalette::WindowText);
+    plain.setAlphaF(0.28);
+    QColor frameColor = plain;
+    if (m_sequenceActive) {
+        frameColor = kSequenceFrame;
+    } else if (m_border == BoardBorder::Explained) {
+        frameColor = kExplainFrame;
+    } else if (m_border == BoardBorder::Thinking) {
+        // cos() turns the looping 0 → 1 into a breath with no seam.
+        const qreal breath = 0.5 - 0.5 * std::cos(2 * M_PI * m_pulse->currentValue().toReal());
+        frameColor = blend(plain, kExplainFrame, breath);
+    }
+    painter.setPen(QPen(frameColor, kFrameWidth));
     painter.setBrush(Qt::NoBrush);
-    const qreal outset = frameWidth / 2;
+    const qreal outset = kFrameWidth / 2;
     painter.drawRoundedRect(board.adjusted(-outset, -outset, outset, outset), kCornerRadius + outset,
                             kCornerRadius + outset);
 

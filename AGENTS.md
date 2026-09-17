@@ -100,6 +100,12 @@ playing a move turns it off, and the user asks again at the next move.
   configured engine and caches finished analyses by move.
 - `app/AdvantageProbe.*` — pure: where an advantage becomes concrete, from
   shallow searches along the principal variation and searches by depth.
+- The board's two-pixel border says where Explain is: it breathes between the
+  plain colour and the blue of the reply arrows while the engine is searching
+  (`BoardBorder::Thinking`), turns that blue when an explanation arrives
+  (`Explained`) and goes back to plain when Explain is turned off or the
+  answer is empty. Only the colour changes, never the width. A sequence being
+  played still wins, with its red border.
 - `widgets/BoardWidget` only paints `BoardArrow`s and lost-piece rings, and
   plays `BoardFrame` sequences (a forced mate from `MoveExplanation::playback`)
   with a red frame, restoring the position on `stopSequence()`.

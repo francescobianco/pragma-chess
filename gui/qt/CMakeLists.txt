@@ -187,7 +187,7 @@ endif()
 qt_add_resources(pragma-chess books PREFIX /books BASE resources/books FILES resources/books/pragma-openings.bin)
 # The named openings seeded as the Opening Names database on first launch.
 qt_add_resources(pragma-chess openings PREFIX /openings BASE resources/openings
-    FILES resources/openings/lichess-openings.tsv)
+    FILES resources/openings/opening-names.pdb resources/openings/lichess-openings.tsv)
 qt_add_resources(pragma-chess appicon PREFIX /icons BASE data/icons FILES ${APP_ICON_FILES})
 if(WIN32)
     target_sources(pragma-chess PRIVATE data/pragma-chess.rc)

@@ -290,8 +290,12 @@ ordinary `.pdb` chosen in Book ▸ Opening Names (setting `book/openingNames`):
 each game is a named line, Event = name, ECO = code, and the name belongs to
 the position where the line ends (the shortest line wins on transpositions).
 It can be opened and edited like any database, one per language; first launch
-seeds `Opening Names.pdb` from `resources/openings/lichess-openings.tsv`
-(lichess-org/chess-openings, CC0). `app/OpeningNames` is pure and unit-tested;
+copies `resources/openings/opening-names.pdb`, shipped ready made so the first
+launch is not spent building it, and falls back to building it from
+`resources/openings/lichess-openings.tsv` (lichess-org/chess-openings, CC0),
+which stays as its source. A file copied out of a Qt resource is read-only, so
+the copy's permissions are set before it is used. See
+`resources/openings/README.md` to rebuild the seed. `app/OpeningNames` is pure and unit-tested;
 the names are read again when the file changes.
 
 - `app/PolyglotBook` (core library, pure, unit-tested against the reference

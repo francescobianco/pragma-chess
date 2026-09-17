@@ -1289,11 +1289,19 @@ void MainWindow::restoreOpeningNames()
     const QString seed = QDir(UserFolders::databasesDir())
                              .filePath(tr("Opening Names") + QLatin1Char('.') + QLatin1String(UserFolders::databaseSuffix));
     if (!QFile::exists(seed) && UserFolders::ensureDatabasesDir()) {
-        QFile tsv(QStringLiteral(":/openings/lichess-openings.tsv"));
-        QString error;
-        if (!tsv.open(QIODevice::ReadOnly)
-            || !SqliteGameDatabase::create(seed, OpeningNames::gamesFromTsv(QString::fromUtf8(tsv.readAll())), &error))
-            statusBar()->showMessage(tr("Could not create %1: %2").arg(QDir::toNativeSeparators(seed), error));
+        // The database is shipped ready made, so the first launch is not spent
+        // building it; the TSV it was built from stays as the fallback.
+        if (QFile::copy(QStringLiteral(":/openings/opening-names.pdb"), seed)) {
+            // A file copied out of a resource is read-only, and this one is a
+            // database the user may edit.
+            QFile::setPermissions(seed, QFile::ReadOwner | QFile::WriteOwner | QFile::ReadGroup | QFile::ReadOther);
+        } else {
+            QFile tsv(QStringLiteral(":/openings/lichess-openings.tsv"));
+            QString error;
+            if (!tsv.open(QIODevice::ReadOnly)
+                || !SqliteGameDatabase::create(seed, OpeningNames::gamesFromTsv(QString::fromUtf8(tsv.readAll())), &error))
+                statusBar()->showMessage(tr("Could not create %1: %2").arg(QDir::toNativeSeparators(seed), error));
+        }
     }
     chooseOpeningNames(QFile::exists(seed) ? seed : QString());
 }

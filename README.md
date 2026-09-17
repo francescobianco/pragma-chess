@@ -82,7 +82,8 @@ book moves of the position on the board with their weight and the name of the
 opening each move leads to; click one to play it. Names come from an ordinary
 database, *Opening Names*, where each game is a named line (Event is the name):
 open it to add or rename variations, or choose another one (for instance in
-another language) in *Book ▸ Opening Names*. Pragma Chess ships *Pragma Openings*, built from the public domain
+another language) in *Book ▸ Opening Names*. It is installed ready made, so
+the first launch has nothing to build. Pragma Chess ships *Pragma Openings*, built from the public domain
 [lichess chess-openings](https://github.com/lichess-org/chess-openings)
 collection; `pragma-book` builds and probes books on the command line.
 

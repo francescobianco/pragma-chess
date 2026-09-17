@@ -24,7 +24,8 @@ public:
     SyncSettings settings() const;
 
 Q_SIGNALS:
-    /// Sync now with the settings shown (they are applied first).
+    /// Sync everything now with the settings shown (they are applied first):
+    /// the sources of the open database, the project, then the folder.
     void syncRequested(const SyncSettings &settings);
 
 private:
@@ -46,6 +47,7 @@ private:
     QLabel *m_note;
     QLineEdit *m_user;
     QLineEdit *m_password;
+    QCheckBox *m_beforeClosing;
     QLabel *m_status;
     QPushButton *m_testButton;
     QPushButton *m_syncButton;

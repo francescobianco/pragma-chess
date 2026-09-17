@@ -27,6 +27,9 @@ struct SyncSettings {
     QString user;
     QString password;
 
+    /// Sync everything when Pragma Chess is closed, asked once and remembered.
+    bool syncBeforeClosing = false;
+
     bool isConfigured() const;
 
     static SyncSettings load();

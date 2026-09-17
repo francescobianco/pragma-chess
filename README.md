@@ -95,9 +95,15 @@ The first button of the toolbar, *Sync Now* (Ctrl+Y), syncs everything in one
 go and in the order that keeps the pieces consistent: the games of the
 connected sources come down into the database, the project file and the
 session are written, and only then does the folder go to the server. What is
-pushed is always what you are looking at. *File ▸ Sync Before Closing* does
-the same when Pragma Chess is closed; the same checkbox appears in the dialog
-that asks to save a modified project, and the choice is remembered.
+pushed is always what you are looking at. *File ▸ Sync…* holds the same
+button and a *Sync before closing* option, which is remembered and also
+offered by the dialog that asks to save a modified project on quit.
+
+Syncing reconciles, it never deletes. Every computer ends up with the union
+of what all of them have: a file that appears anywhere is added everywhere, a
+database deleted by hand comes back on the next sync, and nothing is ever
+removed from the server or the Git repository. Two computers editing the same
+file keep both versions.
 
 *File ▸ Sync…* connects the Pragma folder to a folder on an FTP or WebDAV
 server (Nextcloud, a NAS…) or to a Git repository. With Git the real files
@@ -105,9 +111,8 @@ never become a repository: each sync copies them into a clone kept by Pragma
 Chess, commits and pushes (databases are binary, so the history grows with
 every change). Every computer set up with the same server folder
 keeps the same databases and projects: changes are sent and received every few
-minutes, a `.pragma-chess.sync` file on the server tracks what changed where,
-edits made on two computers at once keep both files, and deleted files go to
-the trash.
+minutes and a `.pragma-chess.sync` file on the server tracks what changed
+where.
 
 ### Build
 

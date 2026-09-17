@@ -10,9 +10,15 @@
 #include "app/sources/ChessComFetch.h"
 #include "app/sources/TorneiOnlineFetch.h"
 #include "app/sources/LichessFetch.h"
+#include "app/sync/FolderSync.h"
+#include "app/sync/GitStore.h"
 #include "app/sync/SyncManifest.h"
 
+#include <QDir>
 #include <QFile>
+#include <QProcess>
+#include <QSignalSpy>
+#include <QStandardPaths>
 #include <QJsonDocument>
 #include <QSqlDatabase>
 #include <QSqlQuery>
@@ -389,7 +395,6 @@ private Q_SLOTS:
             for (const auto &[path, hash] : files) {
                 SyncFileState state;
                 state.hash = QString::fromLatin1(hash);
-                state.deleted = state.hash.isEmpty();
                 manifest.files.insert(QString::fromLatin1(path), state);
             }
             return manifest;
@@ -397,22 +402,23 @@ private Q_SLOTS:
         const QMap<QString, QString> base{{"same.pdb", "a"}, {"edited-here.pdb", "a"}, {"edited-there.pdb", "a"},
                                           {"deleted-here.pdb", "a"}, {"deleted-there.pdb", "a"},
                                           {"edited-both.pdb", "a"}, {"deleted-here-edited-there.pdb", "a"},
-                                          {"edited-here-deleted-there.pdb", "a"}, {"dropped-from-manifest.pch", "a"}};
+                                          {"edited-here-deleted-there.pdb", "a"}, {"gone-from-both.pdb", "a"},
+                                          {"dropped-from-manifest.pch", "a"}};
         const QList<SyncAction> actions = planSync(
             local({{"same.pdb", "a"}, {"edited-here.pdb", "b"}, {"edited-there.pdb", "a"}, {"deleted-there.pdb", "a"},
                    {"edited-both.pdb", "b"}, {"edited-here-deleted-there.pdb", "b"}, {"new-here.pch", "n"},
                    {"new-both-same.pdb", "s"}, {"new-both-different.pdb", "x"}, {"dropped-from-manifest.pch", "a"}}),
             base,
             remote({{"same.pdb", "a"}, {"edited-here.pdb", "a"}, {"edited-there.pdb", "c"}, {"deleted-here.pdb", "a"},
-                    {"deleted-there.pdb", ""}, {"edited-both.pdb", "c"}, {"deleted-here-edited-there.pdb", "c"},
-                    {"edited-here-deleted-there.pdb", ""}, {"new-there.pdb", "t"}, {"new-both-same.pdb", "s"},
-                    {"new-both-different.pdb", "y"}}));
+                    {"edited-both.pdb", "c"}, {"deleted-here-edited-there.pdb", "c"}, {"new-there.pdb", "t"},
+                    {"new-both-same.pdb", "s"}, {"new-both-different.pdb", "y"}}));
 
+        // Nothing is ever deleted: a file missing on one side comes back from
+        // the other, whether it is new or was deleted by hand.
         const QList<SyncAction> expected{
             {Kind::Download, "deleted-here-edited-there.pdb"},
-            {Kind::DeleteRemote, "deleted-here.pdb"},
-            {Kind::DeleteLocal, "deleted-there.pdb"},
-            // Absent without a deletion record (a lost manifest update): put it back.
+            {Kind::Download, "deleted-here.pdb"},
+            {Kind::Upload, "deleted-there.pdb"},
             {Kind::Upload, "dropped-from-manifest.pch"},
             {Kind::KeepBoth, "edited-both.pdb"},
             {Kind::Upload, "edited-here-deleted-there.pdb"},
@@ -424,8 +430,11 @@ private Q_SLOTS:
             {Kind::Download, "new-there.pdb"},
         };
         QCOMPARE(actions, expected);
+        // A file gone from both sides is gone; the base alone never revives it.
+        for (const SyncAction &action : actions)
+            QVERIFY(action.path != QLatin1String("gone-from-both.pdb"));
 
-        // A manifest survives a round trip, tombstones included.
+        // A manifest survives a round trip, and drops the tombstones of older versions.
         SyncManifest manifest = remote({{"Databases/Games.pdb", "abc"}, {"Projects/Old.pch", ""}});
         manifest.revision = 7;
         manifest.updatedBy = QStringLiteral("laptop");
@@ -433,11 +442,97 @@ private Q_SLOTS:
         QVERIFY(read);
         QCOMPARE(read->revision, 7);
         QCOMPARE(read->files.value("Databases/Games.pdb").hash, QStringLiteral("abc"));
-        QVERIFY(read->files.value("Projects/Old.pch").deleted);
+        QVERIFY(!read->files.contains("Projects/Old.pch"));
 
         QCOMPARE(conflictPath(QStringLiteral("Databases/Games.pdb"), QStringLiteral("laptop"),
                               QDateTime(QDate(2026, 9, 17), QTime(10, 30))),
                  QStringLiteral("Databases/Games (conflict, laptop, 2026-09-17 10.30).pdb"));
+    }
+
+
+    /// Two devices sharing a bare Git repository. The sync reconciles, it does
+    /// not mirror: a database deleted by hand comes back, and nothing ever
+    /// leaves the repository.
+    void reconcilesGitFoldersWithoutDeleting()
+    {
+        const QString git = QStandardPaths::findExecutable(QStringLiteral("git"));
+        if (git.isEmpty())
+            QSKIP("git is not installed");
+
+        QTemporaryDir root;
+        QVERIFY(root.isValid());
+        const QDir base(root.path());
+        const QString origin = base.filePath(QStringLiteral("origin.git"));
+        QProcess init;
+        init.start(git, {QStringLiteral("init"), QStringLiteral("--bare"), QStringLiteral("--initial-branch=main"),
+                         origin});
+        QVERIFY(init.waitForFinished(30000));
+        QCOMPARE(init.exitCode(), 0);
+
+        const auto write = [](const QString &path, const QByteArray &data) {
+            QDir().mkpath(QFileInfo(path).absolutePath());
+            QFile file(path);
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            file.write(data);
+        };
+
+        struct Device {
+            std::unique_ptr<GitStore> store;
+            std::unique_ptr<FolderSync> sync;
+            QString folder;
+        };
+        const auto makeDevice = [&](const QString &name) {
+            Device device;
+            device.folder = base.filePath(name + QStringLiteral("/Pragma"));
+            QDir().mkpath(device.folder);
+            device.store = std::make_unique<GitStore>(origin, QStringLiteral("main"), QString(), QString(),
+                                                      base.filePath(name + QStringLiteral("/clone")), name);
+            device.sync = std::make_unique<FolderSync>(device.folder, base.filePath(name + QStringLiteral("/state.json")),
+                                                       name);
+            device.sync->setStore(device.store.get());
+            return device;
+        };
+        const auto syncOnce = [](Device &device) {
+            QSignalSpy finished(device.sync.get(), &FolderSync::finished);
+            device.sync->sync();
+            QVERIFY(finished.wait(60000));
+            QCOMPARE(finished.constFirst().at(0).toString(), QString()); // No error.
+        };
+
+        Device laptop = makeDevice(QStringLiteral("laptop"));
+        const QString laptopGames = laptop.folder + QStringLiteral("/Databases/Games.pdb");
+        write(laptopGames, "one");
+        syncOnce(laptop);
+
+        // The other device starts empty and receives the database.
+        Device desktop = makeDevice(QStringLiteral("desktop"));
+        const QString desktopGames = desktop.folder + QStringLiteral("/Databases/Games.pdb");
+        syncOnce(desktop);
+        QVERIFY(QFile::exists(desktopGames));
+
+        // A file added on one device appears on the other; nothing is removed.
+        write(desktop.folder + QStringLiteral("/Projects/Study.pch"), "study");
+        syncOnce(desktop);
+        syncOnce(laptop);
+        QVERIFY(QFile::exists(laptop.folder + QStringLiteral("/Projects/Study.pch")));
+
+        // The database is deleted by hand: the next sync brings it back
+        // instead of deleting it everywhere.
+        QVERIFY(QFile::remove(laptopGames));
+        syncOnce(laptop);
+        QVERIFY2(QFile::exists(laptopGames), "a deleted database must come back, not disappear");
+        syncOnce(desktop);
+        QVERIFY2(QFile::exists(desktopGames), "the other device must keep its copy");
+
+        // And the repository still holds it.
+        QProcess tree;
+        tree.setWorkingDirectory(origin);
+        tree.start(git, {QStringLiteral("ls-tree"), QStringLiteral("-r"), QStringLiteral("--name-only"),
+                         QStringLiteral("main")});
+        QVERIFY(tree.waitForFinished(30000));
+        const QString listing = QString::fromUtf8(tree.readAll());
+        QVERIFY2(listing.contains(QLatin1String("Databases/Games.pdb")), qPrintable(listing));
+        QVERIFY2(listing.contains(QLatin1String("Projects/Study.pch")), qPrintable(listing));
     }
 
     void outlinesDatabases()

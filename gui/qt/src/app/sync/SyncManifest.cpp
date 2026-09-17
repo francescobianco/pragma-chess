@@ -11,12 +11,8 @@ QByteArray SyncManifest::toJson() const
     QJsonObject entries;
     for (auto it = files.cbegin(); it != files.cend(); ++it) {
         QJsonObject entry;
-        if (it->deleted) {
-            entry.insert(QStringLiteral("deleted"), true);
-        } else {
-            entry.insert(QStringLiteral("sha256"), it->hash);
-            entry.insert(QStringLiteral("size"), double(it->size));
-        }
+        entry.insert(QStringLiteral("sha256"), it->hash);
+        entry.insert(QStringLiteral("size"), double(it->size));
         entry.insert(QStringLiteral("modified"), it->modified.toUTC().toString(Qt::ISODate));
         entry.insert(QStringLiteral("device"), it->device);
         entries.insert(it.key(), entry);
@@ -53,8 +49,11 @@ std::optional<SyncManifest> SyncManifest::fromJson(const QByteArray &json, QStri
     for (auto it = entries.constBegin(); it != entries.constEnd(); ++it) {
         const QJsonObject entry = it.value().toObject();
         SyncFileState state;
-        state.deleted = entry.value(QStringLiteral("deleted")).toBool();
-        state.hash = state.deleted ? QString() : entry.value(QStringLiteral("sha256")).toString();
+        state.hash = entry.value(QStringLiteral("sha256")).toString();
+        // A tombstone written by an older version, or a broken entry: forget
+        // it, so the file it mentions is uploaded again instead of removed.
+        if (state.hash.isEmpty())
+            continue;
         state.size = qint64(entry.value(QStringLiteral("size")).toDouble());
         state.modified = QDateTime::fromString(entry.value(QStringLiteral("modified")).toString(), Qt::ISODate);
         state.device = entry.value(QStringLiteral("device")).toString();
@@ -69,40 +68,35 @@ QList<SyncAction> planSync(const QMap<QString, LocalFileState> &local, const QMa
     QSet<QString> paths;
     for (auto it = local.cbegin(); it != local.cend(); ++it)
         paths.insert(it.key());
-    for (auto it = base.cbegin(); it != base.cend(); ++it)
-        paths.insert(it.key());
     for (auto it = remote.files.cbegin(); it != remote.files.cend(); ++it)
         paths.insert(it.key());
+    // `base` is deliberately not a source of paths: a file that is gone from
+    // both sides is gone, and one that is gone from a single side comes back
+    // from the other. Nothing here can make a file disappear.
 
     QStringList sorted = paths.values();
     sorted.sort();
     QList<SyncAction> actions;
+    using Kind = SyncAction::Kind;
     for (const QString &path : std::as_const(sorted)) {
         const QString localHash = local.value(path).hash;
-        const QString remoteHash = remote.files.value(path).hash; // Empty when absent or deleted.
+        const QString remoteHash = remote.files.value(path).hash;
         const QString baseHash = base.value(path);
 
         if (localHash == remoteHash) {
             if (!localHash.isEmpty() && baseHash != localHash)
-                actions << SyncAction{SyncAction::Kind::Record, path};
-            continue;
+                actions << SyncAction{Kind::Record, path};
+        } else if (localHash.isEmpty()) {
+            actions << SyncAction{Kind::Download, path}; // Only there: bring it here.
+        } else if (remoteHash.isEmpty()) {
+            actions << SyncAction{Kind::Upload, path}; // Only here: send it there.
+        } else if (localHash == baseHash) {
+            actions << SyncAction{Kind::Download, path}; // Only the remote side changed it.
+        } else if (remoteHash == baseHash) {
+            actions << SyncAction{Kind::Upload, path}; // Only this side changed it.
+        } else {
+            actions << SyncAction{Kind::KeepBoth, path}; // Both changed it: keep both.
         }
-        using Kind = SyncAction::Kind;
-        const bool remoteDeleted = remote.files.contains(path) && remote.files.value(path).deleted;
-        if (localHash == baseHash && remoteHash.isEmpty() && !remoteDeleted) {
-            // Missing from the manifest without a deletion record: another device's
-            // manifest replaced ours. Never delete on that; put the file back.
-            actions << SyncAction{Kind::Upload, path};
-        } else if (localHash == baseHash) // Only the remote side changed.
-            actions << SyncAction{remoteHash.isEmpty() ? Kind::DeleteLocal : Kind::Download, path};
-        else if (remoteHash == baseHash) // Only this side changed.
-            actions << SyncAction{localHash.isEmpty() ? Kind::DeleteRemote : Kind::Upload, path};
-        else if (localHash.isEmpty()) // Deleted here, edited there: keep the edit.
-            actions << SyncAction{Kind::Download, path};
-        else if (remoteHash.isEmpty()) // Edited here, deleted there: keep the edit.
-            actions << SyncAction{Kind::Upload, path};
-        else
-            actions << SyncAction{Kind::KeepBoth, path};
     }
     return actions;
 }

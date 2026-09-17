@@ -3,6 +3,7 @@
 #include <QByteArray>
 #include <QObject>
 #include <QString>
+#include <QStringList>
 
 #include <functional>
 
@@ -48,8 +49,13 @@ public:
     /// Uploads under a temporary name, then renames it, creating folders; a
     /// half-uploaded file is never seen under its real name.
     virtual void upload(const QString &localFile, const QString &path, Callback done) = 0;
-    /// Deletes a file; a missing file counts as removed.
+    /// Deletes a file; a missing file counts as removed. The sync never calls
+    /// this for the user's files, only for its own lock.
     virtual void remove(const QString &path, Callback done) = 0;
+    /// Every file the store can enumerate by itself, as relative paths, for
+    /// stores whose folder is readable as a whole (a Git clone). Empty when it
+    /// cannot, and the manifest is then the only record of what is there.
+    virtual QStringList listFiles() const { return {}; }
     /// Cancels everything; pending callbacks are not called.
     virtual void abort() = 0;
 

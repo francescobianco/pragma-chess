@@ -187,13 +187,22 @@ Git repository.
   temporary names and serialized between devices by a `.pragma-chess.lock`
   file with an owner token and expiry; `GitStore` (the git command on a clone
   in AppLocalData, never on the real files: begin() fetches and resets the
-  clone, publish() commits and pushes, a refused push restarts the sync). `SyncManifest` is the remote
-  `.pragma-chess.sync` (files with SHA-256, tombstones, a revision);
-  `planSync` is the pure three-way decision (local, remote, last synced base),
-  unit-tested; local files are only deleted for an explicit tombstone, never
-  because a path is missing from the manifest. `FolderSync` runs it, writes
-  the manifest last and starts over if another device changed it. Conflicts keep both files, local deletions go
-  to the trash, uploads send a snapshot copy.
+  clone, publish() commits and pushes, a refused push restarts the sync).
+  `SyncManifest` is the remote `.pragma-chess.sync` (files with SHA-256 and a
+  revision); `FolderSync` runs the plan, writes the manifest last and starts
+  over if another device changed it; uploads send a snapshot copy.
+- **The sync reconciles, it never deletes.** A folder of databases is not a
+  working copy: a file missing on one side means that side has yet to receive
+  it. `planSync` (pure, unit-tested) returns the union of both sides — only
+  here → Upload, only there → Download, changed on both → KeepBoth — and the
+  base only says who changed a file both sides have. A database deleted by
+  hand comes back on the next sync. There are no tombstones: entries left by
+  older versions are dropped when the manifest is read. `GitStore::publish()`
+  stages with `git add --ignore-removal`, so nothing can drop out of the
+  repository even if the clone loses it, and `RemoteStore::listFiles()` (only
+  Git implements it, by walking the clone) brings back a file the manifest
+  lost track of. `tst_chessrules::reconcilesGitFoldersWithoutDeleting` runs
+  two devices against a real bare repository; keep it passing.
 - `app/sync/SyncPipeline` runs the sync **in order**, one `SyncTask` at a
   time: `SourceSyncTask` (sources → database), a `SyncStepTask` for the
   project file and one for the session, then `FolderSyncTask` (folder →
@@ -202,9 +211,10 @@ Git repository.
   A task says whether it `isNeeded()` (skipped steps never report an error)
   and whether it `isCritical()` (a normal failure is collected and the rest
   still runs, so a server that is down does not block importing games).
-  The toolbar's Sync Now and "Sync before closing" both go through it;
-  closing waits for the pipeline with a timeout, so a dead server cannot keep
-  the window open.
+  The toolbar's Sync Now button, the Sync dialog's Sync Now button and "Sync
+  before closing" (a `SyncSettings` field, shown in the Sync dialog and in the
+  dialog that asks to save on quit) all go through it; closing waits for the
+  pipeline with a timeout, so a dead server cannot keep the window open.
 - `MainWindow::quitWithoutAsking()` exists because Qt 6 closes the windows on
   `QApplication::quit()`: a SIGTERM (`make start`) must not raise the "save
   before quitting?" dialog. Anything new in `closeEvent` has to honour it.

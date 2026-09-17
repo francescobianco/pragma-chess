@@ -38,6 +38,7 @@ SyncDialog::SyncDialog(const SyncSettings &settings, FolderSync *sync, QWidget *
     , m_note(new QLabel)
     , m_user(new QLineEdit(settings.user))
     , m_password(new QLineEdit(settings.password))
+    , m_beforeClosing(new QCheckBox(tr("Sync &before closing Pragma Chess")))
     , m_status(new QLabel)
     , m_testButton(new QPushButton(tr("&Test Connection")))
     , m_syncButton(new QPushButton(tr("S&ync Now")))
@@ -116,12 +117,16 @@ SyncDialog::SyncDialog(const SyncSettings &settings, FolderSync *sync, QWidget *
     actions->addWidget(m_syncButton);
     actions->addStretch();
 
+    m_beforeClosing->setChecked(settings.syncBeforeClosing);
+    m_beforeClosing->setToolTip(tr("Closing the window syncs everything first, and waits for it"));
+
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     auto *layout = new QVBoxLayout(this);
     layout->addWidget(intro);
     layout->addSpacing(8);
     layout->addLayout(form);
     layout->addLayout(actions);
+    layout->addWidget(m_beforeClosing);
     layout->addWidget(m_status);
     layout->addStretch();
     layout->addWidget(buttons);
@@ -151,6 +156,7 @@ SyncSettings SyncDialog::settings() const
     result.branch = m_branch->text().trimmed().isEmpty() ? QStringLiteral("main") : m_branch->text().trimmed();
     result.user = m_user->text();
     result.password = m_password->text();
+    result.syncBeforeClosing = m_beforeClosing->isChecked();
     return result;
 }
 
@@ -233,9 +239,7 @@ void SyncDialog::testConnection()
         m_status->setText(error);
         return;
     }
-    int files = 0;
-    for (const SyncFileState &file : manifest->files)
-        files += file.deleted ? 0 : 1;
+    const int files = int(manifest->files.size());
     m_status->setText(tr("Connected. The folder holds %n file(s), last synced by %1 on %2.", nullptr, files)
                           .arg(manifest->updatedBy,
                                QLocale().toString(manifest->updatedAt.toLocalTime(), QLocale::ShortFormat)));

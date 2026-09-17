@@ -39,6 +39,7 @@ SyncSettings SyncSettings::load()
     result.url = settings.value(QStringLiteral("url")).toUrl();
     result.user = settings.value(QStringLiteral("user")).toString();
     result.password = settings.value(QStringLiteral("password")).toString();
+    result.syncBeforeClosing = settings.value(QStringLiteral("beforeClosing"), false).toBool();
     return result;
 }
 
@@ -57,6 +58,7 @@ void SyncSettings::save() const
     settings.setValue(QStringLiteral("tls"), tls);
     settings.setValue(QStringLiteral("folder"), folder);
     settings.setValue(QStringLiteral("url"), url);
+    settings.setValue(QStringLiteral("beforeClosing"), syncBeforeClosing);
     settings.setValue(QStringLiteral("user"), user);
     settings.setValue(QStringLiteral("password"), password);
 }

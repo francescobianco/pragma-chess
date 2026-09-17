@@ -218,6 +218,14 @@ void FolderSync::attempt(int round)
             run->remote = *manifest;
         }
         run->actions = planSync(run->local, m_base, run->remote);
+        // A store that can look at its own folder (a Git clone) may hold files
+        // the manifest lost track of. This device has never seen them, so bring
+        // them back; the next sync puts them in the manifest again.
+        for (const QString &path : m_store->listFiles()) {
+            if (run->remote.files.contains(path) || run->local.contains(path))
+                continue;
+            run->actions << SyncAction{SyncAction::Kind::Download, path};
+        }
         run->updated = run->remote;
         run->base = m_base;
         execute(run, 0);
@@ -269,7 +277,7 @@ void FolderSync::execute(std::shared_ptr<Run> run, qsizetype index)
                             if (generation != m_generation)
                                 return;
                             if (result.ok) {
-                                run->updated.files.insert(path, SyncFileState{sha, size, modified, m_device, false});
+                                run->updated.files.insert(path, SyncFileState{sha, size, modified, m_device});
                                 run->base.insert(path, sha);
                                 ++run->changes;
                             }
@@ -290,45 +298,13 @@ void FolderSync::execute(std::shared_ptr<Run> run, qsizetype index)
             if (generation != m_generation)
                 return;
             if (result.ok) {
-                run->base.insert(action.path, remote.hash);
+                if (!remote.hash.isEmpty()) // Unknown to the manifest: no base to record yet.
+                    run->base.insert(action.path, remote.hash);
                 ++run->changes;
             }
             Q_EMIT localFileChanged(absolute);
             next(result);
         });
-        return;
-    }
-    case SyncAction::Kind::DeleteRemote:
-        Q_EMIT progress(tr("Deleting %1 on the server…").arg(action.path));
-        m_store->remove(action.path, [this, run, action, next, generation](const RemoteStore::Result &result) {
-            if (generation != m_generation)
-                return;
-            if (result.ok) {
-                run->updated.files.insert(action.path,
-                                          SyncFileState{QString(), 0, QDateTime::currentDateTimeUtc(), m_device, true});
-                run->base.remove(action.path);
-                ++run->changes;
-            }
-            next(result);
-        });
-        return;
-    case SyncAction::Kind::DeleteLocal: {
-        Q_EMIT localFileAboutToChange(absolute);
-        QFile file(absolute);
-        // To the trash when the system has one, so a deletion can be undone.
-        if (file.exists() && !file.moveToTrash() && !file.remove()) {
-            RemoteStore::Result failed;
-            failed.error = tr("Could not delete “%1”: %2").arg(action.path, file.errorString());
-            Q_EMIT localFileChanged(absolute);
-            next(failed);
-            return;
-        }
-        run->base.remove(action.path);
-        ++run->changes;
-        Q_EMIT localFileChanged(absolute);
-        RemoteStore::Result done;
-        done.ok = true;
-        next(done);
         return;
     }
     case SyncAction::Kind::KeepBoth: {

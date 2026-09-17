@@ -2,6 +2,7 @@
 
 #include <QCryptographicHash>
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
 #include <QProcess>
@@ -197,7 +198,10 @@ void GitStore::begin(Callback done)
 
 void GitStore::publish(Callback done)
 {
-    git({QStringLiteral("add"), QStringLiteral("--all")}, [this, done](const Output &added) {
+    // --ignore-removal: a file that left the clone is never committed as a
+    // deletion, so nothing can drop out of the repository.
+    git({QStringLiteral("add"), QStringLiteral("--ignore-removal"), QStringLiteral(".")},
+        [this, done](const Output &added) {
         if (added.exitCode != 0) {
             done(gitFailure(tr("Git could not add the files"), added));
             return;
@@ -282,6 +286,23 @@ void GitStore::upload(const QString &localFile, const QString &path, Callback do
 {
     QString error;
     done(copyReplacing(localFile, filePath(path), &error) ? success() : failure(error));
+}
+
+QStringList GitStore::listFiles() const
+{
+    // The clone is an ordinary folder, so the repository can say what it holds
+    // even when the manifest cannot: that is what brings a lost file back.
+    QStringList paths;
+    const QDir root(m_clone);
+    QDirIterator it(m_clone, QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        const QString relative = root.relativeFilePath(it.next());
+        if (relative.startsWith(QLatin1String(".git/")) || relative.startsWith(QLatin1Char('.')))
+            continue;
+        paths << relative;
+    }
+    paths.sort();
+    return paths;
 }
 
 void GitStore::remove(const QString &path, Callback done)

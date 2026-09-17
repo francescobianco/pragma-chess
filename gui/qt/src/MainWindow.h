@@ -267,7 +267,6 @@ private:
     QAction *m_saveProjectAsAction;
     QAction *m_syncAction;
     QAction *m_syncNowAction;
-    QAction *m_syncBeforeClosingAction;
     QMenu *m_recentProjectsMenu;
 
     QAction *m_newDatabaseAction;

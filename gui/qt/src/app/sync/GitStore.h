@@ -36,6 +36,7 @@ public:
     void download(const QString &path, const QString &localFile, Callback done) override;
     void upload(const QString &localFile, const QString &path, Callback done) override;
     void remove(const QString &path, Callback done) override;
+    QStringList listFiles() const override;
     void abort() override;
 
 private:

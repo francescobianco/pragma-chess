@@ -88,9 +88,6 @@ constexpr int kTrainingDepth = 12;
 /// cannot miss what just happened.
 constexpr int kEngineMoveMs = 1500;
 
-/// Remembered choice of "Sync before closing".
-const auto kSyncBeforeClosingKey = QStringLiteral("sync/beforeClosing");
-
 /// How long closing waits for a sync before giving up on the server.
 constexpr int kCloseSyncTimeoutMs = 30000;
 
@@ -332,13 +329,6 @@ void MainWindow::createActions()
     m_syncNowAction->setToolTip(tr("Sync the connected sources, save the project and send the folder to the server"));
     connect(m_syncNowAction, &QAction::triggered, this, [this] { syncNow(); });
 
-    m_syncBeforeClosingAction = new QAction(tr("Sync &Before Closing"), this);
-    m_syncBeforeClosingAction->setCheckable(true);
-    m_syncBeforeClosingAction->setChecked(QSettings().value(kSyncBeforeClosingKey, false).toBool());
-    m_syncBeforeClosingAction->setToolTip(tr("Sync everything when Pragma Chess is closed"));
-    connect(m_syncBeforeClosingAction, &QAction::toggled, this,
-            [](bool on) { QSettings().setValue(kSyncBeforeClosingKey, on); });
-
     m_syncAction = new QAction(tr("S&ync…"), this);
     m_syncAction->setToolTip(tr("Keep databases and projects the same on several computers through a server"));
     connect(m_syncAction, &QAction::triggered, this, &MainWindow::openSyncDialog);
@@ -477,8 +467,6 @@ void MainWindow::createMenus()
     file->addAction(m_saveProjectAction);
     file->addAction(m_saveProjectAsAction);
     file->addSeparator();
-    file->addAction(m_syncNowAction);
-    file->addAction(m_syncBeforeClosingAction);
     file->addAction(m_syncAction);
     file->addSeparator();
     file->addAction(m_quitAction);
@@ -1378,7 +1366,7 @@ void MainWindow::openSyncDialog()
     connect(&dialog, &SyncDialog::syncRequested, this, [this](const SyncSettings &settings) {
         settings.save();
         applySyncSettings();
-        m_folderSync->sync();
+        syncNow(); // The whole thing, in order, as the toolbar button does.
     });
     if (dialog.exec() != QDialog::Accepted)
         return;
@@ -2230,6 +2218,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         return;
     }
 
+    SyncSettings settings = SyncSettings::load();
     if (!m_projectPath.isEmpty() && isWindowModified()) {
         QMessageBox box(this);
         box.setWindowTitle(tr("Quit Pragma Chess"));
@@ -2240,11 +2229,14 @@ void MainWindow::closeEvent(QCloseEvent *event)
         box.setDefaultButton(QMessageBox::Save);
         // Remembered, so the choice only has to be made once.
         auto *syncFirst = new QCheckBox(tr("Sync before closing"));
-        syncFirst->setChecked(m_syncBeforeClosingAction->isChecked());
+        syncFirst->setChecked(settings.syncBeforeClosing);
         box.setCheckBox(syncFirst);
 
         const int answer = box.exec();
-        m_syncBeforeClosingAction->setChecked(syncFirst->isChecked());
+        if (syncFirst->isChecked() != settings.syncBeforeClosing) {
+            settings.syncBeforeClosing = syncFirst->isChecked();
+            settings.save();
+        }
         if (answer == QMessageBox::Cancel) {
             event->ignore();
             return;
@@ -2255,7 +2247,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         }
     }
 
-    if (!m_syncBeforeClosingAction->isChecked()) {
+    if (!settings.syncBeforeClosing) {
         saveSession();
         event->accept();
         return;

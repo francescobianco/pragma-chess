@@ -14,6 +14,8 @@
 
 #include <QFile>
 #include <QJsonDocument>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 #include <QTemporaryDir>
 
 #include <QTest>
@@ -459,6 +461,78 @@ private Q_SLOTS:
         QCOMPARE(DatabaseOutline::ecoCode(QStringLiteral("F10")), QString());
     }
 
+    void remembersWhoPlayersAre()
+    {
+        PlayerRoles roles{{QStringLiteral("Bianco Francesco"), PlayerRole::Me},
+                          {QStringLiteral("DrNykterstein"), PlayerRole::Friend},
+                          {QStringLiteral("Rossi Mario"), PlayerRole::Opponent}};
+        GameRecord game;
+        game.white = QStringLiteral("Rossi Mario");
+        game.black = QStringLiteral("Bianco Francesco");
+        QCOMPARE(mySide(game, roles), std::optional<Side>(Side::Black));
+        std::swap(game.white, game.black);
+        QCOMPARE(mySide(game, roles), std::optional<Side>(Side::White));
+        game.black = QStringLiteral("Bianco Francesco");
+        QVERIFY(!mySide(game, roles)); // Against myself.
+        game.white = game.black = QStringLiteral("Somebody");
+        QVERIFY(!mySide(game, roles));
+
+        DatabaseOutline outline;
+        GameRecord friendly;
+        friendly.white = QStringLiteral("Bianco Francesco");
+        friendly.black = QStringLiteral("DrNykterstein");
+        outline.add(friendly, roles);
+        outline.add(friendly, roles);
+        QCOMPARE(outline.players.value(PlayerRole::Me).value(QStringLiteral("Bianco Francesco")), 2);
+        QCOMPARE(outline.players.value(PlayerRole::Friend).value(QStringLiteral("DrNykterstein")), 2);
+        QVERIFY(!outline.players.contains(PlayerRole::Opponent));
+        QVERIFY(DatabaseOutline::hasRole(friendly, roles, PlayerRole::Friend));
+        QVERIFY(!DatabaseOutline::hasRole(friendly, roles, PlayerRole::Opponent));
+
+        // Stored in the database, and still there when it is opened again.
+        QTemporaryDir dir;
+        const QString path = dir.filePath(QStringLiteral("roles.pdb"));
+        QString error;
+        {
+            const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::create(path, {friendly}, &error);
+            QVERIFY2(database, qPrintable(error));
+            QVERIFY(database->playerRoles().isEmpty());
+            QVERIFY2(database->setPlayerRole(QStringLiteral("Bianco Francesco"), PlayerRole::Me, &error), qPrintable(error));
+            QVERIFY(database->setPlayerRole(QStringLiteral("DrNykterstein"), PlayerRole::Opponent, &error));
+            QVERIFY(database->setPlayerRole(QStringLiteral("DrNykterstein"), PlayerRole::Friend, &error));
+            QVERIFY(database->setPlayerRole(QStringLiteral("Unknown Player"), PlayerRole::Opponent, &error));
+            QVERIFY(database->setPlayerRole(QStringLiteral("Unknown Player"), PlayerRole::None, &error));
+        }
+        const std::unique_ptr<SqliteGameDatabase> reopened = SqliteGameDatabase::open(path, &error);
+        QVERIFY2(reopened, qPrintable(error));
+        const PlayerRoles stored = reopened->playerRoles();
+        QCOMPARE(stored.size(), 2);
+        QCOMPARE(stored.value(QStringLiteral("Bianco Francesco")), PlayerRole::Me);
+        QCOMPARE(stored.value(QStringLiteral("DrNykterstein")), PlayerRole::Friend);
+    }
+
+    void upgradesDatabasesToPlayerRoles()
+    {
+        // A version 2 file, as databases were before player roles.
+        QTemporaryDir dir;
+        const QString path = dir.filePath(QStringLiteral("old.pdb"));
+        QString error;
+        QVERIFY(SqliteGameDatabase::create(path, {}, &error));
+        {
+            QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("downgrade"));
+            db.setDatabaseName(path);
+            QVERIFY(db.open());
+            QSqlQuery query(db);
+            QVERIFY(query.exec(QStringLiteral("DROP TABLE player_roles")));
+            QVERIFY(query.exec(QStringLiteral("PRAGMA user_version = 2")));
+            db.close();
+        }
+        QSqlDatabase::removeDatabase(QStringLiteral("downgrade"));
+        const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(path, &error);
+        QVERIFY2(database, qPrintable(error));
+        QVERIFY2(database->setPlayerRole(QStringLiteral("Me"), PlayerRole::Me, &error), qPrintable(error));
+    }
+
     void parsesLichessGames()
     {
         // Built from a byte string: moc cannot read raw string literals holding braces.
@@ -720,21 +794,27 @@ private Q_SLOTS:
         other.externalId = QStringLiteral("b");
         QCOMPARE(database->importGames(source.id, {game, other}, &error), 2);
         QCOMPARE(database->importGames(source.id, {game}, &error), 0); // Already imported.
-        QCOMPARE(database->gameCount(), 2);
+        ImportedGame withoutMoves; // Records from torneionline.com have no moves.
+        withoutMoves.externalId = QStringLiteral("c");
+        withoutMoves.game.white = QStringLiteral("Bianco Francesco");
+        withoutMoves.game.result = QStringLiteral("1-0");
+        QCOMPARE(database->importGames(source.id, {withoutMoves}, &error), 1);
+        QVERIFY(database->loadGame(2)->moves.isEmpty());
+        QCOMPARE(database->gameCount(), 3);
 
         source.state.insert(QStringLiteral("month"), QStringLiteral("2024/05"));
         source.lastError = QStringLiteral("offline");
         QVERIFY(database->updateSource(source, &error));
         const QList<GameSource> stored = database->sources();
         QCOMPARE(stored.size(), 1);
-        QCOMPARE(stored.first().importedGames, 2);
+        QCOMPARE(stored.first().importedGames, 3);
         QCOMPARE(stored.first().state.value(QStringLiteral("month")).toString(), QStringLiteral("2024/05"));
         QCOMPARE(stored.first().lastError, QStringLiteral("offline"));
-        QCOMPARE(database->sourceGameIds(source.id).size(), 2);
+        QCOMPARE(database->sourceGameIds(source.id).size(), 3);
 
         QVERIFY(database->removeSource(source.id, &error));
         QVERIFY(database->sources().isEmpty());
-        QCOMPARE(database->gameCount(), 2); // Imported games stay.
+        QCOMPARE(database->gameCount(), 3); // Imported games stay.
     }
 
 private:

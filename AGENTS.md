@@ -165,11 +165,15 @@ cargo run -p chessdb-cli -- <args>
 ## File formats and user data
 
 - **`.pdb` database**: SQLite with `PRAGMA application_id` = `PRAG` and schema
-  version in `PRAGMA user_version` (currently 2). Changing the schema means
+  version in `PRAGMA user_version` (currently 3). Changing the schema means
   bumping the version and upgrading older files in `SqliteGameDatabase::open`.
   Version 2 added `sources` (connected sources, settings and sync state as
   JSON) and `game_sources` (which source each imported game came from, by
-  external id, so a sync never imports a game twice).
+  external id, so a sync never imports a game twice). Version 3 added
+  `player_roles` (who a player is to the user: me, friend, opponent), set with
+  "Who Is This?" on a player of the games list; the tree lists them under Me,
+  Friends and Opponents, and opening a game where "me" plays turns the board to
+  my side (`PlayerRole`, `mySide`, unit-tested).
 
 ## Folder sync
 

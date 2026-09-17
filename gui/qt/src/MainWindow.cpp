@@ -26,6 +26,8 @@
 #include "platform/SymbolicIcons.h"
 #include "widgets/BoardPanel.h"
 #include "widgets/BookPanel.h"
+#include "widgets/PaddedHeaderView.h"
+#include "widgets/PaddedItemDelegate.h"
 #include "widgets/BoardWidget.h"
 #include "widgets/CapturedPiecesWidget.h"
 #include "widgets/CentralArea.h"
@@ -588,6 +590,17 @@ void MainWindow::createDocks()
     m_moveView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_moveView->setShowGrid(false);
     m_moveView->setFocusPolicy(Qt::NoFocus);
+    m_moveView->setItemDelegate(new PaddedItemDelegate(CellPadding::vertical, CellPadding::horizontal, m_moveView));
+    for (Qt::Orientation orientation : {Qt::Horizontal, Qt::Vertical}) {
+        auto *header = new PaddedHeaderView(orientation, CellPadding::vertical, CellPadding::horizontal, m_moveView);
+        // As a table's own headers: the current move's number and column stand out.
+        header->setSectionsClickable(true);
+        header->setHighlightSections(true);
+        if (orientation == Qt::Horizontal)
+            m_moveView->setHorizontalHeader(header);
+        else
+            m_moveView->setVerticalHeader(header);
+    }
     m_moveView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_moveView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     connect(m_moveView, &QTableView::clicked, this, [this](const QModelIndex &index) {
@@ -603,6 +616,7 @@ void MainWindow::createDocks()
 
     m_bookPanel = new BookPanel;
     connect(m_bookPanel, &BookPanel::moveActivated, this, &MainWindow::playMove);
+    connect(m_bookPanel, &BookPanel::backActivated, m_session, &GameSession::goBack);
     m_openingTreeDock = addDock(m_sidebar, QStringLiteral("openingTreeDock"), tr("Opening Tree"), m_bookPanel,
                                 Qt::RightDockWidgetArea);
     // The panels speak for themselves: no title bars (the names stay in the View menu).
@@ -625,6 +639,8 @@ void MainWindow::createDocks()
     m_gameView->horizontalHeader()->setStretchLastSection(true);
     m_gameView->horizontalHeader()->setSectionsMovable(true);
     connect(m_gameView, &QTableView::activated, this, &MainWindow::openGame);
+    m_gameView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_gameView, &QWidget::customContextMenuRequested, this, &MainWindow::showGameListMenu);
 
     m_databaseTree = new DatabaseTreeWidget;
     connect(m_databaseTree, &DatabaseTreeWidget::categorySelected, this, &MainWindow::showCategory);
@@ -674,6 +690,7 @@ void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
     updateDatabaseActions();
     updateGameActions();
     m_filterSource = 0;
+    m_category = {};
     m_gameListProxy->setDatabase(m_database.get());
     m_databaseTree->setDatabase(m_database.get());
     m_sourceSync->setDatabase(m_database.get());
@@ -687,8 +704,68 @@ void MainWindow::openGame(const QModelIndex &proxyIndex)
     if (std::optional<GameRecord> game = m_database->loadGame(source.row())) {
         m_gameView->selectRow(proxyIndex.row());
         m_openGameIndex = source.row();
+        orientBoardForMe(*game);
         m_session->setGame(*game);
     }
+}
+
+void MainWindow::orientBoardForMe(const GameRecord &game)
+{
+    if (!m_database)
+        return;
+    if (const std::optional<Side> side = mySide(game, m_database->playerRoles()))
+        m_flipBoardAction->setChecked(*side == Side::Black);
+}
+
+void MainWindow::showGameListMenu(const QPoint &position)
+{
+    const QModelIndex index = m_gameView->indexAt(position);
+    if (!m_database || !index.isValid())
+        return;
+    const QModelIndex source = m_gameListProxy->mapToSource(index);
+    const GameRecord header = m_database->header(source.row());
+    QString player;
+    if (source.column() == GameListModel::White || source.column() == GameListModel::WhiteElo)
+        player = header.white;
+    else if (source.column() == GameListModel::Black || source.column() == GameListModel::BlackElo)
+        player = header.black;
+    if (player.isEmpty())
+        return; // Only players have a menu, for now.
+
+    QMenu menu(this);
+    QMenu *who = menu.addMenu(tr("Who Is This?"));
+    who->setToolTip(player);
+    const PlayerRole current = m_database->playerRoles().value(player);
+    auto *roles = new QActionGroup(who);
+    const std::pair<PlayerRole, QString> choices[] = {
+        {PlayerRole::Me, tr("It's &Me")}, {PlayerRole::Friend, tr("A &Friend")}, {PlayerRole::Opponent, tr("An &Opponent")}};
+    for (const auto &[role, text] : choices) {
+        QAction *action = who->addAction(text);
+        action->setCheckable(true);
+        action->setChecked(role == current);
+        action->setActionGroup(roles);
+        connect(action, &QAction::triggered, this, [this, player, role] { setPlayerRole(player, role); });
+    }
+    who->addSeparator();
+    QAction *forget = who->addAction(tr("&Nobody in Particular"), this,
+                                     [this, player] { setPlayerRole(player, PlayerRole::None); });
+    forget->setEnabled(current != PlayerRole::None);
+    menu.exec(m_gameView->viewport()->mapToGlobal(position));
+}
+
+void MainWindow::setPlayerRole(const QString &player, PlayerRole role)
+{
+    if (!m_database)
+        return;
+    QString error;
+    if (!m_database->setPlayerRole(player, role, &error)) {
+        QMessageBox::warning(this, tr("Who Is This?"), tr("Could not save who %1 is: %2").arg(player, error));
+        return;
+    }
+    m_databaseTree->refresh();
+    showCategory(m_category); // A filter on roles now shows other games.
+    if (role == PlayerRole::Me)
+        orientBoardForMe(m_session->game());
 }
 
 void MainWindow::syncBoard()
@@ -743,11 +820,22 @@ void MainWindow::updateGameCount()
 void MainWindow::showCategory(const GameCategory &category)
 {
     using Kind = GameCategory::Kind;
+    m_category = category;
     m_filterSource = category.kind == Kind::Source ? category.sourceId : 0;
     GameFilterProxyModel::Predicate predicate;
     const QString value = category.value;
     switch (category.kind) {
     case Kind::All:
+        break;
+    case Kind::Role:
+        if (m_database) {
+            predicate = [roles = m_database->playerRoles(), role = playerRoleFromKey(value)](const GameRecord &game) {
+                return DatabaseOutline::hasRole(game, roles, role);
+            };
+        }
+        break;
+    case Kind::Player:
+        predicate = [value](const GameRecord &game) { return game.white == value || game.black == value; };
         break;
     case Kind::EcoLetter:
         predicate = [value](const GameRecord &game) { return DatabaseOutline::ecoCode(game.eco).startsWith(value); };
@@ -1099,7 +1187,12 @@ void MainWindow::updateBookMoves()
             opening = m_openingNames->name(m_session->positionAt(ply));
     }
     m_enginePanel->setOpening(opening);
-    m_bookPanel->setMoves(position, moves, names);
+    QString lastMove;
+    if (const std::optional<ChessMove> move = m_session->lastMove()) {
+        const ChessPosition &before = m_session->positionAt(m_session->ply() - 1);
+        lastMove = before.moveNumberText() + figurineSan(before.san(*move));
+    }
+    m_bookPanel->setMoves(position, moves, names, lastMove);
 }
 
 void MainWindow::restoreOpeningNames()

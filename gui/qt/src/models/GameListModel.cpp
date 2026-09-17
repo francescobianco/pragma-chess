@@ -47,11 +47,11 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::TextAlignmentRole) {
         switch (index.column()) {
-        case Number:
         case WhiteElo:
         case BlackElo:
         case Moves:
             return QVariant(Qt::AlignRight | Qt::AlignVCenter);
+        case Number:
         case Result:
             return QVariant(Qt::AlignCenter);
         default:

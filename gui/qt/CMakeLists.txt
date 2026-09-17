@@ -48,6 +48,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/OpeningNames.h
     src/app/Pgn.cpp
     src/app/Pgn.h
+    src/app/PlayerRole.cpp
+    src/app/PlayerRole.h
     src/app/PolyglotBook.cpp
     src/app/PolyglotBook.h
     src/app/PolyglotRandom.cpp
@@ -138,6 +140,10 @@ qt_add_executable(pragma-chess
     src/widgets/BoardWidget.cpp
     src/widgets/CapturedPiecesWidget.cpp
     src/widgets/CapturedPiecesWidget.h
+    src/widgets/PaddedHeaderView.cpp
+    src/widgets/PaddedHeaderView.h
+    src/widgets/PaddedItemDelegate.cpp
+    src/widgets/PaddedItemDelegate.h
     src/widgets/PieceRenderer.cpp
     src/widgets/PieceRenderer.h
     src/widgets/CentralArea.cpp

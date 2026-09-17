@@ -28,6 +28,8 @@ public:
     std::optional<GameRecord> loadGame(qint64 index) const override;
     qint64 addGame(const GameRecord &game, QString *errorMessage) override;
     bool updateHeader(qint64 index, const GameRecord &header, QString *errorMessage) override;
+    PlayerRoles playerRoles() const override { return m_roles; }
+    bool setPlayerRole(const QString &player, PlayerRole role, QString *errorMessage) override;
     QList<GameSource> sources() const override;
     bool addSource(GameSource &source, QString *errorMessage) override;
     bool updateSource(const GameSource &source, QString *errorMessage) override;
@@ -41,9 +43,11 @@ private:
     SqliteGameDatabase(QString path, QString connectionName);
 
     bool loadHeaders(QString *errorMessage);
+    bool loadPlayerRoles(QString *errorMessage);
 
     QString m_path;
     QString m_connectionName;
     // TODO: page headers from SQL instead of caching them for very large databases.
     QList<GameRecord> m_headers;
+    PlayerRoles m_roles;
 };

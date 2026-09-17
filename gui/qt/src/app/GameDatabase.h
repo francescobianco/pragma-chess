@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameRecord.h"
+#include "PlayerRole.h"
 #include "sources/GameSource.h"
 
 #include <QList>
@@ -36,6 +37,11 @@ public:
     /// Replaces the header information (players, event, date, result, …) of
     /// the game at `index`. Moves are left untouched.
     virtual bool updateHeader(qint64 index, const GameRecord &header, QString *errorMessage) = 0;
+
+    /// Who the players are to the user (me, friends, opponents), by name.
+    virtual PlayerRoles playerRoles() const = 0;
+    /// Says who a player is; PlayerRole::None forgets it.
+    virtual bool setPlayerRole(const QString &player, PlayerRole role, QString *errorMessage) = 0;
 
     /// External sources of games connected to the database.
     virtual QList<GameSource> sources() const = 0;

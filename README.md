@@ -38,6 +38,13 @@ game never changes it: the new line becomes an unsaved game.
 before the last move: the refutation of a mistake, the material a move wins,
 a mate it allows or misses. It starts the engine if needed.
 
+### Me, friends and opponents
+
+Right-click a player in the games list and choose *Who Is This?* ▸ *It's Me*,
+*A Friend* or *An Opponent*. The database remembers it: the tree lists your
+games, your friends and your opponents, and a game you played opens with your
+pieces at the bottom of the board.
+
 ### Sources
 
 *Database ▸ Connect Source…* connects the games of a lichess.org or chess.com

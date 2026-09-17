@@ -1,7 +1,11 @@
 #include "DatabaseOutline.h"
 
-void DatabaseOutline::add(const GameRecord &game)
+void DatabaseOutline::add(const GameRecord &game, const PlayerRoles &roles)
 {
+    for (const QString &player : {game.white, game.black}) {
+        if (const PlayerRole role = roles.value(player); role != PlayerRole::None && !player.isEmpty())
+            ++players[role][player];
+    }
     if (const QString code = ecoCode(game.eco); !code.isEmpty())
         ++eco[code.left(1)][code];
     if (const QString event = eventName(game.event); !event.isEmpty())
@@ -30,4 +34,9 @@ QString DatabaseOutline::eventName(const QString &event)
 {
     const QString name = event.trimmed();
     return name == QLatin1String("?") || name == QLatin1String("-") ? QString() : name;
+}
+
+bool DatabaseOutline::hasRole(const GameRecord &game, const PlayerRoles &roles, PlayerRole role)
+{
+    return roles.value(game.white) == role || roles.value(game.black) == role;
 }

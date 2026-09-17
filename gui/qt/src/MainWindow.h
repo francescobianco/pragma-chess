@@ -1,5 +1,8 @@
 #pragma once
 
+#include "app/PlayerRole.h"
+#include "widgets/DatabaseTreeWidget.h"
+
 #include <QDateTime>
 #include <QMainWindow>
 
@@ -8,8 +11,6 @@
 struct Project;
 
 class BoardWidget;
-class DatabaseTreeWidget;
-struct GameCategory;
 class GameFilterProxyModel;
 class QSplitter;
 class CapturedPiecesWidget;
@@ -79,6 +80,11 @@ private:
     void updateGameCount();
     /// Shows the games of a part of the database chosen in the tree.
     void showCategory(const GameCategory &category);
+    /// "Who Is This?" on a player of the games list.
+    void showGameListMenu(const QPoint &position);
+    void setPlayerRole(const QString &player, PlayerRole role);
+    /// Turns the board so the user plays from the bottom, when the database knows who they are.
+    void orientBoardForMe(const GameRecord &game);
 
     // Entering games move by move.
     void newGame();
@@ -186,6 +192,8 @@ private:
     QSplitter *m_gamesSplitter;
     /// Source whose games the list shows, or 0; its game ids change during a sync.
     qint64 m_filterSource = 0;
+    /// The part of the database the list shows, applied again when roles change.
+    GameCategory m_category;
     QLabel *m_gameCountLabel;
     QLabel *m_syncLabel;
     SourceSync *m_sourceSync;

@@ -102,9 +102,17 @@ void DatabaseTreeWidget::refresh()
         return item;
     };
 
+    const PlayerRoles roles = m_database->playerRoles();
     DatabaseOutline outline;
-    for (qint64 index = 0; index < m_database->gameCount(); ++index)
-        outline.add(m_database->header(index));
+    QMap<PlayerRole, int> roleGames;
+    for (qint64 index = 0; index < m_database->gameCount(); ++index) {
+        const GameRecord header = m_database->header(index);
+        outline.add(header, roles);
+        for (auto role = outline.players.cbegin(); role != outline.players.cend(); ++role) {
+            if (DatabaseOutline::hasRole(header, roles, role.key()))
+                ++roleGames[role.key()];
+        }
+    }
 
     QTreeWidgetItem *root = addItem(nullptr, Node::Database, m_database->name(), QVariant(),
                                     int(m_database->gameCount()));
@@ -115,6 +123,16 @@ void DatabaseTreeWidget::refresh()
     root->setFont(0, bold);
     root->setExpanded(true);
 
+    const std::pair<PlayerRole, QString> roleGroups[] = {
+        {PlayerRole::Me, tr("Me")}, {PlayerRole::Friend, tr("Friends")}, {PlayerRole::Opponent, tr("Opponents")}};
+    for (const auto &[role, title] : roleGroups) {
+        const QMap<QString, int> players = outline.players.value(role);
+        if (players.isEmpty())
+            continue;
+        QTreeWidgetItem *group = addItem(root, Node::Role, title, playerRoleKey(role), roleGames.value(role));
+        for (auto player = players.cbegin(); player != players.cend(); ++player)
+            addItem(group, Node::Player, player.key(), player.key(), player.value());
+    }
     if (!outline.eco.isEmpty()) {
         QTreeWidgetItem *group = addItem(root, Node::EcoGroup, tr("ECO"), QVariant(), -1);
         for (auto letter = outline.eco.cbegin(); letter != outline.eco.cend(); ++letter) {
@@ -171,6 +189,12 @@ void DatabaseTreeWidget::onCurrentItemChanged(QTreeWidgetItem *current)
     case Node::Tournaments:
     case Node::Years:
     case Node::Sources:
+        break;
+    case Node::Role:
+        category = {GameCategory::Kind::Role, value.toString()};
+        break;
+    case Node::Player:
+        category = {GameCategory::Kind::Player, value.toString()};
         break;
     case Node::EcoLetter:
         category = {GameCategory::Kind::EcoLetter, value.toString()};

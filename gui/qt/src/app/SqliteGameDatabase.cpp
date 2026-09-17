@@ -11,11 +11,13 @@
 #include <QUuid>
 #include <QVariant>
 
+#include <iterator>
+
 namespace {
 
 // "PRAG" — lets other tools (and `file`) identify Pragma databases.
 constexpr int kApplicationId = 0x50524147;
-constexpr int kSchemaVersion = 2;
+constexpr int kSchemaVersion = 3;
 
 const char *const kSchema[] = {
     "CREATE TABLE players (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
@@ -59,6 +61,13 @@ const char *const kSourcesSchema[] = {
     " UNIQUE (source_id, external_id))",
 };
 
+// Version 3: who players are to the user (see PlayerRole).
+const char *const kPlayerRolesSchema[] = {
+    "CREATE TABLE IF NOT EXISTS player_roles ("
+    " player_id INTEGER PRIMARY KEY REFERENCES players(id),"
+    " role TEXT NOT NULL)",
+};
+
 QString toJsonText(const QJsonObject &object)
 {
     return QString::fromUtf8(QJsonDocument(object).toJson(QJsonDocument::Compact));
@@ -78,6 +87,13 @@ void setError(QString *errorMessage, const QString &message)
 QVariant nullIfEmpty(const QString &value)
 {
     return value.isEmpty() ? QVariant() : QVariant(value);
+}
+
+/// Joined moves; a game without moves stores '' (the columns are NOT NULL, and
+/// Qt binds a null QString, which joining an empty list gives, as NULL).
+QString movesText(const QStringList &moves)
+{
+    return moves.isEmpty() ? QStringLiteral("") : moves.join(QLatin1Char(' '));
 }
 
 QVariant nullIfZero(int value)
@@ -154,8 +170,8 @@ public:
         m_insert.addBindValue(nullIfEmpty(game.eco));
         m_insert.addBindValue(int(game.moves.size()));
         m_insert.addBindValue(nullIfEmpty(game.startFen));
-        m_insert.addBindValue(san.join(QLatin1Char(' ')));
-        m_insert.addBindValue(uci.join(QLatin1Char(' ')));
+        m_insert.addBindValue(movesText(san));
+        m_insert.addBindValue(movesText(uci));
         if (!m_insert.exec())
             return 0;
         return m_insert.lastInsertId().toLongLong();
@@ -233,6 +249,10 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::create(const QString &pa
         if (!query.exec(QString::fromLatin1(statement)))
             return fail(query.lastError().text());
     }
+    for (const char *statement : kPlayerRolesSchema) {
+        if (!query.exec(QString::fromLatin1(statement)))
+            return fail(query.lastError().text());
+    }
 
     GameInserter inserter(db);
     for (const GameRecord &game : games) {
@@ -283,21 +303,26 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::open(const QString &path
     query.finish();
 
     // Upgrade older files in place; each step only adds tables.
-    if (version < 2) {
+    const auto upgrade = [&](int to, const QList<const char *> &statements) {
         db.transaction();
         bool upgraded = true;
-        for (const char *statement : kSourcesSchema)
+        for (const char *statement : statements)
             upgraded = upgraded && query.exec(QString::fromLatin1(statement));
-        upgraded = upgraded && query.exec(QStringLiteral("PRAGMA user_version = 2"));
+        upgraded = upgraded && query.exec(QStringLiteral("PRAGMA user_version = %1").arg(to));
         if (!upgraded || !db.commit()) {
             db.rollback();
             setError(errorMessage, QObject::tr("Could not upgrade “%1”: %2")
                                        .arg(info.fileName(), query.lastError().text()));
-            return nullptr;
+            return false;
         }
-    }
+        return true;
+    };
+    if (version < 2 && !upgrade(2, {std::begin(kSourcesSchema), std::end(kSourcesSchema)}))
+        return nullptr;
+    if (version < 3 && !upgrade(3, {std::begin(kPlayerRolesSchema), std::end(kPlayerRolesSchema)}))
+        return nullptr;
 
-    if (!database->loadHeaders(errorMessage))
+    if (!database->loadHeaders(errorMessage) || !database->loadPlayerRoles(errorMessage))
         return nullptr;
     return database;
 }
@@ -337,6 +362,52 @@ bool SqliteGameDatabase::loadHeaders(QString *errorMessage)
         g.startFen = query.value(12).toString();
         m_headers << g;
     }
+    return true;
+}
+
+bool SqliteGameDatabase::loadPlayerRoles(QString *errorMessage)
+{
+    QSqlQuery query(QSqlDatabase::database(m_connectionName));
+    if (!query.exec(QStringLiteral("SELECT p.name, r.role FROM player_roles r JOIN players p ON p.id = r.player_id"))) {
+        setError(errorMessage, query.lastError().text());
+        return false;
+    }
+    m_roles.clear();
+    while (query.next()) {
+        if (const PlayerRole role = playerRoleFromKey(query.value(1).toString()); role != PlayerRole::None)
+            m_roles.insert(query.value(0).toString(), role);
+    }
+    return true;
+}
+
+bool SqliteGameDatabase::setPlayerRole(const QString &player, PlayerRole role, QString *errorMessage)
+{
+    if (player.isEmpty()) {
+        setError(errorMessage, QObject::tr("The game has no player name."));
+        return false;
+    }
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    db.transaction();
+    NameTable players(db, QStringLiteral("players"));
+    const QVariant id = players.idFor(player);
+    QSqlQuery query(db);
+    if (role == PlayerRole::None) {
+        query.prepare(QStringLiteral("DELETE FROM player_roles WHERE player_id = ?"));
+        query.addBindValue(id);
+    } else {
+        query.prepare(QStringLiteral("INSERT OR REPLACE INTO player_roles (player_id, role) VALUES (?, ?)"));
+        query.addBindValue(id);
+        query.addBindValue(playerRoleKey(role));
+    }
+    if (!id.isValid() || !query.exec() || !db.commit()) {
+        setError(errorMessage, query.lastError().isValid() ? query.lastError().text() : db.lastError().text());
+        db.rollback();
+        return false;
+    }
+    if (role == PlayerRole::None)
+        m_roles.remove(player);
+    else
+        m_roles.insert(player, role);
     return true;
 }
 

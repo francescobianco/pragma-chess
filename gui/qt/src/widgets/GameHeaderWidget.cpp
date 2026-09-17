@@ -97,7 +97,6 @@ void GameHeaderWidget::setGame(const GameRecord &game, bool editable)
                                    .arg(tr("vs").toHtmlEscaped());
         m_players->setText(playerNameHtml(game.white) + versus + playerNameHtml(game.black));
     }
-    fitPlayersText();
 
     QStringList details;
     static const QRegularExpression year(QStringLiteral("^(\\d{4})"));
@@ -109,6 +108,7 @@ void GameHeaderWidget::setGame(const GameRecord &game, bool editable)
     m_detailsText = details.isEmpty() && editable ? tr("Add year and tournament")
                                                   : details.join(QStringLiteral(" · "));
     m_details->setVisible(!m_detailsText.isEmpty());
+    fitPlayersText(); // After the details text, which it also lays out.
 
     setAccessibleDescription(QStringLiteral("%1 %2 %3. %4")
                                  .arg(game.white, tr("vs"), game.black, details.join(QStringLiteral(", "))));

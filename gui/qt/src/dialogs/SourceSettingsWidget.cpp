@@ -19,7 +19,8 @@
 #include <QNetworkReply>
 #include <QProgressDialog>
 #include <QPushButton>
-#include <QRegularExpressionValidator>
+#include <QRegularExpression>
+#include <QSignalBlocker>
 #include <QTimer>
 
 SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString &sourceUuid, QWidget *parent)
@@ -59,7 +60,16 @@ SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString
         m_idType->addItem(tr("ID FSI"), QStringLiteral("fsi"));
         form->addRow(tr("&Search by:"), m_idType);
         m_account->setPlaceholderText(tr("Player ID number"));
-        m_account->setValidator(new QRegularExpressionValidator(QRegularExpression(QStringLiteral("\\d{1,12}")), m_account));
+        // Keep only the digits, so pasting " 896489 " or "ID 896489" works.
+        connect(m_account, &QLineEdit::textChanged, this, [this](const QString &text) {
+            static const QRegularExpression notDigit(QStringLiteral("\\D"));
+            QString digits = text;
+            digits.remove(notDigit);
+            if (digits != text) {
+                const QSignalBlocker blocker(m_account);
+                m_account->setText(digits);
+            }
+        });
         form->addRow(tr("&Player ID:"), m_account);
         connect(m_idType, &QComboBox::currentIndexChanged, this, &SourceSettingsWidget::changed);
     } else {

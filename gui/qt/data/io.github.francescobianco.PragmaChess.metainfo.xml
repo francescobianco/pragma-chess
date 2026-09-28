@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream metadata: how software centres (GNOME Software, Discover) show the app. -->
+<component type="desktop-application">
+  <id>io.github.francescobianco.PragmaChess</id>
+  <name>Pragma Chess</name>
+  <summary>Browse, search and analyze chess game databases</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <developer id="io.github.francescobianco">
+    <name>Francesco Bianco</name>
+  </developer>
+  <description>
+    <p>
+      Pragma Chess is an open source chess database with a native desktop client.
+      Keep your games in databases, replay them on the board, analyze them with
+      any UCI engine and let Explain draw why a move is good or bad.
+    </p>
+    <ul>
+      <li>Game databases with filters by opening, tournament, year and source</li>
+      <li>Games imported from lichess.org and chess.com</li>
+      <li>Engine analysis and training games against the engine</li>
+      <li>Opening books and named openings</li>
+      <li>Databases kept in sync across computers through FTP, WebDAV or Git</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">io.github.francescobianco.PragmaChess.desktop</launchable>
+  <url type="homepage">https://github.com/francescobianco/pragma-chess</url>
+  <url type="bugtracker">https://github.com/francescobianco/pragma-chess/issues</url>
+  <categories>
+    <category>Game</category>
+    <category>BoardGame</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <provides>
+    <binary>pragma-chess</binary>
+  </provides>
+</component>

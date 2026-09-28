@@ -3,6 +3,12 @@
 An open-source chess database engine with a native cross-platform desktop client.
 See [DESIGN.md](DESIGN.md) for the vision and architecture.
 
+## Download
+
+Installers for Windows, macOS (Apple Silicon), Debian/Ubuntu (`.deb`) and
+Fedora (`.rpm`) are on the [releases page](https://github.com/francescobianco/pragma-chess/releases).
+They are built by GitHub Actions from [packaging/](packaging/README.md).
+
 ## Desktop client (Qt 6 Widgets)
 
 The GUI lives in `gui/qt`. It talks to the database through the `GameDatabase`

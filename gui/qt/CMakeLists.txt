@@ -218,6 +218,9 @@ set_target_properties(pragma-chess PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER "${APP_ID}"
     MACOSX_BUNDLE_BUNDLE_NAME "Pragma Chess"
     MACOSX_BUNDLE_ICON_FILE pragma-chess.icns
+    MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+    MACOSX_BUNDLE_COPYRIGHT "Copyright © Francesco Bianco and contributors"
 )
 
 # Command line "Explain", for tuning it on real lines (see docs/explain-tuning.md).
@@ -254,4 +257,6 @@ if(UNIX AND NOT APPLE)
         DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
     install(DIRECTORY data/icons/hicolor
         DESTINATION ${CMAKE_INSTALL_DATADIR}/icons)
+    install(FILES data/${APP_ID}.metainfo.xml
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
 endif()

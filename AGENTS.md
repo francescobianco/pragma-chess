@@ -55,6 +55,9 @@ gui/qt/
   resources/openings/  named openings seeded as the Opening Names database
   translations/        interface translations (.ts), built with Qt Linguist tools
 docs/                  design and tuning notes (explain-tuning.md)
+packaging/             installers: windows/ (Inno Setup), macos/ (dmg), linux/
+                       (CPack .deb/.rpm), artwork; see packaging/README.md
+.github/workflows/release.yml  builds them all and publishes a release on a v* tag
 scripts/dev-watch.sh   rebuild + restart loop used by `make start`
 scripts/make-icons.py  regenerates every platform icon from data/icons/pragma-chess.png
 scripts/install-dev-desktop.sh  user menu entry + icons for the build (Wayland dock icon)
@@ -347,6 +350,10 @@ turned on, after `NewTrainingDialog` asked for the colour (`m_trainingSide`);
 
 - Keep changes focused; follow the style of the surrounding code.
 - Update README.md / this file when build steps, formats or layout change.
+- Releases: bump `PRAGMA_VERSION` in the top-level `CMakeLists.txt`, push a
+  `vX.Y.Z` tag; CI publishes the installers (see packaging/README.md). A new
+  runtime file the app needs must reach all three: `install()` for Linux,
+  the deploy steps in `packaging/windows/build.ps1` and `packaging/macos/build.sh`.
 - Commit messages: short imperative subject, blank line, then a bullet list of
   the user-visible changes (see `git log`).
 - Don't commit build output (`build/`, `target/`) or IDE files (`.idea/`).

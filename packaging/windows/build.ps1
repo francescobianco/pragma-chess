@@ -30,8 +30,11 @@ Invoke-Checked cmake $configure
 Invoke-Checked cmake @("--build", $Build)
 if ($env:SKIP_TESTS -ne "1") {
     $env:QT_QPA_PLATFORM = "offscreen"
-    & "$Build\gui\qt\tst_chessrules.exe" -o "-,txt" 2>&1 | Out-Host
-    if ($LASTEXITCODE -ne 0) { throw "tests failed with exit code $LASTEXITCODE" }
+    $log = "$Build\tests.txt"
+    & "$Build\gui\qt\tst_chessrules.exe" -o "$log,txt"
+    $code = $LASTEXITCODE
+    if (Test-Path $log) { Get-Content $log | Out-Host }
+    if ($code -ne 0) { throw "tests failed with exit code $code" }
     Remove-Item Env:QT_QPA_PLATFORM
 }
 

@@ -5,9 +5,18 @@ See [DESIGN.md](DESIGN.md) for the vision and architecture.
 
 ## Download
 
-Installers for Windows, macOS (Apple Silicon), Debian/Ubuntu (`.deb`) and
-Fedora (`.rpm`) are on the [releases page](https://github.com/francescobianco/pragma-chess/releases).
-They are built by GitHub Actions from [packaging/](packaging/README.md).
+The latest version, always at these links:
+
+| System | Download |
+|---|---|
+| Windows 10/11 (64-bit) | [Installer](https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-windows-x64-setup.exe) · [Portable zip](https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-windows-x64-portable.zip) |
+| macOS 12+ (Apple Silicon) | [Disk image](https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-macos-arm64.dmg) |
+| Ubuntu 24.04+ / Debian 13+ | [.deb](https://github.com/francescobianco/pragma-chess/releases/latest/download/pragma-chess_amd64.deb) |
+| Fedora | [.rpm](https://github.com/francescobianco/pragma-chess/releases/latest/download/pragma-chess.x86_64.rpm) |
+
+Every version, with files named after it, is on the
+[releases page](https://github.com/francescobianco/pragma-chess/releases).
+The packages are built by GitHub Actions from [packaging/](packaging/README.md).
 
 ## Desktop client (Qt 6 Widgets)
 

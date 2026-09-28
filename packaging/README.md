@@ -38,6 +38,10 @@ the top-level `CMakeLists.txt`), builds in Release, runs the tests
    the changes since the previous tag. A tag with a suffix (`v0.2.0-beta.1`)
    makes a pre-release.
 
+Each package is attached twice: with the version in its name and without
+it (`latest-names.sh`), so `https://github.com/francescobianco/pragma-chess/releases/latest/download/<name>` always downloads the latest release
+(the README links there). Keep those names stable: they are public links.
+
 Check it with `gh run watch` and `gh release view v0.2.0`. To try the
 packaging without releasing, run the workflow by hand
 (`gh workflow run release.yml`) and download the artifacts of the run.

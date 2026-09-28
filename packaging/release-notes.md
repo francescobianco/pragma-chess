@@ -17,4 +17,7 @@ cannot check it: open *System Settings ▸ Privacy & Security* and click
 **Windows:** SmartScreen may warn about an unrecognized app: click
 *More info ▸ Run anyway*.
 
-`SHA256SUMS.txt` lists the checksums of every file.
+`SHA256SUMS.txt` lists the checksums of every file. Each package is also
+attached without the version in its name (`PragmaChess-windows-x64-setup.exe`,
+…): those are the files behind the permanent "latest version" links of the
+[README](https://github.com/francescobianco/pragma-chess#download).

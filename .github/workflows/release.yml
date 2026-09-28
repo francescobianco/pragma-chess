@@ -155,6 +155,8 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+      - name: Names without the version, for the releases/latest/download links
+        run: packaging/latest-names.sh dist
       - name: Checksums
         run: cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
       - name: Publish the release

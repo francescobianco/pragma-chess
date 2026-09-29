@@ -368,6 +368,12 @@ line wins on transpositions). It can be opened and edited like any database.
   used. See `resources/openings/README.md`. `app/OpeningNames` is pure and
   unit-tested; the names are read again when the file changes.
 
+- The repertoire: right-clicking a move of the Opening Tree puts it in the
+  user's repertoire (or takes it out). It is bit 0 of the entry's 32 `learn`
+  bits (`PolyglotBook::kLearnRepertoire`), written into the `.bin` itself:
+  engines and other GUIs ignore `learn`, so the book stays a normal Polyglot
+  book. Repertoire moves are listed first whatever their weight, in bold and
+  brighter. The other `learn` bits are reserved and kept as read.
 - `app/PolyglotBook` (core library, pure, unit-tested against the reference
   keys of the format): Zobrist key (`PolyglotRandom.cpp` holds the format's
   781 random numbers), move encoding (castling as king takes rook), a

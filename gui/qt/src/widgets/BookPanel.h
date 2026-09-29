@@ -9,8 +9,9 @@ class QTreeWidget;
 
 /// Contents of the Opening Tree dock: the moves the chosen book plays in the
 /// position on the board, with the name of the opening each move leads to and
-/// its share of the book's weight. The first row always leads back up the tree,
-/// one move back. The current book and opening are shown in the Engine panel.
+/// its share of the book's weight. Moves in the user's repertoire come first,
+/// in bold and brighter; a right click puts a move in or takes it out. The first
+/// row always leads back up the tree, one move back. The current book and opening are shown in the Engine panel.
 class BookPanel : public QWidget {
     Q_OBJECT
 
@@ -30,6 +31,8 @@ Q_SIGNALS:
     void moveActivated(const ChessMove &move);
     /// The user asked to go back one move, up the tree.
     void backActivated();
+    /// The user put a book move in their repertoire or took it out (right-click menu).
+    void repertoireToggled(const ChessMove &move, bool inRepertoire);
 
 private:
     void rebuild();

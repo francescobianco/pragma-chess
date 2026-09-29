@@ -5,6 +5,7 @@
 #include "platform/SymbolicIcons.h"
 
 #include <QHeaderView>
+#include <QMenu>
 #include <QTreeWidget>
 #include <QVBoxLayout>
 
@@ -40,6 +41,21 @@ BookPanel::BookPanel(QWidget *parent)
             Q_EMIT backActivated();
         else if (row >= kFirstMoveRow && row - kFirstMoveRow < m_bookMoves.size())
             Q_EMIT moveActivated(m_bookMoves.at(row - kFirstMoveRow).move);
+    });
+
+    // Right click: the repertoire, the moves the user plays whatever the book weighs.
+    m_moves->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_moves, &QWidget::customContextMenuRequested, this, [this](const QPoint &point) {
+        QTreeWidgetItem *item = m_moves->itemAt(point);
+        const int row = item ? m_moves->indexOfTopLevelItem(item) - kFirstMoveRow : -1;
+        if (!item || !(item->flags() & Qt::ItemIsEnabled) || row < 0 || row >= m_bookMoves.size())
+            return;
+        const PolyglotBook::Move move = m_bookMoves.at(row);
+        QMenu menu(this);
+        QAction *toggle = menu.addAction(move.inRepertoire() ? tr("Remove from Repertoire")
+                                                             : tr("Add to Repertoire"));
+        if (menu.exec(m_moves->viewport()->mapToGlobal(point)) == toggle)
+            Q_EMIT repertoireToggled(move.move, !move.inRepertoire());
     });
 
     // Rows that do something show the hand, as links do.
@@ -108,6 +124,18 @@ void BookPanel::rebuild()
         const double share = total > 0 ? 100.0 * move.weight / total : 100.0 / moves.size();
         item->setText(2, QLocale().toString(share, 'f', 1) + QStringLiteral(" %"));
         item->setTextAlignment(2, Qt::AlignRight | Qt::AlignVCenter);
+        if (move.inRepertoire()) {
+            // Bold and brighter than the rest: pure white on a dark theme, pure black on a light one.
+            const bool dark = palette().color(QPalette::Base).lightness() < 128;
+            const QBrush bright(dark ? Qt::white : Qt::black);
+            for (int column = 0; column < m_moves->columnCount(); ++column) {
+                QFont font = item->font(column);
+                font.setBold(true);
+                item->setFont(column, font);
+                item->setForeground(column, bright);
+            }
+            item->setToolTip(2, tr("In your repertoire: listed first whatever the weight"));
+        }
     }
 
     if (moves.isEmpty()) { // A greyed row says why there are no moves.

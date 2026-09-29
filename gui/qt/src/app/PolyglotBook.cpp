@@ -54,37 +54,93 @@ void PolyglotBook::close()
     m_file.close();
 }
 
+qint64 PolyglotBook::lowerBound(quint64 wanted) const
+{
+    qint64 low = 0;
+    qint64 high = m_count;
+    while (low < high) {
+        const qint64 middle = low + (high - low) / 2;
+        if (qFromBigEndian<quint64>(m_data + middle * kEntrySize) < wanted)
+            low = middle + 1;
+        else
+            high = middle;
+    }
+    return low;
+}
+
 QList<PolyglotBook::Move> PolyglotBook::moves(const ChessPosition &position) const
 {
     QList<Move> result;
     if (!m_data)
         return result;
     const quint64 wanted = key(position);
-    const auto keyAt = [this](qint64 index) { return qFromBigEndian<quint64>(m_data + index * kEntrySize); };
-
-    qint64 low = 0;
-    qint64 high = m_count;
-    while (low < high) {
-        const qint64 middle = low + (high - low) / 2;
-        if (keyAt(middle) < wanted)
-            low = middle + 1;
-        else
-            high = middle;
-    }
-    for (qint64 index = low; index < m_count && keyAt(index) == wanted; ++index) {
+    for (qint64 index = lowerBound(wanted);
+         index < m_count && qFromBigEndian<quint64>(m_data + index * kEntrySize) == wanted; ++index) {
         const uchar *entry = m_data + index * kEntrySize;
         const std::optional<ChessMove> move = decodeMove(position, qFromBigEndian<quint16>(entry + 8));
         if (!move)
             continue;
         const int weight = qFromBigEndian<quint16>(entry + 10);
+        const quint32 learn = qFromBigEndian<quint32>(entry + 12);
         const auto same = std::find_if(result.begin(), result.end(), [&](const Move &m) { return m.move == *move; });
-        if (same != result.end())
+        if (same != result.end()) {
             same->weight += weight;
-        else
-            result << Move{*move, weight};
+            same->learn |= learn;
+        } else {
+            result << Move{*move, weight, learn};
+        }
     }
-    std::stable_sort(result.begin(), result.end(), [](const Move &a, const Move &b) { return a.weight > b.weight; });
+    std::stable_sort(result.begin(), result.end(), [](const Move &a, const Move &b) {
+        if (a.inRepertoire() != b.inRepertoire())
+            return a.inRepertoire();
+        return a.weight > b.weight;
+    });
     return result;
+}
+
+bool PolyglotBook::setInRepertoire(const ChessPosition &position, const ChessMove &move, bool inRepertoire,
+                                   QString *errorMessage)
+{
+    const auto fail = [&](const QString &message) {
+        if (errorMessage)
+            *errorMessage = message;
+        return false;
+    };
+    if (!m_data)
+        return fail(QObject::tr("No book is open."));
+
+    // Every entry of the move (a book may repeat one), with its new learn bits.
+    const quint64 wanted = key(position);
+    QList<std::pair<qint64, quint32>> changes;
+    for (qint64 index = lowerBound(wanted);
+         index < m_count && qFromBigEndian<quint64>(m_data + index * kEntrySize) == wanted; ++index) {
+        const uchar *entry = m_data + index * kEntrySize;
+        if (decodeMove(position, qFromBigEndian<quint16>(entry + 8)) != move)
+            continue;
+        const quint32 learn = qFromBigEndian<quint32>(entry + 12);
+        changes << std::pair{index, inRepertoire ? learn | kLearnRepertoire : learn & ~kLearnRepertoire};
+    }
+    if (changes.isEmpty())
+        return fail(QObject::tr("The move is not in the book."));
+
+    // Written through a handle of its own, with the map released, as every
+    // platform allows; the book is mapped again afterwards.
+    const QString bookPath = path();
+    close();
+    QFile file(bookPath);
+    bool written = file.open(QIODevice::ReadWrite);
+    for (const auto &[index, learn] : std::as_const(changes)) {
+        uchar bytes[4];
+        qToBigEndian(learn, bytes);
+        written = written && file.seek(index * kEntrySize + 12)
+                  && file.write(reinterpret_cast<const char *>(bytes), 4) == 4;
+    }
+    const QString writeError = file.errorString();
+    file.close();
+    QString reopenError;
+    if (!open(bookPath, &reopenError))
+        return fail(reopenError);
+    return written || fail(writeError);
 }
 
 quint64 PolyglotBook::key(const ChessPosition &position)
@@ -171,7 +227,8 @@ QByteArray PolyglotBook::write(QList<Entry> entries)
         qToBigEndian(entry.key, out);
         qToBigEndian(entry.move, out + 8);
         qToBigEndian(entry.weight, out + 10);
-        out += kEntrySize; // "learn" stays zero.
+        qToBigEndian(entry.learn, out + 12);
+        out += kEntrySize;
     }
     return data;
 }

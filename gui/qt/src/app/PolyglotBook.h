@@ -11,13 +11,23 @@
 
 /// An opening book in the Polyglot format (.bin), the one chess GUIs and
 /// engines share: 16-byte big-endian entries sorted by position key, each a
-/// move and its weight. The file is memory-mapped, so large books cost nothing
-/// to open.
+/// move, its weight and 32 "learn" bits. The file is memory-mapped, so large
+/// books cost nothing to open.
+///
+/// The format leaves `learn` to the program; engines and other GUIs write it
+/// as zero and ignore it, so our marks there keep the book usable by them:
+/// bit 0 is kLearnRepertoire, the others are reserved (keep them as read).
 class PolyglotBook {
 public:
+    /// The user's repertoire: listed first whatever the weight.
+    static constexpr quint32 kLearnRepertoire = 0x1;
+
     struct Move {
         ChessMove move;
         int weight = 0;
+        quint32 learn = 0;
+
+        bool inRepertoire() const { return learn & kLearnRepertoire; }
     };
 
     /// A move of a position with its weight, to write a book.
@@ -25,6 +35,7 @@ public:
         quint64 key = 0;
         quint16 move = 0;
         quint16 weight = 0;
+        quint32 learn = 0;
     };
 
     PolyglotBook() = default;
@@ -36,8 +47,13 @@ public:
     bool isOpen() const { return m_data != nullptr; }
     QString path() const { return m_file.fileName(); }
 
-    /// The legal book moves of a position, heaviest first.
+    /// The legal book moves of a position: repertoire moves first, then heaviest first.
     QList<Move> moves(const ChessPosition &position) const;
+    /// Marks a book move of a position as part of the user's repertoire (or
+    /// not), in the file itself. False if the move is not in the book or the
+    /// file cannot be written.
+    bool setInRepertoire(const ChessPosition &position, const ChessMove &move, bool inRepertoire,
+                         QString *errorMessage);
 
     /// The Polyglot key of a position.
     static quint64 key(const ChessPosition &position);
@@ -49,6 +65,9 @@ public:
     static QByteArray write(QList<Entry> entries);
 
 private:
+    /// Index of the first entry of `key` (or where it would be).
+    qint64 lowerBound(quint64 key) const;
+
     static const std::array<quint64, 781> kRandom;
 
     QFile m_file;

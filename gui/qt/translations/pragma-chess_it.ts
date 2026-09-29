@@ -133,6 +133,18 @@ Il Nero ha catturato: %2</translation>
         <source>The position is not in the book</source>
         <translation>La posizione non è nel libro</translation>
     </message>
+    <message>
+        <source>Remove from Repertoire</source>
+        <translation>Togli dal repertorio</translation>
+    </message>
+    <message>
+        <source>Add to Repertoire</source>
+        <translation>Metti nel repertorio</translation>
+    </message>
+    <message>
+        <source>In your repertoire: listed first whatever the weight</source>
+        <translation>Nel tuo repertorio: in cima alla lista qualunque sia il peso</translation>
+    </message>
 </context>
 <context>
     <name>CapturedPiecesWidget</name>
@@ -1544,6 +1556,14 @@ Il Nero ha catturato: %2</translation>
         <source>Duplicates</source>
         <translation>Doppioni</translation>
     </message>
+    <message>
+        <source>Repertoire</source>
+        <translation>Repertorio</translation>
+    </message>
+    <message>
+        <source>Could not change the book: %1</source>
+        <translation>Impossibile modificare il libro: %1</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>
@@ -2091,6 +2111,14 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>Could not read a game of “%1”.</source>
         <translation>Impossibile leggere una partita di “%1”.</translation>
+    </message>
+    <message>
+        <source>No book is open.</source>
+        <translation>Nessun libro aperto.</translation>
+    </message>
+    <message>
+        <source>The move is not in the book.</source>
+        <translation>La mossa non è nel libro.</translation>
     </message>
 </context>
 <context>

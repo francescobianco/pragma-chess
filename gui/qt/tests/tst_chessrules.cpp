@@ -1229,6 +1229,49 @@ private Q_SLOTS:
         QVERIFY(!book.isOpen());
     }
 
+    void keepsARepertoireInPolyglotBooks()
+    {
+        const ChessPosition start = ChessPosition::startingPosition();
+        const quint64 startKey = PolyglotBook::key(start);
+        const ChessMove e4 = *start.moveFromUci(u"e2e4");
+        const ChessMove d4 = *start.moveFromUci(u"d2d4");
+        // d4 is lighter and carries a reserved learn bit another tool may have set.
+        const QList<PolyglotBook::Entry> entries{
+            {startKey, PolyglotBook::encodeMove(start, d4), 30, 0x80},
+            {startKey, PolyglotBook::encodeMove(start, e4), 70, 0},
+        };
+        QTemporaryDir dir;
+        const QString path = dir.filePath(QStringLiteral("book.bin"));
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write(PolyglotBook::write(entries));
+        file.close();
+
+        PolyglotBook book;
+        QString error;
+        QVERIFY2(book.open(path, &error), qPrintable(error));
+        QCOMPARE(book.moves(start).at(0).move, e4);
+        QVERIFY(!book.moves(start).at(1).inRepertoire());
+
+        // In the repertoire it comes first whatever the weight, and stays so when the book is opened again.
+        QVERIFY2(book.setInRepertoire(start, d4, true, &error), qPrintable(error));
+        QVERIFY(book.isOpen());
+        QCOMPARE(book.moves(start).at(0).move, d4);
+        QVERIFY(book.moves(start).at(0).inRepertoire());
+        PolyglotBook reopened;
+        QVERIFY(reopened.open(path, &error));
+        QCOMPARE(reopened.moves(start).at(0).move, d4);
+        QCOMPARE(reopened.moves(start).at(0).learn, quint32(0x81));
+        QCOMPARE(reopened.moves(start).at(0).weight, 30);
+        reopened.close();
+
+        QVERIFY(book.setInRepertoire(start, d4, false, &error));
+        QCOMPARE(book.moves(start).at(0).move, e4);
+        QCOMPARE(book.moves(start).at(1).learn, quint32(0x80));
+        // A move the book does not have cannot be marked.
+        QVERIFY(!book.setInRepertoire(start, *start.moveFromUci(u"g1f3"), true, &error));
+    }
+
     void parsesTorneiOnlinePages()
     {
         // Latin-1 page text around UTF-8 data from the site's database.

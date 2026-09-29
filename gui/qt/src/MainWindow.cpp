@@ -800,6 +800,12 @@ void MainWindow::createDocks()
     m_bookPanel = new BookPanel;
     connect(m_bookPanel, &BookPanel::moveActivated, this, &MainWindow::playMove);
     connect(m_bookPanel, &BookPanel::backActivated, m_session, &GameSession::goBack);
+    connect(m_bookPanel, &BookPanel::repertoireToggled, this, [this](const ChessMove &move, bool inRepertoire) {
+        QString error;
+        if (!m_book || !m_book->setInRepertoire(m_session->position(), move, inRepertoire, &error))
+            QMessageBox::warning(this, tr("Repertoire"), tr("Could not change the book: %1").arg(error));
+        updateBookMoves();
+    });
     m_openingTreeDock = addDock(m_sidebar, QStringLiteral("openingTreeDock"), tr("Opening Tree"), m_bookPanel,
                                 Qt::RightDockWidgetArea);
     // The panels speak for themselves: no title bars (the names stay in the View menu).

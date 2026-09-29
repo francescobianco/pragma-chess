@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -27,6 +28,8 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
@@ -123,12 +126,22 @@ fun ChessBoard(
         return true
     }
 
+    // What the draw phase needs, worked out once per change instead of once per frame.
+    val targets = remember(position, selected) {
+        if (selected < 0) emptyList() else position.legalMoves().filter { it.from == selected }.distinctBy { it.to }
+    }
+    val checkedKing = remember(position) { if (position.isCheck) position.kingSquare(position.sideToMove) else -1 }
+
     BoxWithConstraints(modifier.aspectRatio(1f)) {
         val sidePx = constraints.maxWidth.toFloat()
+        val coordinates = remember(sidePx, flipped, measurer) { measureCoordinates(measurer, sidePx / 8, flipped) }
         Canvas(
             Modifier
                 .aspectRatio(1f)
                 .fillMaxWidth()
+                // Rendered once into a texture and reused: while a piece is
+                // dragged only its own small layer moves over it.
+                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                 .pointerInput(position, flipped) {
                     awaitEachGesture {
                         val down = awaitFirstDown()
@@ -186,7 +199,7 @@ fun ChessBoard(
                         drawRect(BoardColors.lastMove, topLeft(square), Size(size, size))
                     }
                 }
-                drawCoordinates(measurer, size, flipped)
+                for ((text, at) in coordinates) drawText(text, topLeft = at)
                 if (selected >= 0) drawRect(BoardColors.selected, topLeft(selected), Size(size, size))
             }
             drawRoundRect(frameColor, topLeft = Offset(-1.dp.toPx(), -1.dp.toPx()),
@@ -194,14 +207,11 @@ fun ChessBoard(
                 cornerRadius = CornerRadius(corner + 1.dp.toPx()), style = Stroke(2.dp.toPx()))
 
             // A king in check glows red under the piece, as on the desktop.
-            if (position.isCheck) {
-                val king = position.kingSquare(position.sideToMove)
-                if (king >= 0) {
-                    val center = topLeft(king) + Offset(size / 2, size / 2)
-                    drawCircle(Brush.radialGradient(
-                        listOf(BoardColors.check.copy(alpha = 0.85f), BoardColors.check.copy(alpha = 0.5f), Color.Transparent),
-                        center, size * 0.6f), size * 0.6f, center)
-                }
+            if (checkedKing >= 0) {
+                val center = topLeft(checkedKing) + Offset(size / 2, size / 2)
+                drawCircle(Brush.radialGradient(
+                    listOf(BoardColors.check.copy(alpha = 0.85f), BoardColors.check.copy(alpha = 0.5f), Color.Transparent),
+                    center, size * 0.6f), size * 0.6f, center)
             }
             for (square in 0 until 64) {
                 val piece = position.pieceAt(square)
@@ -209,7 +219,7 @@ fun ChessBoard(
                 drawPiece(pieces.getValue(piece), topLeft(square), size)
             }
             if (selected >= 0) {
-                for (move in position.legalMoves().filter { it.from == selected }.distinctBy { it.to }) {
+                for (move in targets) {
                     val center = topLeft(move.to) + Offset(size / 2, size / 2)
                     if (position.pieceAt(move.to) != Piece.NONE) {
                         drawCircle(BoardColors.moveHint, size * 0.46f, center, style = Stroke(size * 0.08f))
@@ -218,11 +228,20 @@ fun ChessBoard(
                     }
                 }
             }
-            if (dragFrom >= 0) {
-                val piece = position.pieceAt(dragFrom)
-                // Lifted a little above the finger, so it stays visible.
-                val lifted = size * 1.25f
-                drawPiece(pieces.getValue(piece), dragAt - Offset(lifted / 2, lifted * 0.9f), lifted)
+        }
+        if (dragFrom >= 0) {
+            // The dragged piece is a layer of its own that only moves: the
+            // board under it is not drawn again while the finger slides.
+            val image = pieces.getValue(position.pieceAt(dragFrom))
+            val lifted = sidePx / 8 * 1.25f
+            val liftedDp = with(androidx.compose.ui.platform.LocalDensity.current) { lifted.toDp() }
+            Canvas(
+                Modifier
+                    .size(liftedDp)
+                    // Lifted a little above the finger, so it stays visible.
+                    .offset { IntOffset((dragAt.x - lifted / 2).roundToInt(), (dragAt.y - lifted * 0.9f).roundToInt()) },
+            ) {
+                drawPiece(image, Offset.Zero, this.size.width)
             }
         }
     }
@@ -244,9 +263,17 @@ private fun DrawScope.drawPiece(image: ImageBitmap, topLeft: Offset, size: Float
     )
 }
 
-private fun DrawScope.drawCoordinates(measurer: androidx.compose.ui.text.TextMeasurer, size: Float, flipped: Boolean) {
+/** The file letters along the bottom and the rank numbers along the left, laid out once per size. */
+private fun measureCoordinates(
+    measurer: androidx.compose.ui.text.TextMeasurer,
+    size: Float,
+    flipped: Boolean,
+): List<Pair<androidx.compose.ui.text.TextLayoutResult, Offset>> {
     val pad = size * 0.05f
-    val fontSize = (size * 0.16f).coerceAtLeast(8.dp.toPx())
+    val fontPx = (size * 0.16f).coerceAtLeast(16f)
+    // Pixels as sp at density 1: the layout is drawn in the canvas's pixels.
+    val density = androidx.compose.ui.unit.Density(1f)
+    val result = ArrayList<Pair<androidx.compose.ui.text.TextLayoutResult, Offset>>(16)
     for (i in 0..7) {
         val bottomSquare = if (flipped) 63 - i else i
         val leftSquare = if (flipped) 63 - i * 8 else i * 8
@@ -254,15 +281,18 @@ private fun DrawScope.drawCoordinates(measurer: androidx.compose.ui.text.TextMea
         val leftLight = (Square.rank(leftSquare) + Square.file(leftSquare)) % 2 == 1
         val fileText = measurer.measure(
             ('a' + Square.file(bottomSquare)).toString(),
-            TextStyle(color = if (bottomLight) BoardColors.dark else BoardColors.light, fontSize = (fontSize / density / fontScale).sp, fontWeight = FontWeight.Bold),
+            TextStyle(color = if (bottomLight) BoardColors.dark else BoardColors.light, fontSize = fontPx.sp, fontWeight = FontWeight.Bold),
+            density = density,
         )
-        drawText(fileText, topLeft = Offset((i + 1) * size - pad - fileText.size.width, 8 * size - pad - fileText.size.height))
+        result += fileText to Offset((i + 1) * size - pad - fileText.size.width, 8 * size - pad - fileText.size.height)
         val rankText = measurer.measure(
             ('1' + Square.rank(leftSquare)).toString(),
-            TextStyle(color = if (leftLight) BoardColors.dark else BoardColors.light, fontSize = (fontSize / density / fontScale).sp, fontWeight = FontWeight.Bold),
+            TextStyle(color = if (leftLight) BoardColors.dark else BoardColors.light, fontSize = fontPx.sp, fontWeight = FontWeight.Bold),
+            density = density,
         )
-        drawText(rankText, topLeft = Offset(pad, (7 - i) * size + pad))
+        result += rankText to Offset(pad, (7 - i) * size + pad)
     }
+    return result
 }
 
 @Composable

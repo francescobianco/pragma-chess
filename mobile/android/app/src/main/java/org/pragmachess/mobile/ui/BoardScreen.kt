@@ -133,7 +133,7 @@ fun BoardScreen(vm: AppViewModel, snackbar: SnackbarHostState, onMenu: () -> Uni
         val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
         val board: @Composable (Modifier) -> Unit = { modifier ->
             Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (vm.engineOn) {
+                if (vm.engineOn && vm.engineReady) {
                     EvaluationBar(vm.analysis, vm.flipped, Modifier.width(18.dp).fillMaxHeight())
                 }
                 ChessBoard(
@@ -147,18 +147,20 @@ fun BoardScreen(vm: AppViewModel, snackbar: SnackbarHostState, onMenu: () -> Uni
         }
         val panel: @Composable (Modifier) -> Unit = { modifier ->
             Column(modifier) {
-                if (vm.engineOn) EngineLine(vm.analysis, position)
+                if (vm.engineOn) {
+                    if (vm.engineReady) EngineLine(vm.analysis, position) else NoEngine(vm)
+                }
                 MoveList(line, ply, vm::goTo, Modifier.weight(1f).fillMaxWidth())
             }
         }
         if (landscape) {
             Row(Modifier.padding(padding).fillMaxSize().padding(8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                board(Modifier.fillMaxHeight().aspectRatioBoard(vm.engineOn))
+                board(Modifier.fillMaxHeight().aspectRatioBoard(vm.engineOn && vm.engineReady))
                 panel(Modifier.weight(1f).fillMaxHeight())
             }
         } else {
             Column(Modifier.padding(padding).fillMaxSize()) {
-                board(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).aspectRatioBoard(vm.engineOn))
+                board(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).aspectRatioBoard(vm.engineOn && vm.engineReady))
                 panel(Modifier.weight(1f).fillMaxWidth())
             }
         }
@@ -176,11 +178,11 @@ private fun Modifier.aspectRatioBoard(withBar: Boolean): Modifier = aspectRatio(
 @Composable
 private fun EngineLine(analysis: Analysis?, position: Position) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
-        val text = if (analysis == null) {
-            stringResource(R.string.engine_thinking)
-        } else {
-            val line = pvText(position, analysis.pv, 10)
-            "${analysis.text}  d${analysis.depth}  $line"
+        val thinking = stringResource(R.string.engine_thinking)
+        // Replaying the line to write it is work: once per update, not per recomposition.
+        val text = remember(analysis, position) {
+            if (analysis == null) thinking
+            else "${analysis.text}  d${analysis.depth}  ${pvText(position, analysis.pv, 10)}"
         }
         Text(
             text,
@@ -190,6 +192,20 @@ private fun EngineLine(analysis: Analysis?, position: Position) {
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
         )
+    }
+}
+
+/** Engine on, none installed: say so and offer one. */
+@Composable
+private fun NoEngine(vm: AppViewModel) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+            Text(stringResource(R.string.engine_none), style = MaterialTheme.typography.bodyMedium)
+            androidx.compose.material3.TextButton(onClick = { vm.installEngine(context) }) {
+                Text(stringResource(R.string.engine_install))
+            }
+        }
     }
 }
 

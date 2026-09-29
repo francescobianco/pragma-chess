@@ -3,6 +3,7 @@
 #include "Nip44.h"
 #include "NostrEvent.h"
 #include "NostrRelayPool.h"
+#include "PhoneGameStore.h"
 #include "PhoneLinkSession.h"
 
 #include <QDir>
@@ -84,6 +85,14 @@ void PhoneLink::setRelays(const QStringList &relays)
 void PhoneLink::setIceServers(const QStringList &servers)
 {
     m_iceServers = servers;
+}
+
+QList<PhoneFiles::Entry> PhoneLink::listFiles()
+{
+    PhoneFiles::Describe describe;
+    if (m_gameStore)
+        describe = [store = m_gameStore](const QString &path) { return store->describe(path); };
+    return m_files.list(describe);
 }
 
 void PhoneLink::setComputerName(const QString &name)

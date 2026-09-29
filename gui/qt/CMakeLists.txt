@@ -107,11 +107,15 @@ set(APP_ID "io.github.francescobianco.PragmaChess")
 qt_add_library(pragma-chess-core STATIC
     src/app/AdvantageProbe.cpp
     src/app/AdvantageProbe.h
+    src/app/BoardSettings.cpp
+    src/app/BoardSettings.h
     src/app/BoardState.cpp
     src/app/BoardState.h
     src/app/ChessPosition.cpp
     src/app/ChessPosition.h
     src/app/DatabaseOutline.cpp
+    src/app/DatabaseDedupe.cpp
+    src/app/DatabaseDedupe.h
     src/app/DatabaseProperties.cpp
     src/app/DatabaseOutline.h
     src/app/EngineCatalog.cpp
@@ -124,6 +128,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/Explainer.h
     src/app/ExplanationSearch.cpp
     src/app/ExplanationSearch.h
+    src/app/GameIdentity.cpp
+    src/app/GameIdentity.h
     src/app/MoveExplanation.cpp
     src/app/MoveExplanation.h
     src/app/OpeningNames.cpp
@@ -135,6 +141,10 @@ qt_add_library(pragma-chess-core STATIC
     src/app/PolyglotBook.cpp
     src/app/PolyglotBook.h
     src/app/PolyglotRandom.cpp
+    src/app/Reconcile.cpp
+    src/app/Reconcile.h
+    src/app/ShippedOpeningNames.cpp
+    src/app/ShippedOpeningNames.h
     src/app/UciEngine.cpp
     src/app/UciEngine.h
     src/app/UiLanguage.cpp
@@ -240,6 +250,8 @@ qt_add_executable(pragma-chess
     src/dialogs/ManageEnginesDialog.h
     src/dialogs/ManageSourcesDialog.cpp
     src/dialogs/ManageSourcesDialog.h
+    src/dialogs/BoardSettingsDialog.cpp
+    src/dialogs/BoardSettingsDialog.h
     src/dialogs/DatabaseSettingsDialog.cpp
     src/dialogs/DatabaseSettingsDialog.h
     src/dialogs/NewTrainingDialog.cpp
@@ -256,6 +268,8 @@ qt_add_executable(pragma-chess
     src/app/Project.h
     src/app/GameSession.cpp
     src/app/GameSession.h
+    src/app/DatabaseMerge.cpp
+    src/app/DatabaseMerge.h
     src/app/SqliteGameDatabase.cpp
     src/app/SqliteGameDatabase.h
     src/app/UserFolders.cpp
@@ -275,6 +289,8 @@ qt_add_executable(pragma-chess
     src/widgets/BookPanel.cpp
     src/widgets/BookPanel.h
     src/widgets/BoardWidget.cpp
+    src/widgets/BoardSideColumn.cpp
+    src/widgets/BoardSideColumn.h
     src/widgets/CapturedPiecesWidget.cpp
     src/widgets/CapturedPiecesWidget.h
     src/widgets/PaddedHeaderView.cpp
@@ -326,9 +342,10 @@ endif()
 
 # The opening book seeded into the Books folder on first launch.
 qt_add_resources(pragma-chess books PREFIX /books BASE resources/books FILES resources/books/pragma-openings.bin)
-# The named openings seeded as the Opening Names database on first launch.
+# The opening names databases (English, Italian) seeded into Books/Opening Names.
 qt_add_resources(pragma-chess openings PREFIX /openings BASE resources/openings
-    FILES resources/openings/opening-names.pdb resources/openings/lichess-openings.tsv)
+    FILES resources/openings/opening-names.pdb resources/openings/lichess-openings.tsv
+          resources/openings/opening-names-it.pdb resources/openings/lichess-openings-it.tsv)
 # SkakNew figurines for the move list (scripts/make-figurine-font.py).
 qt_add_resources(pragma-chess fonts PREFIX /fonts BASE resources/fonts FILES resources/fonts/pragma-figurine.otf)
 qt_add_resources(pragma-chess appicon PREFIX /icons BASE data/icons FILES ${APP_ICON_FILES})
@@ -393,6 +410,8 @@ endif()
 # Tested without a display.
 if(TARGET Qt6::Test)
     qt_add_executable(tst_chessrules tests/tst_chessrules.cpp
+        src/app/DatabaseMerge.cpp
+        src/app/DatabaseMerge.h
         src/app/SqliteGameDatabase.cpp
         src/app/SqliteGameDatabase.h)
     target_link_libraries(tst_chessrules PRIVATE pragma-chess-core Qt6::Sql Qt6::Test)

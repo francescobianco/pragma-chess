@@ -2,6 +2,7 @@
 
 #include <QWidget>
 
+class BoardSideColumn;
 class BoardWidget;
 class CapturedPiecesWidget;
 class EvaluationBar;
@@ -10,8 +11,9 @@ class QAction;
 class QToolButton;
 
 /// The board with the game header above, the evaluation bar on its left, the
-/// turn and captured pieces on its right and the game controls directly
-/// underneath. The board stays
+/// turn (and the captured pieces, by default) on its right and the game
+/// controls directly underneath (captured pieces at the far left, when Board
+/// Settings puts them there). The board stays
 /// square and the control bar always matches its width, whatever the space.
 /// Its ideal width follows the height available to the board (see
 /// widthForHeight), so the board fills the panel without empty space.
@@ -30,7 +32,11 @@ public:
     };
 
     BoardPanel(BoardWidget *board, EvaluationBar *evaluationBar, GameHeaderWidget *header,
-               CapturedPiecesWidget *capturedPieces, const Actions &actions, QWidget *parent = nullptr);
+               CapturedPiecesWidget *capturedPieces, BoardSideColumn *sideColumn, const Actions &actions,
+               QWidget *parent = nullptr);
+
+    /// Captured pieces under the board, at the left of the controls, instead of beside it.
+    void setCapturedPiecesBelow(bool below);
 
     /// Width at which the board fills the panel for the given height.
     int widthForHeight(int height) const;
@@ -49,5 +55,6 @@ private:
     EvaluationBar *m_evaluationBar;
     GameHeaderWidget *m_header;
     CapturedPiecesWidget *m_capturedPieces;
+    BoardSideColumn *m_sideColumn;
     QWidget *m_controls;
 };

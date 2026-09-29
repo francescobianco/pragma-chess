@@ -15,6 +15,7 @@
 #include <QJsonDocument>
 #include <QSignalSpy>
 #include <QTemporaryDir>
+#include <QUuid>
 #include <QTest>
 
 #include <rtc/rtc.hpp>
@@ -151,9 +152,11 @@ GameRecord scholarsMate()
     return game;
 }
 
+/// A game from a phone; the id also names the round, so games differ.
 QJsonObject phoneGame(const QString &id)
 {
     return {{QStringLiteral("id"), id},
+            {QStringLiteral("round"), id},
             {QStringLiteral("white"), QStringLiteral("Me")},
             {QStringLiteral("black"), QStringLiteral("Friend")},
             {QStringLiteral("date"), QStringLiteral("2026.09.29")},
@@ -181,6 +184,9 @@ private Q_SLOTS:
     void resolvesOnlyDatabasesInsideTheFolder();
     void parsesPhoneGames();
     void storesPhoneGamesOnce();
+    void reconcilesPhoneGamesByUid();
+    void findsWhereAPutGoes();
+    void describesDatabasesWithAnId();
     void pairsListsGetsAndPutsEndToEnd();
 };
 
@@ -380,25 +386,122 @@ void PhoneLinkTest::storesPhoneGamesOnce()
     const QList<ImportedGame> games =
         *PhoneGames::parse({phoneGame(QStringLiteral("a")), phoneGame(QStringLiteral("b"))}, &error);
 
-    std::optional<PhoneGames::PutResult> result = store.storeGames(path, QStringLiteral("key"), QStringLiteral("Pixel"),
-                                                                    games, &error);
+    std::optional<PhoneGames::PutResult> result =
+        store.storeGames(path, {}, QStringLiteral("key"), QStringLiteral("Pixel"), games, &error);
     QVERIFY2(result, qPrintable(error));
     QCOMPARE(result->stored, 2);
     QCOMPARE(result->known, 0);
-    result = store.storeGames(path, QStringLiteral("key"), QStringLiteral("Pixel"), games, &error);
+    result = store.storeGames(path, {}, QStringLiteral("key"), QStringLiteral("Pixel"), games, &error);
     QVERIFY(result);
     QCOMPARE(result->stored, 0);
     QCOMPARE(result->known, 2);
-    // Another phone's games with the same ids are its own.
-    result = store.storeGames(path, QStringLiteral("other"), QStringLiteral("Tablet"), games.mid(0, 1), &error);
-    QCOMPARE(result->stored, 1);
+    // The same game from another phone is the same game: one corpus.
+    result = store.storeGames(path, {}, QStringLiteral("other"), QStringLiteral("Tablet"), games.mid(0, 1), &error);
+    QCOMPARE(result->stored, 0);
+    QCOMPARE(result->known, 1);
 
     const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(path, &error);
     QVERIFY(database);
-    QCOMPARE(database->gameCount(), 3);
+    QCOMPARE(database->gameCount(), 2);
+    QCOMPARE(database->header(0).uid, games.at(0).game.uid);
+    QVERIFY(!database->properties().id.isEmpty());
     QCOMPARE(database->sources().size(), 2);
     QCOMPARE(database->sources().first().kind, QStringLiteral("phone"));
     QCOMPARE(database->loadGame(0)->moves.size(), 4);
+}
+
+void PhoneLinkTest::reconcilesPhoneGamesByUid()
+{
+    QTemporaryDir dir;
+    QString error;
+    const QString path = dir.filePath(QStringLiteral("Club.pdb"));
+    DatabaseFolderStore store;
+    DatabaseProperties properties;
+    properties.id = QStringLiteral("11111111-2222-4333-8444-555555555555");
+    properties.description = QStringLiteral("From the phone");
+
+    QJsonObject game = phoneGame(QStringLiteral("x"));
+    game.remove(QStringLiteral("id"));
+    game.insert(QStringLiteral("uid"), QStringLiteral("AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE")); // Case does not matter.
+    game.insert(QStringLiteral("modified"), QStringLiteral("2026-09-29T10:00:00.000Z"));
+    std::optional<PhoneGames::PutResult> result = store.storeGames(
+        path, properties, QStringLiteral("key"), QStringLiteral("Pixel"), *PhoneGames::parse({game}, &error), &error);
+    QVERIFY2(result, qPrintable(error));
+    QCOMPARE(result->stored, 1);
+
+    // An older, different version loses; the conflict is reported.
+    QJsonObject older = game;
+    older.insert(QStringLiteral("white"), QStringLiteral("Someone else"));
+    older.insert(QStringLiteral("modified"), QStringLiteral("2026-09-28T10:00:00.000Z"));
+    result = store.storeGames(path, properties, QStringLiteral("key"), QStringLiteral("Pixel"),
+                              *PhoneGames::parse({older}, &error), &error);
+    QVERIFY(result);
+    QCOMPARE(result->known, 1);
+    QCOMPARE(result->updated, 0);
+    QCOMPARE(result->conflicts, QStringList{QStringLiteral("aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee")});
+
+    // A newer one wins, keeping its uid.
+    QJsonObject newer = older;
+    newer.insert(QStringLiteral("modified"), QStringLiteral("2026-09-30T10:00:00.000Z"));
+    result = store.storeGames(path, properties, QStringLiteral("key"), QStringLiteral("Pixel"),
+                              *PhoneGames::parse({newer}, &error), &error);
+    QVERIFY(result);
+    QCOMPARE(result->updated, 1);
+    QCOMPARE(result->updatedIndexes, QList<qint64>{0});
+
+    const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(path, &error);
+    QVERIFY(database);
+    QCOMPARE(database->gameCount(), 1);
+    QCOMPARE(database->header(0).white, QStringLiteral("Someone else"));
+    QCOMPARE(database->header(0).uid, QStringLiteral("aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"));
+    QCOMPARE(database->properties().id, properties.id);
+    QCOMPARE(database->properties().description, QStringLiteral("From the phone"));
+
+    QJsonObject bad = game;
+    bad.insert(QStringLiteral("uid"), QStringLiteral("not-a-uuid"));
+    QVERIFY(!PhoneGames::parse({bad}, &error));
+}
+
+void PhoneLinkTest::findsWhereAPutGoes()
+{
+    const QString mine = QStringLiteral("11111111-1111-4111-8111-111111111111");
+    const QString other = QStringLiteral("22222222-2222-4222-8222-222222222222");
+    const QList<PhoneFiles::Entry> entries{
+        {QStringLiteral("Renamed.pdb"), 1, QStringLiteral("a"), {}, mine, 3},
+        {QStringLiteral("Le mie partite.pdb"), 1, QStringLiteral("b"), {}, other, 2},
+        {QStringLiteral("Old.pdb"), 1, QStringLiteral("c"), {}, QString(), 0},
+    };
+    const auto target = [&](const QString &lineage, const QString &name) {
+        const PhoneFiles::Target found = PhoneFiles::target(entries, lineage, name, QStringLiteral("Pixel: 9"));
+        return std::pair{found.name, found.exists};
+    };
+    // By lineage, whatever the name.
+    QCOMPARE(target(mine, QStringLiteral("Le mie partite.pdb")), std::pair(QStringLiteral("Renamed.pdb"), true));
+    // A name taken by another lineage: both are kept.
+    const QString third = QStringLiteral("33333333-3333-4333-8333-333333333333");
+    QCOMPARE(target(third, QStringLiteral("Le mie partite.pdb")),
+             std::pair(QStringLiteral("Le mie partite (Pixel- 9).pdb"), false));
+    // A file without an id yet becomes the lineage; a new name is a new file.
+    QCOMPARE(target(third, QStringLiteral("Old.pdb")), std::pair(QStringLiteral("Old.pdb"), true));
+    QCOMPARE(target(third, QStringLiteral("New.pdb")), std::pair(QStringLiteral("New.pdb"), false));
+}
+
+void PhoneLinkTest::describesDatabasesWithAnId()
+{
+    QTemporaryDir dir;
+    QString error;
+    QVERIFY(SqliteGameDatabase::create(dir.filePath(QStringLiteral("A.pdb")), {}, &error));
+    DatabaseFolderStore store;
+    PhoneFiles files(dir.path());
+    const QList<PhoneFiles::Entry> entries =
+        files.list([&store](const QString &path) { return store.describe(path); });
+    QCOMPARE(entries.size(), 1);
+    QVERIFY(!QUuid::fromString(entries.first().id).isNull());
+    QCOMPARE(entries.first().games, 0);
+    QCOMPARE(entries.first().toJson().value(QStringLiteral("id")).toString(), entries.first().id);
+    // The id stays: listing again (or on another day) gives the same one.
+    QCOMPARE(files.list([&store](const QString &path) { return store.describe(path); }).first().id,
+             entries.first().id);
 }
 
 void PhoneLinkTest::pairsListsGetsAndPutsEndToEnd()
@@ -454,6 +557,9 @@ void PhoneLinkTest::pairsListsGetsAndPutsEndToEnd()
     const QJsonArray files = list.value(QStringLiteral("files")).toArray();
     QCOMPARE(files.size(), 1);
     QCOMPARE(files.first().toObject().value(QStringLiteral("name")).toString(), QStringLiteral("Classic.pdb"));
+    const QString classicId = files.first().toObject().value(QStringLiteral("id")).toString();
+    QVERIFY(!classicId.isEmpty());
+    QCOMPARE(files.first().toObject().value(QStringLiteral("games")).toInt(), 1);
 
     phone.sendJson({{QStringLiteral("op"), QStringLiteral("get")}, {QStringLiteral("name"), QStringLiteral("Classic.pdb")}});
     const QJsonObject header = next();
@@ -477,6 +583,17 @@ void PhoneLinkTest::pairsListsGetsAndPutsEndToEnd()
     QCOMPARE(answer.value(QStringLiteral("stored")).toInt(), 0);
     QCOMPARE(answer.value(QStringLiteral("known")).toInt(), 1);
     QVERIFY(QFile::exists(databases + QStringLiteral("/Le mie partite.pdb")));
+
+    // Addressed by lineage: the phone's copy of Classic, under another name, lands in Classic.pdb.
+    phone.sendJson({{QStringLiteral("op"), QStringLiteral("put")},
+                    {QStringLiteral("db"), classicId},
+                    {QStringLiteral("name"), QStringLiteral("Classici.pdb")},
+                    {QStringLiteral("games"), QJsonArray{phoneGame(QStringLiteral("p2"))}}});
+    answer = next();
+    QCOMPARE(answer.value(QStringLiteral("name")).toString(), QStringLiteral("Classic.pdb"));
+    QCOMPARE(answer.value(QStringLiteral("db")).toString(), classicId);
+    QCOMPARE(answer.value(QStringLiteral("stored")).toInt(), 1);
+    QVERIFY(!QFile::exists(databases + QStringLiteral("/Classici.pdb")));
     QVERIFY(link.devices().first().lastSyncAt.isValid());
 
     // Unpairing the last phone stops listening once the dialog is closed.

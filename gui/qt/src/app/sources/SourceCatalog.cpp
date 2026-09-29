@@ -9,10 +9,11 @@
 
 namespace {
 
-QString tr(const char *text)
-{
-    return QCoreApplication::translate("SourceCatalog", text);
-}
+/// Translation context of the texts below: lupdate cannot see the context of
+/// tr() in a free function, so it goes through this class.
+struct Text {
+    Q_DECLARE_TR_FUNCTIONS(SourceCatalog)
+};
 
 } // namespace
 
@@ -22,12 +23,12 @@ QList<SourceKind> kinds()
 {
     return {
         {QStringLiteral("lichess"), QStringLiteral("lichess.org"),
-         tr("Games played on lichess.org by an account. Needs signing in to lichess.org."), true},
+         Text::tr("Games played on lichess.org by an account. Needs signing in to lichess.org."), true},
         {QStringLiteral("chesscom"), QStringLiteral("chess.com"),
-         tr("Games played on chess.com by an account, from its public archives."), false},
+         Text::tr("Games played on chess.com by an account, from its public archives."), false},
         {QStringLiteral("torneionline"), QStringLiteral("torneionline.com"),
-         tr("Tournament games of a player rated in Italy, by FIDE or FSI ID: players, round and result, "
-            "without moves."),
+         Text::tr("Tournament games of a player rated in Italy, by FIDE or FSI ID: players, round and result, "
+                  "without moves."),
          false, true},
     };
 }
@@ -46,7 +47,7 @@ QString displayName(const GameSource &source)
     const std::optional<SourceKind> sourceKind = kind(source.kind);
     // Games sent by a paired phone (Phone Link): not a kind one connects.
     if (!sourceKind && source.kind == QLatin1String("phone"))
-        return tr("Phone · %1").arg(source.account);
+        return Text::tr("Phone · %1").arg(source.account);
     const QString name = sourceKind ? sourceKind->name : source.kind;
     if (sourceKind && sourceKind->playerId) {
         const QString idType =

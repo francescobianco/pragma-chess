@@ -1,7 +1,11 @@
 #include "MainWindow.h"
 
 #include "app/ClassicGames.h"
+#include "app/GameIdentity.h"
 #include "app/OpeningNames.h"
+#include "app/DatabaseMerge.h"
+#include "app/ShippedOpeningNames.h"
+#include "dialogs/BoardSettingsDialog.h"
 #include "dialogs/DatabaseSettingsDialog.h"
 #include "app/PolyglotBook.h"
 #include "app/DatabaseOutline.h"
@@ -39,6 +43,7 @@
 #include "widgets/PaddedHeaderView.h"
 #include "widgets/PaddedItemDelegate.h"
 #include "widgets/BoardWidget.h"
+#include "widgets/BoardSideColumn.h"
 #include "widgets/CapturedPiecesWidget.h"
 #include "widgets/CentralArea.h"
 #include "widgets/DatabaseTreeWidget.h"
@@ -129,6 +134,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_evaluationBar(new EvaluationBar)
     , m_gameHeader(new GameHeaderWidget)
     , m_capturedPieces(new CapturedPiecesWidget)
+    , m_boardSideColumn(new BoardSideColumn)
     , m_engine(new UciEngine(this))
     , m_explainer(new Explainer(this))
     , m_sourceSync(new SourceSync(this))
@@ -145,10 +151,11 @@ MainWindow::MainWindow(QWidget *parent)
     m_gameListProxy->setSortRole(Qt::DisplayRole);
 
     createActions();
-    auto *boardPanel = new BoardPanel(m_board, m_evaluationBar, m_gameHeader, m_capturedPieces,
-                                      {m_firstMoveAction, m_previousMoveAction, m_explainAction,
-                                       m_nextMoveAction, m_lastMoveAction, m_flipBoardAction});
-    setCentralWidget(new CentralArea(boardPanel, m_sidebar));
+    m_boardPanel = new BoardPanel(m_board, m_evaluationBar, m_gameHeader, m_capturedPieces, m_boardSideColumn,
+                                  {m_firstMoveAction, m_previousMoveAction, m_explainAction,
+                                   m_nextMoveAction, m_lastMoveAction, m_flipBoardAction});
+    applyBoardSettings(BoardSettings::load());
+    setCentralWidget(new CentralArea(m_boardPanel, m_sidebar));
     createDocks();
     createToolBar();
     createMenus();
@@ -228,6 +235,15 @@ MainWindow::MainWindow(QWidget *parent)
         m_folderSyncLabel->setToolTip(errors.join(QLatin1Char('\n')));
     });
 
+    // Duplicate databases are merged into one, and the merge reaches the other devices.
+    m_folderSync->setDatabaseHooks(DatabaseMerge::hooks([](const QString &relative) {
+        const QFileInfo file(QDir(UserFolders::pragmaDir()).filePath(relative));
+        for (const ShippedOpeningNames::Names &names : ShippedOpeningNames::all()) {
+            if (file == QFileInfo(QDir(UserFolders::openingNamesDir()).filePath(names.fileName)))
+                return true;
+        }
+        return false;
+    }));
     // Folder sync with a server: every few minutes, and shortly after starting.
     m_syncTimer->setInterval(5 * 60 * 1000);
     connect(m_syncTimer, &QTimer::timeout, m_folderSync, &FolderSync::sync);
@@ -255,6 +271,17 @@ MainWindow::MainWindow(QWidget *parent)
         m_reopenGameId = m_openGameIndex >= 0 ? m_database->header(m_openGameIndex).id : -1;
         m_reopenPly = m_session->ply();
         setDatabase(nullptr);
+    });
+    // An open database merged into another: the other one is opened instead.
+    connect(m_folderSync, &FolderSync::localFileMerged, this, [this](const QString &from, const QString &into) {
+        // The opening names follow their database too.
+        if (!m_openingNamesPath.isEmpty() && QFileInfo(m_openingNamesPath) == QFileInfo(from))
+            chooseOpeningNames(into);
+        if (m_reopenAfterSync.isEmpty() || QFileInfo(m_reopenAfterSync) != QFileInfo(from))
+            return;
+        m_reopenAfterSync = into;
+        m_reopenGameId = -1;
+        m_reopenPly = 0;
     });
     connect(m_folderSync, &FolderSync::localFileChanged, this, [this](const QString &path) {
         if (m_reopenAfterSync.isEmpty() || QFileInfo(m_reopenAfterSync) != QFileInfo(path))
@@ -285,7 +312,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     applyDefaultLayout();
     restoreBook();
+    migrateOpeningNames(); // Before the session, which may have the moved database open.
     restoreSession();
+    adoptShippedLineages();
     restoreOpeningNames(); // After the session, so the first launch still seeds Classic Games first.
     applySyncSettings();
     createPhoneLink();
@@ -330,7 +359,9 @@ void MainWindow::createPhoneLink()
     // Games for the open database go through it, on this thread, so its game
     // list stays right; other databases are opened on their own.
     m_phoneGameStore->setOpenDatabase([this] { return m_database.get(); },
-                                      [this](int added) {
+                                      [this](int added, const QList<qint64> &updated) {
+                                          for (const qint64 index : updated)
+                                              m_gameListModel->refreshRow(int(index));
                                           if (added > 0)
                                               showAddedGames();
                                       });
@@ -465,6 +496,7 @@ void MainWindow::createActions()
     connect(m_flipBoardAction, &QAction::toggled, m_board, &BoardWidget::setFlipped);
     connect(m_flipBoardAction, &QAction::toggled, m_evaluationBar, &EvaluationBar::setFlipped);
     connect(m_flipBoardAction, &QAction::toggled, m_capturedPieces, &CapturedPiecesWidget::setFlipped);
+    connect(m_flipBoardAction, &QAction::toggled, m_boardSideColumn, &BoardSideColumn::setFlipped);
 
     m_defaultLayoutAction = new QAction(tr("&Reset Panel Layout"), this);
     m_defaultLayoutAction->setToolTip(tr("Put the panels back where a new project starts"));
@@ -638,6 +670,11 @@ void MainWindow::createMenus()
         options->addAction(m_connectMobileAction);
         options->addSeparator();
     }
+    options->addAction(tr("&Board Settings…"), this, &MainWindow::editBoardSettings);
+    m_openingNamesMenu = options->addMenu(tr("Opening &Names"));
+    m_openingNamesMenu->setToolTip(tr("The database whose games name the openings and variations"));
+    connect(m_openingNamesMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildOpeningNamesMenu);
+    rebuildOpeningNamesMenu();
     QMenu *language = options->addMenu(tr("&Language"));
     auto *languages = new QActionGroup(language);
     for (const UiLanguage::Language &entry : UiLanguage::available()) {
@@ -923,8 +960,10 @@ void MainWindow::syncBoard()
     } else {
         m_board->setBoard(frame);
     }
-    m_capturedPieces->setCaptured(m_session->position().capturedSince(m_session->initialPosition()));
-    m_capturedPieces->setSideToMove(m_session->position().sideToMove());
+    const PieceCounts captured = m_session->position().capturedSince(m_session->initialPosition());
+    m_capturedPieces->setCaptured(captured);
+    m_boardSideColumn->setCaptured(captured);
+    m_boardSideColumn->setSideToMove(m_session->position().sideToMove());
     QMultiHash<int, int> legalMoves;
     // In training the user only moves their own colour; the engine answers by itself.
     if (!isEngineTurn()) {
@@ -1122,6 +1161,10 @@ void MainWindow::openInitialDatabase(const QString &preferredPath)
     const QString seed = folder.filePath(tr("Classic Games") + QLatin1Char('.')
                                          + QLatin1String(UserFolders::databaseSuffix));
     if (auto database = SqliteGameDatabase::create(seed, classicGames(), &error)) {
+        // Every install's Classic Games is the same database (see GameIdentity).
+        DatabaseProperties properties = database->properties();
+        properties.id = GameIdentity::kClassicGamesLineage;
+        database->setProperties(properties, nullptr);
         setDatabase(std::move(database));
         return;
     }
@@ -1174,6 +1217,11 @@ void MainWindow::saveDatabaseAs()
                              tr("The database was saved but could not be opened: %1").arg(openError));
         return;
     }
+    // A copy saved as another file is a new database: two files with one
+    // universal id on the same computer would be one database to a sync.
+    DatabaseProperties properties = database->properties();
+    properties.id = GameIdentity::newLineageId();
+    database->setProperties(properties, nullptr);
     setDatabase(std::move(database));
     if (gameIndex >= 0 && gameIndex < m_database->gameCount()) {
         const QModelIndex proxyIndex = m_gameListProxy->mapFromSource(m_gameListModel->index(int(gameIndex), 0));
@@ -1263,6 +1311,43 @@ void MainWindow::openBookFile()
         m_openingTreeDock->show();
 }
 
+void MainWindow::newBook()
+{
+    if (!UserFolders::ensureBooksDir()) {
+        QMessageBox::warning(this, tr("New Book"), tr("Could not create the folder “%1”.").arg(UserFolders::booksDir()));
+        return;
+    }
+    QString name = tr("New Book");
+    while (true) {
+        bool ok = false;
+        name = QInputDialog::getText(this, tr("New Book"), tr("Book name:"), QLineEdit::Normal, name, &ok).trimmed();
+        if (!ok || name.isEmpty())
+            return;
+        if (name.contains(QLatin1Char('/')) || name.contains(QLatin1Char('\\')) || name.startsWith(QLatin1Char('.'))) {
+            QMessageBox::warning(this, tr("New Book"), tr("“%1” is not a valid name.").arg(name));
+            continue;
+        }
+        const QString path = QDir(UserFolders::booksDir())
+                                 .filePath(name + QLatin1Char('.') + QLatin1String(UserFolders::bookSuffix));
+        if (QFileInfo::exists(path)) {
+            QMessageBox::warning(this, tr("New Book"), tr("A book named “%1” already exists.").arg(name));
+            continue;
+        }
+        // A clone of the book we ship: a starting point the user then makes their own.
+        if (!QFile::copy(QStringLiteral(":/books/pragma-openings.bin"), path)) {
+            QMessageBox::warning(this, tr("New Book"), tr("Could not create the book “%1”.").arg(name));
+            return;
+        }
+        // A file copied out of a resource is read-only.
+        QFile::setPermissions(path, QFile::ReadOwner | QFile::WriteOwner | QFile::ReadGroup | QFile::ReadOther);
+        chooseBook(path);
+        if (m_book)
+            m_openingTreeDock->show();
+        statusBar()->showMessage(tr("Created %1").arg(QDir::toNativeSeparators(path)), 5000);
+        return;
+    }
+}
+
 void MainWindow::rebuildBookMenu()
 {
     m_bookMenu->clear();
@@ -1297,29 +1382,7 @@ void MainWindow::rebuildBookMenu()
     connect(none, &QAction::triggered, this, [this] { chooseBook(QString()); });
 
     m_bookMenu->addSeparator();
-    QMenu *names = m_bookMenu->addMenu(tr("Opening &Names"));
-    names->setToolTip(tr("The database whose games name the openings and variations"));
-    auto *namesGroup = new QActionGroup(names);
-    const QDir databases(UserFolders::databasesDir());
-    const QFileInfoList databaseFiles = databases.entryInfoList(
-        {QStringLiteral("*.") + QLatin1String(UserFolders::databaseSuffix)}, QDir::Files, QDir::Name);
-    for (const QFileInfo &file : databaseFiles) {
-        if (SqliteGameDatabase::readProperties(file.absoluteFilePath()).type != DatabaseType::OpeningBook)
-            continue;
-        QAction *action = names->addAction(file.completeBaseName());
-        action->setCheckable(true);
-        action->setActionGroup(namesGroup);
-        const QString path = file.absoluteFilePath();
-        action->setChecked(QFileInfo(m_openingNamesPath).absoluteFilePath() == path);
-        connect(action, &QAction::triggered, this, [this, path] { chooseOpeningNames(path); });
-    }
-    QAction *noNames = names->addAction(tr("No Names"));
-    noNames->setCheckable(true);
-    noNames->setActionGroup(namesGroup);
-    noNames->setChecked(m_openingNamesPath.isEmpty());
-    connect(noNames, &QAction::triggered, this, [this] { chooseOpeningNames(QString()); });
-
-    m_bookMenu->addSeparator();
+    m_bookMenu->addAction(themeIcon("document-new", QStyle::SP_FileIcon), tr("N&ew Book…"), this, &MainWindow::newBook);
     m_bookMenu->addAction(tr("&Open Book…"), this, &MainWindow::openBookFile);
     m_bookMenu->addAction(themeIcon("folder-open", QStyle::SP_DirOpenIcon), tr("Show Books &Folder"), this, [] {
         UserFolders::ensureBooksDir();
@@ -1355,32 +1418,204 @@ void MainWindow::updateBookMoves()
 
 void MainWindow::restoreOpeningNames()
 {
-    QSettings settings;
-    const QString key = QStringLiteral("book/openingNames");
-    if (settings.contains(key)) {
-        const QString path = settings.value(key).toString();
-        chooseOpeningNames(QFile::exists(path) && markAsOpeningBook(path) ? path : QString());
-        return;
-    }
-    // First launch: the named openings of lichess-org/chess-openings, as a database.
-    const QString seed = QDir(UserFolders::databasesDir())
-                             .filePath(tr("Opening Names") + QLatin1Char('.') + QLatin1String(UserFolders::databaseSuffix));
-    if (!QFile::exists(seed) && UserFolders::ensureDatabasesDir()) {
-        // The database is shipped ready made, so the first launch is not spent
-        // building it; the TSV it was built from stays as the fallback.
-        if (QFile::copy(QStringLiteral(":/openings/opening-names.pdb"), seed)) {
-            // A file copied out of a resource is read-only, and this one is a
-            // database the user may edit.
-            QFile::setPermissions(seed, QFile::ReadOwner | QFile::WriteOwner | QFile::ReadGroup | QFile::ReadOther);
-        } else {
-            QFile tsv(QStringLiteral(":/openings/lichess-openings.tsv"));
+    // The shipped names, one per language, ready made so that the first launch
+    // is not spent building them; the TSVs they were built from stay as the fallback.
+    if (UserFolders::ensureOpeningNamesDir()) {
+        const QDir folder(UserFolders::openingNamesDir());
+        for (const ShippedOpeningNames::Names &names : ShippedOpeningNames::all()) {
+            const QString seed = folder.filePath(names.fileName);
+            if (QFile::exists(seed))
+                continue;
+            if (QFile::copy(names.resource, seed)) {
+                // A file copied out of a resource is read-only, and this one is a
+                // database the user may edit.
+                QFile::setPermissions(seed, QFile::ReadOwner | QFile::WriteOwner | QFile::ReadGroup | QFile::ReadOther);
+                SqliteGameDatabase::adoptLineage(seed, names.lineage);
+                continue;
+            }
+            QFile tsv(names.tsv);
             QString error;
-            if (!tsv.open(QIODevice::ReadOnly)
-                || !SqliteGameDatabase::create(seed, OpeningNames::gamesFromTsv(QString::fromUtf8(tsv.readAll())), &error))
+            std::unique_ptr<SqliteGameDatabase> built;
+            if (tsv.open(QIODevice::ReadOnly))
+                built = SqliteGameDatabase::create(seed, OpeningNames::gamesFromTsv(QString::fromUtf8(tsv.readAll())), &error);
+            if (built) {
+                DatabaseProperties properties = built->properties();
+                properties.id = names.lineage;
+                properties.type = DatabaseType::OpeningBook;
+                names.applyNames(properties);
+                built->setProperties(properties, nullptr);
+            } else {
                 statusBar()->showMessage(tr("Could not create %1: %2").arg(QDir::toNativeSeparators(seed), error));
+            }
         }
     }
-    chooseOpeningNames(QFile::exists(seed) && markAsOpeningBook(seed) ? seed : QString());
+
+    QSettings settings;
+    if (settings.value(QStringLiteral("book/openingNamesExplicit")).toBool()) {
+        const QString path = settings.value(QStringLiteral("book/openingNames")).toString();
+        chooseOpeningNames(path.isEmpty() || (QFile::exists(path) && markAsOpeningBook(path)) ? path : QString());
+        return;
+    }
+    // Not chosen by the user: the names of the interface language.
+    const ShippedOpeningNames::Names names = ShippedOpeningNames::forLanguage(UiLanguage::effective());
+    const QString path = QDir(UserFolders::openingNamesDir()).filePath(names.fileName);
+    chooseOpeningNames(QFile::exists(path) && markAsOpeningBook(path) ? path : QString());
+}
+
+void MainWindow::migrateOpeningNames()
+{
+    QSettings settings;
+    const auto follow = [this, &settings](const QString &from, const QString &to) {
+        m_movedDatabases.insert(from, to);
+        if (settings.value(QStringLiteral("book/openingNames")).toString() == from)
+            settings.setValue(QStringLiteral("book/openingNames"), to);
+    };
+    // Moves a shipped names database to its place in the Opening Names folder
+    // (English.pdb, Italian.pdb). When that place already holds every game of
+    // this copy, none older, the copy adds nothing and is removed instead of
+    // piling up (the folder sync never deletes, so a server brings an old path
+    // back on every sync); any other copy is kept under Old/. Nothing is ever
+    // overwritten.
+    const auto relocate = [&](const QString &source, const ShippedOpeningNames::Names &shipped) {
+        const QString place = QDir(UserFolders::openingNamesDir()).filePath(shipped.fileName);
+        if (QFile::exists(place) && SqliteGameDatabase::readProperties(place).id == shipped.lineage
+            && ShippedOpeningNames::addsNothing(SqliteGameDatabase::readRevisions(place),
+                                                SqliteGameDatabase::readRevisions(source))) {
+            if (QFile::remove(source))
+                follow(source, place);
+            return;
+        }
+        const QString target = ShippedOpeningNames::moveTarget(UserFolders::openingNamesDir(), shipped,
+                                                               [](const QString &path) { return QFile::exists(path); });
+        if (!QDir().mkpath(QFileInfo(target).absolutePath()) || !QFile::rename(source, target)) {
+            statusBar()->showMessage(tr("Could not move %1 to %2").arg(QDir::toNativeSeparators(source),
+                                                                          QDir::toNativeSeparators(target)), 8000);
+            return;
+        }
+        SqliteGameDatabase::adoptLineage(target, shipped.lineage);
+        markAsOpeningBook(target);
+        follow(source, target);
+    };
+
+    if (!UserFolders::ensureOpeningNamesDir())
+        return;
+    // Shipped names seeded among the databases of games by older versions.
+    const QString pattern = QStringLiteral("*.") + QLatin1String(UserFolders::databaseSuffix);
+    const QFileInfoList databases = QDir(UserFolders::databasesDir()).entryInfoList({pattern}, QDir::Files, QDir::Name);
+    for (const QFileInfo &file : databases) {
+        const DatabaseProperties properties = SqliteGameDatabase::readProperties(file.absoluteFilePath());
+        if (!ShippedOpeningNames::shouldMove(file.fileName(), properties))
+            continue;
+        const ShippedOpeningNames::Names *names = ShippedOpeningNames::byLineage(properties.id);
+        relocate(file.absoluteFilePath(), names ? *names : ShippedOpeningNames::all().first());
+    }
+    // Shipped names in the folder under the file names older versions gave them.
+    const QFileInfoList kept = QDir(UserFolders::openingNamesDir()).entryInfoList({pattern}, QDir::Files, QDir::Name);
+    for (const QFileInfo &file : kept) {
+        const DatabaseProperties properties = SqliteGameDatabase::readProperties(file.absoluteFilePath());
+        if (!ShippedOpeningNames::renamedFileName(file.fileName(), properties).isEmpty())
+            relocate(file.absoluteFilePath(), *ShippedOpeningNames::byLineage(properties.id));
+    }
+    const QDir folder(UserFolders::openingNamesDir());
+    for (const ShippedOpeningNames::Names &names : ShippedOpeningNames::all()) {
+        const QString place = folder.filePath(names.fileName);
+        const DatabaseProperties properties = SqliteGameDatabase::readProperties(place);
+        if (properties.id != names.lineage)
+            continue;
+        // Shipped names from before they had a display name get theirs.
+        QString error;
+        if (properties.name.isEmpty()) {
+            if (const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(place, &error)) {
+                DatabaseProperties updated = database->properties();
+                names.applyNames(updated);
+                database->setProperties(updated, &error);
+            }
+        }
+        // A project (or the names setting) on another copy that adds nothing to
+        // the shipped one opens the shipped one; the copy itself is left alone.
+        const QHash<QString, QString> revisions = SqliteGameDatabase::readRevisions(place);
+        const QFileInfoList copies = folder.entryInfoList({pattern}, QDir::Files, QDir::Name);
+        for (const QFileInfo &copy : copies) {
+            const QString path = copy.absoluteFilePath();
+            if (path != QFileInfo(place).absoluteFilePath()
+                && SqliteGameDatabase::readProperties(path).id == names.lineage
+                && ShippedOpeningNames::addsNothing(revisions, SqliteGameDatabase::readRevisions(path)))
+                follow(path, place);
+        }
+    }
+}
+
+void MainWindow::rebuildOpeningNamesMenu()
+{
+    m_openingNamesMenu->clear();
+    auto *group = new QActionGroup(m_openingNamesMenu);
+    const QString current = m_openingNamesPath.isEmpty() ? QString() : QFileInfo(m_openingNamesPath).absoluteFilePath();
+    const QString pattern = QStringLiteral("*.") + QLatin1String(UserFolders::databaseSuffix);
+    // The database's own name in the interface language, not its file name;
+    // copies that would read the same say which file they are.
+    struct Entry {
+        QFileInfo file;
+        QString name;
+    };
+    const auto opening = [&pattern](const QString &folder) {
+        QList<Entry> entries;
+        for (const QFileInfo &file : QDir(folder).entryInfoList({pattern}, QDir::Files, QDir::Name)) {
+            const DatabaseProperties properties = SqliteGameDatabase::readProperties(file.absoluteFilePath());
+            if (properties.type == DatabaseType::OpeningBook)
+                entries.append({file, properties.displayName(UiLanguage::effective(), file.completeBaseName())});
+        }
+        return entries;
+    };
+    const QList<Entry> kept = opening(UserFolders::openingNamesDir());
+    const QList<Entry> databases = opening(UserFolders::databasesDir());
+    QHash<QString, int> seen;
+    for (const QList<Entry> *list : {&kept, &databases}) {
+        for (const Entry &entry : *list)
+            ++seen[entry.name];
+    }
+    const auto addEntries = [&](const QList<Entry> &entries) {
+        for (const Entry &entry : entries) {
+            const QFileInfo &file = entry.file;
+            const QString label = seen.value(entry.name) > 1 && entry.name != file.completeBaseName()
+                ? tr("%1 (%2)").arg(entry.name, file.completeBaseName())
+                : entry.name;
+            QAction *action = m_openingNamesMenu->addAction(label);
+            action->setCheckable(true);
+            action->setActionGroup(group);
+            action->setToolTip(QDir::toNativeSeparators(file.absoluteFilePath()));
+            const QString path = file.absoluteFilePath();
+            action->setChecked(path == current);
+            connect(action, &QAction::triggered, this, [this, path] { chooseOpeningNames(path, true); });
+        }
+        if (!entries.isEmpty())
+            m_openingNamesMenu->addSeparator();
+    };
+    // The shipped names and any others kept with them, then opening books among the databases.
+    addEntries(kept);
+    addEntries(databases);
+    QAction *none = m_openingNamesMenu->addAction(tr("No Names"));
+    none->setCheckable(true);
+    none->setActionGroup(group);
+    none->setChecked(current.isEmpty());
+    connect(none, &QAction::triggered, this, [this] { chooseOpeningNames(QString(), true); });
+    m_openingNamesMenu->addSeparator();
+    m_openingNamesMenu->addAction(themeIcon("folder-open", QStyle::SP_DirOpenIcon), tr("Show Opening Names &Folder"),
+                                  this, [] {
+                                      UserFolders::ensureOpeningNamesDir();
+                                      QDesktopServices::openUrl(QUrl::fromLocalFile(UserFolders::openingNamesDir()));
+                                  });
+}
+
+void MainWindow::adoptShippedLineages()
+{
+    // The databases we ship have fixed universal ids, so every install and
+    // update of them is the same database when devices sync. Copies seeded
+    // before ids existed get theirs here (a file that already has one keeps it).
+    // The shipped opening names get theirs in migrateOpeningNames() and when seeded.
+    const QString path = QDir(UserFolders::databasesDir())
+                             .filePath(tr("Classic Games") + QLatin1Char('.') + QLatin1String(UserFolders::databaseSuffix));
+    if (QFile::exists(path))
+        SqliteGameDatabase::adoptLineage(path, GameIdentity::kClassicGamesLineage);
 }
 
 bool MainWindow::markAsOpeningBook(const QString &path)
@@ -1398,9 +1633,12 @@ bool MainWindow::markAsOpeningBook(const QString &path)
     return database->setProperties(properties, &error);
 }
 
-void MainWindow::chooseOpeningNames(const QString &path)
+void MainWindow::chooseOpeningNames(const QString &path, bool explicitly)
 {
-    QSettings().setValue(QStringLiteral("book/openingNames"), path);
+    QSettings settings;
+    settings.setValue(QStringLiteral("book/openingNames"), path);
+    if (explicitly)
+        settings.setValue(QStringLiteral("book/openingNamesExplicit"), true);
     m_openingNamesPath = path;
     m_openingNames.reset();
     m_openingNamesSize = -1;
@@ -1442,6 +1680,23 @@ void MainWindow::updateDatabaseActions()
     m_connectSourceAction->setEnabled(hasDatabase);
     m_manageSourcesAction->setEnabled(hasDatabase);
     m_databaseSettingsAction->setEnabled(hasDatabase && !m_database->location().isEmpty());
+}
+
+void MainWindow::editBoardSettings()
+{
+    BoardSettingsDialog dialog(BoardSettings::load(), m_coordinatesAction->isChecked(), this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+    const BoardSettings settings = dialog.settings();
+    settings.save();
+    applyBoardSettings(settings);
+    m_coordinatesAction->setChecked(dialog.showCoordinates());
+}
+
+void MainWindow::applyBoardSettings(const BoardSettings &settings)
+{
+    m_boardPanel->setCapturedPiecesBelow(settings.capturedPieces == CapturedPiecesPlacement::BelowBoard);
+    m_boardSideColumn->setShowTurn(settings.showTurn);
 }
 
 void MainWindow::editDatabaseSettings()
@@ -1539,6 +1794,12 @@ void MainWindow::syncNow(std::function<void()> then)
     // The session is what a sync without a project file has to offer.
     m_syncPipeline->addTask(new SyncStepTask(tr("Session"), [this] {
         saveSession();
+        return QString();
+    }));
+    // Duplicates merged before the folder goes to the server (the folder sync
+    // does it too, for the syncs it starts by itself).
+    m_syncPipeline->addTask(new SyncStepTask(tr("Duplicates"), [this] {
+        m_folderSync->mergeDuplicates();
         return QString();
     }));
     m_syncPipeline->addTask(new FolderSyncTask(m_folderSync));
@@ -2106,12 +2367,14 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
     m_engineName = m_engines.resolve(m_engineId).name;
     m_enginePanel->setEngineName(m_engineName);
 
-    openInitialDatabase(project.databasePath);
+    // A database moved since the project was saved (migrateOpeningNames) is opened where it is now.
+    const QString databasePath = m_movedDatabases.value(project.databasePath, project.databasePath);
+    openInitialDatabase(databasePath);
 
     bool opened = false;
     // A project without a database path refers to whichever default database was opened.
     const bool sameDatabase = m_database
-        && (project.databasePath.isEmpty() || m_database->location() == project.databasePath);
+        && (databasePath.isEmpty() || m_database->location() == databasePath);
     if (sameDatabase && project.gameId >= 0) {
         for (qint64 index = 0; index < m_database->gameCount() && !opened; ++index) {
             if (m_database->header(index).id != project.gameId)

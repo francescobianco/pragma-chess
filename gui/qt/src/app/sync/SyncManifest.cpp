@@ -17,12 +17,24 @@ QByteArray SyncManifest::toJson() const
         entry.insert(QStringLiteral("device"), it->device);
         entries.insert(it.key(), entry);
     }
+    QJsonObject mergedEntries;
+    for (auto it = merged.cbegin(); it != merged.cend(); ++it) {
+        mergedEntries.insert(it.key(), QJsonObject{{QStringLiteral("lineage"), it->lineage},
+                                                   {QStringLiteral("into"), it->into},
+                                                   {QStringLiteral("intoPath"), it->intoPath},
+                                                   {QStringLiteral("at"), it->at.toUTC().toString(Qt::ISODate)},
+                                                   {QStringLiteral("device"), it->device}});
+    }
     QJsonObject root;
     root.insert(QStringLiteral("pragma-chess-sync"), formatVersion);
     root.insert(QStringLiteral("revision"), revision);
     root.insert(QStringLiteral("updatedBy"), updatedBy);
     root.insert(QStringLiteral("updatedAt"), updatedAt.toUTC().toString(Qt::ISODate));
     root.insert(QStringLiteral("files"), entries);
+    // Older versions ignore it: they only put a merged file back, which the
+    // next device that knows merges again.
+    if (!merged.isEmpty())
+        root.insert(QStringLiteral("merged"), mergedEntries);
     return QJsonDocument(root).toJson(QJsonDocument::Indented);
 }
 
@@ -59,6 +71,21 @@ std::optional<SyncManifest> SyncManifest::fromJson(const QByteArray &json, QStri
         state.device = entry.value(QStringLiteral("device")).toString();
         manifest.files.insert(it.key(), state);
     }
+    const QJsonObject mergedEntries = root.value(QStringLiteral("merged")).toObject();
+    for (auto it = mergedEntries.constBegin(); it != mergedEntries.constEnd(); ++it) {
+        const QJsonObject entry = it.value().toObject();
+        SyncMergeRecord record;
+        record.path = it.key();
+        record.lineage = entry.value(QStringLiteral("lineage")).toString();
+        record.into = entry.value(QStringLiteral("into")).toString();
+        record.intoPath = entry.value(QStringLiteral("intoPath")).toString();
+        record.at = QDateTime::fromString(entry.value(QStringLiteral("at")).toString(), Qt::ISODate);
+        record.device = entry.value(QStringLiteral("device")).toString();
+        // A record that cannot say where the games went is not trusted.
+        if (record.lineage.isEmpty() || record.into.isEmpty())
+            continue;
+        manifest.merged.insert(record.path, record);
+    }
     return manifest;
 }
 
@@ -69,6 +96,8 @@ QList<SyncAction> planSync(const QMap<QString, LocalFileState> &local, const QMa
     for (auto it = local.cbegin(); it != local.cend(); ++it)
         paths.insert(it.key());
     for (auto it = remote.files.cbegin(); it != remote.files.cend(); ++it)
+        paths.insert(it.key());
+    for (auto it = remote.merged.cbegin(); it != remote.merged.cend(); ++it)
         paths.insert(it.key());
     // `base` is deliberately not a source of paths: a file that is gone from
     // both sides is gone, and one that is gone from a single side comes back
@@ -83,7 +112,13 @@ QList<SyncAction> planSync(const QMap<QString, LocalFileState> &local, const QMa
         const QString remoteHash = remote.files.value(path).hash;
         const QString baseHash = base.value(path);
 
-        if (localHash == remoteHash) {
+        if (remote.merged.contains(path)) {
+            // Merged into another database: its games are there, never here again.
+            if (!localHash.isEmpty())
+                actions << SyncAction{Kind::Merge, path};
+            else if (!remoteHash.isEmpty())
+                actions << SyncAction{Kind::Forget, path};
+        } else if (localHash == remoteHash) {
             if (!localHash.isEmpty() && baseHash != localHash)
                 actions << SyncAction{Kind::Record, path};
         } else if (localHash.isEmpty()) {

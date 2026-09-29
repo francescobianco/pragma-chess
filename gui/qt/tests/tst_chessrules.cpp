@@ -1,13 +1,18 @@
 #include "app/AdvantageProbe.h"
 #include "app/ChessPosition.h"
+#include "app/DatabaseDedupe.h"
+#include "app/DatabaseMerge.h"
 #include "app/DatabaseOutline.h"
 #include "app/EngineCatalog.h"
 #include "app/EngineDetector.h"
 #include "app/ExplanationSearch.h"
+#include "app/GameIdentity.h"
 #include "app/MoveExplanation.h"
 #include "app/OpeningNames.h"
 #include "app/Pgn.h"
 #include "app/PolyglotBook.h"
+#include "app/Reconcile.h"
+#include "app/ShippedOpeningNames.h"
 #include "app/SqliteGameDatabase.h"
 #include "app/sources/ChessComFetch.h"
 #include "app/sources/TorneiOnlineFetch.h"
@@ -570,6 +575,182 @@ private Q_SLOTS:
         QVERIFY2(listing.contains(QLatin1String("Projects/Study.pch")), qPrintable(listing));
     }
 
+    void findsDuplicateDatabases()
+    {
+        using DatabaseDedupe::Candidate;
+        using DatabaseDedupe::Group;
+        QCOMPARE(DatabaseDedupe::baseTitle(QStringLiteral("chess-com (Samsung SM-N960F)")), QStringLiteral("chess-com"));
+        QCOMPARE(DatabaseDedupe::baseTitle(QStringLiteral("Opening Names (old 2)")), QStringLiteral("Opening Names"));
+        QCOMPARE(DatabaseDedupe::baseTitle(QStringLiteral("Games (conflict, laptop, 2026-09-17 10.30)")),
+                 QStringLiteral("Games"));
+        QCOMPARE(DatabaseDedupe::baseTitle(QStringLiteral("(untitled)")), QStringLiteral("(untitled)"));
+
+        const QSet<QString> games{QStringLiteral("u1"), QStringLiteral("u2")};
+        const QList<Candidate> candidates{
+            // A duplicate made by a phone sync: same games, another lineage.
+            {QStringLiteral("Databases/chess-com.pdb"), QStringLiteral("b-lineage"), games},
+            {QStringLiteral("Databases/chess-com (Samsung SM-N960F).pdb"), QStringLiteral("a-lineage"), games},
+            // Same name, different games: two databases, both kept.
+            {QStringLiteral("Databases/Study.pdb"), QStringLiteral("c1"), {QStringLiteral("x")}},
+            {QStringLiteral("Databases/Study (laptop).pdb"), QStringLiteral("c2"), {QStringLiteral("y")}},
+            // Two empty databases of one name.
+            {QStringLiteral("Databases/prova.pdb"), QStringLiteral("p2"), {}},
+            {QStringLiteral("Databases/prova (Samsung SM-N960F).pdb"), QStringLiteral("p1"), {}},
+            // A database we ship, copies kept aside anywhere, whatever their games.
+            {QStringLiteral("Databases/Opening Names.pdb"), QStringLiteral("shipped"), {QStringLiteral("n")}},
+            {QStringLiteral("Books/Opening Names/Old/Opening Names.pdb"), QStringLiteral("shipped"), {}},
+            {QStringLiteral("Books/Opening Names/English.pdb"), QStringLiteral("shipped"), {QStringLiteral("n")}, true},
+            {QStringLiteral("Books/Opening Names/Opening Names (old).pdb"), QStringLiteral("shipped"), {}},
+            {QStringLiteral("Databases/Alone.pdb"), QStringLiteral("z"), {}},
+        };
+        const QList<Group> expected{
+            {QStringLiteral("Books/Opening Names/English.pdb"), QStringLiteral("shipped"),
+             {QStringLiteral("Books/Opening Names/Old/Opening Names.pdb"),
+              QStringLiteral("Books/Opening Names/Opening Names (old).pdb"), QStringLiteral("Databases/Opening Names.pdb")}},
+            // The plain name keeps the file, the smallest lineage (the phone's choice) the id.
+            {QStringLiteral("Databases/chess-com.pdb"), QStringLiteral("a-lineage"),
+             {QStringLiteral("Databases/chess-com (Samsung SM-N960F).pdb")}},
+            {QStringLiteral("Databases/prova.pdb"), QStringLiteral("p1"),
+             {QStringLiteral("Databases/prova (Samsung SM-N960F).pdb")}},
+        };
+        QCOMPARE(DatabaseDedupe::groups(candidates), expected);
+
+        // A merged file is merged into its database, or forgotten remotely; never synced again.
+        using Kind = SyncAction::Kind;
+        SyncManifest remote;
+        remote.files.insert(QStringLiteral("Databases/Dup.pdb"), SyncFileState{QStringLiteral("h"), 1, {}, {}});
+        remote.files.insert(QStringLiteral("Databases/Gone.pdb"), SyncFileState{QStringLiteral("g"), 1, {}, {}});
+        for (const char *path : {"Databases/Dup.pdb", "Databases/Gone.pdb", "Databases/Nowhere.pdb"}) {
+            remote.merged.insert(QString::fromLatin1(path),
+                                 SyncMergeRecord{QString::fromLatin1(path), QStringLiteral("l"), QStringLiteral("k"),
+                                                 QStringLiteral("Databases/Games.pdb"), {}, QStringLiteral("laptop")});
+        }
+        QMap<QString, LocalFileState> local;
+        local.insert(QStringLiteral("Databases/Dup.pdb"), LocalFileState{QStringLiteral("changed"), 1, {}});
+        const QList<SyncAction> actions = planSync(local, {{QStringLiteral("Databases/Dup.pdb"), QStringLiteral("h")}}, remote);
+        QCOMPARE(actions, (QList<SyncAction>{{Kind::Merge, QStringLiteral("Databases/Dup.pdb")},
+                                             {Kind::Forget, QStringLiteral("Databases/Gone.pdb")}}));
+        const std::optional<SyncManifest> read = SyncManifest::fromJson(remote.toJson(), nullptr);
+        QVERIFY(read);
+        QCOMPARE(read->merged, remote.merged);
+    }
+
+    /// A duplicate merged on one device is merged on every device: its games
+    /// (even ones only another device had) end in the database kept, and the
+    /// file goes, locally and from the repository.
+    void mergesDuplicatesAcrossGitDevices()
+    {
+        const QString git = QStandardPaths::findExecutable(QStringLiteral("git"));
+        if (git.isEmpty())
+            QSKIP("git is not installed");
+        QTemporaryDir root;
+        QVERIFY(root.isValid());
+        const QDir base(root.path());
+        const QString origin = base.filePath(QStringLiteral("origin.git"));
+        QProcess init;
+        init.start(git, {QStringLiteral("init"), QStringLiteral("--bare"), QStringLiteral("--initial-branch=main"), origin});
+        QVERIFY(init.waitForFinished(30000));
+        QCOMPARE(init.exitCode(), 0);
+
+        struct Device {
+            std::unique_ptr<GitStore> store;
+            std::unique_ptr<FolderSync> sync;
+            QString folder;
+        };
+        const auto makeDevice = [&](const QString &name) {
+            Device device;
+            device.folder = base.filePath(name + QStringLiteral("/Pragma"));
+            QDir().mkpath(device.folder + QStringLiteral("/Databases"));
+            device.store = std::make_unique<GitStore>(origin, QStringLiteral("main"), QString(), QString(),
+                                                      base.filePath(name + QStringLiteral("/clone")), name);
+            device.sync = std::make_unique<FolderSync>(device.folder, base.filePath(name + QStringLiteral("/state.json")), name);
+            device.sync->setStore(device.store.get());
+            return device;
+        };
+        // Until the folder is quiet: a merge makes the sync run again to send the database it changed.
+        const auto syncOnce = [](Device &device) {
+            QSignalSpy finished(device.sync.get(), &FolderSync::finished);
+            device.sync->sync();
+            do {
+                QVERIFY(finished.wait(60000));
+                QCOMPARE(finished.constLast().at(0).toString(), QString());
+            } while (device.sync->isRunning() || finished.count() == 0);
+        };
+        const auto game = [](const char *white) {
+            GameRecord record;
+            record.white = QString::fromLatin1(white);
+            record.black = QStringLiteral("Black");
+            record.result = QStringLiteral("1-0");
+            record.moves = {MoveRecord{QStringLiteral("e4"), QStringLiteral("e2e4")}};
+            return record;
+        };
+        const auto makeDatabase = [](const QString &path, const QList<GameRecord> &games, const QString &lineage) {
+            QString error;
+            const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::create(path, games, &error);
+            QVERIFY2(database, qPrintable(error));
+            DatabaseProperties properties = database->properties();
+            properties.id = lineage;
+            QVERIFY(database->setProperties(properties, &error));
+        };
+        const auto whites = [](const QString &path) {
+            QStringList result;
+            QString error;
+            const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(path, &error);
+            if (!database)
+                return result;
+            for (qint64 i = 0; i < database->gameCount(); ++i)
+                result << database->header(i).white;
+            result.sort();
+            return result;
+        };
+        const QString keptLineage = QStringLiteral("00000000-0000-4000-8000-000000000001");
+        const QString otherLineage = QStringLiteral("ffffffff-0000-4000-8000-000000000002");
+
+        // The laptop has a database and, from a phone sync, its duplicate.
+        Device laptop = makeDevice(QStringLiteral("laptop"));
+        makeDatabase(laptop.folder + QStringLiteral("/Databases/Games.pdb"), {game("A"), game("B")}, otherLineage);
+        makeDatabase(laptop.folder + QStringLiteral("/Databases/Games (Phone).pdb"), {game("A"), game("B")}, keptLineage);
+        syncOnce(laptop); // No database hooks yet: both go up as they are.
+
+        // The desktop receives both, then adds a game to its copy of the duplicate.
+        Device desktop = makeDevice(QStringLiteral("desktop"));
+        syncOnce(desktop);
+        const QString desktopDuplicate = desktop.folder + QStringLiteral("/Databases/Games (Phone).pdb");
+        QVERIFY(QFile::exists(desktopDuplicate));
+        {
+            QString error;
+            const std::unique_ptr<SqliteGameDatabase> copy = SqliteGameDatabase::open(desktopDuplicate, &error);
+            QVERIFY2(copy, qPrintable(error));
+            QVERIFY(copy->addGame(game("OnlyOnDesktop"), &error) >= 0);
+        }
+
+        // The laptop merges the duplicate into the plain name, which takes the smaller lineage.
+        laptop.sync->setDatabaseHooks(DatabaseMerge::hooks());
+        syncOnce(laptop);
+        QVERIFY(!QFile::exists(laptop.folder + QStringLiteral("/Databases/Games (Phone).pdb")));
+        QCOMPARE(SqliteGameDatabase::readProperties(laptop.folder + QStringLiteral("/Databases/Games.pdb")).id, keptLineage);
+
+        // The desktop merges its copy, extra game included, and the file goes.
+        desktop.sync->setDatabaseHooks(DatabaseMerge::hooks());
+        syncOnce(desktop);
+        QVERIFY2(!QFile::exists(desktopDuplicate), "a merged database must go on every device");
+        QCOMPARE(whites(desktop.folder + QStringLiteral("/Databases/Games.pdb")),
+                 (QStringList{"A", "B", "OnlyOnDesktop"}));
+
+        // And the laptop gets the game back through the database kept.
+        syncOnce(laptop);
+        QCOMPARE(whites(laptop.folder + QStringLiteral("/Databases/Games.pdb")), (QStringList{"A", "B", "OnlyOnDesktop"}));
+        QVERIFY(!QFile::exists(laptop.folder + QStringLiteral("/Databases/Games (Phone).pdb")));
+
+        QProcess tree;
+        tree.setWorkingDirectory(origin);
+        tree.start(git, {QStringLiteral("ls-tree"), QStringLiteral("-r"), QStringLiteral("--name-only"), QStringLiteral("main")});
+        QVERIFY(tree.waitForFinished(30000));
+        const QString listing = QString::fromUtf8(tree.readAll());
+        QVERIFY2(listing.contains(QLatin1String("Databases/Games.pdb")), qPrintable(listing));
+        QVERIFY2(!listing.contains(QLatin1String("Games (Phone)")), qPrintable(listing));
+    }
+
     void outlinesDatabases()
     {
         const auto game = [](const char *eco, const char *event, const char *date) {
@@ -663,6 +844,89 @@ private Q_SLOTS:
         QVERIFY2(database->setPlayerRole(QStringLiteral("Me"), PlayerRole::Me, &error), qPrintable(error));
     }
 
+    void choosesShippedOpeningNames()
+    {
+        // One per language, English for any language without its own.
+        QCOMPARE(ShippedOpeningNames::forLanguage(QStringLiteral("it")).lineage,
+                 GameIdentity::kItalianOpeningNamesLineage);
+        QCOMPARE(ShippedOpeningNames::forLanguage(QStringLiteral("en")).lineage, GameIdentity::kOpeningNamesLineage);
+        QCOMPARE(ShippedOpeningNames::forLanguage(QStringLiteral("de")).lineage, GameIdentity::kOpeningNamesLineage);
+        QVERIFY(ShippedOpeningNames::byLineage(GameIdentity::kItalianOpeningNamesLineage));
+        QVERIFY(!ShippedOpeningNames::byLineage(GameIdentity::kClassicGamesLineage));
+
+        // What is moved out of the Databases folder: shipped lineages, and the
+        // seed's names only while the file has no lineage of its own.
+        DatabaseProperties shipped;
+        shipped.id = GameIdentity::kOpeningNamesLineage;
+        QVERIFY(ShippedOpeningNames::shouldMove(QStringLiteral("anything.pdb"), shipped));
+        DatabaseProperties unnamed;
+        QVERIFY(ShippedOpeningNames::shouldMove(QStringLiteral("Opening Names.pdb"), unnamed));
+        QVERIFY(!ShippedOpeningNames::shouldMove(QStringLiteral("English.pdb"), unnamed));
+        QVERIFY(ShippedOpeningNames::shouldMove(QStringLiteral("Nomi delle aperture.pdb"), unnamed));
+        QVERIFY(!ShippedOpeningNames::shouldMove(QStringLiteral("My Openings.pdb"), unnamed));
+        DatabaseProperties own;
+        own.id = QStringLiteral("0f69a9e9-7bf8-40e8-aa9d-841e4edb119a");
+        own.type = DatabaseType::OpeningBook;
+        QVERIFY(!ShippedOpeningNames::shouldMove(QStringLiteral("Opening Names.pdb"), own));
+
+        // Never overwrite a copy already in the folder.
+        const ShippedOpeningNames::Names english = ShippedOpeningNames::forLanguage(QStringLiteral("en"));
+        QSet<QString> taken;
+        const auto exists = [&taken](const QString &path) { return taken.contains(path); };
+        const QString folder = QStringLiteral("/names");
+        QCOMPARE(ShippedOpeningNames::moveTarget(folder, english, exists), QStringLiteral("/names/English.pdb"));
+        taken.insert(QStringLiteral("/names/English.pdb"));
+        QCOMPARE(ShippedOpeningNames::moveTarget(folder, english, exists),
+                 QStringLiteral("/names/Old/English.pdb"));
+        taken.insert(QStringLiteral("/names/Old/English.pdb"));
+        QCOMPARE(ShippedOpeningNames::moveTarget(folder, english, exists),
+                 QStringLiteral("/names/Old/English 2.pdb"));
+
+        // A copy can go only when the kept one has all its games, none older.
+        const QHash<QString, QString> kept{{QStringLiteral("a"), QStringLiteral("2026-09-29T10:00:00.000Z")},
+                                           {QStringLiteral("b"), QString()}};
+        QVERIFY(ShippedOpeningNames::addsNothing(kept, {{QStringLiteral("a"), QString()}}));
+        QVERIFY(ShippedOpeningNames::addsNothing(kept, kept));
+        QVERIFY(!ShippedOpeningNames::addsNothing(kept, {{QStringLiteral("c"), QString()}}));
+        QVERIFY(!ShippedOpeningNames::addsNothing(kept, {{QStringLiteral("b"), QStringLiteral("2026-09-29T11:00:00.000Z")}}));
+        QVERIFY(!ShippedOpeningNames::addsNothing(kept, {}));
+
+        // Files named by older versions take the shipped name, others stay.
+        DatabaseProperties italian;
+        italian.id = GameIdentity::kItalianOpeningNamesLineage;
+        QCOMPARE(ShippedOpeningNames::renamedFileName(QStringLiteral("Nomi delle aperture.pdb"), italian),
+                 QStringLiteral("Italian.pdb"));
+        QVERIFY(ShippedOpeningNames::renamedFileName(QStringLiteral("Italian.pdb"), italian).isEmpty());
+        QVERIFY(ShippedOpeningNames::renamedFileName(QStringLiteral("Mie aperture.pdb"), italian).isEmpty());
+        QVERIFY(ShippedOpeningNames::renamedFileName(QStringLiteral("Opening Names.pdb"), unnamed).isEmpty());
+    }
+
+    void namesDatabasesInEveryLanguage()
+    {
+        DatabaseProperties properties;
+        QCOMPARE(properties.displayName(QStringLiteral("it"), QStringLiteral("file")), QStringLiteral("file"));
+        properties.name = QStringLiteral("English");
+        properties.localizedNames.insert(QStringLiteral("it"), QStringLiteral("Inglese"));
+        QCOMPARE(properties.displayName(QStringLiteral("it"), QStringLiteral("file")), QStringLiteral("Inglese"));
+        QCOMPARE(properties.displayName(QStringLiteral("it_IT"), QStringLiteral("file")), QStringLiteral("Inglese"));
+        QCOMPARE(properties.displayName(QStringLiteral("en"), QStringLiteral("file")), QStringLiteral("English"));
+        QCOMPARE(properties.displayName(QStringLiteral("de"), QStringLiteral("file")), QStringLiteral("English"));
+
+        // Stored as name and name.<code>, and read back.
+        const QHash<QString, QString> values = properties.values();
+        QCOMPARE(values.value(QStringLiteral("name")), QStringLiteral("English"));
+        QCOMPARE(values.value(QStringLiteral("name.it")), QStringLiteral("Inglese"));
+        QCOMPARE(DatabaseProperties::fromValues(values), properties);
+
+        // The shipped ones carry their names in every language we have.
+        for (const ShippedOpeningNames::Names &names : ShippedOpeningNames::all()) {
+            DatabaseProperties shipped;
+            names.applyNames(shipped);
+            QVERIFY(!shipped.displayName(QStringLiteral("en"), QString()).isEmpty());
+            QVERIFY(!shipped.localizedNames.value(QStringLiteral("it")).isEmpty());
+        }
+    }
+
     void storesDatabaseProperties()
     {
         QCOMPARE(DatabaseProperties::fromValues({}).type, DatabaseType::GameCollection);
@@ -701,6 +965,119 @@ private Q_SLOTS:
         QVERIFY2(reopened, qPrintable(error));
         QCOMPARE(reopened->properties(), book);
         QCOMPARE(SqliteGameDatabase::readProperties(dir.filePath(QStringLiteral("missing.pdb"))), DatabaseProperties());
+    }
+
+    void makesUniversalGameIds()
+    {
+        // RFC 4122 / Python's uuid.uuid5(uuid.NAMESPACE_DNS, "www.example.com").
+        QCOMPARE(GameIdentity::uuidV5(QUuid(QStringLiteral("6ba7b810-9dad-11d1-80b4-00c04fd430c8")),
+                                      QByteArrayLiteral("www.example.com")),
+                 QStringLiteral("2ed6657d-e927-568b-95e1-2665a8aea6a2"));
+
+        GameRecord game;
+        game.white = QStringLiteral(" Morphy ");
+        game.black = QStringLiteral("Duke Karl / Count Isouard");
+        game.event = QStringLiteral("Paris");
+        game.date = QStringLiteral("1858.??.??");
+        game.result = QStringLiteral("1-0");
+        game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4")}, {QStringLiteral("e5"), QStringLiteral("e7e5")}};
+        // The documented content, so the phone makes the same uid.
+        QCOMPARE(GameIdentity::content(game),
+                 QStringLiteral("Morphy\nDuke Karl / Count Isouard\nParis\n\n1858.??.??\n\n1-0\n\ne2e4 e7e5"));
+        QCOMPARE(GameIdentity::uid(game),
+                 GameIdentity::uuidV5(GameIdentity::kGameNamespace, GameIdentity::content(game).toUtf8()));
+        QVERIFY(GameIdentity::uid(game, 2) != GameIdentity::uid(game));
+        GameRecord renamed = game;
+        renamed.eco = QStringLiteral("C41"); // Not part of the identity, but of the content compared.
+        QCOMPARE(GameIdentity::uid(renamed), GameIdentity::uid(game));
+        QVERIFY(!GameIdentity::sameContent(renamed, game));
+    }
+
+    void plansReconciliation()
+    {
+        const auto game = [](const QString &uid, const QString &white, const QString &modified) {
+            GameRecord record;
+            record.uid = uid;
+            record.white = white;
+            record.modified = modified;
+            return record;
+        };
+        const QList<GameRecord> local{game(QStringLiteral("a"), QStringLiteral("Same"), QString()),
+                                      game(QStringLiteral("b"), QStringLiteral("Mine"), QStringLiteral("2026-09-29T10:00:00.000Z")),
+                                      game(QStringLiteral("c"), QStringLiteral("Mine"), QStringLiteral("2026-09-29T10:00:00.000Z")),
+                                      game(QStringLiteral("d"), QStringLiteral("Only here"), QString())};
+        const QList<GameRecord> incoming{game(QStringLiteral("a"), QStringLiteral("Same"), QStringLiteral("2026-09-30T00:00:00Z")),
+                                         game(QStringLiteral("b"), QStringLiteral("Theirs"), QStringLiteral("2026-09-29T12:00:00.000+02:00")),
+                                         game(QStringLiteral("c"), QStringLiteral("Theirs"), QStringLiteral("2026-09-29T11:00:00.000Z")),
+                                         game(QStringLiteral("e"), QStringLiteral("New"), QString()),
+                                         game(QStringLiteral("e"), QStringLiteral("New"), QString())};
+        const Reconcile::Plan plan = Reconcile::plan(local, incoming);
+        QCOMPARE(plan.insert, QList<int>{3});
+        // b: 12:00+02:00 is 10:00Z, a tie: local stays. c: theirs is newer.
+        QCOMPARE(plan.update, (QList<std::pair<int, int>>{{2, 2}}));
+        QCOMPARE(plan.known, 3); // a (same), b (local kept), the second e.
+        QCOMPARE(plan.conflicts, (QStringList{QStringLiteral("b"), QStringLiteral("c")}));
+    }
+
+    void upgradesDatabasesToGameIdentity()
+    {
+        QTemporaryDir dir;
+        const QString path = dir.filePath(QStringLiteral("v4.pdb"));
+        QString error;
+        GameRecord game;
+        game.white = QStringLiteral("A");
+        game.black = QStringLiteral("B");
+        game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4")}};
+        {
+            const std::unique_ptr<SqliteGameDatabase> created = SqliteGameDatabase::create(path, {game, game}, &error);
+            QVERIFY2(created, qPrintable(error));
+            // Identical games get the next occurrence, deterministically.
+            QCOMPARE(created->header(0).uid, GameIdentity::uid(game));
+            QCOMPARE(created->header(1).uid, GameIdentity::uid(game, 2));
+            QVERIFY(!created->header(0).modified.isEmpty());
+            QVERIFY(!created->properties().id.isEmpty());
+        }
+        {
+            // Back to version 4: no uids, no id.
+            QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("downgrade"));
+            db.setDatabaseName(path);
+            QVERIFY(db.open());
+            QSqlQuery query(db);
+            QVERIFY(query.exec(QStringLiteral("DROP INDEX games_uid")));
+            QVERIFY(query.exec(QStringLiteral("ALTER TABLE games DROP COLUMN uid")));
+            QVERIFY(query.exec(QStringLiteral("ALTER TABLE games DROP COLUMN modified")));
+            QVERIFY(query.exec(QStringLiteral("DELETE FROM properties WHERE key = 'id'")));
+            QVERIFY(query.exec(QStringLiteral("PRAGMA user_version = 4")));
+            db.close();
+        }
+        QSqlDatabase::removeDatabase(QStringLiteral("downgrade"));
+        std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(path, &error);
+        QVERIFY2(database, qPrintable(error));
+        QCOMPARE(database->header(0).uid, GameIdentity::uid(game));
+        QCOMPARE(database->header(1).uid, GameIdentity::uid(game, 2));
+        QVERIFY(database->header(0).modified.isEmpty());
+        QVERIFY(database->properties().id.isEmpty()); // Given when first synced.
+
+        // Edits keep the uid and move the revision; a new copy of the game gets the next occurrence.
+        GameRecord edited = *database->loadGame(0);
+        edited.white = QStringLiteral("A. Player");
+        QVERIFY(database->updateHeader(0, edited, &error));
+        QCOMPARE(database->header(0).uid, GameIdentity::uid(game));
+        QVERIFY(!database->header(0).modified.isEmpty());
+        edited.moves << MoveRecord{QStringLiteral("e5"), QStringLiteral("e7e5")};
+        edited.modified.clear();
+        QVERIFY(database->replaceGame(0, edited, &error));
+        QCOMPARE(database->loadGame(0)->moves.size(), 2);
+        QCOMPARE(database->header(0).uid, GameIdentity::uid(game));
+        QCOMPARE(database->addGame(game, &error), 2);
+        QCOMPARE(database->header(2).uid, GameIdentity::uid(game, 3));
+
+        // The databases we ship take their fixed id once.
+        database.reset();
+        QVERIFY(SqliteGameDatabase::adoptLineage(path, GameIdentity::kClassicGamesLineage));
+        QCOMPARE(SqliteGameDatabase::readProperties(path).id, GameIdentity::kClassicGamesLineage);
+        QVERIFY(SqliteGameDatabase::adoptLineage(path, GameIdentity::kOpeningNamesLineage));
+        QCOMPARE(SqliteGameDatabase::readProperties(path).id, GameIdentity::kClassicGamesLineage);
     }
 
     void parsesLichessGames()

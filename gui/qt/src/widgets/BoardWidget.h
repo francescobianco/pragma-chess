@@ -89,6 +89,8 @@ public:
 
     /// Margin around the squares inside the widget.
     static constexpr int kMargin = 8;
+    /// Width of the frame drawn around the squares, outside them.
+    static constexpr int kFrameWidth = 2;
     /// Widget side needed to show squares as large as possible within `available` pixels.
     static int sideForAvailable(int available);
 

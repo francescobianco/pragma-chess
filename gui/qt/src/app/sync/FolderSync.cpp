@@ -1,6 +1,7 @@
 #include "FolderSync.h"
 
 #include "RemoteStore.h"
+#include "app/DatabaseDedupe.h"
 
 #include <QCryptographicHash>
 #include <QDir>
@@ -37,6 +38,7 @@ bool isSyncedName(const QString &name)
 /// One sync in progress: the plan and what it produced so far.
 struct FolderSync::Run {
     int round = 0;
+    /// The manifest as read; `updated` starts as it plus this device's merges.
     SyncManifest remote;
     QMap<QString, LocalFileState> local;
     QList<SyncAction> actions;
@@ -72,6 +74,81 @@ void FolderSync::setStore(RemoteStore *store)
         m_base.clear();
         saveState();
     }
+}
+
+int FolderSync::mergeDuplicates()
+{
+    if (!m_hooks.lineage || !m_hooks.uids || !m_hooks.merge)
+        return 0;
+    QList<DatabaseDedupe::Candidate> candidates;
+    QHash<QString, QString> lineages;
+    const QDir root(m_root);
+    QDirIterator it(m_root, {QStringLiteral("*.pdb")}, QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        const QString absolute = it.next();
+        const QString relative = root.relativeFilePath(absolute);
+        if (relative.split(QLatin1Char('/')).first().startsWith(QLatin1Char('.')) || !isSyncedName(it.fileName()))
+            continue;
+        DatabaseDedupe::Candidate candidate;
+        candidate.path = relative;
+        candidate.lineage = m_hooks.lineage(absolute);
+        candidate.uids = m_hooks.uids(absolute);
+        candidate.canonical = m_hooks.canonical && m_hooks.canonical(relative);
+        lineages.insert(relative, candidate.lineage);
+        candidates << candidate;
+    }
+
+    int merged = 0;
+    for (const DatabaseDedupe::Group &group : DatabaseDedupe::groups(candidates)) {
+        if (group.lineage.isEmpty())
+            continue; // Nothing to tell the other devices where the games went.
+        const QString keeper = root.filePath(group.keeper);
+        Q_EMIT localFileAboutToChange(keeper);
+        for (const QString &other : group.others) {
+            const QString lineage = lineages.value(other);
+            if (lineage.isEmpty())
+                continue;
+            const QString absolute = root.filePath(other);
+            Q_EMIT localFileAboutToChange(absolute);
+            QString error;
+            if (!m_hooks.merge(absolute, keeper, group.lineage, &error)) {
+                Q_EMIT progress(tr("Could not merge %1: %2").arg(other, error));
+                Q_EMIT localFileChanged(absolute);
+                continue;
+            }
+            // Its games are all in the keeper now.
+            QFile::remove(absolute);
+            Q_EMIT localFileMerged(absolute, keeper);
+            m_pendingMerges.insert(other, SyncMergeRecord{other, lineage, group.lineage, group.keeper,
+                                                          QDateTime::currentDateTimeUtc(), m_device});
+            ++merged;
+        }
+        Q_EMIT localFileChanged(keeper);
+    }
+    if (merged > 0)
+        saveState();
+    return merged;
+}
+
+QString FolderSync::findDatabase(const QString &lineage, const QString &hint, const QString &except) const
+{
+    if (!m_hooks.lineage || lineage.isEmpty())
+        return {};
+    const QDir root(m_root);
+    if (!hint.isEmpty() && hint != except && QFileInfo::exists(root.filePath(hint))
+        && m_hooks.lineage(root.filePath(hint)) == lineage)
+        return hint;
+    QDirIterator it(m_root, {QStringLiteral("*.pdb")}, QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        const QString absolute = it.next();
+        const QString relative = root.relativeFilePath(absolute);
+        if (relative == except || relative.split(QLatin1Char('/')).first().startsWith(QLatin1Char('.'))
+            || !isSyncedName(it.fileName()))
+            continue;
+        if (m_hooks.lineage(absolute) == lineage)
+            return relative;
+    }
+    return {};
 }
 
 QDateTime FolderSync::lastSync() const
@@ -192,6 +269,7 @@ void FolderSync::attempt(int round)
     Q_EMIT progress(tr("Comparing files…"));
     auto run = std::make_shared<Run>();
     run->round = round;
+    mergeDuplicates();
     run->local = scanLocal();
 
     m_store->begin([this, run, generation](const RemoteStore::Result &begun) {
@@ -217,16 +295,37 @@ void FolderSync::attempt(int round)
             }
             run->remote = *manifest;
         }
-        run->actions = planSync(run->local, m_base, run->remote);
+        // The merges made here go into the manifest with this sync.
+        SyncManifest effective = run->remote;
+        for (auto it = m_pendingMerges.cbegin(); it != m_pendingMerges.cend(); ++it)
+            effective.merged.insert(it.key(), it.value());
+        // A file at a merged path with another lineage is a new database that
+        // took the name: it is synced as any other, and the record goes.
+        if (m_hooks.lineage) {
+            for (const QString &path : effective.merged.keys()) {
+                if (!run->local.contains(path))
+                    continue;
+                const QString lineage = m_hooks.lineage(QDir(m_root).filePath(path));
+                if (!lineage.isEmpty() && lineage != effective.merged.value(path).lineage) {
+                    effective.merged.remove(path);
+                    m_pendingMerges.remove(path);
+                }
+            }
+        }
+        run->actions = planSync(run->local, m_base, effective);
         // A store that can look at its own folder (a Git clone) may hold files
         // the manifest lost track of. This device has never seen them, so bring
-        // them back; the next sync puts them in the manifest again.
+        // them back; the next sync puts them in the manifest again. Merged
+        // files stay out: their games are elsewhere.
         for (const QString &path : m_store->listFiles()) {
-            if (run->remote.files.contains(path) || run->local.contains(path))
+            if (effective.files.contains(path) || effective.merged.contains(path) || run->local.contains(path))
                 continue;
             run->actions << SyncAction{SyncAction::Kind::Download, path};
         }
-        run->updated = run->remote;
+        // Merges last: the database they go into may be one this sync downloads.
+        std::stable_partition(run->actions.begin(), run->actions.end(),
+                              [](const SyncAction &action) { return action.kind != SyncAction::Kind::Merge; });
+        run->updated = effective;
         run->base = m_base;
         execute(run, 0);
     });
@@ -236,6 +335,11 @@ void FolderSync::attempt(int round)
 void FolderSync::execute(std::shared_ptr<Run> run, qsizetype index)
 {
     if (index >= run->actions.size()) {
+        // A duplicate may just have been downloaded (from a device that does
+        // not merge, or a copy removed here without a merge): merge it now,
+        // and sync again to record the merge and take it off the server.
+        if (mergeDuplicates() > 0)
+            m_again = true;
         commit(run);
         return;
     }
@@ -335,13 +439,67 @@ void FolderSync::execute(std::shared_ptr<Run> run, qsizetype index)
         run->base.insert(action.path, run->local.value(action.path).hash);
         execute(run, index + 1);
         return;
+    case SyncAction::Kind::Merge:
+    case SyncAction::Kind::Forget: {
+        // Takes the merged file out of the remote folder, if it is there.
+        const auto forget = [this, run, action, next, generation] {
+            if (!run->remote.files.contains(action.path)) {
+                run->updated.files.remove(action.path);
+                run->base.remove(action.path);
+                RemoteStore::Result done;
+                done.ok = true;
+                next(done);
+                return;
+            }
+            Q_EMIT progress(tr("Removing %1, merged into another database…").arg(action.path));
+            m_store->remove(action.path, [this, run, action, next, generation](const RemoteStore::Result &result) {
+                if (generation != m_generation)
+                    return;
+                if (result.ok) {
+                    run->updated.files.remove(action.path);
+                    run->base.remove(action.path);
+                    ++run->changes;
+                }
+                next(result);
+            });
+        };
+        if (action.kind == SyncAction::Kind::Forget) {
+            forget();
+            return;
+        }
+        const SyncMergeRecord record = run->updated.merged.value(action.path);
+        const QString into = findDatabase(record.into, record.intoPath, action.path);
+        if (!m_hooks.merge || into.isEmpty()) {
+            // Nowhere to put its games yet: keep the file here, out of the sync.
+            execute(run, index + 1);
+            return;
+        }
+        const QString intoAbsolute = QDir(m_root).filePath(into);
+        Q_EMIT progress(tr("Merging %1 into %2…").arg(action.path, into));
+        Q_EMIT localFileAboutToChange(intoAbsolute);
+        Q_EMIT localFileAboutToChange(absolute);
+        QString error;
+        if (!m_hooks.merge(absolute, intoAbsolute, QString(), &error)) {
+            Q_EMIT localFileChanged(absolute);
+            Q_EMIT localFileChanged(intoAbsolute);
+            finish(tr("Could not merge %1: %2").arg(action.path, error), run->changes);
+            return;
+        }
+        QFile::remove(absolute);
+        Q_EMIT localFileMerged(absolute, intoAbsolute);
+        Q_EMIT localFileChanged(intoAbsolute);
+        ++run->changes;
+        m_again = true; // The database it went into changed: send it.
+        forget();
+        return;
+    }
     }
 }
 
 void FolderSync::commit(std::shared_ptr<Run> run)
 {
     const int generation = m_generation;
-    if (run->changes == 0 && run->updated.files == run->remote.files) {
+    if (run->changes == 0 && run->updated.files == run->remote.files && run->updated.merged == run->remote.merged) {
         // Nothing moved: no need to touch the manifest.
         m_base = run->base;
         finish(QString(), 0);
@@ -368,8 +526,10 @@ void FolderSync::commit(std::shared_ptr<Run> run)
                                    attempt(run->round + 1);
                                    return;
                                }
-                               if (published.ok)
+                               if (published.ok) {
                                    m_base = run->base;
+                                   forgetPublishedMerges(run->updated);
+                               }
                                finish(published.ok ? QString() : published.error, run->changes);
                            });
                        });
@@ -399,11 +559,19 @@ void FolderSync::commit(std::shared_ptr<Run> run)
                        [this, run, generation](const RemoteStore::Result &written) {
                            if (generation != m_generation)
                                return;
-                           if (written.ok)
+                           if (written.ok) {
                                m_base = run->base;
+                               forgetPublishedMerges(run->updated);
+                           }
                            finish(written.ok ? QString() : written.error, run->changes);
                        });
     });
+}
+
+void FolderSync::forgetPublishedMerges(const SyncManifest &published)
+{
+    for (auto it = published.merged.cbegin(); it != published.merged.cend(); ++it)
+        m_pendingMerges.remove(it.key());
 }
 
 void FolderSync::finish(const QString &errorMessage, int changes)
@@ -481,6 +649,14 @@ void FolderSync::loadState()
     const QJsonObject base = root.value(QStringLiteral("base")).toObject();
     for (auto it = base.constBegin(); it != base.constEnd(); ++it)
         m_base.insert(it.key(), it.value().toString());
+    // Merges not published yet, kept in the manifest's format.
+    const std::optional<SyncManifest> pending = SyncManifest::fromJson(
+        QJsonDocument(QJsonObject{{QStringLiteral("pragma-chess-sync"), SyncManifest::formatVersion},
+                                  {QStringLiteral("merged"), root.value(QStringLiteral("pendingMerges"))}})
+            .toJson(),
+        nullptr);
+    if (pending)
+        m_pendingMerges = pending->merged;
     const QJsonObject hashes = root.value(QStringLiteral("hashes")).toObject();
     for (auto it = hashes.constBegin(); it != hashes.constEnd(); ++it) {
         const QJsonObject entry = it.value().toObject();
@@ -507,6 +683,12 @@ void FolderSync::saveState() const
     root.insert(QStringLiteral("lastError"), m_lastError);
     root.insert(QStringLiteral("base"), base);
     root.insert(QStringLiteral("hashes"), hashes);
+    if (!m_pendingMerges.isEmpty()) {
+        SyncManifest pending;
+        pending.merged = m_pendingMerges;
+        root.insert(QStringLiteral("pendingMerges"),
+                    QJsonDocument::fromJson(pending.toJson()).object().value(QStringLiteral("merged")));
+    }
 
     QDir().mkpath(QFileInfo(m_statePath).absolutePath());
     QSaveFile file(m_statePath);

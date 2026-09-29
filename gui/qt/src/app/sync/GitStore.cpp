@@ -307,8 +307,14 @@ QStringList GitStore::listFiles() const
 
 void GitStore::remove(const QString &path, Callback done)
 {
+    // Only merged databases are removed (publish() never commits a file that
+    // merely left the clone): stage the deletion explicitly.
     QFile::remove(filePath(path));
-    done(success());
+    git({QStringLiteral("rm"), QStringLiteral("-q"), QStringLiteral("--cached"), QStringLiteral("--ignore-unmatch"),
+         QStringLiteral("--"), path},
+        [path, done](const Output &removed) {
+            done(removed.exitCode == 0 ? success() : gitFailure(tr("Git could not remove %1").arg(path), removed));
+        });
 }
 
 void GitStore::abort()

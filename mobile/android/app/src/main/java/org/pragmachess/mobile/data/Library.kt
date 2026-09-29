@@ -2,70 +2,55 @@ package org.pragmachess.mobile.data
 
 import java.io.File
 
-/** Where a database lives: made on the phone, or a copy of a computer's. */
-sealed interface DatabaseLocation {
-    data object Local : DatabaseLocation
-    data class Computer(val pubkey: String) : DatabaseLocation
-}
-
-/** A database file of the library; [name] is relative to its folder, with "/" and the .pdb extension. */
-data class DatabaseRef(val location: DatabaseLocation, val name: String) {
+/** A database file of the library, by file name (with the .pdb extension). */
+data class DatabaseRef(val name: String) {
     val title: String get() = name.substringAfterLast('/').removeSuffix(".pdb")
 }
 
 /**
- * The databases on the phone, under the app's private files:
- * `databases/local/` for the ones made here, `databases/<computer pubkey>/`
- * for the copies of each paired computer's.
+ * The databases on the phone: one corpus, one folder (`databases/local/` in
+ * the app's private files), whoever made each of them. A database is known by
+ * its lineage (the `id` property), the file name is only how it is shown.
  */
 class Library(private val root: File) {
-    private val localDir get() = File(root, "local")
+    val dir: File get() = File(root, "local")
 
-    fun dirFor(location: DatabaseLocation): File = when (location) {
-        DatabaseLocation.Local -> localDir
-        is DatabaseLocation.Computer -> File(root, location.pubkey)
-    }
+    fun file(ref: DatabaseRef): File = File(dir, ref.name)
 
-    fun file(ref: DatabaseRef): File = File(dirFor(ref.location), ref.name)
-
-    fun list(location: DatabaseLocation): List<DatabaseRef> {
-        val dir = dirFor(location)
+    fun list(): List<DatabaseRef> {
         if (!dir.isDirectory) return emptyList()
-        return dir.walkTopDown()
-            .filter { it.isFile && it.name.endsWith(".pdb") }
-            .map { DatabaseRef(location, it.relativeTo(dir).invariantSeparatorsPath) }
+        return dir.listFiles { f -> f.isFile && f.name.endsWith(".pdb") }.orEmpty()
+            .map { DatabaseRef(it.name) }
             .sortedBy { it.name.lowercase() }
-            .toList()
     }
 
-    fun localNames(): Set<String> = list(DatabaseLocation.Local).map { it.name }.toSet()
+    /** A file name for [title] not used yet: "Title.pdb", else "Title (other).pdb", numbered if needed. */
+    fun freeName(title: String, other: String): String {
+        val clean = clean(title).ifEmpty { "Database" }
+        if (!File(dir, "$clean.pdb").exists()) return "$clean.pdb"
+        val base = "$clean (${clean(other).ifEmpty { "2" }})"
+        if (!File(dir, "$base.pdb").exists()) return "$base.pdb"
+        return generateSequence(2) { it + 1 }.map { "$base $it.pdb" }.first { !File(dir, it).exists() }
+    }
 
-    /** Creates an empty local database called [title]; null if the name is taken or unusable. */
-    fun createLocal(title: String): DatabaseRef? {
-        val clean = title.trim().replace(Regex("[/\\\\:*?\"<>|]"), "").trim()
+    /** Creates an empty database called [title] with a new lineage; null if the name is taken or unusable. */
+    fun create(title: String): Pair<DatabaseRef, String>? {
+        val clean = clean(title)
         if (clean.isEmpty()) return null
-        val ref = DatabaseRef(DatabaseLocation.Local, "$clean.pdb")
+        val ref = DatabaseRef("$clean.pdb")
         val file = file(ref)
         if (file.exists()) return null
-        PdbDatabase.create(file).close()
-        return ref
+        val lineage = GameIdentity.newLineageId()
+        PdbDatabase.create(file, lineage).close()
+        return ref to lineage
     }
 
-    /** First launch: the one database a phone on its own starts with. */
-    fun ensureDefault(title: String): DatabaseRef {
-        list(DatabaseLocation.Local).firstOrNull()?.let { return it }
-        return createLocal(title) ?: DatabaseRef(DatabaseLocation.Local, "$title.pdb")
+    /** Renames [ref] to [title] if that name is free. */
+    fun rename(ref: DatabaseRef, title: String): DatabaseRef {
+        val target = File(dir, "${clean(title)}.pdb")
+        if (target.exists() || !file(ref).renameTo(target)) return ref
+        return DatabaseRef(target.name)
     }
-
-    /**
-     * Where a file of a computer's list is kept: a database with the name of
-     * a local one is that database (a phone database once pushed comes back
-     * from the computer, with what was added there), anything else is a copy
-     * in the computer's folder.
-     */
-    fun refForRemote(pubkey: String, name: String): DatabaseRef =
-        if (name in localNames()) DatabaseRef(DatabaseLocation.Local, name)
-        else DatabaseRef(DatabaseLocation.Computer(pubkey), name)
 
     fun delete(ref: DatabaseRef) {
         val file = file(ref)
@@ -73,7 +58,24 @@ class Library(private val root: File) {
         File(file.path + "-journal").delete()
     }
 
-    fun deleteComputer(pubkey: String) {
-        dirFor(DatabaseLocation.Computer(pubkey)).deleteRecursively()
+    /**
+     * Brings files of older versions into the one folder: the copies that
+     * were kept per computer (`databases/<pubkey>/`) move in, renamed when
+     * the name is taken. Returns the moved files with the computer they came from.
+     */
+    fun migrateComputerFolders(computerNames: Map<String, String>): List<Pair<DatabaseRef, String>> {
+        val moved = ArrayList<Pair<DatabaseRef, String>>()
+        dir.mkdirs()
+        for (old in root.listFiles { f -> f.isDirectory && f.name != "local" }.orEmpty()) {
+            for (file in old.walkTopDown().filter { it.isFile && it.name.endsWith(".pdb") }) {
+                val name = freeName(file.name.removeSuffix(".pdb"), computerNames[old.name] ?: old.name.take(8))
+                File(file.path + "-journal").delete()
+                if (file.renameTo(File(dir, name))) moved += DatabaseRef(name) to old.name
+            }
+            old.deleteRecursively()
+        }
+        return moved
     }
+
+    private fun clean(title: String) = title.trim().replace(Regex("[/\\\\:*?\"<>|]"), "").trim()
 }

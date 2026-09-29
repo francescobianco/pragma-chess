@@ -166,6 +166,12 @@ cargo run -p chessdb-cli -- <args>
   The interface language is chosen in Options ▸ Language (`UiLanguage`, a
   per-user setting applied at startup); translations are
   `translations/pragma-chess_<code>.ts`, compiled when Qt6 LinguistTools is found.
+  After changing texts, refresh them from `gui/qt` with
+  `/usr/lib/qt6/bin/lupdate -locations none -no-obsolete src tools -ts translations/pragma-chess_it.ts`
+  and translate the new `type="unfinished"` entries. lupdate must not warn:
+  `tr()` in a free function has no context, so such files declare
+  `struct Text { Q_DECLARE_TR_FUNCTIONS(Context) };` and call `Text::tr`
+  (see `MoveExplanation.cpp`), or use `QObject::tr`.
 - Widgets hold no domain logic; put it in `src/app/` and keep the GUI talking to
   the database only through `GameDatabase`.
 - Qt SVG is optional: code guarded by `PRAGMA_HAS_SVG` must still build without it
@@ -181,7 +187,7 @@ cargo run -p chessdb-cli -- <args>
 ## File formats and user data
 
 - **`.pdb` database**: SQLite with `PRAGMA application_id` = `PRAG` and schema
-  version in `PRAGMA user_version` (currently 4). Changing the schema means
+  version in `PRAGMA user_version` (currently 5). Changing the schema means
   bumping the version and upgrading older files in `SqliteGameDatabase::open`.
   Version 2 added `sources` (connected sources, settings and sync state as
   JSON) and `game_sources` (which source each imported game came from, by
@@ -193,6 +199,13 @@ cargo run -p chessdb-cli -- <args>
   `properties` (key/value, `DatabaseProperties`): what the database is
   (`type`: `games` or `opening-book`) and a description, edited in Database ▸
   Database Settings… and stored in the file so they travel with it.
+  Version 5 made every database and game universally identifiable, so copies
+  on several devices are one corpus (docs/phone-link.md, "One corpus"):
+  `properties` row `id` (the database's lineage, fixed for the databases we
+  ship, see `GameIdentity`), `games.uid` (UUIDv5 of the content when the game
+  is created, never changed) and `games.modified` (set on every change).
+  `Reconcile` (pure, unit-tested) merges two copies by uid, newer wins, and
+  reports conflicts; the phone link's `put` uses it.
 
 ## Folder sync
 
@@ -210,22 +223,41 @@ Git repository.
   `SyncManifest` is the remote `.pragma-chess.sync` (files with SHA-256 and a
   revision); `FolderSync` runs the plan, writes the manifest last and starts
   over if another device changed it; uploads send a snapshot copy.
-- **The sync reconciles, it never deletes.** A folder of databases is not a
-  working copy: a file missing on one side means that side has yet to receive
-  it. `planSync` (pure, unit-tested) returns the union of both sides — only
-  here → Upload, only there → Download, changed on both → KeepBoth — and the
-  base only says who changed a file both sides have. A database deleted by
-  hand comes back on the next sync. There are no tombstones: entries left by
-  older versions are dropped when the manifest is read. `GitStore::publish()`
-  stages with `git add --ignore-removal`, so nothing can drop out of the
-  repository even if the clone loses it, and `RemoteStore::listFiles()` (only
-  Git implements it, by walking the clone) brings back a file the manifest
-  lost track of. `tst_chessrules::reconcilesGitFoldersWithoutDeleting` runs
-  two devices against a real bare repository; keep it passing.
+- **The sync reconciles; it never deletes anything that has not been merged.**
+  A folder of databases is not a working copy: a file missing on one side
+  means that side has yet to receive it. `planSync` (pure, unit-tested)
+  returns the union of both sides — only here → Upload, only there →
+  Download, changed on both → KeepBoth — and the base only says who changed a
+  file both sides have. A database deleted by hand comes back on the next
+  sync. There are no tombstones: entries left by older versions are dropped
+  when the manifest is read. `GitStore::publish()` stages with
+  `git add --ignore-removal`, so nothing can drop out of the repository even
+  if the clone loses it, and `RemoteStore::listFiles()` (only Git implements
+  it, by walking the clone) brings back a file the manifest lost track of.
+  `tst_chessrules::reconcilesGitFoldersWithoutDeleting` runs two devices
+  against a real bare repository; keep it passing.
+- **The one way out is a merge.** Database files that are one database —
+  same lineage (`DatabaseProperties::id`), or same base name without the
+  "(device)"/"(old)"/"(conflict…)" suffix and the same games —
+  are merged into one by `FolderSync::mergeDuplicates()` (the rule is the
+  pure `app/DatabaseDedupe`, the same as the phone's `Dedupe`; the file kept
+  is the shipped canonical one, else the plain name, and it takes the
+  smallest lineage). The merge is by uid through `Reconcile` (lossless;
+  newer version wins a conflict), done by `app/DatabaseMerge` behind
+  `FolderSync::DatabaseHooks`, since SQLite lives in the app. Each merged
+  file becomes a `SyncMergeRecord` (`merged` in the manifest: path, its
+  lineage, the lineage and path it went into): a device that still has that
+  file with that lineage merges it into its own copy (planSync `Merge`, run
+  after the downloads) and deletes it; a remote copy is removed (`Forget`;
+  `GitStore::remove()` stages a `git rm`). A file at a merged path with
+  another lineage is a new database and syncs normally.
+  `tst_chessrules::mergesDuplicatesAcrossGitDevices` covers a duplicate
+  holding a game only the second device had.
 - `app/sync/SyncPipeline` runs the sync **in order**, one `SyncTask` at a
   time: `SourceSyncTask` (sources → database), a `SyncStepTask` for the
-  project file and one for the session, then `FolderSyncTask` (folder →
-  server). The order is the contract: what is pushed must be what the user
+  project file, one for the session and one merging duplicate databases,
+  then `FolderSyncTask` (folder → server; it merges duplicates too, for the
+  syncs its timer starts). The order is the contract: what is pushed must be what the user
   sees. Syncing will grow, so **add a task, do not widen `MainWindow::syncNow`**.
   A task says whether it `isNeeded()` (skipped steps never report an error)
   and whether it `isCritical()` (a normal failure is collected and the rest
@@ -299,19 +331,42 @@ The Engine panel shows, under the analysis, the opening the game is in (the
 last named position it passed through) and the book in use.
 
 Opening names do not come from the book (Polyglot has none) but from a
-`.pdb` of type Opening Book chosen in Book ▸ Opening Names, which lists only
-those (setting `book/openingNames`; a database chosen before it had a type is
-marked Opening Book on startup):
-each game is a named line, Event = name, ECO = code, and the name belongs to
-the position where the line ends (the shortest line wins on transpositions).
-It can be opened and edited like any database, one per language; first launch
-copies `resources/openings/opening-names.pdb`, shipped ready made so the first
-launch is not spent building it, and falls back to building it from
-`resources/openings/lichess-openings.tsv` (lichess-org/chess-openings, CC0),
-which stays as its source. A file copied out of a Qt resource is read-only, so
-the copy's permissions are set before it is used. See
-`resources/openings/README.md` to rebuild the seed. `app/OpeningNames` is pure and unit-tested;
-the names are read again when the file changes.
+`.pdb` of type Opening Book: each game is a named line, Event = name, ECO =
+code, and the name belongs to the position where the line ends (the shortest
+line wins on transpositions). It can be opened and edited like any database.
+
+- We ship one per language (`app/ShippedOpeningNames`, pure, unit-tested):
+  `English.pdb` and `Italian.pdb`, with fixed lineages (`GameIdentity`). They
+  are seeded into `Books/Opening Names` (`UserFolders::openingNamesDir()`),
+  **not** into Databases: they are reference data, not games.
+- A database has a display name in its `properties`: `name` and translations
+  `name.<code>` (`DatabaseProperties::displayName`, unit-tested: the exact
+  language, then the default name, then the file name). The shipped ones are
+  "English"/"Inglese" and "Italian"/"Italiano". Database Settings edits the
+  default name and shows the translations.
+- Options ▸ Opening Names lists, by that name in the interface language (not
+  the file name), the opening books of that folder, then any opening book
+  among the databases, and No Names. Until the user picks one
+  there (`book/openingNamesExplicit`), the names follow the interface language
+  (`UiLanguage::effective()`), so they change with the language at restart.
+- `migrateOpeningNames()` runs at startup, before the session: a shipped names
+  database found in Databases (older versions seeded it there), or in the
+  folder under an older file name (`Opening Names.pdb`, `Nomi delle
+  aperture.pdb`), goes to its place (`English.pdb`, `Italian.pdb`). If the
+  place already has every game of the copy, none older
+  (`ShippedOpeningNames::addsNothing` over `readRevisions`: uid → modified),
+  the copy is removed rather than piling up — the folder sync never deletes,
+  so a server brings an old path back on every sync until it is removed
+  there; otherwise it is kept under `Old/`. Nothing is overwritten. A project
+  or setting pointing at a moved file, or at another copy that adds nothing to
+  the shipped one, opens the shipped one.
+- Seeding copies `resources/openings/opening-names*.pdb` (ready made, version 5,
+  with id and type) and falls back to building from the TSVs
+  (`lichess-openings.tsv`, lichess-org/chess-openings, CC0, and the Italian
+  `lichess-openings-it.tsv` made by `make-italian-names.py`). A file copied out
+  of a Qt resource is read-only, so the copy's permissions are set before it is
+  used. See `resources/openings/README.md`. `app/OpeningNames` is pure and
+  unit-tested; the names are read again when the file changes.
 
 - `app/PolyglotBook` (core library, pure, unit-tested against the reference
   keys of the format): Zobrist key (`PolyglotRandom.cpp` holds the format's

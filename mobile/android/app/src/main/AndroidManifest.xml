@@ -6,6 +6,15 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
+    <!-- Chess engines installed as separate apps (the Open Exchange protocol of
+         DroidFish and other chess apps): Android 11+ hides other apps unless
+         the ones we look for are declared. -->
+    <queries>
+        <intent>
+            <action android:name="intent.chess.provider.ENGINE" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="false"
         android:extractNativeLibs="true"

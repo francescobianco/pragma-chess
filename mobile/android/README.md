@@ -16,17 +16,34 @@ Needs JDK 17 and the Android SDK (compileSdk 36, minSdk 26); `local.properties`
 points at the SDK (`sdk.dir=…`).
 
 ```bash
-./gradlew assembleDebug                      # app/build/outputs/apk/debug/app-debug.apk
-./gradlew testDebugUnitTest                  # JVM unit tests
-adb install -r app/build/outputs/apk/debug/app-debug.apk
-./gradlew assembleDebug -Ppragma.stockfish=false   # without the engine (smaller, offline build)
+./gradlew assembleRelease     # app/build/outputs/apk/release/app-arm64-v8a-release.apk (and armeabi-v7a, universal)
+./gradlew testDebugUnitTest   # JVM unit tests
+adb install -r app/build/outputs/apk/release/app-arm64-v8a-release.apk
+./gradlew assembleDebug       # debug build: much slower to draw, don't judge smoothness on it
 ```
 
-Stockfish (`sf_19`, the official `stockfish-android-arm64-universal` build,
-GPL v3) is downloaded by the `fetchStockfish` task, checked against its
-SHA-256, cached in `~/.gradle/caches/pragma-chess/` and shipped as
-`jniLibs/arm64-v8a/libstockfish.so`, executed from `nativeLibraryDir`. It is
-never committed. Its license is shown in Settings ▸ Licenses.
+The release build is minified (R8, resources shrunk), phones only (arm64-v8a
+and armeabi-v7a, one APK each plus a universal one), and for now signed with
+the debug key, so it updates an installed debug build. About 9 MB for arm64;
+most of it is WebRTC (~5.4 MB) and secp256k1 (~1.3 MB).
+
+## Engine
+
+No engine is bundled. Like DroidFish and other chess apps, the app uses the
+engines installed as separate apps through the **Open Exchange (OEX)**
+protocol (`engine/OexEngines.kt`):
+
+- it finds the activities for `intent.chess.provider.ENGINE` (declared in
+  `<queries>` for Android 11+), reads each provider's `res/xml/enginelist.xml`
+  and keeps the engines whose `target` matches `Build.SUPPORTED_ABIS`;
+- it runs the binary straight from the provider's `nativeLibraryDir` (Android
+  10+ does not let an app execute files it copied into its own storage), as
+  a UCI process on 1–2 threads, so the board stays responsive;
+- Settings lists the engines found and remembers the choice; with none, the
+  analysis area offers "Install Stockfish" (Play Store,
+  `com.stockfish141`, Stockfish 19 Chess Engine, free, OEX).
+
+Engines are looked for again whenever the app comes back to the foreground.
 
 ## Architecture
 
@@ -37,17 +54,20 @@ Kotlin 2.2, Jetpack Compose with Material 3, AGP 8.13. Packages under
 |---------|------|
 | `chess` | `Position` (legal moves, check/mate/stalemate, SAN, FEN; perft-tested), `GameLine` |
 | `crypto` | secp256k1 keys and BIP-340 (secp256k1-kmp), `Nip44` v2 with a hand-written `ChaCha20` (official vectors), NIP-01 `NostrEvent` |
-| `link` | `PairingLink`, `PhoneIdentity` (the phone's key), `Signaling` (relays over OkHttp WebSockets), `PeerLink` (WebRTC, stream-webrtc-android), `ComputerSync` (put the outbox, then pull changed files: temp file, size + SHA-256, atomic replace, outbox reapplied) |
-| `data` | `PdbDatabase` (the desktop's `.pdb` schema, version 4, android.database.sqlite), `Library` (files per location), `AppStore` (paired computers, outbox) |
-| `engine` | `UciEngine` (Stockfish as a UCI process), `Analysis` (scores from White's point of view) |
+| `link` | `PairingLink`, `PhoneIdentity` (the phone's key), `Signaling` (relays over OkHttp WebSockets), `PeerLink` (WebRTC, stream-webrtc-android), `ComputerSync` (list, get and merge by lineage, put what the computer lacks, pull again; skips pairs unchanged since the last sync) |
+| `data` | `PdbDatabase` (the desktop's `.pdb` schema, version 5, android.database.sqlite), `GameIdentity` (UUIDv5 game uids, lineages), `Reconciler` (merge by uid, newest wins), `Corpus` and `Library` (one flat folder of databases), `AppStore` (paired computers, origins, last reconciled hashes) |
+| `engine` | `OexEngines` (engines installed as apps), `UciEngine` (a UCI process), `Analysis` (scores from White's point of view) |
 | `ui` | `AppViewModel`, side menu (`PragmaApp`), `BoardScreen` with `Board`, `EvaluationBar`, `MoveList` (SkakNew figurines), games list, computers, settings, licenses |
 
-Databases live in the app's private files: `databases/local/` for the ones
-made on the phone, `databases/<computer pubkey>/` for each computer's copies.
+All databases live in one folder of the app's private files,
+`databases/local/`: the phone and every paired computer form one corpus
+(docs/phone-link.md, "One corpus"), and the phone carries what it learnt from
+one computer to the others. The per-computer folders of older versions are
+moved in on startup.
 
 ## Not done yet
 
 - The keys are in app-private storage, not in the Android Keystore.
 - No PGN import/export on the phone, no variations or comments in the move list.
-- Engine only on arm64 devices (no 32-bit or x86 build is bundled).
+- A release signing key: the release APK is signed with the debug key.
 - `SignalingRelayTest` needs public relays and runs only with `PRAGMA_RELAY_TEST=1`.

@@ -22,11 +22,12 @@ The packages are built by GitHub Actions from [packaging/](packaging/README.md).
 
 The mobile app is in testing and we'd love your feedback. It reads your
 databases offline, records the games you play on the phone and analyses them
-with Stockfish; pair it with the desktop client in *Options ▸ Connect Mobile
-App…* to keep both in sync.
+with an engine app such as Stockfish (any Open Exchange engine, as in
+DroidFish; the app offers to install one); pair it with the desktop client in
+*Options ▸ Connect Mobile App…* to keep both in sync.
 
 **[Download the APK](https://github.com/francescobianco/pragma-chess/releases/download/v0.1.0/pragma-chess-0.1.0-android.apk)**
-(Android 8+, 128 MB; engine analysis needs a 64-bit phone). Open the link on
+(Android 8+, about 9 MB). Open the link on
 the phone and allow installing from that source when Android asks. Tell us
 what works and what doesn't in the
 [issues](https://github.com/francescobianco/pragma-chess/issues): the phone
@@ -109,10 +110,12 @@ The *Book* menu chooses a Polyglot opening book (`.bin`) from the Books folder
 (`~/Chess/Pragma/Books`) or anywhere else. The Opening Tree panel shows the
 book moves of the position on the board with their weight and the name of the
 opening each move leads to; click one to play it. Names come from an ordinary
-database, *Opening Names*, where each game is a named line (Event is the name):
-open it to add or rename variations, or choose another one (for instance in
-another language) in *Book ▸ Opening Names*. It is installed ready made, so
-the first launch has nothing to build. Pragma Chess ships *Pragma Openings*, built from the public domain
+database of type *Opening Book*, where each game is a named line (Event is the
+name). Two are installed ready made in `Books/Opening Names`, *English* and
+*Italian*; the one of the interface language is used unless you choose another
+in *Options ▸ Opening Names*, which lists each database by its own name in your
+language (set in *Database ▸ Database Settings*) and also any opening book
+among your databases. Open one to add or rename variations. Pragma Chess ships *Pragma Openings*, built from the public domain
 [lichess chess-openings](https://github.com/lichess-org/chess-openings)
 collection; `pragma-book` builds and probes books on the command line.
 

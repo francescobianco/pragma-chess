@@ -80,7 +80,7 @@ Q_SIGNALS:
     void pairingLinkChanged();
     /// Relays, sessions or activity changed.
     void statusChanged();
-    /// Games from a phone were stored in the database at `path`.
+    /// Games from a phone were stored in (or replaced in) the database at `path`.
     void gamesStored(const QString &path, int count);
 
 private:
@@ -92,6 +92,8 @@ private:
     void onEvent(const NostrEvent &event);
     void sendSignal(const QByteArray &recipient, const QJsonObject &message);
     void touchDevice(const QString &key);
+    /// The databases offered, described by the game store (ids, game counts).
+    QList<PhoneFiles::Entry> listFiles();
     void setActivity(const QString &activity);
     void sessionFinished(PhoneLinkSession *session);
     int deviceIndex(const QString &key) const;

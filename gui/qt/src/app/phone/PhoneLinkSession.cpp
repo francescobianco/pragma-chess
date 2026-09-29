@@ -3,6 +3,7 @@
 #include "PhoneGameStore.h"
 #include "PhoneLink.h"
 #include "WebRtcPeer.h"
+#include "app/ShippedOpeningNames.h"
 
 #include <QCryptographicHash>
 #include <QDir>
@@ -12,6 +13,7 @@
 #include <QPointer>
 #include <QTemporaryFile>
 #include <QTimer>
+#include <QUuid>
 
 namespace {
 
@@ -99,7 +101,7 @@ void PhoneLinkSession::handle(const QJsonObject &request)
     const QString op = request.value(QStringLiteral("op")).toString();
     if (op == QLatin1String("list")) {
         QJsonArray files;
-        for (const PhoneFiles::Entry &entry : m_link->m_files.list())
+        for (const PhoneFiles::Entry &entry : m_link->listFiles())
             files.append(entry.toJson());
         sendJson({{QStringLiteral("op"), op},
                   {QStringLiteral("name"), m_link->computerName()},
@@ -108,41 +110,85 @@ void PhoneLinkSession::handle(const QJsonObject &request)
     } else if (op == QLatin1String("get")) {
         startTransfer(request.value(QStringLiteral("name")).toString());
     } else if (op == QLatin1String("put")) {
-        const QString name = request.value(QStringLiteral("name")).toString();
-        const std::optional<QString> path = PhoneFiles::resolve(m_link->m_files.root(), name);
-        if (!path) {
-            sendError(QStringLiteral("invalid database name: %1").arg(name));
-            return;
-        }
-        QString error;
-        const std::optional<QList<ImportedGame>> games =
-            PhoneGames::parse(request.value(QStringLiteral("games")).toArray(), &error);
-        if (!games) {
-            sendError(error);
-            return;
-        }
-        if (!m_link->m_gameStore) {
-            sendError(QStringLiteral("this computer does not accept games"));
-            return;
-        }
-        m_link->setActivity(PhoneLink::tr("Receiving games from %1…").arg(m_phoneName));
-        const std::optional<PhoneGames::PutResult> result =
-            m_link->m_gameStore->storeGames(*path, m_phoneKey, m_phoneName, *games, &error);
-        m_link->setActivity(QString());
-        if (!result) {
-            sendError(error.isEmpty() ? QStringLiteral("could not store the games") : error);
-            return;
-        }
-        sendJson({{QStringLiteral("op"), op},
-                  {QStringLiteral("name"), name},
-                  {QStringLiteral("stored"), result->stored},
-                  {QStringLiteral("known"), result->known}});
-        m_link->touchDevice(m_phoneKey);
-        if (result->stored > 0)
-            Q_EMIT m_link->gamesStored(*path, result->stored);
+        handlePut(request);
     } else {
         sendError(QStringLiteral("unknown op: %1").arg(op));
     }
+}
+
+void PhoneLinkSession::handlePut(const QJsonObject &request)
+{
+    // Addressed by lineage (docs/phone-link.md, "The sync, from the phone");
+    // a put with only a name is from a phone that predates it.
+    QString name = request.value(QStringLiteral("name")).toString();
+    const QString lineageText = request.value(QStringLiteral("db")).toString().trimmed();
+    DatabaseProperties properties;
+    if (!lineageText.isEmpty()) {
+        const QUuid lineage = QUuid::fromString(lineageText);
+        if (lineage.isNull()) {
+            sendError(QStringLiteral("invalid database id: %1").arg(lineageText));
+            return;
+        }
+        QHash<QString, QString> values;
+        const QJsonObject sent = request.value(QStringLiteral("properties")).toObject();
+        for (auto it = sent.begin(); it != sent.end(); ++it)
+            values.insert(it.key(), it.value().toString().left(4096));
+        properties = DatabaseProperties::fromValues(values);
+        properties.id = lineage.toString(QUuid::WithoutBraces);
+        // The opening names we ship are reference data kept with the books,
+        // updated by releases, not by phones: they are acknowledged as known and
+        // never recreated among the databases of games.
+        if (ShippedOpeningNames::byLineage(properties.id)) {
+            const int count = int(request.value(QStringLiteral("games")).toArray().size());
+            sendJson({{QStringLiteral("op"), QStringLiteral("put")}, {QStringLiteral("name"), name},
+                      {QStringLiteral("db"), properties.id}, {QStringLiteral("stored"), 0},
+                      {QStringLiteral("updated"), 0}, {QStringLiteral("known"), count},
+                      {QStringLiteral("conflicts"), QJsonArray()}});
+            m_link->touchDevice(m_phoneKey);
+            return;
+        }
+        if (PhoneFiles::resolve(m_link->m_files.root(), name))
+            name = PhoneFiles::target(m_link->listFiles(), properties.id, name, m_phoneName).name;
+    }
+    const std::optional<QString> path = PhoneFiles::resolve(m_link->m_files.root(), name);
+    if (!path) {
+        sendError(QStringLiteral("invalid database name: %1").arg(name));
+        return;
+    }
+    QString error;
+    const std::optional<QList<ImportedGame>> games =
+        PhoneGames::parse(request.value(QStringLiteral("games")).toArray(), &error);
+    if (!games) {
+        sendError(error);
+        return;
+    }
+    if (!m_link->m_gameStore) {
+        sendError(QStringLiteral("this computer does not accept games"));
+        return;
+    }
+    m_link->setActivity(PhoneLink::tr("Receiving games from %1…").arg(m_phoneName));
+    const std::optional<PhoneGames::PutResult> result =
+        m_link->m_gameStore->storeGames(*path, properties, m_phoneKey, m_phoneName, *games, &error);
+    m_link->setActivity(QString());
+    if (!result) {
+        sendError(error.isEmpty() ? QStringLiteral("could not store the games") : error);
+        return;
+    }
+    QJsonArray conflicts;
+    for (const QString &uid : result->conflicts)
+        conflicts.append(QJsonObject{{QStringLiteral("uid"), uid}});
+    QJsonObject answer{{QStringLiteral("op"), QStringLiteral("put")},
+                       {QStringLiteral("name"), name},
+                       {QStringLiteral("stored"), result->stored},
+                       {QStringLiteral("updated"), result->updated},
+                       {QStringLiteral("known"), result->known},
+                       {QStringLiteral("conflicts"), conflicts}};
+    if (!properties.id.isEmpty())
+        answer.insert(QStringLiteral("db"), properties.id);
+    sendJson(answer);
+    m_link->touchDevice(m_phoneKey);
+    if (result->stored + result->updated > 0)
+        Q_EMIT m_link->gamesStored(*path, result->stored + result->updated);
 }
 
 void PhoneLinkSession::sendJson(const QJsonObject &message)
@@ -159,7 +205,7 @@ void PhoneLinkSession::startTransfer(const QString &name)
 {
     // Only what "list" offers can be fetched.
     bool listed = false;
-    for (const PhoneFiles::Entry &entry : m_link->m_files.list())
+    for (const PhoneFiles::Entry &entry : m_link->listFiles())
         listed = listed || entry.name == name;
     const std::optional<QString> path = PhoneFiles::resolve(m_link->m_files.root(), name);
     if (!listed || !path) {

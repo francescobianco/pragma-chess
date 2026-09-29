@@ -1,9 +1,12 @@
 #include "SqliteGameDatabase.h"
 
+#include "GameIdentity.h"
+
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QHash>
+#include <QSet>
 #include <QJsonDocument>
 #include <QSqlDatabase>
 #include <QSqlError>
@@ -17,7 +20,7 @@ namespace {
 
 // "PRAG" — lets other tools (and `file`) identify Pragma databases.
 constexpr int kApplicationId = 0x50524147;
-constexpr int kSchemaVersion = 4;
+constexpr int kSchemaVersion = 5;
 
 const char *const kSchema[] = {
     "CREATE TABLE players (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
@@ -72,6 +75,14 @@ const char *const kPlayerRolesSchema[] = {
 const char *const kPropertiesSchema[] = {
     "CREATE TABLE IF NOT EXISTS properties (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
 };
+
+// Version 5: universal game ids and revisions (see GameIdentity). The unique
+// index comes after the uids are filled in when upgrading.
+const char *const kGameIdentityColumns[] = {
+    "ALTER TABLE games ADD COLUMN uid TEXT",
+    "ALTER TABLE games ADD COLUMN modified TEXT",
+};
+const char kGameUidIndex[] = "CREATE UNIQUE INDEX IF NOT EXISTS games_uid ON games(uid)";
 
 QString toJsonText(const QJsonObject &object)
 {
@@ -147,16 +158,31 @@ public:
         , m_events(db, QStringLiteral("events"))
         , m_sites(db, QStringLiteral("sites"))
         , m_insert(db)
+        , m_uidTaken(db)
     {
         m_insert.prepare(QStringLiteral(
             "INSERT INTO games (white_id, black_id, event_id, site_id, date, round, result,"
-            " white_elo, black_elo, eco, ply_count, start_fen, moves_san, moves_uci)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+            " white_elo, black_elo, eco, ply_count, start_fen, moves_san, moves_uci, uid, modified)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+        m_uidTaken.prepare(QStringLiteral("SELECT 1 FROM games WHERE uid = ?"));
     }
 
-    /// Returns the id of the new game, or 0 on failure.
+    /// Returns the id of the new game, or 0 on failure. A game without a uid
+    /// gets one from its content (the next free occurrence, for a game the
+    /// database already holds); one with a uid keeps it, and fails if taken.
     qint64 insert(const GameRecord &game)
     {
+        m_lastUid = game.uid;
+        for (int occurrence = 1; m_lastUid.isEmpty(); ++occurrence) {
+            const QString candidate = GameIdentity::uid(game, occurrence);
+            m_uidTaken.addBindValue(candidate);
+            if (!m_uidTaken.exec())
+                return 0;
+            if (!m_uidTaken.next())
+                m_lastUid = candidate;
+            m_uidTaken.finish();
+        }
+        m_lastModified = game.modified.isEmpty() ? GameIdentity::now() : game.modified;
         QStringList san;
         QStringList uci;
         for (const MoveRecord &move : game.moves) {
@@ -177,19 +203,88 @@ public:
         m_insert.addBindValue(nullIfEmpty(game.startFen));
         m_insert.addBindValue(movesText(san));
         m_insert.addBindValue(movesText(uci));
+        m_insert.addBindValue(m_lastUid);
+        m_insert.addBindValue(m_lastModified);
         if (!m_insert.exec())
             return 0;
         return m_insert.lastInsertId().toLongLong();
     }
 
-    QString errorText() const { return m_insert.lastError().text(); }
+    /// The header of the game just inserted, as the game list caches it.
+    GameRecord header(const GameRecord &game, qint64 id) const
+    {
+        GameRecord header = game;
+        header.id = id;
+        header.plyCount = int(game.moves.size());
+        header.moves.clear();
+        header.uid = m_lastUid;
+        header.modified = m_lastModified;
+        return header;
+    }
+
+    QString errorText() const
+    {
+        return m_insert.lastError().isValid() ? m_insert.lastError().text() : m_uidTaken.lastError().text();
+    }
 
 private:
     NameTable m_players;
     NameTable m_events;
     NameTable m_sites;
     QSqlQuery m_insert;
+    QSqlQuery m_uidTaken;
+    QString m_lastUid;
+    QString m_lastModified;
 };
+
+/// Fills in the uid of games stored before version 5, from their content as
+/// if they were created now, so every copy of a database gets the same ones.
+bool fillGameUids(QSqlDatabase db, QString *errorMessage)
+{
+    QSqlQuery select(db);
+    select.setForwardOnly(true);
+    if (!select.exec(QStringLiteral(
+            "SELECT g.id, w.name, b.name, e.name, s.name, g.date, g.round, g.result, g.start_fen, g.moves_uci"
+            " FROM games g"
+            " LEFT JOIN players w ON w.id = g.white_id"
+            " LEFT JOIN players b ON b.id = g.black_id"
+            " LEFT JOIN events e ON e.id = g.event_id"
+            " LEFT JOIN sites s ON s.id = g.site_id"
+            " ORDER BY g.id"))) {
+        setError(errorMessage, select.lastError().text());
+        return false;
+    }
+    QList<std::pair<qint64, QString>> uids;
+    QHash<QString, int> occurrences;
+    while (select.next()) {
+        GameRecord game;
+        game.white = select.value(1).toString();
+        game.black = select.value(2).toString();
+        game.event = select.value(3).toString();
+        game.site = select.value(4).toString();
+        game.date = select.value(5).toString();
+        game.round = select.value(6).toString();
+        game.result = select.value(7).toString();
+        game.startFen = select.value(8).toString();
+        for (const QString &uci : select.value(9).toString().split(QLatin1Char(' '), Qt::SkipEmptyParts))
+            game.moves << MoveRecord{QString(), uci};
+        const QString first = GameIdentity::uid(game);
+        const int occurrence = ++occurrences[first];
+        uids.append({select.value(0).toLongLong(), occurrence == 1 ? first : GameIdentity::uid(game, occurrence)});
+    }
+    select.finish();
+    QSqlQuery update(db);
+    update.prepare(QStringLiteral("UPDATE games SET uid = ? WHERE id = ?"));
+    for (const auto &[id, uid] : uids) {
+        update.addBindValue(uid);
+        update.addBindValue(id);
+        if (!update.exec()) {
+            setError(errorMessage, update.lastError().text());
+            return false;
+        }
+    }
+    return true;
+}
 
 } // namespace
 
@@ -262,6 +357,17 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::create(const QString &pa
         if (!query.exec(QString::fromLatin1(statement)))
             return fail(query.lastError().text());
     }
+    for (const char *statement : kGameIdentityColumns) {
+        if (!query.exec(QString::fromLatin1(statement)))
+            return fail(query.lastError().text());
+    }
+    if (!query.exec(QString::fromLatin1(kGameUidIndex)))
+        return fail(query.lastError().text());
+    // Every database is born with its universal id (see GameIdentity).
+    query.prepare(QStringLiteral("INSERT INTO properties (key, value) VALUES ('id', ?)"));
+    query.addBindValue(GameIdentity::newLineageId());
+    if (!query.exec())
+        return fail(query.lastError().text());
 
     GameInserter inserter(db);
     for (const GameRecord &game : games) {
@@ -271,7 +377,7 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::create(const QString &pa
     if (!db.commit())
         return fail(db.lastError().text());
 
-    if (!database->loadHeaders(errorMessage))
+    if (!database->loadHeaders(errorMessage) || !database->loadProperties(errorMessage))
         return nullptr;
     return database;
 }
@@ -332,6 +438,36 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::open(const QString &path
         return nullptr;
     if (version < 4 && !upgrade(4, {std::begin(kPropertiesSchema), std::end(kPropertiesSchema)}))
         return nullptr;
+    if (version < 5) {
+        db.transaction();
+        bool upgraded = true;
+        QString error;
+        // Files downgraded by hand (and tests) may have the columns already.
+        QSet<QString> columns;
+        if (query.exec(QStringLiteral("PRAGMA table_info(games)"))) {
+            while (query.next())
+                columns.insert(query.value(1).toString());
+        }
+        for (const char *statement : kGameIdentityColumns) {
+            const QString text = QString::fromLatin1(statement);
+            if (!columns.contains(text.section(QLatin1Char(' '), 5, 5)))
+                upgraded = upgraded && query.exec(text);
+        }
+        if (!upgraded)
+            error = query.lastError().text();
+        upgraded = upgraded && fillGameUids(db, &error);
+        upgraded = upgraded && query.exec(QString::fromLatin1(kGameUidIndex))
+                   && query.exec(QStringLiteral("PRAGMA user_version = 5"));
+        if (upgraded && !db.commit())
+            upgraded = false;
+        if (!upgraded) {
+            if (error.isEmpty())
+                error = query.lastError().isValid() ? query.lastError().text() : db.lastError().text();
+            db.rollback();
+            setError(errorMessage, QObject::tr("Could not upgrade “%1”: %2").arg(info.fileName(), error));
+            return nullptr;
+        }
+    }
 
     if (!database->loadHeaders(errorMessage) || !database->loadPlayerRoles(errorMessage)
         || !database->loadProperties(errorMessage))
@@ -363,6 +499,46 @@ DatabaseProperties SqliteGameDatabase::readProperties(const QString &path)
     return DatabaseProperties::fromValues(values);
 }
 
+QHash<QString, QString> SqliteGameDatabase::readRevisions(const QString &path)
+{
+    QHash<QString, QString> revisions;
+    if (!QFileInfo(path).isFile())
+        return revisions;
+    const QString connection = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        db.setDatabaseName(path);
+        db.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
+        if (db.open()) {
+            QSqlQuery query(db);
+            query.setForwardOnly(true);
+            if (query.exec(QStringLiteral("PRAGMA application_id")) && query.next()
+                && query.value(0).toInt() == kApplicationId
+                && query.exec(QStringLiteral("SELECT uid, modified FROM games"))) {
+                while (query.next())
+                    revisions.insert(query.value(0).toString(), query.value(1).toString());
+            }
+        }
+    }
+    QSqlDatabase::removeDatabase(connection);
+    return revisions;
+}
+
+bool SqliteGameDatabase::adoptLineage(const QString &path, const QString &id)
+{
+    if (!readProperties(path).id.isEmpty())
+        return true;
+    QString error;
+    const std::unique_ptr<SqliteGameDatabase> database = open(path, &error);
+    if (!database)
+        return false;
+    DatabaseProperties properties = database->properties();
+    if (!properties.id.isEmpty())
+        return true;
+    properties.id = id;
+    return database->setProperties(properties, &error);
+}
+
 bool SqliteGameDatabase::loadProperties(QString *errorMessage)
 {
     QSqlQuery query(QSqlDatabase::database(m_connectionName));
@@ -386,7 +562,7 @@ bool SqliteGameDatabase::setProperties(const DatabaseProperties &properties, QSt
     const QHash<QString, QString> values = properties.values();
     for (auto it = values.cbegin(); it != values.cend(); ++it) {
         query.addBindValue(it.key());
-        query.addBindValue(it.value());
+        query.addBindValue(it.value().isNull() ? QStringLiteral("") : it.value()); // NOT NULL
         if (!query.exec()) {
             setError(errorMessage, query.lastError().text());
             db.rollback();
@@ -408,7 +584,7 @@ bool SqliteGameDatabase::loadHeaders(QString *errorMessage)
     query.setForwardOnly(true);
     if (!query.exec(QStringLiteral(
             "SELECT g.id, w.name, b.name, g.white_elo, g.black_elo, e.name, s.name,"
-            " g.date, g.round, g.result, g.eco, g.ply_count, g.start_fen"
+            " g.date, g.round, g.result, g.eco, g.ply_count, g.start_fen, g.uid, g.modified"
             " FROM games g"
             " LEFT JOIN players w ON w.id = g.white_id"
             " LEFT JOIN players b ON b.id = g.black_id"
@@ -435,6 +611,8 @@ bool SqliteGameDatabase::loadHeaders(QString *errorMessage)
         g.eco = query.value(10).toString();
         g.plyCount = query.value(11).toInt();
         g.startFen = query.value(12).toString();
+        g.uid = query.value(13).toString();
+        g.modified = query.value(14).toString();
         m_headers << g;
     }
     return true;
@@ -547,12 +725,7 @@ qint64 SqliteGameDatabase::addGame(const GameRecord &game, QString *errorMessage
         db.rollback();
         return -1;
     }
-
-    GameRecord header = game;
-    header.id = id;
-    header.plyCount = int(game.moves.size());
-    header.moves.clear();
-    m_headers << header;
+    m_headers << inserter.header(game, id);
     return m_headers.size() - 1;
 }
 
@@ -572,7 +745,7 @@ bool SqliteGameDatabase::updateHeader(qint64 index, const GameRecord &header, QS
     QSqlQuery update(db);
     update.prepare(QStringLiteral(
         "UPDATE games SET white_id = ?, black_id = ?, event_id = ?, site_id = ?, date = ?,"
-        " round = ?, result = ?, white_elo = ?, black_elo = ?, eco = ? WHERE id = ?"));
+        " round = ?, result = ?, white_elo = ?, black_elo = ?, eco = ?, modified = ? WHERE id = ?"));
     update.addBindValue(players.idFor(header.white));
     update.addBindValue(players.idFor(header.black));
     update.addBindValue(events.idFor(header.event));
@@ -583,6 +756,8 @@ bool SqliteGameDatabase::updateHeader(qint64 index, const GameRecord &header, QS
     update.addBindValue(nullIfZero(header.whiteElo));
     update.addBindValue(nullIfZero(header.blackElo));
     update.addBindValue(nullIfEmpty(header.eco));
+    const QString modified = GameIdentity::now();
+    update.addBindValue(modified);
     update.addBindValue(m_headers.at(index).id);
     if (!update.exec() || !db.commit()) {
         setError(errorMessage, update.lastError().isValid() ? update.lastError().text() : db.lastError().text());
@@ -601,6 +776,66 @@ bool SqliteGameDatabase::updateHeader(qint64 index, const GameRecord &header, QS
     cached.round = header.round;
     cached.result = header.result;
     cached.eco = header.eco;
+    cached.modified = modified;
+    return true;
+}
+
+bool SqliteGameDatabase::replaceGame(qint64 index, const GameRecord &game, QString *errorMessage)
+{
+    if (index < 0 || index >= m_headers.size()) {
+        setError(errorMessage, QObject::tr("The game does not exist."));
+        return false;
+    }
+
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    db.transaction();
+    NameTable players(db, QStringLiteral("players"));
+    NameTable events(db, QStringLiteral("events"));
+    NameTable sites(db, QStringLiteral("sites"));
+    QStringList san;
+    QStringList uci;
+    for (const MoveRecord &move : game.moves) {
+        san << move.san;
+        uci << move.uci;
+    }
+    const QString modified = game.modified.isEmpty() ? GameIdentity::now() : game.modified;
+
+    QSqlQuery update(db);
+    update.prepare(QStringLiteral(
+        "UPDATE games SET white_id = ?, black_id = ?, event_id = ?, site_id = ?, date = ?, round = ?,"
+        " result = ?, white_elo = ?, black_elo = ?, eco = ?, ply_count = ?, start_fen = ?, moves_san = ?,"
+        " moves_uci = ?, modified = ? WHERE id = ?"));
+    update.addBindValue(players.idFor(game.white));
+    update.addBindValue(players.idFor(game.black));
+    update.addBindValue(events.idFor(game.event));
+    update.addBindValue(sites.idFor(game.site));
+    update.addBindValue(nullIfEmpty(game.date));
+    update.addBindValue(nullIfEmpty(game.round));
+    update.addBindValue(nullIfEmpty(game.result));
+    update.addBindValue(nullIfZero(game.whiteElo));
+    update.addBindValue(nullIfZero(game.blackElo));
+    update.addBindValue(nullIfEmpty(game.eco));
+    update.addBindValue(int(game.moves.size()));
+    update.addBindValue(nullIfEmpty(game.startFen));
+    update.addBindValue(movesText(san));
+    update.addBindValue(movesText(uci));
+    update.addBindValue(modified);
+    update.addBindValue(m_headers.at(index).id);
+    if (!update.exec() || !db.commit()) {
+        setError(errorMessage, update.lastError().isValid() ? update.lastError().text() : db.lastError().text());
+        db.rollback();
+        return false;
+    }
+
+    GameRecord &cached = m_headers[index];
+    const qint64 id = cached.id;
+    const QString uid = cached.uid;
+    cached = game;
+    cached.id = id;
+    cached.uid = uid; // The identity never changes.
+    cached.modified = modified;
+    cached.plyCount = int(game.moves.size());
+    cached.moves.clear();
     return true;
 }
 
@@ -729,11 +964,7 @@ int SqliteGameDatabase::importGames(qint64 sourceId, const QList<ImportedGame> &
             db.rollback();
             return -1;
         }
-        GameRecord header = imported.game;
-        header.id = id;
-        header.plyCount = int(imported.game.moves.size());
-        header.moves.clear();
-        added << header;
+        added << inserter.header(imported.game, id);
     }
     if (!db.commit()) {
         setError(errorMessage, db.lastError().text());

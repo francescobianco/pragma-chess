@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Build
 import org.pragmachess.mobile.crypto.Hex
 import org.pragmachess.mobile.crypto.KeyPair
-import org.pragmachess.mobile.data.PhoneSource
 
 /** The phone's Nostr key pair and name, kept in app-private preferences. */
 class PhoneIdentity(context: Context) {
@@ -17,7 +16,6 @@ class PhoneIdentity(context: Context) {
         get() = prefs.getString("name", null) ?: defaultName()
         set(value) = prefs.edit().putString("name", value.trim().ifEmpty { defaultName() }).apply()
 
-    val source: PhoneSource get() = PhoneSource(keys.publicKeyHex, name)
 
     private fun defaultName(): String {
         val model = Build.MODEL.orEmpty()

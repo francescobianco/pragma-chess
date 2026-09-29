@@ -36,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -62,7 +63,6 @@ import kotlinx.coroutines.delay
 import org.pragmachess.mobile.BuildConfig
 import org.pragmachess.mobile.R
 import org.pragmachess.mobile.data.Computer
-import org.pragmachess.mobile.data.DatabaseLocation
 import org.pragmachess.mobile.data.DatabaseRef
 import org.pragmachess.mobile.data.GameSummary
 import org.pragmachess.mobile.link.SyncProgress
@@ -101,7 +101,7 @@ fun GamesScreen(vm: AppViewModel, ref: DatabaseRef, snackbar: SnackbarHostState)
     var games by remember { mutableStateOf<List<GameSummary>?>(null) }
     var menu by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
-    LaunchedEffect(ref, filter, vm.computerDatabases, vm.localDatabases) {
+    LaunchedEffect(ref, filter, vm.databases) {
         delay(150)
         games = vm.games(ref, filter)
     }
@@ -110,7 +110,7 @@ fun GamesScreen(vm: AppViewModel, ref: DatabaseRef, snackbar: SnackbarHostState)
         snackbar = snackbar,
         onBack = { vm.back() },
         actions = {
-            if (ref.location == DatabaseLocation.Local) {
+            run {
                 Box {
                     IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, stringResource(R.string.more)) }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -232,17 +232,10 @@ private fun ComputerCard(vm: AppViewModel, computer: Computer, onForget: () -> U
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(computer.name, style = MaterialTheme.typography.titleMedium)
-                    val databases = vm.computerDatabases[computer.pubkey].orEmpty().size
                     val last = if (computer.lastSync > 0)
                         stringResource(R.string.last_sync, DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(computer.lastSync)))
                     else stringResource(R.string.never_synced)
-                    Text("$last · ${pluralDatabases(databases)}", style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    val waiting = vm.outboxCount(computer)
-                    if (waiting > 0) {
-                        Text(stringResource(R.string.games_waiting, waiting), style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary)
-                    }
+                    Text(last, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 IconButton(onClick = { vm.sync(computer) }, enabled = state !is SyncState.Running) {
                     Icon(Icons.Filled.Sync, stringResource(R.string.sync_now))
@@ -264,18 +257,13 @@ private fun ComputerCard(vm: AppViewModel, computer: Computer, onForget: () -> U
                     }
                 }
                 is SyncState.Done -> {
-                    val r = state.result
-                    Text(stringResource(R.string.sync_done, r.pushed, r.received.size), style = MaterialTheme.typography.bodySmall)
+                    Text(vm.summary(state.result), style = MaterialTheme.typography.bodySmall)
                 }
                 SyncState.Idle -> Unit
             }
         }
     }
 }
-
-@Composable
-private fun pluralDatabases(count: Int): String =
-    androidx.compose.ui.res.pluralStringResource(R.plurals.databases, count, count)
 
 @Composable
 fun progressText(progress: SyncProgress): String = when (progress.step) {
@@ -325,9 +313,21 @@ fun SettingsScreen(vm: AppViewModel, snackbar: SnackbarHostState) {
                 modifier = Modifier.fillMaxWidth(),
             )
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(stringResource(R.string.engine), style = MaterialTheme.typography.titleSmall)
-                Text(stringResource(if (vm.engineAvailable) R.string.engine_available else R.string.engine_unavailable),
-                    style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.engine_choose), style = MaterialTheme.typography.titleSmall)
+                if (vm.engines.isEmpty()) {
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    Text(stringResource(R.string.engine_none), style = MaterialTheme.typography.bodyMedium)
+                    TextButton(onClick = { vm.installEngine(context) }) { Text(stringResource(R.string.engine_install)) }
+                }
+                val selected = vm.selectedEngine
+                for (engine in vm.engines) {
+                    ListItem(
+                        headlineContent = { Text(engine.name) },
+                        supportingContent = { Text(stringResource(R.string.engine_by, engine.packageName)) },
+                        leadingContent = { RadioButton(selected = engine == selected, onClick = null) },
+                        modifier = Modifier.clickable { vm.chooseEngine(engine) },
+                    )
+                }
             }
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(stringResource(R.string.phone_key), style = MaterialTheme.typography.titleSmall)
@@ -346,14 +346,10 @@ fun SettingsScreen(vm: AppViewModel, snackbar: SnackbarHostState) {
     }
 }
 
-/** The version and the licenses of what the app bundles; Stockfish's GPL text in full. */
+/** The version and the licenses of what the app bundles. */
 @Composable
 fun LicensesScreen(vm: AppViewModel, snackbar: SnackbarHostState) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val stockfishLicense = remember {
-        runCatching { context.assets.open("licenses/stockfish-COPYING.txt").bufferedReader().use { it.readText() } }.getOrNull()
-    }
-    var showGpl by remember { mutableStateOf(false) }
     val uri = androidx.compose.ui.platform.LocalUriHandler.current
     ScreenScaffold(stringResource(R.string.about_licenses), snackbar, onBack = { vm.back() }) { modifier ->
         Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -361,20 +357,6 @@ fun LicensesScreen(vm: AppViewModel, snackbar: SnackbarHostState) {
             Text(stringResource(R.string.about_title, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.about_app), style = MaterialTheme.typography.bodyMedium)
             HorizontalDivider()
-            LicenseEntry(
-                title = stringResource(R.string.license_stockfish_title, BuildConfig.STOCKFISH_RELEASE.removePrefix("sf_")),
-                text = stringResource(R.string.license_stockfish_text),
-                link = "https://github.com/official-stockfish/Stockfish/tree/${BuildConfig.STOCKFISH_RELEASE}",
-                onLink = uri::openUri,
-            )
-            if (stockfishLicense != null) {
-                TextButton(onClick = { showGpl = !showGpl }) {
-                    Text(stringResource(if (showGpl) R.string.license_hide else R.string.license_show_gpl))
-                }
-                if (showGpl) {
-                    Text(stockfishLicense, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace)
-                }
-            }
             LicenseEntry(stringResource(R.string.license_pieces_title), stringResource(R.string.license_pieces_text),
                 "http://www.enpassant.dk/chess/fonteng.htm#GC", uri::openUri)
             LicenseEntry(stringResource(R.string.license_figurines_title), stringResource(R.string.license_figurines_text),

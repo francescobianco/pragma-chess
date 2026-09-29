@@ -8,10 +8,11 @@ import org.pragmachess.mobile.crypto.Hex
 import org.pragmachess.mobile.crypto.Keys
 import org.pragmachess.mobile.data.AppStore
 import org.pragmachess.mobile.data.Computer
-import org.pragmachess.mobile.data.DatabaseRef
+import org.pragmachess.mobile.data.Corpus
 import org.pragmachess.mobile.data.GameRecord
 import org.pragmachess.mobile.data.Library
 import org.pragmachess.mobile.data.PdbDatabase
+import org.pragmachess.mobile.data.Reconciler
 import java.io.File
 import java.security.MessageDigest
 
@@ -25,12 +26,27 @@ data class SyncProgress(val step: Step, val file: String? = null, val fraction: 
     enum class Step { Relays, Offer, Connecting, Sending, Listing, Receiving }
 }
 
-data class SyncResult(val computerName: String, val pushed: Int, val received: List<String>)
+/**
+ * What a sync did: games [stored] (new here or there), [updated] (a newer
+ * version replaced an older one), [conflicts] (uids that differed on the two
+ * sides; the newer was kept), and the databases one side had not had before.
+ */
+data class SyncResult(
+    val computerName: String,
+    val stored: Int,
+    val updated: Int,
+    val conflicts: List<String>,
+    val newDatabases: Int,
+) {
+    val changed: Boolean get() = stored > 0 || updated > 0 || conflicts.isNotEmpty() || newDatabases > 0
+}
 
 /**
- * One sync with a paired computer (docs/phone-link.md): Nostr signaling, the
- * WebRTC data channel, then the games of the outbox pushed ("put") and the
- * changed databases pulled ("list", "get").
+ * One sync with a paired computer (docs/phone-link.md, "One corpus"): Nostr
+ * signaling, the WebRTC data channel, then the two copies of every database
+ * reconciled by lineage — the computer's changed files pulled and merged, the
+ * games it lacks put, and the files the put changed pulled again. Whatever
+ * the phone learnt from another computer goes to this one too.
  */
 class ComputerSync(
     private val context: Context,
@@ -38,6 +54,16 @@ class ComputerSync(
     private val store: AppStore,
     private val library: Library,
 ) {
+    private val corpus = Corpus(library, store)
+
+    /** Totals of one run. */
+    private class Tally {
+        var stored = 0
+        var updated = 0
+        val conflicts = LinkedHashSet<String>()
+        var newDatabases = 0
+    }
+
     suspend fun run(computer: Computer, progress: (SyncProgress) -> Unit): SyncResult {
         progress(SyncProgress(SyncProgress.Step.Relays))
         Signaling(identity.keys, computer.pubkey, computer.relays).use { signaling ->
@@ -59,10 +85,25 @@ class ComputerSync(
                 val name = answer.optString("name").ifBlank { computer.name }
                 // Accepted: the pairing secret has done its job.
                 store.saveComputer(computer.copy(name = name, pairSecret = null))
-                val pushed = push(peer, computer, progress)
-                val received = pull(peer, computer, progress)
+                val tally = Tally()
+                val listed = list(peer, progress)
+                adoptLineages(listed, name)
+                val toSend = pull(peer, computer.pubkey, listed, null, name, tally, progress)
+                val changed = push(peer, toSend, tally, progress)
+                val relisted = if (changed.isNotEmpty()) list(peer, progress) else listed
+                if (changed.isNotEmpty()) pull(peer, computer.pubkey, relisted, changed, name, tally, progress)
+                // Both copies as they are now: next time, unchanged pairs are not downloaded again.
+                val mine = corpus.byLineage()
+                for (r in relisted) {
+                    val ref = mine[corpus.resolve(r.lineage)] ?: continue
+                    store.setReconciled(computer.pubkey, r.lineage, r.sha256, sha256(library.file(ref)))
+                }
+                // Marks the computer as synced with lineages at least once, even with nothing in common.
+                store.setReconciled(computer.pubkey, "*", "", "")
+                confirmLineages(name, computer.pubkey)
+                corpus.dedupe()
                 store.saveComputer(computer.copy(name = name, pairSecret = null, lastSync = System.currentTimeMillis()))
-                return SyncResult(name, pushed, received)
+                return SyncResult(name, tally.stored, tally.updated, tally.conflicts.toList(), tally.newDatabases)
             }
         }
     }
@@ -83,46 +124,159 @@ class ComputerSync(
         if (!peer.send(message.toString())) throw SyncException(SyncFailure.Protocol, "could not send")
     }
 
-    /** Pushes the outbox, a database at a time; entries leave it once the computer counted them. */
-    private suspend fun push(peer: PeerLink, computer: Computer, progress: (SyncProgress) -> Unit): Int {
-        val entries = store.outbox(computer.pubkey)
-        var done = 0
-        for ((database, games) in entries.groupBy { it.database }) {
-            for (batch in games.chunked(PUT_BATCH)) {
-                progress(SyncProgress(SyncProgress.Step.Sending, database, done.toFloat() / entries.size))
-                send(peer, JSONObject().put("op", "put").put("name", database)
-                    .put("games", JSONArray(batch.map { it.game.toJson() })))
-                val reply = nextText(peer)
-                if (reply.optString("op") == "error") throw SyncException(SyncFailure.Protocol, reply.optString("message"))
-                val counted = reply.optInt("stored") + reply.optInt("known")
-                if (reply.optString("op") == "put" && counted >= batch.size) store.sent(computer.pubkey, batch.map { it.gameId })
-                done += batch.size
-            }
-        }
-        return done
-    }
+    /** A database of the computer's list. */
+    private data class Remote(val name: String, val lineage: String, val sha256: String)
 
-    private suspend fun pull(peer: PeerLink, computer: Computer, progress: (SyncProgress) -> Unit): List<String> {
+    private suspend fun list(peer: PeerLink, progress: (SyncProgress) -> Unit): List<Remote> {
         progress(SyncProgress(SyncProgress.Step.Listing))
         send(peer, JSONObject().put("op", "list"))
         val list = nextText(peer)
         if (list.optString("op") != "list") throw SyncException(SyncFailure.Protocol, list.optString("message"))
         val files = list.getJSONArray("files")
-        val received = ArrayList<String>()
-        for (i in 0 until files.length()) {
-            val entry = files.getJSONObject(i)
-            val name = entry.getString("name")
-            if (!isSafeName(name)) continue
-            val ref = library.refForRemote(computer.pubkey, name)
-            val target = library.file(ref)
-            if (target.exists() && sha256(target) == entry.optString("sha256")) continue
-            progress(SyncProgress(SyncProgress.Step.Receiving, name, 0f))
-            val temp = File(target.path + ".part")
-            receive(peer, name, temp) { fraction -> progress(SyncProgress(SyncProgress.Step.Receiving, name, fraction)) }
-            replace(ref, target, temp, computer)
-            received.add(name)
+        return (0 until files.length()).map { files.getJSONObject(it) }
+            .map { Remote(it.getString("name"), it.optString("id"), it.optString("sha256")) }
+            // A computer without lineages (older than version 5) cannot be reconciled with.
+            .filter { isSafeName(it.name) && it.lineage.isNotBlank() }
+    }
+
+    /**
+     * Files that were on the phone before databases had ids got a provisional
+     * one: a database of the same name on the computer is the same database,
+     * so the phone's takes the computer's id.
+     */
+    private fun adoptLineages(remote: List<Remote>, computerName: String) {
+        val entries = corpus.entries()
+        val lineages = entries.map { it.lineage }.toSet()
+        for (r in remote) {
+            if (r.lineage in lineages || corpus.resolve(r.lineage) in lineages) continue
+            // Only from the computer the file came from, or any computer for the phone's own files.
+            val mine = entries.firstOrNull {
+                it.ref.name == r.name && store.isProvisional(it.lineage) && (it.origin == computerName || it.origin == identity.name)
+            } ?: continue
+            PdbDatabase.open(library.file(mine.ref), writable = true).use { it.setProperty(PdbDatabase.PROPERTY_ID, r.lineage) }
+            store.adopt(mine.lineage, r.lineage, mine.origin.ifBlank { computerName })
         }
-        return received
+    }
+
+    /**
+     * A provisional id becomes final once it can no longer meet the
+     * computer's id for the same file: after a sync with the computer the file
+     * came from, or, for the phone's own files, once every paired computer
+     * has been synced with.
+     */
+    private fun confirmLineages(computerName: String, pubkey: String) {
+        val synced = store.computers().all { it.pubkey == pubkey || store.reconciled(it.pubkey).isNotEmpty() }
+        for (entry in corpus.entries()) {
+            if (!store.isProvisional(entry.lineage)) continue
+            if (entry.origin == computerName || (entry.origin == identity.name && synced)) store.confirm(entry.lineage)
+        }
+    }
+
+    /**
+     * Gets the computer's databases that differ from the phone's copy (all of
+     * them, or those of [only]) and merges them in by lineage. Returns, by
+     * lineage, the phone's games the computer lacks or has in an older version.
+     */
+    private suspend fun pull(
+        peer: PeerLink,
+        pubkey: String,
+        remote: List<Remote>,
+        only: Set<String>?,
+        computerName: String,
+        tally: Tally,
+        progress: (SyncProgress) -> Unit,
+    ): Map<String, List<GameRecord>> {
+        val toSend = LinkedHashMap<String, List<GameRecord>>()
+        val mine = corpus.byLineage()
+        val last = store.reconciled(pubkey)
+        for (r in remote) {
+            if (only != null && r.lineage !in only) continue
+            // A lineage merged into another here (Corpus.dedupe) is merged into that one.
+            val key = corpus.resolve(r.lineage)
+            val aliased = key != r.lineage
+            val local = mine[key]
+            if (local == null && aliased) continue
+            if (local != null) {
+                // The same file, or neither copy changed since they were last reconciled.
+                val localSha = sha256(library.file(local))
+                if (localSha == r.sha256 || last[r.lineage] == (r.sha256 to localSha)) continue
+            }
+            progress(SyncProgress(SyncProgress.Step.Receiving, r.name, 0f))
+            val temp = File(library.dir, ".incoming-${r.lineage}.part")
+            receive(peer, r.name, temp) { fraction -> progress(SyncProgress(SyncProgress.Step.Receiving, r.name, fraction)) }
+            try {
+                if (local == null) {
+                    // A database the phone did not have: it is the phone's copy now.
+                    val count = PdbDatabase.open(temp, writable = true).use { it.gameCount() }
+                    val target = File(library.dir, library.freeName(r.name.substringAfterLast('/').removeSuffix(".pdb"), computerName))
+                    if (!temp.renameTo(target)) throw SyncException(SyncFailure.Protocol, "could not save ${r.name}")
+                    store.setOrigin(r.lineage, computerName)
+                    tally.newDatabases++
+                    tally.stored += count
+                } else {
+                    val incoming = PdbDatabase.open(temp, writable = true).use { it.allGames() }
+                    PdbDatabase.open(library.file(local), writable = true).use { db ->
+                        val plan = Reconciler.plan(db.allGames(), incoming)
+                        db.merge(plan)
+                        tally.stored += plan.insert.size
+                        tally.updated += plan.update.size
+                        tally.conflicts += plan.conflicts
+                        if (plan.send.isNotEmpty() && !aliased) toSend[key] = plan.send
+                    }
+                }
+            } finally {
+                temp.delete()
+                File(temp.path + "-journal").delete()
+            }
+        }
+        if (only == null) {
+            // The phone's databases the computer does not have at all: all their games.
+            val listed = remote.flatMap { listOf(it.lineage, corpus.resolve(it.lineage)) }.toSet()
+            for ((lineage, ref) in corpus.byLineage()) {
+                // A provisional id is not sent anywhere: the file may still take a computer's id.
+                if (lineage !in listed && !store.isProvisional(lineage)) {
+                    toSend[lineage] = PdbDatabase.open(library.file(ref)).use { it.allGames() }
+                }
+            }
+        }
+        return toSend
+    }
+
+    /** Puts the games the computer lacks, addressed by lineage. Returns the lineages it changed. */
+    private suspend fun push(
+        peer: PeerLink,
+        toSend: Map<String, List<GameRecord>>,
+        tally: Tally,
+        progress: (SyncProgress) -> Unit,
+    ): Set<String> {
+        val mine = corpus.byLineage()
+        val changed = LinkedHashSet<String>()
+        val total = toSend.values.sumOf { it.size }.coerceAtLeast(1)
+        var done = 0
+        for ((lineage, games) in toSend) {
+            val ref = mine[lineage] ?: continue
+            val properties = PdbDatabase.open(library.file(ref)).use { db ->
+                (db.properties() - PdbDatabase.PROPERTY_ID) + (PdbDatabase.PROPERTY_TYPE to
+                    if (db.isOpeningBook()) PdbDatabase.TYPE_OPENING_BOOK else PdbDatabase.TYPE_GAMES)
+            }
+            // An empty database is created on the computer too: one put with no games.
+            for (batch in games.chunked(PUT_BATCH).ifEmpty { listOf(emptyList()) }) {
+                progress(SyncProgress(SyncProgress.Step.Sending, ref.name, done.toFloat() / total))
+                send(peer, JSONObject().put("op", "put").put("db", lineage).put("name", ref.name)
+                    .put("properties", JSONObject(properties))
+                    .put("games", JSONArray(batch.map { it.toJson() })))
+                val reply = nextText(peer)
+                if (reply.optString("op") != "put") throw SyncException(SyncFailure.Protocol, reply.optString("message"))
+                val stored = reply.optInt("stored")
+                val updated = reply.optInt("updated")
+                tally.stored += stored
+                tally.updated += updated
+                reply.optJSONArray("conflicts")?.let { c -> for (i in 0 until c.length()) c.optJSONObject(i)?.optString("uid")?.let(tally.conflicts::add) }
+                if (stored > 0 || updated > 0 || batch.isEmpty()) changed += lineage
+                done += batch.size
+            }
+        }
+        return changed
     }
 
     private suspend fun receive(peer: PeerLink, name: String, temp: File, fraction: (Float) -> Unit) {
@@ -160,28 +314,6 @@ class ComputerSync(
         } catch (e: Exception) {
             temp.delete()
             throw e
-        }
-    }
-
-    /**
-     * Puts the received file in place of the phone's copy, then stores again
-     * the phone's games the new file lacks: those of the old copy and those
-     * still in the outbox, so nothing typed on the phone is lost by a pull.
-     */
-    private fun replace(ref: DatabaseRef, target: File, temp: File, computer: Computer) {
-        val source = identity.source
-        val keep = LinkedHashMap<String, GameRecord>()
-        if (target.exists()) {
-            runCatching { PdbDatabase.open(target).use { db -> db.phoneGames(source).forEach { g -> g.uuid?.let { keep[it] = g } } } }
-        }
-        store.outbox(computer.pubkey).filter { it.database == ref.name }.forEach { keep[it.gameId] = it.game }
-        File(target.path + "-journal").delete()
-        if (!temp.renameTo(target)) {
-            target.delete()
-            if (!temp.renameTo(target)) throw SyncException(SyncFailure.Protocol, "could not save ${ref.name}")
-        }
-        if (keep.isNotEmpty()) {
-            PdbDatabase.open(target, writable = true).use { db -> keep.values.forEach { db.insert(it, source) } }
         }
     }
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Pragma Chess</string>
+    <string name="app_name" translatable="false">Pragma Chess</string>
     <string name="default_database">My Games</string>
 
     <!-- Board -->
@@ -22,11 +22,12 @@
     <!-- Engine -->
     <string name="engine">Engine</string>
     <string name="engine_thinking">The engine is thinking…</string>
-    <string name="engine_available">Stockfish, on this phone.</string>
-    <string name="engine_unavailable">The engine is not available on this phone.</string>
+    <string name="engine_none">No chess engine is installed. Pragma Chess analyses with an engine installed as a separate app, the way DroidFish and other chess apps do (Open Exchange).</string>
+    <string name="engine_install">Install Stockfish</string>
+    <string name="engine_choose">Engine for analysis</string>
+    <string name="engine_by">From %1$s</string>
 
     <!-- Games and databases -->
-    <string name="on_this_phone">On this phone</string>
     <string name="new_database">New database…</string>
     <string name="database">Database</string>
     <string name="database_name">Name</string>
@@ -44,15 +45,11 @@
     <string name="round">Round</string>
     <string name="save">Save</string>
     <string name="game_saved">Saved in %1$s.</string>
-    <plurals name="databases">
-        <item quantity="one">%d database</item>
-        <item quantity="other">%d databases</item>
-    </plurals>
 
     <!-- Computers -->
     <string name="computers">Computers</string>
     <string name="connect_computer">Connect a computer</string>
-    <string name="pair_instructions">On your computer open Options ▸ Connect Mobile App… in Pragma Chess and scan the code it shows. The phone keeps a copy of the computer\'s databases, and the games you save here go to the computer.</string>
+    <string name="pair_instructions">On your computer open Options ▸ Connect Mobile App… in Pragma Chess and scan the code it shows. The databases of the phone and of every computer become one collection, kept the same everywhere: what you save here reaches your computers, and what the phone learns from one computer it brings to the others.</string>
     <string name="scan_code">Scan code</string>
     <string name="scan_again">Scan the code again</string>
     <string name="scan_prompt">Scan the code in Options ▸ Connect Mobile App… on your computer</string>
@@ -61,12 +58,10 @@
     <string name="pair_invalid_link">That is not a Pragma Chess pairing code.</string>
     <string name="forget">Forget</string>
     <string name="forget_computer">Forget computer</string>
-    <string name="forget_computer_text">Forget %1$s and delete its databases from this phone? Games saved on the phone and not sent yet are lost. To connect again, scan the code once more.</string>
+    <string name="forget_computer_text">Forget %1$s? Its databases stay on this phone, which keeps bringing them to your other computers. To connect again, scan the code once more.</string>
     <string name="sync_now">Sync now</string>
     <string name="last_sync">Synced %1$s</string>
     <string name="never_synced">Never synced</string>
-    <string name="games_waiting">%1$d games waiting to be sent</string>
-    <string name="sync_done">Sent %1$d games, received %2$d databases.</string>
     <string name="sync_up_to_date">Up to date with %1$s.</string>
     <string name="sync_no_relays">No connection to the internet relays. Check that the phone is online.</string>
     <string name="sync_no_answer">The computer did not answer. Is Pragma Chess open on the computer, and is this phone still connected in Options ▸ Connect Mobile App…?</string>
@@ -89,10 +84,6 @@
     <string name="about_title">Pragma Chess %1$s</string>
     <string name="about_licenses">About and licenses</string>
     <string name="about_app">A companion to Pragma Chess on the desktop: your databases on the phone, games played here sent to the computer. Free and open source.</string>
-    <string name="license_stockfish_title">Stockfish %1$s</string>
-    <string name="license_stockfish_text">The chess engine, shipped unchanged as a separate program. GNU General Public License version 3; the source code is at:</string>
-    <string name="license_show_gpl">Show the GPL</string>
-    <string name="license_hide">Hide</string>
     <string name="license_pieces_title">Good Companion pieces</string>
     <string name="license_pieces_text">By David L. Brown, distributed as freeware; the SVG files come from the lichess project.</string>
     <string name="license_figurines_title">SkakNew figurines</string>
@@ -102,5 +93,25 @@
     <string name="discard_game">Discard the game?</string>
     <string name="discard_game_text">The moves played on the board are not saved yet.</string>
     <string name="discard">Discard</string>
-    <string name="opening_books">Opening books</string>
+    <string name="beta">BETA</string>
+    <string name="sync_summary">Synced with %1$s: %2$s.</string>
+    <string name="sync_nothing_new">nothing new</string>
+    <plurals name="sync_new_databases">
+        <item quantity="one">%1$d new database</item>
+        <item quantity="other">%1$d new databases</item>
+    </plurals>
+    <plurals name="sync_stored">
+        <item quantity="one">%1$d game stored</item>
+        <item quantity="other">%1$d games stored</item>
+    </plurals>
+    <plurals name="sync_updated">
+        <item quantity="one">%1$d updated</item>
+        <item quantity="other">%1$d updated</item>
+    </plurals>
+    <plurals name="sync_conflicts">
+        <item quantity="one">%1$d game differed on the two devices; the most recent version was kept.</item>
+        <item quantity="other">%1$d games differed on the two devices; the most recent version was kept.</item>
+    </plurals>
+    <string name="database_unreadable">“%1$s” cannot be read.</string>
+    <string name="game_not_saved">The game could not be saved in “%1$s”.</string>
 </resources>

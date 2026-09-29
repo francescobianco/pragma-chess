@@ -19,10 +19,11 @@
 
     <string name="engine">Motore</string>
     <string name="engine_thinking">Il motore sta pensando…</string>
-    <string name="engine_available">Stockfish, su questo telefono.</string>
-    <string name="engine_unavailable">Il motore non è disponibile su questo telefono.</string>
+    <string name="engine_none">Nessun motore scacchistico installato. Pragma Chess analizza con un motore installato come app separata, come fanno DroidFish e altre app di scacchi (Open Exchange).</string>
+    <string name="engine_install">Installa Stockfish</string>
+    <string name="engine_choose">Motore per l\'analisi</string>
+    <string name="engine_by">Da %1$s</string>
 
-    <string name="on_this_phone">Su questo telefono</string>
     <string name="new_database">Nuovo database…</string>
     <string name="database">Database</string>
     <string name="database_name">Nome</string>
@@ -40,14 +41,10 @@
     <string name="round">Turno</string>
     <string name="save">Salva</string>
     <string name="game_saved">Salvata in %1$s.</string>
-    <plurals name="databases">
-        <item quantity="one">%d database</item>
-        <item quantity="other">%d database</item>
-    </plurals>
 
     <string name="computers">Computer</string>
     <string name="connect_computer">Collega un computer</string>
-    <string name="pair_instructions">Sul computer apri Opzioni ▸ Collega app mobile… in Pragma Chess e inquadra il codice che mostra. Il telefono tiene una copia dei database del computer, e le partite che salvi qui arrivano al computer.</string>
+    <string name="pair_instructions">Sul computer apri Opzioni ▸ Collega app mobile… in Pragma Chess e inquadra il codice che mostra. I database del telefono e di ogni computer diventano un\'unica raccolta, uguale ovunque: quello che salvi qui arriva ai tuoi computer, e quello che il telefono impara da un computer lo porta agli altri.</string>
     <string name="scan_code">Inquadra il codice</string>
     <string name="scan_again">Inquadra di nuovo il codice</string>
     <string name="scan_prompt">Inquadra il codice di Opzioni ▸ Collega app mobile… sul computer</string>
@@ -56,12 +53,10 @@
     <string name="pair_invalid_link">Questo non è un codice di collegamento di Pragma Chess.</string>
     <string name="forget">Dimentica</string>
     <string name="forget_computer">Dimentica il computer</string>
-    <string name="forget_computer_text">Dimenticare %1$s ed eliminare i suoi database da questo telefono? Le partite salvate sul telefono e non ancora inviate vanno perse. Per ricollegarlo inquadra di nuovo il codice.</string>
+    <string name="forget_computer_text">Dimenticare %1$s? I suoi database restano su questo telefono, che continua a portarli agli altri tuoi computer. Per ricollegarlo inquadra di nuovo il codice.</string>
     <string name="sync_now">Sincronizza ora</string>
     <string name="last_sync">Sincronizzato %1$s</string>
     <string name="never_synced">Mai sincronizzato</string>
-    <string name="games_waiting">%1$d partite da inviare</string>
-    <string name="sync_done">Inviate %1$d partite, ricevuti %2$d database.</string>
     <string name="sync_up_to_date">Allineato con %1$s.</string>
     <string name="sync_no_relays">Nessuna connessione ai relay su internet. Controlla che il telefono sia online.</string>
     <string name="sync_no_answer">Il computer non ha risposto. Pragma Chess è aperto sul computer, e questo telefono è ancora collegato in Opzioni ▸ Collega app mobile…?</string>
@@ -83,10 +78,6 @@
     <string name="about_title">Pragma Chess %1$s</string>
     <string name="about_licenses">Informazioni e licenze</string>
     <string name="about_app">Il compagno di Pragma Chess sul desktop: i tuoi database sul telefono, le partite giocate qui inviate al computer. Libero e open source.</string>
-    <string name="license_stockfish_title">Stockfish %1$s</string>
-    <string name="license_stockfish_text">Il motore scacchistico, distribuito invariato come programma separato. GNU General Public License versione 3; il codice sorgente è su:</string>
-    <string name="license_show_gpl">Mostra la GPL</string>
-    <string name="license_hide">Nascondi</string>
     <string name="license_pieces_title">Pezzi Good Companion</string>
     <string name="license_pieces_text">Di David L. Brown, distribuiti come freeware; i file SVG vengono dal progetto lichess.</string>
     <string name="license_figurines_title">Figurine SkakNew</string>
@@ -96,5 +87,29 @@
     <string name="discard_game">Scartare la partita?</string>
     <string name="discard_game_text">Le mosse giocate sulla scacchiera non sono ancora salvate.</string>
     <string name="discard">Scarta</string>
-    <string name="opening_books">Libri di aperture</string>
+    <string name="beta">BETA</string>
+    <string name="sync_summary">Sincronizzato con %1$s: %2$s.</string>
+    <string name="sync_nothing_new">niente di nuovo</string>
+    <plurals name="sync_new_databases">
+        <item quantity="one">%1$d nuovo database</item>
+        <item quantity="many">%1$d nuovi database</item>
+        <item quantity="other">%1$d nuovi database</item>
+    </plurals>
+    <plurals name="sync_stored">
+        <item quantity="one">%1$d partita salvata</item>
+        <item quantity="many">%1$d partite salvate</item>
+        <item quantity="other">%1$d partite salvate</item>
+    </plurals>
+    <plurals name="sync_updated">
+        <item quantity="one">%1$d aggiornata</item>
+        <item quantity="many">%1$d aggiornate</item>
+        <item quantity="other">%1$d aggiornate</item>
+    </plurals>
+    <plurals name="sync_conflicts">
+        <item quantity="one">%1$d partita era diversa sui due dispositivi: è stata tenuta la versione più recente.</item>
+        <item quantity="many">%1$d partite erano diverse sui due dispositivi: è stata tenuta la versione più recente.</item>
+        <item quantity="other">%1$d partite erano diverse sui due dispositivi: è stata tenuta la versione più recente.</item>
+    </plurals>
+    <string name="database_unreadable">Impossibile leggere «%1$s».</string>
+    <string name="game_not_saved">Non è stato possibile salvare la partita in «%1$s».</string>
 </resources>

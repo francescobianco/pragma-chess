@@ -3,13 +3,11 @@ package org.pragmachess.mobile.data
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import java.io.File
-import java.time.Instant
 
 /**
  * A Pragma .pdb database: SQLite with the desktop's schema (application_id
- * PRAG, user_version 4; see gui/qt/src/app/SqliteGameDatabase.cpp). The phone
- * reads any file of version 1 to 4 and writes games with their players,
- * events and sites, recording the phone as their source.
+ * PRAG, user_version 5; see gui/qt/src/app/SqliteGameDatabase.cpp). The phone
+ * reads any file of version 1 to 5 and upgrades the ones it opens for writing.
  */
 class PdbDatabase private constructor(val file: File, private val db: SQLiteDatabase) : AutoCloseable {
 
@@ -17,13 +15,19 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
 
     /** The database's own properties (table `properties`, version 4); empty for older files. */
     fun properties(): Map<String, String> = runCatching {
+        val hasTable = db.rawQuery("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'properties'", null)
+            .use { it.moveToFirst() }
+        if (!hasTable) return@runCatching emptyMap()
         db.rawQuery("SELECT key, value FROM properties", null).use { c ->
             buildMap { while (c.moveToNext()) put(c.getString(0), c.getString(1)) }
         }
     }.getOrDefault(emptyMap())
 
     /** Opening books (type "opening-book") hold named lines, not games to browse; missing type = games. */
-    fun isOpeningBook(): Boolean = properties()[PROPERTY_TYPE] == TYPE_OPENING_BOOK
+    fun isOpeningBook(): Boolean = properties().let { p ->
+        // The Opening Names we ship is one even in copies made before databases had a type.
+        p[PROPERTY_TYPE]?.let { it == TYPE_OPENING_BOOK } ?: (p[PROPERTY_ID] == GameIdentity.OPENING_NAMES_LINEAGE)
+    }
 
     fun gameCount(): Int = db.rawQuery("SELECT COUNT(*) FROM games", null).use { if (it.moveToFirst()) it.getInt(0) else 0 }
 
@@ -66,64 +70,115 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
         return db.rawQuery("SELECT id FROM $table WHERE name = ?", arrayOf(name)).use { if (it.moveToFirst()) it.getLong(0) else null }
     }
 
-    private fun sourceId(source: PhoneSource): Long {
-        db.rawQuery("SELECT id FROM sources WHERE uuid = ?", arrayOf(source.uuid)).use { if (it.moveToFirst()) return it.getLong(0) }
-        val values = ContentValues().apply {
-            put("uuid", source.uuid)
-            put("kind", "phone")
-            put("account", source.name)
-            put("created_at", Instant.now().toString())
-        }
-        return db.insertOrThrow("sources", null, values)
+    /** The universal id of this database (properties row `id`), or null for files older than version 5. */
+    fun lineage(): String? = properties()[PROPERTY_ID]?.ifBlank { null }
+
+    fun setProperty(key: String, value: String) {
+        db.execSQL("INSERT OR REPLACE INTO properties (key, value) VALUES (?, ?)", arrayOf(key, value))
     }
 
-    fun hasGame(source: PhoneSource, uuid: String): Boolean =
-        db.rawQuery("SELECT 1 FROM game_sources gs JOIN sources s ON s.id = gs.source_id WHERE s.uuid = ? AND gs.external_id = ?",
-            arrayOf(source.uuid, uuid)).use { it.moveToFirst() }
+    private fun gameValues(game: GameRecord) = ContentValues().apply {
+        val h = game.headers
+        put("white_id", nameId("players", h.white))
+        put("black_id", nameId("players", h.black))
+        put("event_id", nameId("events", h.event))
+        put("site_id", nameId("sites", h.site))
+        put("date", h.date.ifBlank { null })
+        put("round", h.round.ifBlank { null })
+        put("result", h.result.ifBlank { null })
+        put("white_elo", h.whiteElo.takeIf { it > 0 })
+        put("black_elo", h.blackElo.takeIf { it > 0 })
+        put("eco", h.eco.ifBlank { null })
+        put("ply_count", game.plyCount)
+        put("start_fen", game.startFen.ifBlank { null })
+        put("moves_san", game.movesSan)
+        put("moves_uci", game.movesUci)
+        put("modified", game.modified)
+    }
 
-    /** Stores [game] (made on the phone, with a uuid) unless it is already there; returns its id or null. */
-    fun insert(game: GameRecord, source: PhoneSource): Long? {
-        val uuid = requireNotNull(game.uuid) { "phone games have a uuid" }
+    private fun uidTaken(uid: String): Boolean =
+        db.rawQuery("SELECT 1 FROM games WHERE uid = ?", arrayOf(uid)).use { it.moveToFirst() }
+
+    /**
+     * Stores [game]. One with a uid keeps it (null if the database has it
+     * already); one without gets the uid of its content, told apart from an
+     * identical game already here by its occurrence, like the desktop does.
+     * Returns the stored game.
+     */
+    fun insert(game: GameRecord): GameRecord? {
         db.beginTransaction()
         try {
-            if (hasGame(source, uuid)) return null
-            val h = game.headers
-            val values = ContentValues().apply {
-                put("white_id", nameId("players", h.white))
-                put("black_id", nameId("players", h.black))
-                put("event_id", nameId("events", h.event))
-                put("site_id", nameId("sites", h.site))
-                put("date", h.date.ifBlank { null })
-                put("round", h.round.ifBlank { null })
-                put("result", h.result.ifBlank { null })
-                put("white_elo", h.whiteElo.takeIf { it > 0 })
-                put("black_elo", h.blackElo.takeIf { it > 0 })
-                put("eco", h.eco.ifBlank { null })
-                put("ply_count", game.plyCount)
-                put("start_fen", game.startFen.ifBlank { null })
-                put("moves_san", game.movesSan)
-                put("moves_uci", game.movesUci)
-            }
-            val id = db.insertOrThrow("games", null, values)
-            db.execSQL("INSERT INTO game_sources (game_id, source_id, external_id) VALUES (?, ?, ?)",
-                arrayOf<Any>(id, sourceId(source), uuid))
+            val uid = game.uid ?: generateSequence(1) { it + 1 }.map { GameIdentity.uid(game, it) }.first { !uidTaken(it) }
+            if (uidTaken(uid)) return null
+            val stored = game.copy(uid = uid)
+            db.insertOrThrow("games", null, gameValues(stored).apply { put("uid", uid) })
             db.setTransactionSuccessful()
-            return id
+            return stored
         } finally {
             db.endTransaction()
         }
     }
 
-    /** The games this phone made that are in this file, with their uuids. */
-    fun phoneGames(source: PhoneSource): List<GameRecord> {
-        val ids = db.rawQuery("SELECT gs.game_id, gs.external_id FROM game_sources gs JOIN sources s ON s.id = gs.source_id WHERE s.uuid = ?",
-            arrayOf(source.uuid)).use { c -> buildList { while (c.moveToNext()) add(c.getLong(0) to c.getString(1)) } }
-        return ids.mapNotNull { (id, uuid) -> game(id)?.copy(uuid = uuid) }
+    /** Replaces the game with [game]'s uid by that version (a conflict the other side won). */
+    fun replace(game: GameRecord) {
+        db.update("games", gameValues(game), "uid = ?", arrayOf(requireNotNull(game.uid)))
+    }
+
+    /** Applies the incoming side of a merge in one transaction. */
+    fun merge(plan: Reconciler.Plan) {
+        db.beginTransaction()
+        try {
+            plan.insert.forEach { game ->
+                if (!uidTaken(game.uid!!)) db.insertOrThrow("games", null, gameValues(game).apply { put("uid", game.uid) })
+            }
+            plan.update.forEach(::replace)
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    /**
+     * Upgrade to version 5: the uid of every game from its content, as if it
+     * were created now, in id order so identical games get the same
+     * occurrences on every copy.
+     */
+    private fun fillUids() {
+        val occurrences = HashMap<String, Int>()
+        val ids = db.rawQuery("SELECT id FROM games ORDER BY id", null).use { c -> buildList { while (c.moveToNext()) add(c.getLong(0)) } }
+        for ((id, game) in ids.zip(allGames())) {
+            val first = GameIdentity.uid(game)
+            val occurrence = occurrences.merge(first, 1, Int::plus)!!
+            db.execSQL("UPDATE games SET uid = ? WHERE id = ?",
+                arrayOf(if (occurrence == 1) first else GameIdentity.uid(game, occurrence), id))
+        }
+    }
+
+    /** Every game, whole, with uid and revision: what a merge compares. */
+    fun allGames(): List<GameRecord> {
+        val sql = "SELECT w.name, b.name, e.name, s.name, g.date, g.round, g.result, g.white_elo, g.black_elo," +
+            " g.eco, g.start_fen, g.moves_san, g.moves_uci, g.uid, g.modified FROM games g" +
+            " LEFT JOIN players w ON w.id = g.white_id LEFT JOIN players b ON b.id = g.black_id" +
+            " LEFT JOIN events e ON e.id = g.event_id LEFT JOIN sites s ON s.id = g.site_id ORDER BY g.id"
+        return db.rawQuery(sql, null).use { c ->
+            fun text(i: Int) = if (c.isNull(i)) "" else c.getString(i)
+            buildList {
+                while (c.moveToNext()) {
+                    add(GameRecord(
+                        GameHeaders(text(0), text(1), text(2), text(3), text(4), text(5), text(6),
+                            if (c.isNull(7)) 0 else c.getInt(7), if (c.isNull(8)) 0 else c.getInt(8), text(9)),
+                        startFen = text(10), movesSan = text(11), movesUci = text(12),
+                        uid = text(13).ifEmpty { null }, modified = text(14),
+                    ))
+                }
+            }
+        }
     }
 
     companion object {
         const val APPLICATION_ID = 0x50524147 // "PRAG"
-        const val SCHEMA_VERSION = 4
+        const val SCHEMA_VERSION = 5
+        const val PROPERTY_ID = "id"
         const val PROPERTY_TYPE = "type"
         const val TYPE_GAMES = "games"
         const val TYPE_OPENING_BOOK = "opening-book"
@@ -143,7 +198,8 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
                 " ply_count INTEGER NOT NULL DEFAULT 0," +
                 " start_fen TEXT," +
                 " moves_san TEXT NOT NULL DEFAULT ''," +
-                " moves_uci TEXT NOT NULL DEFAULT '')",
+                " moves_uci TEXT NOT NULL DEFAULT ''," +
+                " uid TEXT, modified TEXT)",
             "CREATE INDEX games_white ON games(white_id)",
             "CREATE INDEX games_black ON games(black_id)",
             "CREATE TABLE IF NOT EXISTS sources (" +
@@ -166,7 +222,9 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
                 " player_id INTEGER PRIMARY KEY REFERENCES players(id)," +
                 " role TEXT NOT NULL)",
             "CREATE TABLE IF NOT EXISTS properties (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
+            UID_INDEX,
         )
+        private const val UID_INDEX = "CREATE UNIQUE INDEX IF NOT EXISTS games_uid ON games(uid)"
 
         private fun openRaw(file: File, flags: Int): SQLiteDatabase =
             SQLiteDatabase.openDatabase(file.path, null, flags).also {
@@ -174,8 +232,8 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
                 it.disableWriteAheadLogging()
             }
 
-        /** Creates a new, empty database at [file]. */
-        fun create(file: File): PdbDatabase {
+        /** Creates a new, empty database at [file], born with its universal id. */
+        fun create(file: File, lineage: String = GameIdentity.newLineageId()): PdbDatabase {
             file.parentFile?.mkdirs()
             require(!file.exists()) { "${file.name} already exists" }
             val db = openRaw(file, SQLiteDatabase.OPEN_READWRITE or SQLiteDatabase.CREATE_IF_NECESSARY)
@@ -185,6 +243,7 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
             try {
                 SCHEMA.forEach { db.execSQL(it) }
                 db.execSQL("INSERT INTO properties (key, value) VALUES (?, ?)", arrayOf(PROPERTY_TYPE, TYPE_GAMES))
+                db.execSQL("INSERT INTO properties (key, value) VALUES (?, ?)", arrayOf(PROPERTY_ID, lineage))
                 db.setTransactionSuccessful()
             } finally {
                 db.endTransaction()
@@ -193,9 +252,10 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
         }
 
         /**
-         * Opens an existing database; writable ones get the tables of later
-         * versions (sources, game_sources, properties) the phone needs to store
-         * its games. Files of a newer version than [SCHEMA_VERSION] are refused.
+         * Opens an existing database; writable ones are upgraded to
+         * [SCHEMA_VERSION] (missing tables, game uids from their content, a
+         * universal id: fixed for the databases Pragma Chess ships, new
+         * otherwise). Files of a newer version are refused.
          */
         fun open(file: File, writable: Boolean = false): PdbDatabase {
             val db = openRaw(file, if (writable) SQLiteDatabase.OPEN_READWRITE else SQLiteDatabase.OPEN_READONLY)
@@ -208,7 +268,19 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
             if (writable && version < SCHEMA_VERSION) {
                 db.beginTransaction()
                 try {
-                    SCHEMA.filter { it.contains("IF NOT EXISTS") }.forEach { db.execSQL(it) }
+                    SCHEMA.filter { it.contains("IF NOT EXISTS") && it != UID_INDEX }.forEach { db.execSQL(it) }
+                    if (version < 5) {
+                        db.execSQL("ALTER TABLE games ADD COLUMN uid TEXT")
+                        db.execSQL("ALTER TABLE games ADD COLUMN modified TEXT")
+                        PdbDatabase(file, db).fillUids()
+                    }
+                    db.execSQL(UID_INDEX)
+                    val hasId = db.rawQuery("SELECT 1 FROM properties WHERE key = ? AND value <> ''", arrayOf(PROPERTY_ID))
+                        .use { it.moveToFirst() }
+                    if (!hasId) {
+                        val id = GameIdentity.SHIPPED[file.name] ?: GameIdentity.newLineageId()
+                        db.execSQL("INSERT OR REPLACE INTO properties (key, value) VALUES (?, ?)", arrayOf(PROPERTY_ID, id))
+                    }
                     db.execSQL("PRAGMA user_version = $SCHEMA_VERSION")
                     db.setTransactionSuccessful()
                 } finally {
@@ -219,6 +291,3 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
         }
     }
 }
-
-/** How the phone appears as a source in a database: kind "phone", uuid = its public key. */
-data class PhoneSource(val uuid: String, val name: String)

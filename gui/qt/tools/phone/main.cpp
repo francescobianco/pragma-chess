@@ -5,6 +5,7 @@
 //     pragma-phone --pair '<link>' --list
 //     pragma-phone --pair '<link>' --get "Classic Games.pdb" -o ~/Downloads
 //     pragma-phone --pair '<link>' --put "Le mie partite.pdb" games.json
+//     pragma-phone --pair '<link>' --put "Le mie partite.pdb" --db <uuid> games.json
 //
 // As the computer, serving a folder of databases (for testing without the
 // desktop client; it prints the pairing link):
@@ -145,6 +146,10 @@ int actAsPhone(const QCommandLineParser &parser)
         request = {{QStringLiteral("op"), QStringLiteral("put")},
                    {QStringLiteral("name"), parser.value(QStringLiteral("put"))},
                    {QStringLiteral("games"), games}};
+        if (parser.isSet(QStringLiteral("db")))
+            request.insert(QStringLiteral("db"), parser.value(QStringLiteral("db")));
+        if (document.isObject() && document.object().contains(QStringLiteral("properties")))
+            request.insert(QStringLiteral("properties"), document.object().value(QStringLiteral("properties")));
     } else {
         err() << "say what to do: --list, --get NAME or --put NAME FILE\n";
         return 2;
@@ -176,6 +181,8 @@ int actAsPhone(const QCommandLineParser &parser)
             for (const QJsonValue &value : message.value(QStringLiteral("files")).toArray()) {
                 const QJsonObject file = value.toObject();
                 out() << file.value(QStringLiteral("sha256")).toString() << "  "
+                      << file.value(QStringLiteral("id")).toString() << "  "
+                      << file.value(QStringLiteral("games")).toInteger() << " games  "
                       << file.value(QStringLiteral("size")).toInteger() << "  "
                       << file.value(QStringLiteral("modified")).toString() << "  "
                       << file.value(QStringLiteral("name")).toString() << Qt::endl;
@@ -204,8 +211,11 @@ int actAsPhone(const QCommandLineParser &parser)
                 }
             }
         } else if (op == QLatin1String("put")) {
-            out() << "stored " << message.value(QStringLiteral("stored")).toInt() << ", known "
-                  << message.value(QStringLiteral("known")).toInt() << Qt::endl;
+            out() << message.value(QStringLiteral("name")).toString() << ": stored "
+                  << message.value(QStringLiteral("stored")).toInt() << ", updated "
+                  << message.value(QStringLiteral("updated")).toInt() << ", known "
+                  << message.value(QStringLiteral("known")).toInt() << ", conflicts "
+                  << message.value(QStringLiteral("conflicts")).toArray().size() << Qt::endl;
             code = 0;
         } else if (op == QLatin1String("error")) {
             err() << "error: " << message.value(QStringLiteral("message")).toString() << Qt::endl;
@@ -241,6 +251,8 @@ int main(int argc, char *argv[])
         {QStringLiteral("get"), QStringLiteral("Download a database."), QStringLiteral("name")},
         {{QStringLiteral("o"), QStringLiteral("output")}, QStringLiteral("Folder for --get."), QStringLiteral("dir")},
         {QStringLiteral("put"), QStringLiteral("Send the games of a JSON file to a database."), QStringLiteral("name")},
+        {QStringLiteral("db"), QStringLiteral("Universal id of the database for --put (a new one is made with it)."),
+         QStringLiteral("id")},
         {QStringLiteral("name"), QStringLiteral("This phone's (or, with --serve, computer's) name."),
          QStringLiteral("name")},
         {QStringLiteral("serve"), QStringLiteral("Be the computer: serve --databases.")},

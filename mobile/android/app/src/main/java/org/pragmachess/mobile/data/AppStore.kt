@@ -5,7 +5,6 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import org.json.JSONArray
-import org.json.JSONObject
 
 /** A paired computer. [pairSecret] is kept until the computer has accepted the phone once. */
 data class Computer(
@@ -16,19 +15,79 @@ data class Computer(
     val lastSync: Long,
 )
 
-/** One game waiting to be pushed to one computer. */
-data class OutboxEntry(val gameId: String, val computer: String, val database: String, val game: GameRecord)
-
-/** The app's own state: paired computers and the outbox of games to push. */
-class AppStore(context: Context) : SQLiteOpenHelper(context, "pragma-mobile.db", null, 1) {
+/**
+ * The app's own state: paired computers, and where each database came from
+ * (by lineage: the device that made it or the phone learnt it from).
+ */
+class AppStore(context: Context) : SQLiteOpenHelper(context, "pragma-mobile.db", null, 4) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE computers (pubkey TEXT PRIMARY KEY, name TEXT NOT NULL, relays TEXT NOT NULL," +
             " pair_secret TEXT, last_sync INTEGER NOT NULL DEFAULT 0)")
-        db.execSQL("CREATE TABLE outbox (game_id TEXT NOT NULL, computer TEXT NOT NULL, database TEXT NOT NULL," +
-            " game TEXT NOT NULL, created_at INTEGER NOT NULL, PRIMARY KEY (game_id, computer))")
+        onUpgrade(db, 1, 4)
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 2) {
+            // Games no longer wait in an outbox: every sync reconciles the databases.
+            db.execSQL("DROP TABLE IF EXISTS outbox")
+            // provisional: the id was made up when a file older than version 5 was
+            // upgraded here; the first sync adopts the computer's for the same name.
+            db.execSQL("CREATE TABLE IF NOT EXISTS origins (lineage TEXT PRIMARY KEY, device TEXT NOT NULL," +
+                " provisional INTEGER NOT NULL DEFAULT 0)")
+        }
+        if (oldVersion < 3) {
+            // The two files of each database as they were when last reconciled with a computer.
+            db.execSQL("CREATE TABLE IF NOT EXISTS reconciled (computer TEXT NOT NULL, lineage TEXT NOT NULL," +
+                " remote_sha TEXT NOT NULL, local_sha TEXT NOT NULL, PRIMARY KEY (computer, lineage))")
+        }
+        if (oldVersion < 4) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS aliases (lineage TEXT PRIMARY KEY, merged_into TEXT NOT NULL)")
+        }
+    }
+
+    /** Lineages merged into another one of the corpus (see Corpus.dedupe). */
+    fun aliases(): Map<String, String> = readableDatabase.rawQuery("SELECT lineage, merged_into FROM aliases", null).use { c ->
+        buildMap { while (c.moveToNext()) put(c.getString(0), c.getString(1)) }
+    }
+
+    fun alias(lineage: String, into: String) {
+        writableDatabase.execSQL("INSERT OR REPLACE INTO aliases (lineage, merged_into) VALUES (?, ?)", arrayOf(lineage, into))
+        // Anything that was merged into the removed lineage follows it.
+        writableDatabase.execSQL("UPDATE aliases SET merged_into = ? WHERE merged_into = ?", arrayOf(into, lineage))
+    }
+
+    /** Remote and local hashes of each lineage at the last reconciliation with [computer]. */
+    fun reconciled(computer: String): Map<String, Pair<String, String>> = readableDatabase.rawQuery(
+        "SELECT lineage, remote_sha, local_sha FROM reconciled WHERE computer = ?", arrayOf(computer)
+    ).use { c -> buildMap { while (c.moveToNext()) put(c.getString(0), c.getString(1) to c.getString(2)) } }
+
+    fun setReconciled(computer: String, lineage: String, remoteSha: String, localSha: String) {
+        writableDatabase.execSQL("INSERT OR REPLACE INTO reconciled (computer, lineage, remote_sha, local_sha) VALUES (?, ?, ?, ?)",
+            arrayOf(computer, lineage, remoteSha, localSha))
+    }
+
+    fun origins(): Map<String, String> = readableDatabase.rawQuery("SELECT lineage, device FROM origins", null).use { c ->
+        buildMap { while (c.moveToNext()) put(c.getString(0), c.getString(1)) }
+    }
+
+    /** Records where [lineage] came from, unless it is known already. */
+    fun setOrigin(lineage: String, device: String, provisional: Boolean = false) {
+        writableDatabase.execSQL("INSERT OR IGNORE INTO origins (lineage, device, provisional) VALUES (?, ?, ?)",
+            arrayOf<Any>(lineage, device, if (provisional) 1 else 0))
+    }
+
+    fun isProvisional(lineage: String): Boolean =
+        readableDatabase.rawQuery("SELECT 1 FROM origins WHERE lineage = ? AND provisional = 1", arrayOf(lineage)).use { it.moveToFirst() }
+
+    /** A database with a provisional id took the computer's: the lineage becomes [adopted]. */
+    fun adopt(provisional: String, adopted: String, device: String) {
+        writableDatabase.delete("origins", "lineage = ?", arrayOf(provisional))
+        writableDatabase.execSQL("INSERT OR REPLACE INTO origins (lineage, device, provisional) VALUES (?, ?, 0)", arrayOf(adopted, device))
+    }
+
+    fun confirm(lineage: String) {
+        writableDatabase.execSQL("UPDATE origins SET provisional = 0 WHERE lineage = ?", arrayOf(lineage))
+    }
 
     fun computers(): List<Computer> = readableDatabase.rawQuery(
         "SELECT pubkey, name, relays, pair_secret, last_sync FROM computers ORDER BY name", null
@@ -55,40 +114,6 @@ class AppStore(context: Context) : SQLiteOpenHelper(context, "pragma-mobile.db",
 
     fun removeComputer(pubkey: String) {
         writableDatabase.delete("computers", "pubkey = ?", arrayOf(pubkey))
-        writableDatabase.delete("outbox", "computer = ?", arrayOf(pubkey))
-    }
-
-    fun enqueue(computer: String, database: String, game: GameRecord) {
-        val values = ContentValues().apply {
-            put("game_id", game.uuid)
-            put("computer", computer)
-            put("database", database)
-            put("game", game.toJson().toString())
-            put("created_at", System.currentTimeMillis())
-        }
-        writableDatabase.insertWithOnConflict("outbox", null, values, SQLiteDatabase.CONFLICT_REPLACE)
-    }
-
-    fun outbox(computer: String): List<OutboxEntry> = readableDatabase.rawQuery(
-        "SELECT game_id, database, game FROM outbox WHERE computer = ? ORDER BY created_at", arrayOf(computer)
-    ).use { c ->
-        buildList {
-            while (c.moveToNext()) add(OutboxEntry(c.getString(0), computer, c.getString(1), GameRecord.fromJson(JSONObject(c.getString(2)))))
-        }
-    }
-
-    fun outboxCount(computer: String): Int = readableDatabase.rawQuery(
-        "SELECT COUNT(*) FROM outbox WHERE computer = ?", arrayOf(computer)
-    ).use { if (it.moveToFirst()) it.getInt(0) else 0 }
-
-    fun sent(computer: String, gameIds: Collection<String>) {
-        val db = writableDatabase
-        db.beginTransaction()
-        try {
-            for (id in gameIds) db.delete("outbox", "game_id = ? AND computer = ?", arrayOf(id, computer))
-            db.setTransactionSuccessful()
-        } finally {
-            db.endTransaction()
-        }
+        writableDatabase.delete("reconciled", "computer = ?", arrayOf(pubkey))
     }
 }

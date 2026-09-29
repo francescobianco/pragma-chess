@@ -2,10 +2,14 @@
 
 #include "app/ChessPosition.h"
 #include "app/GameDatabase.h"
+#include "app/GameIdentity.h"
+#include "app/Reconcile.h"
 
 #include <QDateTime>
 #include <QJsonObject>
 #include <QRegularExpression>
+#include <QSet>
+#include <QUuid>
 
 namespace PhoneGames {
 
@@ -41,12 +45,24 @@ std::optional<QList<ImportedGame>> parse(const QJsonArray &games, QString *error
     for (qsizetype i = 0; i < games.size(); ++i) {
         const QJsonObject object = games.at(i).toObject();
         ImportedGame imported;
+        GameRecord &game = imported.game;
+        const QString uid = object.value(QStringLiteral("uid")).toString().trimmed().toLower();
+        if (!uid.isEmpty()) {
+            if (QUuid::fromString(uid).isNull()) {
+                setError(errorMessage, QStringLiteral("game %1: bad uid").arg(i));
+                return std::nullopt;
+            }
+            game.uid = QUuid::fromString(uid).toString(QUuid::WithoutBraces);
+        }
         imported.externalId = object.value(QStringLiteral("id")).toString().trimmed();
-        if (imported.externalId.isEmpty() || imported.externalId.size() > 64) {
-            setError(errorMessage, QStringLiteral("game %1: missing id").arg(i));
+        if (imported.externalId.size() > 64 || (imported.externalId.isEmpty() && game.uid.isEmpty())) {
+            setError(errorMessage, QStringLiteral("game %1: missing uid").arg(i));
             return std::nullopt;
         }
-        GameRecord &game = imported.game;
+        const QDateTime modified =
+            QDateTime::fromString(object.value(QStringLiteral("modified")).toString(), Qt::ISODateWithMs);
+        if (modified.isValid())
+            game.modified = modified.toUTC().toString(Qt::ISODateWithMs);
         game.white = text(object, "white");
         game.black = text(object, "black");
         game.event = text(object, "event");
@@ -83,6 +99,10 @@ std::optional<QList<ImportedGame>> parse(const QJsonArray &games, QString *error
             position->play(*move);
         }
         game.plyCount = int(game.moves.size());
+        if (game.uid.isEmpty())
+            game.uid = GameIdentity::uid(game);
+        if (imported.externalId.isEmpty())
+            imported.externalId = game.uid;
         parsed.append(imported);
     }
     return parsed;
@@ -105,15 +125,48 @@ std::optional<PutResult> store(GameDatabase &database, const QString &phoneKey, 
             return std::nullopt;
         source = created;
     }
-    const int stored = database.importGames(source->id, games, errorMessage);
-    if (stored < 0)
+
+    // Only the local games sharing a uid with the put need a closer look.
+    QList<GameRecord> incoming;
+    QSet<QString> incomingUids;
+    for (const ImportedGame &imported : games) {
+        incoming << imported.game;
+        incomingUids.insert(imported.game.uid);
+    }
+    QList<GameRecord> local;
+    QList<qint64> localIndexes;
+    for (qint64 index = 0; index < database.gameCount(); ++index) {
+        if (!incomingUids.contains(database.header(index).uid))
+            continue;
+        if (const std::optional<GameRecord> game = database.loadGame(index)) {
+            local << *game;
+            localIndexes << index;
+        }
+    }
+    const Reconcile::Plan plan = Reconcile::plan(local, incoming);
+
+    PutResult result;
+    QList<ImportedGame> inserted;
+    for (const int index : plan.insert)
+        inserted << games.at(index);
+    result.stored = database.importGames(source->id, inserted, errorMessage);
+    if (result.stored < 0)
         return std::nullopt;
+    for (const auto &[incomingIndex, localIndex] : plan.update) {
+        if (!database.replaceGame(localIndexes.at(localIndex), incoming.at(incomingIndex), errorMessage))
+            return std::nullopt;
+        result.updatedIndexes << localIndexes.at(localIndex);
+    }
+    result.updated = int(plan.update.size());
+    // A game imported from this phone before under another uid is known too.
+    result.known = plan.known + int(inserted.size()) - result.stored;
+    result.conflicts = plan.conflicts;
     source->lastSyncAt = QDateTime::currentDateTimeUtc();
     source->lastError.clear();
     if (!phoneName.isEmpty())
         source->account = phoneName;
     database.updateSource(*source, nullptr);
-    return PutResult{stored, int(games.size()) - stored};
+    return result;
 }
 
 } // namespace PhoneGames

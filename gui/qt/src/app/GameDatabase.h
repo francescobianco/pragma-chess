@@ -39,6 +39,11 @@ public:
     /// the game at `index`. Moves are left untouched.
     virtual bool updateHeader(qint64 index, const GameRecord &header, QString *errorMessage) = 0;
 
+    /// Replaces the whole game at `index` (header and moves) with another
+    /// version of it, e.g. a newer one from another device. Its uid stays;
+    /// `modified` is taken from `game` (now, if empty).
+    virtual bool replaceGame(qint64 index, const GameRecord &game, QString *errorMessage) = 0;
+
     /// Who the players are to the user (me, friends, opponents), by name.
     virtual PlayerRoles playerRoles() const = 0;
     /// Says who a player is; PlayerRole::None forgets it.
@@ -58,7 +63,7 @@ public:
     /// Returns how many were added, or -1 on failure.
     virtual int importGames(qint64 sourceId, const QList<ImportedGame> &games, QString *errorMessage) = 0;
 
-    /// Properties stored in the database (type, description).
+    /// Properties stored in the database (universal id, type, description).
     virtual DatabaseProperties properties() const = 0;
     virtual bool setProperties(const DatabaseProperties &properties, QString *errorMessage) = 0;
 

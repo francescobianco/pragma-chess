@@ -38,6 +38,7 @@ private:
     void onText(const QByteArray &text);
     void processNext();
     void handle(const QJsonObject &request);
+    void handlePut(const QJsonObject &request);
     void sendJson(const QJsonObject &message);
     void sendError(const QString &message);
     void startTransfer(const QString &name);

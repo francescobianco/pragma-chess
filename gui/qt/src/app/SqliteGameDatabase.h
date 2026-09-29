@@ -2,6 +2,7 @@
 
 #include "GameDatabase.h"
 
+#include <QHash>
 #include <QList>
 
 #include <memory>
@@ -23,6 +24,14 @@ public:
     /// The properties of a database file without loading its games (defaults
     /// for a file that is not a readable Pragma Chess database).
     static DatabaseProperties readProperties(const QString &path);
+    /// Every game of a database file as uid → modified, without loading the
+    /// games: two files with the same revisions hold the same games. Empty for
+    /// a file that is not a readable version 5 database.
+    static QHash<QString, QString> readRevisions(const QString &path);
+    /// Gives the database at `path` the universal id `id` if it has none yet
+    /// (the databases we ship, seeded before they carried one). False if the
+    /// file cannot be opened or written.
+    static bool adoptLineage(const QString &path, const QString &id);
 
     QString name() const override;
     QString location() const override { return m_path; }
@@ -31,6 +40,7 @@ public:
     std::optional<GameRecord> loadGame(qint64 index) const override;
     qint64 addGame(const GameRecord &game, QString *errorMessage) override;
     bool updateHeader(qint64 index, const GameRecord &header, QString *errorMessage) override;
+    bool replaceGame(qint64 index, const GameRecord &game, QString *errorMessage) override;
     PlayerRoles playerRoles() const override { return m_roles; }
     bool setPlayerRole(const QString &player, PlayerRole role, QString *errorMessage) override;
     QList<GameSource> sources() const override;

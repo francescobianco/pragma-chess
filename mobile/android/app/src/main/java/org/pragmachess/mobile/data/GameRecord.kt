@@ -17,22 +17,24 @@ data class GameHeaders(
 )
 
 /**
- * A whole game: headers, starting position and main line. [uuid] identifies
- * a game made on the phone (the "id" of the put message, the external_id of
- * game_sources); games from a computer have none.
+ * A whole game: headers, starting position and main line. [uid] is its
+ * universal id (schema version 5, see [GameIdentity]); [modified] when it was
+ * created or last changed (ISO 8601 UTC, empty = never).
  */
 data class GameRecord(
     val headers: GameHeaders,
     val startFen: String = "",
     val movesSan: String = "",
     val movesUci: String = "",
-    val uuid: String? = null,
+    val uid: String? = null,
+    val modified: String = "",
 ) {
     val plyCount: Int get() = movesUci.split(' ').count { it.isNotBlank() }
 
     /** The game object of the file protocol (docs/phone-link.md). */
     fun toJson(): JSONObject = JSONObject()
-        .put("id", uuid ?: "")
+        .put("uid", uid ?: "")
+        .put("modified", modified)
         .put("white", headers.white)
         .put("black", headers.black)
         .put("event", headers.event)
@@ -66,7 +68,8 @@ data class GameRecord(
             startFen = json.optString("start_fen"),
             movesSan = json.optString("moves_san"),
             movesUci = json.optString("moves_uci"),
-            uuid = json.optString("id").ifEmpty { null },
+            uid = json.optString("uid").ifEmpty { null },
+            modified = json.optString("modified"),
         )
     }
 }

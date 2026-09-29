@@ -1,11 +1,13 @@
 #pragma once
 
+#include "app/BoardSettings.h"
 #include "app/EngineCatalog.h"
 #include "app/EngineEvaluation.h"
 #include "app/PlayerRole.h"
 #include "widgets/DatabaseTreeWidget.h"
 
 #include <QDateTime>
+#include <QHash>
 #include <QMainWindow>
 
 #include <functional>
@@ -16,6 +18,8 @@ struct Project;
 class BoardWidget;
 class GameFilterProxyModel;
 class QSplitter;
+class BoardPanel;
+class BoardSideColumn;
 class CapturedPiecesWidget;
 class EnginePanel;
 class EvaluationBar;
@@ -151,12 +155,24 @@ private:
     /// Opens a Polyglot book and remembers the choice; an empty path chooses no book.
     void chooseBook(const QString &path);
     void openBookFile();
+    /// Book ▸ New Book…: a copy of the book we ship, under a name the user picks, chosen at once.
+    void newBook();
     void rebuildBookMenu();
     void updateBookMoves();
     /// Chooses the database whose games name the openings; empty for none.
-    void chooseOpeningNames(const QString &path);
-    /// On first launch, seeds and chooses the Opening Names database.
+    /// `explicitly` when the user picked it in Options ▸ Opening Names: until
+    /// then the names follow the interface language.
+    void chooseOpeningNames(const QString &path, bool explicitly = false);
+    /// Seeds the shipped names into Books/Opening Names and chooses the names:
+    /// the user's choice, or the ones of the interface language.
     void restoreOpeningNames();
+    /// Moves shipped names found among the databases of games (seeded there by
+    /// older versions) into Books/Opening Names. Runs before the session is
+    /// restored; the paths it moved are remembered for applyProject().
+    void migrateOpeningNames();
+    void rebuildOpeningNamesMenu();
+    /// Gives the seeded Classic Games its fixed universal id.
+    void adoptShippedLineages();
     /// Makes sure the database at `path` is typed Opening Book; false if it cannot be opened.
     bool markAsOpeningBook(const QString &path);
     /// Reads the names again when their database changed since they were read.
@@ -168,6 +184,8 @@ private:
     void connectSource();
     void manageSources();
     void editDatabaseSettings();
+    void editBoardSettings();
+    void applyBoardSettings(const BoardSettings &settings);
     // File ▸ Sync: the Pragma folder kept the same on several computers.
     void openSyncDialog();
     // Options ▸ Connect Mobile App: the Android app copies the databases
@@ -221,6 +239,8 @@ private:
     EvaluationBar *m_evaluationBar;
     GameHeaderWidget *m_gameHeader;
     CapturedPiecesWidget *m_capturedPieces;
+    BoardSideColumn *m_boardSideColumn;
+    BoardPanel *m_boardPanel = nullptr;
     EnginePanel *m_enginePanel;
     BookPanel *m_bookPanel;
     std::unique_ptr<PolyglotBook> m_book;
@@ -229,6 +249,9 @@ private:
     /// Modification time and size of the names database when it was read.
     QDateTime m_openingNamesModified;
     qint64 m_openingNamesSize = -1;
+    QMenu *m_openingNamesMenu = nullptr;
+    /// Databases moved by migrateOpeningNames(): old path → new path.
+    QHash<QString, QString> m_movedDatabases;
     UciEngine *m_engine;
     Explainer *m_explainer;
     QTableView *m_moveView;

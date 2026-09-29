@@ -20,13 +20,32 @@ struct SyncFileState {
     bool operator==(const SyncFileState &) const = default;
 };
 
+/// A database file that was merged into another database (the same one under
+/// two files, e.g. a duplicate made by a sync): its games live on in `into`,
+/// so every device may drop the file once it has merged its own copy.
+struct SyncMergeRecord {
+    /// Path of the merged file, relative to the synced folder.
+    QString path;
+    /// Lineage (DatabaseProperties::id) of the merged file: only a file with
+    /// this lineage is merged; one with another id is a new database.
+    QString lineage;
+    /// Lineage of the database it was merged into, and where that was.
+    QString into;
+    QString intoPath;
+    QDateTime at;
+    QString device;
+
+    bool operator==(const SyncMergeRecord &) const = default;
+};
+
 /// `.pragma-chess.sync`: the file in the remote folder that every device
 /// syncing with it reads and updates. It lists the files and their content
 /// hashes, so each device can tell what changed where since it last synced.
 ///
-/// A sync never removes anything, so the manifest has no tombstones: entries
-/// left over from older versions are dropped when it is read, which puts the
-/// files they mention back where they belong.
+/// A sync never removes anything that has not been merged, so the manifest
+/// has no tombstones, only merge records: entries left over from older
+/// versions are dropped when it is read, which puts the files they mention
+/// back where they belong.
 struct SyncManifest {
     static constexpr char fileName[] = ".pragma-chess.sync";
     /// Held while a device syncs with a store that cannot publish atomically.
@@ -40,6 +59,8 @@ struct SyncManifest {
     QDateTime updatedAt;
     /// By path relative to the synced folder, with '/' separators.
     QMap<QString, SyncFileState> files;
+    /// Files merged into another database, by path (see SyncMergeRecord).
+    QMap<QString, SyncMergeRecord> merged;
 
     QByteArray toJson() const;
     static std::optional<SyncManifest> fromJson(const QByteArray &json, QString *errorMessage);
@@ -64,6 +85,11 @@ struct SyncAction {
         KeepBoth,
         /// Same content on both sides; only this device's record is updated.
         Record,
+        /// A merged file (SyncMergeRecord) still here: merge it into its
+        /// database, then remove it here and, if it is there, remotely.
+        Merge,
+        /// A merged file only the remote folder still has: remove it there.
+        Forget,
     };
 
     Kind kind;
@@ -72,7 +98,8 @@ struct SyncAction {
     bool operator==(const SyncAction &) const = default;
 };
 
-/// Reconciles the two sides, file by file, and **never deletes anything**.
+/// Reconciles the two sides, file by file, and **never deletes anything that
+/// has not been merged**.
 ///
 /// A folder full of databases is not a working copy: a file missing on one
 /// side means that side has yet to receive it, not that it should go. So the
@@ -81,6 +108,11 @@ struct SyncAction {
 /// next sync) — and `base`, the content both sides had when this device last
 /// synced, only decides who changed a file that exists on both sides. When
 /// both changed it, both versions are kept.
+///
+/// The only way out is a merge: a path in `remote.merged` is never uploaded
+/// or downloaded again; a local copy is merged into its database first
+/// (Merge) and a remote one removed (Forget). The caller drops the records
+/// whose local file has another lineage before planning.
 QList<SyncAction> planSync(const QMap<QString, LocalFileState> &local, const QMap<QString, QString> &base,
                            const SyncManifest &remote);
 

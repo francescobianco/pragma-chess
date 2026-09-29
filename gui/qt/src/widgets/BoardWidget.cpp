@@ -29,7 +29,6 @@ const QColor kSequenceFrame(0xd4, 0x3f, 0x32);
 /// The border of a board showing an explanation, the blue of its reply arrows.
 /// Only its colour ever changes: the border stays the same two pixels.
 const QColor kExplainFrame(0x3a, 0x6e, 0xb5);
-constexpr qreal kFrameWidth = 2.0;
 /// One breath of the border while the engine is being waited for.
 constexpr int kPulseMs = 1100;
 /// Halo around a piece moving on its own, e.g. the engine's answer.

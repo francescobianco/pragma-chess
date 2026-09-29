@@ -4,6 +4,7 @@
 
 #include <QJsonArray>
 #include <QList>
+#include <QStringList>
 #include <QString>
 
 #include <optional>
@@ -18,17 +19,28 @@ namespace PhoneGames {
 inline constexpr char kSourceKind[] = "phone";
 
 struct PutResult {
+    /// Games the database lacked.
     int stored = 0;
+    /// Games replaced by a newer version (a conflict the phone won).
+    int updated = 0;
+    /// Games the database already had, as they were or newer.
     int known = 0;
+    /// Uids whose two versions differed (see Reconcile).
+    QStringList conflicts;
+    /// Indexes of the games replaced, for views caching them.
+    QList<qint64> updatedIndexes;
 };
 
 /// The games of a put. The UCI moves are replayed from the start position and
 /// the SAN is written again from them, so a game is stored only if every move
-/// is legal. Nothing on the first malformed game (with `errorMessage`).
+/// is legal. Each game needs a `uid` or (older phones) an `id`; a game without
+/// a uid gets the one its content gives (GameIdentity::uid). Nothing on the
+/// first malformed game (with `errorMessage`).
 std::optional<QList<ImportedGame>> parse(const QJsonArray &games, QString *errorMessage);
 
-/// Stores the games the phone had not sent before, through the phone's source
-/// in `database` (connected on first use): a repeated put stores nothing new.
+/// Merges the games into `database` by uid (Reconcile): new ones are stored
+/// through the phone's source (connected on first use), newer versions replace
+/// the stored ones, and a repeated put changes nothing.
 std::optional<PutResult> store(GameDatabase &database, const QString &phoneKey, const QString &phoneName,
                                const QList<ImportedGame> &games, QString *errorMessage);
 

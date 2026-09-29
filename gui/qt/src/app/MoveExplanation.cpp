@@ -27,10 +27,11 @@ constexpr double kRealizedShare = 0.4;
 /// Swings are capped so that mates and huge scores still ask for sensible material.
 constexpr int kMaxSwing = 1500;
 
-QString tr(const char *text)
-{
-    return QCoreApplication::translate("MoveExplanation", text);
-}
+/// Translation context of the texts below: lupdate cannot see the context of
+/// tr() in a free function, so it goes through this class.
+struct Text {
+    Q_DECLARE_TR_FUNCTIONS(MoveExplanation)
+};
 
 Side opposite(Side side)
 {
@@ -44,7 +45,7 @@ int signFor(Side side)
 
 QString sideName(Side side)
 {
-    return side == Side::White ? tr("White") : tr("Black");
+    return side == Side::White ? Text::tr("White") : Text::tr("Black");
 }
 
 /// A principal variation replayed on the board: positions[k] is the position
@@ -242,15 +243,15 @@ QString countedPiece(PieceType type, int count)
     // Spelled out per case so translators get whole phrases.
     switch (type) {
     case PieceType::Pawn:
-        return count == 1 ? tr("a pawn") : count == 2 ? tr("two pawns") : tr("%1 pawns").arg(count);
+        return count == 1 ? Text::tr("a pawn") : count == 2 ? Text::tr("two pawns") : Text::tr("%1 pawns").arg(count);
     case PieceType::Knight:
-        return count == 1 ? tr("a knight") : tr("%1 knights").arg(count);
+        return count == 1 ? Text::tr("a knight") : Text::tr("%1 knights").arg(count);
     case PieceType::Bishop:
-        return count == 1 ? tr("a bishop") : tr("%1 bishops").arg(count);
+        return count == 1 ? Text::tr("a bishop") : Text::tr("%1 bishops").arg(count);
     case PieceType::Rook:
-        return count == 1 ? tr("a rook") : tr("%1 rooks").arg(count);
+        return count == 1 ? Text::tr("a rook") : Text::tr("%1 rooks").arg(count);
     case PieceType::Queen:
-        return count == 1 ? tr("the queen") : tr("%1 queens").arg(count);
+        return count == 1 ? Text::tr("the queen") : Text::tr("%1 queens").arg(count);
     case PieceType::King:
     case PieceType::None:
         break;
@@ -268,7 +269,7 @@ QString joinPieces(const std::array<int, 7> &counts)
     if (parts.size() <= 1)
         return parts.value(0);
     const QString last = parts.takeLast();
-    return tr("%1 and %2").arg(parts.join(QStringLiteral(", ")), last);
+    return Text::tr("%1 and %2").arg(parts.join(QStringLiteral(", ")), last);
 }
 
 /// "wins a knight", "wins the exchange", "wins a rook for a pawn".
@@ -295,23 +296,23 @@ QString materialPhrase(const ChessPosition &from, const ChessPosition &to, Side 
     const bool onlyExchange = won == std::array<int, 7>{0, 0, 0, 0, 1, 0, 0} && minorsGiven == 1
         && given[int(PieceType::Pawn)] == 0 && given[int(PieceType::Rook)] == 0 && given[int(PieceType::Queen)] == 0;
     if (onlyExchange)
-        return tr("wins the exchange");
+        return Text::tr("wins the exchange");
 
     const QString gains = joinPieces(won);
     if (gains.isEmpty())
-        return tr("wins material");
+        return Text::tr("wins material");
     const QString losses = joinPieces(given);
-    return losses.isEmpty() ? tr("wins %1").arg(gains) : tr("wins %1 for %2").arg(gains, losses);
+    return losses.isEmpty() ? Text::tr("wins %1").arg(gains) : Text::tr("wins %1 for %2").arg(gains, losses);
 }
 
 QString verdictName(MoveExplanation::Verdict verdict)
 {
     switch (verdict) {
-    case MoveExplanation::Verdict::Best: return tr("Best move");
-    case MoveExplanation::Verdict::Good: return tr("Good move");
-    case MoveExplanation::Verdict::Inaccuracy: return tr("Inaccuracy");
-    case MoveExplanation::Verdict::Mistake: return tr("Mistake");
-    case MoveExplanation::Verdict::Blunder: return tr("Blunder");
+    case MoveExplanation::Verdict::Best: return Text::tr("Best move");
+    case MoveExplanation::Verdict::Good: return Text::tr("Good move");
+    case MoveExplanation::Verdict::Inaccuracy: return Text::tr("Inaccuracy");
+    case MoveExplanation::Verdict::Mistake: return Text::tr("Mistake");
+    case MoveExplanation::Verdict::Blunder: return Text::tr("Blunder");
     case MoveExplanation::Verdict::None: break;
     }
     return {};
@@ -328,12 +329,12 @@ QString assessment(const EngineEvaluation &evaluation)
     const int score = qAbs(evaluation.centipawns);
     const QString side = sideName(evaluation.centipawns >= 0 ? Side::White : Side::Black);
     if (score >= 300)
-        return tr("%1 is winning.").arg(side);
+        return Text::tr("%1 is winning.").arg(side);
     if (score >= 150)
-        return tr("%1 is better.").arg(side);
+        return Text::tr("%1 is better.").arg(side);
     if (score >= 50)
-        return tr("%1 is slightly better.").arg(side);
-    return tr("The position is balanced.");
+        return Text::tr("%1 is slightly better.").arg(side);
+    return Text::tr("The position is balanced.");
 }
 
 } // namespace
@@ -366,11 +367,11 @@ MoveExplanation explainPosition(const ExplanationInput &input)
     };
 
     if (after.isCheckmate()) {
-        explanation.summary = tr("Checkmate.");
+        explanation.summary = Text::tr("Checkmate.");
         return explanation;
     }
     if (after.isStalemate()) {
-        explanation.summary = tr("Stalemate.");
+        explanation.summary = Text::tr("Stalemate.");
         return explanation;
     }
 
@@ -398,7 +399,7 @@ MoveExplanation explainPosition(const ExplanationInput &input)
     // Pieces may well be captured in the line — what the probe found is that
     // no lasting gain explains the score, not that nothing is ever taken.
     const QString concreteText = concretePly > 0
-        ? tr(" No material explains it: the assessment is positional, clear after %1.")
+        ? Text::tr(" No material explains it: the assessment is positional, clear after %1.")
               .arg(after.lineText(afterEvaluation.pv, concretePly, input.sanStyle))
         : QString();
     if (input.concretePly)
@@ -406,10 +407,10 @@ MoveExplanation explainPosition(const ExplanationInput &input)
 
     QString prefix;
     if (isError(explanation.verdict)) {
-        prefix = tr("%1 (%2 → %3). ").arg(verdictName(explanation.verdict), input.beforeEvaluation->text(),
+        prefix = Text::tr("%1 (%2 → %3). ").arg(verdictName(explanation.verdict), input.beforeEvaluation->text(),
                                           afterEvaluation.text());
     } else if (explanation.verdict != MoveExplanation::Verdict::None) {
-        prefix = tr("%1 (%2). ").arg(verdictName(explanation.verdict), afterEvaluation.text());
+        prefix = Text::tr("%1 (%2). ").arg(verdictName(explanation.verdict), afterEvaluation.text());
     } else {
         prefix = afterEvaluation.text() + QStringLiteral(". ");
     }
@@ -422,7 +423,7 @@ MoveExplanation explainPosition(const ExplanationInput &input)
         const ChessMove &played = *input.played;
         const Line best = replay(before, beforeEvaluation.pv, kMaxSearchPlies);
         const bool betterExists = best.plies() > 0 && best.moves.first() != played;
-        const QString better = betterExists ? tr(" Better was %1.").arg(before.lineText(beforeEvaluation.pv, 1, input.sanStyle))
+        const QString better = betterExists ? Text::tr(" Better was %1.").arg(before.lineText(beforeEvaluation.pv, 1, input.sanStyle))
                                             : QString();
         const auto addAlternative = [&] {
             if (betterExists)
@@ -437,7 +438,7 @@ MoveExplanation explainPosition(const ExplanationInput &input)
             addArrows(explanation, current, 0, current.plies(), toMove, BoardArrow::Kind::Refutation);
             explanation.playback = mateToPlay(replay(after, afterEvaluation.pv, kMaxMatePlies));
             explanation.summary = prefix
-                + tr("%1 mates in %2: %3.").arg(sideName(toMove)).arg(afterEvaluation.mateIn)
+                + Text::tr("%1 mates in %2: %3.").arg(sideName(toMove)).arg(afterEvaluation.mateIn)
                       .arg(after.lineText(afterEvaluation.pv, kMaxArrows, input.sanStyle))
                 + better;
             return explanation;
@@ -460,7 +461,7 @@ MoveExplanation explainPosition(const ExplanationInput &input)
                     addAlternative();
                 addArrows(explanation, line, 1, *ply, toMove, BoardArrow::Kind::Refutation, focusFrom, focusTo);
                 explanation.summary = prefix
-                    + tr("%1 %2: %3.").arg(sideName(toMove), materialPhrase(before, line.positions.at(*ply), toMove),
+                    + Text::tr("%1 %2: %3.").arg(sideName(toMove), materialPhrase(before, line.positions.at(*ply), toMove),
                                            after.lineText(afterEvaluation.pv, *ply - 1, input.sanStyle))
                     + better;
                 return explanation;
@@ -472,7 +473,7 @@ MoveExplanation explainPosition(const ExplanationInput &input)
             note(QStringLiteral("branch: the move misses a mate"));
             addAlternative();
             explanation.summary = prefix
-                + tr("Missed mate in %1: %2.").arg(beforeEvaluation.mateIn)
+                + Text::tr("Missed mate in %1: %2.").arg(beforeEvaluation.mateIn)
                       .arg(before.lineText(beforeEvaluation.pv, kMaxArrows, input.sanStyle));
             return explanation;
         }
@@ -484,7 +485,7 @@ MoveExplanation explainPosition(const ExplanationInput &input)
                 note(QStringLiteral("branch: the move misses a win of material"));
                 addAlternative();
                 explanation.summary = prefix
-                    + tr("Missed: %1 %2.").arg(before.lineText(beforeEvaluation.pv, *ply, input.sanStyle),
+                    + Text::tr("Missed: %1 %2.").arg(before.lineText(beforeEvaluation.pv, *ply, input.sanStyle),
                                                materialPhrase(before, best.positions.at(*ply), mover));
                 return explanation;
             }
@@ -500,7 +501,7 @@ MoveExplanation explainPosition(const ExplanationInput &input)
         if (!concreteText.isEmpty())
             explanation.summary += concreteText;
         else if (current.plies() > 0)
-            explanation.summary += tr(" Main line: %1.").arg(after.lineText(afterEvaluation.pv, 4, input.sanStyle));
+            explanation.summary += Text::tr(" Main line: %1.").arg(after.lineText(afterEvaluation.pv, 4, input.sanStyle));
         explanation.summary = explanation.summary.trimmed();
         return explanation;
     }
@@ -516,7 +517,7 @@ MoveExplanation explainPosition(const ExplanationInput &input)
         addArrows(explanation, current, 0, current.plies(), favored, favoredKind);
         explanation.playback = mateToPlay(replay(after, afterEvaluation.pv, kMaxMatePlies));
         explanation.summary = prefix
-            + tr("%1 mates in %2: %3.").arg(sideName(favored)).arg(afterEvaluation.mateIn)
+            + Text::tr("%1 mates in %2: %3.").arg(sideName(favored)).arg(afterEvaluation.mateIn)
                   .arg(after.lineText(afterEvaluation.pv, kMaxArrows, input.sanStyle));
         return explanation;
     }
@@ -538,7 +539,7 @@ MoveExplanation explainPosition(const ExplanationInput &input)
                 const auto [focusFrom, focusTo] = focusWindow(line, 1, *ply, favored, trace);
                 addArrows(explanation, line, 1, *ply, favored, BoardArrow::Kind::Idea, focusFrom, focusTo);
                 explanation.summary = prefix
-                    + tr("%1 %2: %3.").arg(sideName(favored), materialPhrase(before, line.positions.at(*ply), favored),
+                    + Text::tr("%1 %2: %3.").arg(sideName(favored), materialPhrase(before, line.positions.at(*ply), favored),
                                            before.lineText(moves, *ply, input.sanStyle));
                 return explanation;
             }
@@ -555,7 +556,7 @@ MoveExplanation explainPosition(const ExplanationInput &input)
             const auto [focusFrom, focusTo] = focusWindow(current, 0, *ply, favored, trace);
             addArrows(explanation, current, 0, *ply, favored, favoredKind, focusFrom, focusTo);
             explanation.summary = prefix
-                + tr("%1 %2: %3.").arg(sideName(favored), materialPhrase(after, current.positions.at(*ply), favored),
+                + Text::tr("%1 %2: %3.").arg(sideName(favored), materialPhrase(after, current.positions.at(*ply), favored),
                                        after.lineText(afterEvaluation.pv, *ply, input.sanStyle));
             return explanation;
         }
@@ -567,6 +568,6 @@ MoveExplanation explainPosition(const ExplanationInput &input)
     if (!concreteText.isEmpty())
         explanation.summary += concreteText;
     else if (current.plies() > 0)
-        explanation.summary += tr(" Main line: %1.").arg(after.lineText(afterEvaluation.pv, 4, input.sanStyle));
+        explanation.summary += Text::tr(" Main line: %1.").arg(after.lineText(afterEvaluation.pv, 4, input.sanStyle));
     return explanation;
 }

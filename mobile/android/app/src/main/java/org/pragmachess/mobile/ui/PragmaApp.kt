@@ -11,14 +11,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.outlined.Grid4x4
-import androidx.compose.material.icons.outlined.PhoneAndroid
-import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -28,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
@@ -47,7 +42,16 @@ import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
 import org.pragmachess.mobile.R
-import org.pragmachess.mobile.data.DatabaseRef
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
+import org.pragmachess.mobile.data.CorpusEntry
 
 @Composable
 fun PragmaApp(vm: AppViewModel) {
@@ -85,35 +89,24 @@ fun PragmaApp(vm: AppViewModel) {
         drawerContent = {
             ModalDrawerSheet {
                 Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 12.dp)) {
-                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp))
+                    DrawerHeader(vm)
                     NavigationDrawerItem(
                         label = { Text(stringResource(R.string.board)) },
-                        icon = { Icon(Icons.Outlined.Grid4x4, null) },
+                        icon = { Icon(PragmaIcons.Board, null) },
                         selected = vm.screens.isEmpty(),
                         onClick = { go { while (vm.back()) Unit } },
                     )
                     HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                    SectionTitle(stringResource(R.string.on_this_phone), Icons.Outlined.PhoneAndroid)
-                    DatabaseItems(vm, vm.localDatabases) { go { vm.open(Screen.Games(it)) } }
+                    // One corpus: every database in one list, whoever made it.
+                    for (entry in vm.databases) {
+                        DatabaseItem(vm, entry) { go { vm.open(Screen.Games(entry.ref)) } }
+                    }
                     NavigationDrawerItem(
                         label = { Text(stringResource(R.string.new_database)) },
                         icon = { Icon(Icons.Filled.Add, null) },
                         selected = false,
                         onClick = { go { newDatabase = true } },
                     )
-                    for (computer in vm.computers) {
-                        HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            SectionTitle(computer.name, Icons.Filled.Computer, Modifier.weight(1f))
-                            if (vm.syncStates[computer.pubkey] is SyncState.Running) {
-                                CircularProgressIndicator(Modifier.padding(12.dp).size(20.dp), strokeWidth = 2.dp)
-                            } else {
-                                IconButton(onClick = { vm.sync(computer) }) { Icon(Icons.Filled.Sync, stringResource(R.string.sync_now)) }
-                            }
-                        }
-                        DatabaseItems(vm, vm.computerDatabases[computer.pubkey].orEmpty()) { go { vm.open(Screen.Games(it)) } }
-                    }
                     HorizontalDivider(Modifier.padding(vertical = 8.dp))
                     NavigationDrawerItem(
                         label = { Text(stringResource(R.string.computers)) },
@@ -157,35 +150,56 @@ fun PragmaApp(vm: AppViewModel) {
     }
 }
 
+/** The logo, the name with a small green BETA, and the sync of every computer. */
 @Composable
-private fun SectionTitle(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier) {
-    Row(modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.size(8.dp))
-        Text(text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun DrawerHeader(vm: AppViewModel) {
+    Row(Modifier.padding(start = 16.dp, end = 4.dp, top = 16.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Image(painterResource(R.mipmap.ic_launcher), null, Modifier.size(36.dp))
+        Spacer(Modifier.width(12.dp))
+        Row(Modifier.weight(1f), verticalAlignment = Alignment.Top) {
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
+            // A superscript: small, raised to the top of the title.
+            Text(
+                stringResource(R.string.beta),
+                color = Color.White,
+                fontSize = 7.sp,
+                lineHeight = 8.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.4.sp,
+                modifier = Modifier
+                    .padding(start = 3.dp, top = 1.dp)
+                    .background(BetaGreen, RoundedCornerShape(3.dp))
+                    .padding(horizontal = 3.dp, vertical = 1.dp),
+            )
+        }
+        if (vm.computers.isNotEmpty()) {
+            if (vm.computers.any { vm.syncStates[it.pubkey] is SyncState.Running }) {
+                CircularProgressIndicator(Modifier.padding(12.dp).size(20.dp), strokeWidth = 2.dp)
+            } else {
+                IconButton(onClick = { vm.syncAll() }) { Icon(Icons.Filled.Sync, stringResource(R.string.sync_now)) }
+            }
+        }
     }
 }
 
-/** Game collections first, then opening books (reference data) under their own small title. */
-@Composable
-private fun DatabaseItems(vm: AppViewModel, entries: List<DatabaseEntry>, onOpen: (DatabaseRef) -> Unit) {
-    val (books, collections) = entries.partition { it.openingBook }
-    for (entry in collections) DatabaseItem(vm, entry.ref, entry.games, book = false) { onOpen(entry.ref) }
-    if (books.isNotEmpty()) {
-        Text(stringResource(R.string.opening_books), style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 28.dp, top = 8.dp, bottom = 4.dp))
-        for (entry in books) DatabaseItem(vm, entry.ref, entry.games, book = true) { onOpen(entry.ref) }
-    }
-}
+private val BetaGreen = Color(0xFF2E7D32)
 
+/** A database, aligned with the other items; the device it came from when another one has the same name. */
 @Composable
-private fun DatabaseItem(vm: AppViewModel, ref: DatabaseRef, games: Int, book: Boolean, onClick: () -> Unit) {
+private fun DatabaseItem(vm: AppViewModel, entry: CorpusEntry, onClick: () -> Unit) {
     NavigationDrawerItem(
-        label = { Text(ref.title) },
-        icon = { Icon(if (book) Icons.AutoMirrored.Outlined.MenuBook else Icons.Outlined.Storage, null) },
-        badge = { Text(games.toString()) },
-        selected = (vm.screens.lastOrNull() as? Screen.Games)?.ref == ref,
+        label = {
+            Column {
+                Text(vm.displayTitle(entry), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                if (vm.homonyms(entry) && entry.origin.isNotBlank()) {
+                    Text(entry.origin, style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                }
+            }
+        },
+        icon = { Icon(PragmaIcons.Database, null) },
+        badge = { Text(entry.games.toString()) },
+        selected = (vm.screens.lastOrNull() as? Screen.Games)?.ref == entry.ref,
         onClick = onClick,
-        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
     )
 }

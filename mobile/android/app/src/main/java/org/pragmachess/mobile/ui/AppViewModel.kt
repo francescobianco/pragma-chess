@@ -8,16 +8,19 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.pragmachess.mobile.BuildConfig
 import org.pragmachess.mobile.R
 import org.pragmachess.mobile.chess.GameLine
 import org.pragmachess.mobile.chess.Move
 import org.pragmachess.mobile.chess.Position
 import org.pragmachess.mobile.data.AppStore
 import org.pragmachess.mobile.data.Computer
-import org.pragmachess.mobile.data.DatabaseLocation
+import org.pragmachess.mobile.data.Corpus
+import org.pragmachess.mobile.data.CorpusEntry
+import org.pragmachess.mobile.data.Dedupe
+import org.pragmachess.mobile.data.GameIdentity
 import org.pragmachess.mobile.data.DatabaseRef
 import org.pragmachess.mobile.data.GameHeaders
 import org.pragmachess.mobile.data.GameRecord
@@ -25,6 +28,8 @@ import org.pragmachess.mobile.data.GameSummary
 import org.pragmachess.mobile.data.Library
 import org.pragmachess.mobile.data.PdbDatabase
 import org.pragmachess.mobile.engine.Analysis
+import org.pragmachess.mobile.engine.OexEngine
+import org.pragmachess.mobile.engine.OexEngines
 import org.pragmachess.mobile.engine.UciEngine
 import org.pragmachess.mobile.link.ComputerSync
 import org.pragmachess.mobile.link.PairingLink
@@ -36,7 +41,6 @@ import org.pragmachess.mobile.link.SyncResult
 import java.io.File
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.UUID
 
 /** The screens above the board, which is always at the bottom of the stack. */
 sealed interface Screen {
@@ -54,8 +58,6 @@ sealed interface SyncState {
     data class Done(val result: SyncResult) : SyncState
 }
 
-/** A database with the number of games in it, for the side menu. */
-data class DatabaseEntry(val ref: DatabaseRef, val games: Int, val openingBook: Boolean = false)
 
 /** Today in PGN form, 2026.09.29. */
 private fun today(): String = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
@@ -66,14 +68,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val store = AppStore(application)
     private val library = Library(File(application.filesDir, "databases"))
     private val sync = ComputerSync(application, identity, store, library)
-    private val engine = UciEngine(application)
+    private val corpus = Corpus(library, store)
+    private val engine = UciEngine()
+    private val settings = application.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
 
     // Side menu
-    var localDatabases by mutableStateOf(emptyList<DatabaseEntry>())
+    /** Every database of the phone, one list sorted by name. */
+    var databases by mutableStateOf(emptyList<CorpusEntry>())
         private set
     var computers by mutableStateOf(emptyList<Computer>())
-        private set
-    var computerDatabases by mutableStateOf(emptyMap<String, List<DatabaseEntry>>())
         private set
     val syncStates = mutableStateMapOf<String, SyncState>()
 
@@ -107,7 +110,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         private set
     var analysis by mutableStateOf<Analysis?>(null)
         private set
-    val engineAvailable: Boolean get() = BuildConfig.HAS_STOCKFISH && engine.isAvailable
+    /** Engines installed as separate apps (Open Exchange), found again when the app comes back. */
+    var engines by mutableStateOf(emptyList<OexEngine>())
+        private set
+    var engineId by mutableStateOf(settings.getString("engine", null))
+        private set
+    val selectedEngine: OexEngine? get() = engines.firstOrNull { it.id == engineId } ?: engines.firstOrNull()
+    private var engineBinary by mutableStateOf<File?>(null)
+    /** An engine is installed and can analyse; otherwise the analysis area offers to install one. */
+    val engineReady: Boolean get() = engineBinary != null
 
     /** A short message for the snackbar, consumed by the UI. */
     var message by mutableStateOf<String?>(null)
@@ -122,14 +133,22 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { library.ensureDefault(app.getString(R.string.default_database)) }
+            withContext(Dispatchers.IO) {
+                corpus.prepare(identity.name, store.computers().associate { it.pubkey to it.name })
+                // Repairs phones where a sync of version 0.1 left one database twice.
+                corpus.dedupe()
+                ensureDefault()
+            }
             refresh()
-            gameDatabase = localDatabases.firstOrNull { !it.openingBook }?.ref
+            gameDatabase = defaultDatabase()
             syncAll(quiet = true)
         }
         viewModelScope.launch {
-            engine.analysis.collect { analysis = it }
+            // An engine prints many lines a second; a few are enough to follow it,
+            // and the board stays free for the finger.
+            engine.analysis.sample(200).collect { analysis = it }
         }
+        refreshEngines()
     }
 
     override fun onCleared() {
@@ -138,22 +157,23 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     suspend fun refresh() {
-        val (local, paired, remote) = withContext(Dispatchers.IO) {
-            val local = library.list(DatabaseLocation.Local).map(::entry)
-            val paired = store.computers()
-            val remote = paired.associate { c ->
-                c.pubkey to library.list(DatabaseLocation.Computer(c.pubkey)).map(::entry)
-            }
-            Triple(local, paired, remote)
-        }
-        localDatabases = local
+        val (entries, paired) = withContext(Dispatchers.IO) { corpus.entries() to store.computers() }
+        databases = entries.sortedBy { it.ref.title.lowercase() }
         computers = paired
-        computerDatabases = remote
     }
 
-    private fun entry(ref: DatabaseRef): DatabaseEntry =
-        runCatching { PdbDatabase.open(library.file(ref)).use { DatabaseEntry(ref, it.gameCount(), it.isOpeningBook()) } }
-            .getOrDefault(DatabaseEntry(ref, 0))
+    /** Where a new game goes unless one is chosen: "My Games" if it is there, else the first game collection. */
+    private fun defaultDatabase(): DatabaseRef? {
+        val collections = databases.filterNot { it.openingBook }
+        val mine = app.getString(R.string.default_database)
+        return (collections.firstOrNull { it.ref.title == mine } ?: collections.firstOrNull())?.ref
+    }
+
+    /** A phone on its own starts with one database, "My Games", with a lineage of its own. */
+    private fun ensureDefault() {
+        if (library.list().isNotEmpty()) return
+        library.create(app.getString(R.string.default_database))?.let { (_, lineage) -> store.setOrigin(lineage, identity.name) }
+    }
 
     // Navigation
 
@@ -175,7 +195,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     suspend fun games(ref: DatabaseRef, filter: String): List<GameSummary> = withContext(Dispatchers.IO) {
         runCatching { PdbDatabase.open(library.file(ref)).use { it.games(filter) } }.getOrElse {
-            withContext(Dispatchers.Main) { message = it.message }
+            withContext(Dispatchers.Main) { message = app.getString(R.string.database_unreadable, ref.title) }
             emptyList()
         }
     }
@@ -210,7 +230,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private fun startGame(ref: DatabaseRef?) {
         line = GameLine(Position.starting())
         headers = GameHeaders(date = today())
-        gameDatabase = ref ?: localDatabases.firstOrNull { !it.openingBook }?.ref
+        gameDatabase = ref ?: defaultDatabase()
         dirty = false
         stored = false
         ply = 0
@@ -220,7 +240,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun createDatabase(title: String, then: (DatabaseRef) -> Unit = {}) {
         viewModelScope.launch {
-            val ref = withContext(Dispatchers.IO) { runCatching { library.createLocal(title) }.getOrNull() }
+            val ref = withContext(Dispatchers.IO) {
+                runCatching { library.create(title) }.getOrNull()?.let { (ref, lineage) ->
+                    store.setOrigin(lineage, identity.name)
+                    ref
+                }
+            }
             if (ref == null) {
                 message = app.getString(R.string.database_name_taken)
                 return@launch
@@ -234,31 +259,36 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { library.delete(ref) }
             if (gameDatabase == ref) gameDatabase = null
-            if (localDatabases.none { it.ref != ref }) {
-                withContext(Dispatchers.IO) { library.ensureDefault(app.getString(R.string.default_database)) }
-            }
+            withContext(Dispatchers.IO) { ensureDefault() }
             refresh()
-            if (gameDatabase == null) gameDatabase = localDatabases.firstOrNull { !it.openingBook }?.ref
+            if (gameDatabase == null) gameDatabase = defaultDatabase()
             screens = screens.filterNot { it is Screen.Games && it.ref == ref }
         }
     }
 
-    /** Every database a game can be saved to: the local ones and the computers' copies (opening books excluded). */
+    /** Every database a game can be saved to (opening books excluded). */
     val writableDatabases: List<DatabaseRef>
-        get() = (localDatabases + computers.flatMap { c -> computerDatabases[c.pubkey].orEmpty() })
-            .filterNot { it.openingBook }.map { it.ref }
+        get() = databases.filterNot { it.openingBook }.map { it.ref }
 
-    fun databaseLabel(ref: DatabaseRef): String = when (val location = ref.location) {
-        DatabaseLocation.Local -> ref.title
-        is DatabaseLocation.Computer -> {
-            val computer = computers.firstOrNull { it.pubkey == location.pubkey }?.name.orEmpty()
-            "${ref.title} · $computer"
-        }
+    /** The name, and where it came from when another database has the same name. */
+    fun databaseLabel(ref: DatabaseRef): String {
+        val entry = databases.firstOrNull { it.ref == ref } ?: return ref.title
+        return if (homonyms(entry)) "${displayTitle(entry)} · ${entry.origin}" else displayTitle(entry)
     }
 
     /**
-     * Saves the game on the board as a new game of [ref], made on this phone
-     * (with a uuid), and puts it in the outbox of the computers it goes to.
+     * The name shown: two databases with one name are two files, "Name" and
+     * "Name (device)"; both show "Name", with the device underneath.
+     */
+    fun displayTitle(entry: CorpusEntry): String = Dedupe.displayTitle(entry.ref.title, entry.origin)
+
+    /** Another database has the same name but a different lineage. */
+    fun homonyms(entry: CorpusEntry): Boolean =
+        databases.any { it.lineage != entry.lineage && displayTitle(it).equals(displayTitle(entry), ignoreCase = true) }
+
+    /**
+     * Saves the game on the board as a new game of [ref]; the next sync
+     * reconciles it with every computer.
      */
     fun saveGame(newHeaders: GameHeaders, ref: DatabaseRef) {
         headers = newHeaders
@@ -267,28 +297,20 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             startFen = if (line.start == Position.starting()) "" else line.start.fen(),
             movesSan = line.sanText,
             movesUci = line.uciText,
-            uuid = UUID.randomUUID().toString(),
+            modified = GameIdentity.now(),
         )
         viewModelScope.launch {
             val saved = withContext(Dispatchers.IO) {
-                runCatching {
-                    PdbDatabase.open(library.file(ref), writable = true).use { it.insert(record, identity.source) }
-                    val targets = when (val location = ref.location) {
-                        DatabaseLocation.Local -> store.computers().map { it.pubkey }
-                        is DatabaseLocation.Computer -> listOf(location.pubkey)
-                    }
-                    targets.forEach { store.enqueue(it, ref.name, record) }
-                    targets
-                }
+                runCatching { PdbDatabase.open(library.file(ref), writable = true).use { it.insert(record) } }
             }
-            saved.onSuccess { targets ->
+            saved.onSuccess {
                 gameDatabase = ref
                 dirty = false
                 stored = true
                 message = app.getString(R.string.game_saved, ref.title)
                 refresh()
-                targets.mapNotNull { pk -> computers.firstOrNull { it.pubkey == pk } }.forEach { sync(it, quiet = true) }
-            }.onFailure { message = it.message }
+                syncAll(quiet = true)
+            }.onFailure { message = app.getString(R.string.game_not_saved, ref.title) }
         }
     }
 
@@ -327,12 +349,46 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun toggleEngine() {
-        if (!engineAvailable) {
-            message = app.getString(R.string.engine_unavailable)
-            return
-        }
         engineOn = !engineOn
+        if (!engineOn) analysis = null
         positionChanged()
+    }
+
+    fun chooseEngine(engine: OexEngine) {
+        engineId = engine.id
+        settings.edit().putString("engine", engine.id).apply()
+        engineBinary = OexEngines.binary(app, engine)
+        positionChanged()
+    }
+
+    /** Looks for installed engines, e.g. when the user comes back from installing one. */
+    fun refreshEngines() {
+        viewModelScope.launch {
+            val (found, binary) = withContext(Dispatchers.IO) {
+                val found = OexEngines.installed(app)
+                val chosen = found.firstOrNull { it.id == engineId } ?: found.firstOrNull()
+                found to chosen?.let { OexEngines.binary(app, it) }
+            }
+            engines = found
+            if (binary != engineBinary) {
+                engineBinary = binary
+                if (binary == null) engine.close()
+                positionChanged()
+            }
+        }
+    }
+
+    /** The Play Store page of a free engine app for this protocol. */
+    fun installEngine(context: android.content.Context) {
+        val id = OexEngines.SUGGESTED_PACKAGE
+        val market = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=$id"))
+        val web = android.content.Intent(android.content.Intent.ACTION_VIEW,
+            android.net.Uri.parse("https://play.google.com/store/apps/details?id=$id"))
+        try {
+            context.startActivity(market)
+        } catch (e: android.content.ActivityNotFoundException) {
+            runCatching { context.startActivity(web) }
+        }
     }
 
     private var foreground = true
@@ -340,12 +396,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** The engine only thinks while the app is on screen. */
     fun setForeground(visible: Boolean) {
         foreground = visible
+        if (visible) refreshEngines()
         positionChanged()
     }
 
     private fun positionChanged() {
         if (!engineOn || !foreground) {
-            engine.stop()
+            // In the background the process goes: no memory held for nothing.
+            if (foreground) engine.stop() else engine.close()
             return
         }
         val position = position
@@ -353,9 +411,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             engine.stop()
             return
         }
-        if (!engine.analyse(position.fen())) {
-            engineOn = false
-            message = app.getString(R.string.engine_unavailable)
+        val binary = engineBinary
+        if (binary == null || !engine.analyse(binary, position.fen())) {
+            // No engine (or its app was removed): end the process; the
+            // analysis area says so and offers to install one.
+            engine.close()
+            analysis = null
         }
     }
 
@@ -370,17 +431,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         refusedBy = null
         viewModelScope.launch {
             val computer = Computer(link.pubkey, link.name, link.relays, link.secret, 0)
-            withContext(Dispatchers.IO) {
-                store.saveComputer(computer)
-                // The games already on the phone go to the new computer too.
-                for (ref in library.list(DatabaseLocation.Local)) {
-                    runCatching {
-                        PdbDatabase.open(library.file(ref)).use { db ->
-                            db.phoneGames(identity.source).forEach { store.enqueue(computer.pubkey, ref.name, it) }
-                        }
-                    }
-                }
-            }
+            // Every database of the phone goes to the new computer at its first sync.
+            withContext(Dispatchers.IO) { store.saveComputer(computer) }
             refresh()
             if (screens.lastOrNull() != Screen.Computers) open(Screen.Computers)
             sync(computer, quiet = false)
@@ -389,14 +441,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun forget(computer: Computer) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                store.removeComputer(computer.pubkey)
-                library.deleteComputer(computer.pubkey)
-            }
+            // The databases stay: they are part of the phone's corpus now.
+            withContext(Dispatchers.IO) { store.removeComputer(computer.pubkey) }
             syncStates.remove(computer.pubkey)
-            if ((gameDatabase?.location as? DatabaseLocation.Computer)?.pubkey == computer.pubkey) {
-                gameDatabase = localDatabases.firstOrNull { !it.openingBook }?.ref
-            }
             refresh()
         }
     }
@@ -404,8 +451,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun syncAll(quiet: Boolean = false) {
         computers.forEach { sync(it, quiet) }
     }
-
-    fun outboxCount(computer: Computer): Int = store.outboxCount(computer.pubkey)
 
     fun sync(computer: Computer, quiet: Boolean = false) {
         if (syncStates[computer.pubkey] is SyncState.Running) return
@@ -421,19 +466,32 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
                 syncStates[computer.pubkey] = SyncState.Done(result)
-                if (!quiet && result.received.isEmpty() && result.pushed == 0) {
-                    message = app.getString(R.string.sync_up_to_date, result.computerName)
-                }
+                if (result.changed) message = summary(result)
+                else if (!quiet) message = app.getString(R.string.sync_up_to_date, result.computerName)
             } catch (e: SyncException) {
                 syncStates[computer.pubkey] = SyncState.Failed(e.failure, e.message)
                 if (e.failure == SyncFailure.Refused) refusedBy = current
                 if (!quiet) message = failureText(e.failure, current.name)
             } catch (e: Exception) {
                 syncStates[computer.pubkey] = SyncState.Failed(SyncFailure.Protocol, e.message)
-                if (!quiet) message = e.message
+                if (!quiet) message = failureText(SyncFailure.Protocol, current.name)
             }
             refresh()
         }
+    }
+
+    /** "Synced with Intel5: 3 games stored, 1 updated; 2 games differed on the two devices, the most recent version was kept." */
+    fun summary(result: SyncResult): String {
+        val parts = buildList {
+            if (result.newDatabases > 0) add(app.resources.getQuantityString(R.plurals.sync_new_databases, result.newDatabases, result.newDatabases))
+            if (result.stored > 0) add(app.resources.getQuantityString(R.plurals.sync_stored, result.stored, result.stored))
+            if (result.updated > 0) add(app.resources.getQuantityString(R.plurals.sync_updated, result.updated, result.updated))
+        }
+        var text = app.getString(R.string.sync_summary, result.computerName, parts.joinToString(", ").ifEmpty { app.getString(R.string.sync_nothing_new) })
+        if (result.conflicts.isNotEmpty()) {
+            text += " " + app.resources.getQuantityString(R.plurals.sync_conflicts, result.conflicts.size, result.conflicts.size)
+        }
+        return text
     }
 
     fun failureText(failure: SyncFailure, computer: String): String = when (failure) {

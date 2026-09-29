@@ -49,8 +49,9 @@ public:
     /// Uploads under a temporary name, then renames it, creating folders; a
     /// half-uploaded file is never seen under its real name.
     virtual void upload(const QString &localFile, const QString &path, Callback done) = 0;
-    /// Deletes a file; a missing file counts as removed. The sync never calls
-    /// this for the user's files, only for its own lock.
+    /// Deletes a file; a missing file counts as removed. The sync calls this
+    /// only for its own lock and for databases merged into another one
+    /// (SyncMergeRecord), whose games live on there.
     virtual void remove(const QString &path, Callback done) = 0;
     /// Every file the store can enumerate by itself, as relative paths, for
     /// stores whose folder is readable as a whole (a Git clone). Empty when it

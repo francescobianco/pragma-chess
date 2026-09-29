@@ -1,6 +1,5 @@
 package org.pragmachess.mobile.engine
 
-import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -13,12 +12,12 @@ import java.io.BufferedWriter
 import java.io.File
 
 /**
- * A UCI engine process: the Stockfish shipped as libstockfish.so in the
- * native library folder (the one place Android lets an app execute a file
- * from). Nothing here is Stockfish-specific but the file name.
+ * A UCI engine process. The binary belongs to another app (see [OexEngines]):
+ * Android only lets an app execute files from a native library folder, its own
+ * or, readable by everyone, another app's.
  */
-class UciEngine(context: Context) : AutoCloseable {
-    private val binary = File(context.applicationInfo.nativeLibraryDir, "libstockfish.so")
+class UciEngine : AutoCloseable {
+    private var binary: File? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var process: Process? = null
     private var input: BufferedWriter? = null
@@ -29,16 +28,19 @@ class UciEngine(context: Context) : AutoCloseable {
     private val _analysis = MutableStateFlow<Analysis?>(null)
     val analysis: StateFlow<Analysis?> = _analysis
 
-    val isAvailable: Boolean get() = binary.canExecute()
-
-    private fun start(): Boolean {
-        if (process?.isAlive == true) return true
-        if (!isAvailable) return false
+    private fun start(executable: File): Boolean {
+        if (process?.isAlive == true && executable == binary) return true
+        close()
+        if (!executable.canExecute()) return false
         return try {
-            val started = ProcessBuilder(binary.path).redirectErrorStream(true).start()
+            val started = ProcessBuilder(executable.path).redirectErrorStream(true).start()
             process = started
+            binary = executable
             input = started.outputStream.bufferedWriter()
-            val threads = (Runtime.getRuntime().availableProcessors() - 1).coerceIn(1, 4)
+            // Few threads: the phone must stay responsive to the finger while
+            // the engine thinks, and an eighth of the cores is plenty to
+            // follow a game.
+            val threads = (Runtime.getRuntime().availableProcessors() / 4).coerceIn(1, 2)
             send("uci")
             send("setoption name Threads value $threads")
             send("setoption name Hash value 64")
@@ -74,9 +76,9 @@ class UciEngine(context: Context) : AutoCloseable {
         }
     }
 
-    /** Starts an infinite analysis of [fen]; false if the engine cannot run. */
-    fun analyse(fen: String): Boolean {
-        if (!start()) return false
+    /** Starts an infinite analysis of [fen] with [executable]; false if it cannot run. */
+    fun analyse(executable: File, fen: String): Boolean {
+        if (!start(executable)) return false
         send("stop")
         generation++
         _analysis.value = null
@@ -97,5 +99,7 @@ class UciEngine(context: Context) : AutoCloseable {
         reader?.cancel()
         process?.destroy()
         process = null
+        input = null
+        binary = null
     }
 }

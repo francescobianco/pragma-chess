@@ -37,3 +37,4 @@ auth.json
 /.idea/
 /dist/
 /build-*/
+/temp/

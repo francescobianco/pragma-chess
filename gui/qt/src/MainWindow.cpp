@@ -37,6 +37,7 @@
 #include "widgets/DatabaseTreeWidget.h"
 #include "widgets/EnginePanel.h"
 #include "widgets/EvaluationBar.h"
+#include "widgets/FigurineFont.h"
 #include "widgets/GameHeaderWidget.h"
 
 #include <QAction>
@@ -657,6 +658,7 @@ void MainWindow::createDocks()
 {
     m_moveView = new QTableView;
     m_moveView->setModel(m_moveListModel);
+    m_moveView->setFont(FigurineFont::apply(m_moveView->font()));
     m_moveView->setSelectionMode(QAbstractItemView::SingleSelection);
     m_moveView->setSelectionBehavior(QAbstractItemView::SelectItems);
     m_moveView->setEditTriggers(QAbstractItemView::NoEditTriggers);

@@ -53,6 +53,7 @@ gui/qt/
   tools/book/          pragma-book, builds and probes Polyglot opening books
   resources/books/     default opening book (built from lichess chess-openings, CC0)
   resources/openings/  named openings seeded as the Opening Names database
+  resources/fonts/     figurine font of the move list (SkakNew, LPPL)
   translations/        interface translations (.ts), built with Qt Linguist tools
 docs/                  design and tuning notes (explain-tuning.md)
 packaging/             installers: windows/ (Inno Setup), macos/ (dmg), linux/
@@ -60,6 +61,7 @@ packaging/             installers: windows/ (Inno Setup), macos/ (dmg), linux/
 .github/workflows/release.yml  builds them all and publishes a release on a v* tag
 scripts/dev-watch.sh   rebuild + restart loop used by `make start`
 scripts/make-icons.py  regenerates every platform icon from data/icons/pragma-chess.png
+scripts/make-figurine-font.py  builds resources/fonts/pragma-figurine.otf from SkakNew
 scripts/install-dev-desktop.sh  user menu entry + icons for the build (Wayland dock icon)
 ```
 
@@ -82,7 +84,9 @@ scripts/install-dev-desktop.sh  user menu entry + icons for the build (Wayland d
   `ChessPosition` with perft counts, PGN/SAN parsing and the "Explain" logic
   with synthetic engine lines. There are no widget tests.
 - SAN is shown with figurines (♘f3) in the desktop client; the clipboard, PGN
-  and the command line use letters.
+  and the command line use letters. The move list draws them with the SkakNew
+  figurines of chess books (`widgets/FigurineFont`, font rebuilt by
+  `scripts/make-figurine-font.py`).
 
 ## Explain
 

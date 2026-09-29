@@ -160,6 +160,8 @@ qt_add_executable(pragma-chess
     src/widgets/EnginePanel.h
     src/widgets/EvaluationBar.cpp
     src/widgets/EvaluationBar.h
+    src/widgets/FigurineFont.cpp
+    src/widgets/FigurineFont.h
     src/widgets/GameHeaderWidget.cpp
     src/widgets/GameHeaderWidget.h
     src/widgets/BoardWidget.h
@@ -188,6 +190,8 @@ qt_add_resources(pragma-chess books PREFIX /books BASE resources/books FILES res
 # The named openings seeded as the Opening Names database on first launch.
 qt_add_resources(pragma-chess openings PREFIX /openings BASE resources/openings
     FILES resources/openings/opening-names.pdb resources/openings/lichess-openings.tsv)
+# SkakNew figurines for the move list (scripts/make-figurine-font.py).
+qt_add_resources(pragma-chess fonts PREFIX /fonts BASE resources/fonts FILES resources/fonts/pragma-figurine.otf)
 qt_add_resources(pragma-chess appicon PREFIX /icons BASE data/icons FILES ${APP_ICON_FILES})
 if(WIN32)
     target_sources(pragma-chess PRIVATE data/pragma-chess.rc)

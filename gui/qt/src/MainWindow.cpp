@@ -924,6 +924,7 @@ void MainWindow::syncBoard()
         m_board->setBoard(frame);
     }
     m_capturedPieces->setCaptured(m_session->position().capturedSince(m_session->initialPosition()));
+    m_capturedPieces->setSideToMove(m_session->position().sideToMove());
     QMultiHash<int, int> legalMoves;
     // In training the user only moves their own colour; the engine answers by itself.
     if (!isEngineTurn()) {

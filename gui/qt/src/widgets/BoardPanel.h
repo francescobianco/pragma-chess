@@ -9,8 +9,9 @@ class GameHeaderWidget;
 class QAction;
 class QToolButton;
 
-/// The board with the game header above, the evaluation bar on its left and
-/// the game controls directly underneath (captured pieces at the far left). The board stays
+/// The board with the game header above, the evaluation bar on its left, the
+/// turn and captured pieces on its right and the game controls directly
+/// underneath. The board stays
 /// square and the control bar always matches its width, whatever the space.
 /// Its ideal width follows the height available to the board (see
 /// widthForHeight), so the board fills the panel without empty space.
@@ -47,5 +48,6 @@ private:
     BoardWidget *m_board;
     EvaluationBar *m_evaluationBar;
     GameHeaderWidget *m_header;
+    CapturedPiecesWidget *m_capturedPieces;
     QWidget *m_controls;
 };

@@ -18,6 +18,20 @@ Every version, with files named after it, is on the
 [releases page](https://github.com/francescobianco/pragma-chess/releases).
 The packages are built by GitHub Actions from [packaging/](packaging/README.md).
 
+### Try the Android app
+
+The mobile app is in testing and we'd love your feedback. It reads your
+databases offline, records the games you play on the phone and analyses them
+with Stockfish; pair it with the desktop client in *Options ▸ Connect Mobile
+App…* to keep both in sync.
+
+**[Download the APK](https://github.com/francescobianco/pragma-chess/releases/download/v0.1.0/pragma-chess-0.1.0-android.apk)**
+(Android 8+, 128 MB; engine analysis needs a 64-bit phone). Open the link on
+the phone and allow installing from that source when Android asks. Tell us
+what works and what doesn't in the
+[issues](https://github.com/francescobianco/pragma-chess/issues): the phone
+model and the Android version help.
+
 ## Desktop client (Qt 6 Widgets)
 
 The GUI lives in `gui/qt`. It talks to the database through the `GameDatabase`

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_database">Le mie partite</string>
+
+    <string name="board">Scacchiera</string>
+    <string name="open_menu">Apri il menu</string>
+    <string name="new_game">Nuova partita</string>
+    <string name="save_game">Salva partita</string>
+    <string name="unsaved">non salvata</string>
+    <string name="flip_board">Ruota la scacchiera</string>
+    <string name="more">Altre opzioni</string>
+    <string name="first_move">Prima mossa</string>
+    <string name="previous_move">Mossa precedente</string>
+    <string name="next_move">Mossa successiva</string>
+    <string name="last_move">Ultima mossa</string>
+    <string name="promote_to">Promuovi a</string>
+    <string name="white">Bianco</string>
+    <string name="black">Nero</string>
+
+    <string name="engine">Motore</string>
+    <string name="engine_thinking">Il motore sta pensando…</string>
+    <string name="engine_available">Stockfish, su questo telefono.</string>
+    <string name="engine_unavailable">Il motore non è disponibile su questo telefono.</string>
+
+    <string name="on_this_phone">Su questo telefono</string>
+    <string name="new_database">Nuovo database…</string>
+    <string name="database">Database</string>
+    <string name="database_name">Nome</string>
+    <string name="database_name_taken">Esiste già un database con quel nome.</string>
+    <string name="create">Crea</string>
+    <string name="delete">Elimina</string>
+    <string name="delete_database">Elimina database</string>
+    <string name="delete_database_text">Eliminare «%1$s» e le sue partite da questo telefono? Le partite già inviate a un computer restano lì.</string>
+    <string name="search_games">Cerca giocatori o evento</string>
+    <string name="no_games">Ancora nessuna partita.</string>
+    <string name="no_games_found">Nessuna partita corrisponde.</string>
+    <string name="event">Evento</string>
+    <string name="site">Luogo</string>
+    <string name="date">Data</string>
+    <string name="round">Turno</string>
+    <string name="save">Salva</string>
+    <string name="game_saved">Salvata in %1$s.</string>
+    <plurals name="databases">
+        <item quantity="one">%d database</item>
+        <item quantity="other">%d database</item>
+    </plurals>
+
+    <string name="computers">Computer</string>
+    <string name="connect_computer">Collega un computer</string>
+    <string name="pair_instructions">Sul computer apri Opzioni ▸ Collega app mobile… in Pragma Chess e inquadra il codice che mostra. Il telefono tiene una copia dei database del computer, e le partite che salvi qui arrivano al computer.</string>
+    <string name="scan_code">Inquadra il codice</string>
+    <string name="scan_again">Inquadra di nuovo il codice</string>
+    <string name="scan_prompt">Inquadra il codice di Opzioni ▸ Collega app mobile… sul computer</string>
+    <string name="paste_link">Incolla il link</string>
+    <string name="connect">Collega</string>
+    <string name="pair_invalid_link">Questo non è un codice di collegamento di Pragma Chess.</string>
+    <string name="forget">Dimentica</string>
+    <string name="forget_computer">Dimentica il computer</string>
+    <string name="forget_computer_text">Dimenticare %1$s ed eliminare i suoi database da questo telefono? Le partite salvate sul telefono e non ancora inviate vanno perse. Per ricollegarlo inquadra di nuovo il codice.</string>
+    <string name="sync_now">Sincronizza ora</string>
+    <string name="last_sync">Sincronizzato %1$s</string>
+    <string name="never_synced">Mai sincronizzato</string>
+    <string name="games_waiting">%1$d partite da inviare</string>
+    <string name="sync_done">Inviate %1$d partite, ricevuti %2$d database.</string>
+    <string name="sync_up_to_date">Allineato con %1$s.</string>
+    <string name="sync_no_relays">Nessuna connessione ai relay su internet. Controlla che il telefono sia online.</string>
+    <string name="sync_no_answer">Il computer non ha risposto. Pragma Chess è aperto sul computer, e questo telefono è ancora collegato in Opzioni ▸ Collega app mobile…?</string>
+    <string name="sync_refused">Questo telefono è stato scollegato da %1$s. Inquadra il codice in Opzioni ▸ Collega app mobile… per ricollegarlo.</string>
+    <string name="sync_no_connection">Il computer ha risposto, ma non è stato possibile collegarsi attraverso queste reti. Prova con entrambi sulla stessa Wi-Fi.</string>
+    <string name="sync_failed">La sincronizzazione con %1$s si è interrotta. Riprova.</string>
+    <string name="progress_relays">Cerco il computer…</string>
+    <string name="progress_offer">Attendo la risposta del computer…</string>
+    <string name="progress_connecting">Collegamento…</string>
+    <string name="progress_sending">Invio le partite di %1$s…</string>
+    <string name="progress_listing">Controllo i database…</string>
+    <string name="progress_receiving">Ricevo %1$s…</string>
+
+    <string name="settings">Impostazioni</string>
+    <string name="back">Indietro</string>
+    <string name="phone_name">Nome del telefono</string>
+    <string name="phone_name_help">Come il computer elenca questo telefono.</string>
+    <string name="phone_key">Chiave del telefono</string>
+    <string name="about_title">Pragma Chess %1$s</string>
+    <string name="about_licenses">Informazioni e licenze</string>
+    <string name="about_app">Il compagno di Pragma Chess sul desktop: i tuoi database sul telefono, le partite giocate qui inviate al computer. Libero e open source.</string>
+    <string name="license_stockfish_title">Stockfish %1$s</string>
+    <string name="license_stockfish_text">Il motore scacchistico, distribuito invariato come programma separato. GNU General Public License versione 3; il codice sorgente è su:</string>
+    <string name="license_show_gpl">Mostra la GPL</string>
+    <string name="license_hide">Nascondi</string>
+    <string name="license_pieces_title">Pezzi Good Companion</string>
+    <string name="license_pieces_text">Di David L. Brown, distribuiti come freeware; i file SVG vengono dal progetto lichess.</string>
+    <string name="license_figurines_title">Figurine SkakNew</string>
+    <string name="license_figurines_text">Le figurine della lista mosse, da SkakNew-Figurine di Ulrich Dirr (LaTeX Project Public License 1.2), rinominato Pragma Figurine.</string>
+    <string name="license_libraries_title">Librerie</string>
+    <string name="license_libraries_text">AndroidX e Jetpack Compose, OkHttp, ZXing e ZXing Android Embedded, secp256k1-kmp (Apache License 2.0); WebRTC (BSD 3-Clause, tramite stream-webrtc-android, Apache 2.0); libsecp256k1 (MIT).</string>
+    <string name="discard_game">Scartare la partita?</string>
+    <string name="discard_game_text">Le mosse giocate sulla scacchiera non sono ancora salvate.</string>
+    <string name="discard">Scarta</string>
+</resources>

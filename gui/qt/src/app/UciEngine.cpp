@@ -103,7 +103,7 @@ void UciEngine::setOption(const QString &name, const QString &value)
 {
     m_optionValues.removeIf([&](const auto &option) { return option.first == name; });
     m_optionValues.append({name, value});
-    if (m_state == State::Idle)
+    if (m_state == State::Idle && m_options.contains(name))
         send("setoption name " + name.toUtf8() + " value " + value.toUtf8());
 }
 
@@ -143,7 +143,10 @@ void UciEngine::handleLine(const QByteArray &line)
         m_name = QString::fromUtf8(line.mid(line.indexOf("name") + 5).trimmed());
         Q_EMIT nameChanged(m_name);
     } else if (command == "option" && tokens.value(1) == "name") {
-        m_options << QString::fromUtf8(tokens.value(2));
+        // Names may have spaces ("Skill Level"): up to " type ".
+        const QByteArray rest = line.simplified().mid(qstrlen("option name "));
+        const qsizetype type = rest.indexOf(" type ");
+        m_options << QString::fromUtf8(type < 0 ? rest : rest.left(type));
     } else if (command == "uciok") {
         if (m_options.contains(QLatin1String("Threads"))) {
             const int threads = qMax(1, QThread::idealThreadCount() / 2);
@@ -151,8 +154,11 @@ void UciEngine::handleLine(const QByteArray &line)
         }
         if (m_options.contains(QLatin1String("UCI_AnalyseMode")))
             send("setoption name UCI_AnalyseMode value true");
-        for (const auto &[name, value] : std::as_const(m_optionValues))
-            send("setoption name " + name.toUtf8() + " value " + value.toUtf8());
+        // Only what the engine offers: not every engine has Threads or Hash.
+        for (const auto &[name, value] : std::as_const(m_optionValues)) {
+            if (m_options.contains(name))
+                send("setoption name " + name.toUtf8() + " value " + value.toUtf8());
+        }
         send("isready");
     } else if (command == "readyok") {
         if (m_state == State::Initializing) {

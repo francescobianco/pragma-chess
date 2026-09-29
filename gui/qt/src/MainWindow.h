@@ -40,6 +40,8 @@ class SourceSync;
 class FolderSync;
 class RemoteStore;
 class SyncPipeline;
+class PhoneLink;
+class DatabaseFolderStore;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -164,6 +166,12 @@ private:
     void manageSources();
     // File ▸ Sync: the Pragma folder kept the same on several computers.
     void openSyncDialog();
+    // Options ▸ Connect Mobile App: the Android app copies the databases
+    // (docs/phone-link.md) and sends back the games played on the phone.
+    void createPhoneLink();
+    void openConnectMobileDialog();
+    /// Games were appended to the open database (a source, a phone): show them.
+    void showAddedGames();
     // Syncing everything, in order: the sources fill the database, the project
     // file is written, then the folder goes to the server. SyncPipeline owns
     // the order and the reporting, so new steps are one task away.
@@ -227,6 +235,9 @@ private:
     SourceSync *m_sourceSync;
     FolderSync *m_folderSync;
     SyncPipeline *m_syncPipeline;
+    PhoneLink *m_phoneLink = nullptr;
+    std::unique_ptr<DatabaseFolderStore> m_phoneGameStore;
+    QAction *m_connectMobileAction = nullptr;
     /// Set while the window waits for a sync before closing for good.
     bool m_closingAfterSync = false;
     /// Set when the app was stopped from outside: close, ask nothing.

@@ -44,6 +44,9 @@ std::optional<SourceKind> kind(const QString &id)
 QString displayName(const GameSource &source)
 {
     const std::optional<SourceKind> sourceKind = kind(source.kind);
+    // Games sent by a paired phone (Phone Link): not a kind one connects.
+    if (!sourceKind && source.kind == QLatin1String("phone"))
+        return tr("Phone · %1").arg(source.account);
     const QString name = sourceKind ? sourceKind->name : source.kind;
     if (sourceKind && sourceKind->playerId) {
         const QString idType =

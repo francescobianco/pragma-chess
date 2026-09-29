@@ -9,6 +9,11 @@
 #include "dialogs/ManageSourcesDialog.h"
 #include "dialogs/NewTrainingDialog.h"
 #include "dialogs/SyncDialog.h"
+#ifdef PRAGMA_HAS_PHONE_LINK
+#include "app/phone/DatabaseFolderStore.h"
+#include "app/phone/PhoneLink.h"
+#include "dialogs/ConnectMobileDialog.h"
+#endif
 #include "app/Explainer.h"
 #include "app/GameSession.h"
 #include "app/Pgn.h"
@@ -198,13 +203,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_board, &BoardWidget::navigateRequested, this,
             [this](int steps) { m_session->goToPly(m_session->ply() + steps); });
     connect(m_board, &BoardWidget::moveRequested, this, &MainWindow::playBoardMove);
-    connect(m_sourceSync, &SourceSync::gamesImported, this, [this] {
-        m_gameListModel->refreshAppended();
-        if (m_filterSource != 0)
-            showCategory({GameCategory::Kind::Source, QString(), m_filterSource}); // Its new games too.
-        updateGameCount();
-        m_databaseTree->scheduleRefresh();
-    });
+    connect(m_sourceSync, &SourceSync::gamesImported, this, &MainWindow::showAddedGames);
     connect(m_sourceSync, &SourceSync::sourcesChanged, m_databaseTree, &DatabaseTreeWidget::scheduleRefresh);
 
     // The whole sync, in order, from the toolbar button or before closing.
@@ -287,6 +286,7 @@ MainWindow::MainWindow(QWidget *parent)
     restoreSession();
     restoreOpeningNames(); // After the session, so the first launch still seeds Classic Games first.
     applySyncSettings();
+    createPhoneLink();
 
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::scheduleSaveSession);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::scheduleSaveSession);
@@ -305,7 +305,52 @@ MainWindow::MainWindow(QWidget *parent)
     }
 }
 
-MainWindow::~MainWindow() = default;
+MainWindow::~MainWindow()
+{
+#ifdef PRAGMA_HAS_PHONE_LINK
+    delete m_phoneLink; // Before the game store it uses.
+#endif
+}
+
+void MainWindow::showAddedGames()
+{
+    m_gameListModel->refreshAppended();
+    if (m_filterSource != 0)
+        showCategory({GameCategory::Kind::Source, QString(), m_filterSource}); // Its new games too.
+    updateGameCount();
+    m_databaseTree->scheduleRefresh();
+}
+
+void MainWindow::createPhoneLink()
+{
+#ifdef PRAGMA_HAS_PHONE_LINK
+    m_phoneGameStore = std::make_unique<DatabaseFolderStore>();
+    // Games for the open database go through it, on this thread, so its game
+    // list stays right; other databases are opened on their own.
+    m_phoneGameStore->setOpenDatabase([this] { return m_database.get(); },
+                                      [this](int added) {
+                                          if (added > 0)
+                                              showAddedGames();
+                                      });
+    // A sync may be replacing the files: the phone sends its games next time.
+    m_phoneGameStore->setBusy([this] { return m_syncPipeline->isRunning(); });
+    const QString state = QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation))
+                              .filePath(QStringLiteral("phone-link.json"));
+    m_phoneLink = new PhoneLink(state, UserFolders::databasesDir(), this);
+    m_phoneLink->setGameStore(m_phoneGameStore.get());
+#endif
+}
+
+void MainWindow::openConnectMobileDialog()
+{
+#ifdef PRAGMA_HAS_PHONE_LINK
+    if (!m_phoneLink)
+        return;
+    UserFolders::ensureDatabasesDir();
+    ConnectMobileDialog dialog(m_phoneLink, this);
+    dialog.exec();
+#endif
+}
 
 void MainWindow::createActions()
 {
@@ -333,6 +378,11 @@ void MainWindow::createActions()
     m_syncNowAction->setToolTip(tr("Sync the connected sources, save the project and send the folder to the server"));
     connect(m_syncNowAction, &QAction::triggered, this, [this] { syncNow(); });
 
+#ifdef PRAGMA_HAS_PHONE_LINK
+    m_connectMobileAction = new QAction(tr("Connect &Mobile App…"), this);
+    m_connectMobileAction->setToolTip(tr("Copy your databases to the Pragma Chess app on your phone"));
+    connect(m_connectMobileAction, &QAction::triggered, this, &MainWindow::openConnectMobileDialog);
+#endif
     m_syncAction = new QAction(tr("S&ync…"), this);
     m_syncAction->setToolTip(tr("Keep databases and projects the same on several computers through a server"));
     connect(m_syncAction, &QAction::triggered, this, &MainWindow::openSyncDialog);
@@ -570,6 +620,10 @@ void MainWindow::createMenus()
     menuBar()->addMenu(tr("&Tools"))->setEnabled(false);
 
     QMenu *options = menuBar()->addMenu(tr("&Options"));
+    if (m_connectMobileAction) {
+        options->addAction(m_connectMobileAction);
+        options->addSeparator();
+    }
     QMenu *language = options->addMenu(tr("&Language"));
     auto *languages = new QActionGroup(language);
     for (const UiLanguage::Language &entry : UiLanguage::available()) {

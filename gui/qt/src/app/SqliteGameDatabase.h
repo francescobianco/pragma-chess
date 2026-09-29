@@ -20,6 +20,9 @@ public:
                                                       const QList<GameRecord> &games,
                                                       QString *errorMessage);
     static std::unique_ptr<SqliteGameDatabase> open(const QString &path, QString *errorMessage);
+    /// The properties of a database file without loading its games (defaults
+    /// for a file that is not a readable Pragma Chess database).
+    static DatabaseProperties readProperties(const QString &path);
 
     QString name() const override;
     QString location() const override { return m_path; }
@@ -36,6 +39,8 @@ public:
     bool removeSource(qint64 sourceId, QString *errorMessage) override;
     QSet<qint64> sourceGameIds(qint64 sourceId) const override;
     int importGames(qint64 sourceId, const QList<ImportedGame> &games, QString *errorMessage) override;
+    DatabaseProperties properties() const override { return m_properties; }
+    bool setProperties(const DatabaseProperties &properties, QString *errorMessage) override;
     bool isModified() const override { return false; }
     bool saveCopy(const QString &path, QString *errorMessage) const override;
 
@@ -44,10 +49,12 @@ private:
 
     bool loadHeaders(QString *errorMessage);
     bool loadPlayerRoles(QString *errorMessage);
+    bool loadProperties(QString *errorMessage);
 
     QString m_path;
     QString m_connectionName;
     // TODO: page headers from SQL instead of caching them for very large databases.
     QList<GameRecord> m_headers;
     PlayerRoles m_roles;
+    DatabaseProperties m_properties;
 };

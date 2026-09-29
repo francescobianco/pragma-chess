@@ -21,6 +21,83 @@ if(NOT yaml-cpp_FOUND)
     FetchContent_MakeAvailable(yaml-cpp)
 endif()
 
+# Phone Link (docs/phone-link.md): WebRTC and the WebSocket client for Nostr
+# relays from libdatachannel, BIP-340 keys from libsecp256k1, QR codes from
+# nayuki's qrcodegen. System packages are preferred; otherwise they are
+# fetched and linked statically. Without them the client builds without it.
+option(PRAGMA_PHONE_LINK "Let the Android app copy the databases (Phone Link)" ON)
+set(PRAGMA_HAS_PHONE_LINK OFF)
+if(PRAGMA_PHONE_LINK)
+    include(FetchContent)
+    find_package(OpenSSL QUIET)
+    find_package(LibDataChannel CONFIG QUIET)
+    if(TARGET LibDataChannel::LibDataChannel)
+        set(PRAGMA_DATACHANNEL LibDataChannel::LibDataChannel)
+    elseif(OpenSSL_FOUND)
+        set(BUILD_SHARED_LIBS OFF)
+        set(NO_MEDIA ON CACHE BOOL "" FORCE)
+        set(NO_EXAMPLES ON CACHE BOOL "" FORCE)
+        set(NO_TESTS ON CACHE BOOL "" FORCE)
+        set(NO_WEBSOCKET OFF CACHE BOOL "" FORCE)
+        set(USE_GNUTLS OFF CACHE BOOL "" FORCE)
+        set(USE_MBEDTLS OFF CACHE BOOL "" FORCE)
+        set(USE_NICE OFF CACHE BOOL "" FORCE)
+        FetchContent_Declare(libdatachannel
+            GIT_REPOSITORY https://github.com/paullouisageneau/libdatachannel.git
+            GIT_TAG v0.24.6
+            GIT_SHALLOW TRUE
+            GIT_SUBMODULES deps/plog deps/usrsctp deps/libjuice
+            EXCLUDE_FROM_ALL
+            SYSTEM)
+        FetchContent_MakeAvailable(libdatachannel)
+        set(PRAGMA_DATACHANNEL LibDataChannel::LibDataChannelStatic)
+    endif()
+
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(SECP256K1 QUIET IMPORTED_TARGET libsecp256k1)
+    endif()
+    if(SECP256K1_FOUND)
+        find_path(SECP256K1_SCHNORRSIG_H secp256k1_schnorrsig.h HINTS ${SECP256K1_INCLUDE_DIRS})
+        find_path(SECP256K1_ECDH_H secp256k1_ecdh.h HINTS ${SECP256K1_INCLUDE_DIRS})
+    endif()
+    if(SECP256K1_FOUND AND SECP256K1_SCHNORRSIG_H AND SECP256K1_ECDH_H)
+        set(PRAGMA_SECP256K1 PkgConfig::SECP256K1)
+    else()
+        set(BUILD_SHARED_LIBS OFF)
+        set(SECP256K1_ENABLE_MODULE_ECDH ON CACHE BOOL "" FORCE)
+        set(SECP256K1_ENABLE_MODULE_EXTRAKEYS ON CACHE BOOL "" FORCE)
+        set(SECP256K1_ENABLE_MODULE_SCHNORRSIG ON CACHE BOOL "" FORCE)
+        set(SECP256K1_ENABLE_MODULE_MUSIG OFF CACHE BOOL "" FORCE)
+        set(SECP256K1_ENABLE_MODULE_ELLSWIFT OFF CACHE BOOL "" FORCE)
+        set(SECP256K1_BUILD_BENCHMARK OFF CACHE BOOL "" FORCE)
+        set(SECP256K1_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        set(SECP256K1_BUILD_EXHAUSTIVE_TESTS OFF CACHE BOOL "" FORCE)
+        set(SECP256K1_BUILD_CTIME_TESTS OFF CACHE BOOL "" FORCE)
+        set(SECP256K1_INSTALL OFF CACHE BOOL "" FORCE)
+        FetchContent_Declare(secp256k1
+            GIT_REPOSITORY https://github.com/bitcoin-core/secp256k1.git
+            GIT_TAG v0.7.1
+            GIT_SHALLOW TRUE
+            EXCLUDE_FROM_ALL
+            SYSTEM)
+        FetchContent_MakeAvailable(secp256k1)
+        set(PRAGMA_SECP256K1 secp256k1)
+    endif()
+
+    FetchContent_Declare(qrcodegen
+        GIT_REPOSITORY https://github.com/nayuki/QR-Code-generator.git
+        GIT_TAG v1.8.0
+        GIT_SHALLOW TRUE)
+    FetchContent_MakeAvailable(qrcodegen)
+
+    if(PRAGMA_DATACHANNEL AND TARGET ${PRAGMA_SECP256K1})
+        set(PRAGMA_HAS_PHONE_LINK ON)
+    else()
+        message(STATUS "libdatachannel or libsecp256k1 not available: building without Phone Link")
+    endif()
+endif()
+
 qt_standard_project_setup()
 
 set(APP_ID "io.github.francescobianco.PragmaChess")
@@ -35,6 +112,7 @@ qt_add_library(pragma-chess-core STATIC
     src/app/ChessPosition.cpp
     src/app/ChessPosition.h
     src/app/DatabaseOutline.cpp
+    src/app/DatabaseProperties.cpp
     src/app/DatabaseOutline.h
     src/app/EngineEvaluation.cpp
     src/app/EngineEvaluation.h
@@ -100,6 +178,42 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(PRAGMA_WARNINGS -Wall -Wextra -Wpedantic)
 endif()
 target_compile_options(pragma-chess-core PRIVATE ${PRAGMA_WARNINGS})
+
+# Phone Link (docs/phone-link.md): Nostr signaling, WebRTC and the file
+# protocol; linked by the desktop client, pragma-phone and the tests.
+if(PRAGMA_HAS_PHONE_LINK)
+    qt_add_library(pragma-phone-link STATIC
+        src/app/phone/Nip44.cpp
+        src/app/phone/Nip44.h
+        src/app/phone/NostrEvent.cpp
+        src/app/phone/NostrEvent.h
+        src/app/phone/NostrKey.cpp
+        src/app/phone/NostrKey.h
+        src/app/phone/NostrRelayPool.cpp
+        src/app/phone/NostrRelayPool.h
+        src/app/phone/PairingLink.cpp
+        src/app/phone/PairingLink.h
+        src/app/phone/PhoneFiles.cpp
+        src/app/phone/PhoneFiles.h
+        src/app/phone/PhoneGameStore.h
+        src/app/phone/PhoneGames.cpp
+        src/app/phone/PhoneGames.h
+        src/app/phone/PhoneLink.cpp
+        src/app/phone/PhoneLink.h
+        src/app/phone/PhoneLinkClient.cpp
+        src/app/phone/PhoneLinkClient.h
+        src/app/phone/PhoneLinkSession.cpp
+        src/app/phone/PhoneLinkSession.h
+        src/app/phone/WebRtcPeer.cpp
+        src/app/phone/WebRtcPeer.h
+    )
+    target_link_libraries(pragma-phone-link PUBLIC pragma-chess-core PRIVATE ${PRAGMA_DATACHANNEL} ${PRAGMA_SECP256K1})
+    target_compile_definitions(pragma-phone-link PUBLIC PRAGMA_HAS_PHONE_LINK)
+    target_compile_options(pragma-phone-link PRIVATE ${PRAGMA_WARNINGS})
+
+    add_library(qrcodegen STATIC ${qrcodegen_SOURCE_DIR}/cpp/qrcodegen.cpp ${qrcodegen_SOURCE_DIR}/cpp/qrcodegen.hpp)
+    target_include_directories(qrcodegen SYSTEM PUBLIC ${qrcodegen_SOURCE_DIR}/cpp)
+endif()
 
 qt_add_executable(pragma-chess
     src/main.cpp
@@ -168,6 +282,14 @@ qt_add_executable(pragma-chess
 )
 
 target_include_directories(pragma-chess PRIVATE src)
+if(PRAGMA_HAS_PHONE_LINK)
+    target_sources(pragma-chess PRIVATE
+        src/app/phone/DatabaseFolderStore.cpp
+        src/app/phone/DatabaseFolderStore.h
+        src/dialogs/ConnectMobileDialog.cpp
+        src/dialogs/ConnectMobileDialog.h)
+    target_link_libraries(pragma-chess PRIVATE pragma-phone-link qrcodegen)
+endif()
 target_link_libraries(pragma-chess PRIVATE pragma-chess-core Qt6::Widgets Qt6::Sql yaml-cpp::yaml-cpp)
 
 # Application icon, generated from data/icons/pragma-chess.png by scripts/make-icons.py.
@@ -239,6 +361,18 @@ target_link_libraries(pragma-book PRIVATE pragma-chess-core)
 target_compile_options(pragma-book PRIVATE ${PRAGMA_WARNINGS})
 set_target_properties(pragma-book PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
 
+if(PRAGMA_HAS_PHONE_LINK)
+    # Plays the phone's side of Phone Link, or the computer's with --serve.
+    qt_add_executable(pragma-phone tools/phone/main.cpp
+        src/app/phone/DatabaseFolderStore.cpp
+        src/app/phone/DatabaseFolderStore.h
+        src/app/SqliteGameDatabase.cpp
+        src/app/SqliteGameDatabase.h)
+    target_link_libraries(pragma-phone PRIVATE pragma-phone-link ${PRAGMA_DATACHANNEL} Qt6::Sql)
+    target_compile_options(pragma-phone PRIVATE ${PRAGMA_WARNINGS})
+    set_target_properties(pragma-phone PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
+endif()
+
 # Tested without a display.
 if(TARGET Qt6::Test)
     qt_add_executable(tst_chessrules tests/tst_chessrules.cpp
@@ -248,6 +382,19 @@ if(TARGET Qt6::Test)
     target_compile_options(tst_chessrules PRIVATE ${PRAGMA_WARNINGS})
     set_target_properties(tst_chessrules PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
     add_test(NAME chessrules COMMAND tst_chessrules)
+    if(PRAGMA_HAS_PHONE_LINK)
+        qt_add_executable(tst_phonelink tests/tst_phonelink.cpp
+            src/app/phone/DatabaseFolderStore.cpp
+            src/app/phone/DatabaseFolderStore.h
+            src/app/SqliteGameDatabase.cpp
+            src/app/SqliteGameDatabase.h)
+        target_link_libraries(tst_phonelink PRIVATE pragma-phone-link ${PRAGMA_DATACHANNEL} Qt6::Sql Qt6::Test)
+        target_compile_definitions(tst_phonelink PRIVATE
+            PHONE_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
+        target_compile_options(tst_phonelink PRIVATE ${PRAGMA_WARNINGS})
+        set_target_properties(tst_phonelink PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
+        add_test(NAME phonelink COMMAND tst_phonelink)
+    endif()
 else()
     message(STATUS "Qt Test not found: tests are not built")
 endif()

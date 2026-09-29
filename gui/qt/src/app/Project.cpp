@@ -79,6 +79,8 @@ QString Project::toYaml(const QDir &baseDir) const
     out << YAML::EndMap;
 
     out << YAML::Key << "engine" << YAML::Value << YAML::BeginMap;
+    if (!engineId.isEmpty())
+        out << YAML::Key << "id" << YAML::Value << toStd(engineId);
     out << YAML::Key << "name" << YAML::Value;
     if (engineName.isEmpty())
         out << YAML::Null;
@@ -130,6 +132,7 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     env.showCoordinates = valueOf<bool>(board["coordinates"], true);
 
     const YAML::Node engine = root["engine"];
+    env.engineId = fromNode(engine["id"]);
     env.engineName = fromNode(engine["name"]);
     env.engineAnalyzing = valueOf<bool>(engine["analyzing"], false);
 

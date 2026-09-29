@@ -37,7 +37,8 @@ public:
     bool isRunning() const;
 
     /// Sets a UCI option ("Threads", "Hash", …), sent when the engine is ready
-    /// (and right away if it already is). Overrides the defaults chosen here.
+    /// (and right away if it already is) if the engine has it. Overrides the
+    /// defaults chosen here.
     void setOption(const QString &name, const QString &value);
     /// Name reported by the engine ("id name"), empty until known.
     QString name() const { return m_name; }

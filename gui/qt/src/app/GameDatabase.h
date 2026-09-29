@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DatabaseProperties.h"
 #include "GameRecord.h"
 #include "PlayerRole.h"
 #include "sources/GameSource.h"
@@ -56,6 +57,10 @@ public:
     /// Appends the games not imported from the source before (by external id).
     /// Returns how many were added, or -1 on failure.
     virtual int importGames(qint64 sourceId, const QList<ImportedGame> &games, QString *errorMessage) = 0;
+
+    /// Properties stored in the database (type, description).
+    virtual DatabaseProperties properties() const = 0;
+    virtual bool setProperties(const DatabaseProperties &properties, QString *errorMessage) = 0;
 
     /// Whether there are changes not yet written to `location()`.
     virtual bool isModified() const = 0;

@@ -29,7 +29,10 @@ struct Project {
     bool boardFlipped = false;
     bool showCoordinates = true;
 
-    /// UCI engine selected for analysis (empty = none) and whether it is running.
+    /// Engine selected for analysis (an EngineCatalog id; empty = the default)
+    /// and whether it is running. engineName is its name, for people reading
+    /// the file and for projects written before engine ids.
+    QString engineId;
     QString engineName;
     bool engineAnalyzing = false;
 

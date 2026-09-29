@@ -17,7 +17,7 @@ namespace {
 
 // "PRAG" — lets other tools (and `file`) identify Pragma databases.
 constexpr int kApplicationId = 0x50524147;
-constexpr int kSchemaVersion = 3;
+constexpr int kSchemaVersion = 4;
 
 const char *const kSchema[] = {
     "CREATE TABLE players (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
@@ -66,6 +66,11 @@ const char *const kPlayerRolesSchema[] = {
     "CREATE TABLE IF NOT EXISTS player_roles ("
     " player_id INTEGER PRIMARY KEY REFERENCES players(id),"
     " role TEXT NOT NULL)",
+};
+
+// Version 4: properties of the database (see DatabaseProperties).
+const char *const kPropertiesSchema[] = {
+    "CREATE TABLE IF NOT EXISTS properties (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
 };
 
 QString toJsonText(const QJsonObject &object)
@@ -253,6 +258,10 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::create(const QString &pa
         if (!query.exec(QString::fromLatin1(statement)))
             return fail(query.lastError().text());
     }
+    for (const char *statement : kPropertiesSchema) {
+        if (!query.exec(QString::fromLatin1(statement)))
+            return fail(query.lastError().text());
+    }
 
     GameInserter inserter(db);
     for (const GameRecord &game : games) {
@@ -321,10 +330,76 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::open(const QString &path
         return nullptr;
     if (version < 3 && !upgrade(3, {std::begin(kPlayerRolesSchema), std::end(kPlayerRolesSchema)}))
         return nullptr;
+    if (version < 4 && !upgrade(4, {std::begin(kPropertiesSchema), std::end(kPropertiesSchema)}))
+        return nullptr;
 
-    if (!database->loadHeaders(errorMessage) || !database->loadPlayerRoles(errorMessage))
+    if (!database->loadHeaders(errorMessage) || !database->loadPlayerRoles(errorMessage)
+        || !database->loadProperties(errorMessage))
         return nullptr;
     return database;
+}
+
+DatabaseProperties SqliteGameDatabase::readProperties(const QString &path)
+{
+    if (!QFileInfo(path).isFile())
+        return {};
+    const QString connection = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    QHash<QString, QString> values;
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        db.setDatabaseName(path);
+        db.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
+        if (db.open()) {
+            QSqlQuery query(db);
+            if (query.exec(QStringLiteral("PRAGMA application_id")) && query.next()
+                && query.value(0).toInt() == kApplicationId
+                && query.exec(QStringLiteral("SELECT key, value FROM properties"))) {
+                while (query.next())
+                    values.insert(query.value(0).toString(), query.value(1).toString());
+            }
+        }
+    }
+    QSqlDatabase::removeDatabase(connection);
+    return DatabaseProperties::fromValues(values);
+}
+
+bool SqliteGameDatabase::loadProperties(QString *errorMessage)
+{
+    QSqlQuery query(QSqlDatabase::database(m_connectionName));
+    if (!query.exec(QStringLiteral("SELECT key, value FROM properties"))) {
+        setError(errorMessage, query.lastError().text());
+        return false;
+    }
+    QHash<QString, QString> values;
+    while (query.next())
+        values.insert(query.value(0).toString(), query.value(1).toString());
+    m_properties = DatabaseProperties::fromValues(values);
+    return true;
+}
+
+bool SqliteGameDatabase::setProperties(const DatabaseProperties &properties, QString *errorMessage)
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    db.transaction();
+    QSqlQuery query(db);
+    query.prepare(QStringLiteral("INSERT OR REPLACE INTO properties (key, value) VALUES (?, ?)"));
+    const QHash<QString, QString> values = properties.values();
+    for (auto it = values.cbegin(); it != values.cend(); ++it) {
+        query.addBindValue(it.key());
+        query.addBindValue(it.value());
+        if (!query.exec()) {
+            setError(errorMessage, query.lastError().text());
+            db.rollback();
+            return false;
+        }
+    }
+    if (!db.commit()) {
+        setError(errorMessage, db.lastError().text());
+        db.rollback();
+        return false;
+    }
+    m_properties = properties;
+    return true;
 }
 
 bool SqliteGameDatabase::loadHeaders(QString *errorMessage)

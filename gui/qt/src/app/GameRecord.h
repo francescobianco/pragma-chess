@@ -33,3 +33,12 @@ struct GameRecord {
     QString modified;
     QList<MoveRecord> moves;
 };
+
+/// The moves of a stored game, for indexing positions and lines.
+struct GameLine {
+    qint64 id = 0;
+    /// Empty means the standard starting position.
+    QString startFen;
+    /// UCI moves separated by spaces, as stored.
+    QString movesUci;
+};

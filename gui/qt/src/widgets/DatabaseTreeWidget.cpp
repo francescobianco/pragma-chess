@@ -50,6 +50,7 @@ QString DatabaseTreeWidget::keyOf(const QTreeWidgetItem *item)
 void DatabaseTreeWidget::setDatabase(const GameDatabase *database)
 {
     m_database = database;
+    m_positionCount = m_variantCount = -1;
     clear();
     refresh();
     if (topLevelItemCount() > 0) {
@@ -64,6 +65,26 @@ void DatabaseTreeWidget::scheduleRefresh()
 {
     if (!m_refreshTimer->isActive())
         m_refreshTimer->start();
+}
+
+void DatabaseTreeWidget::setBoardCounts(int position, int variant)
+{
+    m_positionCount = position;
+    m_variantCount = variant;
+    showBoardCounts();
+}
+
+void DatabaseTreeWidget::showBoardCounts()
+{
+    const QLocale locale;
+    const auto show = [&](QTreeWidgetItem *item, int count) {
+        if (!item)
+            return;
+        item->setText(1, count < 0 ? QStringLiteral("…") : locale.toString(count));
+        item->setTextAlignment(1, Qt::AlignRight | Qt::AlignVCenter);
+    };
+    show(m_positionItem, m_positionCount);
+    show(m_variantItem, m_variantCount);
 }
 
 void DatabaseTreeWidget::refresh()
@@ -81,6 +102,7 @@ void DatabaseTreeWidget::refresh()
 
     m_refreshing = true;
     clear();
+    m_positionItem = m_variantItem = nullptr;
     if (!m_database) {
         m_refreshing = false;
         return;
@@ -122,6 +144,14 @@ void DatabaseTreeWidget::refresh()
     bold.setBold(true);
     root->setFont(0, bold);
     root->setExpanded(true);
+
+    // Views that follow the board come first.
+    QTreeWidgetItem *board = addItem(root, Node::Board, tr("Board"), QVariant(), -1);
+    m_positionItem = addItem(board, Node::Position, tr("Position"), QVariant(), -1);
+    m_positionItem->setToolTip(0, tr("Games in which the position on the board occurs, in any move order"));
+    m_variantItem = addItem(board, Node::Variant, tr("Variant"), QVariant(), -1);
+    m_variantItem->setToolTip(0, tr("Games that begin with exactly the moves played to reach the board"));
+    showBoardCounts();
 
     const std::pair<PlayerRole, QString> roleGroups[] = {
         {PlayerRole::Me, tr("Me")}, {PlayerRole::Friend, tr("Friends")}, {PlayerRole::Opponent, tr("Opponents")}};
@@ -184,7 +214,14 @@ void DatabaseTreeWidget::onCurrentItemChanged(QTreeWidgetItem *current)
     GameCategory category;
     const QVariant value = current->data(0, kValueRole);
     switch (nodeOf(current)) {
+    case Node::Position:
+        category.kind = GameCategory::Kind::Position;
+        break;
+    case Node::Variant:
+        category.kind = GameCategory::Kind::Variant;
+        break;
     case Node::Database:
+    case Node::Board:
     case Node::EcoGroup:
     case Node::Tournaments:
     case Node::Years:

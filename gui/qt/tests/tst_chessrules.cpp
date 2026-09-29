@@ -11,6 +11,7 @@
 #include "app/OpeningNames.h"
 #include "app/Pgn.h"
 #include "app/PolyglotBook.h"
+#include "app/PositionIndex.h"
 #include "app/Reconcile.h"
 #include "app/ShippedOpeningNames.h"
 #include "app/SqliteGameDatabase.h"
@@ -770,6 +771,77 @@ private Q_SLOTS:
         QVERIFY(!outline.events.contains("?"));
         QCOMPARE(outline.years.keys(), (QList<int>{1851, 2001}));
         QCOMPARE(DatabaseOutline::ecoCode(QStringLiteral("F10")), QString());
+    }
+
+    void indexesPositionsAndLines()
+    {
+        const QString endgame = QStringLiteral("4k3/8/8/8/8/8/4P3/4K3 w - - 0 1");
+        const QList<GameLine> games{
+            {1, QString(), QStringLiteral("e2e4 e7e5 g1f3 b8c6 f1b5")},
+            {2, QString(), QStringLiteral("g1f3 b8c6 e2e4 e7e5 f1c4")},
+            {3, QString(), QStringLiteral("e2e4 e7e6")},
+            {4, QString(), QStringLiteral("e2e4 e7e5 g1f3 b8c6 f1b5 a7a6")},
+            {5, endgame, QStringLiteral("e2e4 e8e7")},
+            {6, QString(), QStringLiteral("d2d4 xx e7e5")}, // Cut at the illegal move.
+        };
+        const PositionIndex index = PositionIndex::build(games);
+        QCOMPARE(index.gameCount(), 6);
+        const auto ids = [](std::initializer_list<qint64> list) { return QSet<qint64>(list); };
+        const auto moves = [](const ChessPosition &start, const QStringList &uci) {
+            QList<ChessMove> line;
+            ChessPosition position = start;
+            for (const QString &move : uci) {
+                line << *position.moveFromUci(move);
+                position.play(line.last());
+            }
+            return line;
+        };
+        const ChessPosition start = ChessPosition::startingPosition();
+
+        // The start position is in every standard game, not in the endgame.
+        QCOMPARE(index.gamesWithPosition(start), ids({1, 2, 3, 4, 6}));
+        QCOMPARE(index.gamesWithLine(start, {}), ids({1, 2, 3, 4, 6}));
+        QCOMPARE(index.countWithPosition(start), 5);
+
+        // 1.e4 e5 2.Nf3 Nc6 and 1.Nf3 Nc6 2.e4 e5 reach the same position…
+        const QStringList open{"e2e4", "e7e5", "g1f3", "b8c6"};
+        QCOMPARE(index.gamesWithPosition(afterMoves(QString(), open)), ids({1, 2, 4}));
+        // … but only those that played these moves in this order share the line.
+        QCOMPARE(index.gamesWithLine(start, moves(start, open)), ids({1, 4}));
+        QCOMPARE(index.countWithLine(start, moves(start, open)), 2);
+        QCOMPARE(index.gamesWithLine(start, moves(start, {"g1f3", "b8c6", "e2e4", "e7e5"})), ids({2}));
+
+        // Whole moves: the line after 1.e4 includes 1…e5 and 1…e6 games.
+        QCOMPARE(index.gamesWithLine(start, moves(start, {"e2e4"})), ids({1, 3, 4}));
+        QCOMPARE(index.gamesWithLine(start, moves(start, {"e2e4", "e7e5", "g1f3", "b8c6", "f1b5", "a7a6"})), ids({4}));
+        QVERIFY(index.gamesWithLine(start, moves(start, {"e2e4", "e7e5", "g1f3", "b8c6", "f1b5", "a7a5"})).isEmpty());
+
+        // A game from a set-up position: its own start, its own lines.
+        const ChessPosition custom = *ChessPosition::fromFen(endgame);
+        QCOMPARE(index.gamesWithPosition(custom), ids({5}));
+        QCOMPARE(index.gamesWithPosition(afterMoves(endgame, {"e2e4", "e8e7"})), ids({5}));
+        QCOMPARE(index.gamesWithLine(custom, moves(custom, {"e2e4"})), ids({5}));
+        QVERIFY(!index.gamesWithLine(start, moves(start, {"e2e4"})).contains(5));
+
+        // Moves after an illegal one are not indexed.
+        QCOMPARE(index.gamesWithPosition(afterMoves(QString(), {"d2d4"})), ids({6}));
+        QCOMPARE(index.countWithPosition(afterMoves(QString(), {"d2d4", "e7e5"})), 0);
+
+        // The lines of a database file, read at once.
+        QTemporaryDir dir;
+        QString error;
+        GameRecord record;
+        record.startFen = endgame;
+        record.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4")}, {QStringLiteral("Ke7"), QStringLiteral("e8e7")}};
+        const std::unique_ptr<SqliteGameDatabase> database =
+            SqliteGameDatabase::create(dir.filePath(QStringLiteral("lines.pdb")), {GameRecord(), record}, &error);
+        QVERIFY2(database, qPrintable(error));
+        const QList<GameLine> lines = database->gameLines();
+        QCOMPARE(lines.size(), 2);
+        QCOMPARE(lines.at(0).id, database->header(0).id);
+        QVERIFY(lines.at(0).startFen.isEmpty());
+        QCOMPARE(lines.at(1).startFen, endgame);
+        QCOMPARE(lines.at(1).movesUci, QStringLiteral("e2e4 e8e7"));
     }
 
     void remembersWhoPlayersAre()

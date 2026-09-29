@@ -8,6 +8,7 @@
 #include "dialogs/BoardSettingsDialog.h"
 #include "dialogs/DatabaseSettingsDialog.h"
 #include "app/PolyglotBook.h"
+#include "app/PositionIndexBuilder.h"
 #include "app/DatabaseOutline.h"
 #include "dialogs/ConnectSourceWizard.h"
 #include "dialogs/GameInfoDialog.h"
@@ -174,6 +175,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::analyzeCurrentPosition);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::updateBookMoves);
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateBookMoves);
+    m_positionIndex = new PositionIndexBuilder(this);
+    m_positionIndexTimer = new QTimer(this);
+    m_positionIndexTimer->setSingleShot(true);
+    m_positionIndexTimer->setInterval(1000);
+    connect(m_positionIndexTimer, &QTimer::timeout, this, &MainWindow::rebuildPositionIndex);
+    connect(m_positionIndex, &PositionIndexBuilder::indexChanged, this, &MainWindow::updateBoardFilters);
+    connect(m_session, &GameSession::plyChanged, this, &MainWindow::updateBoardFilters);
     connect(m_engine, &UciEngine::searchFinished, this, &MainWindow::finishEngineMove);
     connect(m_engine, &UciEngine::evaluationChanged, this, [this](const EngineEvaluation &evaluation) {
         m_lastEvaluation = evaluation;
@@ -350,6 +358,7 @@ void MainWindow::showAddedGames()
         showCategory({GameCategory::Kind::Source, QString(), m_filterSource}); // Its new games too.
     updateGameCount();
     m_databaseTree->scheduleRefresh();
+    m_positionIndexTimer->start();
 }
 
 void MainWindow::createPhoneLink()
@@ -364,6 +373,8 @@ void MainWindow::createPhoneLink()
                                               m_gameListModel->refreshRow(int(index));
                                           if (added > 0)
                                               showAddedGames();
+                                          else if (!updated.isEmpty())
+                                              m_positionIndexTimer->start(); // Their moves may differ.
                                       });
     // A sync may be replacing the files: the phone sends its games next time.
     m_phoneGameStore->setBusy([this] { return m_syncPipeline->isRunning(); });
@@ -883,6 +894,30 @@ void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
     m_gameListProxy->setDatabase(m_database.get());
     m_databaseTree->setDatabase(m_database.get());
     m_sourceSync->setDatabase(m_database.get());
+    m_positionIndex->clear(); // Its games are another database's.
+    rebuildPositionIndex();
+}
+
+void MainWindow::rebuildPositionIndex()
+{
+    m_positionIndexTimer->stop();
+    if (m_database)
+        m_positionIndex->build(m_database->gameLines());
+    else
+        m_positionIndex->clear();
+    updateBoardFilters();
+}
+
+void MainWindow::updateBoardFilters()
+{
+    if (const PositionIndex *index = m_positionIndex->index()) {
+        m_databaseTree->setBoardCounts(index->countWithPosition(m_session->position()),
+                                       index->countWithLine(m_session->initialPosition(), m_session->movesToHere()));
+    } else {
+        m_databaseTree->setBoardCounts(-1, -1);
+    }
+    if (m_category.kind == GameCategory::Kind::Position || m_category.kind == GameCategory::Kind::Variant)
+        showCategory(m_category);
 }
 
 void MainWindow::openGame(const QModelIndex &proxyIndex)
@@ -1028,6 +1063,18 @@ void MainWindow::showCategory(const GameCategory &category)
     switch (category.kind) {
     case Kind::All:
         break;
+    case Kind::Position:
+    case Kind::Variant: {
+        // No games until the index is ready; updateBoardFilters() comes back then.
+        QSet<qint64> ids;
+        if (const PositionIndex *index = m_positionIndex->index()) {
+            ids = category.kind == Kind::Position
+                ? index->gamesWithPosition(m_session->position())
+                : index->gamesWithLine(m_session->initialPosition(), m_session->movesToHere());
+        }
+        predicate = [ids](const GameRecord &game) { return ids.contains(game.id); };
+        break;
+    }
     case Kind::Role:
         if (m_database) {
             predicate = [roles = m_database->playerRoles(), role = playerRoleFromKey(value)](const GameRecord &game) {
@@ -2173,6 +2220,8 @@ void MainWindow::saveGameToDatabase()
     m_session->setHeader(m_database->header(index));
     updateGameCount();
     updateGameActions();
+    m_databaseTree->scheduleRefresh();
+    rebuildPositionIndex();
     scheduleSaveSession();
     statusBar()->showMessage(tr("Game saved to %1").arg(m_database->name()), 3000);
 }

@@ -141,6 +141,10 @@ qt_add_library(pragma-chess-core STATIC
     src/app/PolyglotBook.cpp
     src/app/PolyglotBook.h
     src/app/PolyglotRandom.cpp
+    src/app/PositionIndex.cpp
+    src/app/PositionIndex.h
+    src/app/PositionIndexBuilder.cpp
+    src/app/PositionIndexBuilder.h
     src/app/Reconcile.cpp
     src/app/Reconcile.h
     src/app/ShippedOpeningNames.cpp

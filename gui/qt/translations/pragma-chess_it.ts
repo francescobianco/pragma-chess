@@ -398,6 +398,26 @@ Il Nero ha catturato: %2</translation>
         <source>&amp;Manage Sources…</source>
         <translation>&amp;Gestisci fonti…</translation>
     </message>
+    <message>
+        <source>Board</source>
+        <translation>Scacchiera</translation>
+    </message>
+    <message>
+        <source>Position</source>
+        <translation>Posizione</translation>
+    </message>
+    <message>
+        <source>Games in which the position on the board occurs, in any move order</source>
+        <translation>Partite in cui compare la posizione sulla scacchiera, con qualsiasi ordine di mosse</translation>
+    </message>
+    <message>
+        <source>Variant</source>
+        <translation>Variante</translation>
+    </message>
+    <message>
+        <source>Games that begin with exactly the moves played to reach the board</source>
+        <translation>Partite che iniziano esattamente con le mosse giocate fino alla scacchiera</translation>
+    </message>
 </context>
 <context>
     <name>EnginePanel</name>

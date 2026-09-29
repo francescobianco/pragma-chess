@@ -28,6 +28,8 @@ public:
     const ChessPosition &positionAt(int ply) const { return m_positions.at(ply); }
     const ChessPosition &initialPosition() const { return m_positions.first(); }
     BoardState board() const { return position().boardState(); }
+    /// The moves played from the initial position up to the current ply.
+    QList<ChessMove> movesToHere() const { return m_moves.first(m_ply); }
 
     /// The move that led to the current ply, if any.
     std::optional<ChessMove> lastMove() const;

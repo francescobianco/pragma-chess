@@ -38,6 +38,7 @@ public:
     qint64 gameCount() const override { return m_headers.size(); }
     GameRecord header(qint64 index) const override { return m_headers.at(index); }
     std::optional<GameRecord> loadGame(qint64 index) const override;
+    QList<GameLine> gameLines() const override;
     qint64 addGame(const GameRecord &game, QString *errorMessage) override;
     bool updateHeader(qint64 index, const GameRecord &header, QString *errorMessage) override;
     bool replaceGame(qint64 index, const GameRecord &game, QString *errorMessage) override;

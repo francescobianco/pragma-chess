@@ -284,9 +284,23 @@ torneionline.com) to the open database; Database ▸ Manage Sources… syncs,
 edits, signs in again or removes them.
 
 The tree left of the games list (`DatabaseTreeWidget`) shows only the open
-database, and under it ECO (letter → code), Tournaments, Years and Sources,
-listing only values some game has (`DatabaseOutline`, unit-tested); selecting
-a node filters the list through `GameFilterProxyModel`.
+database, and under it Board (Position, Variant), Me/Friends/Opponents, ECO
+(letter → code), Tournaments, Years and Sources, listing only values some game
+has (`DatabaseOutline`, unit-tested); selecting a node filters the list
+through `GameFilterProxyModel`.
+
+Board ▸ Position and Board ▸ Variant follow the board: Position lists the
+games in which the position on the board occurs at any ply, whatever the move
+order (Polyglot key: pieces, side to move, castling, en passant); Variant the
+games from the same start position that begin with exactly the moves played
+to the current ply. Both come from `app/PositionIndex` (pure, unit-tested:
+sorted (key, game id) pairs for positions and for lines), built from
+`GameDatabase::gameLines()` on a worker thread by `PositionIndexBuilder`.
+`MainWindow::rebuildPositionIndex` runs when a database is opened and, coalesced,
+when games are added, imported or replaced; the old index stays until the new
+one is ready (the counts show "…" only before the first one).
+`MainWindow::updateBoardFilters` recounts on every ply change and filters again
+while one of them is selected.
 
 - `app/sources/` (core library, Qt Network): `SourceCatalog` lists the kinds
   and creates a `SourceFetch` per kind (`ChessComFetch`: public monthly

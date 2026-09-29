@@ -42,6 +42,7 @@ class QMenu;
 class QTableView;
 class QTimer;
 class SourceSync;
+class PositionIndexBuilder;
 class FolderSync;
 class RemoteStore;
 class SyncPipeline;
@@ -92,6 +93,11 @@ private:
     void updateGameCount();
     /// Shows the games of a part of the database chosen in the tree.
     void showCategory(const GameCategory &category);
+    /// Indexes the positions of the open database again, in the background.
+    void rebuildPositionIndex();
+    /// Counts the games matching the board for Position and Variant and, when
+    /// one of them is shown, filters the list again.
+    void updateBoardFilters();
     /// "Who Is This?" on a player of the games list.
     void showGameListMenu(const QPoint &position);
     void setPlayerRole(const QString &player, PlayerRole role);
@@ -266,6 +272,10 @@ private:
     QLabel *m_gameCountLabel;
     QLabel *m_syncLabel;
     SourceSync *m_sourceSync;
+    /// Positions and lines of the open database, for Position and Variant.
+    PositionIndexBuilder *m_positionIndex = nullptr;
+    /// Coalesces rebuilds while games keep arriving.
+    QTimer *m_positionIndexTimer = nullptr;
     FolderSync *m_folderSync;
     SyncPipeline *m_syncPipeline;
     PhoneLink *m_phoneLink = nullptr;

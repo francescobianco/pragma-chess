@@ -32,6 +32,10 @@ public:
     /// Full game including moves.
     virtual std::optional<GameRecord> loadGame(qint64 index) const = 0;
 
+    /// The moves of every game, in index order, read at once: what the
+    /// position search indexes.
+    virtual QList<GameLine> gameLines() const = 0;
+
     /// Appends a game (header and moves) and returns its index, or -1 on failure.
     virtual qint64 addGame(const GameRecord &game, QString *errorMessage) = 0;
 

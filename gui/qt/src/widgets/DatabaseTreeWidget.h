@@ -8,7 +8,9 @@ class QTimer;
 
 /// A part of the database chosen in the tree.
 struct GameCategory {
-    enum class Kind { All, Role, Player, EcoLetter, Eco, Event, Year, Source };
+    /// Position and Variant follow the board: the games reaching the position
+    /// on it (in any move order) and those beginning with the moves played.
+    enum class Kind { All, Position, Variant, Role, Player, EcoLetter, Eco, Event, Year, Source };
     Kind kind = Kind::All;
     /// Role key ("me", "friend", "opponent"), player name, ECO letter or code, event name or year.
     QString value;
@@ -18,6 +20,7 @@ struct GameCategory {
 };
 
 /// Navigation next to the games list: the open database and, under it, the
+/// Board views Position and Variant (the games that match the board), the
 /// games of the user, friends and opponents, its games by ECO code, tournament
 /// and year, and the sources it syncs with.
 /// Only values some game actually has are listed, with their game counts.
@@ -33,6 +36,9 @@ public:
     void refresh();
     /// Refreshes shortly, coalescing bursts (e.g. games arriving from a sync).
     void scheduleRefresh();
+    /// Games matching the board for Position and Variant; -1 while they are
+    /// still being counted.
+    void setBoardCounts(int position, int variant);
 
 Q_SIGNALS:
     void categorySelected(const GameCategory &category);
@@ -44,13 +50,18 @@ protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
 private:
-    enum class Node { Database, Role, Player, EcoGroup, EcoLetter, Eco, Tournaments, Event, Years, Year, Sources, Source };
+    enum class Node { Database, Board, Position, Variant, Role, Player, EcoGroup, EcoLetter, Eco, Tournaments, Event, Years, Year, Sources, Source };
 
     void onCurrentItemChanged(QTreeWidgetItem *current);
     static Node nodeOf(const QTreeWidgetItem *item);
     static QString keyOf(const QTreeWidgetItem *item);
+    void showBoardCounts();
 
     const GameDatabase *m_database = nullptr;
     bool m_refreshing = false;
+    int m_positionCount = -1;
+    int m_variantCount = -1;
+    QTreeWidgetItem *m_positionItem = nullptr;
+    QTreeWidgetItem *m_variantItem = nullptr;
     QTimer *m_refreshTimer;
 };

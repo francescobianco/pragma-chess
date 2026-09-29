@@ -467,7 +467,13 @@ bool ChessPosition::isLegal(const ChessMove &move) const
 {
     if (move.from < 0 || move.from > 63 || move.to < 0 || move.to > 63)
         return false;
-    return legalMoves().contains(move);
+    if (m_squares[move.from].isNull() || m_squares[move.from].side != m_sideToMove)
+        return false;
+    // Only the move asked about needs the (costly) king safety test.
+    QList<ChessMove> moves;
+    moves.reserve(48);
+    generatePseudoLegal(moves);
+    return moves.contains(move) && leavesKingSafe(move);
 }
 
 std::optional<ChessMove> ChessPosition::moveFromUci(QStringView uci) const

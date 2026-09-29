@@ -683,6 +683,19 @@ std::optional<GameRecord> SqliteGameDatabase::loadGame(qint64 index) const
     return game;
 }
 
+QList<GameLine> SqliteGameDatabase::gameLines() const
+{
+    QList<GameLine> lines;
+    lines.reserve(m_headers.size());
+    QSqlQuery query(QSqlDatabase::database(m_connectionName));
+    query.setForwardOnly(true);
+    if (!query.exec(QStringLiteral("SELECT id, start_fen, moves_uci FROM games ORDER BY id")))
+        return lines;
+    while (query.next())
+        lines << GameLine{query.value(0).toLongLong(), query.value(1).toString(), query.value(2).toString()};
+    return lines;
+}
+
 bool SqliteGameDatabase::saveCopy(const QString &path, QString *errorMessage) const
 {
     const QString target = QFileInfo(path).absoluteFilePath();

@@ -91,6 +91,14 @@ Right-click a player in the games list and choose *Who Is This?* ▸ *It's Me*,
 games, your friends and your opponents, and a game you played opens with your
 pieces at the bottom of the board.
 
+### Games with the position on the board
+
+In the tree next to the games list, *Board* under the database has two views
+that follow the board. *Position* lists the games in which the position on the
+board occurs, reached in any move order; *Variant* lists the games that begin
+with exactly the moves played to get there. Their counts and the list change as
+you move through the game or play new moves.
+
 ### Sources
 
 *Database ▸ Connect Source…* connects the games of a lichess.org or chess.com

@@ -96,4 +96,5 @@
     <string name="discard_game">Scartare la partita?</string>
     <string name="discard_game_text">Le mosse giocate sulla scacchiera non sono ancora salvate.</string>
     <string name="discard">Scarta</string>
+    <string name="opening_books">Libri di aperture</string>
 </resources>

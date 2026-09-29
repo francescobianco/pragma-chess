@@ -29,6 +29,39 @@ the top-level `CMakeLists.txt`), builds in Release, runs the tests
   `APPLE_ID`, `APPLE_TEAM_ID` and `APPLE_APP_PASSWORD` it is also notarized.
   The Windows installer is not signed.
 
+## Bundled engine (Stockfish)
+
+Every package ships Stockfish as the default engine, so a new installation
+analyses right away. The release is pinned in `stockfish.env` (version, tag,
+asset names and SHA-256); `scripts/fetch-stockfish.sh <dir> [platform]`
+downloads the official "universal" build (one binary with runtime CPU
+dispatch), checks the hash and stages the executable with `Copying.txt`,
+`AUTHORS` and `README.txt` (from `stockfish-README.txt`). Every build script
+runs it; `make stockfish` does the same for a development build.
+
+| Platform | Where the engine goes |
+|---|---|
+| Windows | `<app>\engines\stockfish.exe` |
+| macOS | `Contents/MacOS/stockfish` (signed with the app), texts in `Contents/Resources/engines/` |
+| Linux | `/usr/lib/pragma-chess/engines/stockfish` |
+
+`EngineCatalog::bundledEngineDirs` looks in these places
+(`PRAGMA_ENGINES_DIR` overrides them); a build without the engine falls back
+to a `stockfish` installed on the system.
+
+**License.** Pragma Chess is MIT, Stockfish is GPL v3. Stockfish runs as a
+separate program spoken to over UCI, which the GPL treats as mere
+aggregation. What the GPL asks, and what we do:
+
+- the GPL text and a notice ship next to the binary (`Copying.txt`, `README.txt`);
+- the binary is the unmodified official build;
+- the complete corresponding source (`stockfish-<tag>-source.tar.gz`, with
+  the network files the binary embeds) is attached to every release by the
+  workflow (`fetch-stockfish.sh --source`), from the same place as the installers.
+
+To move to a new Stockfish, update `stockfish.env` (tag, asset names, the
+SHA-256 GitHub publishes for each asset).
+
 ## Making a release
 
 1. Set the version in `PRAGMA_VERSION` (top-level `CMakeLists.txt`) and commit.

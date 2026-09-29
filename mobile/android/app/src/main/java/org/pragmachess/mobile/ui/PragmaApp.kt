@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.Settings
@@ -94,9 +95,7 @@ fun PragmaApp(vm: AppViewModel) {
                     )
                     HorizontalDivider(Modifier.padding(vertical = 8.dp))
                     SectionTitle(stringResource(R.string.on_this_phone), Icons.Outlined.PhoneAndroid)
-                    for (entry in vm.localDatabases) {
-                        DatabaseItem(vm, entry.ref, entry.games) { go { vm.open(Screen.Games(entry.ref)) } }
-                    }
+                    DatabaseItems(vm, vm.localDatabases) { go { vm.open(Screen.Games(it)) } }
                     NavigationDrawerItem(
                         label = { Text(stringResource(R.string.new_database)) },
                         icon = { Icon(Icons.Filled.Add, null) },
@@ -113,9 +112,7 @@ fun PragmaApp(vm: AppViewModel) {
                                 IconButton(onClick = { vm.sync(computer) }) { Icon(Icons.Filled.Sync, stringResource(R.string.sync_now)) }
                             }
                         }
-                        for (entry in vm.computerDatabases[computer.pubkey].orEmpty()) {
-                            DatabaseItem(vm, entry.ref, entry.games) { go { vm.open(Screen.Games(entry.ref)) } }
-                        }
+                        DatabaseItems(vm, vm.computerDatabases[computer.pubkey].orEmpty()) { go { vm.open(Screen.Games(it)) } }
                     }
                     HorizontalDivider(Modifier.padding(vertical = 8.dp))
                     NavigationDrawerItem(
@@ -169,11 +166,23 @@ private fun SectionTitle(text: String, icon: androidx.compose.ui.graphics.vector
     }
 }
 
+/** Game collections first, then opening books (reference data) under their own small title. */
 @Composable
-private fun DatabaseItem(vm: AppViewModel, ref: DatabaseRef, games: Int, onClick: () -> Unit) {
+private fun DatabaseItems(vm: AppViewModel, entries: List<DatabaseEntry>, onOpen: (DatabaseRef) -> Unit) {
+    val (books, collections) = entries.partition { it.openingBook }
+    for (entry in collections) DatabaseItem(vm, entry.ref, entry.games, book = false) { onOpen(entry.ref) }
+    if (books.isNotEmpty()) {
+        Text(stringResource(R.string.opening_books), style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 28.dp, top = 8.dp, bottom = 4.dp))
+        for (entry in books) DatabaseItem(vm, entry.ref, entry.games, book = true) { onOpen(entry.ref) }
+    }
+}
+
+@Composable
+private fun DatabaseItem(vm: AppViewModel, ref: DatabaseRef, games: Int, book: Boolean, onClick: () -> Unit) {
     NavigationDrawerItem(
         label = { Text(ref.title) },
-        icon = { Icon(Icons.Outlined.Storage, null) },
+        icon = { Icon(if (book) Icons.AutoMirrored.Outlined.MenuBook else Icons.Outlined.Storage, null) },
         badge = { Text(games.toString()) },
         selected = (vm.screens.lastOrNull() as? Screen.Games)?.ref == ref,
         onClick = onClick,

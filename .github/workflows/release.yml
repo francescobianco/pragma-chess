@@ -61,7 +61,7 @@ jobs:
       - name: Dependencies
         run: |
           dnf install -y git cmake ninja-build gcc-c++ rpm-build \
-            qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel
+            qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel curl tar
       - uses: actions/checkout@v4
       - name: Build the .rpm
         run: packaging/linux/build-packages.sh rpm "${{ needs.version.outputs.version }}"
@@ -155,6 +155,8 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+      - name: Stockfish source, shipped with the installers (GPL v3)
+        run: scripts/fetch-stockfish.sh --source dist
       - name: Names without the version, for the releases/latest/download links
         run: packaging/latest-names.sh dist
       - name: Checksums

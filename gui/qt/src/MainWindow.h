@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/EngineCatalog.h"
 #include "app/EngineEvaluation.h"
 #include "app/PlayerRole.h"
 #include "widgets/DatabaseTreeWidget.h"
@@ -156,6 +157,8 @@ private:
     void chooseOpeningNames(const QString &path);
     /// On first launch, seeds and chooses the Opening Names database.
     void restoreOpeningNames();
+    /// Makes sure the database at `path` is typed Opening Book; false if it cannot be opened.
+    bool markAsOpeningBook(const QString &path);
     /// Reads the names again when their database changed since they were read.
     void reloadOpeningNamesIfChanged();
     /// Plays a move chosen outside the board, keeping a stored game unchanged.
@@ -164,6 +167,7 @@ private:
     // External sources of games (lichess.org, chess.com, …), synced in the background.
     void connectSource();
     void manageSources();
+    void editDatabaseSettings();
     // File ▸ Sync: the Pragma folder kept the same on several computers.
     void openSyncDialog();
     // Options ▸ Connect Mobile App: the Android app copies the databases
@@ -181,6 +185,12 @@ private:
     /// Uses the saved sync settings: connects to the server and syncs soon.
     void applySyncSettings();
     void setAnalysisEnabled(bool enabled);
+    /// Engine ▸ Manage Engines…: edits the engines of this computer.
+    void manageEngines();
+    /// Makes @p id the engine for analysis, training and Explain, restarting
+    /// the analysis on it if it was running.
+    void selectEngine(const QString &id);
+    void rebuildEngineChoiceMenu();
     void analyzeCurrentPosition();
     void editGameInfo();
     void updateGameHeader();
@@ -260,6 +270,11 @@ private:
     QString m_savedProjectYaml;
     QString m_engineName;
     QString m_engineExecutable;
+    /// Engines of this computer (user settings) and the one in use (its id;
+    /// stored in the project, falling back to the bundled engine).
+    EngineCatalog m_engines;
+    QString m_engineId;
+    QMenu *m_engineChoiceMenu = nullptr;
     /// Latest engine line (SAN) and explanation, for Edit ▸ Copy.
     QString m_engineLine;
     QString m_explanationText;
@@ -287,6 +302,7 @@ private:
     QAction *m_showDatabasesFolderAction;
     QAction *m_connectSourceAction;
     QAction *m_manageSourcesAction;
+    QAction *m_databaseSettingsAction;
     QAction *m_quitAction;
     QAction *m_copyFenAction;
     QAction *m_pasteFenAction;

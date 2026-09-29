@@ -132,6 +132,7 @@ make deps     # apt install Qt 6 (base, svg, sqlite driver), cmake, ninja, inoti
 make build    # configure (build/, Debug, Ninja if present) and build
 make run      # build and launch build/gui/qt/pragma-chess
 make test     # build and run the tests (ctest)
+make stockfish  # download the bundled Stockfish into the build (build/gui/qt/engines)
 ./build/gui/qt/pragma-explain --trace "1.e4 e5 2.Nf3 d6 3.Nxe5"   # Explain on the command line
 make start    # launch, rebuild and restart on every change (interactive, long-running)
 make clean
@@ -180,7 +181,7 @@ cargo run -p chessdb-cli -- <args>
 ## File formats and user data
 
 - **`.pdb` database**: SQLite with `PRAGMA application_id` = `PRAG` and schema
-  version in `PRAGMA user_version` (currently 3). Changing the schema means
+  version in `PRAGMA user_version` (currently 4). Changing the schema means
   bumping the version and upgrading older files in `SqliteGameDatabase::open`.
   Version 2 added `sources` (connected sources, settings and sync state as
   JSON) and `game_sources` (which source each imported game came from, by
@@ -188,7 +189,10 @@ cargo run -p chessdb-cli -- <args>
   `player_roles` (who a player is to the user: me, friend, opponent), set with
   "Who Is This?" on a player of the games list; the tree lists them under Me,
   Friends and Opponents, and opening a game where "me" plays turns the board to
-  my side (`PlayerRole`, `mySide`, unit-tested).
+  my side (`PlayerRole`, `mySide`, unit-tested). Version 4 added
+  `properties` (key/value, `DatabaseProperties`): what the database is
+  (`type`: `games` or `opening-book`) and a description, edited in Database ▸
+  Database Settings… and stored in the file so they travel with it.
 
 ## Folder sync
 
@@ -294,8 +298,10 @@ the weight and the name of the opening each leads to; clicking one plays it.
 The Engine panel shows, under the analysis, the opening the game is in (the
 last named position it passed through) and the book in use.
 
-Opening names do not come from the book (Polyglot has none) but from an
-ordinary `.pdb` chosen in Book ▸ Opening Names (setting `book/openingNames`):
+Opening names do not come from the book (Polyglot has none) but from a
+`.pdb` of type Opening Book chosen in Book ▸ Opening Names, which lists only
+those (setting `book/openingNames`; a database chosen before it had a type is
+marked Opening Book on startup):
 each game is a named line, Event = name, ECO = code, and the name belongs to
 the position where the line ends (the shortest line wins on transpositions).
 It can be opened and edited like any database, one per language; first launch
@@ -320,6 +326,14 @@ the names are read again when the file changes.
 Engines are generic **UCI** processes (`UciEngine`, `QProcess`). Stockfish is
 only the default, found in `PATH` or common locations; never hard-wire
 Stockfish-specific behaviour. Scores are normalized to White's point of view.
+
+`app/EngineCatalog` (user settings, unit-tested) lists this computer's
+engines; the bundled Stockfish (pinned in `packaging/stockfish.env`, staged by
+`scripts/fetch-stockfish.sh`, `make stockfish` for development) is always
+first and cannot be removed. Engine ▸ Manage Engines… (`ManageEnginesDialog`)
+edits them; Detect Engines (`EngineDetector`) adds UCI engines found in PATH
+and the usual install folders, skipping binaries already registered. The
+project stores the engine id; an unknown id falls back to the bundled engine.
 
 ## Training
 

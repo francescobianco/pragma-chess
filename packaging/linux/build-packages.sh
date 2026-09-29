@@ -25,6 +25,8 @@ args=(-S "$root" -B "$build" -G Ninja
 [ -n "$version" ] && args+=("-DPRAGMA_VERSION=$version")
 
 cmake "${args[@]}"
+# The bundled engine, installed by CMake from where it is staged.
+"$root/scripts/fetch-stockfish.sh" "$build/gui/qt/engines"
 cmake --build "$build"
 if [ "${SKIP_TESTS:-0}" != 1 ]; then
     QT_QPA_PLATFORM=offscreen ctest --test-dir "$build" --output-on-failure

@@ -114,6 +114,10 @@ qt_add_library(pragma-chess-core STATIC
     src/app/DatabaseOutline.cpp
     src/app/DatabaseProperties.cpp
     src/app/DatabaseOutline.h
+    src/app/EngineCatalog.cpp
+    src/app/EngineCatalog.h
+    src/app/EngineDetector.cpp
+    src/app/EngineDetector.h
     src/app/EngineEvaluation.cpp
     src/app/EngineEvaluation.h
     src/app/Explainer.cpp
@@ -174,6 +178,15 @@ target_include_directories(pragma-chess-core PUBLIC src)
 target_link_libraries(pragma-chess-core PUBLIC Qt6::Core Qt6::Network)
 target_compile_definitions(pragma-chess-core PUBLIC QT_NO_KEYWORDS APP_VERSION="${PROJECT_VERSION}")
 
+# The engine shipped with the app (EngineCatalog): its version is pinned in
+# packaging/stockfish.env, and scripts/fetch-stockfish.sh stages it in
+# engines/ next to the executable (`make stockfish` for a development build).
+file(STRINGS ${CMAKE_SOURCE_DIR}/packaging/stockfish.env STOCKFISH_VERSION_LINE REGEX "^STOCKFISH_VERSION=")
+string(REGEX REPLACE "^STOCKFISH_VERSION=" "" STOCKFISH_VERSION "${STOCKFISH_VERSION_LINE}")
+target_compile_definitions(pragma-chess-core PRIVATE PRAGMA_BUNDLED_ENGINE_NAME="Stockfish ${STOCKFISH_VERSION}")
+set(PRAGMA_ENGINES_STAGE ${CMAKE_CURRENT_BINARY_DIR}/engines CACHE PATH
+    "Folder where scripts/fetch-stockfish.sh staged the bundled engine")
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(PRAGMA_WARNINGS -Wall -Wextra -Wpedantic)
 endif()
@@ -223,8 +236,12 @@ qt_add_executable(pragma-chess
     src/dialogs/ConnectSourceWizard.h
     src/dialogs/GameInfoDialog.cpp
     src/dialogs/GameInfoDialog.h
+    src/dialogs/ManageEnginesDialog.cpp
+    src/dialogs/ManageEnginesDialog.h
     src/dialogs/ManageSourcesDialog.cpp
     src/dialogs/ManageSourcesDialog.h
+    src/dialogs/DatabaseSettingsDialog.cpp
+    src/dialogs/DatabaseSettingsDialog.h
     src/dialogs/NewTrainingDialog.cpp
     src/dialogs/NewTrainingDialog.h
     src/dialogs/SyncDialog.cpp
@@ -410,4 +427,11 @@ if(UNIX AND NOT APPLE)
         DESTINATION ${CMAKE_INSTALL_DATADIR}/icons)
     install(FILES data/${APP_ID}.metainfo.xml
         DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    # The bundled engine, when staged. A literal lib/, not CMAKE_INSTALL_LIBDIR
+    # (lib64, lib/<multiarch>): EngineCatalog::bundledEngineDirs looks there.
+    install(PROGRAMS ${PRAGMA_ENGINES_STAGE}/stockfish
+        DESTINATION lib/pragma-chess/engines OPTIONAL)
+    install(FILES ${PRAGMA_ENGINES_STAGE}/Copying.txt ${PRAGMA_ENGINES_STAGE}/AUTHORS
+        ${PRAGMA_ENGINES_STAGE}/README.txt
+        DESTINATION lib/pragma-chess/engines OPTIONAL)
 endif()

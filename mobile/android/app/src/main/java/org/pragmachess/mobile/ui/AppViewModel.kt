@@ -55,7 +55,7 @@ sealed interface SyncState {
 }
 
 /** A database with the number of games in it, for the side menu. */
-data class DatabaseEntry(val ref: DatabaseRef, val games: Int)
+data class DatabaseEntry(val ref: DatabaseRef, val games: Int, val openingBook: Boolean = false)
 
 /** Today in PGN form, 2026.09.29. */
 private fun today(): String = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
@@ -124,7 +124,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { library.ensureDefault(app.getString(R.string.default_database)) }
             refresh()
-            gameDatabase = localDatabases.firstOrNull()?.ref
+            gameDatabase = localDatabases.firstOrNull { !it.openingBook }?.ref
             syncAll(quiet = true)
         }
         viewModelScope.launch {
@@ -139,10 +139,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     suspend fun refresh() {
         val (local, paired, remote) = withContext(Dispatchers.IO) {
-            val local = library.list(DatabaseLocation.Local).map { DatabaseEntry(it, countGames(it)) }
+            val local = library.list(DatabaseLocation.Local).map(::entry)
             val paired = store.computers()
             val remote = paired.associate { c ->
-                c.pubkey to library.list(DatabaseLocation.Computer(c.pubkey)).map { DatabaseEntry(it, countGames(it)) }
+                c.pubkey to library.list(DatabaseLocation.Computer(c.pubkey)).map(::entry)
             }
             Triple(local, paired, remote)
         }
@@ -151,8 +151,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         computerDatabases = remote
     }
 
-    private fun countGames(ref: DatabaseRef): Int =
-        runCatching { PdbDatabase.open(library.file(ref)).use { it.gameCount() } }.getOrDefault(0)
+    private fun entry(ref: DatabaseRef): DatabaseEntry =
+        runCatching { PdbDatabase.open(library.file(ref)).use { DatabaseEntry(ref, it.gameCount(), it.isOpeningBook()) } }
+            .getOrDefault(DatabaseEntry(ref, 0))
 
     // Navigation
 
@@ -209,7 +210,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private fun startGame(ref: DatabaseRef?) {
         line = GameLine(Position.starting())
         headers = GameHeaders(date = today())
-        gameDatabase = ref ?: localDatabases.firstOrNull()?.ref
+        gameDatabase = ref ?: localDatabases.firstOrNull { !it.openingBook }?.ref
         dirty = false
         stored = false
         ply = 0
@@ -237,14 +238,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.IO) { library.ensureDefault(app.getString(R.string.default_database)) }
             }
             refresh()
-            if (gameDatabase == null) gameDatabase = localDatabases.firstOrNull()?.ref
+            if (gameDatabase == null) gameDatabase = localDatabases.firstOrNull { !it.openingBook }?.ref
             screens = screens.filterNot { it is Screen.Games && it.ref == ref }
         }
     }
 
-    /** Every database a game can be saved to: the local ones and the computers' copies. */
+    /** Every database a game can be saved to: the local ones and the computers' copies (opening books excluded). */
     val writableDatabases: List<DatabaseRef>
-        get() = localDatabases.map { it.ref } + computers.flatMap { c -> computerDatabases[c.pubkey].orEmpty().map { it.ref } }
+        get() = (localDatabases + computers.flatMap { c -> computerDatabases[c.pubkey].orEmpty() })
+            .filterNot { it.openingBook }.map { it.ref }
 
     fun databaseLabel(ref: DatabaseRef): String = when (val location = ref.location) {
         DatabaseLocation.Local -> ref.title
@@ -393,7 +395,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             }
             syncStates.remove(computer.pubkey)
             if ((gameDatabase?.location as? DatabaseLocation.Computer)?.pubkey == computer.pubkey) {
-                gameDatabase = localDatabases.firstOrNull()?.ref
+                gameDatabase = localDatabases.firstOrNull { !it.openingBook }?.ref
             }
             refresh()
         }

@@ -6,7 +6,7 @@ GENERATOR := $(if $(shell command -v ninja),-G Ninja,)
 
 PREFIX ?= $(HOME)/.local
 
-.PHONY: help start build run test install desktop-dev configure clean deps
+.PHONY: help start build run test install desktop-dev configure clean deps stockfish
 
 help: ## Show available targets
 	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-10s %s\n", $$1, $$2}'
@@ -42,6 +42,9 @@ install: build ## Install the app, its menu entry and icon (PREFIX, default ~/.l
 # Wayland desktops take the dock icon from an installed .desktop entry.
 desktop-dev: ## Show the app icon for the development build (user menu entry)
 	@BUILD_DIR=$(BUILD_DIR) ./scripts/install-dev-desktop.sh
+
+stockfish: ## Download the bundled engine (packaging/stockfish.env) next to the development build
+	@./scripts/fetch-stockfish.sh $(BUILD_DIR)/gui/qt/engines
 
 clean: ## Remove the build directory
 	@rm -rf $(BUILD_DIR)

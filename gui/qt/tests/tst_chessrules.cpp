@@ -1,6 +1,8 @@
 #include "app/AdvantageProbe.h"
 #include "app/ChessPosition.h"
 #include "app/DatabaseOutline.h"
+#include "app/EngineCatalog.h"
+#include "app/EngineDetector.h"
 #include "app/ExplanationSearch.h"
 #include "app/MoveExplanation.h"
 #include "app/OpeningNames.h"
@@ -17,6 +19,7 @@
 #include <QDir>
 #include <QFile>
 #include <QProcess>
+#include <QSettings>
 #include <QSignalSpy>
 #include <QStandardPaths>
 #include <QJsonDocument>
@@ -80,6 +83,10 @@ class TestChessRules : public QObject {
     Q_OBJECT
 
 private Q_SLOTS:
+    void keepsTheBundledEngine();
+    void savesAndResolvesEngines();
+    void addsDetectedEnginesOnce();
+    void recognizesEngineFiles();
     void perftCounts_data()
     {
         QTest::addColumn<QString>("fen");
@@ -656,6 +663,46 @@ private Q_SLOTS:
         QVERIFY2(database->setPlayerRole(QStringLiteral("Me"), PlayerRole::Me, &error), qPrintable(error));
     }
 
+    void storesDatabaseProperties()
+    {
+        QCOMPARE(DatabaseProperties::fromValues({}).type, DatabaseType::GameCollection);
+        QCOMPARE(DatabaseProperties::fromValues({{QStringLiteral("type"), QStringLiteral("unknown")}}).type,
+                 DatabaseType::GameCollection);
+        DatabaseProperties book;
+        book.type = DatabaseType::OpeningBook;
+        book.description = QStringLiteral("Named lines");
+        QCOMPARE(DatabaseProperties::fromValues(book.values()), book);
+
+        // A version 3 file, as databases were before properties, is a game collection.
+        QTemporaryDir dir;
+        const QString path = dir.filePath(QStringLiteral("names.pdb"));
+        QString error;
+        QVERIFY(SqliteGameDatabase::create(path, {}, &error));
+        {
+            QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("downgrade"));
+            db.setDatabaseName(path);
+            QVERIFY(db.open());
+            QSqlQuery query(db);
+            QVERIFY(query.exec(QStringLiteral("DROP TABLE properties")));
+            QVERIFY(query.exec(QStringLiteral("PRAGMA user_version = 3")));
+            db.close();
+        }
+        QSqlDatabase::removeDatabase(QStringLiteral("downgrade"));
+        QCOMPARE(SqliteGameDatabase::readProperties(path).type, DatabaseType::GameCollection);
+        {
+            const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(path, &error);
+            QVERIFY2(database, qPrintable(error));
+            QCOMPARE(database->properties(), DatabaseProperties());
+            QVERIFY2(database->setProperties(book, &error), qPrintable(error));
+        }
+        // Read without opening (Book ▸ Opening Names), and when opened again.
+        QCOMPARE(SqliteGameDatabase::readProperties(path), book);
+        const std::unique_ptr<SqliteGameDatabase> reopened = SqliteGameDatabase::open(path, &error);
+        QVERIFY2(reopened, qPrintable(error));
+        QCOMPARE(reopened->properties(), book);
+        QCOMPARE(SqliteGameDatabase::readProperties(dir.filePath(QStringLiteral("missing.pdb"))), DatabaseProperties());
+    }
+
     void parsesLichessGames()
     {
         // Built from a byte string: moc cannot read raw string literals holding braces.
@@ -947,6 +994,116 @@ private:
             || verdict == MoveExplanation::Verdict::Blunder;
     }
 };
+
+void TestChessRules::keepsTheBundledEngine()
+{
+    EngineCatalog catalog;
+    QCOMPARE(catalog.engines().size(), 1);
+    QVERIFY(catalog.engines().first().bundled);
+    QVERIFY(!catalog.remove(EngineCatalog::kBundledId));
+
+    // Only threads and hash of the bundled engine belong to the user.
+    EngineProfile bundled = catalog.engines().first();
+    bundled.name = QStringLiteral("Renamed");
+    bundled.path = QStringLiteral("/tmp/other");
+    bundled.threads = 4;
+    catalog.update(bundled);
+    QCOMPARE(catalog.engines().first().name, EngineCatalog::bundledEngineName());
+    QVERIFY(catalog.engines().first().path.isEmpty());
+    QCOMPARE(catalog.engines().first().threads, 4);
+}
+
+void TestChessRules::savesAndResolvesEngines()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    const QString ini = dir.filePath(QStringLiteral("engines.ini"));
+
+    EngineCatalog catalog;
+    EngineProfile lc0;
+    lc0.name = QStringLiteral("Leela");
+    lc0.path = QStringLiteral("/usr/local/bin/lc0");
+    lc0.hashMb = 256;
+    const QString id = catalog.add(lc0);
+    {
+        QSettings settings(ini, QSettings::IniFormat);
+        catalog.save(settings);
+    }
+    QSettings settings(ini, QSettings::IniFormat);
+    const EngineCatalog loaded = EngineCatalog::load(settings);
+    QCOMPARE(loaded.engines().size(), 2);
+    QVERIFY(loaded.engines().first().bundled);
+    QCOMPARE(loaded.find(id)->path, lc0.path);
+    QCOMPARE(loaded.find(id)->hashMb, 256);
+
+    // Projects travel between computers: an unknown id is the bundled engine,
+    // and projects before ids named the engine or its command.
+    QCOMPARE(loaded.resolve(id).name, QStringLiteral("Leela"));
+    QVERIFY(loaded.resolve(QStringLiteral("no-such-id")).bundled);
+    QCOMPARE(loaded.resolve({}, QStringLiteral("lc0")).id, id);
+    QVERIFY(loaded.resolve({}, QStringLiteral("stockfish")).bundled);
+
+    QVERIFY(catalog.remove(id));
+    QCOMPARE(catalog.engines().size(), 1);
+}
+
+void TestChessRules::addsDetectedEnginesOnce()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    const QString engine = dir.filePath(QStringLiteral("stockfish"));
+    const QString link = dir.filePath(QStringLiteral("stockfish-link"));
+    const QString bundled = dir.filePath(QStringLiteral("bundled-stockfish"));
+    const QString other = dir.filePath(QStringLiteral("berserk"));
+    for (const QString &path : {engine, bundled, other}) {
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+    }
+    QVERIFY(QFile::link(engine, link));
+
+    EngineCatalog catalog;
+    // The same file reached through a symlink, and the bundled engine, count once.
+    const QList<DetectedEngine> found = {{engine, QStringLiteral("Stockfish 17")},
+                                         {link, QStringLiteral("Stockfish 17")},
+                                         {bundled, QStringLiteral("Stockfish 19")}};
+    QCOMPARE(catalog.addDetected(found, bundled), 1);
+    QCOMPARE(catalog.engines().size(), 2);
+    QCOMPARE(catalog.engines().last().name, QStringLiteral("Stockfish 17"));
+
+    // Detecting again adds only what is new.
+    QCOMPARE(catalog.addDetected(found, bundled), 0);
+    QCOMPARE(catalog.addDetected({{other, QString()}}, bundled), 1);
+    QCOMPARE(catalog.engines().last().name, QStringLiteral("berserk"));
+}
+
+void TestChessRules::recognizesEngineFiles()
+{
+    QVERIFY(EngineDetector::looksLikeEngine(QStringLiteral("stockfish")));
+    QVERIFY(EngineDetector::looksLikeEngine(QStringLiteral("/usr/games/stockfish")));
+    QVERIFY(EngineDetector::looksLikeEngine(QStringLiteral("stockfish_17_x64.exe")));
+    QVERIFY(EngineDetector::looksLikeEngine(QStringLiteral("Lc0.exe")));
+    QVERIFY(EngineDetector::looksLikeEngine(QStringLiteral("berserk-13")));
+    QVERIFY(!EngineDetector::looksLikeEngine(QStringLiteral("stockfishing")));
+    QVERIFY(!EngineDetector::looksLikeEngine(QStringLiteral("firefox")));
+
+#ifndef Q_OS_WIN
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    QVERIFY(QDir(dir.path()).mkpath(QStringLiteral("sub")));
+    const QString engine = dir.filePath(QStringLiteral("sub/stockfish"));
+    const QString notExecutable = dir.filePath(QStringLiteral("lc0"));
+    for (const QString &path : {engine, notExecutable}) {
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+    }
+    QVERIFY(QFile::setPermissions(engine, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner));
+    QVERIFY(QFile::link(engine, dir.filePath(QStringLiteral("stockfish"))));
+    // Subfolders only as deep as asked; each file once however it is reached.
+    QCOMPARE(EngineDetector::candidates({{dir.path(), 0}}).size(), 1);
+    QCOMPARE(EngineDetector::candidates({{dir.path(), 1}}).size(), 1);
+    QCOMPARE(EngineDetector::candidates({{dir.filePath(QStringLiteral("sub")), 0}}).size(), 1);
+#endif
+}
 
 QTEST_GUILESS_MAIN(TestChessRules)
 #include "tst_chessrules.moc"

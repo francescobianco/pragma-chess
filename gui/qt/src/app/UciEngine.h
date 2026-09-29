@@ -40,6 +40,8 @@ public:
     /// (and right away if it already is) if the engine has it. Overrides the
     /// defaults chosen here.
     void setOption(const QString &name, const QString &value);
+    /// Forgets the options set with setOption(), for the next start().
+    void clearOptions() { m_optionValues.clear(); }
     /// Name reported by the engine ("id name"), empty until known.
     QString name() const { return m_name; }
 

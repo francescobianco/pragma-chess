@@ -151,8 +151,14 @@ those games).
 
 Without any computer the app has one local database, **Le mie partite**
 (localized, "My Games" in English), and the user can create more. Local
-databases are ordinary `.pdb` files (same schema as the desktop). Once a
-computer is paired, they are pushed to it like any other database.
+databases are ordinary `.pdb` files (same schema as the desktop, version 4).
+Once a computer is paired, they are pushed to it like any other database.
+
+The phone reads files of schema version 1 to 4 (a newer one is refused) and
+upgrades the ones it writes to by adding the missing tables. A database whose
+`properties` row `type` is `opening-book` (the Opening Names database) is
+reference data: the side menu lists it under a small "Opening books" title
+after the game collections, and games cannot be saved into it.
 
 ## Code
 

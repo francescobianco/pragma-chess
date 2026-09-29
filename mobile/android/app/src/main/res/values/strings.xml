@@ -102,4 +102,5 @@
     <string name="discard_game">Discard the game?</string>
     <string name="discard_game_text">The moves played on the board are not saved yet.</string>
     <string name="discard">Discard</string>
+    <string name="opening_books">Opening books</string>
 </resources>

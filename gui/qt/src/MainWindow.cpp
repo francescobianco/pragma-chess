@@ -2,10 +2,12 @@
 
 #include "app/ClassicGames.h"
 #include "app/OpeningNames.h"
+#include "dialogs/DatabaseSettingsDialog.h"
 #include "app/PolyglotBook.h"
 #include "app/DatabaseOutline.h"
 #include "dialogs/ConnectSourceWizard.h"
 #include "dialogs/GameInfoDialog.h"
+#include "dialogs/ManageEnginesDialog.h"
 #include "dialogs/ManageSourcesDialog.h"
 #include "dialogs/NewTrainingDialog.h"
 #include "dialogs/SyncDialog.h"
@@ -417,6 +419,11 @@ void MainWindow::createActions()
     m_manageSourcesAction = new QAction(tr("&Manage Sources…"), this);
     connect(m_manageSourcesAction, &QAction::triggered, this, &MainWindow::manageSources);
 
+    m_databaseSettingsAction = new QAction(themeIcon("document-properties", QStyle::SP_FileDialogInfoView),
+                                           tr("Database Se&ttings…"), this);
+    m_databaseSettingsAction->setToolTip(tr("Type and description of the open database"));
+    connect(m_databaseSettingsAction, &QAction::triggered, this, &MainWindow::editDatabaseSettings);
+
     m_quitAction = new QAction(themeIcon("application-exit", QStyle::SP_DialogCloseButton),
                                tr("&Quit"), this);
     m_quitAction->setShortcut(QKeySequence::Quit);
@@ -595,6 +602,21 @@ void MainWindow::createMenus()
     game->addSeparator();
     game->addAction(m_explainAction);
 
+    m_bookMenu = menuBar()->addMenu(tr("&Book"));
+    connect(m_bookMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildBookMenu);
+    rebuildBookMenu(); // Keeps the menu non-empty, so it shows on every platform.
+
+    QMenu *engine = menuBar()->addMenu(tr("E&ngine"));
+    engine->addAction(m_startEngineAction);
+    engine->addAction(m_explainAction);
+    engine->addSeparator();
+    m_engineChoiceMenu = engine->addMenu(tr("&Use Engine"));
+    connect(m_engineChoiceMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildEngineChoiceMenu);
+    rebuildEngineChoiceMenu();
+    engine->addAction(tr("&Manage Engines…"), this, &MainWindow::manageEngines);
+    engine->addSeparator();
+    engine->addAction(m_trainingModeAction);
+
     QMenu *database = menuBar()->addMenu(tr("&Database"));
     database->addAction(m_newDatabaseAction);
     database->addAction(m_openDatabaseAction);
@@ -604,18 +626,10 @@ void MainWindow::createMenus()
     database->addAction(m_connectSourceAction);
     database->addAction(m_manageSourcesAction);
     database->addSeparator();
+    database->addAction(m_databaseSettingsAction);
+    database->addSeparator();
     database->addAction(m_saveDatabaseAction);
     database->addAction(m_saveDatabaseAsAction);
-
-    QMenu *engine = menuBar()->addMenu(tr("E&ngine"));
-    engine->addAction(m_startEngineAction);
-    engine->addAction(m_explainAction);
-    engine->addSeparator();
-    engine->addAction(m_trainingModeAction);
-
-    m_bookMenu = menuBar()->addMenu(tr("&Book"));
-    connect(m_bookMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildBookMenu);
-    rebuildBookMenu(); // Keeps the menu non-empty, so it shows on every platform.
 
     menuBar()->addMenu(tr("&Tools"))->setEnabled(false);
 
@@ -739,7 +753,11 @@ void MainWindow::createDocks()
     m_movesDock = addDock(m_sidebar, QStringLiteral("movesDock"), tr("Moves"), m_moveView, Qt::RightDockWidgetArea);
 
     m_enginePanel = new EnginePanel(m_startEngineAction);
-    m_enginePanel->setEngineName(tr("Stockfish"));
+    {
+        QSettings settings;
+        m_engines = EngineCatalog::load(settings);
+    }
+    m_enginePanel->setEngineName(m_engines.resolve(m_engineId, m_engineName).name);
     m_engineDock = addDock(m_sidebar, QStringLiteral("engineDock"), tr("Engine"), m_enginePanel, Qt::RightDockWidgetArea);
 
     m_bookPanel = new BookPanel;
@@ -1285,6 +1303,8 @@ void MainWindow::rebuildBookMenu()
     const QFileInfoList databaseFiles = databases.entryInfoList(
         {QStringLiteral("*.") + QLatin1String(UserFolders::databaseSuffix)}, QDir::Files, QDir::Name);
     for (const QFileInfo &file : databaseFiles) {
+        if (SqliteGameDatabase::readProperties(file.absoluteFilePath()).type != DatabaseType::OpeningBook)
+            continue;
         QAction *action = names->addAction(file.completeBaseName());
         action->setCheckable(true);
         action->setActionGroup(namesGroup);
@@ -1338,7 +1358,7 @@ void MainWindow::restoreOpeningNames()
     const QString key = QStringLiteral("book/openingNames");
     if (settings.contains(key)) {
         const QString path = settings.value(key).toString();
-        chooseOpeningNames(QFile::exists(path) ? path : QString());
+        chooseOpeningNames(QFile::exists(path) && markAsOpeningBook(path) ? path : QString());
         return;
     }
     // First launch: the named openings of lichess-org/chess-openings, as a database.
@@ -1359,7 +1379,22 @@ void MainWindow::restoreOpeningNames()
                 statusBar()->showMessage(tr("Could not create %1: %2").arg(QDir::toNativeSeparators(seed), error));
         }
     }
-    chooseOpeningNames(QFile::exists(seed) ? seed : QString());
+    chooseOpeningNames(QFile::exists(seed) && markAsOpeningBook(seed) ? seed : QString());
+}
+
+bool MainWindow::markAsOpeningBook(const QString &path)
+{
+    // Databases chosen for names before they had a type (and the seed, built
+    // from the shipped file) are opening books.
+    if (SqliteGameDatabase::readProperties(path).type == DatabaseType::OpeningBook)
+        return true;
+    QString error;
+    const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(path, &error);
+    if (!database)
+        return false;
+    DatabaseProperties properties = database->properties();
+    properties.type = DatabaseType::OpeningBook;
+    return database->setProperties(properties, &error);
 }
 
 void MainWindow::chooseOpeningNames(const QString &path)
@@ -1405,6 +1440,25 @@ void MainWindow::updateDatabaseActions()
     m_saveDatabaseAsAction->setEnabled(hasDatabase);
     m_connectSourceAction->setEnabled(hasDatabase);
     m_manageSourcesAction->setEnabled(hasDatabase);
+    m_databaseSettingsAction->setEnabled(hasDatabase && !m_database->location().isEmpty());
+}
+
+void MainWindow::editDatabaseSettings()
+{
+    if (!m_database)
+        return;
+    DatabaseSettingsDialog dialog(m_database->name(), m_database->properties(), this);
+    if (dialog.exec() != QDialog::Accepted || dialog.properties() == m_database->properties())
+        return;
+    QString error;
+    if (!m_database->setProperties(dialog.properties(), &error)) {
+        QMessageBox::warning(this, tr("Database Settings"), tr("Could not save the settings: %1").arg(error));
+        return;
+    }
+    // Only opening books name openings: a database that is no longer one stops doing it.
+    if (dialog.properties().type != DatabaseType::OpeningBook && !m_openingNamesPath.isEmpty()
+        && QFileInfo(m_openingNamesPath) == QFileInfo(m_database->location()))
+        chooseOpeningNames(QString());
 }
 
 void MainWindow::connectSource()
@@ -1525,21 +1579,76 @@ void MainWindow::setAnalysisEnabled(bool enabled)
     }
 
     if (!m_engine->isRunning()) {
-        const QString command = m_engineName.isEmpty() ? QStringLiteral("stockfish") : m_engineName;
-        const QString executable = UciEngine::findExecutable(command);
+        const EngineProfile &profile = m_engines.resolve(m_engineId, m_engineName);
+        const QString executable = EngineCatalog::executableFor(profile);
+        m_engine->clearOptions();
+        if (profile.threads > 0)
+            m_engine->setOption(QStringLiteral("Threads"), QString::number(profile.threads));
+        if (profile.hashMb > 0)
+            m_engine->setOption(QStringLiteral("Hash"), QString::number(profile.hashMb));
         if (executable.isEmpty() || !m_engine->start(executable)) {
-            m_enginePanel->setStatus(tr("The UCI engine “%1” was not found. Install Stockfish "
-                                        "or choose another engine.").arg(command));
+            m_enginePanel->setStatus(tr("The engine “%1” was not found. Choose another one or set its "
+                                        "executable in Engine ▸ Manage Engines….").arg(profile.name));
             // Defer so the action's toggle finishes before being reverted.
             QMetaObject::invokeMethod(m_startEngineAction, [this] { m_startEngineAction->setChecked(false); },
                                       Qt::QueuedConnection);
             return;
         }
-        m_engineName = command;
+        m_engineId = profile.id;
+        m_engineName = profile.name;
         m_engineExecutable = executable;
     }
     m_enginePanel->setStatus(tr("Analyzing…"));
     analyzeCurrentPosition();
+}
+
+void MainWindow::manageEngines()
+{
+    const QString current = m_engines.resolve(m_engineId, m_engineName).id;
+    ManageEnginesDialog dialog(m_engines, current, UserFolders::pragmaDir(), this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+    m_engines = dialog.catalog();
+    {
+        QSettings settings;
+        m_engines.save(settings);
+    }
+    // Restart on the engine as edited (its executable or parameters may have changed).
+    const QString selected = m_engines.find(current) ? current : EngineCatalog::kBundledId;
+    m_engineId.clear();
+    selectEngine(selected);
+}
+
+void MainWindow::selectEngine(const QString &id)
+{
+    const EngineProfile &profile = m_engines.resolve(id);
+    if (profile.id == m_engineId)
+        return;
+    m_engineId = profile.id;
+    m_engineName = profile.name;
+    m_enginePanel->setEngineName(profile.name);
+    const bool analyzing = m_startEngineAction->isChecked();
+    m_trainingThinking = false; // A search in progress dies with the old engine.
+    m_startEngineAction->setChecked(false);
+    m_engine->shutdown();
+    if (analyzing)
+        m_startEngineAction->setChecked(true);
+    scheduleSaveSession();
+}
+
+void MainWindow::rebuildEngineChoiceMenu()
+{
+    m_engineChoiceMenu->clear();
+    auto *group = new QActionGroup(m_engineChoiceMenu);
+    const QString current = m_engines.resolve(m_engineId, m_engineName).id;
+    for (const EngineProfile &profile : m_engines.engines()) {
+        QAction *action = m_engineChoiceMenu->addAction(profile.name);
+        action->setCheckable(true);
+        action->setChecked(profile.id == current);
+        action->setActionGroup(group);
+        const QString id = profile.id;
+        connect(action, &QAction::triggered, this, [this, id] { selectEngine(id); });
+    }
 }
 
 void MainWindow::analyzeCurrentPosition()
@@ -1976,6 +2085,7 @@ Project MainWindow::captureProject() const
     }
     project.boardFlipped = m_flipBoardAction->isChecked();
     project.showCoordinates = m_coordinatesAction->isChecked();
+    project.engineId = m_engineId;
     project.engineName = m_engineName;
     project.engineAnalyzing = m_startEngineAction->isChecked();
     project.layout = saveLayout();
@@ -1991,7 +2101,9 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         restoreLayout(project.layout);
     m_flipBoardAction->setChecked(project.boardFlipped);
     m_coordinatesAction->setChecked(project.showCoordinates);
-    m_engineName = project.engineName;
+    m_engineId = m_engines.resolve(project.engineId, project.engineName).id;
+    m_engineName = m_engines.resolve(m_engineId).name;
+    m_enginePanel->setEngineName(m_engineName);
 
     openInitialDatabase(project.databasePath);
 

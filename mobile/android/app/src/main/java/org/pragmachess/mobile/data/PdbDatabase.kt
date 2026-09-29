@@ -7,13 +7,23 @@ import java.time.Instant
 
 /**
  * A Pragma .pdb database: SQLite with the desktop's schema (application_id
- * PRAG, user_version 3; see gui/qt/src/app/SqliteGameDatabase.cpp). The phone
- * reads any file of version 1 to 3 and writes games with their players,
+ * PRAG, user_version 4; see gui/qt/src/app/SqliteGameDatabase.cpp). The phone
+ * reads any file of version 1 to 4 and writes games with their players,
  * events and sites, recording the phone as their source.
  */
 class PdbDatabase private constructor(val file: File, private val db: SQLiteDatabase) : AutoCloseable {
 
     override fun close() = db.close()
+
+    /** The database's own properties (table `properties`, version 4); empty for older files. */
+    fun properties(): Map<String, String> = runCatching {
+        db.rawQuery("SELECT key, value FROM properties", null).use { c ->
+            buildMap { while (c.moveToNext()) put(c.getString(0), c.getString(1)) }
+        }
+    }.getOrDefault(emptyMap())
+
+    /** Opening books (type "opening-book") hold named lines, not games to browse; missing type = games. */
+    fun isOpeningBook(): Boolean = properties()[PROPERTY_TYPE] == TYPE_OPENING_BOOK
 
     fun gameCount(): Int = db.rawQuery("SELECT COUNT(*) FROM games", null).use { if (it.moveToFirst()) it.getInt(0) else 0 }
 
@@ -113,7 +123,10 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
 
     companion object {
         const val APPLICATION_ID = 0x50524147 // "PRAG"
-        const val SCHEMA_VERSION = 3
+        const val SCHEMA_VERSION = 4
+        const val PROPERTY_TYPE = "type"
+        const val TYPE_GAMES = "games"
+        const val TYPE_OPENING_BOOK = "opening-book"
 
         private val SCHEMA = listOf(
             "CREATE TABLE players (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
@@ -152,6 +165,7 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
             "CREATE TABLE IF NOT EXISTS player_roles (" +
                 " player_id INTEGER PRIMARY KEY REFERENCES players(id)," +
                 " role TEXT NOT NULL)",
+            "CREATE TABLE IF NOT EXISTS properties (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
         )
 
         private fun openRaw(file: File, flags: Int): SQLiteDatabase =
@@ -170,6 +184,7 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
             db.beginTransaction()
             try {
                 SCHEMA.forEach { db.execSQL(it) }
+                db.execSQL("INSERT INTO properties (key, value) VALUES (?, ?)", arrayOf(PROPERTY_TYPE, TYPE_GAMES))
                 db.setTransactionSuccessful()
             } finally {
                 db.endTransaction()
@@ -179,7 +194,8 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
 
         /**
          * Opens an existing database; writable ones get the tables of later
-         * versions (sources, game_sources) the phone needs to store its games.
+         * versions (sources, game_sources, properties) the phone needs to store
+         * its games. Files of a newer version than [SCHEMA_VERSION] are refused.
          */
         fun open(file: File, writable: Boolean = false): PdbDatabase {
             val db = openRaw(file, if (writable) SQLiteDatabase.OPEN_READWRITE else SQLiteDatabase.OPEN_READONLY)

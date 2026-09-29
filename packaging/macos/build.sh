@@ -43,6 +43,13 @@ bundle="$stage/$app_name.app"
 cp "$build/gui/qt/pragma-explain" "$build/gui/qt/pragma-book" "$bundle/Contents/MacOS/"
 macdeployqt "$bundle" -executable="$bundle/Contents/MacOS/pragma-explain" \
     -executable="$bundle/Contents/MacOS/pragma-book"
+# The bundled engine: the executable in Contents/MacOS, where EngineCatalog
+# looks and the signature expects code, its license and README in Resources.
+"$root/scripts/fetch-stockfish.sh" "$build/engines" macos
+cp "$build/engines/stockfish" "$bundle/Contents/MacOS/"
+mkdir -p "$bundle/Contents/Resources/engines"
+cp "$build/engines/Copying.txt" "$build/engines/AUTHORS" "$build/engines/README.txt" \
+    "$bundle/Contents/Resources/engines/"
 # Only SQLite is used: the other drivers need client libraries we do not ship.
 find "$bundle/Contents/PlugIns/sqldrivers" -type f ! -name 'libqsqlite*' -delete
 
@@ -56,6 +63,7 @@ find "$bundle/Contents" \( -name '*.dylib' -o -name '*.framework' \) -print0 |
     xargs -0 -n1 codesign "${sign_args[@]}"
 codesign "${sign_args[@]}" "$bundle/Contents/MacOS/pragma-explain"
 codesign "${sign_args[@]}" "$bundle/Contents/MacOS/pragma-book"
+codesign "${sign_args[@]}" "$bundle/Contents/MacOS/stockfish"
 codesign "${sign_args[@]}" "$bundle"
 codesign --verify --deep --strict --verbose=2 "$bundle"
 

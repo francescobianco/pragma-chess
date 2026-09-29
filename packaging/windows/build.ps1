@@ -52,6 +52,13 @@ Copy-Item "$Build\gui\qt\pragma-chess.exe" $Stage
 Copy-Item "$Build\gui\qt\pragma-explain.exe" $Stage
 Copy-Item "$Build\gui\qt\pragma-book.exe" $Stage
 Copy-Item "$Root\LICENSE" "$Stage\LICENSE.txt"
+# The bundled engine in engines\ (EngineCatalog), with its license and README;
+# the script runs in Git for Windows' bash (the bash.exe on PATH may be WSL's).
+$bash = "$env:ProgramFiles\Git\bin\bash.exe"
+if (-not (Test-Path $bash)) { $bash = "bash" }
+$fetch = ($Root -replace '\\', '/') + "/scripts/fetch-stockfish.sh"
+$engines = ($Stage -replace '\\', '/') + "/engines"
+Invoke-Checked $bash @($fetch, $engines, "windows-x86-64")
 Invoke-Checked windeployqt @("--release", "--no-compiler-runtime", "--no-opengl-sw",
     "--no-system-d3d-compiler", "--no-quick-import",
     "$Stage\pragma-chess.exe")

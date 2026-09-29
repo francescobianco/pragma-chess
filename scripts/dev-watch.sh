@@ -22,9 +22,29 @@ stop_app() {
 }
 
 start_app() {
-    log "starting $APP"
-    "$APP" "$@" &
-    app_pid=$!
+    # Another build (make build, a test run) may still be writing the binary:
+    # launching it then fails with "Text file busy" (exit 126), so wait and retry.
+    local attempt status
+    for attempt in $(seq 1 40); do
+        log "starting $APP"
+        "$APP" "$@" &
+        app_pid=$!
+        sleep 0.3
+        if kill -0 "$app_pid" 2>/dev/null; then
+            return 0
+        fi
+        wait "$app_pid" 2>/dev/null
+        status=$?
+        app_pid=""
+        if [[ $status -ne 126 ]]; then
+            log "the app exited at once (status $status)"
+            return 1
+        fi
+        log "the binary is busy (another build is writing it), retrying…"
+        sleep 0.5
+    done
+    log "could not start $APP: still busy"
+    return 1
 }
 
 MARKER="$BUILD_DIR/.dev-watch-build-start"

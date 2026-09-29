@@ -46,6 +46,7 @@
 #include "widgets/BoardWidget.h"
 #include "widgets/BoardSideColumn.h"
 #include "widgets/CapturedPiecesWidget.h"
+#include "widgets/PaddedStatusBar.h"
 #include "widgets/CentralArea.h"
 #include "widgets/DatabaseTreeWidget.h"
 #include "widgets/EnginePanel.h"
@@ -181,6 +182,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_positionIndexTimer->setInterval(1000);
     connect(m_positionIndexTimer, &QTimer::timeout, this, &MainWindow::rebuildPositionIndex);
     connect(m_positionIndex, &PositionIndexBuilder::indexChanged, this, &MainWindow::updateBoardFilters);
+    connect(m_positionIndex, &PositionIndexBuilder::indexChanged, this, &MainWindow::updateBookDatabaseStats);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::updateBoardFilters);
     connect(m_engine, &UciEngine::searchFinished, this, &MainWindow::finishEngineMove);
     connect(m_engine, &UciEngine::evaluationChanged, this, [this](const EngineEvaluation &evaluation) {
@@ -865,6 +867,8 @@ void MainWindow::createDocks()
 
 void MainWindow::createStatusBar()
 {
+    setStatusBar(new PaddedStatusBar);
+
     m_folderSyncLabel = new QLabel;
     m_folderSyncLabel->hide();
     statusBar()->addPermanentWidget(m_folderSyncLabel);
@@ -1467,6 +1471,28 @@ void MainWindow::updateBookMoves()
         lastMove = before.moveNumberText() + figurineSan(before.san(*move));
     }
     m_bookPanel->setMoves(position, moves, names, lastMove);
+    updateBookDatabaseStats();
+}
+
+void MainWindow::updateBookDatabaseStats()
+{
+    const PositionIndex *index = m_positionIndex->index();
+    if (!m_database) {
+        m_bookPanel->setDatabaseStats(BookPanel::DatabaseState::NoDatabase, {});
+        return;
+    }
+    if (!index) {
+        m_bookPanel->setDatabaseStats(BookPanel::DatabaseState::Indexing, {});
+        return;
+    }
+    const ChessPosition &position = m_session->position();
+    QList<PositionIndex::Stats> stats;
+    for (const PolyglotBook::Move &move : m_book ? m_book->moves(position) : QList<PolyglotBook::Move>()) {
+        ChessPosition next = position;
+        next.play(move.move);
+        stats << index->statsWithPosition(next);
+    }
+    m_bookPanel->setDatabaseStats(BookPanel::DatabaseState::Ready, stats);
 }
 
 void MainWindow::restoreOpeningNames()

@@ -145,6 +145,21 @@ Il Nero ha catturato: %2</translation>
         <source>In your repertoire: listed first whatever the weight</source>
         <translation>Nel tuo repertorio: in cima alla lista qualunque sia il peso</translation>
     </message>
+    <message>
+        <source>Database</source>
+        <translation>Database</translation>
+    </message>
+    <message>
+        <source>Games of the open database with the position after the move: how many, and how many White won, drew and Black won</source>
+        <translation>Partite del database aperto con la posizione dopo la mossa: quante sono, quante ne ha vinte il Bianco, quante patte e quante ne ha vinte il Nero</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n game(s): White won %1, %2 drawn, Black won %3</source>
+        <translation>
+            <numerusform>%n partita: vinta dal Bianco %1, patta %2, vinta dal Nero %3</numerusform>
+            <numerusform>%n partite: vinte dal Bianco %1, patte %2, vinte dal Nero %3</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>CapturedPiecesWidget</name>

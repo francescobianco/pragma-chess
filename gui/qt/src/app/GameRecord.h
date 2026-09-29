@@ -41,4 +41,6 @@ struct GameLine {
     QString startFen;
     /// UCI moves separated by spaces, as stored.
     QString movesUci;
+    /// "1-0", "0-1", "1/2-1/2" or anything else for no result.
+    QString result;
 };

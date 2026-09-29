@@ -689,10 +689,11 @@ QList<GameLine> SqliteGameDatabase::gameLines() const
     lines.reserve(m_headers.size());
     QSqlQuery query(QSqlDatabase::database(m_connectionName));
     query.setForwardOnly(true);
-    if (!query.exec(QStringLiteral("SELECT id, start_fen, moves_uci FROM games ORDER BY id")))
+    if (!query.exec(QStringLiteral("SELECT id, start_fen, moves_uci, result FROM games ORDER BY id")))
         return lines;
     while (query.next())
-        lines << GameLine{query.value(0).toLongLong(), query.value(1).toString(), query.value(2).toString()};
+        lines << GameLine{query.value(0).toLongLong(), query.value(1).toString(), query.value(2).toString(),
+                          query.value(3).toString()};
     return lines;
 }
 

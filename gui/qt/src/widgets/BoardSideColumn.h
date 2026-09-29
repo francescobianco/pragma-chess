@@ -43,6 +43,8 @@ private:
     void paintColumn(QPainter &painter, const QList<Item> &row, qreal y, bool upwards) const;
     qreal pieceSize() const;
     void updateDescription();
+    /// The spot behind a group: the window colour, a touch towards the text colour.
+    QColor spotColor() const;
 
     PieceCounts m_captured{};
     Side m_sideToMove = Side::White;

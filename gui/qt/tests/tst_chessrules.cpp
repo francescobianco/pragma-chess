@@ -85,6 +85,8 @@ ExplanationInput inputFor(const QStringList &movesBefore, const QString &played,
 
 } // namespace
 
+using namespace Qt::StringLiterals;
+
 class TestChessRules : public QObject {
     Q_OBJECT
 
@@ -771,6 +773,32 @@ private Q_SLOTS:
         QVERIFY(!outline.events.contains("?"));
         QCOMPARE(outline.years.keys(), (QList<int>{1851, 2001}));
         QCOMPARE(DatabaseOutline::ecoCode(QStringLiteral("F10")), QString());
+    }
+
+    void countsResultsByPosition()
+    {
+        // Four games reach the same position, one of them by another move order.
+        const QList<GameLine> games{
+            {1, QString(), QStringLiteral("e2e4 e7e5 g1f3 b8c6"), QStringLiteral("1-0")},
+            {2, QString(), QStringLiteral("g1f3 b8c6 e2e4 e7e5"), QStringLiteral("1/2-1/2")},
+            {3, QString(), QStringLiteral("e2e4 e7e5 g1f3 b8c6 f1b5"), QStringLiteral("0-1")},
+            {4, QString(), QStringLiteral("e2e4 e7e5 g1f3 b8c6"), QStringLiteral("*")},
+            {5, QString(), QStringLiteral("d2d4"), QStringLiteral("1-0")},
+        };
+        const PositionIndex index = PositionIndex::build(games);
+        ChessPosition position = ChessPosition::startingPosition();
+        for (const QString &uci : {u"e2e4"_s, u"e7e5"_s, u"g1f3"_s, u"b8c6"_s})
+            position.play(*position.moveFromUci(uci));
+        const PositionIndex::Stats stats = index.statsWithPosition(position);
+        QCOMPARE(stats.games, 4);
+        QCOMPARE(stats.whiteWins, 1);
+        QCOMPARE(stats.draws, 1);
+        QCOMPARE(stats.blackWins, 1); // Game 4 has no result: counted, not scored.
+        QCOMPARE(index.statsWithPosition(ChessPosition::startingPosition()).games, 5);
+        position.play(*position.moveFromUci(u"f1b5"));
+        QCOMPARE(index.statsWithPosition(position), (PositionIndex::Stats{1, 0, 0, 1}));
+        position.play(*position.moveFromUci(u"a7a6"));
+        QCOMPARE(index.statsWithPosition(position), PositionIndex::Stats());
     }
 
     void indexesPositionsAndLines()

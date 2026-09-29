@@ -43,6 +43,12 @@ PositionIndex PositionIndex::build(const QList<GameLine> &games, const std::atom
     PositionIndex index;
     index.m_gameCount = int(games.size());
     for (const GameLine &game : games) {
+        if (game.result == QLatin1String("1-0"))
+            index.m_results.insert(game.id, 1);
+        else if (game.result == QLatin1String("1/2-1/2"))
+            index.m_results.insert(game.id, 2);
+        else if (game.result == QLatin1String("0-1"))
+            index.m_results.insert(game.id, 3);
         if (cancelled && cancelled->load(std::memory_order_relaxed))
             break;
         std::optional<ChessPosition> start;
@@ -76,6 +82,24 @@ QSet<qint64> PositionIndex::idsOf(const Entries &entries, quint64 key)
     for (auto it = first; it != entries.end() && it->first == key; ++it)
         ids.insert(it->second);
     return ids;
+}
+
+PositionIndex::Stats PositionIndex::statsWithPosition(const ChessPosition &position) const
+{
+    const auto byKey = [](const auto &a, const auto &b) { return a.first < b.first; };
+    const auto range = std::equal_range(m_positions.begin(), m_positions.end(),
+                                        std::pair<quint64, qint64>(PolyglotBook::key(position), 0), byKey);
+    Stats stats;
+    for (auto it = range.first; it != range.second; ++it) {
+        ++stats.games;
+        switch (m_results.value(it->second)) {
+        case 1: ++stats.whiteWins; break;
+        case 2: ++stats.draws; break;
+        case 3: ++stats.blackWins; break;
+        default: break;
+        }
+    }
+    return stats;
 }
 
 int PositionIndex::countOf(const Entries &entries, quint64 key)

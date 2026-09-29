@@ -21,8 +21,10 @@ BookPanel::BookPanel(QWidget *parent)
     auto *header = new PaddedHeaderView(Qt::Horizontal, CellPadding::vertical, CellPadding::horizontal, m_moves);
     header->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter); // As a tree's own header.
     m_moves->setHeader(header);
-    m_moves->setColumnCount(3);
-    m_moves->setHeaderLabels({tr("Move"), tr("Opening"), tr("Weight")});
+    m_moves->setColumnCount(kColumns);
+    m_moves->setHeaderLabels({tr("Move"), tr("Opening"), tr("Database"), tr("Weight")});
+    m_moves->headerItem()->setToolTip(kDatabaseColumn, tr("Games of the open database with the position after the move: "
+                                                          "how many, and how many White won, drew and Black won"));
     m_moves->headerItem()->setTextAlignment(0, Qt::AlignCenter); // Only the title: the moves stay left-aligned.
     m_moves->setRootIsDecorated(false);
     m_moves->setUniformRowHeights(true);
@@ -32,7 +34,8 @@ BookPanel::BookPanel(QWidget *parent)
     m_moves->header()->setStretchLastSection(false);
     m_moves->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     m_moves->header()->setSectionResizeMode(1, QHeaderView::Stretch);
-    m_moves->header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    m_moves->header()->setSectionResizeMode(kDatabaseColumn, QHeaderView::ResizeToContents);
+    m_moves->header()->setSectionResizeMode(kWeightColumn, QHeaderView::ResizeToContents);
     connect(m_moves, &QTreeWidget::itemClicked, this, [this](QTreeWidgetItem *item) {
         if (!(item->flags() & Qt::ItemIsEnabled))
             return;
@@ -84,6 +87,15 @@ void BookPanel::setMoves(const ChessPosition &position, const QList<PolyglotBook
     rebuild();
 }
 
+void BookPanel::setDatabaseStats(DatabaseState state, const QList<PositionIndex::Stats> &stats)
+{
+    if (state == m_databaseState && stats == m_stats)
+        return;
+    m_databaseState = state;
+    m_stats = stats;
+    rebuild();
+}
+
 void BookPanel::rebuild()
 {
     m_moves->clear();
@@ -122,8 +134,28 @@ void BookPanel::rebuild()
         if (!name.isEmpty())
             item->setToolTip(1, QStringLiteral("%1 %2").arg(name.eco, name.name));
         const double share = total > 0 ? 100.0 * move.weight / total : 100.0 / moves.size();
-        item->setText(2, QLocale().toString(share, 'f', 1) + QStringLiteral(" %"));
-        item->setTextAlignment(2, Qt::AlignRight | Qt::AlignVCenter);
+        item->setText(kWeightColumn, QLocale().toString(share, 'f', 1) + QStringLiteral(" %"));
+        item->setTextAlignment(kWeightColumn, Qt::AlignRight | Qt::AlignVCenter);
+        item->setTextAlignment(kDatabaseColumn, Qt::AlignRight | Qt::AlignVCenter);
+        if (m_databaseState == DatabaseState::Indexing) {
+            item->setText(kDatabaseColumn, QStringLiteral("…"));
+        } else if (m_databaseState == DatabaseState::Ready && i < m_stats.size()) {
+            const PositionIndex::Stats &stats = m_stats.at(i);
+            if (stats.games == 0) {
+                item->setText(kDatabaseColumn, QStringLiteral("–"));
+            } else {
+                // Games, then White wins / draws / Black wins, as in chess databases.
+                const QLocale locale;
+                item->setText(kDatabaseColumn, QStringLiteral("%1 (%2/%3/%4)")
+                                                   .arg(locale.toString(stats.games), locale.toString(stats.whiteWins),
+                                                        locale.toString(stats.draws), locale.toString(stats.blackWins)));
+                item->setToolTip(kDatabaseColumn,
+                                 tr("%n game(s): White won %1, %2 drawn, Black won %3", nullptr, stats.games)
+                                     .arg(stats.whiteWins)
+                                     .arg(stats.draws)
+                                     .arg(stats.blackWins));
+            }
+        }
         if (move.inRepertoire()) {
             // Bold and brighter than the rest: pure white on a dark theme, pure black on a light one.
             const bool dark = palette().color(QPalette::Base).lightness() < 128;
@@ -134,7 +166,7 @@ void BookPanel::rebuild()
                 item->setFont(column, font);
                 item->setForeground(column, bright);
             }
-            item->setToolTip(2, tr("In your repertoire: listed first whatever the weight"));
+            item->setToolTip(kWeightColumn, tr("In your repertoire: listed first whatever the weight"));
         }
     }
 

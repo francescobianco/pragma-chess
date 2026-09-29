@@ -301,6 +301,8 @@ qt_add_executable(pragma-chess
     src/widgets/PaddedHeaderView.h
     src/widgets/PaddedItemDelegate.cpp
     src/widgets/PaddedItemDelegate.h
+    src/widgets/PaddedStatusBar.cpp
+    src/widgets/PaddedStatusBar.h
     src/widgets/PieceRenderer.cpp
     src/widgets/PieceRenderer.h
     src/widgets/CentralArea.cpp

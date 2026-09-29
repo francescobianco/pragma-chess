@@ -39,6 +39,8 @@ private:
     int layoutRow(QPainter *painter) const;
     int pieceSize() const;
     void updateDescription();
+    /// The spot behind a group: the window colour, a touch towards the text colour.
+    QColor spotColor() const;
 
     PieceCounts m_captured{};
     bool m_flipped = false;

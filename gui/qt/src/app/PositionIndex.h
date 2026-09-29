@@ -3,6 +3,7 @@
 #include "ChessPosition.h"
 #include "GameRecord.h"
 
+#include <QHash>
 #include <QList>
 #include <QSet>
 
@@ -27,6 +28,17 @@ public:
 
     int gameCount() const { return m_gameCount; }
 
+    /// How the games reaching a position ended (the Database column of the Opening Tree).
+    struct Stats {
+        int games = 0;
+        int whiteWins = 0;
+        int draws = 0;
+        int blackWins = 0;
+
+        bool operator==(const Stats &) const = default;
+    };
+    Stats statsWithPosition(const ChessPosition &position) const;
+
     /// Ids of the games in which `position` occurs, at any ply.
     QSet<qint64> gamesWithPosition(const ChessPosition &position) const;
     int countWithPosition(const ChessPosition &position) const;
@@ -48,5 +60,7 @@ private:
     /// (position key, game id) and (line key, game id), sorted and unique.
     Entries m_positions;
     Entries m_lines;
+    /// Result of each game: 1 White won, 2 draw, 3 Black won, 0 none.
+    QHash<qint64, quint8> m_results;
     int m_gameCount = 0;
 };

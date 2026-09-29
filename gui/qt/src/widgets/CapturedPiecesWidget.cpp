@@ -12,8 +12,9 @@ constexpr qreal kStackOffset = 0.28;
 /// Pawns up to this many are drawn one by one, more get a count.
 constexpr int kPawnsShownOneByOne = 2;
 /// The rounded, light spot holding each group of captured pieces.
-const QColor kSpotColor(0xf0, 0xd9, 0xb5, 0xe6);
-const QColor kSpotText(0x3a, 0x2f, 0x24);
+/// The islands are greyed out so they do not draw the eye away from the board:
+/// a spot barely off the window colour, the pieces in low-contrast greys.
+constexpr qreal kSpotTint = 0.07;
 constexpr int kSpotPadding = 3;
 constexpr qreal kSpotRadius = 4;
 
@@ -97,12 +98,13 @@ int CapturedPiecesWidget::layoutRow(QPainter *painter) const
         for (qsizetype i = 0; i < row.size(); ++i) {
             const Item &item = row.at(i);
             for (int copy = 0; copy < item.copies && paint; ++copy)
-                PieceRenderer::paint(*painter, item.piece, QRectF(x + copy * stackStep, top, size, size), dpr);
+                PieceRenderer::paintMuted(*painter, item.piece, QRectF(x + copy * stackStep, top, size, size), dpr,
+                                          spotColor());
             x += size + (item.copies - 1) * stackStep;
             if (!item.label.isEmpty()) {
                 const int labelWidth = fontMetrics().horizontalAdvance(item.label);
                 if (paint) {
-                    painter->setPen(kSpotText);
+                    painter->setPen(palette().color(QPalette::PlaceholderText));
                     painter->drawText(QRect(x, 0, labelWidth, height()), Qt::AlignVCenter | Qt::AlignLeft, item.label);
                 }
                 x += labelWidth;
@@ -126,7 +128,7 @@ int CapturedPiecesWidget::layoutRow(QPainter *painter) const
         const int spotWidth = layoutGroup(row, 0, false) + 2 * kSpotPadding;
         if (painter) {
             painter->setPen(Qt::NoPen);
-            painter->setBrush(kSpotColor);
+            painter->setBrush(spotColor());
             painter->drawRoundedRect(QRectF(x, 0, spotWidth, height()), kSpotRadius, kSpotRadius);
             layoutGroup(row, x + kSpotPadding, true);
         }
@@ -171,4 +173,13 @@ void CapturedPiecesWidget::updateDescription()
                              .arg(describe(Side::Black), describe(Side::White));
     setToolTip(text);
     setAccessibleDescription(text);
+}
+
+QColor CapturedPiecesWidget::spotColor() const
+{
+    const QColor window = palette().color(QPalette::Window);
+    const QColor text = palette().color(QPalette::WindowText);
+    return QColor::fromRgbF(window.redF() + (text.redF() - window.redF()) * kSpotTint,
+                            window.greenF() + (text.greenF() - window.greenF()) * kSpotTint,
+                            window.blueF() + (text.blueF() - window.blueF()) * kSpotTint);
 }

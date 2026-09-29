@@ -95,6 +95,8 @@ private:
     void showCategory(const GameCategory &category);
     /// Indexes the positions of the open database again, in the background.
     void rebuildPositionIndex();
+    /// The Database column of the Opening Tree: how the open database's games went after each book move.
+    void updateBookDatabaseStats();
     /// Counts the games matching the board for Position and Variant and, when
     /// one of them is shown, filters the list again.
     void updateBoardFilters();

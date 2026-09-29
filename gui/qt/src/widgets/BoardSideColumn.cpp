@@ -14,8 +14,9 @@ constexpr qreal kStackOffset = 0.3;
 /// Pawns up to this many are drawn one by one, more get a count.
 constexpr int kPawnsShownOneByOne = 2;
 /// The rounded, light spot holding each group of captured pieces.
-const QColor kSpotColor(0xf0, 0xd9, 0xb5, 0xe6);
-const QColor kSpotText(0x3a, 0x2f, 0x24);
+/// The islands are greyed out so they do not draw the eye away from the board:
+/// a spot barely off the window colour, the pieces in low-contrast greys.
+constexpr qreal kSpotTint = 0.07;
 constexpr qreal kSpotRadius = 4;
 /// Padding inside the spots, in pixels.
 constexpr qreal kPadding = 2;
@@ -128,7 +129,7 @@ void BoardSideColumn::paintColumn(QPainter &painter, const QList<Item> &row, qre
 
     // Each group sits in a light spot, so dark pieces show on dark themes too.
     painter.setPen(Qt::NoPen);
-    painter.setBrush(kSpotColor);
+    painter.setBrush(spotColor());
     painter.drawRoundedRect(QRectF(0, top, width(), height), kSpotRadius, kSpotRadius);
 
     const qreal dpr = devicePixelRatioF();
@@ -136,11 +137,12 @@ void BoardSideColumn::paintColumn(QPainter &painter, const QList<Item> &row, qre
     qreal cursor = top + pad;
     for (const Item &item : row) {
         for (int copy = 0; copy < item.copies; ++copy)
-            PieceRenderer::paint(painter, item.piece, QRectF(pad, cursor + copy * stackStep, size, size), dpr);
+            PieceRenderer::paintMuted(painter, item.piece, QRectF(pad, cursor + copy * stackStep, size, size), dpr,
+                                      spotColor());
         cursor += size * 0.82 + (item.copies - 1) * stackStep;
         if (!item.label.isEmpty()) {
             painter.setFont(font);
-            painter.setPen(kSpotText);
+            painter.setPen(palette().color(QPalette::PlaceholderText));
             painter.drawText(QRectF(0, cursor + size * 0.18, width(), labelHeight), Qt::AlignCenter, item.label);
             cursor += labelHeight;
         }
@@ -201,4 +203,13 @@ void BoardSideColumn::updateDescription()
                                .arg(describe(Side::Black), describe(Side::White));
     setToolTip(text);
     setAccessibleDescription(text);
+}
+
+QColor BoardSideColumn::spotColor() const
+{
+    const QColor window = palette().color(QPalette::Window);
+    const QColor text = palette().color(QPalette::WindowText);
+    return QColor::fromRgbF(window.redF() + (text.redF() - window.redF()) * kSpotTint,
+                            window.greenF() + (text.greenF() - window.greenF()) * kSpotTint,
+                            window.blueF() + (text.blueF() - window.blueF()) * kSpotTint);
 }

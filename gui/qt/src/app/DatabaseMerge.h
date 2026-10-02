@@ -24,7 +24,9 @@ struct Result {
 
 /// Merges every game of the database file `from` into `into` by uid: games it
 /// lacks are added with their uid and revision, newer versions replace older
-/// ones, and nothing of `into` is lost. `from` is only read.
+/// ones, and nothing of `into` is lost. `from` is only read. The states of
+/// the games (trashed, deleted, purged) are merged first, the newer winning:
+/// the one thing that removes a game is that either copy purged it.
 std::optional<Result> mergeInto(GameDatabase &into, const QString &from, QString *errorMessage);
 
 /// The same between two files; `into` then takes the id `lineage` if not empty.

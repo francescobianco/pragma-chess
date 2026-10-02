@@ -24,7 +24,17 @@ public:
     /// Absolute path of the database file, empty for in-memory databases.
     virtual QString location() const = 0;
 
+    /// Every game stored, the trashed and deleted ones included
+    /// (GameRecord::state says which): what the indexes run over.
     virtual qint64 gameCount() const = 0;
+    /// How many games have `state`: Live for those the lists show.
+    qint64 countGames(GameState state) const
+    {
+        qint64 count = 0;
+        for (qint64 index = 0; index < gameCount(); ++index)
+            count += header(index).state == state;
+        return count;
+    }
 
     /// Header information for the game at `index` (0 <= index < gameCount()).
     virtual GameRecord header(qint64 index) const = 0;
@@ -47,6 +57,22 @@ public:
     /// version of it, e.g. a newer one from another device. Its uid stays;
     /// `modified` is taken from `game` (now, if empty).
     virtual bool replaceGame(qint64 index, const GameRecord &game, QString *errorMessage) = 0;
+
+    /// Puts the game at `index` in the trash (Trashed), takes it back (Live)
+    /// or deletes it from the trash (Deleted). Nothing leaves the file: a
+    /// deleted game is only hidden everywhere, until optimize().
+    virtual bool setGameState(qint64 index, GameState state, QString *errorMessage) = 0;
+    /// The state of every game that was ever trashed, by uid, including the
+    /// games optimize() purged: what another copy of the database follows.
+    virtual QList<GameStateRecord> gameStates() const = 0;
+    /// Takes the states of another copy that are newer than ours
+    /// (GameStates::incomingChanges); a game it purged goes for good. The
+    /// indexes of the games change when one goes.
+    virtual bool mergeGameStates(const QList<GameStateRecord> &incoming, QString *errorMessage) = 0;
+    /// Removes for good the deleted games and the names only they used, and
+    /// compacts the file. The indexes of the games change. Returns how many
+    /// games went, or -1 on failure.
+    virtual int optimize(QString *errorMessage) = 0;
 
     /// Who the players are to the user (me, friends, opponents), by name.
     virtual PlayerRoles playerRoles() const = 0;

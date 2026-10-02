@@ -11,13 +11,15 @@ import org.pragmachess.mobile.data.Computer
 import org.pragmachess.mobile.data.Corpus
 import org.pragmachess.mobile.data.GameRecord
 import org.pragmachess.mobile.data.Library
+import org.pragmachess.mobile.data.NewerSchemaException
 import org.pragmachess.mobile.data.PdbDatabase
 import org.pragmachess.mobile.data.Reconciler
 import java.io.File
 import java.security.MessageDigest
 
 /** Why a sync stopped; the app turns it into a sentence. */
-enum class SyncFailure { NoRelays, NoAnswer, Refused, NoConnection, Protocol }
+/** UpdateApp: a database of the computer has a schema this app does not know yet. */
+enum class SyncFailure { NoRelays, NoAnswer, Refused, NoConnection, Protocol, UpdateApp }
 
 class SyncException(val failure: SyncFailure, detail: String? = null) : Exception(detail ?: failure.name)
 
@@ -214,16 +216,20 @@ class ComputerSync(
                     tally.newDatabases++
                     tally.stored += count
                 } else {
-                    val incoming = PdbDatabase.open(temp, writable = true).use { it.allGames() }
+                    val (incoming, states) = PdbDatabase.open(temp, writable = true).use { it.allGames() to it.states() }
                     PdbDatabase.open(library.file(local), writable = true).use { db ->
+                        // Where the games are first: what the computer trashed, deleted or purged.
+                        db.mergeStates(states)
                         val plan = Reconciler.plan(db.allGames(), incoming)
-                        db.merge(plan)
-                        tally.stored += plan.insert.size
+                        tally.stored += db.merge(plan)
                         tally.updated += plan.update.size
                         tally.conflicts += plan.conflicts
                         if (plan.send.isNotEmpty() && !aliased) toSend[key] = plan.send
                     }
                 }
+            } catch (e: NewerSchemaException) {
+                // Made by a newer Pragma Chess: the app is asked to be updated, the file is not kept.
+                throw SyncException(SyncFailure.UpdateApp, r.name)
             } finally {
                 temp.delete()
                 File(temp.path + "-journal").delete()

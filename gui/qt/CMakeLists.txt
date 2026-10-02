@@ -130,6 +130,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/ExplanationSearch.h
     src/app/GameIdentity.cpp
     src/app/GameIdentity.h
+    src/app/GameState.cpp
+    src/app/GameState.h
     src/app/MoveExplanation.cpp
     src/app/MoveExplanation.h
     src/app/OpeningNames.cpp
@@ -274,6 +276,8 @@ qt_add_executable(pragma-chess
     src/app/GameSession.h
     src/app/DatabaseMerge.cpp
     src/app/DatabaseMerge.h
+    src/app/DatabaseMigrations.cpp
+    src/app/DatabaseMigrations.h
     src/app/SqliteGameDatabase.cpp
     src/app/SqliteGameDatabase.h
     src/app/UserFolders.cpp
@@ -429,6 +433,8 @@ if(PRAGMA_HAS_PHONE_LINK)
     qt_add_executable(pragma-phone tools/phone/main.cpp
         src/app/phone/DatabaseFolderStore.cpp
         src/app/phone/DatabaseFolderStore.h
+        src/app/DatabaseMigrations.cpp
+        src/app/DatabaseMigrations.h
         src/app/SqliteGameDatabase.cpp
         src/app/SqliteGameDatabase.h)
     target_link_libraries(pragma-phone PRIVATE pragma-phone-link ${PRAGMA_DATACHANNEL} Qt6::Sql)
@@ -441,6 +447,8 @@ if(TARGET Qt6::Test)
     qt_add_executable(tst_chessrules tests/tst_chessrules.cpp
         src/app/DatabaseMerge.cpp
         src/app/DatabaseMerge.h
+        src/app/DatabaseMigrations.cpp
+        src/app/DatabaseMigrations.h
         src/app/SqliteGameDatabase.cpp
         src/app/SqliteGameDatabase.h)
     target_link_libraries(tst_chessrules PRIVATE pragma-chess-core Qt6::Sql Qt6::Test)
@@ -451,6 +459,8 @@ if(TARGET Qt6::Test)
         qt_add_executable(tst_phonelink tests/tst_phonelink.cpp
             src/app/phone/DatabaseFolderStore.cpp
             src/app/phone/DatabaseFolderStore.h
+            src/app/DatabaseMigrations.cpp
+            src/app/DatabaseMigrations.h
             src/app/SqliteGameDatabase.cpp
             src/app/SqliteGameDatabase.h)
         target_link_libraries(tst_phonelink PRIVATE pragma-phone-link ${PRAGMA_DATACHANNEL} Qt6::Sql Qt6::Test)

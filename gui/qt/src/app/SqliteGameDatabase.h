@@ -52,6 +52,10 @@ public:
     int importGames(qint64 sourceId, const QList<ImportedGame> &games, QString *errorMessage) override;
     DatabaseProperties properties() const override { return m_properties; }
     bool setProperties(const DatabaseProperties &properties, QString *errorMessage) override;
+    bool setGameState(qint64 index, GameState state, QString *errorMessage) override;
+    QList<GameStateRecord> gameStates() const override;
+    bool mergeGameStates(const QList<GameStateRecord> &incoming, QString *errorMessage) override;
+    int optimize(QString *errorMessage) override;
     bool isModified() const override { return false; }
     bool saveCopy(const QString &path, QString *errorMessage) const override;
 

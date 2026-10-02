@@ -39,7 +39,8 @@ gui/qt/
   src/main.cpp         entry point (signal handling → clean quit, session save)
   src/MainWindow.*     main window, menus, docks, layouts, projects
   src/app/             non-widget logic: GameDatabase interface, SQLite .pdb
-                       implementation, GameSession, ChessPosition (rules),
+                       implementation and its migrations, GameSession,
+                       ChessPosition (rules),
                        BoardState, Project (.pch), UciEngine, Explainer and
                        MoveExplanation, UserFolders, ClassicGames seed data
   src/models/          Qt item models (games list, move list)
@@ -195,8 +196,15 @@ cargo run -p chessdb-cli -- <args>
 ## File formats and user data
 
 - **`.pdb` database**: SQLite with `PRAGMA application_id` = `PRAG` and schema
-  version in `PRAGMA user_version` (currently 5). Changing the schema means
-  bumping the version and upgrading older files in `SqliteGameDatabase::open`.
+  version in `PRAGMA user_version` (currently 6). **The schema is a list of
+  migrations**, as in web frameworks (`app/DatabaseMigrations`): each takes a
+  file from the version before to its own, a new file runs them all, an older
+  file runs the ones it is missing when it is opened (each in a transaction,
+  logged in the file's `migrations` table). Changing the schema means
+  appending a migration, never editing a released one; there is no way back,
+  so a file of a later version is refused and the user is asked to update the
+  application — the desktop client and the Android app alike
+  (`NewerSchemaException`, `PdbDatabase.SCHEMA_VERSION`: keep it in step).
   Version 2 added `sources` (connected sources, settings and sync state as
   JSON) and `game_sources` (which source each imported game came from, by
   external id, so a sync never imports a game twice). Version 3 added
@@ -214,6 +222,31 @@ cargo run -p chessdb-cli -- <args>
   is created, never changed) and `games.modified` (set on every change).
   `Reconcile` (pure, unit-tested) merges two copies by uid, newer wins, and
   reports conflicts; the phone link's `put` uses it.
+  Version 6 added the trash: `game_states` (`uid`, `state`, `modified`), see
+  "Trash" below.
+
+## Trash
+
+Right-clicking a game of the list offers Move Game to Trash; the tree's last
+node, Trash, lists those games, and only there a game can be restored or
+deleted. **Deleting is always soft**: nothing leaves the file until Database ▸
+Database Settings… ▸ Optimize Database (bottom left), which removes the
+deleted games for good, drops the names only they used and compacts the file
+(`GameDatabase::optimize`; more clean-ups will go there).
+
+- `GameState` (pure): Live, Trashed, Deleted, Purged. `GameRecord::state` says
+  where a stored game is; `gameCount()` and the indexes still run over every
+  row, so **anything that walks the games must skip the ones that are not
+  Live** (`GameFilterProxyModel` shows one state at a time, `gameLines()`
+  returns the live ones, `countGames(state)` counts).
+- The state lives apart from the game, with its own revision, and is merged
+  between copies before the games (`GameStates::incomingChanges`, newer wins;
+  `DatabaseMerge`, docs/phone-link.md "The trash"). Purging leaves the row of
+  the state behind as a tombstone: without it the folder sync, which never
+  deletes, would bring the game back from another device.
+  `tst_chessrules::trashAndPurgeReachOtherCopies` covers it; keep it passing.
+- What a source imported stays known by external id after a purge
+  (`game_sources.game_id` 0), so a sync does not import it again.
 
 ## Folder sync
 
@@ -293,9 +326,9 @@ edits, signs in again or removes them.
 
 The tree left of the games list (`DatabaseTreeWidget`) shows only the open
 database, and under it Board (Position, Variant), Me/Friends/Opponents, ECO
-(letter → code), Tournaments, Years and Sources, listing only values some game
-has (`DatabaseOutline`, unit-tested); selecting a node filters the list
-through `GameFilterProxyModel`.
+(letter → code), Tournaments, Years, Sources and, always last, Trash, listing
+only values some game has (`DatabaseOutline`, unit-tested); selecting a node
+filters the list through `GameFilterProxyModel`.
 
 Board ▸ Position and Board ▸ Variant follow the board: Position lists the
 games in which the position on the board occurs at any ply, whatever the move

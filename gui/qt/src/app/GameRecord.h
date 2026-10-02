@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GameState.h"
+
 #include <QList>
 #include <QString>
 
@@ -31,6 +33,8 @@ struct GameRecord {
     QString uid;
     /// When the game was created or last changed, ISO 8601 UTC; empty = never.
     QString modified;
+    /// Trashed and deleted games stay in the database, out of the lists.
+    GameState state = GameState::Live;
     QList<MoveRecord> moves;
 };
 

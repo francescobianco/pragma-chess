@@ -9,7 +9,7 @@ class QLineEdit;
 class QPlainTextEdit;
 
 /// Database ▸ Database Settings…: edits the properties stored in the open
-/// database (its type and a description).
+/// database (its type and a description) and offers to optimize it.
 class DatabaseSettingsDialog : public QDialog {
     Q_OBJECT
 
@@ -18,6 +18,10 @@ public:
                            QWidget *parent = nullptr);
 
     DatabaseProperties properties() const;
+
+Q_SIGNALS:
+    /// Optimize Database was clicked: the window does it, on the open database.
+    void optimizeRequested();
 
 private:
     /// What the dialog does not edit (the universal id) is kept as it was.

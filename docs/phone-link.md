@@ -219,12 +219,38 @@ local games and the incoming ones, by `uid`:
 timestamps compare as instants, whatever their offset. A uid sent twice in
 one put counts once.
 
-A game deleted on one side comes back from the other: deleting across
-devices is not supported yet. Conflicts are listed after the sync ("3 games
+Deleting follows its own, smaller reconciliation (schema version 6): see
+"The trash" below. Conflicts are listed after the sync ("3 games
 differed on the two devices; the most recent version was kept") with the
 option, later, to choose per game. A later scan may renumber local ids and
 sort games (e.g. by date) so both copies look alike; `id` is local, `uid` is
 what matters.
+
+### The trash (schema version 6)
+
+A game is never removed by a merge of games; where it *is* travels apart, in
+`game_states` (`uid`, `state`, `modified`):
+
+| State | Meaning |
+|-------|---------|
+| no row, or `live` | in the lists (`live` is what restoring from the trash writes) |
+| `trashed` | in the Trash only |
+| `deleted` | deleted from the Trash: in no list, still in the file |
+| `purged` | removed from the file by Optimize Database; only this row is left |
+
+Merging two copies merges the states first, by uid: the newer `modified`
+wins, a tie keeps the local one (desktop `GameStates::incomingChanges`, phone
+`PdbDatabase.mergeStates`). Then a copy drops the rows of the games that are
+`purged`, and the merge of games above leaves those out of its inserts. So a
+game trashed, restored or deleted on one device is so on the others, and a
+purged game does not come back from a copy that still has it: that copy lets
+it go too. A purged game stored again by hand becomes `live`, with a newer
+`modified`. The state has its own revision: trashing does not touch
+`games.modified`, and editing a game does not take it out of the trash.
+
+The phone has no trash of its own yet: it hides what a computer trashed or
+deleted, drops what it purged, and never sends such a game back as new (the
+computer leaves out of a `put` the games it purged).
 
 ### Duplicates
 

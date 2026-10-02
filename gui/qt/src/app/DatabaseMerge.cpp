@@ -32,6 +32,15 @@ std::optional<Result> mergeInto(GameDatabase &into, const QString &from, QString
     const std::unique_ptr<SqliteGameDatabase> source = SqliteGameDatabase::open(from, errorMessage);
     if (!source)
         return std::nullopt;
+    // Where the games are first (trash, deleted, purged): a game purged on
+    // either side must not come back from the other.
+    if (!into.mergeGameStates(source->gameStates(), errorMessage))
+        return std::nullopt;
+    QSet<QString> purged;
+    for (const GameStateRecord &state : into.gameStates()) {
+        if (state.state == GameState::Purged)
+            purged.insert(state.uid);
+    }
     const std::optional<QList<GameRecord>> incoming = allGames(*source, errorMessage);
     const std::optional<QList<GameRecord>> local = allGames(into, errorMessage);
     if (!incoming || !local)
@@ -48,6 +57,10 @@ std::optional<Result> mergeInto(GameDatabase &into, const QString &from, QString
     }
     for (int incomingIndex : plan.insert) {
         GameRecord game = incoming->at(incomingIndex);
+        if (purged.contains(game.uid)) {
+            ++result.known;
+            continue;
+        }
         game.id = 0;
         if (into.addGame(game, errorMessage) < 0)
             return std::nullopt;

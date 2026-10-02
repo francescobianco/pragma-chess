@@ -103,6 +103,15 @@ private:
     /// "Who Is This?" on a player of the games list.
     void showGameListMenu(const QPoint &position);
     void setPlayerRole(const QString &player, PlayerRole role);
+    /// Index of the game with `uid` in the open database, -1 if it has none.
+    qint64 gameIndexOf(const QString &uid) const;
+    /// Moves a game to the trash, back to the lists, or out of the trash.
+    void setGameState(const QString &uid, GameState state);
+    /// Asks, then deletes a game of the trash (GameState::Deleted).
+    void deleteGame(const QString &uid);
+    /// Database Settings ▸ Optimize Database, with `dialog` as the parent of
+    /// what it asks and reports.
+    void optimizeDatabase(QWidget *dialog);
     /// Turns the board so the user plays from the bottom, when the database knows who they are.
     void orientBoardForMe(const GameRecord &game);
 

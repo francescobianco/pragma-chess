@@ -6,6 +6,27 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Trash.** Right-click a game of the list and choose *Move Game to Trash*.
+  The database tree ends with *Trash*, where a game can be restored or
+  deleted. A game in the trash is in no other list and is not searched.
+- **Optimize Database.** Deleting is never immediate: *Database ▸ Database
+  Settings… ▸ Optimize Database* removes the deleted games for good and
+  compacts the file. Trashing, deleting and optimizing reach the other
+  devices through the sync, so a deleted game does not come back.
+- The Android app hides the games a computer trashed or deleted, and asks to
+  be updated when a database was made by a newer version of Pragma Chess.
+
+### Changed
+
+- The `.pdb` schema is now version 6 and is described by migrations: a
+  database of an older version is upgraded step by step when it is opened.
+  A database opened by this version can no longer be opened by 0.2.0 or by
+  the Android app before this change: both say it was made by a newer
+  version.
+- In the games list, the Elo, Date, ECO and Moves columns are centred.
+
 ### Fixed
 
 - Dialog buttons and the other texts that come from Qt (OK, Cancel, Save,

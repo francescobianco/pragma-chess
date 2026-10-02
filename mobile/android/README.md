@@ -55,7 +55,7 @@ Kotlin 2.2, Jetpack Compose with Material 3, AGP 8.13. Packages under
 | `chess` | `Position` (legal moves, check/mate/stalemate, SAN, FEN; perft-tested), `GameLine` |
 | `crypto` | secp256k1 keys and BIP-340 (secp256k1-kmp), `Nip44` v2 with a hand-written `ChaCha20` (official vectors), NIP-01 `NostrEvent` |
 | `link` | `PairingLink`, `PhoneIdentity` (the phone's key), `Signaling` (relays over OkHttp WebSockets), `PeerLink` (WebRTC, stream-webrtc-android), `ComputerSync` (list, get and merge by lineage, put what the computer lacks, pull again; skips pairs unchanged since the last sync) |
-| `data` | `PdbDatabase` (the desktop's `.pdb` schema, version 5, android.database.sqlite), `GameIdentity` (UUIDv5 game uids, lineages), `Reconciler` (merge by uid, newest wins), `Corpus` and `Library` (one flat folder of databases), `AppStore` (paired computers, origins, last reconciled hashes) |
+| `data` | `PdbDatabase` (the desktop's `.pdb` schema, version 6, android.database.sqlite), `GameIdentity` (UUIDv5 game uids, lineages), `Reconciler` (merge by uid, newest wins), `Corpus` and `Library` (one flat folder of databases), `AppStore` (paired computers, origins, last reconciled hashes) |
 | `engine` | `OexEngines` (engines installed as apps), `UciEngine` (a UCI process), `Analysis` (scores from White's point of view) |
 | `ui` | `AppViewModel`, side menu (`PragmaApp`), `BoardScreen` with `Board`, `EvaluationBar`, `MoveList` (SkakNew figurines), games list, computers, settings, licenses |
 

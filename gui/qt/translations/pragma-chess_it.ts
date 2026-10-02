@@ -366,6 +366,14 @@ Il Nero ha catturato: %2</translation>
         <source>An opening book names openings and variations: each game is a line, Event is its name and ECO its code. Only opening books are offered in Options ▸ Opening Names.</source>
         <translation>Un libro d&apos;aperture dà il nome ad aperture e varianti: ogni partita è una linea, l&apos;Evento è il suo nome e l&apos;ECO il suo codice. In Opzioni ▸ Nomi delle aperture compaiono solo i libri d&apos;aperture.</translation>
     </message>
+    <message>
+        <source>&amp;Optimize Database</source>
+        <translation>&amp;Ottimizza database</translation>
+    </message>
+    <message>
+        <source>Remove for good the games deleted from the trash and compact the file</source>
+        <translation>Rimuove definitivamente le partite eliminate dal cestino e compatta il file</translation>
+    </message>
 </context>
 <context>
     <name>DatabaseTreeWidget</name>
@@ -432,6 +440,14 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>Games that begin with exactly the moves played to reach the board</source>
         <translation>Partite che iniziano esattamente con le mosse giocate fino alla scacchiera</translation>
+    </message>
+    <message>
+        <source>Trash</source>
+        <translation>Cestino</translation>
+    </message>
+    <message>
+        <source>Games put in the trash: restore them, or delete them from here</source>
+        <translation>Partite messe nel cestino: ripristinale, oppure eliminale da qui</translation>
     </message>
 </context>
 <context>
@@ -1599,6 +1615,90 @@ Il Nero ha catturato: %2</translation>
         <source>Could not change the book: %1</source>
         <translation>Impossibile modificare il libro: %1</translation>
     </message>
+    <message>
+        <source>&amp;Restore Game</source>
+        <translation>&amp;Ripristina partita</translation>
+    </message>
+    <message>
+        <source>&amp;Delete Game…</source>
+        <translation>&amp;Elimina partita…</translation>
+    </message>
+    <message>
+        <source>Move Game to &amp;Trash</source>
+        <translation>&amp;Cestina partita</translation>
+    </message>
+    <message>
+        <source>Trash</source>
+        <translation>Cestino</translation>
+    </message>
+    <message>
+        <source>Could not move the game: %1</source>
+        <translation>Impossibile spostare la partita: %1</translation>
+    </message>
+    <message>
+        <source>Game moved to the trash</source>
+        <translation>Partita spostata nel cestino</translation>
+    </message>
+    <message>
+        <source>Game restored</source>
+        <translation>Partita ripristinata</translation>
+    </message>
+    <message>
+        <source>Game deleted</source>
+        <translation>Partita eliminata</translation>
+    </message>
+    <message>
+        <source>Delete Game</source>
+        <translation>Elimina partita</translation>
+    </message>
+    <message>
+        <source>Delete “%1” from the trash?
+
+It will not be listed anywhere any more. It stays in the file until the database is optimized (Database ▸ Database Settings…).</source>
+        <translation>Eliminare “%1” dal cestino?
+
+Non comparirà più in nessun elenco. Resta nel file finché il database non viene ottimizzato (Database ▸ Impostazioni database…).</translation>
+    </message>
+    <message>
+        <source>Optimize Database</source>
+        <translation>Ottimizza database</translation>
+    </message>
+    <message>
+        <source>A sync is running: optimize the database when it has finished.</source>
+        <translation>È in corso una sincronizzazione: ottimizza il database quando è finita.</translation>
+    </message>
+    <message numerus="yes">
+        <source>Optimize “%1”?
+
+%n deleted game(s) will be removed for good, here and on every device this database is synced with.</source>
+        <translation>
+            <numerusform>Ottimizzare “%1”?
+
+%n partita eliminata verrà rimossa definitivamente, qui e su ogni dispositivo con cui questo database è sincronizzato.</numerusform>
+            <numerusform>Ottimizzare “%1”?
+
+%n partite eliminate verranno rimosse definitivamente, qui e su ogni dispositivo con cui questo database è sincronizzato.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Could not optimize the database: %1</source>
+        <translation>Impossibile ottimizzare il database: %1</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n deleted game(s) removed.</source>
+        <translation>
+            <numerusform>%n partita eliminata rimossa.</numerusform>
+            <numerusform>%n partite eliminate rimosse.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The file went from %1 to %2.</source>
+        <translation>Il file è passato da %1 a %2.</translation>
+    </message>
+    <message>
+        <source>Trash: %1</source>
+        <translation>Cestino: %1</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>
@@ -2104,10 +2204,6 @@ Le %n partite già importate restano nel database.</numerusform>
         <translation>“%1” non è un database Pragma Chess.</translation>
     </message>
     <message>
-        <source>“%1” was created by a newer version of Pragma Chess.</source>
-        <translation>“%1” è stato creato con una versione più recente di Pragma Chess.</translation>
-    </message>
-    <message>
         <source>Could not upgrade “%1”: %2</source>
         <translation>Impossibile aggiornare “%1”: %2</translation>
     </message>
@@ -2154,6 +2250,10 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>The move is not in the book.</source>
         <translation>La mossa non è nel libro.</translation>
+    </message>
+    <message>
+        <source>“%1” was created by a newer version of Pragma Chess: update Pragma Chess to open it.</source>
+        <translation>“%1” è stato creato con una versione più recente di Pragma Chess: aggiorna Pragma Chess per aprirlo.</translation>
     </message>
 </context>
 <context>

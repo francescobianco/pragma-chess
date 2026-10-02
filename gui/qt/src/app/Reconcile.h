@@ -21,6 +21,10 @@ struct Plan {
     QStringList conflicts;
 };
 
+/// Whether the revision `a` is later than `b`: timestamps compare as
+/// instants, and an empty one (never edited) is the oldest.
+bool newer(const QString &a, const QString &b);
+
 /// `local` and `incoming` need `uid`, `modified` and (for comparing a uid
 /// found on both sides) moves. A newer `modified` wins; on a tie the local
 /// copy stays. Games only in `local` are kept: the other side receives them.

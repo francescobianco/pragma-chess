@@ -1,5 +1,6 @@
 #include "SqliteGameDatabase.h"
 
+#include "DatabaseMigrations.h"
 #include "GameIdentity.h"
 
 #include <QDir>
@@ -20,70 +21,6 @@ namespace {
 
 // "PRAG" — lets other tools (and `file`) identify Pragma databases.
 constexpr int kApplicationId = 0x50524147;
-constexpr int kSchemaVersion = 5;
-
-const char *const kSchema[] = {
-    "CREATE TABLE players (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
-    "CREATE TABLE events (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
-    "CREATE TABLE sites (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
-    "CREATE TABLE games ("
-    " id INTEGER PRIMARY KEY,"
-    " white_id INTEGER REFERENCES players(id),"
-    " black_id INTEGER REFERENCES players(id),"
-    " event_id INTEGER REFERENCES events(id),"
-    " site_id INTEGER REFERENCES sites(id),"
-    " date TEXT, round TEXT, result TEXT,"
-    " white_elo INTEGER, black_elo INTEGER, eco TEXT,"
-    " ply_count INTEGER NOT NULL DEFAULT 0,"
-    " start_fen TEXT,"
-    // Main line as space-separated SAN and UCI. A compact binary encoding
-    // produced by the engine will replace these.
-    " moves_san TEXT NOT NULL DEFAULT '',"
-    " moves_uci TEXT NOT NULL DEFAULT '')",
-    "CREATE INDEX games_white ON games(white_id)",
-    "CREATE INDEX games_black ON games(black_id)",
-};
-
-// Version 2: external sources of games and where each imported game came from.
-const char *const kSourcesSchema[] = {
-    "CREATE TABLE IF NOT EXISTS sources ("
-    " id INTEGER PRIMARY KEY,"
-    " uuid TEXT NOT NULL UNIQUE,"
-    " kind TEXT NOT NULL,"
-    " account TEXT NOT NULL,"
-    " settings TEXT NOT NULL DEFAULT '{}',"
-    " state TEXT NOT NULL DEFAULT '{}',"
-    " enabled INTEGER NOT NULL DEFAULT 1,"
-    " created_at TEXT NOT NULL,"
-    " last_sync_at TEXT,"
-    " last_error TEXT)",
-    "CREATE TABLE IF NOT EXISTS game_sources ("
-    " game_id INTEGER NOT NULL REFERENCES games(id),"
-    " source_id INTEGER NOT NULL REFERENCES sources(id),"
-    " external_id TEXT NOT NULL,"
-    " UNIQUE (source_id, external_id))",
-};
-
-// Version 3: who players are to the user (see PlayerRole).
-const char *const kPlayerRolesSchema[] = {
-    "CREATE TABLE IF NOT EXISTS player_roles ("
-    " player_id INTEGER PRIMARY KEY REFERENCES players(id),"
-    " role TEXT NOT NULL)",
-};
-
-// Version 4: properties of the database (see DatabaseProperties).
-const char *const kPropertiesSchema[] = {
-    "CREATE TABLE IF NOT EXISTS properties (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
-};
-
-// Version 5: universal game ids and revisions (see GameIdentity). The unique
-// index comes after the uids are filled in when upgrading.
-const char *const kGameIdentityColumns[] = {
-    "ALTER TABLE games ADD COLUMN uid TEXT",
-    "ALTER TABLE games ADD COLUMN modified TEXT",
-};
-const char kGameUidIndex[] = "CREATE UNIQUE INDEX IF NOT EXISTS games_uid ON games(uid)";
-
 QString toJsonText(const QJsonObject &object)
 {
     return QString::fromUtf8(QJsonDocument(object).toJson(QJsonDocument::Compact));
@@ -159,12 +96,14 @@ public:
         , m_sites(db, QStringLiteral("sites"))
         , m_insert(db)
         , m_uidTaken(db)
+        , m_revive(db)
     {
         m_insert.prepare(QStringLiteral(
             "INSERT INTO games (white_id, black_id, event_id, site_id, date, round, result,"
             " white_elo, black_elo, eco, ply_count, start_fen, moves_san, moves_uci, uid, modified)"
             " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
         m_uidTaken.prepare(QStringLiteral("SELECT 1 FROM games WHERE uid = ?"));
+        m_revive.prepare(QStringLiteral("UPDATE game_states SET state = 'live', modified = ? WHERE uid = ? AND state = 'purged'"));
     }
 
     /// Returns the id of the new game, or 0 on failure. A game without a uid
@@ -207,7 +146,15 @@ public:
         m_insert.addBindValue(m_lastModified);
         if (!m_insert.exec())
             return 0;
-        return m_insert.lastInsertId().toLongLong();
+        const qint64 id = m_insert.lastInsertId().toLongLong();
+        // A purged game stored again is a game again, and the newer state
+        // says so to the other copies. (A merge leaves out the games purged
+        // here before it inserts.)
+        m_revive.addBindValue(GameIdentity::now());
+        m_revive.addBindValue(m_lastUid);
+        if (!m_revive.exec())
+            return 0;
+        return id;
     }
 
     /// The header of the game just inserted, as the game list caches it.
@@ -219,12 +166,17 @@ public:
         header.moves.clear();
         header.uid = m_lastUid;
         header.modified = m_lastModified;
+        header.state = GameState::Live;
         return header;
     }
 
     QString errorText() const
     {
-        return m_insert.lastError().isValid() ? m_insert.lastError().text() : m_uidTaken.lastError().text();
+        for (const QSqlQuery *query : {&m_insert, &m_uidTaken, &m_revive}) {
+            if (query->lastError().isValid())
+                return query->lastError().text();
+        }
+        return {};
     }
 
 private:
@@ -233,58 +185,10 @@ private:
     NameTable m_sites;
     QSqlQuery m_insert;
     QSqlQuery m_uidTaken;
+    QSqlQuery m_revive;
     QString m_lastUid;
     QString m_lastModified;
 };
-
-/// Fills in the uid of games stored before version 5, from their content as
-/// if they were created now, so every copy of a database gets the same ones.
-bool fillGameUids(QSqlDatabase db, QString *errorMessage)
-{
-    QSqlQuery select(db);
-    select.setForwardOnly(true);
-    if (!select.exec(QStringLiteral(
-            "SELECT g.id, w.name, b.name, e.name, s.name, g.date, g.round, g.result, g.start_fen, g.moves_uci"
-            " FROM games g"
-            " LEFT JOIN players w ON w.id = g.white_id"
-            " LEFT JOIN players b ON b.id = g.black_id"
-            " LEFT JOIN events e ON e.id = g.event_id"
-            " LEFT JOIN sites s ON s.id = g.site_id"
-            " ORDER BY g.id"))) {
-        setError(errorMessage, select.lastError().text());
-        return false;
-    }
-    QList<std::pair<qint64, QString>> uids;
-    QHash<QString, int> occurrences;
-    while (select.next()) {
-        GameRecord game;
-        game.white = select.value(1).toString();
-        game.black = select.value(2).toString();
-        game.event = select.value(3).toString();
-        game.site = select.value(4).toString();
-        game.date = select.value(5).toString();
-        game.round = select.value(6).toString();
-        game.result = select.value(7).toString();
-        game.startFen = select.value(8).toString();
-        for (const QString &uci : select.value(9).toString().split(QLatin1Char(' '), Qt::SkipEmptyParts))
-            game.moves << MoveRecord{QString(), uci};
-        const QString first = GameIdentity::uid(game);
-        const int occurrence = ++occurrences[first];
-        uids.append({select.value(0).toLongLong(), occurrence == 1 ? first : GameIdentity::uid(game, occurrence)});
-    }
-    select.finish();
-    QSqlQuery update(db);
-    update.prepare(QStringLiteral("UPDATE games SET uid = ? WHERE id = ?"));
-    for (const auto &[id, uid] : uids) {
-        update.addBindValue(uid);
-        update.addBindValue(id);
-        if (!update.exec()) {
-            setError(errorMessage, update.lastError().text());
-            return false;
-        }
-    }
-    return true;
-}
 
 } // namespace
 
@@ -339,30 +243,11 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::create(const QString &pa
 
     QSqlQuery query(db);
     query.exec(QStringLiteral("PRAGMA application_id = %1").arg(kApplicationId));
-    query.exec(QStringLiteral("PRAGMA user_version = %1").arg(kSchemaVersion));
+    // A new file runs every migration, like an old one opened now.
+    QString migrationError;
+    if (!DatabaseMigrations::migrate(db, 0, &migrationError))
+        return fail(migrationError);
     db.transaction();
-    for (const char *statement : kSchema) {
-        if (!query.exec(QString::fromLatin1(statement)))
-            return fail(query.lastError().text());
-    }
-    for (const char *statement : kSourcesSchema) {
-        if (!query.exec(QString::fromLatin1(statement)))
-            return fail(query.lastError().text());
-    }
-    for (const char *statement : kPlayerRolesSchema) {
-        if (!query.exec(QString::fromLatin1(statement)))
-            return fail(query.lastError().text());
-    }
-    for (const char *statement : kPropertiesSchema) {
-        if (!query.exec(QString::fromLatin1(statement)))
-            return fail(query.lastError().text());
-    }
-    for (const char *statement : kGameIdentityColumns) {
-        if (!query.exec(QString::fromLatin1(statement)))
-            return fail(query.lastError().text());
-    }
-    if (!query.exec(QString::fromLatin1(kGameUidIndex)))
-        return fail(query.lastError().text());
     // Every database is born with its universal id (see GameIdentity).
     query.prepare(QStringLiteral("INSERT INTO properties (key, value) VALUES ('id', ?)"));
     query.addBindValue(GameIdentity::newLineageId());
@@ -409,64 +294,20 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::open(const QString &path
         return nullptr;
     }
     if (!query.exec(QStringLiteral("PRAGMA user_version")) || !query.next()
-        || query.value(0).toInt() > kSchemaVersion) {
-        setError(errorMessage, QObject::tr("“%1” was created by a newer version of Pragma Chess.")
+        || query.value(0).toInt() > DatabaseMigrations::latestVersion()) {
+        setError(errorMessage, QObject::tr("“%1” was created by a newer version of Pragma Chess: "
+                                           "update Pragma Chess to open it.")
                                    .arg(info.fileName()));
         return nullptr;
     }
     const int version = query.value(0).toInt();
     query.finish();
 
-    // Upgrade older files in place; each step only adds tables.
-    const auto upgrade = [&](int to, const QList<const char *> &statements) {
-        db.transaction();
-        bool upgraded = true;
-        for (const char *statement : statements)
-            upgraded = upgraded && query.exec(QString::fromLatin1(statement));
-        upgraded = upgraded && query.exec(QStringLiteral("PRAGMA user_version = %1").arg(to));
-        if (!upgraded || !db.commit()) {
-            db.rollback();
-            setError(errorMessage, QObject::tr("Could not upgrade “%1”: %2")
-                                       .arg(info.fileName(), query.lastError().text()));
-            return false;
-        }
-        return true;
-    };
-    if (version < 2 && !upgrade(2, {std::begin(kSourcesSchema), std::end(kSourcesSchema)}))
+    // An older file runs, in place, the migrations it is missing.
+    QString migrationError;
+    if (!DatabaseMigrations::migrate(db, version, &migrationError)) {
+        setError(errorMessage, QObject::tr("Could not upgrade “%1”: %2").arg(info.fileName(), migrationError));
         return nullptr;
-    if (version < 3 && !upgrade(3, {std::begin(kPlayerRolesSchema), std::end(kPlayerRolesSchema)}))
-        return nullptr;
-    if (version < 4 && !upgrade(4, {std::begin(kPropertiesSchema), std::end(kPropertiesSchema)}))
-        return nullptr;
-    if (version < 5) {
-        db.transaction();
-        bool upgraded = true;
-        QString error;
-        // Files downgraded by hand (and tests) may have the columns already.
-        QSet<QString> columns;
-        if (query.exec(QStringLiteral("PRAGMA table_info(games)"))) {
-            while (query.next())
-                columns.insert(query.value(1).toString());
-        }
-        for (const char *statement : kGameIdentityColumns) {
-            const QString text = QString::fromLatin1(statement);
-            if (!columns.contains(text.section(QLatin1Char(' '), 5, 5)))
-                upgraded = upgraded && query.exec(text);
-        }
-        if (!upgraded)
-            error = query.lastError().text();
-        upgraded = upgraded && fillGameUids(db, &error);
-        upgraded = upgraded && query.exec(QString::fromLatin1(kGameUidIndex))
-                   && query.exec(QStringLiteral("PRAGMA user_version = 5"));
-        if (upgraded && !db.commit())
-            upgraded = false;
-        if (!upgraded) {
-            if (error.isEmpty())
-                error = query.lastError().isValid() ? query.lastError().text() : db.lastError().text();
-            db.rollback();
-            setError(errorMessage, QObject::tr("Could not upgrade “%1”: %2").arg(info.fileName(), error));
-            return nullptr;
-        }
     }
 
     if (!database->loadHeaders(errorMessage) || !database->loadPlayerRoles(errorMessage)
@@ -584,12 +425,13 @@ bool SqliteGameDatabase::loadHeaders(QString *errorMessage)
     query.setForwardOnly(true);
     if (!query.exec(QStringLiteral(
             "SELECT g.id, w.name, b.name, g.white_elo, g.black_elo, e.name, s.name,"
-            " g.date, g.round, g.result, g.eco, g.ply_count, g.start_fen, g.uid, g.modified"
+            " g.date, g.round, g.result, g.eco, g.ply_count, g.start_fen, g.uid, g.modified, st.state"
             " FROM games g"
             " LEFT JOIN players w ON w.id = g.white_id"
             " LEFT JOIN players b ON b.id = g.black_id"
             " LEFT JOIN events e ON e.id = g.event_id"
             " LEFT JOIN sites s ON s.id = g.site_id"
+            " LEFT JOIN game_states st ON st.uid = g.uid"
             " ORDER BY g.id"))) {
         setError(errorMessage, query.lastError().text());
         return false;
@@ -613,6 +455,11 @@ bool SqliteGameDatabase::loadHeaders(QString *errorMessage)
         g.startFen = query.value(12).toString();
         g.uid = query.value(13).toString();
         g.modified = query.value(14).toString();
+        g.state = gameStateFromKey(query.value(15).toString());
+        // A purged game whose row is still here (it came back from a copy
+        // that had it) waits, hidden, for the next optimize().
+        if (g.state == GameState::Purged)
+            g.state = GameState::Deleted;
         m_headers << g;
     }
     return true;
@@ -689,7 +536,10 @@ QList<GameLine> SqliteGameDatabase::gameLines() const
     lines.reserve(m_headers.size());
     QSqlQuery query(QSqlDatabase::database(m_connectionName));
     query.setForwardOnly(true);
-    if (!query.exec(QStringLiteral("SELECT id, start_fen, moves_uci, result FROM games ORDER BY id")))
+    // Only the games in the lists: the trash is not searched.
+    if (!query.exec(QStringLiteral("SELECT g.id, g.start_fen, g.moves_uci, g.result FROM games g"
+                                   " LEFT JOIN game_states st ON st.uid = g.uid"
+                                   " WHERE st.state IS NULL OR st.state = 'live' ORDER BY g.id")))
         return lines;
     while (query.next())
         lines << GameLine{query.value(0).toLongLong(), query.value(1).toString(), query.value(2).toString(),
@@ -844,9 +694,11 @@ bool SqliteGameDatabase::replaceGame(qint64 index, const GameRecord &game, QStri
     GameRecord &cached = m_headers[index];
     const qint64 id = cached.id;
     const QString uid = cached.uid;
+    const GameState state = cached.state;
     cached = game;
     cached.id = id;
     cached.uid = uid; // The identity never changes.
+    cached.state = state; // Where the game is has its own revision (game_states).
     cached.modified = modified;
     cached.plyCount = int(game.moves.size());
     cached.moves.clear();
@@ -859,7 +711,10 @@ QList<GameSource> SqliteGameDatabase::sources() const
     QSqlQuery query(QSqlDatabase::database(m_connectionName));
     if (!query.exec(QStringLiteral(
             "SELECT s.id, s.uuid, s.kind, s.account, s.settings, s.state, s.enabled, s.created_at,"
-            " s.last_sync_at, s.last_error, (SELECT COUNT(*) FROM game_sources g WHERE g.source_id = s.id)"
+            " s.last_sync_at, s.last_error,"
+            " (SELECT COUNT(*) FROM game_sources gs JOIN games g ON g.id = gs.game_id"
+            "  LEFT JOIN game_states st ON st.uid = g.uid"
+            "  WHERE gs.source_id = s.id AND (st.state IS NULL OR st.state = 'live'))"
             " FROM sources s ORDER BY s.id")))
         return result;
     while (query.next()) {
@@ -1001,4 +856,133 @@ QSet<qint64> SqliteGameDatabase::sourceGameIds(qint64 sourceId) const
             ids.insert(query.value(0).toLongLong());
     }
     return ids;
+}
+
+bool SqliteGameDatabase::setGameState(qint64 index, GameState state, QString *errorMessage)
+{
+    if (index < 0 || index >= m_headers.size() || state == GameState::Purged) {
+        setError(errorMessage, QObject::tr("The game does not exist."));
+        return false;
+    }
+    QSqlQuery query(QSqlDatabase::database(m_connectionName));
+    query.prepare(QStringLiteral("INSERT OR REPLACE INTO game_states (uid, state, modified) VALUES (?, ?, ?)"));
+    query.addBindValue(m_headers.at(index).uid);
+    query.addBindValue(gameStateKey(state));
+    query.addBindValue(GameIdentity::now());
+    if (!query.exec()) {
+        setError(errorMessage, query.lastError().text());
+        return false;
+    }
+    m_headers[index].state = state;
+    return true;
+}
+
+QList<GameStateRecord> SqliteGameDatabase::gameStates() const
+{
+    QList<GameStateRecord> states;
+    QSqlQuery query(QSqlDatabase::database(m_connectionName));
+    query.setForwardOnly(true);
+    if (!query.exec(QStringLiteral("SELECT uid, state, modified FROM game_states")))
+        return states;
+    while (query.next())
+        states << GameStateRecord{query.value(0).toString(), gameStateFromKey(query.value(1).toString()),
+                                  query.value(2).toString()};
+    return states;
+}
+
+namespace {
+
+/// Removes the rows of the games chosen by `where` (a condition on `games g`
+/// and its state `st`). What a source imported stays known, by external id,
+/// so the source does not import it again; it no longer points to a game.
+bool removeGames(QSqlDatabase db, const QString &where, int *removed, QString *error)
+{
+    const QString ids = QStringLiteral("SELECT g.id FROM games g LEFT JOIN game_states st ON st.uid = g.uid WHERE ")
+                        + where;
+    QSqlQuery query(db);
+    if (!query.exec(QStringLiteral("UPDATE game_sources SET game_id = 0 WHERE game_id IN (%1)").arg(ids))
+        || !query.exec(QStringLiteral("DELETE FROM games WHERE id IN (%1)").arg(ids))) {
+        *error = query.lastError().text();
+        return false;
+    }
+    if (removed)
+        *removed = query.numRowsAffected();
+    return true;
+}
+
+} // namespace
+
+bool SqliteGameDatabase::mergeGameStates(const QList<GameStateRecord> &incoming, QString *errorMessage)
+{
+    const QList<GameStateRecord> changes = GameStates::incomingChanges(gameStates(), incoming);
+    if (changes.isEmpty())
+        return true;
+
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    db.transaction();
+    QSqlQuery store(db);
+    store.prepare(QStringLiteral("INSERT OR REPLACE INTO game_states (uid, state, modified) VALUES (?, ?, ?)"));
+    QString error;
+    bool done = true;
+    for (const GameStateRecord &record : changes) {
+        store.addBindValue(record.uid);
+        store.addBindValue(gameStateKey(record.state));
+        store.addBindValue(record.modified);
+        if (!store.exec()) {
+            error = store.lastError().text();
+            done = false;
+            break;
+        }
+    }
+    // A game another copy purged goes here too: that is what purging means.
+    done = done && removeGames(db, QStringLiteral("st.state = 'purged'"), nullptr, &error);
+    if (!done || !db.commit()) {
+        setError(errorMessage, error.isEmpty() ? db.lastError().text() : error);
+        db.rollback();
+        return false;
+    }
+    return loadHeaders(errorMessage);
+}
+
+int SqliteGameDatabase::optimize(QString *errorMessage)
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    db.transaction();
+    QSqlQuery query(db);
+    QString error;
+    int removed = 0;
+    bool done = removeGames(db, QStringLiteral("st.state IN ('deleted', 'purged')"), &removed, &error);
+    if (done) {
+        // The state outlives the game, with the time of the purge: newer than
+        // the deletion every other copy knows about.
+        query.prepare(QStringLiteral("UPDATE game_states SET state = 'purged', modified = ? WHERE state = 'deleted'"));
+        query.addBindValue(GameIdentity::now());
+        done = query.exec();
+    }
+    // Names no game uses any more (players the user said who they are stay).
+    done = done
+           && query.exec(QStringLiteral(
+                  "DELETE FROM players WHERE id NOT IN (SELECT white_id FROM games WHERE white_id IS NOT NULL)"
+                  " AND id NOT IN (SELECT black_id FROM games WHERE black_id IS NOT NULL)"
+                  " AND id NOT IN (SELECT player_id FROM player_roles)"))
+           && query.exec(QStringLiteral(
+                  "DELETE FROM events WHERE id NOT IN (SELECT event_id FROM games WHERE event_id IS NOT NULL)"))
+           && query.exec(QStringLiteral(
+                  "DELETE FROM sites WHERE id NOT IN (SELECT site_id FROM games WHERE site_id IS NOT NULL)"));
+    if (!done || !db.commit()) {
+        if (error.isEmpty())
+            error = query.lastError().isValid() ? query.lastError().text() : db.lastError().text();
+        setError(errorMessage, error);
+        db.rollback();
+        return -1;
+    }
+    // Gives the space back to the file system; it cannot run in a transaction.
+    query.finish();
+    if (!query.exec(QStringLiteral("VACUUM"))) {
+        setError(errorMessage, query.lastError().text());
+        return -1;
+    }
+    if (!loadHeaders(errorMessage))
+        return -1;
+    return removed;
 }

@@ -7,6 +7,7 @@
 #include <QLineEdit>
 #include <QLocale>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 DatabaseSettingsDialog::DatabaseSettingsDialog(const QString &databaseName, const DatabaseProperties &properties,
@@ -66,10 +67,19 @@ DatabaseSettingsDialog::DatabaseSettingsDialog(const QString &databaseName, cons
     }
     layout->addLayout(form);
 
+    // Maintenance sits bottom left, away from OK and Cancel.
+    auto *optimize = new QPushButton(tr("&Optimize Database"), this);
+    optimize->setAutoDefault(false);
+    optimize->setToolTip(tr("Remove for good the games deleted from the trash and compact the file"));
+    connect(optimize, &QPushButton::clicked, this, &DatabaseSettingsDialog::optimizeRequested);
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
-    layout->addWidget(buttons);
+    auto *bottom = new QHBoxLayout;
+    bottom->addWidget(optimize);
+    bottom->addStretch();
+    bottom->addWidget(buttons);
+    layout->addLayout(bottom);
     resize(460, sizeHint().height());
 }
 

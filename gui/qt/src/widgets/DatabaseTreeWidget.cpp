@@ -127,8 +127,14 @@ void DatabaseTreeWidget::refresh()
     const PlayerRoles roles = m_database->playerRoles();
     DatabaseOutline outline;
     QMap<PlayerRole, int> roleGames;
+    int liveGames = 0;
+    int trashedGames = 0;
     for (qint64 index = 0; index < m_database->gameCount(); ++index) {
         const GameRecord header = m_database->header(index);
+        trashedGames += header.state == GameState::Trashed;
+        if (header.state != GameState::Live)
+            continue;
+        ++liveGames;
         outline.add(header, roles);
         for (auto role = outline.players.cbegin(); role != outline.players.cend(); ++role) {
             if (DatabaseOutline::hasRole(header, roles, role.key()))
@@ -136,8 +142,7 @@ void DatabaseTreeWidget::refresh()
         }
     }
 
-    QTreeWidgetItem *root = addItem(nullptr, Node::Database, m_database->name(), QVariant(),
-                                    int(m_database->gameCount()));
+    QTreeWidgetItem *root = addItem(nullptr, Node::Database, m_database->name(), QVariant(), liveGames);
     root->setIcon(0, SymbolicIcons::icon(QStringLiteral("pragma-database")));
     root->setToolTip(0, m_database->location());
     QFont bold = root->font(0);
@@ -203,6 +208,9 @@ void DatabaseTreeWidget::refresh()
         if (firstFill)
             group->setExpanded(true);
     }
+    // Always there, and last: where the games taken out of the lists wait.
+    QTreeWidgetItem *trash = addItem(root, Node::Trash, tr("Trash"), QVariant(), trashedGames);
+    trash->setToolTip(0, tr("Games put in the trash: restore them, or delete them from here"));
     root->setExpanded(true);
     m_refreshing = false;
 }
@@ -247,6 +255,9 @@ void DatabaseTreeWidget::onCurrentItemChanged(QTreeWidgetItem *current)
         break;
     case Node::Source:
         category = {GameCategory::Kind::Source, QString(), value.toLongLong()};
+        break;
+    case Node::Trash:
+        category.kind = GameCategory::Kind::Trash;
         break;
     }
     Q_EMIT categorySelected(category);

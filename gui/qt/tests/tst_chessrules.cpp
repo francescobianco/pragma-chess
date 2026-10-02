@@ -2,11 +2,13 @@
 #include "app/ChessPosition.h"
 #include "app/DatabaseDedupe.h"
 #include "app/DatabaseMerge.h"
+#include "app/DatabaseMigrations.h"
 #include "app/DatabaseOutline.h"
 #include "app/EngineCatalog.h"
 #include "app/EngineDetector.h"
 #include "app/ExplanationSearch.h"
 #include "app/GameIdentity.h"
+#include "app/GameState.h"
 #include "app/MoveExplanation.h"
 #include "app/OpeningNames.h"
 #include "app/Pgn.h"
@@ -942,6 +944,233 @@ private Q_SLOTS:
         const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(path, &error);
         QVERIFY2(database, qPrintable(error));
         QVERIFY2(database->setPlayerRole(QStringLiteral("Me"), PlayerRole::Me, &error), qPrintable(error));
+    }
+
+    void migratesDatabasesInOrder()
+    {
+        // The migrations are numbered without gaps: user_version is the cursor.
+        const QList<DatabaseMigrations::Migration> &migrations = DatabaseMigrations::all();
+        for (int i = 0; i < migrations.size(); ++i)
+            QCOMPARE(migrations.at(i).version, i + 1);
+        const int latest = DatabaseMigrations::latestVersion();
+        QCOMPARE(latest, 6);
+
+        QTemporaryDir dir;
+        const QString path = dir.filePath(QStringLiteral("games.pdb"));
+        QString error;
+        GameRecord game;
+        game.white = QStringLiteral("A");
+        game.black = QStringLiteral("B");
+        game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4")}};
+        QVERIFY2(SqliteGameDatabase::create(path, {game}, &error), qPrintable(error));
+        const auto inFile = [&](const QString &sql) {
+            QVariant value;
+            {
+                QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("peek"));
+                db.setDatabaseName(path);
+                if (db.open()) {
+                    QSqlQuery query(db);
+                    if (query.exec(sql) && query.next())
+                        value = query.value(0);
+                }
+                db.close();
+            }
+            QSqlDatabase::removeDatabase(QStringLiteral("peek"));
+            return value;
+        };
+        // A new file ran every migration and says so.
+        QCOMPARE(inFile(QStringLiteral("PRAGMA user_version")).toInt(), latest);
+        QCOMPARE(inFile(QStringLiteral("SELECT COUNT(*) FROM migrations")).toInt(), latest);
+        QCOMPARE(inFile(QStringLiteral("SELECT name FROM migrations WHERE version = 6")).toString(),
+                 QStringLiteral("create_game_states"));
+
+        // A version 5 file, as before the trash and the log of migrations.
+        inFile(QStringLiteral("DROP TABLE game_states"));
+        inFile(QStringLiteral("DROP TABLE migrations"));
+        inFile(QStringLiteral("PRAGMA user_version = 5"));
+        QCOMPARE(inFile(QStringLiteral("PRAGMA user_version")).toInt(), 5);
+        {
+            const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(path, &error);
+            QVERIFY2(database, qPrintable(error));
+            QCOMPARE(database->gameCount(), 1);
+            QCOMPARE(database->header(0).uid, GameIdentity::uid(game));
+            QCOMPARE(database->header(0).state, GameState::Live);
+            QVERIFY2(database->setGameState(0, GameState::Trashed, &error), qPrintable(error));
+        }
+        // Only the missing migration ran, and the file is at the latest version.
+        QCOMPARE(inFile(QStringLiteral("PRAGMA user_version")).toInt(), latest);
+        QCOMPARE(inFile(QStringLiteral("SELECT COUNT(*) FROM migrations")).toInt(), 1);
+        QCOMPARE(inFile(QStringLiteral("SELECT MIN(version) FROM migrations")).toInt(), 6);
+
+        // A file from a later version is refused, untouched.
+        inFile(QStringLiteral("PRAGMA user_version = %1").arg(latest + 1));
+        QVERIFY(!SqliteGameDatabase::open(path, &error));
+        QVERIFY(error.contains(QStringLiteral("newer version")));
+        QCOMPARE(inFile(QStringLiteral("PRAGMA user_version")).toInt(), latest + 1);
+    }
+
+    void mergesGameStatesByRevision()
+    {
+        const QString early = QStringLiteral("2026-10-01T10:00:00.000Z");
+        const QString late = QStringLiteral("2026-10-02T10:00:00.000Z");
+        const QList<GameStateRecord> local = {{QStringLiteral("a"), GameState::Trashed, early},
+                                              {QStringLiteral("b"), GameState::Live, late},
+                                              {QStringLiteral("c"), GameState::Deleted, early}};
+        const QList<GameStateRecord> incoming = {
+            {QStringLiteral("a"), GameState::Live, late},     // Restored later: taken.
+            {QStringLiteral("b"), GameState::Trashed, early}, // Trashed before our restore: ours stays.
+            {QStringLiteral("c"), GameState::Purged, early},  // A tie keeps the local one.
+            {QStringLiteral("d"), GameState::Purged, early},  // Unknown here: taken.
+            {QStringLiteral("d"), GameState::Live, late},     // Sent twice: the newest.
+            {QString(), GameState::Trashed, late}};
+        const QList<GameStateRecord> expected = {{QStringLiteral("a"), GameState::Live, late},
+                                                 {QStringLiteral("d"), GameState::Live, late}};
+        QCOMPARE(GameStates::incomingChanges(local, incoming), expected);
+        QVERIFY(GameStates::incomingChanges(local, local).isEmpty());
+
+        QCOMPARE(gameStateFromKey(gameStateKey(GameState::Purged)), GameState::Purged);
+        QCOMPARE(gameStateFromKey(QStringLiteral("whatever")), GameState::Live);
+    }
+
+    void trashesDeletesAndPurgesGames()
+    {
+        QTemporaryDir dir;
+        QString error;
+        const auto named = [](const QString &white, const QString &move) {
+            GameRecord game;
+            game.white = white;
+            game.black = QStringLiteral("Common");
+            game.event = white + QStringLiteral(" Open");
+            game.moves = {{move, move}};
+            return game;
+        };
+        const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::create(
+            dir.filePath(QStringLiteral("games.pdb")),
+            {named(QStringLiteral("Keep"), QStringLiteral("e2e4")), named(QStringLiteral("Gone"), QStringLiteral("d2d4"))},
+            &error);
+        QVERIFY2(database, qPrintable(error));
+        GameSource source;
+        source.kind = QStringLiteral("chesscom");
+        source.account = QStringLiteral("someone");
+        QVERIFY2(database->addSource(source, &error), qPrintable(error));
+        ImportedGame imported;
+        imported.externalId = QStringLiteral("x1");
+        imported.game = named(QStringLiteral("Imported"), QStringLiteral("c2c4"));
+        QCOMPARE(database->importGames(source.id, {imported}, &error), 1);
+        QVERIFY(database->setPlayerRole(QStringLiteral("Gone"), PlayerRole::Friend, &error));
+
+        // The trash takes a game out of the lists and of the position search, not out of the file.
+        QVERIFY2(database->setGameState(1, GameState::Trashed, &error), qPrintable(error));
+        QVERIFY2(database->setGameState(2, GameState::Trashed, &error), qPrintable(error));
+        QCOMPARE(database->gameCount(), 3);
+        QCOMPARE(database->countGames(GameState::Live), 1);
+        QCOMPARE(database->countGames(GameState::Trashed), 2);
+        QCOMPARE(database->gameLines().size(), 1);
+        QCOMPARE(database->sources().first().importedGames, 0);
+        QVERIFY(database->loadGame(1));
+        // Nothing to purge yet: games in the trash are not deleted.
+        QCOMPARE(database->optimize(&error), 0);
+        QCOMPARE(database->gameCount(), 3);
+
+        // Back from the trash.
+        QVERIFY(database->setGameState(1, GameState::Live, &error));
+        QCOMPARE(database->gameLines().size(), 2);
+        QVERIFY(database->setGameState(1, GameState::Trashed, &error));
+
+        // Deleted from the trash: still a row, in no list.
+        const QString goneUid = database->header(1).uid;
+        const QString importedUid = database->header(2).uid;
+        QVERIFY(database->setGameState(1, GameState::Deleted, &error));
+        QVERIFY(database->setGameState(2, GameState::Deleted, &error));
+        QCOMPARE(database->gameCount(), 3);
+        QCOMPARE(database->countGames(GameState::Trashed), 0);
+        QVERIFY(!database->setGameState(0, GameState::Purged, &error)); // Only optimize() purges.
+
+        // Optimizing removes them for good and remembers that it did.
+        QCOMPARE(database->optimize(&error), 2);
+        QCOMPARE(database->gameCount(), 1);
+        QCOMPARE(database->header(0).white, QStringLiteral("Keep"));
+        QList<GameStateRecord> states = database->gameStates();
+        QCOMPARE(states.size(), 2);
+        for (const GameStateRecord &state : std::as_const(states))
+            QCOMPARE(state.state, GameState::Purged);
+        // A player the user named stays known; the source does not import the game again.
+        QCOMPARE(database->playerRoles().value(QStringLiteral("Gone")), PlayerRole::Friend);
+        QCOMPARE(database->importGames(source.id, {imported}, &error), 0);
+        QCOMPARE(database->gameCount(), 1);
+
+        // Saved again by hand, a purged game is a game again, and says so.
+        QCOMPARE(database->addGame(named(QStringLiteral("Gone"), QStringLiteral("d2d4")), &error), 1);
+        QCOMPARE(database->header(1).uid, goneUid);
+        QCOMPARE(database->header(1).state, GameState::Live);
+        states = database->gameStates();
+        for (const GameStateRecord &state : std::as_const(states))
+            QCOMPARE(state.state, state.uid == goneUid ? GameState::Live : GameState::Purged);
+        QVERIFY(importedUid != goneUid);
+    }
+
+    void trashAndPurgeReachOtherCopies()
+    {
+        QTemporaryDir dir;
+        QString error;
+        const QString pathA = dir.filePath(QStringLiteral("a.pdb"));
+        const QString pathB = dir.filePath(QStringLiteral("b.pdb"));
+        QList<GameRecord> games;
+        for (const QString &move : {QStringLiteral("e2e4"), QStringLiteral("d2d4"), QStringLiteral("c2c4")}) {
+            GameRecord game;
+            game.white = move;
+            game.moves = {{move, move}};
+            games << game;
+        }
+        std::unique_ptr<SqliteGameDatabase> a = SqliteGameDatabase::create(pathA, games, &error);
+        QVERIFY2(a, qPrintable(error));
+        QVERIFY2(a->saveCopy(pathB, &error), qPrintable(error));
+        std::unique_ptr<SqliteGameDatabase> b = SqliteGameDatabase::open(pathB, &error);
+        QVERIFY2(b, qPrintable(error));
+        const QString first = a->header(0).uid;
+        const QString second = a->header(1).uid;
+
+        // A trashes one game and deletes another; B only gets a new game.
+        QVERIFY(a->setGameState(0, GameState::Trashed, &error));
+        QVERIFY(a->setGameState(1, GameState::Trashed, &error));
+        QVERIFY(a->setGameState(1, GameState::Deleted, &error));
+        GameRecord extra;
+        extra.white = QStringLiteral("only on B");
+        extra.moves = {{QStringLiteral("g1f3"), QStringLiteral("g1f3")}};
+        QCOMPARE(b->addGame(extra, &error), 3);
+
+        // B follows A, and loses nothing of its own.
+        QVERIFY2(DatabaseMerge::mergeInto(*b, pathA, &error), qPrintable(error));
+        QCOMPARE(b->gameCount(), 4);
+        QCOMPARE(b->header(0).state, GameState::Trashed);
+        QCOMPARE(b->header(1).state, GameState::Deleted);
+        QCOMPARE(b->countGames(GameState::Live), 2);
+
+        // B takes the first game back, later: A follows.
+        QTest::qWait(5);
+        QVERIFY(b->setGameState(0, GameState::Live, &error));
+        QVERIFY2(DatabaseMerge::mergeInto(*a, pathB, &error), qPrintable(error));
+        QCOMPARE(a->gameCount(), 4);
+        QCOMPARE(a->header(0).state, GameState::Live);
+        QCOMPARE(a->header(1).state, GameState::Deleted);
+
+        // A is optimized: the deleted game is gone from its file…
+        QTest::qWait(5);
+        QCOMPARE(a->optimize(&error), 1);
+        QCOMPARE(a->gameCount(), 3);
+        // …a copy that still has it does not bring it back…
+        const std::optional<DatabaseMerge::Result> merged = DatabaseMerge::mergeInto(*a, pathB, &error);
+        QVERIFY2(merged, qPrintable(error));
+        QCOMPARE(merged->stored, 0);
+        QCOMPARE(a->gameCount(), 3);
+        // …and lets it go when it hears about the purge.
+        QVERIFY2(DatabaseMerge::mergeInto(*b, pathA, &error), qPrintable(error));
+        QCOMPARE(b->gameCount(), 3);
+        for (qint64 index = 0; index < b->gameCount(); ++index) {
+            QVERIFY(b->header(index).uid != second);
+            QCOMPARE(b->header(index).state, GameState::Live);
+        }
+        QCOMPARE(b->header(0).uid, first);
     }
 
     void choosesShippedOpeningNames()

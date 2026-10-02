@@ -7,9 +7,6 @@
 
 namespace Reconcile {
 
-namespace {
-
-/// Empty (never edited) is the oldest; timestamps compare as instants.
 bool newer(const QString &a, const QString &b)
 {
     if (a.isEmpty())
@@ -18,8 +15,6 @@ bool newer(const QString &a, const QString &b)
         return true;
     return QDateTime::fromString(a, Qt::ISODateWithMs) > QDateTime::fromString(b, Qt::ISODateWithMs);
 }
-
-} // namespace
 
 Plan plan(const QList<GameRecord> &local, const QList<GameRecord> &incoming)
 {

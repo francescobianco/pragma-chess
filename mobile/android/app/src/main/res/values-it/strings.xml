@@ -111,5 +111,7 @@
         <item quantity="other">%1$d partite erano diverse sui due dispositivi: è stata tenuta la versione più recente.</item>
     </plurals>
     <string name="database_unreadable">Impossibile leggere «%1$s».</string>
+    <string name="database_needs_update">«%1$s» è stato creato con una versione più recente di Pragma Chess. Aggiorna l\'app per aprirlo.</string>
+    <string name="sync_update_app">I database di %1$s sono stati creati con una versione più recente di Pragma Chess. Aggiorna l\'app per sincronizzarli.</string>
     <string name="game_not_saved">Non è stato possibile salvare la partita in «%1$s».</string>
 </resources>

@@ -10,7 +10,8 @@ class QTimer;
 struct GameCategory {
     /// Position and Variant follow the board: the games reaching the position
     /// on it (in any move order) and those beginning with the moves played.
-    enum class Kind { All, Position, Variant, Role, Player, EcoLetter, Eco, Event, Year, Source };
+    /// Trash lists the games put in the trash, which no other part shows.
+    enum class Kind { All, Position, Variant, Role, Player, EcoLetter, Eco, Event, Year, Source, Trash };
     Kind kind = Kind::All;
     /// Role key ("me", "friend", "opponent"), player name, ECO letter or code, event name or year.
     QString value;
@@ -22,8 +23,9 @@ struct GameCategory {
 /// Navigation next to the games list: the open database and, under it, the
 /// Board views Position and Variant (the games that match the board), the
 /// games of the user, friends and opponents, its games by ECO code, tournament
-/// and year, and the sources it syncs with.
-/// Only values some game actually has are listed, with their game counts.
+/// and year, the sources it syncs with and, last, the Trash.
+/// Only values some game actually has are listed, with their game counts;
+/// games in the trash count only there.
 class DatabaseTreeWidget : public QTreeWidget {
     Q_OBJECT
 
@@ -50,7 +52,7 @@ protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
 private:
-    enum class Node { Database, Board, Position, Variant, Role, Player, EcoGroup, EcoLetter, Eco, Tournaments, Event, Years, Year, Sources, Source };
+    enum class Node { Database, Board, Position, Variant, Role, Player, EcoGroup, EcoLetter, Eco, Tournaments, Event, Years, Year, Sources, Source, Trash };
 
     void onCurrentItemChanged(QTreeWidgetItem *current);
     static Node nodeOf(const QTreeWidgetItem *item);

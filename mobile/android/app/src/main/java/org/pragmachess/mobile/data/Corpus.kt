@@ -17,7 +17,7 @@ data class CorpusEntry(
 class Corpus(private val library: Library, private val store: AppStore) {
 
     /**
-     * Makes every file current (schema version 5, a lineage) and records
+     * Makes every file current (schema version 6, a lineage) and records
      * where it came from. Files that had no lineage get a provisional one,
      * which the first sync replaces with the computer's for the same name;
      * the databases Pragma Chess ships get their fixed ids at once.
@@ -55,7 +55,8 @@ class Corpus(private val library: Library, private val store: AppStore) {
             PdbDatabase.open(library.file(keeper.ref), writable = true).use { db ->
                 for (other in group.others) {
                     val entry = entries.first { it.lineage == other }
-                    val games = PdbDatabase.open(library.file(entry.ref)).use { it.allGames() }
+                    val (games, states) = PdbDatabase.open(library.file(entry.ref)).use { it.allGames() to it.states() }
+                    db.mergeStates(states)
                     db.merge(Reconciler.plan(db.allGames(), games))
                     library.delete(entry.ref)
                     store.alias(other, group.keeper)

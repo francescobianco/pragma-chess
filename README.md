@@ -39,7 +39,8 @@ The GUI lives in `gui/qt`. It talks to the database through the `GameDatabase`
 interface (`gui/qt/src/app/GameDatabase.h`).
 
 Databases are `.pdb` files — SQLite databases tagged with `PRAGMA application_id`
-(`PRAG`) and a schema version in `PRAGMA user_version`. By default they live in
+(`PRAG`) and a schema version in `PRAGMA user_version`, upgraded by migrations
+when an older file is opened. By default they live in
 a localized chess folder in the home directory, next to Desktop and Documents:
 
 ```text

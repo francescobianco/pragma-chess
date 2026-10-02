@@ -145,10 +145,20 @@ std::optional<PutResult> store(GameDatabase &database, const QString &phoneKey, 
     }
     const Reconcile::Plan plan = Reconcile::plan(local, incoming);
 
+    // A game purged here stays purged: the phone does not know about it yet.
+    QSet<QString> purged;
+    for (const GameStateRecord &state : database.gameStates()) {
+        if (state.state == GameState::Purged)
+            purged.insert(state.uid);
+    }
     PutResult result;
     QList<ImportedGame> inserted;
-    for (const int index : plan.insert)
-        inserted << games.at(index);
+    for (const int index : plan.insert) {
+        if (purged.contains(games.at(index).game.uid))
+            ++result.known;
+        else
+            inserted << games.at(index);
+    }
     result.stored = database.importGames(source->id, inserted, errorMessage);
     if (result.stored < 0)
         return std::nullopt;
@@ -159,7 +169,7 @@ std::optional<PutResult> store(GameDatabase &database, const QString &phoneKey, 
     }
     result.updated = int(plan.update.size());
     // A game imported from this phone before under another uid is known too.
-    result.known = plan.known + int(inserted.size()) - result.stored;
+    result.known += plan.known + int(inserted.size()) - result.stored;
     result.conflicts = plan.conflicts;
     source->lastSyncAt = QDateTime::currentDateTimeUtc();
     source->lastError.clear();

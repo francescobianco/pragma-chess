@@ -5,13 +5,33 @@ import android.database.sqlite.SQLiteDatabase
 import java.io.File
 
 /**
+ * A database made by a newer version of Pragma Chess than this app: its
+ * schema is later than the last one the app knows. Nothing is wrong with the
+ * file; the user is asked to update the app to open it.
+ */
+class NewerSchemaException(name: String) : IllegalStateException("$name was made by a newer version of Pragma Chess")
+
+/** Where a game is, by uid, and when that was set (table `game_states`, version 6; see the desktop's GameState). */
+data class GameStateRecord(val uid: String, val state: String, val modified: String)
+
+/**
  * A Pragma .pdb database: SQLite with the desktop's schema (application_id
- * PRAG, user_version 5; see gui/qt/src/app/SqliteGameDatabase.cpp). The phone
- * reads any file of version 1 to 5 and upgrades the ones it opens for writing.
+ * PRAG, user_version 6; see gui/qt/src/app/DatabaseMigrations.cpp). The phone
+ * reads any file of version 1 to 6 and upgrades the ones it opens for
+ * writing; a file of a later version is refused with [NewerSchemaException].
  */
 class PdbDatabase private constructor(val file: File, private val db: SQLiteDatabase) : AutoCloseable {
 
     override fun close() = db.close()
+
+    /** Files older than version 6 opened read-only have no `game_states` yet: all their games are live. */
+    private val hasStates: Boolean by lazy {
+        db.rawQuery("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'game_states'", null).use { it.moveToFirst() }
+    }
+
+    /** Condition on `games g`: the game is in the lists, not in the trash, deleted or purged. */
+    private val live: String
+        get() = if (hasStates) "NOT EXISTS (SELECT 1 FROM game_states st WHERE st.uid = g.uid AND st.state <> 'live')" else "1"
 
     /** The database's own properties (table `properties`, version 4); empty for older files. */
     fun properties(): Map<String, String> = runCatching {
@@ -29,11 +49,14 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
         p[PROPERTY_TYPE]?.let { it == TYPE_OPENING_BOOK } ?: (p[PROPERTY_ID] == GameIdentity.OPENING_NAMES_LINEAGE)
     }
 
-    fun gameCount(): Int = db.rawQuery("SELECT COUNT(*) FROM games", null).use { if (it.moveToFirst()) it.getInt(0) else 0 }
+    /** The games in the lists: those in the trash or deleted on a computer do not count. */
+    fun gameCount(): Int =
+        db.rawQuery("SELECT COUNT(*) FROM games g WHERE $live", null).use { if (it.moveToFirst()) it.getInt(0) else 0 }
 
-    /** Games whose players or event contain [filter] (all when blank), newest first. */
+    /** Games whose players or event contain [filter] (all when blank), newest first; never those in the trash. */
     fun games(filter: String = "", limit: Int = 5000): List<GameSummary> {
-        val where = if (filter.isBlank()) "" else " WHERE w.name LIKE ?1 OR b.name LIKE ?1 OR e.name LIKE ?1"
+        val where = if (filter.isBlank()) " WHERE $live"
+        else " WHERE $live AND (w.name LIKE ?1 OR b.name LIKE ?1 OR e.name LIKE ?1)"
         val args = if (filter.isBlank()) null else arrayOf("%${filter.trim()}%")
         val sql = "SELECT g.id, w.name, b.name, g.result, g.date, e.name, g.ply_count FROM games g" +
             " LEFT JOIN players w ON w.id = g.white_id LEFT JOIN players b ON b.id = g.black_id" +
@@ -112,6 +135,11 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
             if (uidTaken(uid)) return null
             val stored = game.copy(uid = uid)
             db.insertOrThrow("games", null, gameValues(stored).apply { put("uid", uid) })
+            // A purged game stored again is a game again, as on the desktop.
+            if (hasStates) {
+                db.execSQL("UPDATE game_states SET state = 'live', modified = ? WHERE uid = ? AND state = 'purged'",
+                    arrayOf(stored.modified, uid))
+            }
             db.setTransactionSuccessful()
             return stored
         } finally {
@@ -124,14 +152,60 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
         db.update("games", gameValues(game), "uid = ?", arrayOf(requireNotNull(game.uid)))
     }
 
-    /** Applies the incoming side of a merge in one transaction. */
-    fun merge(plan: Reconciler.Plan) {
+    /**
+     * Applies the incoming side of a merge in one transaction and returns how
+     * many games it added. A game purged here ([mergeStates] comes first) is
+     * not taken back from a copy that still has it.
+     */
+    fun merge(plan: Reconciler.Plan): Int {
+        val purged = states().filter { it.state == STATE_PURGED }.map { it.uid }.toSet()
+        var added = 0
         db.beginTransaction()
         try {
             plan.insert.forEach { game ->
-                if (!uidTaken(game.uid!!)) db.insertOrThrow("games", null, gameValues(game).apply { put("uid", game.uid) })
+                val uid = game.uid!!
+                if (uid !in purged && !uidTaken(uid)) {
+                    db.insertOrThrow("games", null, gameValues(game).apply { put("uid", uid) })
+                    added++
+                }
             }
             plan.update.forEach(::replace)
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+        return added
+    }
+
+    /** The state of every game that was ever trashed, deleted or purged; empty before version 6. */
+    fun states(): List<GameStateRecord> {
+        if (!hasStates) return emptyList()
+        return db.rawQuery("SELECT uid, state, modified FROM game_states", null).use { c ->
+            buildList { while (c.moveToNext()) add(GameStateRecord(c.getString(0), c.getString(1), c.getString(2))) }
+        }
+    }
+
+    /**
+     * Takes the states of another copy that are newer than ours (a tie keeps
+     * ours), as the desktop does: a game trashed or deleted on a computer
+     * leaves the lists here too, and one it purged goes for good.
+     */
+    fun mergeStates(incoming: List<GameStateRecord>) {
+        if (incoming.isEmpty() || !hasStates) return
+        val mine = states().associateBy { it.uid }.toMutableMap()
+        db.beginTransaction()
+        try {
+            for (state in incoming) {
+                val current = mine[state.uid]
+                if (current != null && !Reconciler.newer(state.modified, current.modified)) continue
+                db.execSQL("INSERT OR REPLACE INTO game_states (uid, state, modified) VALUES (?, ?, ?)",
+                    arrayOf(state.uid, state.state, state.modified))
+                mine[state.uid] = state
+            }
+            val purged = "SELECT g.id FROM games g JOIN game_states st ON st.uid = g.uid WHERE st.state = '$STATE_PURGED'"
+            // What a source imported stays known by its external id; it no longer points to a game.
+            db.execSQL("UPDATE game_sources SET game_id = 0 WHERE game_id IN ($purged)")
+            db.execSQL("DELETE FROM games WHERE id IN ($purged)")
             db.setTransactionSuccessful()
         } finally {
             db.endTransaction()
@@ -177,7 +251,9 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
 
     companion object {
         const val APPLICATION_ID = 0x50524147 // "PRAG"
-        const val SCHEMA_VERSION = 5
+        /** The last schema this app knows: the desktop's DatabaseMigrations::latestVersion(). */
+        const val SCHEMA_VERSION = 6
+        const val STATE_PURGED = "purged"
         const val PROPERTY_ID = "id"
         const val PROPERTY_TYPE = "type"
         const val TYPE_GAMES = "games"
@@ -222,6 +298,8 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
                 " player_id INTEGER PRIMARY KEY REFERENCES players(id)," +
                 " role TEXT NOT NULL)",
             "CREATE TABLE IF NOT EXISTS properties (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
+            // Version 6: the trash. A game with no row is live; a purged game leaves only its row.
+            "CREATE TABLE IF NOT EXISTS game_states (uid TEXT PRIMARY KEY, state TEXT NOT NULL, modified TEXT NOT NULL)",
             UID_INDEX,
         )
         private const val UID_INDEX = "CREATE UNIQUE INDEX IF NOT EXISTS games_uid ON games(uid)"
@@ -255,12 +333,18 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
          * Opens an existing database; writable ones are upgraded to
          * [SCHEMA_VERSION] (missing tables, game uids from their content, a
          * universal id: fixed for the databases Pragma Chess ships, new
-         * otherwise). Files of a newer version are refused.
+         * otherwise, the table of game states). A file of a newer version is
+         * left as it is and refused with [NewerSchemaException]: the app has
+         * to be updated to open it.
          */
         fun open(file: File, writable: Boolean = false): PdbDatabase {
             val db = openRaw(file, if (writable) SQLiteDatabase.OPEN_READWRITE else SQLiteDatabase.OPEN_READONLY)
             val applicationId = db.rawQuery("PRAGMA application_id", null).use { if (it.moveToFirst()) it.getInt(0) else 0 }
             val version = db.rawQuery("PRAGMA user_version", null).use { if (it.moveToFirst()) it.getInt(0) else 0 }
+            if (applicationId == APPLICATION_ID && version > SCHEMA_VERSION) {
+                db.close()
+                throw NewerSchemaException(file.name)
+            }
             if (applicationId != APPLICATION_ID || version !in 1..SCHEMA_VERSION) {
                 db.close()
                 throw IllegalStateException("${file.name} is not a Pragma database this app can read")

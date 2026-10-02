@@ -26,6 +26,7 @@ import org.pragmachess.mobile.data.GameHeaders
 import org.pragmachess.mobile.data.GameRecord
 import org.pragmachess.mobile.data.GameSummary
 import org.pragmachess.mobile.data.Library
+import org.pragmachess.mobile.data.NewerSchemaException
 import org.pragmachess.mobile.data.PdbDatabase
 import org.pragmachess.mobile.engine.Analysis
 import org.pragmachess.mobile.engine.OexEngine
@@ -194,8 +195,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     // Databases and games
 
     suspend fun games(ref: DatabaseRef, filter: String): List<GameSummary> = withContext(Dispatchers.IO) {
-        runCatching { PdbDatabase.open(library.file(ref)).use { it.games(filter) } }.getOrElse {
-            withContext(Dispatchers.Main) { message = app.getString(R.string.database_unreadable, ref.title) }
+        runCatching { PdbDatabase.open(library.file(ref)).use { it.games(filter) } }.getOrElse { error ->
+            // A database from a newer Pragma Chess is fine: it is the app that has to be updated.
+            val text = if (error is NewerSchemaException) R.string.database_needs_update else R.string.database_unreadable
+            withContext(Dispatchers.Main) { message = app.getString(text, ref.title) }
             emptyList()
         }
     }
@@ -500,6 +503,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         SyncFailure.Refused -> app.getString(R.string.sync_refused, computer)
         SyncFailure.NoConnection -> app.getString(R.string.sync_no_connection)
         SyncFailure.Protocol -> app.getString(R.string.sync_failed, computer)
+        SyncFailure.UpdateApp -> app.getString(R.string.sync_update_app, computer)
     }
 
     fun setPhoneName(name: String) {

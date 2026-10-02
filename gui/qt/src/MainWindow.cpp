@@ -957,28 +957,148 @@ void MainWindow::showGameListMenu(const QPoint &position)
         player = header.white;
     else if (source.column() == GameListModel::Black || source.column() == GameListModel::BlackElo)
         player = header.black;
-    if (player.isEmpty())
-        return; // Only players have a menu, for now.
 
     QMenu menu(this);
-    QMenu *who = menu.addMenu(tr("Who Is This?"));
-    who->setToolTip(player);
-    const PlayerRole current = m_database->playerRoles().value(player);
-    auto *roles = new QActionGroup(who);
-    const std::pair<PlayerRole, QString> choices[] = {
-        {PlayerRole::Me, tr("It's &Me")}, {PlayerRole::Friend, tr("A &Friend")}, {PlayerRole::Opponent, tr("An &Opponent")}};
-    for (const auto &[role, text] : choices) {
-        QAction *action = who->addAction(text);
-        action->setCheckable(true);
-        action->setChecked(role == current);
-        action->setActionGroup(roles);
-        connect(action, &QAction::triggered, this, [this, player, role] { setPlayerRole(player, role); });
+    if (!player.isEmpty()) {
+        QMenu *who = menu.addMenu(tr("Who Is This?"));
+        who->setToolTip(player);
+        const PlayerRole current = m_database->playerRoles().value(player);
+        auto *roles = new QActionGroup(who);
+        const std::pair<PlayerRole, QString> choices[] = {{PlayerRole::Me, tr("It's &Me")},
+                                                          {PlayerRole::Friend, tr("A &Friend")},
+                                                          {PlayerRole::Opponent, tr("An &Opponent")}};
+        for (const auto &[role, text] : choices) {
+            QAction *action = who->addAction(text);
+            action->setCheckable(true);
+            action->setChecked(role == current);
+            action->setActionGroup(roles);
+            connect(action, &QAction::triggered, this, [this, player, role] { setPlayerRole(player, role); });
+        }
+        who->addSeparator();
+        QAction *forget = who->addAction(tr("&Nobody in Particular"), this,
+                                         [this, player] { setPlayerRole(player, PlayerRole::None); });
+        forget->setEnabled(current != PlayerRole::None);
+        menu.addSeparator();
     }
-    who->addSeparator();
-    QAction *forget = who->addAction(tr("&Nobody in Particular"), this,
-                                     [this, player] { setPlayerRole(player, PlayerRole::None); });
-    forget->setEnabled(current != PlayerRole::None);
+    // A game is only ever deleted from the trash, and even then it stays in
+    // the file until the database is optimized.
+    const QString uid = header.uid;
+    if (header.state == GameState::Trashed) {
+        menu.addAction(tr("&Restore Game"), this, [this, uid] { setGameState(uid, GameState::Live); });
+        menu.addAction(tr("&Delete Game…"), this, [this, uid] { deleteGame(uid); });
+    } else {
+        menu.addAction(tr("Move Game to &Trash"), this, [this, uid] { setGameState(uid, GameState::Trashed); });
+    }
     menu.exec(m_gameView->viewport()->mapToGlobal(position));
+}
+
+qint64 MainWindow::gameIndexOf(const QString &uid) const
+{
+    for (qint64 index = 0; m_database && !uid.isEmpty() && index < m_database->gameCount(); ++index) {
+        if (m_database->header(index).uid == uid)
+            return index;
+    }
+    return -1;
+}
+
+void MainWindow::setGameState(const QString &uid, GameState state)
+{
+    const qint64 index = gameIndexOf(uid);
+    if (index < 0)
+        return;
+    QString error;
+    if (!m_database->setGameState(index, state, &error)) {
+        QMessageBox::warning(this, tr("Trash"), tr("Could not move the game: %1").arg(error));
+        return;
+    }
+    showCategory(m_category); // The game leaves the list it was in.
+    m_databaseTree->refresh();
+    m_positionIndexTimer->start(); // Only the games in the lists are searched.
+    switch (state) {
+    case GameState::Trashed:
+        statusBar()->showMessage(tr("Game moved to the trash"), 3000);
+        break;
+    case GameState::Live:
+        statusBar()->showMessage(tr("Game restored"), 3000);
+        break;
+    default:
+        statusBar()->showMessage(tr("Game deleted"), 3000);
+        break;
+    }
+}
+
+void MainWindow::deleteGame(const QString &uid)
+{
+    const qint64 index = gameIndexOf(uid);
+    if (index < 0)
+        return;
+    const GameRecord header = m_database->header(index);
+    const auto answer = QMessageBox::question(
+        this, tr("Delete Game"),
+        tr("Delete “%1” from the trash?\n\nIt will not be listed anywhere any more. It stays in the file until "
+           "the database is optimized (Database ▸ Database Settings…).")
+            .arg(tr("%1 – %2").arg(header.white, header.black)),
+        QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
+    if (answer == QMessageBox::Yes)
+        setGameState(uid, GameState::Deleted);
+}
+
+void MainWindow::optimizeDatabase(QWidget *dialog)
+{
+    if (!m_database)
+        return;
+    const QString title = tr("Optimize Database");
+    if (m_syncPipeline->isRunning()) {
+        QMessageBox::information(dialog, title, tr("A sync is running: optimize the database when it has finished."));
+        return;
+    }
+    const int deleted = int(m_database->countGames(GameState::Deleted));
+    if (deleted > 0) {
+        const auto answer = QMessageBox::question(
+            dialog, title,
+            tr("Optimize “%1”?\n\n%n deleted game(s) will be removed for good, here and on every device this "
+               "database is synced with.", nullptr, deleted)
+                .arg(m_database->name()),
+            QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
+        if (answer != QMessageBox::Yes)
+            return;
+    }
+
+    const QString openUid = m_openGameIndex >= 0 && m_openGameIndex < m_database->gameCount()
+        ? m_database->header(m_openGameIndex).uid : QString();
+    const bool wasInDatabase = m_openGameIndex >= 0;
+    const qint64 sizeBefore = QFileInfo(m_database->location()).size();
+    QGuiApplication::setOverrideCursor(Qt::WaitCursor);
+    QString error;
+    const int removed = m_database->optimize(&error);
+    QGuiApplication::restoreOverrideCursor();
+
+    // The games have other indexes now: everything that holds one starts over.
+    m_gameListModel->setDatabase(m_database.get());
+    if (wasInDatabase)
+        m_openGameIndex = gameIndexOf(openUid);
+    showCategory(m_category);
+    if (m_openGameIndex >= 0) {
+        const QModelIndex proxyIndex = m_gameListProxy->mapFromSource(m_gameListModel->index(int(m_openGameIndex), 0));
+        if (proxyIndex.isValid())
+            m_gameView->selectRow(proxyIndex.row());
+    }
+    m_databaseTree->refresh();
+    rebuildPositionIndex();
+    updateGameActions();
+    updateGameHeader();
+
+    if (removed < 0) {
+        QMessageBox::warning(dialog, title, tr("Could not optimize the database: %1").arg(error));
+        return;
+    }
+    const QLocale locale;
+    QMessageBox::information(
+        dialog, title,
+        tr("%n deleted game(s) removed.", nullptr, removed) + QLatin1Char(' ')
+            + tr("The file went from %1 to %2.")
+                  .arg(locale.formattedDataSize(sizeBefore),
+                       locale.formattedDataSize(QFileInfo(m_database->location()).size())));
 }
 
 void MainWindow::setPlayerRole(const QString &player, PlayerRole role)
@@ -1048,12 +1168,16 @@ void MainWindow::updateGameCount()
         m_gameCountLabel->setText(tr("No database"));
         return;
     }
-    const qint64 total = m_database->gameCount();
+    // The trash is counted apart: its games are in no other list.
+    const bool trash = m_gameListProxy->state() == GameState::Trashed;
+    const qint64 total = m_database->countGames(m_gameListProxy->state());
     const qint64 shown = m_gameListProxy->rowCount();
     const QLocale locale;
-    const QString count = m_gameListProxy->isFiltered()
+    QString count = m_gameListProxy->isFiltered()
         ? tr("%1 of %2 games").arg(locale.toString(shown), locale.toString(total))
         : total == 1 ? tr("1 game") : tr("%1 games").arg(locale.toString(total));
+    if (trash)
+        count = tr("Trash: %1").arg(count);
     m_gameCountLabel->setText(tr("%1 — %2").arg(m_database->name(), count));
 }
 
@@ -1063,9 +1187,13 @@ void MainWindow::showCategory(const GameCategory &category)
     m_category = category;
     m_filterSource = category.kind == Kind::Source ? category.sourceId : 0;
     GameFilterProxyModel::Predicate predicate;
+    GameState state = GameState::Live;
     const QString value = category.value;
     switch (category.kind) {
     case Kind::All:
+        break;
+    case Kind::Trash:
+        state = GameState::Trashed;
         break;
     case Kind::Position:
     case Kind::Variant: {
@@ -1109,7 +1237,7 @@ void MainWindow::showCategory(const GameCategory &category)
         }
         break;
     }
-    m_gameListProxy->setPredicate(predicate);
+    m_gameListProxy->setPredicate(predicate, state);
     updateGameCount();
 }
 
@@ -1745,6 +1873,8 @@ void MainWindow::reloadOpeningNamesIfChanged()
     QList<GameRecord> games;
     games.reserve(database->gameCount());
     for (qint64 index = 0; index < database->gameCount(); ++index) {
+        if (database->header(index).state != GameState::Live)
+            continue; // A line in the trash names nothing.
         if (std::optional<GameRecord> game = database->loadGame(index))
             games << *game;
     }
@@ -1783,6 +1913,7 @@ void MainWindow::editDatabaseSettings()
     if (!m_database)
         return;
     DatabaseSettingsDialog dialog(m_database->name(), m_database->properties(), this);
+    connect(&dialog, &DatabaseSettingsDialog::optimizeRequested, this, [this, &dialog] { optimizeDatabase(&dialog); });
     if (dialog.exec() != QDialog::Accepted || dialog.properties() == m_database->properties())
         return;
     QString error;

@@ -167,10 +167,8 @@ MainWindow::MainWindow(QWidget *parent)
     createStatusBar();
     updateSeparatorStyle();
 
-    connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateWindowTitle);
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateGameHeader);
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateGameActions);
-    connect(m_session, &GameSession::headerChanged, this, &MainWindow::updateWindowTitle);
     connect(m_session, &GameSession::headerChanged, this, &MainWindow::updateGameHeader);
     connect(m_gameHeader, &GameHeaderWidget::activated, this, &MainWindow::editGameInfo);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::syncBoard);
@@ -2955,14 +2953,10 @@ void MainWindow::rebuildRecentProjectsMenu()
 
 void MainWindow::updateWindowTitle()
 {
-    const GameRecord &game = m_session->game();
-    const QString gameTitle = game.white.isEmpty() && game.black.isEmpty()
-        ? tr("Position")
-        : tr("%1 – %2").arg(game.white, game.black);
-    if (m_projectPath.isEmpty())
-        setWindowTitle(gameTitle);
-    else
-        setWindowTitle(tr("%1[*] — %2").arg(QFileInfo(m_projectPath).completeBaseName(), gameTitle));
+    // Only the project, with the asterisk of unsaved changes: the database and
+    // the game are on show in the window itself.
+    const QString name = m_projectPath.isEmpty() ? tr("Untitled") : QFileInfo(m_projectPath).completeBaseName();
+    setWindowTitle(name + QStringLiteral("[*]"));
 }
 
 void MainWindow::updateProjectModified()

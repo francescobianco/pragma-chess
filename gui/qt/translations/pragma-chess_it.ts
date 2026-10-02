@@ -1578,16 +1578,8 @@ Il Nero ha catturato: %2</translation>
         <translation>Cancella progetti recenti</translation>
     </message>
     <message>
-        <source>Position</source>
-        <translation>Posizione</translation>
-    </message>
-    <message>
         <source>%1 – %2</source>
         <translation>%1 – %2</translation>
-    </message>
-    <message>
-        <source>%1[*] — %2</source>
-        <translation>%1[*] — %2</translation>
     </message>
     <message>
         <source>Quit Pragma Chess</source>

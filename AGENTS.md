@@ -398,6 +398,9 @@ while one of them is selected.
   database), board orientation, engine, window layout.
   It is versioned; newer files are rejected with an error.
   **The project is the workspace**: there is no separate workspace concept.
+  The title bar shows only the project's name (Untitled before it is saved)
+  and an asterisk while it has unsaved changes: no database, no game, no
+  application name (`MainWindow::updateWindowTitle`).
   Anything about what the user is looking at belongs in `Project`, not in
   QSettings. `layout` is the opaque blob of `MainWindow::saveLayout()` (magic
   `pragma-layout-4`: window state, sidebar state, Games splitter state), so it

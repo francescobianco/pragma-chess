@@ -127,6 +127,18 @@ playing a move turns it off, and the user asks again at the next move.
   [docs/explain-tuning.md](docs/explain-tuning.md) first, and log feedback
   and decisions in it. Enrich the explanation, don't replace what works.
 
+## Menus on Wayland
+
+A Wayland compositor draws no shadow under a popup (GTK applications draw
+their own), so `GtkDesktopStyle` does it for every `QMenu` when the platform
+is Wayland: the menu's window is translucent and its frame width
+(`PM_MenuPanelWidth`) grows by `kMenuShadow`, a transparent margin where
+`PE_PanelMenu` paints the shadow around a rounded panel. An event filter moves
+a menu by that margin when it is shown, so its corner is where it was asked
+to open, and `PM_SubMenuOverlap` does the same for submenus. On X11 the
+window manager shadows menus, and nothing changes. A widget put in a menu
+(`GlyphMenuAction`) needs nothing: it lives inside the frame.
+
 ## Build and run
 
 GUI (Debian/Ubuntu):

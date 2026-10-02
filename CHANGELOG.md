@@ -50,6 +50,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   figurines as the move list.
 - The Sync Now button of the toolbar shows two separate arrows, and its
   tooltip is *Sync Everything…*.
+- On Wayland, menus have rounded corners and a shadow that lifts them off
+  the window, as in the other applications of the desktop.
 - The toolbar buttons are larger, with more room around their icons.
 - New toolbar icons: a board of four squares for *New Game* and a square
   face for *New Training*.

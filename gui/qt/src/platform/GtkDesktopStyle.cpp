@@ -1,13 +1,67 @@
 #include "GtkDesktopStyle.h"
 
+#include <QAction>
 #include <QByteArrayList>
+#include <QEvent>
+#include <QGuiApplication>
+#include <QMenu>
 #include <QPainter>
+#include <QPainterPath>
 #include <QStyleFactory>
 #include <QStyleOption>
 
+namespace {
+
+/// The transparent margin around a menu that holds its shadow, and the
+/// radius of the menu's corners.
+constexpr int kMenuShadow = 12;
+constexpr qreal kMenuRadius = 6;
+
+/// A menu opened from an item of another menu that is on screen.
+bool isSubMenu(const QMenu *menu)
+{
+    const QList<QObject *> owners = menu->menuAction()->associatedObjects();
+    for (const QObject *owner : owners) {
+        const auto *parent = qobject_cast<const QMenu *>(owner);
+        if (parent && parent != menu && parent->isVisible())
+            return true;
+    }
+    return false;
+}
+
+} // namespace
+
 GtkDesktopStyle::GtkDesktopStyle()
     : QProxyStyle(QStyleFactory::create(QStringLiteral("Fusion")))
+    // X11 window managers shadow menus themselves, and may not composite at all.
+    , m_menuShadows(QGuiApplication::platformName().startsWith(QLatin1String("wayland")))
 {
+}
+
+void GtkDesktopStyle::setMenuShadows(bool enabled)
+{
+    m_menuShadows = enabled;
+}
+
+void GtkDesktopStyle::polish(QWidget *widget)
+{
+    QProxyStyle::polish(widget);
+    if (m_menuShadows && qobject_cast<QMenu *>(widget)) {
+        widget->setAttribute(Qt::WA_TranslucentBackground);
+        widget->installEventFilter(this);
+    }
+}
+
+bool GtkDesktopStyle::eventFilter(QObject *watched, QEvent *event)
+{
+    // A menu opens with its corner where it was asked to: the margin of the
+    // shadow goes outside. (A submenu is placed by PM_SubMenuOverlap.) The
+    // show event comes before the window is shown, so it can still be moved.
+    if (event->type() == QEvent::Show && m_menuShadows) {
+        if (auto *menu = qobject_cast<QMenu *>(watched); menu && !isSubMenu(menu))
+            menu->move(menu->pos() - QPoint(kMenuShadow, kMenuShadow));
+    }
+    return QProxyStyle::eventFilter(watched, event);
 }
 
 bool GtkDesktopStyle::isGtkBasedDesktop()
@@ -55,6 +109,14 @@ int GtkDesktopStyle::pixelMetric(PixelMetric metric, const QStyleOption *option,
     // Breathing room between the popup edge and its first/last item.
     if (metric == PM_MenuVMargin)
         return QProxyStyle::pixelMetric(metric, option, widget) + 4;
+    if (m_menuShadows && qobject_cast<const QMenu *>(widget)) {
+        // The frame of a menu is the margin its shadow is drawn in.
+        if (metric == PM_MenuPanelWidth)
+            return QProxyStyle::pixelMetric(metric, option, widget) + kMenuShadow;
+        // A submenu opens against its parent's item: its own margin goes under the parent.
+        if (metric == PM_SubMenuOverlap)
+            return QProxyStyle::pixelMetric(metric, option, widget) - kMenuShadow;
+    }
     return QProxyStyle::pixelMetric(metric, option, widget);
 }
 
@@ -97,7 +159,36 @@ void GtkDesktopStyle::drawPrimitive(PrimitiveElement element, const QStyleOption
     case PE_IndicatorDockWidgetResizeHandle:
         painter->fillRect(option->rect, option->palette.window());
         return;
-    default:
-        QProxyStyle::drawPrimitive(element, option, painter, widget);
+    case PE_FrameMenu:
+        if (m_menuShadows && qobject_cast<const QMenu *>(widget))
+            return; // Drawn with the panel.
+        break;
+    case PE_PanelMenu: {
+        if (!m_menuShadows || !qobject_cast<const QMenu *>(widget))
+            break;
+        // The menu itself, inside the margin: rounded, with Fusion's colours.
+        const QRectF panel = QRectF(option->rect).adjusted(kMenuShadow, kMenuShadow, -kMenuShadow, -kMenuShadow);
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
+        // The shadow: darker near the menu, fading out across the margin and
+        // a little lower than the menu, as light from above casts it.
+        painter->setPen(Qt::NoPen);
+        for (int spread = kMenuShadow; spread >= 1; --spread) {
+            const qreal fade = 1.0 - qreal(spread) / kMenuShadow;
+            painter->setBrush(QColor(0, 0, 0, qRound(3 + 13 * fade * fade)));
+            const QRectF ring = panel.adjusted(-spread, -spread + 2, spread, spread + 1)
+                                    .intersected(QRectF(option->rect));
+            painter->drawRoundedRect(ring, kMenuRadius + spread, kMenuRadius + spread);
+        }
+        painter->setCompositionMode(QPainter::CompositionMode_Source);
+        painter->setBrush(option->palette.base().color().lighter(108));
+        painter->setPen(QPen(option->palette.window().color().darker(160), 1));
+        painter->drawRoundedRect(panel.adjusted(0.5, 0.5, -0.5, -0.5), kMenuRadius, kMenuRadius);
+        painter->restore();
+        return;
     }
+    default:
+        break;
+    }
+    QProxyStyle::drawPrimitive(element, option, painter, widget);
 }

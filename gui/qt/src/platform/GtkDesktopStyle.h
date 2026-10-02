@@ -8,12 +8,19 @@
 /// the menu bar and toolbars, separator lines, dotted splitter grips and
 /// always-visible mnemonic underlines. It also gives the menu bar and
 /// drop-down menus GTK-like spacing.
+///
+/// On Wayland nobody draws a shadow under a popup: GTK applications draw
+/// their own, and so does this style for menus, or they would lie flat on
+/// the window and be hard to tell from it. The menu's window grows by a
+/// transparent margin (the menu's frame width) that holds the shadow.
 class GtkDesktopStyle : public QProxyStyle {
 public:
     GtkDesktopStyle();
 
     /// Whether the current session is a GTK-based desktop.
     static bool isGtkBasedDesktop();
+    /// Whether menus draw their own shadow: on by default on Wayland only.
+    void setMenuShadows(bool enabled);
 
     int styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget,
                   QStyleHintReturn *returnData) const override;
@@ -25,4 +32,11 @@ public:
                      const QWidget *widget) const override;
     void drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter,
                        const QWidget *widget) const override;
+    void polish(QWidget *widget) override;
+    using QProxyStyle::polish;
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
+private:
+    /// Whether menus draw their own shadow (Wayland).
+    bool m_menuShadows = false;
 };

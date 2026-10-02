@@ -61,6 +61,7 @@
 #include <QDataStream>
 #include <QActionGroup>
 #include <QDesktopServices>
+#include <QDateTime>
 #include <QDir>
 #include <QCloseEvent>
 #include <QDate>
@@ -1194,6 +1195,14 @@ void MainWindow::showCategory(const GameCategory &category)
         break;
     case Kind::Trash:
         state = GameState::Trashed;
+        break;
+    case Kind::TrashRecent:
+    case Kind::TrashOld:
+        state = GameState::Trashed;
+        predicate = [recent = category.kind == Kind::TrashRecent,
+                     now = QDateTime::currentDateTimeUtc()](const GameRecord &game) {
+            return GameStates::isRecent(game.stateModified, now) == recent;
+        };
         break;
     case Kind::Position:
     case Kind::Variant: {

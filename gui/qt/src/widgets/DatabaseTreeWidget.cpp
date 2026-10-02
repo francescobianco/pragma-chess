@@ -6,6 +6,7 @@
 #include "platform/SymbolicIcons.h"
 
 #include <QContextMenuEvent>
+#include <QDateTime>
 #include <QHeaderView>
 #include <QLocale>
 #include <QMenu>
@@ -129,9 +130,14 @@ void DatabaseTreeWidget::refresh()
     QMap<PlayerRole, int> roleGames;
     int liveGames = 0;
     int trashedGames = 0;
+    int recentlyTrashed = 0;
+    const QDateTime now = QDateTime::currentDateTimeUtc();
     for (qint64 index = 0; index < m_database->gameCount(); ++index) {
         const GameRecord header = m_database->header(index);
-        trashedGames += header.state == GameState::Trashed;
+        if (header.state == GameState::Trashed) {
+            ++trashedGames;
+            recentlyTrashed += GameStates::isRecent(header.stateModified, now);
+        }
         if (header.state != GameState::Live)
             continue;
         ++liveGames;
@@ -211,6 +217,10 @@ void DatabaseTreeWidget::refresh()
     // Always there, and last: where the games taken out of the lists wait.
     QTreeWidgetItem *trash = addItem(root, Node::Trash, tr("Trash"), QVariant(), trashedGames);
     trash->setToolTip(0, tr("Games put in the trash: restore them, or delete them from here"));
+    QTreeWidgetItem *recent = addItem(trash, Node::TrashRecent, tr("Recent"), QVariant(), recentlyTrashed);
+    recent->setToolTip(0, tr("Put in the trash in the last %n day(s)", nullptr, GameStates::kRecentDays));
+    QTreeWidgetItem *old = addItem(trash, Node::TrashOld, tr("Old"), QVariant(), trashedGames - recentlyTrashed);
+    old->setToolTip(0, tr("In the trash for %n day(s) or more", nullptr, GameStates::kRecentDays));
     root->setExpanded(true);
     m_refreshing = false;
 }
@@ -258,6 +268,12 @@ void DatabaseTreeWidget::onCurrentItemChanged(QTreeWidgetItem *current)
         break;
     case Node::Trash:
         category.kind = GameCategory::Kind::Trash;
+        break;
+    case Node::TrashRecent:
+        category.kind = GameCategory::Kind::TrashRecent;
+        break;
+    case Node::TrashOld:
+        category.kind = GameCategory::Kind::TrashOld;
         break;
     }
     Q_EMIT categorySelected(category);

@@ -24,7 +24,16 @@ struct GameStateRecord {
     bool operator==(const GameStateRecord &) const = default;
 };
 
+class QDateTime;
+
 namespace GameStates {
+
+/// The trash sets apart what went in lately from what has been there a while.
+constexpr int kRecentDays = 7;
+
+/// Whether a state set at `modified` (ISO 8601) is less than kRecentDays old
+/// at `now`. A time that cannot be read is old.
+bool isRecent(const QString &modified, const QDateTime &now);
 
 /// The records of `incoming` a copy holding `local` takes: those of games it
 /// has no state for, and those set later than its own (a tie keeps the local

@@ -229,7 +229,8 @@ cargo run -p chessdb-cli -- <args>
 
 Right-clicking a game of the list offers Move Game to Trash; the tree's last
 node, Trash, lists those games, and only there a game can be restored or
-deleted. **Deleting is always soft**: nothing leaves the file until Database ▸
+deleted. Under it, Recent holds the games trashed in the last seven days
+(`GameStates::isRecent`, on `GameRecord::stateModified`) and Old the others. **Deleting is always soft**: nothing leaves the file until Database ▸
 Database Settings… ▸ Optimize Database (bottom left), which removes the
 deleted games for good, drops the names only they used and compacts the file
 (`GameDatabase::optimize`; more clean-ups will go there).

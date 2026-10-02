@@ -24,6 +24,7 @@
 #include "app/sync/GitStore.h"
 #include "app/sync/SyncManifest.h"
 
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QProcess>
@@ -1028,6 +1029,14 @@ private Q_SLOTS:
         QCOMPARE(GameStates::incomingChanges(local, incoming), expected);
         QVERIFY(GameStates::incomingChanges(local, local).isEmpty());
 
+        // The trash sets apart what went in during the last week.
+        const QDateTime now = QDateTime::fromString(QStringLiteral("2026-10-10T12:00:00.000Z"), Qt::ISODateWithMs);
+        QVERIFY(GameStates::isRecent(QStringLiteral("2026-10-10T11:59:00.000Z"), now));
+        QVERIFY(GameStates::isRecent(QStringLiteral("2026-10-03T12:00:01.000Z"), now));
+        QVERIFY(!GameStates::isRecent(QStringLiteral("2026-10-03T12:00:00.000Z"), now));
+        QVERIFY(!GameStates::isRecent(QStringLiteral("2026-09-01T12:00:00.000Z"), now));
+        QVERIFY(!GameStates::isRecent(QString(), now));
+
         QCOMPARE(gameStateFromKey(gameStateKey(GameState::Purged)), GameState::Purged);
         QCOMPARE(gameStateFromKey(QStringLiteral("whatever")), GameState::Live);
     }
@@ -1065,6 +1074,8 @@ private Q_SLOTS:
         QCOMPARE(database->gameCount(), 3);
         QCOMPARE(database->countGames(GameState::Live), 1);
         QCOMPARE(database->countGames(GameState::Trashed), 2);
+        QVERIFY(GameStates::isRecent(database->header(1).stateModified, QDateTime::currentDateTimeUtc()));
+        QVERIFY(database->header(0).stateModified.isEmpty());
         QCOMPARE(database->gameLines().size(), 1);
         QCOMPARE(database->sources().first().importedGames, 0);
         QVERIFY(database->loadGame(1));

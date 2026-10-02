@@ -10,7 +10,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 - **Trash.** Right-click a game of the list and choose *Move Game to Trash*.
   The database tree ends with *Trash*, where a game can be restored or
-  deleted. A game in the trash is in no other list and is not searched.
+  deleted, with *Recent* (trashed in the last seven days) and *Old* under
+  it. A game in the trash is in no other list and is not searched.
 - **Optimize Database.** Deleting is never immediate: *Database ▸ Database
   Settings… ▸ Optimize Database* removes the deleted games for good and
   compacts the file. Trashing, deleting and optimizing reach the other

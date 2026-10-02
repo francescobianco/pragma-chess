@@ -449,6 +449,28 @@ Il Nero ha catturato: %2</translation>
         <source>Games put in the trash: restore them, or delete them from here</source>
         <translation>Partite messe nel cestino: ripristinale, oppure eliminale da qui</translation>
     </message>
+    <message>
+        <source>Recent</source>
+        <translation>Recenti</translation>
+    </message>
+    <message numerus="yes">
+        <source>Put in the trash in the last %n day(s)</source>
+        <translation>
+            <numerusform>Messe nel cestino nell&apos;ultimo giorno</numerusform>
+            <numerusform>Messe nel cestino negli ultimi %n giorni</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Old</source>
+        <translation>Vecchi</translation>
+    </message>
+    <message numerus="yes">
+        <source>In the trash for %n day(s) or more</source>
+        <translation>
+            <numerusform>Nel cestino da %n giorno o più</numerusform>
+            <numerusform>Nel cestino da %n giorni o più</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>EnginePanel</name>

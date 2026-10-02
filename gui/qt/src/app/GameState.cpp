@@ -2,6 +2,7 @@
 
 #include "Reconcile.h"
 
+#include <QDateTime>
 #include <QHash>
 
 QString gameStateKey(GameState state)
@@ -25,6 +26,12 @@ GameState gameStateFromKey(const QString &key)
 }
 
 namespace GameStates {
+
+bool isRecent(const QString &modified, const QDateTime &now)
+{
+    const QDateTime when = QDateTime::fromString(modified, Qt::ISODateWithMs);
+    return when.isValid() && when.secsTo(now) < qint64(kRecentDays) * 24 * 3600;
+}
 
 QList<GameStateRecord> incomingChanges(const QList<GameStateRecord> &local, const QList<GameStateRecord> &incoming)
 {

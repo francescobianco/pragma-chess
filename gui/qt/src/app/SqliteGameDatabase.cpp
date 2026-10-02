@@ -167,6 +167,7 @@ public:
         header.uid = m_lastUid;
         header.modified = m_lastModified;
         header.state = GameState::Live;
+        header.stateModified.clear();
         return header;
     }
 
@@ -425,7 +426,7 @@ bool SqliteGameDatabase::loadHeaders(QString *errorMessage)
     query.setForwardOnly(true);
     if (!query.exec(QStringLiteral(
             "SELECT g.id, w.name, b.name, g.white_elo, g.black_elo, e.name, s.name,"
-            " g.date, g.round, g.result, g.eco, g.ply_count, g.start_fen, g.uid, g.modified, st.state"
+            " g.date, g.round, g.result, g.eco, g.ply_count, g.start_fen, g.uid, g.modified, st.state, st.modified"
             " FROM games g"
             " LEFT JOIN players w ON w.id = g.white_id"
             " LEFT JOIN players b ON b.id = g.black_id"
@@ -456,6 +457,7 @@ bool SqliteGameDatabase::loadHeaders(QString *errorMessage)
         g.uid = query.value(13).toString();
         g.modified = query.value(14).toString();
         g.state = gameStateFromKey(query.value(15).toString());
+        g.stateModified = query.value(16).toString();
         // A purged game whose row is still here (it came back from a copy
         // that had it) waits, hidden, for the next optimize().
         if (g.state == GameState::Purged)
@@ -695,10 +697,12 @@ bool SqliteGameDatabase::replaceGame(qint64 index, const GameRecord &game, QStri
     const qint64 id = cached.id;
     const QString uid = cached.uid;
     const GameState state = cached.state;
+    const QString stateModified = cached.stateModified;
     cached = game;
     cached.id = id;
     cached.uid = uid; // The identity never changes.
     cached.state = state; // Where the game is has its own revision (game_states).
+    cached.stateModified = stateModified;
     cached.modified = modified;
     cached.plyCount = int(game.moves.size());
     cached.moves.clear();
@@ -868,12 +872,14 @@ bool SqliteGameDatabase::setGameState(qint64 index, GameState state, QString *er
     query.prepare(QStringLiteral("INSERT OR REPLACE INTO game_states (uid, state, modified) VALUES (?, ?, ?)"));
     query.addBindValue(m_headers.at(index).uid);
     query.addBindValue(gameStateKey(state));
-    query.addBindValue(GameIdentity::now());
+    const QString now = GameIdentity::now();
+    query.addBindValue(now);
     if (!query.exec()) {
         setError(errorMessage, query.lastError().text());
         return false;
     }
     m_headers[index].state = state;
+    m_headers[index].stateModified = now;
     return true;
 }
 

@@ -35,6 +35,9 @@ struct GameRecord {
     QString modified;
     /// Trashed and deleted games stay in the database, out of the lists.
     GameState state = GameState::Live;
+    /// When the game was put where it is (trashed, restored, deleted), ISO
+    /// 8601 UTC; empty for a game that was never in the trash.
+    QString stateModified;
     QList<MoveRecord> moves;
 };
 

@@ -25,8 +25,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 - *New Training* has *Remember for this session*: once ticked, the toolbar
   button starts a training with that colour without asking, until the
   application is closed. *Game ▸ New Training…* always asks.
-- The toolbar shows the opening book, the engine and the database in use,
-  each with its icon and a drop-down list to choose another.
+- The toolbar has an icon each for the opening book, the engine and the
+  database, with a drop-down list to choose another; the tooltip says which
+  one is in use.
 - **Trash.** Right-click a game of the list and choose *Move Game to Trash*.
   The database tree ends with *Trash*, where a game can be restored or
   deleted, with *Recent* (trashed in the last seven days) and *Old* under

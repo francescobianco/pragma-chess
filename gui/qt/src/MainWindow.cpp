@@ -744,49 +744,37 @@ void MainWindow::createToolBar()
     toolBar->addAction(m_quickTrainingAction);
     // Some air around each icon: bigger buttons to aim at, the same icons.
     constexpr int kButtonPadding = 4;
-    int buttonHeight = 0;
-    for (QAction *action : toolBar->actions()) {
-        if (QWidget *button = toolBar->widgetForAction(action); button && !action->isSeparator()) {
-            button->setMinimumSize(button->sizeHint() + 2 * QSize(kButtonPadding, kButtonPadding));
-            buttonHeight = button->minimumHeight();
-        }
-    }
-
-    // The book, the engine and the database in use: each button says which
-    // one and drops down the list to choose another (the menus of the menu
-    // bar, set in createMenus()).
+    // The book, the engine and the database in use: an icon each, which
+    // drops down the list to choose another (the menus of the menu bar, set
+    // in createMenus()); the tooltip says which one is in use.
     toolBar->addSeparator();
-    const auto resourceButton = [toolBar, buttonHeight](const char *icon) {
+    const auto resourceButton = [toolBar](const char *icon) {
         auto *button = new QToolButton(toolBar);
         button->setIcon(themeIcon(icon, QStyle::SP_FileIcon));
-        button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         button->setPopupMode(QToolButton::InstantPopup);
         button->setFocusPolicy(Qt::NoFocus);
-        button->setMinimumHeight(buttonHeight);
         toolBar->addWidget(button);
         return button;
     };
     m_bookButton = resourceButton("pragma-book");
     m_engineButton = resourceButton("pragma-engine");
     m_databaseButton = resourceButton("pragma-database");
+
+    for (QAction *action : toolBar->actions()) {
+        if (QWidget *button = toolBar->widgetForAction(action); button && !action->isSeparator())
+            button->setMinimumSize(button->sizeHint() + 2 * QSize(kButtonPadding, kButtonPadding));
+    }
 }
 
 void MainWindow::updateResourceButtons()
 {
     if (!m_bookButton) // Called while the window is still being put together.
         return;
-    // A long name must not push the toolbar around.
-    const auto shown = [this](const QString &name) {
-        return fontMetrics().elidedText(name, Qt::ElideMiddle, fontMetrics().averageCharWidth() * 28);
-    };
     const QString book = m_book ? QFileInfo(m_book->path()).completeBaseName() : tr("No Book");
-    m_bookButton->setText(shown(book));
     m_bookButton->setToolTip(tr("Opening book: %1").arg(book));
     const QString engine = m_engines.resolve(m_engineId, m_engineName).name;
-    m_engineButton->setText(shown(engine));
     m_engineButton->setToolTip(tr("Engine: %1").arg(engine));
     const QString database = m_database ? m_database->name() : tr("No Database");
-    m_databaseButton->setText(shown(database));
     m_databaseButton->setToolTip(tr("Database: %1").arg(database));
 }
 

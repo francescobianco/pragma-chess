@@ -185,7 +185,7 @@ private:
     Project captureProject() const;
     void applyProject(const Project &project, bool openFirstGameIfNone);
     void updateWindowTitle();
-    /// Writes the book, the engine and the database in use on their toolbar buttons.
+    /// Says in the tooltips of their toolbar buttons which book, engine and database are in use.
     void updateResourceButtons();
     void updateProjectModified();
 
@@ -408,8 +408,8 @@ private:
     QAction *m_newTrainingAction;
     /// The same in the toolbar, which may skip the dialog.
     QAction *m_quickTrainingAction;
-    /// The toolbar's book, engine and database: each shows the one in use
-    /// and drops down the menu that chooses it.
+    /// The toolbar's book, engine and database: an icon each, dropping down
+    /// the menu that chooses it; the tooltip names the one in use.
     QToolButton *m_bookButton = nullptr;
     QToolButton *m_engineButton = nullptr;
     QToolButton *m_databaseButton = nullptr;

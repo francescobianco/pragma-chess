@@ -34,6 +34,8 @@ private:
     bool isMaximized() const;
     bool isFullScreen() const;
     void applyMargins();
+    /// Takes the size grip off the main window's status bar: the frame resizes.
+    void dropSizeGrip();
     void paint();
     /// The panel inside the shadow, and its parts.
     QRect panelRect() const;

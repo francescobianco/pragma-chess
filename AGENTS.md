@@ -200,8 +200,11 @@ holds the shadow. A dialog has a close button and four rounded corners; the
 main window has minimize, maximize and close, square bottom corners (its
 status bar reaches them), and when it is maximized the margin and the
 rounding go, as for every window of the desktop; full screen is the contents
-alone. The contents move in by contents margins, and the sizes a window asked
-for (minimum, fixed, `resize()`) grow by the frame. The title bar moves the
+alone. The contents move in by contents margins — one pixel more than the
+shadow, so they do not paint over the panel's edge —, and the sizes a window
+asked for (minimum, fixed, `resize()`) grow by the frame. The main window's
+status bar loses its size grip: the frame's edges resize, and the grip sat
+out of place inside `PaddedStatusBar`'s margins. The title bar moves the
 window (`startSystemMove`; a double click maximizes the main window), the
 edges resize it, the buttons do what they say. A window is polished after its
 native window exists, and Qt's Wayland window stays opaque whatever is asked

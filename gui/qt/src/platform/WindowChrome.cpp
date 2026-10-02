@@ -6,6 +6,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
+#include <QStatusBar>
 #include <QWindow>
 
 namespace {
@@ -83,9 +84,21 @@ int WindowChrome::margin() const
 
 void WindowChrome::applyMargins()
 {
-    // Full screen is the contents and nothing else.
+    // Full screen is the contents and nothing else. Otherwise the contents
+    // keep off the panel's one-pixel edge, which they would paint over.
     const int side = margin();
-    m_window->setContentsMargins(side, side + (isFullScreen() ? 0 : kTitleHeight), side, side);
+    const int edge = side > 0 ? 1 : 0;
+    m_window->setContentsMargins(side + edge, side + (isFullScreen() ? 0 : kTitleHeight), side + edge, side + edge);
+}
+
+void WindowChrome::dropSizeGrip()
+{
+    // The edges of the frame resize the window: the status bar's grip would
+    // only sit, out of place, inside the bar's own margins.
+    if (auto *mainWindow = qobject_cast<QMainWindow *>(m_window)) {
+        if (auto *bar = mainWindow->findChild<QStatusBar *>())
+            bar->setSizeGripEnabled(false);
+    }
 }
 
 QRect WindowChrome::panelRect() const
@@ -163,6 +176,11 @@ bool WindowChrome::eventFilter(QObject *watched, QEvent *event)
     case QEvent::WindowStateChange:
         applyMargins();
         m_window->update();
+        return false;
+    case QEvent::Show:
+    case QEvent::ChildAdded:
+        // The status bar may come after the frame: catch it when it is there.
+        QMetaObject::invokeMethod(this, [this] { dropSizeGrip(); }, Qt::QueuedConnection);
         return false;
     case QEvent::WindowTitleChange:
     case QEvent::WindowActivate:
@@ -310,7 +328,9 @@ void WindowChrome::paint()
     const QColor window = palette.color(QPalette::Window);
     painter.setCompositionMode(QPainter::CompositionMode_Source);
     painter.setBrush(window);
-    painter.setPen(QPen(window.lightness() < 128 ? window.lighter(170) : window.darker(150), 1));
+    // No edge when the window fills the screen, as on the desktop.
+    painter.setPen(margin() > 0 ? QPen(window.lightness() < 128 ? window.lighter(170) : window.darker(150), 1)
+                                : QPen(Qt::NoPen));
     painter.drawPath(shape);
     painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 

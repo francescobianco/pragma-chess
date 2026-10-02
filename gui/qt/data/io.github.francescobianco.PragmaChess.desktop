@@ -2,11 +2,14 @@
 Type=Application
 Name=Pragma Chess
 GenericName=Chess Database
+GenericName[it]=Database di scacchi
 Comment=Browse, search and analyze chess game databases
+Comment[it]=Sfoglia, cerca e analizza database di partite di scacchi
 Exec=pragma-chess %F
 Icon=io.github.francescobianco.PragmaChess
 Terminal=false
 Categories=Game;BoardGame;
 Keywords=chess;database;pgn;opening;
+Keywords[it]=scacchi;database;pgn;apertura;partite;
 MimeType=application/x-chess-pgn;
 StartupWMClass=pragma-chess

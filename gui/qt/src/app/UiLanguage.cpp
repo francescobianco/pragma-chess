@@ -59,8 +59,12 @@ void install(QCoreApplication &app)
     const QString code = effective();
     if (code == QLatin1String("en"))
         return;
+    // Qt's own texts: those of the Qt in use when it has them (windeployqt
+    // names the catalog qt_<code>), else the copy embedded with ours.
     auto *qt = new QTranslator(&app);
-    if (qt->load(QStringLiteral("qtbase_") + code, QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+    const QString qtDir = QLibraryInfo::path(QLibraryInfo::TranslationsPath);
+    if (qt->load(QStringLiteral("qtbase_") + code, qtDir) || qt->load(QStringLiteral("qt_") + code, qtDir)
+        || qt->load(QStringLiteral(":/i18n/qtbase_") + code))
         QCoreApplication::installTranslator(qt);
     auto *own = new QTranslator(&app);
     if (own->load(QStringLiteral(":/i18n/pragma-chess_") + code))

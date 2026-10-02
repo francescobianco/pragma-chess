@@ -1561,7 +1561,7 @@ Il Nero ha catturato: %2</translation>
     </message>
     <message>
         <source>Show Opening Names &amp;Folder</source>
-        <translation>Mostra la &amp;cartella dei nomi delle aperture</translation>
+        <translation>Mostra &amp;cartella dei nomi delle aperture</translation>
     </message>
     <message>
         <source>%1 (%2)</source>

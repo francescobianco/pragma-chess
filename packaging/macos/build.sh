@@ -50,6 +50,13 @@ cp "$build/engines/stockfish" "$bundle/Contents/MacOS/"
 mkdir -p "$bundle/Contents/Resources/engines"
 cp "$build/engines/Copying.txt" "$build/engines/AUTHORS" "$build/engines/README.txt" \
     "$bundle/Contents/Resources/engines/"
+# macOS shows its own panels (open, save) and the application menu in a
+# language only if the bundle says it has it: one .lproj per translation.
+mkdir -p "$bundle/Contents/Resources/en.lproj"
+for ts in "$root"/gui/qt/translations/pragma-chess_*.ts; do
+    code=${ts##*pragma-chess_}
+    mkdir -p "$bundle/Contents/Resources/${code%.ts}.lproj"
+done
 # Only SQLite is used: the other drivers need client libraries we do not ship.
 find "$bundle/Contents/PlugIns/sqldrivers" -type f ! -name 'libqsqlite*' -delete
 

@@ -343,7 +343,30 @@ file(GLOB PRAGMA_TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/translations/pragma-chess_
 if(TARGET Qt6::lrelease AND PRAGMA_TS_FILES)
     qt_add_translations(pragma-chess TS_FILES ${PRAGMA_TS_FILES} RESOURCE_PREFIX /i18n)
 elseif(PRAGMA_TS_FILES)
-    message(STATUS "Qt Linguist tools not found: the interface is built in English only")
+    # A warning, not a status line: the build works and nothing else says why
+    # the interface ignores the language chosen in Options.
+    message(WARNING "Qt Linguist tools not found (qt6-tools-dev, qt6-l10n-tools): "
+        "the interface is built in English only")
+endif()
+# Qt's own texts (dialog buttons, colour and file dialogs) in the same
+# languages, embedded as well: what each platform deploys differs (Windows
+# ships qt_<code>.qm, macOS nothing, Linux a package nobody has to install).
+get_target_property(PRAGMA_QTPATHS Qt6::qtpaths LOCATION)
+execute_process(COMMAND ${PRAGMA_QTPATHS} --query QT_INSTALL_TRANSLATIONS
+    OUTPUT_VARIABLE PRAGMA_QT_TRANSLATIONS OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+set(PRAGMA_QT_QM_FILES)
+foreach(ts IN LISTS PRAGMA_TS_FILES)
+    string(REGEX REPLACE ".*pragma-chess_(.+)\\.ts$" "\\1" code ${ts})
+    set(qm "${PRAGMA_QT_TRANSLATIONS}/qtbase_${code}.qm")
+    if(EXISTS "${qm}")
+        set_source_files_properties("${qm}" PROPERTIES QT_RESOURCE_ALIAS qtbase_${code}.qm)
+        list(APPEND PRAGMA_QT_QM_FILES "${qm}")
+    else()
+        message(STATUS "qtbase_${code}.qm not found: Qt's own texts come from the system, if it has them")
+    endif()
+endforeach()
+if(PRAGMA_QT_QM_FILES)
+    qt_add_resources(pragma-chess qt-translations PREFIX /i18n FILES ${PRAGMA_QT_QM_FILES})
 endif()
 
 # The opening book seeded into the Books folder on first launch.

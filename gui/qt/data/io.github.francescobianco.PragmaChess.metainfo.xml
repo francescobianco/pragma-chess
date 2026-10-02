@@ -4,6 +4,7 @@
   <id>io.github.francescobianco.PragmaChess</id>
   <name>Pragma Chess</name>
   <summary>Browse, search and analyze chess game databases</summary>
+  <summary xml:lang="it">Sfoglia, cerca e analizza database di partite di scacchi</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
   <developer id="io.github.francescobianco">
@@ -15,12 +16,22 @@
       Keep your games in databases, replay them on the board, analyze them with
       any UCI engine and let Explain draw why a move is good or bad.
     </p>
+    <p xml:lang="it">
+      Pragma Chess è un database di scacchi open source con un client desktop nativo.
+      Conserva le tue partite in database, rivedile sulla scacchiera, analizzale con
+      qualsiasi motore UCI e lascia che Spiega disegni perché una mossa è buona o cattiva.
+    </p>
     <ul>
       <li>Game databases with filters by opening, tournament, year and source</li>
+      <li xml:lang="it">Database di partite con filtri per apertura, torneo, anno e fonte</li>
       <li>Games imported from lichess.org and chess.com</li>
+      <li xml:lang="it">Partite importate da lichess.org e chess.com</li>
       <li>Engine analysis and training games against the engine</li>
+      <li xml:lang="it">Analisi con il motore e partite di allenamento contro il motore</li>
       <li>Opening books and named openings</li>
+      <li xml:lang="it">Libri d'aperture e nomi delle aperture</li>
       <li>Databases kept in sync across computers through FTP, WebDAV or Git</li>
+      <li xml:lang="it">Database sincronizzati tra più computer tramite FTP, WebDAV o Git</li>
     </ul>
   </description>
   <launchable type="desktop-id">io.github.francescobianco.PragmaChess.desktop</launchable>

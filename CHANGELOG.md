@@ -4,6 +4,18 @@ All notable changes to Pragma Chess are listed here, newest version first.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- Dialog buttons and the other texts that come from Qt (OK, Cancel, Save,
+  Discard…) follow the interface language in every package: on Windows and
+  macOS they stayed in English.
+- On macOS the open and save panels and the application menu follow the
+  interface language.
+- The Linux menu entry and the description in software centres are
+  translated into Italian.
+
 ## [0.2.0] - 2026-10-02
 
 ### Added
@@ -146,5 +158,6 @@ First public release.
   as they happen on a real board.
 - **Language.** *Options ▸ Language* chooses the interface language.
 
+[Unreleased]: https://github.com/francescobianco/pragma-chess/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/francescobianco/pragma-chess/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/francescobianco/pragma-chess/releases/tag/v0.1.0

@@ -169,7 +169,14 @@ cargo run -p chessdb-cli -- <args>
   `translations/pragma-chess_<code>.ts`, compiled when Qt6 LinguistTools is found.
   After changing texts, refresh them from `gui/qt` with
   `/usr/lib/qt6/bin/lupdate -locations none -no-obsolete src tools -ts translations/pragma-chess_it.ts`
-  and translate the new `type="unfinished"` entries. lupdate must not warn:
+  and translate the new `type="unfinished"` entries. Both tools come with
+  `qt6-tools-dev` and `qt6-l10n-tools` (`make deps`): without them CMake warns
+  and the client is built in English only, whatever language is chosen. Qt's
+  own texts (dialog buttons, standard dialogs) are embedded too
+  (`:/i18n/qtbase_<code>.qm`, copied from the Qt of the build), since each
+  platform deploys them differently; `UiLanguage::install` prefers those of
+  the Qt in use. The `.desktop` entry and the AppStream metainfo carry their
+  own translations (`[it]`, `xml:lang="it"`). lupdate must not warn:
   `tr()` in a free function has no context, so such files declare
   `struct Text { Q_DECLARE_TR_FUNCTIONS(Context) };` and call `Text::tr`
   (see `MoveExplanation.cpp`), or use `QObject::tr`.

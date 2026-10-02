@@ -359,7 +359,11 @@ private Q_SLOTS:
         const ChessMove played = *ChessPosition::startingPosition().moveFromUci(QStringLiteral("e2e4"));
         using TrainingTutor::Alert;
         QCOMPARE(TrainingTutor::judge(eval(30), eval(10), Side::White, played), Alert::None);
-        QCOMPARE(TrainingTutor::judge(eval(30), eval(-60), Side::White, played), Alert::None); // An inaccuracy passes.
+        QCOMPARE(TrainingTutor::judge(eval(30), eval(-60), Side::White, played), Alert::None); // A small slip passes.
+        // 1.e4 e5 2.f4 exf4 3.a4: from −0.5 to −2.1, as the engine sees it. Explain
+        // calls it an inaccuracy, and the tutor stops for everything Explain calls an error.
+        QCOMPARE(TrainingTutor::judge(eval(-50), eval(-210), Side::White, played), Alert::Inaccuracy);
+        QCOMPARE(TrainingTutor::judge(eval(-60), eval(-250), Side::White, played), Alert::Inaccuracy);
         QCOMPARE(TrainingTutor::judge(eval(50), eval(-200), Side::White, played), Alert::Mistake);
         QCOMPARE(TrainingTutor::judge(eval(30), eval(-450), Side::White, played), Alert::Blunder);
         // Winning before, only equal after: nothing was lost, a chance was.

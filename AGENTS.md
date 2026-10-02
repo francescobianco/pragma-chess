@@ -586,11 +586,14 @@ while the menu entry and its shortcut always ask. Everything lives in `MainWindo
   from (`m_trainingBaseline`: the engine's search for its last move, replaced
   by the analysis running while the user thinks when it goes deeper, and
   tied to that position by its FEN) with the search for the engine's answer.
-  A Mistake, a Blunder or a Missed Chance (the user was better and no longer
-  is, without being worse) holds the answer back (`holdEngineReply`) and the
+  Whatever Explain calls an error — Inaccuracy, Mistake, Blunder, under the
+  same names — or a Missed Chance (the user was better and no longer is,
+  without being worse) holds the answer back (`holdEngineReply`) and the
   Engine panel offers Take Back (`goBack`, so the next try is judged too),
   Explain (the board's Explain, on the move just played) and Ignore (the
-  engine answers). Inaccuracies pass; navigating away drops the alert.
+  engine answers). An inaccuracy is already a jump of a pawn or more near
+  equality (3.a4 in the King's Gambit, −0.5 → −2.1), which is why it does
+  not pass. Navigating away drops the alert.
 - Checkmate or stalemate fills in the result and saves the game to the open
   database through `saveGameToDatabase`, which is a no-op once it is stored.
 - The flag and the user's colour are part of `Project` (`training` with

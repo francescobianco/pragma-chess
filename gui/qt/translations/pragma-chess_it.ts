@@ -1899,6 +1899,10 @@ Non comparirà più in nessun elenco. Resta nel file finché il database non vie
         <source>Pragma Chess &amp;Guide</source>
         <translation>&amp;Guida di Pragma Chess</translation>
     </message>
+    <message>
+        <source>Inaccuracy: %1 (%2 → %3).</source>
+        <translation>Imprecisione: %1 (%2 → %3).</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>

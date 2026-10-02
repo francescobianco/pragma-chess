@@ -15,13 +15,18 @@ constexpr double kNotWorse = 0.45;
 Alert judge(const EngineEvaluation &before, const EngineEvaluation &after, Side user, const ChessMove &played)
 {
     const MoveExplanation::Verdict verdict = classifyMove(before, after, user, played);
-    if (verdict != MoveExplanation::Verdict::Mistake && verdict != MoveExplanation::Verdict::Blunder)
+    if (verdict != MoveExplanation::Verdict::Inaccuracy && verdict != MoveExplanation::Verdict::Mistake
+        && verdict != MoveExplanation::Verdict::Blunder)
         return Alert::None;
     // Nothing was lost that the user had on the board: the advantage was
     // there to take, and the position is still playable.
     if (before.shareFor(user) >= kBetter && after.shareFor(user) >= kNotWorse)
         return Alert::MissedChance;
-    return verdict == MoveExplanation::Verdict::Blunder ? Alert::Blunder : Alert::Mistake;
+    switch (verdict) {
+    case MoveExplanation::Verdict::Blunder: return Alert::Blunder;
+    case MoveExplanation::Verdict::Mistake: return Alert::Mistake;
+    default: return Alert::Inaccuracy;
+    }
 }
 
 } // namespace TrainingTutor

@@ -2568,6 +2568,7 @@ void MainWindow::holdEngineReply(const ChessMove &reply, const EngineEvaluation 
     switch (alert) {
     case TrainingTutor::Alert::Blunder: message = tr("Blunder: %1 (%2 → %3).").arg(move, before, after); break;
     case TrainingTutor::Alert::Mistake: message = tr("Mistake: %1 (%2 → %3).").arg(move, before, after); break;
+    case TrainingTutor::Alert::Inaccuracy: message = tr("Inaccuracy: %1 (%2 → %3).").arg(move, before, after); break;
     case TrainingTutor::Alert::MissedChance:
         message = tr("Missed chance: %1 lets your advantage go (%2 → %3).").arg(move, before, after);
         break;

@@ -163,7 +163,7 @@ where.
 Debian/Ubuntu dependencies:
 
 ```bash
-make deps    # sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-svg-dev libqt6sql6-sqlite qt6-tools-dev qt6-l10n-tools inotify-tools
+make deps    # sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-svg-dev libqt6sql6-sqlite qt6-tools-dev qt6-l10n-tools libssl-dev inotify-tools
 ```
 
 ```bash

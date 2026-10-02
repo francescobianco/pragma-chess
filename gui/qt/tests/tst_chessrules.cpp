@@ -1572,17 +1572,23 @@ void TestChessRules::addsDetectedEnginesOnce()
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
     const QString engine = dir.filePath(QStringLiteral("stockfish"));
-    const QString link = dir.filePath(QStringLiteral("stockfish-link"));
     const QString bundled = dir.filePath(QStringLiteral("bundled-stockfish"));
     const QString other = dir.filePath(QStringLiteral("berserk"));
     for (const QString &path : {engine, bundled, other}) {
         QFile file(path);
         QVERIFY(file.open(QIODevice::WriteOnly));
     }
+#ifdef Q_OS_WIN
+    // QFile::link makes a shortcut there, not a symlink: the same file is
+    // reached twice by writing its path in another case.
+    const QString link = engine.toUpper();
+#else
+    const QString link = dir.filePath(QStringLiteral("stockfish-link"));
     QVERIFY(QFile::link(engine, link));
+#endif
 
     EngineCatalog catalog;
-    // The same file reached through a symlink, and the bundled engine, count once.
+    // The same file reached twice (through a symlink), and the bundled engine, count once.
     const QList<DetectedEngine> found = {{engine, QStringLiteral("Stockfish 17")},
                                          {link, QStringLiteral("Stockfish 17")},
                                          {bundled, QStringLiteral("Stockfish 19")}};

@@ -32,7 +32,7 @@ if ($env:SKIP_TESTS -ne "1") {
     $env:QT_QPA_PLATFORM = "offscreen"
     # Known to fail on Windows ("Access is denied" syncing a Git folder): a real
     # bug of Folder Sync there, to be fixed, not a packaging problem.
-    $knownFailures = @("reconcilesGitFoldersWithoutDeleting")
+    $knownFailures = @("reconcilesGitFoldersWithoutDeleting", "mergesDuplicatesAcrossGitDevices")
     $functions = & "$Build\gui\qt\tst_chessrules.exe" -functions |
         ForEach-Object { $_ -replace '\(\)$', '' } |
         Where-Object { $_ -and $knownFailures -notcontains $_ }

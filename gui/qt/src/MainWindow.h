@@ -281,7 +281,9 @@ private:
     FolderSync *m_folderSync;
     SyncPipeline *m_syncPipeline;
     PhoneLink *m_phoneLink = nullptr;
+#ifdef PRAGMA_HAS_PHONE_LINK // The type is only complete in a build with Phone Link.
     std::unique_ptr<DatabaseFolderStore> m_phoneGameStore;
+#endif
     QAction *m_connectMobileAction = nullptr;
     /// Set while the window waits for a sync before closing for good.
     bool m_closingAfterSync = false;

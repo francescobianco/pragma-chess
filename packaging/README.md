@@ -9,7 +9,7 @@ scripts; they work the same on a machine of the right kind.
 | Windows installer + portable zip | `windows/build.ps1` | Windows, MSVC 2022, Qt 6 for MSVC, Inno Setup 6 | `PragmaChess-<v>-windows-x64-setup.exe`, `…-portable.zip` |
 | macOS disk image (Apple Silicon) | `macos/build.sh` | macOS, Qt 6, `brew install create-dmg` | `PragmaChess-<v>-macos-arm64.dmg` |
 | Debian / Ubuntu | `linux/build-packages.sh deb` | Ubuntu 24.04 (`make deps`) | `pragma-chess_<v>_amd64.deb` |
-| Fedora | `linux/build-packages.sh rpm` | Fedora, `qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel rpm-build` | `pragma-chess-<v>-1.<dist>.x86_64.rpm` |
+| Fedora | `linux/build-packages.sh rpm` | Fedora, `qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel openssl-devel rpm-build` | `pragma-chess-<v>-1.<dist>.x86_64.rpm` |
 
 Each script takes the version as its argument (default: `PRAGMA_VERSION` in
 the top-level `CMakeLists.txt`), builds in Release, runs the tests

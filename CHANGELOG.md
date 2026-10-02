@@ -44,6 +44,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 - The Sync Now button of the toolbar shows two separate arrows, and its
   tooltip is *Sync Everything…*.
 - The toolbar buttons are larger, with more room around their icons.
+- New toolbar icons: a board of four squares for *New Game* and a square
+  face for *New Training*.
 - The title bar shows only the name of the open project, with an asterisk
   while it is not saved, and Pragma Chess.
 

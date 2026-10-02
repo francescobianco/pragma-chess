@@ -34,6 +34,9 @@ enum class Shape {
     Training,
 };
 
+/// The square New Game and New Training share: a board, and a face as large.
+const QRectF kBoardIcon(2.5, 2.5, 11, 11);
+
 /// Paints a shape on a 16×16 grid with the given color.
 void paintShape(QPainter *painter, Shape shape, const QColor &color)
 {
@@ -121,12 +124,17 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         break;
     }
     case Shape::Training: {
-        // A target: a game played to practise, not to record.
-        painter->drawEllipse(QPointF(8, 8), 5.5, 5.5);
-        painter->drawEllipse(QPointF(8, 8), 2.5, 2.5);
-        painter->setBrush(color);
-        painter->drawEllipse(QPointF(8, 8), 0.9, 0.9);
-        painter->setBrush(Qt::NoBrush);
+        // The opponent of a training game: a square face, as large as the
+        // board of New Game, with almond eyes and a narrow mouth.
+        painter->drawRoundedRect(kBoardIcon, 1.25, 1.25);
+        for (const qreal x : {5.6, 10.4}) {
+            QPainterPath eye;
+            eye.moveTo(x - 1.5, 6.6);
+            eye.quadTo(x, 4.9, x + 1.5, 6.6);
+            eye.quadTo(x, 8.3, x - 1.5, 6.6);
+            painter->fillPath(eye, color);
+        }
+        painter->drawLine(QPointF(6.75, 10.6), QPointF(9.25, 10.6));
         break;
     }
     case Shape::Sync: {
@@ -209,18 +217,18 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         break;
     }
     case Shape::NewGame: {
-        // A pawn with a plus.
-        painter->drawEllipse(QPointF(6.5, 4.25), 2.25, 2.25);
-        QPainterPath body;
-        body.moveTo(4.75, 7.5);
-        body.lineTo(8.25, 7.5);
-        body.lineTo(9.5, 12);
-        body.lineTo(3.5, 12);
-        body.closeSubpath();
-        painter->drawPath(body);
-        painter->drawLine(QPointF(2.25, 14.25), QPointF(10.75, 14.25));
-        painter->drawLine(QPointF(13, 2), QPointF(13, 7));
-        painter->drawLine(QPointF(10.5, 4.5), QPointF(15.5, 4.5));
+        // A board of four squares, two light and two dark (a1 is dark).
+        // A thinner edge than the other icons, or the light squares would
+        // look smaller than the dark ones; the outer size stays the same.
+        const QRectF square = kBoardIcon.adjusted(-0.25, -0.25, 0.25, 0.25);
+        QPainterPath board;
+        board.addRoundedRect(square, 1.25, 1.25);
+        QPainterPath dark;
+        dark.addRect(QRectF(square.center().x(), square.top(), square.width() / 2, square.height() / 2));
+        dark.addRect(QRectF(square.left(), square.center().y(), square.width() / 2, square.height() / 2));
+        painter->fillPath(board.intersected(dark), color);
+        painter->setPen(QPen(color, 1.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        painter->drawPath(board);
         break;
     }
     case Shape::Database: {

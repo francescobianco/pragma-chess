@@ -511,7 +511,11 @@ turned on, after `NewTrainingDialog` asked for the colour (`m_trainingSide`);
   `m_trainingThinking`) and its first PV move is played on `searchFinished`.
 - Checkmate or stalemate fills in the result and saves the game to the open
   database through `saveGameToDatabase`, which is a no-op once it is stored.
-- The flag is not part of `Project`: a restarted client is not training.
+- The flag and the user's colour are part of `Project` (`training` with
+  `side`, written only while training): a client closed while training opens
+  training, and the engine answers at once if the move is its own. An unsaved
+  training game comes back as its moves, so `trainingHeader()` names the
+  players again.
 - The engine's move is shown with `BoardWidget::setBoardAnimated` over
   `kEngineMoveMs` (1.5 s), the piece growing inside a halo: it is deliberately
   slow, because the user did not make that move. Do not speed it up.

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "BoardState.h"
+
 #include <QByteArray>
 #include <QDir>
 #include <QString>
@@ -38,6 +40,11 @@ struct Project {
     QString engineId;
     QString engineName;
     bool engineAnalyzing = false;
+
+    /// Training Mode: the engine answers as the other colour. A project closed
+    /// while training opens training, with the user on `trainingSide`.
+    bool training = false;
+    Side trainingSide = Side::White;
 
     /// Dock and toolbar layout, as produced by QMainWindow::saveState().
     QByteArray layout;

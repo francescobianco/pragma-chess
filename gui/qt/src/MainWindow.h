@@ -143,6 +143,8 @@ private:
     // "New Training" is a new game with the flag on, a plain new game turns it off.
     /// Asks for the colour and starts a game against the engine.
     void newTraining();
+    /// The header of a training game: the user on their side, the engine on the other.
+    GameRecord trainingHeader() const;
     void setTrainingMode(bool enabled);
     /// Whether the engine, not the user, owns the side to move.
     bool isEngineTurn() const;

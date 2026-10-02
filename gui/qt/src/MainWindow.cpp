@@ -335,6 +335,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_flipBoardAction, &QAction::toggled, this, &MainWindow::scheduleSaveSession);
     connect(m_coordinatesAction, &QAction::toggled, this, &MainWindow::scheduleSaveSession);
     connect(m_startEngineAction, &QAction::toggled, this, &MainWindow::scheduleSaveSession);
+    connect(m_trainingModeAction, &QAction::toggled, this, &MainWindow::scheduleSaveSession);
     const QHeaderView *gameHeader = m_gameView->horizontalHeader();
     connect(gameHeader, &QHeaderView::sectionMoved, this, &MainWindow::scheduleSaveSession);
     connect(gameHeader, &QHeaderView::sectionResized, this, &MainWindow::scheduleSaveSession);
@@ -2350,7 +2351,22 @@ void MainWindow::newTraining()
     if (dialog.exec() != QDialog::Accepted)
         return;
     m_trainingSide = dialog.side();
+    const GameRecord game = trainingHeader();
+    const QString engineName = m_trainingSide == Side::White ? game.black : game.white;
 
+    m_flipBoardAction->setChecked(m_trainingSide == Side::Black); // Play from the bottom.
+    m_startEngineAction->setChecked(true); // The score stays visible throughout.
+    startGame(game);
+    m_trainingModeAction->setChecked(true);
+    updateTraining();                      // setChecked() is silent when the flag was already on.
+    statusBar()->showMessage(m_trainingSide == Side::White
+                                 ? tr("Training: you play White against %1").arg(engineName)
+                                 : tr("Training: you play Black against %1").arg(engineName),
+                             5000);
+}
+
+GameRecord MainWindow::trainingHeader() const
+{
     // Who the user is, as the database already knows them from "Who Is This?".
     QString me = tr("Me");
     if (m_database) {
@@ -2372,16 +2388,7 @@ void MainWindow::newTraining()
     game.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
     game.white = m_trainingSide == Side::White ? me : engineName;
     game.black = m_trainingSide == Side::White ? engineName : me;
-
-    m_flipBoardAction->setChecked(m_trainingSide == Side::Black); // Play from the bottom.
-    m_startEngineAction->setChecked(true); // The score stays visible throughout.
-    startGame(game);
-    m_trainingModeAction->setChecked(true);
-    updateTraining();                      // setChecked() is silent when the flag was already on.
-    statusBar()->showMessage(m_trainingSide == Side::White
-                                 ? tr("Training: you play White against %1").arg(engineName)
-                                 : tr("Training: you play Black against %1").arg(engineName),
-                             5000);
+    return game;
 }
 
 void MainWindow::setTrainingMode(bool enabled)
@@ -2726,6 +2733,8 @@ Project MainWindow::captureProject() const
     project.engineId = m_engineId;
     project.engineName = m_engineName;
     project.engineAnalyzing = m_startEngineAction->isChecked();
+    project.training = m_trainingModeAction->isChecked();
+    project.trainingSide = m_trainingSide;
     project.layout = saveLayout();
     return project;
 }
@@ -2734,6 +2743,8 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
 {
     const bool wasRestoring = m_restoringSession;
     m_restoringSession = true;
+    // Off while the game changes, or the engine would answer in the one being opened.
+    m_trainingModeAction->setChecked(false);
 
     if (!project.layout.isEmpty())
         restoreLayout(project.layout);
@@ -2795,6 +2806,15 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
     }
     m_session->goToPly(project.ply);
     m_startEngineAction->setChecked(project.engineAnalyzing);
+    // A project closed while training goes on training: the engine answers
+    // at once if the move is its own.
+    if (project.training) {
+        m_trainingSide = project.trainingSide;
+        // An unsaved game comes back as its moves only: say again who plays.
+        if (m_openGameIndex < 0)
+            m_session->setHeader(trainingHeader());
+        m_trainingModeAction->setChecked(true);
+    }
 
     m_restoringSession = wasRestoring;
 }

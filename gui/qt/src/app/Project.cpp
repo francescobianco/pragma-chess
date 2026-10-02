@@ -91,6 +91,13 @@ QString Project::toYaml(const QDir &baseDir) const
     out << YAML::Key << "analyzing" << YAML::Value << engineAnalyzing;
     out << YAML::EndMap;
 
+    // Only while training: the section itself is the flag.
+    if (training) {
+        out << YAML::Key << "training" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "side" << YAML::Value << (trainingSide == Side::Black ? "black" : "white");
+        out << YAML::EndMap;
+    }
+
     out << YAML::Key << "workspace" << YAML::Value << YAML::BeginMap;
     out << YAML::Key << "layout" << YAML::Value << toStd(QString::fromLatin1(layout.toBase64()));
     out << YAML::EndMap;
@@ -138,6 +145,10 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     env.engineId = fromNode(engine["id"]);
     env.engineName = fromNode(engine["name"]);
     env.engineAnalyzing = valueOf<bool>(engine["analyzing"], false);
+
+    const YAML::Node training = root["training"];
+    env.training = training.IsMap();
+    env.trainingSide = fromNode(training["side"]) == QLatin1String("black") ? Side::Black : Side::White;
 
     env.layout = QByteArray::fromBase64(fromNode(root["workspace"]["layout"]).toLatin1());
     return env;

@@ -2078,17 +2078,22 @@ void MainWindow::manageEngines()
 {
     const QString current = m_engines.resolve(m_engineId, m_engineName).id;
     ManageEnginesDialog dialog(m_engines, current, UserFolders::pragmaDir(), this);
-    if (dialog.exec() != QDialog::Accepted)
-        return;
-    m_engines = dialog.catalog();
-    {
-        QSettings settings;
-        m_engines.save(settings);
-    }
-    // Restart on the engine as edited (its executable or parameters may have changed).
-    const QString selected = m_engines.find(current) ? current : EngineCatalog::kBundledId;
-    m_engineId.clear();
-    selectEngine(selected);
+    const auto apply = [this, &dialog] {
+        m_engines = dialog.catalog();
+        {
+            QSettings settings;
+            m_engines.save(settings);
+        }
+        // Restart on the engine in use as edited (its executable or parameters
+        // may have changed), or on the one chosen with "Use This Engine". The
+        // engine belongs to the project: selectEngine() has it saved.
+        m_engineId.clear();
+        selectEngine(dialog.activeId());
+    };
+    // "Use This Engine" switches at once, without waiting for OK.
+    connect(&dialog, &ManageEnginesDialog::useEngineRequested, this, apply);
+    if (dialog.exec() == QDialog::Accepted)
+        apply();
 }
 
 void MainWindow::selectEngine(const QString &id)

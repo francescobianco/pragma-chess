@@ -15,6 +15,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   Settings… ▸ Optimize Database* removes the deleted games for good and
   compacts the file. Trashing, deleting and optimizing reach the other
   devices through the sync, so a deleted game does not come back.
+- *Manage Engines* marks the engine in use, and *Use This Engine* switches
+  to the one selected; the choice is saved with the project.
 - The Android app hides the games a computer trashed or deleted, and asks to
   be updated when a database was made by a newer version of Pragma Chess.
 

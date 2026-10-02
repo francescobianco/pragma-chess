@@ -1797,6 +1797,22 @@ Non comparirà più in nessun elenco. Resta nel file finché il database non vie
             <numerusform>Trovati %n nuovi motori.</numerusform>
         </translation>
     </message>
+    <message>
+        <source>&amp;Use This Engine</source>
+        <translation>&amp;Usa questo motore</translation>
+    </message>
+    <message>
+        <source>Analyze and train with this engine in the open project</source>
+        <translation>Analizza e allenati con questo motore nel progetto aperto</translation>
+    </message>
+    <message>
+        <source>This is the engine in use.</source>
+        <translation>È il motore in uso.</translation>
+    </message>
+    <message>
+        <source>%1 — in use</source>
+        <translation>%1 — in uso</translation>
+    </message>
 </context>
 <context>
     <name>ManageSourcesDialog</name>

@@ -16,11 +16,12 @@
 #include <QThread>
 #include <QVBoxLayout>
 
-ManageEnginesDialog::ManageEnginesDialog(const EngineCatalog &catalog, const QString &selectedId,
+ManageEnginesDialog::ManageEnginesDialog(const EngineCatalog &catalog, const QString &activeId,
                                          const QString &pragmaDir, QWidget *parent)
     : QDialog(parent)
     , m_catalog(catalog)
     , m_pragmaDir(pragmaDir)
+    , m_activeId(activeId)
 {
     setWindowTitle(tr("Manage Engines"));
     resize(640, 380);
@@ -61,6 +62,17 @@ ManageEnginesDialog::ManageEnginesDialog(const EngineCatalog &catalog, const QSt
     form->addRow(tr("&Threads:"), m_threads);
     form->addRow(tr("&Hash:"), m_hash);
     form->addRow(QString(), m_status);
+    // Under the engine: the way to switch to it, or the word that it is the one.
+    m_use = new QPushButton(tr("&Use This Engine"), this);
+    m_use->setAutoDefault(false);
+    m_use->setToolTip(tr("Analyze and train with this engine in the open project"));
+    m_inUse = new QLabel(tr("This is the engine in use."), this);
+    m_inUse->setForegroundRole(QPalette::PlaceholderText);
+    auto *useRow = new QHBoxLayout;
+    useRow->addWidget(m_use);
+    useRow->addWidget(m_inUse);
+    useRow->addStretch();
+    form->addRow(QString(), useRow);
 
     auto *columns = new QHBoxLayout;
     columns->addLayout(listColumn, 2);
@@ -83,15 +95,11 @@ ManageEnginesDialog::ManageEnginesDialog(const EngineCatalog &catalog, const QSt
     connect(m_remove, &QPushButton::clicked, this, &ManageEnginesDialog::removeEngine);
     connect(m_browse, &QPushButton::clicked, this, &ManageEnginesDialog::browse);
     connect(m_detect, &QPushButton::clicked, this, &ManageEnginesDialog::detect);
+    connect(m_use, &QPushButton::clicked, this, &ManageEnginesDialog::useEngine);
     connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    rebuildList(selectedId);
-}
-
-QString ManageEnginesDialog::selectedId() const
-{
-    return m_shownId;
+    rebuildList(activeId);
 }
 
 void ManageEnginesDialog::rebuildList(const QString &selectId)
@@ -101,8 +109,7 @@ void ManageEnginesDialog::rebuildList(const QString &selectId)
     int row = 0;
     for (int i = 0; i < m_catalog.engines().size(); ++i) {
         const EngineProfile &profile = m_catalog.engines().at(i);
-        auto *item = new QListWidgetItem(profile.bundled ? tr("%1 (included)").arg(profile.name) : profile.name,
-                                         m_list);
+        auto *item = new QListWidgetItem(m_list);
         item->setData(Qt::UserRole, profile.id);
         if (profile.id == selectId)
             row = i;
@@ -110,6 +117,37 @@ void ManageEnginesDialog::rebuildList(const QString &selectId)
     m_updating = false;
     m_list->setCurrentRow(row);
     showEngine();
+}
+
+void ManageEnginesDialog::showActive()
+{
+    for (int i = 0; i < m_list->count(); ++i) {
+        QListWidgetItem *item = m_list->item(i);
+        const EngineProfile *profile = m_catalog.find(item->data(Qt::UserRole).toString());
+        if (!profile)
+            continue;
+        const QString name = profile->bundled ? tr("%1 (included)").arg(profile->name) : profile->name;
+        const bool active = profile->id == m_activeId;
+        item->setText(active ? tr("%1 — in use").arg(name) : name);
+        QFont font = m_list->font();
+        font.setBold(active);
+        item->setFont(font);
+    }
+    const EngineProfile *shown = m_catalog.find(m_shownId);
+    const bool active = shown && shown->id == m_activeId;
+    m_inUse->setVisible(active);
+    m_use->setVisible(shown && !active);
+    // An engine that cannot be started is not one to switch to.
+    m_use->setEnabled(shown && !EngineCatalog::executableFor(*shown).isEmpty());
+}
+
+void ManageEnginesDialog::useEngine()
+{
+    if (!m_catalog.find(m_shownId))
+        return;
+    m_activeId = m_shownId;
+    showActive();
+    Q_EMIT useEngineRequested();
 }
 
 void ManageEnginesDialog::showEngine()
@@ -146,6 +184,7 @@ void ManageEnginesDialog::showEngine()
         m_status->setText(!profile || found ? QString() : tr("The executable was not found."));
     }
     m_updating = false;
+    showActive();
 }
 
 void ManageEnginesDialog::storeEngine()
@@ -163,8 +202,7 @@ void ManageEnginesDialog::storeEngine()
     profile.threads = m_threads->value();
     profile.hashMb = m_hash->value();
     m_catalog.update(profile);
-    if (QListWidgetItem *item = m_list->currentItem(); item && !profile.bundled)
-        item->setText(profile.name);
+    showActive(); // Its name in the list, and whether it can be used now.
 }
 
 void ManageEnginesDialog::addEngine()
@@ -178,8 +216,12 @@ void ManageEnginesDialog::addEngine()
 
 void ManageEnginesDialog::removeEngine()
 {
-    if (m_catalog.remove(m_shownId))
-        rebuildList(EngineCatalog::kBundledId);
+    if (!m_catalog.remove(m_shownId))
+        return;
+    // Without the engine in use, the application falls back to the bundled one.
+    if (!m_catalog.find(m_activeId))
+        m_activeId = EngineCatalog::kBundledId;
+    rebuildList(EngineCatalog::kBundledId);
 }
 
 void ManageEnginesDialog::browse()

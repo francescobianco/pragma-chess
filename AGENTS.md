@@ -450,6 +450,10 @@ first and cannot be removed. Engine ▸ Manage Engines… (`ManageEnginesDialog`
 edits them; Detect Engines (`EngineDetector`) adds UCI engines found in PATH
 and the usual install folders, skipping binaries already registered. The
 project stores the engine id; an unknown id falls back to the bundled engine.
+The dialog's list marks the engine in use (bold, "in use"), and selecting
+another one offers Use This Engine, which switches at once through
+`MainWindow::selectEngine`, like Engine ▸ Use Engine: the engine is part of
+the project, so the change is saved with it.
 
 ## Training
 

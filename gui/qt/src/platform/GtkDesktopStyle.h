@@ -13,8 +13,9 @@
 /// their own, and so does this style for menus, or they would lie flat on
 /// the window and be hard to tell from it. The menu's window grows by a
 /// transparent margin (the menu's frame width) that holds the shadow.
-/// Dialogs get the same treatment from DialogChrome: a frame of their own
-/// with a shadow, in place of the bare decoration Qt falls back to.
+/// Dialogs and the main window get the same treatment from WindowChrome: a
+/// frame of their own with a shadow, in place of the bare decoration Qt
+/// falls back to.
 class GtkDesktopStyle : public QProxyStyle {
 public:
     GtkDesktopStyle();

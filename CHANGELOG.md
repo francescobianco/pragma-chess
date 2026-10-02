@@ -45,7 +45,7 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   tooltip is *Sync Everything…*.
 - The toolbar buttons are larger, with more room around their icons.
 - The title bar shows only the name of the open project, with an asterisk
-  while it has unsaved changes.
+  while it is not saved, and Pragma Chess.
 
 ### Fixed
 

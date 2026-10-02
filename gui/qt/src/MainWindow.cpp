@@ -2954,7 +2954,7 @@ void MainWindow::rebuildRecentProjectsMenu()
 void MainWindow::updateWindowTitle()
 {
     // Only the project, with the asterisk of unsaved changes: the database and
-    // the game are on show in the window itself.
+    // the game are on show in the window itself. Qt adds "— Pragma Chess".
     const QString name = m_projectPath.isEmpty() ? tr("Untitled") : QFileInfo(m_projectPath).completeBaseName();
     setWindowTitle(name + QStringLiteral("[*]"));
 }
@@ -2962,7 +2962,7 @@ void MainWindow::updateWindowTitle()
 void MainWindow::updateProjectModified()
 {
     const bool modified = !m_projectPath.isEmpty() && captureProject().toYaml() != m_savedProjectYaml;
-    setWindowModified(modified);
+    setWindowModified(m_projectPath.isEmpty() || modified); // A project never saved has the asterisk too.
     m_saveProjectAction->setEnabled(m_projectPath.isEmpty() || modified);
 }
 

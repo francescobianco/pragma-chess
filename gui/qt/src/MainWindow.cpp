@@ -722,6 +722,12 @@ void MainWindow::createToolBar()
     toolBar->addSeparator();
     toolBar->addAction(m_newGameAction);
     toolBar->addAction(m_newTrainingAction);
+    // Some air around each icon: bigger buttons to aim at, the same icons.
+    constexpr int kButtonPadding = 4;
+    for (QAction *action : toolBar->actions()) {
+        if (QWidget *button = toolBar->widgetForAction(action); button && !action->isSeparator())
+            button->setMinimumSize(button->sizeHint() + 2 * QSize(kButtonPadding, kButtonPadding));
+    }
 }
 
 QDockWidget *MainWindow::addDock(QMainWindow *host, const QString &objectName, const QString &title,

@@ -43,6 +43,7 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   figurines as the move list.
 - The Sync Now button of the toolbar shows two separate arrows, and its
   tooltip is *Sync Everything…*.
+- The toolbar buttons are larger, with more room around their icons.
 
 ### Fixed
 

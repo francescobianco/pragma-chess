@@ -127,6 +127,17 @@ playing a move turns it off, and the user asks again at the next move.
   [docs/explain-tuning.md](docs/explain-tuning.md) first, and log feedback
   and decisions in it. Enrich the explanation, don't replace what works.
 
+## Toolbar
+
+`MainWindow::createToolBar`: Sync Now on its own, then New Game and New
+Training, then the three resources in use — book, engine, database
+(`m_bookButton`, `m_engineButton`, `m_databaseButton`). Each of these shows
+its icon and the name of the one in use and drops down the same menu the menu
+bar has (Book, Engine ▸ Use Engine, Database ▸ Databases), so there is one
+list to maintain; `updateResourceButtons()` rewrites the names whenever one
+of them changes. Icons are drawn in `platform/SymbolicIcons` (`pragma-book`,
+`pragma-engine`, `pragma-database`).
+
 ## Menus on Wayland
 
 A Wayland compositor draws no shadow under a popup (GTK applications draw

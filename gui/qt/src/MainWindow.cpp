@@ -88,6 +88,7 @@
 #include <QTableView>
 #include <QTimer>
 #include <QToolBar>
+#include <QToolButton>
 #include <QUrl>
 #include <QVBoxLayout>
 
@@ -166,6 +167,10 @@ MainWindow::MainWindow(QWidget *parent)
     createDocks();
     createToolBar();
     createMenus();
+    m_bookButton->setMenu(m_bookMenu);
+    m_engineButton->setMenu(m_engineChoiceMenu);
+    m_databaseButton->setMenu(m_databasesMenu);
+    updateResourceButtons();
     createStatusBar();
     updateSeparatorStyle();
 
@@ -739,10 +744,50 @@ void MainWindow::createToolBar()
     toolBar->addAction(m_quickTrainingAction);
     // Some air around each icon: bigger buttons to aim at, the same icons.
     constexpr int kButtonPadding = 4;
+    int buttonHeight = 0;
     for (QAction *action : toolBar->actions()) {
-        if (QWidget *button = toolBar->widgetForAction(action); button && !action->isSeparator())
+        if (QWidget *button = toolBar->widgetForAction(action); button && !action->isSeparator()) {
             button->setMinimumSize(button->sizeHint() + 2 * QSize(kButtonPadding, kButtonPadding));
+            buttonHeight = button->minimumHeight();
+        }
     }
+
+    // The book, the engine and the database in use: each button says which
+    // one and drops down the list to choose another (the menus of the menu
+    // bar, set in createMenus()).
+    toolBar->addSeparator();
+    const auto resourceButton = [toolBar, buttonHeight](const char *icon) {
+        auto *button = new QToolButton(toolBar);
+        button->setIcon(themeIcon(icon, QStyle::SP_FileIcon));
+        button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        button->setPopupMode(QToolButton::InstantPopup);
+        button->setFocusPolicy(Qt::NoFocus);
+        button->setMinimumHeight(buttonHeight);
+        toolBar->addWidget(button);
+        return button;
+    };
+    m_bookButton = resourceButton("pragma-book");
+    m_engineButton = resourceButton("pragma-engine");
+    m_databaseButton = resourceButton("pragma-database");
+}
+
+void MainWindow::updateResourceButtons()
+{
+    if (!m_bookButton) // Called while the window is still being put together.
+        return;
+    // A long name must not push the toolbar around.
+    const auto shown = [this](const QString &name) {
+        return fontMetrics().elidedText(name, Qt::ElideMiddle, fontMetrics().averageCharWidth() * 28);
+    };
+    const QString book = m_book ? QFileInfo(m_book->path()).completeBaseName() : tr("No Book");
+    m_bookButton->setText(shown(book));
+    m_bookButton->setToolTip(tr("Opening book: %1").arg(book));
+    const QString engine = m_engines.resolve(m_engineId, m_engineName).name;
+    m_engineButton->setText(shown(engine));
+    m_engineButton->setToolTip(tr("Engine: %1").arg(engine));
+    const QString database = m_database ? m_database->name() : tr("No Database");
+    m_databaseButton->setText(shown(database));
+    m_databaseButton->setToolTip(tr("Database: %1").arg(database));
 }
 
 QDockWidget *MainWindow::addDock(QMainWindow *host, const QString &objectName, const QString &title,
@@ -921,6 +966,7 @@ void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
     m_gameListModel->setDatabase(m_database.get());
     m_gameView->resizeColumnsToContents();
     applyGameColumns();
+    updateResourceButtons();
     m_openGameIndex = -1;
 
     updateGameCount();
@@ -1655,6 +1701,7 @@ void MainWindow::chooseBook(const QString &path)
     const QString bookName = path.isEmpty() ? QString() : QFileInfo(path).completeBaseName();
     m_bookPanel->setBookName(bookName);
     m_enginePanel->setBookName(bookName);
+    updateResourceButtons();
     updateBookMoves();
 }
 
@@ -2278,6 +2325,7 @@ void MainWindow::selectEngine(const QString &id)
     m_engineId = profile.id;
     m_engineName = profile.name;
     m_enginePanel->setEngineName(profile.name);
+    updateResourceButtons();
     const bool analyzing = m_startEngineAction->isChecked();
     m_trainingThinking = false; // A search in progress dies with the old engine.
     m_startEngineAction->setChecked(false);
@@ -2856,6 +2904,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
     m_engineId = m_engines.resolve(project.engineId, project.engineName).id;
     m_engineName = m_engines.resolve(m_engineId).name;
     m_enginePanel->setEngineName(m_engineName);
+    updateResourceButtons();
 
     // A database moved since the project was saved (migrateOpeningNames) is opened where it is now.
     const QString databasePath = m_movedDatabases.value(project.databasePath, project.databasePath);

@@ -1833,6 +1833,26 @@ Non comparirà più in nessun elenco. Resta nel file finché il database non vie
         <source>The engine has not answered yet.</source>
         <translation>Il motore non ha ancora risposto.</translation>
     </message>
+    <message>
+        <source>No Book</source>
+        <translation>Nessun libro</translation>
+    </message>
+    <message>
+        <source>Opening book: %1</source>
+        <translation>Libro delle aperture: %1</translation>
+    </message>
+    <message>
+        <source>Engine: %1</source>
+        <translation>Motore: %1</translation>
+    </message>
+    <message>
+        <source>No Database</source>
+        <translation>Nessun database</translation>
+    </message>
+    <message>
+        <source>Database: %1</source>
+        <translation>Database: %1</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>

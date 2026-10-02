@@ -32,6 +32,8 @@ enum class Shape {
     Database,
     Sync,
     Training,
+    Book,
+    Engine,
 };
 
 /// The square New Game and New Training share: a board, and a face as large.
@@ -231,6 +233,46 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         painter->drawPath(board);
         break;
     }
+    case Shape::Book: {
+        // An open book: two pages meeting at the spine.
+        QPainterPath pages;
+        pages.moveTo(8, 4.5);
+        pages.quadTo(5.25, 2.75, 2.25, 3.5);
+        pages.lineTo(2.25, 12);
+        pages.quadTo(5.25, 11.25, 8, 13);
+        pages.quadTo(10.75, 11.25, 13.75, 12);
+        pages.lineTo(13.75, 3.5);
+        pages.quadTo(10.75, 2.75, 8, 4.5);
+        pages.lineTo(8, 13);
+        painter->drawPath(pages);
+        break;
+    }
+    case Shape::Engine: {
+        // A gear: what does the calculating. Solid, with its hole.
+        const QPointF center(8, 8);
+        const auto at = [&](qreal degrees, qreal radius) {
+            const qreal angle = qDegreesToRadians(degrees);
+            return center + radius * QPointF(qCos(angle), qSin(angle));
+        };
+        QPainterPath gear;
+        for (int tooth = 0; tooth < 8; ++tooth) {
+            const qreal middle = 45.0 * tooth;
+            const QPointF first = at(middle - 15, 4.6);
+            if (tooth == 0)
+                gear.moveTo(first);
+            else
+                gear.lineTo(first);
+            gear.lineTo(at(middle - 9, 6.3));
+            gear.lineTo(at(middle + 9, 6.3));
+            gear.lineTo(at(middle + 15, 4.6));
+        }
+        gear.closeSubpath();
+        gear.addEllipse(center, 2.3, 2.3); // Odd-even fill leaves it empty.
+        painter->setPen(QPen(color, 0.75, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        painter->setBrush(color);
+        painter->drawPath(gear);
+        break;
+    }
     case Shape::Database: {
         // A cylinder: three stacked discs.
         painter->drawEllipse(QRectF(2.75, 1.75, 10.5, 3.5));
@@ -333,6 +375,8 @@ QIcon icon(const QString &name)
         {QStringLiteral("pragma-database"), Shape::Database},
         {QStringLiteral("view-refresh"), Shape::Sync},
         {QStringLiteral("pragma-training"), Shape::Training},
+        {QStringLiteral("pragma-book"), Shape::Book},
+        {QStringLiteral("pragma-engine"), Shape::Engine},
     };
     const auto it = shapes.constFind(name);
     if (it == shapes.cend())

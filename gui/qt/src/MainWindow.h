@@ -42,6 +42,7 @@ class QLabel;
 class QMainWindow;
 class QMenu;
 class QTableView;
+class QToolButton;
 class QTimer;
 class SourceSync;
 class PositionIndexBuilder;
@@ -184,6 +185,8 @@ private:
     Project captureProject() const;
     void applyProject(const Project &project, bool openFirstGameIfNone);
     void updateWindowTitle();
+    /// Writes the book, the engine and the database in use on their toolbar buttons.
+    void updateResourceButtons();
     void updateProjectModified();
 
     void newDatabase();
@@ -405,6 +408,11 @@ private:
     QAction *m_newTrainingAction;
     /// The same in the toolbar, which may skip the dialog.
     QAction *m_quickTrainingAction;
+    /// The toolbar's book, engine and database: each shows the one in use
+    /// and drops down the menu that chooses it.
+    QToolButton *m_bookButton = nullptr;
+    QToolButton *m_engineButton = nullptr;
+    QToolButton *m_databaseButton = nullptr;
     QAction *m_trainingModeAction;
     QAction *m_saveGameAction;
     QAction *m_explainAction;

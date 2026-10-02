@@ -1,10 +1,11 @@
 #pragma once
 
-#include "app/TrainingTutor.h"
 #include "app/BoardSettings.h"
 #include "app/EngineCatalog.h"
 #include "app/EngineEvaluation.h"
 #include "app/PlayerRole.h"
+#include "app/TrainingTutor.h"
+#include "dialogs/NewTrainingDialog.h"
 #include "widgets/DatabaseTreeWidget.h"
 
 #include <QDateTime>
@@ -142,8 +143,9 @@ private:
     // Training: the user plays a colour and the engine answers with the other.
     // There is no session, only the "Training Mode" flag of the Engine menu:
     // "New Training" is a new game with the flag on, a plain new game turns it off.
-    /// Asks for the colour and starts a game against the engine.
-    void newTraining();
+    /// Asks for the colour and starts a game against the engine. The toolbar
+    /// passes false: it does not ask when a choice was remembered for the session.
+    void newTraining(bool alwaysAsk);
     /// The header of a training game: the user on their side, the engine on the other.
     GameRecord trainingHeader() const;
     void setTrainingMode(bool enabled);
@@ -354,6 +356,9 @@ private:
     EngineEvaluation m_lastEvaluation;
     /// The colour the user plays in training; the engine plays the other one.
     Side m_trainingSide = Side::White;
+    /// The colour chosen with "Remember for this session" in New Training:
+    /// never saved, a restarted client asks again.
+    std::optional<NewTrainingDialog::Choice> m_rememberedTraining;
     /// A training move is being searched, so the analysis must not restart.
     bool m_trainingThinking = false;
     /// The evaluation of the position the user is to move from in training
@@ -398,6 +403,8 @@ private:
     QAction *m_coordinatesAction;
     QAction *m_newGameAction;
     QAction *m_newTrainingAction;
+    /// The same in the toolbar, which may skip the dialog.
+    QAction *m_quickTrainingAction;
     QAction *m_trainingModeAction;
     QAction *m_saveGameAction;
     QAction *m_explainAction;

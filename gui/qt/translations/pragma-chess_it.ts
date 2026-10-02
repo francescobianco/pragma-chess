@@ -2303,6 +2303,14 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>Start</source>
         <translation>Inizia</translation>
     </message>
+    <message>
+        <source>Remember for this &amp;session</source>
+        <translation>Ricorda per questa &amp;sessione</translation>
+    </message>
+    <message>
+        <source>The New Training button of the toolbar starts with this choice without asking, until Pragma Chess is closed. Game ▸ New Training… always asks.</source>
+        <translation>Il bottone Nuovo allenamento della barra degli strumenti parte con questa scelta senza chiedere, finché Pragma Chess non viene chiuso. Partita ▸ Nuovo allenamento… chiede sempre.</translation>
+    </message>
 </context>
 <context>
     <name>PhoneLink</name>

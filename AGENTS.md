@@ -499,7 +499,10 @@ the project, so the change is saved with it.
 Training is **a flag, not a session**: `Engine ▸ Training Mode`
 (`m_trainingModeAction`). `Game ▸ New Training…` is a new game with the flag
 turned on, after `NewTrainingDialog` asked for the colour (`m_trainingSide`);
-`Game ▸ New Game` turns it off. Everything lives in `MainWindow`
+`Game ▸ New Game` turns it off. The dialog's "Remember for this session"
+keeps the choice (Random included) in `m_rememberedTraining`, never saved:
+the toolbar's button (`m_quickTrainingAction`) then starts without asking,
+while the menu entry and its shortcut always ask. Everything lives in `MainWindow`
 (`updateTraining`, `playEngineMove`, `finishEngineMove`,
 `recordTrainingResult`) and uses the one analysis engine:
 

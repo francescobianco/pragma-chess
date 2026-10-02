@@ -542,7 +542,11 @@ void MainWindow::createActions()
     m_newTrainingAction = new QAction(themeIcon("pragma-training", QStyle::SP_MediaPlay), tr("New &Training…"), this);
     m_newTrainingAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_T));
     m_newTrainingAction->setToolTip(tr("Start a game against the engine, choosing your colour"));
-    connect(m_newTrainingAction, &QAction::triggered, this, &MainWindow::newTraining);
+    connect(m_newTrainingAction, &QAction::triggered, this, [this] { newTraining(true); });
+    // The toolbar's button skips the question once an answer was remembered.
+    m_quickTrainingAction = new QAction(m_newTrainingAction->icon(), m_newTrainingAction->text(), this);
+    m_quickTrainingAction->setToolTip(m_newTrainingAction->toolTip());
+    connect(m_quickTrainingAction, &QAction::triggered, this, [this] { newTraining(false); });
 
     m_trainingModeAction = new QAction(tr("&Training Mode"), this);
     m_trainingModeAction->setCheckable(true);
@@ -732,7 +736,7 @@ void MainWindow::createToolBar()
     toolBar->addAction(m_syncNowAction);
     toolBar->addSeparator();
     toolBar->addAction(m_newGameAction);
-    toolBar->addAction(m_newTrainingAction);
+    toolBar->addAction(m_quickTrainingAction);
     // Some air around each icon: bigger buttons to aim at, the same icons.
     constexpr int kButtonPadding = 4;
     for (QAction *action : toolBar->actions()) {
@@ -2360,12 +2364,19 @@ void MainWindow::startGame(const GameRecord &game)
     m_session->setGame(game);
 }
 
-void MainWindow::newTraining()
+void MainWindow::newTraining(bool alwaysAsk)
 {
-    NewTrainingDialog dialog(m_trainingSide, this);
-    if (dialog.exec() != QDialog::Accepted)
-        return;
-    m_trainingSide = dialog.side();
+    using Choice = NewTrainingDialog::Choice;
+    Choice choice = m_rememberedTraining.value_or(m_trainingSide == Side::White ? Choice::White : Choice::Black);
+    if (alwaysAsk || !m_rememberedTraining) {
+        NewTrainingDialog dialog(choice, m_rememberedTraining.has_value(), this);
+        if (dialog.exec() != QDialog::Accepted)
+            return;
+        choice = dialog.choice();
+        // Unticking it forgets the choice: the toolbar asks again.
+        m_rememberedTraining = dialog.remember() ? std::optional<Choice>(choice) : std::nullopt;
+    }
+    m_trainingSide = NewTrainingDialog::sideFor(choice);
     const GameRecord game = trainingHeader();
     const QString engineName = m_trainingSide == Side::White ? game.black : game.white;
 

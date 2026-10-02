@@ -62,6 +62,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- On GNOME (Wayland), opening a menu no longer makes the dock slide in over
+  the window.
 - Opening another database could crash the application: the games list was
   filtered with the database that had just been closed.
 - Dialog buttons and the other texts that come from Qt (OK, Cancel, Save,

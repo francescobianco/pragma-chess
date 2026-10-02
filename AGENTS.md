@@ -139,6 +139,23 @@ to open, and `PM_SubMenuOverlap` does the same for submenus. On X11 the
 window manager shadows menus, and nothing changes. A widget put in a menu
 (`GlyphMenuAction`) needs nothing: it lives inside the frame.
 
+`main.cpp` disconnects everything from `QGuiApplication::focusObjectChanged`
+on Wayland. Qt 6.4's Wayland plugin connects a slot there that sends
+`xdg_activation_v1.activate` for the focus window at every change of focus
+object, so for every menu that opens and every arrow key inside it; GNOME
+cannot grant it, marks the window as demanding attention, and the Ubuntu Dock
+(which shows itself for urgent windows) slides in over the application. It is
+the only listener of that signal among Qt's libraries and plugins; do not
+connect to it before that line.
+
+To see what the client really sends, run it in a headless GNOME Shell of its
+own, invisible to the user: `dbus-run-session` → `gnome-shell --headless
+--wayland-display <name> --virtual-monitor 1280x800`, the application with
+`WAYLAND_DISPLAY=<name> WAYLAND_DEBUG=1`, and pointer and keys through
+`org.gnome.Mutter.RemoteDesktop` (CreateSession, Start,
+NotifyPointerMotionRelative, NotifyPointerButton, NotifyKeyboardKeycode) from
+one D-Bus connection. The shell starts in the overview: send Escape first.
+
 ## Build and run
 
 GUI (Debian/Ubuntu):

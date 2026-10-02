@@ -55,6 +55,13 @@ int main(int argc, char *argv[])
     // Menu entries are text only, as in GNOME and macOS; icons stay in toolbars.
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
     QApplication app(argc, argv);
+    // Qt 6.4's Wayland plugin asks the compositor to activate the focus window
+    // every time the focus object changes, so also for every menu that opens.
+    // GNOME cannot grant it and marks the window as demanding attention, and
+    // the Ubuntu Dock then slides in over the application. That request is
+    // the only thing connected to this signal here: take it away.
+    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland")))
+        QObject::disconnect(&app, SIGNAL(focusObjectChanged(QObject*)), nullptr, nullptr);
     QApplication::setOrganizationName(QStringLiteral("Pragma"));
     QApplication::setApplicationName(QStringLiteral("pragma-chess"));
     QApplication::setApplicationDisplayName(QStringLiteral("Pragma Chess"));

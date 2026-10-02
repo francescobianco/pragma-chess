@@ -34,6 +34,7 @@ core/                  chessdb-core: chess model, PGN, storage, index, search
   src/chess/           bitboards, types, FEN, move generation, positions
 cli/                   chessdb-cli, binary `chessdb`
 CMakeLists.txt         top-level CMake, only adds gui/qt
+CHANGELOG.md           what changed in each version, for users (Keep a Changelog)
 gui/qt/
   src/main.cpp         entry point (signal handling → clean quit, session save)
   src/MainWindow.*     main window, menus, docks, layouts, projects
@@ -443,8 +444,10 @@ turned on, after `NewTrainingDialog` asked for the colour (`m_trainingSide`);
 
 - Keep changes focused; follow the style of the surrounding code.
 - Update README.md / this file when build steps, formats or layout change.
-- Releases: bump `PRAGMA_VERSION` in the top-level `CMakeLists.txt`, push a
-  `vX.Y.Z` tag; CI publishes the installers (see packaging/README.md). A new
+- Releases: bump `PRAGMA_VERSION` in the top-level `CMakeLists.txt`, add the
+  version's section to `CHANGELOG.md` (user-visible changes, in English; it
+  becomes the "What's new" of the release), push a `vX.Y.Z` tag; CI publishes
+  the installers (see packaging/README.md). A new
   runtime file the app needs must reach all three: `install()` for Linux,
   the deploy steps in `packaging/windows/build.ps1` and `packaging/macos/build.sh`.
 - Commit messages: short imperative subject, blank line, then a bullet list of

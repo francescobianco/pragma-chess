@@ -166,7 +166,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
-          sed "s/@VERSION@/${{ needs.version.outputs.version }}/g" packaging/release-notes.md > notes.md
+          # What is new comes from this version's section of CHANGELOG.md.
+          awk -v version="${{ needs.version.outputs.version }}" '
+            /^## \[/ { on = index($0, "## [" version "]") == 1; next }
+            /^\[[^]]+\]: / { on = 0 }
+            on' CHANGELOG.md > changes.md
+          if grep -q '[^[:space:]]' changes.md; then
+            { echo "## What's new"; cat changes.md; } > notes.md
+          fi
+          sed "s/@VERSION@/${{ needs.version.outputs.version }}/g" packaging/release-notes.md >> notes.md
           prerelease=
           [[ "$TAG" == *-* ]] && prerelease=--prerelease
           if gh release view "$TAG" > /dev/null 2>&1; then

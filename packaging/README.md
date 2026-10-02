@@ -64,12 +64,13 @@ SHA-256 GitHub publishes for each asset).
 
 ## Making a release
 
-1. Set the version in `PRAGMA_VERSION` (top-level `CMakeLists.txt`) and commit.
+1. Set the version in `PRAGMA_VERSION` (top-level `CMakeLists.txt`), add its
+   section to [`CHANGELOG.md`](../CHANGELOG.md) (`## [0.2.0] - <date>`) and commit.
 2. `git tag v0.2.0 && git push origin v0.2.0`
 3. The workflow builds the four packages and publishes release `v0.2.0` with
-   them, `SHA256SUMS.txt` and the notes of `release-notes.md` followed by
-   the changes since the previous tag. A tag with a suffix (`v0.2.0-beta.1`)
-   makes a pre-release.
+   them, `SHA256SUMS.txt` and notes made of that version's section of
+   `CHANGELOG.md` ("What's new"), `release-notes.md` and the changes since
+   the previous tag. A tag with a suffix (`v0.2.0-beta.1`) makes a pre-release.
 
 Each package is attached twice: with the version in its name and without
 it (`latest-names.sh`), so `https://github.com/francescobianco/pragma-chess/releases/latest/download/<name>` always downloads the latest release

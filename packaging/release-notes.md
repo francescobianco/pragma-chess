@@ -7,8 +7,8 @@
 | **Ubuntu** 24.04+ / **Debian** 13+ | `pragma-chess_@VERSION@_amd64.deb` | `sudo apt install ./pragma-chess_@VERSION@_amd64.deb` |
 | **Fedora** | `pragma-chess-@VERSION@-1.*.x86_64.rpm` | `sudo dnf install ./pragma-chess-@VERSION@-1.*.x86_64.rpm` |
 
-An engine is not bundled: install [Stockfish](https://stockfishchess.org/download/)
-(or any UCI engine) and Pragma Chess finds it. The Linux packages recommend it.
+[Stockfish](https://stockfishchess.org/) is bundled as the default engine;
+any other UCI engine can be added in *Engine ▸ Manage Engines…*.
 
 **macOS:** the app is not notarized by Apple yet. The first time, macOS says it
 cannot check it: open *System Settings ▸ Privacy & Security* and click

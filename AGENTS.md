@@ -169,7 +169,7 @@ so there is one list to maintain; `updateResourceButtons()` puts the name of
 the one in use in the tooltip whenever one of them changes. Icons are drawn in `platform/SymbolicIcons` (`pragma-book`,
 `pragma-engine`, `pragma-database`).
 
-## Menus on Wayland
+## Menus and dialogs on Wayland
 
 A Wayland compositor draws no shadow under a popup (GTK applications draw
 their own), so `GtkDesktopStyle` does it for every `QMenu` when the platform
@@ -190,13 +190,35 @@ cannot grant it, marks the window as demanding attention, and the Ubuntu Dock
 the only listener of that signal among Qt's libraries and plugins; do not
 connect to it before that line.
 
-To see what the client really sends, run it in a headless GNOME Shell of its
+Dialogs have the same problem: GNOME decorates nothing on Wayland, and the
+decoration Qt falls back to (`bradient`, the only one installed with Qt 6.4
+on Ubuntu) is a bare title bar without a shadow. `platform/DialogChrome`,
+installed by the style when a top-level `QDialog` is polished, makes the
+dialog frameless and translucent and draws its frame: a rounded panel with
+the title and a close button, in a transparent margin that holds the shadow.
+The dialog's contents move in by contents margins, and the sizes it asked for
+(minimum, fixed, `resize()`) grow by the frame. The title bar moves the
+window (`startSystemMove`), the edges resize it, the × closes it. A dialog is
+polished after its native window exists, and Qt's Wayland window stays opaque
+whatever is asked later, so the chrome destroys that window and showing the
+dialog makes it again, translucent. On a dark palette the panel's edge is
+lighter instead of darker, or it would vanish. Native file dialogs are not
+`QDialog`s on screen and are left alone; the main window keeps Qt's
+decoration.
+
+To see what the client really does, run it in a headless GNOME Shell of its
 own, invisible to the user: `dbus-run-session` → `gnome-shell --headless
 --wayland-display <name> --virtual-monitor 1280x800`, the application with
-`WAYLAND_DISPLAY=<name> WAYLAND_DEBUG=1`, and pointer and keys through
-`org.gnome.Mutter.RemoteDesktop` (CreateSession, Start,
-NotifyPointerMotionRelative, NotifyPointerButton, NotifyKeyboardKeycode) from
-one D-Bus connection. The shell starts in the overview: send Escape first.
+`WAYLAND_DISPLAY=<name>` (and `WAYLAND_DEBUG=1` for the protocol), and
+pointer and keys through `org.gnome.Mutter.RemoteDesktop` (CreateSession,
+Start, NotifyPointerMotionRelative, NotifyPointerButton,
+NotifyKeyboardKeycode) from one D-Bus connection. The shell starts in the
+overview: send Escape first. For a **screenshot** of that session:
+`org.gnome.Mutter.ScreenCast` (CreateSession, RecordMonitor `Meta-0`, Start,
+wait for `PipeWireStreamAdded`) and `gst-launch-1.0 pipewiresrc path=<node>
+num-buffers=1 ! videoconvert ! pngenc ! filesink`. It is the only way to see
+shadows, translucency and placement as the compositor shows them: an
+offscreen grab does not.
 
 ## Build and run
 

@@ -1,7 +1,10 @@
 #include "GtkDesktopStyle.h"
 
+#include "DialogChrome.h"
+
 #include <QAction>
 #include <QByteArrayList>
+#include <QDialog>
 #include <QEvent>
 #include <QGuiApplication>
 #include <QMenu>
@@ -50,6 +53,9 @@ void GtkDesktopStyle::polish(QWidget *widget)
         widget->setAttribute(Qt::WA_TranslucentBackground);
         widget->installEventFilter(this);
     }
+    // Dialogs too would lie flat on the window: they get a frame with a shadow.
+    if (auto *dialog = qobject_cast<QDialog *>(widget); m_menuShadows && dialog && dialog->isWindow())
+        DialogChrome::install(dialog);
 }
 
 bool GtkDesktopStyle::eventFilter(QObject *watched, QEvent *event)
@@ -175,14 +181,16 @@ void GtkDesktopStyle::drawPrimitive(PrimitiveElement element, const QStyleOption
         painter->setPen(Qt::NoPen);
         for (int spread = kMenuShadow; spread >= 1; --spread) {
             const qreal fade = 1.0 - qreal(spread) / kMenuShadow;
-            painter->setBrush(QColor(0, 0, 0, qRound(3 + 13 * fade * fade)));
+            painter->setBrush(QColor(0, 0, 0, qRound(4 + 18 * fade * fade)));
             const QRectF ring = panel.adjusted(-spread, -spread + 2, spread, spread + 1)
                                     .intersected(QRectF(option->rect));
             painter->drawRoundedRect(ring, kMenuRadius + spread, kMenuRadius + spread);
         }
         painter->setCompositionMode(QPainter::CompositionMode_Source);
+        // Fusion's colours; on a dark theme a darker edge would vanish, so it is lighter there.
+        const QColor window = option->palette.window().color();
         painter->setBrush(option->palette.base().color().lighter(108));
-        painter->setPen(QPen(option->palette.window().color().darker(160), 1));
+        painter->setPen(QPen(window.lightness() < 128 ? window.lighter(170) : window.darker(160), 1));
         painter->drawRoundedRect(panel.adjusted(0.5, 0.5, -0.5, -0.5), kMenuRadius, kMenuRadius);
         painter->restore();
         return;

@@ -292,6 +292,8 @@ qt_add_executable(pragma-chess
     src/app/SqliteGameDatabase.h
     src/app/UserFolders.cpp
     src/app/UserFolders.h
+    src/platform/DialogChrome.cpp
+    src/platform/DialogChrome.h
     src/platform/GtkDesktopStyle.cpp
     src/platform/GtkDesktopStyle.h
     src/platform/SymbolicIcons.cpp

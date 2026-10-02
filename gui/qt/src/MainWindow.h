@@ -6,6 +6,7 @@
 #include "app/PlayerRole.h"
 #include "app/TrainingTutor.h"
 #include "dialogs/NewTrainingDialog.h"
+#include "widgets/BoardWidget.h"
 #include "widgets/DatabaseTreeWidget.h"
 
 #include <QDateTime>
@@ -163,6 +164,9 @@ private:
     /// while the Engine panel offers to take the move back, explain it or go on.
     void holdEngineReply(const ChessMove &reply, const EngineEvaluation &evaluation, TrainingTutor::Alert alert);
     void clearTutor();
+    /// The board's border: what Explain says while it is on (thinking,
+    /// explained), else red while the tutor's alert is up, else plain.
+    void updateBoardBorder();
     void takeBackTutorMove();
     void ignoreTutorAlert();
     /// Plays the move of the search started by playEngineMove().
@@ -373,6 +377,8 @@ private:
     /// move against.
     EngineEvaluation m_trainingBaseline;
     QString m_trainingBaselineFen;
+    /// What Explain wants the border of the board to say; see updateBoardBorder().
+    BoardBorder m_explainBorder = BoardBorder::Plain;
     /// The tutor's alert is up: the engine's answer it holds back, the search
     /// it came from and the ply of the move in question.
     std::optional<ChessMove> m_tutorReply;

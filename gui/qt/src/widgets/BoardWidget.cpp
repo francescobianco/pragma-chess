@@ -390,12 +390,13 @@ void BoardWidget::paintEvent(QPaintEvent *)
         painter.fillRect(squareRect(m_selected), kSelected);
     painter.restore();
 
-    // A neutral frame; red while a sequence (e.g. a mate) is being shown, and
-    // blue for an explanation, breathing while the engine is still looking.
+    // A neutral frame; red while a sequence (e.g. a mate) is being shown or
+    // the tutor has stopped on an error, and blue for an explanation,
+    // breathing while the engine is still looking.
     QColor plain = palette().color(QPalette::WindowText);
     plain.setAlphaF(0.28);
     QColor frameColor = plain;
-    if (m_sequenceActive) {
+    if (m_sequenceActive || m_border == BoardBorder::Alert) {
         frameColor = kSequenceFrame;
     } else if (m_border == BoardBorder::Explained) {
         frameColor = kExplainFrame;

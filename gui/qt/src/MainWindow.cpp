@@ -232,7 +232,8 @@ MainWindow::MainWindow(QWidget *parent)
         m_explanationText = explanation.summary;
         // The border stops breathing and turns blue, but only for an answer.
         const bool explained = !explanation.summary.isEmpty() || !explanation.arrows.isEmpty();
-        m_board->setBorder(explained ? BoardBorder::Explained : BoardBorder::Plain);
+        m_explainBorder = explained ? BoardBorder::Explained : BoardBorder::Plain;
+        updateBoardBorder();
     });
     connect(m_engine, &UciEngine::nameChanged, m_enginePanel, &EnginePanel::setEngineName);
     connect(m_engine, &UciEngine::failed, this, [this](const QString &message) {
@@ -2366,16 +2367,28 @@ void MainWindow::setExplainEnabled(bool enabled)
             return;
         }
         m_engineDock->show();
-        m_board->setBorder(BoardBorder::Thinking); // Until the engine answers.
+        m_explainBorder = BoardBorder::Thinking; // Until the engine answers.
+        updateBoardBorder();
         m_explainer->setEnabled(true, m_engineExecutable);
         return;
     }
     m_explainer->setEnabled(false);
-    m_board->setBorder(BoardBorder::Plain);
+    m_explainBorder = BoardBorder::Plain;
+    updateBoardBorder();
     m_board->stopSequence();
     m_board->setExplanation({}, {});
     m_enginePanel->setExplanation(QString());
     m_explanationText.clear();
+}
+
+void MainWindow::updateBoardBorder()
+{
+    // Explain speaks first, while it is on; under it the tutor's alert keeps
+    // the border red until the user has chosen what to do with the move.
+    if (m_explainBorder != BoardBorder::Plain)
+        m_board->setBorder(m_explainBorder);
+    else
+        m_board->setBorder(m_tutorReply ? BoardBorder::Alert : BoardBorder::Plain);
 }
 
 void MainWindow::updateExplainer()
@@ -2576,12 +2589,14 @@ void MainWindow::holdEngineReply(const ChessMove &reply, const EngineEvaluation 
     }
     m_enginePanel->setTutorAlert(message + QLatin1Char(' ') + tr("The engine has not answered yet."));
     m_engineDock->show();
+    updateBoardBorder(); // Red: the game stopped on this move.
 }
 
 void MainWindow::clearTutor()
 {
     m_tutorReply.reset();
     m_enginePanel->setTutorAlert(QString());
+    updateBoardBorder();
 }
 
 void MainWindow::takeBackTutorMove()

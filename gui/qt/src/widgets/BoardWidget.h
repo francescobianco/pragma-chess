@@ -25,6 +25,9 @@ enum class BoardBorder {
     Thinking,
     /// An explanation is on the board: the border is blue, like its arrows.
     Explained,
+    /// The tutor stopped a training game on the move just played: the border
+    /// is red until the user takes it back or goes on.
+    Alert,
 };
 
 /// One piece travelling during an animated move. A move is usually one of

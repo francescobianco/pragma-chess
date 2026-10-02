@@ -119,7 +119,7 @@ Il motore in uso fa parte del progetto.
 
 Finché tocca a te il motore nasconde la sua linea migliore e mostra solo il punteggio. Quando hai mosso risponde da solo, lentamente, così vedi la sua mossa.
 
-Il **tutor** guarda le tue mosse. Quando una è un'**imprecisione**, un **errore**, un **errore grave** o un'**occasione mancata**, il motore non risponde; il pannello Motore lo dice e offre:
+Il **tutor** guarda le tue mosse. Quando una è un'**imprecisione**, un **errore**, un **errore grave** o un'**occasione mancata**, il motore non risponde; il bordo della scacchiera diventa rosso, il pannello Motore dice che cosa è successo e offre:
 
 - **Ritira la mossa**: torni alla posizione e provi un'altra mossa;
 - **Spiega**: mostra sulla scacchiera perché è un errore;

@@ -9,6 +9,7 @@
 
 class QAction;
 class QLabel;
+class QToolButton;
 
 /// Contents of the Engine dock: engine name, score, depth and best line, and
 /// under them the opening of the game and the opening book in use.
@@ -25,13 +26,25 @@ public:
     /// Keeps the best line out of sight while still showing the score, so that
     /// training does not give the move away.
     void setLineHidden(bool hidden);
+    /// The tutor of a training game: says the move just played was an error
+    /// and offers to take it back, to have it explained or to go on. Empty
+    /// hides it.
+    void setTutorAlert(const QString &message);
     /// Summary of the "Explain" command; empty hides it.
     void setExplanation(const QString &text);
     /// The opening the game is in and the chosen opening book; empty values show a dash.
     void setOpening(const OpeningNames::Name &opening);
     void setBookName(const QString &name);
 
+Q_SIGNALS:
+    /// The choices of the tutor's alert.
+    void takeBackRequested();
+    void explainRequested();
+    void ignoreRequested();
+
 private:
+    QWidget *m_tutor;
+    QLabel *m_tutorMessage;
     QLabel *m_name;
     QLabel *m_score;
     QLabel *m_depth;

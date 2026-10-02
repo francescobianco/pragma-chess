@@ -140,6 +140,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/OpeningNames.h
     src/app/Pgn.cpp
     src/app/Pgn.h
+    src/app/TrainingTutor.cpp
+    src/app/TrainingTutor.h
     src/app/PlayerRole.cpp
     src/app/PlayerRole.h
     src/app/PolyglotBook.cpp

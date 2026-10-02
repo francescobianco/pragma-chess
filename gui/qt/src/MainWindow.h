@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/TrainingTutor.h"
 #include "app/BoardSettings.h"
 #include "app/EngineCatalog.h"
 #include "app/EngineEvaluation.h"
@@ -151,6 +152,15 @@ private:
     /// Hides the engine's line while the user thinks and lets the engine answer.
     void updateTraining();
     void playEngineMove();
+    /// Plays the move the engine chose; `evaluation`, the search it came
+    /// from, becomes what the user's next move is judged against.
+    void playEngineReply(const ChessMove &move, const EngineEvaluation &evaluation);
+    /// The tutor: the user's move was an error, so the engine's answer waits
+    /// while the Engine panel offers to take the move back, explain it or go on.
+    void holdEngineReply(const ChessMove &reply, const EngineEvaluation &evaluation, TrainingTutor::Alert alert);
+    void clearTutor();
+    void takeBackTutorMove();
+    void ignoreTutorAlert();
     /// Plays the move of the search started by playEngineMove().
     void finishEngineMove();
     /// Stores a finished training game in the open database, once.
@@ -346,6 +356,17 @@ private:
     Side m_trainingSide = Side::White;
     /// A training move is being searched, so the analysis must not restart.
     bool m_trainingThinking = false;
+    /// The evaluation of the position the user is to move from in training
+    /// (the engine's search for its last move, or the analysis running while
+    /// they think) and that position, as FEN: what the tutor judges their
+    /// move against.
+    EngineEvaluation m_trainingBaseline;
+    QString m_trainingBaselineFen;
+    /// The tutor's alert is up: the engine's answer it holds back, the search
+    /// it came from and the ply of the move in question.
+    std::optional<ChessMove> m_tutorReply;
+    EngineEvaluation m_tutorEvaluation;
+    int m_tutorPly = -1;
     /// The next board update is the engine's move: show it slowly.
     bool m_animateNextBoard = false;
 

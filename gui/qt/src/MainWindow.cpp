@@ -101,6 +101,8 @@ constexpr int kRestoreWindowStateDelayMs = 250;
 /// Depth of the search that picks the engine's move in training: deep
 /// enough to play well, shallow enough to answer at once.
 constexpr int kTrainingDepth = 12;
+/// The tutor only judges a move against an evaluation at least this deep.
+constexpr int kTutorMinDepth = 8;
 
 /// How long the engine's move takes to cross the board, so that the user
 /// cannot miss what just happened.
@@ -186,8 +188,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_positionIndex, &PositionIndexBuilder::indexChanged, this, &MainWindow::updateBookDatabaseStats);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::updateBoardFilters);
     connect(m_engine, &UciEngine::searchFinished, this, &MainWindow::finishEngineMove);
+    connect(m_session, &GameSession::gameChanged, this, &MainWindow::clearTutor);
     connect(m_engine, &UciEngine::evaluationChanged, this, [this](const EngineEvaluation &evaluation) {
         m_lastEvaluation = evaluation;
+        // While the user thinks in training, the analysis of their position
+        // is what the tutor will judge their move against.
+        if (m_trainingModeAction->isChecked() && !m_trainingThinking && !m_tutorReply && !isEngineTurn()) {
+            const QString fen = m_session->position().fen();
+            if (m_trainingBaselineFen != fen || evaluation.depth >= m_trainingBaseline.depth) {
+                m_trainingBaseline = evaluation;
+                m_trainingBaselineFen = fen;
+            }
+        }
         m_evaluationBar->setEvaluation(evaluation);
         m_explainer->setLiveEvaluation(evaluation);
         m_engineLine = m_session->position().lineText(evaluation.pv);
@@ -815,6 +827,9 @@ void MainWindow::createDocks()
         m_engines = EngineCatalog::load(settings);
     }
     m_enginePanel->setEngineName(m_engines.resolve(m_engineId, m_engineName).name);
+    connect(m_enginePanel, &EnginePanel::takeBackRequested, this, &MainWindow::takeBackTutorMove);
+    connect(m_enginePanel, &EnginePanel::explainRequested, this, [this] { m_explainAction->setChecked(true); });
+    connect(m_enginePanel, &EnginePanel::ignoreRequested, this, &MainWindow::ignoreTutorAlert);
     m_engineDock = addDock(m_sidebar, QStringLiteral("engineDock"), tr("Engine"), m_enginePanel, Qt::RightDockWidgetArea);
 
     m_bookPanel = new BookPanel;
@@ -2396,6 +2411,7 @@ void MainWindow::setTrainingMode(bool enabled)
     if (!enabled) {
         m_trainingThinking = false;
         m_enginePanel->setLineHidden(false);
+        clearTutor();
     }
     syncBoard(); // The user may not move for the engine.
     updateTraining();
@@ -2409,9 +2425,12 @@ bool MainWindow::isEngineTurn() const
 void MainWindow::updateTraining()
 {
     const bool training = m_trainingModeAction->isChecked();
+    // The tutor's alert is about one move: leaving it takes the alert away.
+    if (m_tutorReply && m_session->ply() != m_tutorPly)
+        clearTutor();
     // The best line is the user's move: it may only be shown once they played.
     m_enginePanel->setLineHidden(training && !isEngineTurn());
-    if (!training)
+    if (!training || m_tutorReply) // With the alert up the engine waits for the user's choice.
         return;
     // Looking back at an earlier move is not a turn to answer.
     if (m_session->ply() != m_session->plyCount())
@@ -2457,8 +2476,81 @@ void MainWindow::finishEngineMove()
         m_enginePanel->setStatus(tr("The engine found no move to play."));
         return;
     }
+    // The tutor: a jump from the evaluation the user moved from to the one
+    // of this search says their move was an error, with no analysis of its own.
+    const EngineEvaluation evaluation = m_lastEvaluation;
+    const std::optional<ChessMove> played = m_session->lastMove();
+    if (played && m_trainingBaseline.depth >= kTutorMinDepth
+        && m_trainingBaselineFen == m_session->positionAt(m_session->ply() - 1).fen()) {
+        const TrainingTutor::Alert alert = TrainingTutor::judge(m_trainingBaseline, evaluation, m_trainingSide, *played);
+        if (alert != TrainingTutor::Alert::None) {
+            holdEngineReply(*move, evaluation, alert);
+            return;
+        }
+    }
+    playEngineReply(*move, evaluation);
+}
+
+void MainWindow::playEngineReply(const ChessMove &move, const EngineEvaluation &evaluation)
+{
+    // What the engine expects after its move: the user's next one is judged
+    // against it, unless the analysis goes deeper while they think.
+    m_trainingBaseline = evaluation;
+    m_trainingBaseline.pv = evaluation.pv.mid(1);
+    m_trainingBaseline.depth = qMax(0, evaluation.depth - 1);
+    ChessPosition next = m_session->position();
+    next.play(move);
+    m_trainingBaselineFen = next.fen();
     m_animateNextBoard = true; // syncBoard() slides it across the board.
-    playMove(*move);
+    playMove(move);
+}
+
+void MainWindow::holdEngineReply(const ChessMove &reply, const EngineEvaluation &evaluation, TrainingTutor::Alert alert)
+{
+    m_tutorReply = reply;
+    m_tutorEvaluation = evaluation;
+    m_tutorPly = m_session->ply();
+    const QString move = m_session->positionAt(m_tutorPly - 1)
+                             .lineText({m_session->game().moves.at(m_tutorPly - 1).uci}, 1, SanStyle::Figurines);
+    const QString before = m_trainingBaseline.text();
+    const QString after = evaluation.text();
+    QString message;
+    switch (alert) {
+    case TrainingTutor::Alert::Blunder: message = tr("Blunder: %1 (%2 → %3).").arg(move, before, after); break;
+    case TrainingTutor::Alert::Mistake: message = tr("Mistake: %1 (%2 → %3).").arg(move, before, after); break;
+    case TrainingTutor::Alert::MissedChance:
+        message = tr("Missed chance: %1 lets your advantage go (%2 → %3).").arg(move, before, after);
+        break;
+    case TrainingTutor::Alert::None: return;
+    }
+    m_enginePanel->setTutorAlert(message + QLatin1Char(' ') + tr("The engine has not answered yet."));
+    m_engineDock->show();
+}
+
+void MainWindow::clearTutor()
+{
+    m_tutorReply.reset();
+    m_enginePanel->setTutorAlert(QString());
+}
+
+void MainWindow::takeBackTutorMove()
+{
+    if (!m_tutorReply)
+        return;
+    // Back where the move was played from: the evaluation it was judged
+    // against is still that position's, so the next try is judged too.
+    clearTutor();
+    m_session->goBack();
+}
+
+void MainWindow::ignoreTutorAlert()
+{
+    if (!m_tutorReply)
+        return;
+    const ChessMove reply = *m_tutorReply;
+    const EngineEvaluation evaluation = m_tutorEvaluation;
+    clearTutor();
+    playEngineReply(reply, evaluation);
 }
 
 void MainWindow::recordTrainingResult()

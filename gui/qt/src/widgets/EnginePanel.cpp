@@ -12,6 +12,8 @@
 
 EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
     : QWidget(parent)
+    , m_tutor(new QWidget)
+    , m_tutorMessage(new QLabel)
     , m_name(new QLabel)
     , m_score(new QLabel)
     , m_depth(new QLabel)
@@ -45,6 +47,32 @@ EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
     scoreRow->addStretch();
     scoreRow->addWidget(m_depth, 0, Qt::AlignBottom);
     layout->addLayout(scoreRow);
+
+    // The tutor's alert: what went wrong, then what to do about it.
+    auto *tutor = new QVBoxLayout(m_tutor);
+    tutor->setContentsMargins(0, 0, 0, 0);
+    QFont alertFont = m_tutorMessage->font();
+    alertFont.setBold(true);
+    m_tutorMessage->setFont(FigurineFont::apply(alertFont));
+    m_tutorMessage->setWordWrap(true);
+    m_tutorMessage->setAccessibleName(tr("Tutor"));
+    tutor->addWidget(m_tutorMessage);
+    auto *choices = new QHBoxLayout;
+    const auto addChoice = [this, choices](const QString &text, const QString &toolTip, void (EnginePanel::*chosen)()) {
+        auto *button = new QToolButton;
+        button->setText(text);
+        button->setToolTip(toolTip);
+        button->setFocusPolicy(Qt::NoFocus);
+        connect(button, &QToolButton::clicked, this, chosen);
+        choices->addWidget(button);
+    };
+    addChoice(tr("Take Back"), tr("Take the move back and play another one"), &EnginePanel::takeBackRequested);
+    addChoice(tr("Explain"), tr("Show on the board why the move is an error"), &EnginePanel::explainRequested);
+    addChoice(tr("Ignore"), tr("Keep the move: the engine answers"), &EnginePanel::ignoreRequested);
+    choices->addStretch();
+    tutor->addLayout(choices);
+    m_tutor->hide();
+    layout->addWidget(m_tutor);
 
     m_explanation->setWordWrap(true);
     m_explanation->setTextInteractionFlags(Qt::TextSelectableByMouse);
@@ -105,6 +133,12 @@ void EnginePanel::setStatus(const QString &status)
 {
     m_lineText = status;
     refreshLine();
+}
+
+void EnginePanel::setTutorAlert(const QString &message)
+{
+    m_tutorMessage->setText(message);
+    m_tutor->setVisible(!message.isEmpty());
 }
 
 void EnginePanel::setExplanation(const QString &text)

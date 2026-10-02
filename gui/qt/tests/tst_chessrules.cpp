@@ -18,6 +18,7 @@
 #include "app/Reconcile.h"
 #include "app/ShippedOpeningNames.h"
 #include "app/SqliteGameDatabase.h"
+#include "app/TrainingTutor.h"
 #include "app/sources/ChessComFetch.h"
 #include "app/sources/TorneiOnlineFetch.h"
 #include "app/sources/LichessFetch.h"
@@ -289,6 +290,43 @@ private Q_SLOTS:
         game.moves = {MoveRecord{QString(), QStringLiteral("e8d7")}};
         QVERIFY(Pgn::game(game).contains(QStringLiteral("[SetUp \"1\"]\n[FEN \"4k3/8/8/8/8/8/4P3/4K3 b - - 0 1\"]")));
         QCOMPARE(Pgn::moveText(game), QStringLiteral("1…Kd7"));
+    }
+
+    void tutorJudgesTrainingMoves()
+    {
+        // Evaluations are White's; the user plays White here. No engine line: the move is not "the best".
+        const auto eval = [](int centipawns) {
+            EngineEvaluation evaluation;
+            evaluation.centipawns = centipawns;
+            evaluation.depth = 12;
+            return evaluation;
+        };
+        const ChessMove played = *ChessPosition::startingPosition().moveFromUci(QStringLiteral("e2e4"));
+        using TrainingTutor::Alert;
+        QCOMPARE(TrainingTutor::judge(eval(30), eval(10), Side::White, played), Alert::None);
+        QCOMPARE(TrainingTutor::judge(eval(30), eval(-60), Side::White, played), Alert::None); // An inaccuracy passes.
+        QCOMPARE(TrainingTutor::judge(eval(50), eval(-200), Side::White, played), Alert::Mistake);
+        QCOMPARE(TrainingTutor::judge(eval(30), eval(-450), Side::White, played), Alert::Blunder);
+        // Winning before, only equal after: nothing was lost, a chance was.
+        QCOMPARE(TrainingTutor::judge(eval(400), eval(10), Side::White, played), Alert::MissedChance);
+        QCOMPARE(TrainingTutor::judge(eval(400), eval(-300), Side::White, played), Alert::Blunder);
+        // Still winning: giving back part of a big advantage is no alarm.
+        QCOMPARE(TrainingTutor::judge(eval(900), eval(600), Side::White, played), Alert::None);
+        // From Black's side the signs turn.
+        QCOMPARE(TrainingTutor::judge(eval(-30), eval(450), Side::Black, played), Alert::Blunder);
+        QCOMPARE(TrainingTutor::judge(eval(-400), eval(0), Side::Black, played), Alert::MissedChance);
+        // A mate thrown away, and walking into one.
+        EngineEvaluation mate;
+        mate.isMate = true;
+        mate.mateIn = 2;
+        mate.mating = Side::White;
+        QCOMPARE(TrainingTutor::judge(mate, eval(20), Side::White, played), Alert::MissedChance);
+        mate.mating = Side::Black;
+        QCOMPARE(TrainingTutor::judge(eval(20), mate, Side::White, played), Alert::Blunder);
+        // The move the engine expected is never an error, whatever the next search says.
+        EngineEvaluation expected = eval(50);
+        expected.pv = {QStringLiteral("e2e4")};
+        QCOMPARE(TrainingTutor::judge(expected, eval(-300), Side::White, played), Alert::None);
     }
 
     void annotatesMoves()

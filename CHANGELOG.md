@@ -18,6 +18,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 - Right-click a column title of the games list to hide the column or show a
   hidden one. The choice is stored in the database, so each database opens
   with its own columns.
+- **A tutor in Training Mode.** When your move is a mistake, a blunder or
+  lets a winning chance go, the engine does not answer: the Engine panel
+  says so and offers to take the move back, to explain it on the board or to
+  go on. It needs no extra analysis: it reads the jump in the evaluation.
 - **Trash.** Right-click a game of the list and choose *Move Game to Trash*.
   The database tree ends with *Trash*, where a game can be restored or
   deleted, with *Recent* (trashed in the last seven days) and *Old* under

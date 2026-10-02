@@ -509,6 +509,17 @@ turned on, after `NewTrainingDialog` asked for the colour (`m_trainingSide`);
 - When the engine is to move, a fixed-depth search (`kTrainingDepth`) replaces
   the infinite analysis (`analyzeCurrentPosition` steps aside while
   `m_trainingThinking`) and its first PV move is played on `searchFinished`.
+- **The tutor** stops the game when the user's move is an error, without an
+  analysis of its own: `app/TrainingTutor::judge` (pure, unit-tested, on the
+  scale of Explain's `classifyMove`) compares the evaluation the user moved
+  from (`m_trainingBaseline`: the engine's search for its last move, replaced
+  by the analysis running while the user thinks when it goes deeper, and
+  tied to that position by its FEN) with the search for the engine's answer.
+  A Mistake, a Blunder or a Missed Chance (the user was better and no longer
+  is, without being worse) holds the answer back (`holdEngineReply`) and the
+  Engine panel offers Take Back (`goBack`, so the next try is judged too),
+  Explain (the board's Explain, on the move just played) and Ignore (the
+  engine answers). Inaccuracies pass; navigating away drops the alert.
 - Checkmate or stalemate fills in the result and saves the game to the open
   database through `saveGameToDatabase`, which is a no-op once it is stored.
 - The flag and the user's colour are part of `Project` (`training` with

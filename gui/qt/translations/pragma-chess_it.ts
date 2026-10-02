@@ -494,6 +494,34 @@ Il Nero ha catturato: %2</translation>
         <source>The best line is hidden: it is your move.</source>
         <translation>La linea migliore è nascosta: tocca a te muovere.</translation>
     </message>
+    <message>
+        <source>Tutor</source>
+        <translation>Tutor</translation>
+    </message>
+    <message>
+        <source>Take Back</source>
+        <translation>Ritira la mossa</translation>
+    </message>
+    <message>
+        <source>Take the move back and play another one</source>
+        <translation>Ritira la mossa e giocane un’altra</translation>
+    </message>
+    <message>
+        <source>Explain</source>
+        <translation>Spiega</translation>
+    </message>
+    <message>
+        <source>Show on the board why the move is an error</source>
+        <translation>Mostra sulla scacchiera perché la mossa è un errore</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation>Ignora</translation>
+    </message>
+    <message>
+        <source>Keep the move: the engine answers</source>
+        <translation>Tieni la mossa: il motore risponde</translation>
+    </message>
 </context>
 <context>
     <name>EvaluationBar</name>
@@ -1788,6 +1816,22 @@ Non comparirà più in nessun elenco. Resta nel file finché il database non vie
     <message>
         <source>Could not save the annotation: %1</source>
         <translation>Impossibile salvare l’annotazione: %1</translation>
+    </message>
+    <message>
+        <source>Blunder: %1 (%2 → %3).</source>
+        <translation>Errore grave: %1 (%2 → %3).</translation>
+    </message>
+    <message>
+        <source>Mistake: %1 (%2 → %3).</source>
+        <translation>Errore: %1 (%2 → %3).</translation>
+    </message>
+    <message>
+        <source>Missed chance: %1 lets your advantage go (%2 → %3).</source>
+        <translation>Occasione mancata: %1 lascia andare il tuo vantaggio (%2 → %3).</translation>
+    </message>
+    <message>
+        <source>The engine has not answered yet.</source>
+        <translation>Il motore non ha ancora risposto.</translation>
     </message>
 </context>
 <context>

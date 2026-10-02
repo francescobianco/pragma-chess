@@ -2,6 +2,41 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="it_IT">
 <context>
+    <name>AboutDialog</name>
+    <message>
+        <source>About Pragma Chess</source>
+        <translation>Informazioni su Pragma Chess</translation>
+    </message>
+    <message>
+        <source>&lt;h2&gt;Pragma Chess %1&lt;/h2&gt;&lt;p&gt;An open source chess database engine with a native desktop client.&lt;/p&gt;&lt;p&gt;Licensed under the MIT License.&lt;/p&gt;</source>
+        <translation>&lt;h2&gt;Pragma Chess %1&lt;/h2&gt;&lt;p&gt;Un motore di database scacchistici open source con un client desktop nativo.&lt;/p&gt;&lt;p&gt;Distribuito con licenza MIT.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <source>Supported by</source>
+        <translation>Con il sostegno di</translation>
+    </message>
+    <message>
+        <source>Built with</source>
+        <translation>Realizzato con</translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;Qt %1&lt;/b&gt;&lt;br&gt;The toolkit of the desktop client, used under the GNU Lesser General Public License version 3. &lt;a href=&quot;https://www.qt.io&quot;&gt;qt.io&lt;/a&gt;</source>
+        <translation>&lt;b&gt;Qt %1&lt;/b&gt;&lt;br&gt;Il toolkit del client desktop, usato secondo la GNU Lesser General Public License versione 3. &lt;a href=&quot;https://www.qt.io&quot;&gt;qt.io&lt;/a&gt;</translation>
+    </message>
+    <message>
+        <source>About &amp;Qt…</source>
+        <translation>Informazioni su &amp;Qt…</translation>
+    </message>
+    <message>
+        <source>Qt&apos;s own notice, with its licenses</source>
+        <translation>La nota di Qt, con le sue licenze</translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;Stockfish&lt;/b&gt;, the chess engine that comes with Pragma Chess (GPL version 3, a program of its own) · the &lt;b&gt;Good Companion&lt;/b&gt; chess pieces · the &lt;b&gt;SkakNew&lt;/b&gt; figurines of the moves (LPPL) · the opening names of &lt;b&gt;lichess.org&lt;/b&gt; (CC0).</source>
+        <translation>&lt;b&gt;Stockfish&lt;/b&gt;, il motore di scacchi fornito con Pragma Chess (GPL versione 3, un programma a sé) · i pezzi &lt;b&gt;Good Companion&lt;/b&gt; · le figurine &lt;b&gt;SkakNew&lt;/b&gt; delle mosse (LPPL) · i nomi delle aperture di &lt;b&gt;lichess.org&lt;/b&gt; (CC0).</translation>
+    </message>
+</context>
+<context>
     <name>BoardPanel</name>
     <message>
         <source>Game controls</source>
@@ -871,6 +906,25 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>HelpDialog</name>
+    <message>
+        <source>Pragma Chess Guide</source>
+        <translation>Guida di Pragma Chess</translation>
+    </message>
+    <message>
+        <source>Search the guide</source>
+        <translation>Cerca nella guida</translation>
+    </message>
+    <message>
+        <source>Topics</source>
+        <translation>Argomenti</translation>
+    </message>
+    <message>
+        <source>No topic matches</source>
+        <translation>Nessun argomento trovato</translation>
+    </message>
+</context>
+<context>
     <name>LichessFetch</name>
     <message>
         <source>Sign in to lichess.org to download the games.</source>
@@ -1092,10 +1146,6 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>&amp;About Pragma Chess</source>
         <translation>&amp;Informazioni su Pragma Chess</translation>
-    </message>
-    <message>
-        <source>About &amp;Qt</source>
-        <translation>Informazioni su &amp;Qt</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -1550,14 +1600,6 @@ Il Nero ha catturato: %2</translation>
         <translation>Gli appunti non contengono una FEN valida</translation>
     </message>
     <message>
-        <source>About Pragma Chess</source>
-        <translation>Informazioni su Pragma Chess</translation>
-    </message>
-    <message>
-        <source>&lt;h3&gt;Pragma Chess %1&lt;/h3&gt;&lt;p&gt;An open source chess database engine with a native desktop client.&lt;/p&gt;&lt;p&gt;Licensed under the MIT License.&lt;/p&gt;</source>
-        <translation>&lt;h3&gt;Pragma Chess %1&lt;/h3&gt;&lt;p&gt;Un motore di database scacchistici open source con un client desktop nativo.&lt;/p&gt;&lt;p&gt;Distribuito con licenza MIT.&lt;/p&gt;</translation>
-    </message>
-    <message>
         <source>Open Project</source>
         <translation>Apri progetto</translation>
     </message>
@@ -1852,6 +1894,10 @@ Non comparirà più in nessun elenco. Resta nel file finché il database non vie
     <message>
         <source>Database: %1</source>
         <translation>Database: %1</translation>
+    </message>
+    <message>
+        <source>Pragma Chess &amp;Guide</source>
+        <translation>&amp;Guida di Pragma Chess</translation>
     </message>
 </context>
 <context>

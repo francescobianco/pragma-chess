@@ -140,6 +140,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/OpeningNames.h
     src/app/Pgn.cpp
     src/app/Pgn.h
+    src/app/HelpGuide.cpp
+    src/app/HelpGuide.h
     src/app/TrainingTutor.cpp
     src/app/TrainingTutor.h
     src/app/PlayerRole.cpp
@@ -264,6 +266,10 @@ qt_add_executable(pragma-chess
     src/dialogs/BoardSettingsDialog.h
     src/dialogs/DatabaseSettingsDialog.cpp
     src/dialogs/DatabaseSettingsDialog.h
+    src/dialogs/AboutDialog.cpp
+    src/dialogs/AboutDialog.h
+    src/dialogs/HelpDialog.cpp
+    src/dialogs/HelpDialog.h
     src/dialogs/NewTrainingDialog.cpp
     src/dialogs/NewTrainingDialog.h
     src/dialogs/SyncDialog.cpp
@@ -385,6 +391,12 @@ qt_add_resources(pragma-chess books PREFIX /books BASE resources/books FILES res
 qt_add_resources(pragma-chess openings PREFIX /openings BASE resources/openings
     FILES resources/openings/opening-names.pdb resources/openings/lichess-openings.tsv
           resources/openings/opening-names-it.pdb resources/openings/lichess-openings-it.tsv)
+# The guide (Help ▸ Pragma Chess Guide), one Markdown file per language.
+qt_add_resources(pragma-chess help PREFIX /help BASE resources/help
+    FILES resources/help/guide_en.md resources/help/guide_it.md)
+# Logos of the clubs that support Pragma Chess, shown in About.
+qt_add_resources(pragma-chess credits PREFIX /credits BASE resources/credits
+    FILES resources/credits/circolo-del-re.png)
 # SkakNew figurines for the move list (scripts/make-figurine-font.py).
 qt_add_resources(pragma-chess fonts PREFIX /fonts BASE resources/fonts FILES resources/fonts/pragma-figurine.otf)
 qt_add_resources(pragma-chess appicon PREFIX /icons BASE data/icons FILES ${APP_ICON_FILES})
@@ -458,6 +470,8 @@ if(TARGET Qt6::Test)
         src/app/SqliteGameDatabase.cpp
         src/app/SqliteGameDatabase.h)
     target_link_libraries(tst_chessrules PRIVATE pragma-chess-core Qt6::Sql Qt6::Test)
+    target_compile_definitions(tst_chessrules PRIVATE
+        PRAGMA_HELP_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/help")
     target_compile_options(tst_chessrules PRIVATE ${PRAGMA_WARNINGS})
     set_target_properties(tst_chessrules PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
     add_test(NAME chessrules COMMAND tst_chessrules)

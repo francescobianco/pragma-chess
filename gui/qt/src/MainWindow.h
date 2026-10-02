@@ -31,6 +31,7 @@ class UciEngine;
 class GameDatabase;
 class GameListModel;
 class GameSession;
+class HelpDialog;
 class MoveListModel;
 class BookPanel;
 struct ChessMove;
@@ -267,6 +268,8 @@ private:
     /// Puts the panels back where they start: what a new project opens with.
     void applyDefaultLayout();
     void showAbout();
+    /// Help ▸ Pragma Chess Guide (F1).
+    void showGuide();
 
     // Session persistence: the current project state (saved or not) and the
     // window geometry are stored per user (QSettings) shortly after they change
@@ -418,7 +421,8 @@ private:
     QAction *m_explainAction;
     QAction *m_startEngineAction;
     QAction *m_aboutAction;
-    QAction *m_aboutQtAction;
+    QAction *m_guideAction;
+    HelpDialog *m_guideDialog = nullptr;
 
     QTimer *m_saveTimer = nullptr;
     bool m_restoringSession = false;

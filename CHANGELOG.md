@@ -8,6 +8,13 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **A guide.** *Help ▸ Pragma Chess Guide* (F1) explains the application
+  topic by topic, in the language of the interface. Type in the search field
+  and the list shows the topics that match, each with the words found.
+- *About Pragma Chess* now credits the clubs that support the project —
+  the first is ASD Circolo del Re, Castelvetrano Scacchi — and what the
+  application is built with. Qt's notice is a button there, so the Help menu
+  has a single About entry.
 - **Annotations.** Right-click a move of the move list: *Annotations* lists
   the symbols (!!, !, !?, ?!, ?, ??, □ and the assessments of the position,
   from +− to −+), each with what it means. They are shown in the move list,
@@ -61,7 +68,7 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 - Training Mode is remembered: closing the application while training and
   opening it again goes on with the training game.
 - The title bar shows only the name of the open project, with an asterisk
-  while it is not saved, and Pragma Chess.
+  while it is not saved, and the application: “Untitled* - Pragma Chess”.
 
 ### Fixed
 

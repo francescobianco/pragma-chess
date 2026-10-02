@@ -9,6 +9,7 @@
 #include "app/ExplanationSearch.h"
 #include "app/GameIdentity.h"
 #include "app/GameState.h"
+#include "app/HelpGuide.h"
 #include "app/MoveAnnotation.h"
 #include "app/MoveExplanation.h"
 #include "app/OpeningNames.h"
@@ -290,6 +291,60 @@ private Q_SLOTS:
         game.moves = {MoveRecord{QString(), QStringLiteral("e8d7")}};
         QVERIFY(Pgn::game(game).contains(QStringLiteral("[SetUp \"1\"]\n[FEN \"4k3/8/8/8/8/8/4P3/4K3 b - - 0 1\"]")));
         QCOMPARE(Pgn::moveText(game), QStringLiteral("1…Kd7"));
+    }
+
+    void readsAndSearchesTheGuide()
+    {
+        const HelpGuide guide = HelpGuide::fromMarkdown(QStringLiteral(
+            "# Getting started {#start}\n\nOpen a **database** and double-click a game.\n\n"
+            "# The trash {#trash}\n\n- Right-click a game: *Move Game to Trash*.\n"
+            "- [Optimize](https://example.org) removes it for good, perché no.\n\n## Details\n\nMore.\n"));
+        QCOMPARE(guide.topics().size(), 2);
+        QCOMPARE(guide.topics().at(0).id, QStringLiteral("start"));
+        QCOMPARE(guide.topics().at(0).title, QStringLiteral("Getting started"));
+        QVERIFY(guide.topics().at(0).markdown.startsWith(QStringLiteral("# Getting started\n\nOpen a **database**")));
+        QCOMPARE(guide.topics().at(0).text, QStringLiteral("Open a database and double-click a game."));
+        QVERIFY(guide.topics().at(1).markdown.contains(QStringLiteral("## Details"))); // A subheading is not a topic.
+        QVERIFY(guide.topics().at(1).text.contains(QStringLiteral("Optimize removes it")));
+        QCOMPARE(guide.indexOf(QStringLiteral("trash")), 1);
+        QCOMPARE(guide.indexOf(QStringLiteral("nowhere")), -1);
+
+        // Every word must be there, whatever the case and the accents; the snippet says where.
+        QVERIFY(guide.search(QString()).isEmpty());
+        QVERIFY(guide.search(QStringLiteral("zugzwang")).isEmpty());
+        QList<HelpGuide::Match> found = guide.search(QStringLiteral("OPTIMIZE perche"));
+        QCOMPARE(found.size(), 1);
+        QCOMPARE(found.first().topic, 1);
+        QVERIFY2(found.first().snippet.contains(QStringLiteral("Optimize removes")), qPrintable(found.first().snippet));
+        // Both topics speak of a game: the one that says it in its title comes first... here neither, so in order.
+        found = guide.search(QStringLiteral("game"));
+        QCOMPARE(found.size(), 2);
+        QCOMPARE(found.at(0).topic, 0);
+        found = guide.search(QStringLiteral("trash"));
+        QCOMPARE(found.first().topic, 1);
+        // A word of the title alone is told by how the topic begins.
+        found = guide.search(QStringLiteral("started"));
+        QCOMPARE(found.size(), 1);
+        QVERIFY(found.first().snippet.startsWith(QStringLiteral("Open a database")));
+
+        // The guides we ship: every language has the same topics as English, none empty.
+        const auto shipped = [](const char *code) {
+            QFile file(QStringLiteral(PRAGMA_HELP_DIR "/guide_%1.md").arg(QLatin1String(code)));
+            return file.open(QIODevice::ReadOnly) ? HelpGuide::fromMarkdown(QString::fromUtf8(file.readAll()))
+                                                  : HelpGuide();
+        };
+        const HelpGuide english = shipped("en");
+        QVERIFY(english.topics().size() >= 10);
+        for (const char *code : {"it"}) {
+            const HelpGuide translated = shipped(code);
+            QCOMPARE(translated.topics().size(), english.topics().size());
+            for (int index = 0; index < english.topics().size(); ++index) {
+                QCOMPARE(translated.topics().at(index).id, english.topics().at(index).id);
+                QVERIFY2(translated.topics().at(index).text.size() > 40, qPrintable(translated.topics().at(index).id));
+                QVERIFY2(english.topics().at(index).text.size() > 40, qPrintable(english.topics().at(index).id));
+            }
+        }
+        QCOMPARE(shipped("it").search(QStringLiteral("cestino")).first().topic, english.indexOf(QStringLiteral("trash")));
     }
 
     void tutorJudgesTrainingMoves()

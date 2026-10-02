@@ -56,6 +56,8 @@ gui/qt/
   resources/books/     default opening book (built from lichess chess-openings, CC0)
   resources/openings/  named openings seeded as the Opening Names database
   resources/fonts/     figurine font of the move list (SkakNew, LPPL)
+  resources/help/      the guide, one Markdown file per language
+  resources/credits/   logos of the supporting clubs, shown in About
   translations/        interface translations (.ts), built with Qt Linguist tools
 docs/                  design and tuning notes (explain-tuning.md)
 packaging/             installers: windows/ (Inno Setup), macos/ (dmg), linux/
@@ -126,6 +128,31 @@ playing a move turns it off, and the user asks again at the next move.
   line with a trace. **Tuning happens there**: read
   [docs/explain-tuning.md](docs/explain-tuning.md) first, and log feedback
   and decisions in it. Enrich the explanation, don't replace what works.
+
+## Guide and About
+
+Help ▸ Pragma Chess Guide (F1) opens `dialogs/HelpDialog`: a search field
+and the list of topics on the left, the chosen topic on the right. It is not
+modal, so it stays open while the user tries things.
+
+- The guide is **one Markdown file per language**,
+  `resources/help/guide_<code>.md`, embedded under `:/help`. A topic starts
+  at a first-level heading with its id, `# Title {#id}`; the ids are the same
+  in every language. `app/HelpGuide` (pure, unit-tested) splits the topics
+  and searches them: every word of the query must be in the topic, whatever
+  the case and the accents, title matches first, each with a snippet of the
+  words around what was found, shown under the title in the list.
+- The dialog reads the guide of `UiLanguage::effective()` and falls back to
+  English. **A new feature gets its paragraph in every guide**, with the
+  names of menus and buttons exactly as the interface (and its translation)
+  shows them; the test `readsAndSearchesTheGuide` fails if a language misses
+  a topic.
+- Help ▸ About Pragma Chess (`dialogs/AboutDialog`) is the only About: the
+  application, the clubs that support it (`kSupporters`: name, logo in
+  `resources/credits`, link — add the next ones there) and what it is built
+  with. Qt is credited there with its logo, its version and the LGPL, and
+  its own notice is the About Qt… button of the dialog: there is no separate
+  About Qt entry in the menu.
 
 ## Toolbar
 
@@ -439,9 +466,10 @@ while one of them is selected.
   It is versioned; newer files are rejected with an error.
   **The project is the workspace**: there is no separate workspace concept.
   The title bar shows only the project's name and the application's,
-  "Untitled* — Pragma Chess": the asterisk is there while the project was
-  never saved or has unsaved changes; no database, no game
-  (`MainWindow::updateWindowTitle`; Qt appends the application name).
+  "Untitled* - Pragma Chess", with a plain hyphen: the asterisk is there
+  while the project was never saved or has unsaved changes; no database, no
+  game (`MainWindow::updateWindowTitle` writes the title in full, so Qt does
+  not append the application name after its long dash).
   Anything about what the user is looking at belongs in `Project`, not in
   QSettings. `layout` is the opaque blob of `MainWindow::saveLayout()` (magic
   `pragma-layout-4`: window state, sidebar state, Games splitter state), so it

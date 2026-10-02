@@ -5,6 +5,7 @@
 #include "app/OpeningNames.h"
 #include "app/DatabaseMerge.h"
 #include "app/ShippedOpeningNames.h"
+#include "dialogs/AboutDialog.h"
 #include "dialogs/BoardSettingsDialog.h"
 #include "dialogs/DatabaseSettingsDialog.h"
 #include "app/PolyglotBook.h"
@@ -12,6 +13,7 @@
 #include "app/DatabaseOutline.h"
 #include "dialogs/ConnectSourceWizard.h"
 #include "dialogs/GameInfoDialog.h"
+#include "dialogs/HelpDialog.h"
 #include "dialogs/ManageEnginesDialog.h"
 #include "dialogs/ManageSourcesDialog.h"
 #include "dialogs/NewTrainingDialog.h"
@@ -580,9 +582,9 @@ void MainWindow::createActions()
     m_aboutAction->setMenuRole(QAction::AboutRole);
     connect(m_aboutAction, &QAction::triggered, this, &MainWindow::showAbout);
 
-    m_aboutQtAction = new QAction(tr("About &Qt"), this);
-    m_aboutQtAction->setMenuRole(QAction::AboutQtRole);
-    connect(m_aboutQtAction, &QAction::triggered, qApp, &QApplication::aboutQt);
+    m_guideAction = new QAction(tr("Pragma Chess &Guide"), this);
+    m_guideAction->setShortcut(QKeySequence::HelpContents);
+    connect(m_guideAction, &QAction::triggered, this, &MainWindow::showGuide);
 }
 
 void MainWindow::createMenus()
@@ -726,8 +728,9 @@ void MainWindow::createMenus()
     }
 
     QMenu *help = menuBar()->addMenu(tr("&Help"));
+    help->addAction(m_guideAction);
+    help->addSeparator();
     help->addAction(m_aboutAction);
-    help->addAction(m_aboutQtAction);
 }
 
 void MainWindow::createToolBar()
@@ -2774,11 +2777,18 @@ void MainWindow::applyDefaultLayout()
 
 void MainWindow::showAbout()
 {
-    QMessageBox::about(
-        this, tr("About Pragma Chess"),
-        tr("<h3>Pragma Chess %1</h3>"
-           "<p>An open source chess database engine with a native desktop client.</p>"
-           "<p>Licensed under the MIT License.</p>").arg(QString::fromLatin1(APP_VERSION)));
+    AboutDialog dialog(QString::fromLatin1(APP_VERSION), this);
+    dialog.exec();
+}
+
+void MainWindow::showGuide()
+{
+    // One window, kept open beside the application: a guide is read while trying.
+    if (!m_guideDialog)
+        m_guideDialog = new HelpDialog(UiLanguage::effective(), this);
+    m_guideDialog->show();
+    m_guideDialog->raise();
+    m_guideDialog->activateWindow();
 }
 
 void MainWindow::restoreSession()
@@ -3113,10 +3123,12 @@ void MainWindow::rebuildRecentProjectsMenu()
 
 void MainWindow::updateWindowTitle()
 {
-    // Only the project, with the asterisk of unsaved changes: the database and
-    // the game are on show in the window itself. Qt adds "— Pragma Chess".
+    // Only the project, with the asterisk of unsaved changes, and the
+    // application: "Untitled* - Pragma Chess". The database and the game are
+    // on show in the window itself. Written in full, with a plain hyphen: Qt
+    // would add the name by itself after a long dash.
     const QString name = m_projectPath.isEmpty() ? tr("Untitled") : QFileInfo(m_projectPath).completeBaseName();
-    setWindowTitle(name + QStringLiteral("[*]"));
+    setWindowTitle(QStringLiteral("%1[*] - %2").arg(name, QGuiApplication::applicationDisplayName()));
 }
 
 void MainWindow::updateProjectModified()

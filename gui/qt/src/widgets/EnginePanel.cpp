@@ -1,5 +1,7 @@
 #include "EnginePanel.h"
 
+#include "FigurineFont.h"
+
 #include <QAction>
 #include <QFormLayout>
 #include <QFrame>
@@ -51,6 +53,7 @@ EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
     m_explanation->hide();
     layout->addWidget(m_explanation);
 
+    m_line->setFont(FigurineFont::apply(m_line->font())); // The figurines of the move list.
     m_line->setWordWrap(true);
     m_line->setTextInteractionFlags(Qt::TextSelectableByMouse);
     m_line->setAlignment(Qt::AlignLeft | Qt::AlignTop);

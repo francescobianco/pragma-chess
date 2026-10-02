@@ -42,6 +42,9 @@ public:
     /// move of the game, otherwise replaces the moves after the current ply.
     /// Returns false if the move is illegal.
     bool playMove(const ChessMove &move);
+    /// Annotates the move that leads to `ply` (1 to plyCount()) with these
+    /// NAGs (MoveAnnotation), in place of the ones it had.
+    void setAnnotations(int ply, const QList<int> &nags);
 
     void goToPly(int ply);
     void goToStart() { goToPly(0); }
@@ -52,6 +55,8 @@ public:
 Q_SIGNALS:
     void gameChanged();
     void headerChanged();
+    /// The annotations of the move leading to `ply` changed.
+    void annotationsChanged(int ply);
     void plyChanged(int ply);
 
 private:

@@ -86,8 +86,10 @@ scripts/install-dev-desktop.sh  user menu entry + icons for the build (Wayland d
   `ChessPosition` with perft counts, PGN/SAN parsing and the "Explain" logic
   with synthetic engine lines. There are no widget tests.
 - SAN is shown with figurines (♘f3) in the desktop client; the clipboard, PGN
-  and the command line use letters. The move list draws them with the SkakNew
-  figurines of chess books (`widgets/FigurineFont`, font rebuilt by
+  and the command line use letters. Every view that shows moves (move list,
+  Opening Tree, engine line, the Line column of the games list) draws them
+  with the SkakNew figurines of chess books: give it
+  `FigurineFont::apply(font)` (`widgets/FigurineFont`, font rebuilt by
   `scripts/make-figurine-font.py`).
 
 ## Explain
@@ -142,6 +144,9 @@ make clean
 
 `make start` never exits — don't run it from an agent unless it is backgrounded.
 To verify a change compiles, use `make build` (or `cmake --build build`).
+While the user's `make start` is running it rebuilds `build/` on every change:
+building there at the same time corrupts the static library, so configure a
+build directory of your own (`cmake -S . -B <scratch>/build -G Ninja`).
 Compiler warnings are on (`-Wall -Wextra -Wpedantic`); don't introduce new ones.
 
 Rust (once the workspace is complete):
@@ -224,6 +229,35 @@ cargo run -p chessdb-cli -- <args>
   reports conflicts; the phone link's `put` uses it.
   Version 6 added the trash: `game_states` (`uid`, `state`, `modified`), see
   "Trash" below.
+
+## Move list, annotations and the games list
+
+Right-clicking a move of the move list (`MainWindow::showMoveListMenu`) offers
+Copy ▸ Copy Move / Copy Line up to Here and Annotations ▸, the glyphs with
+what each means in italics (`widgets/GlyphMenuAction`: a `QWidgetAction`
+painted as a menu item, since QMenu draws an item in one font).
+
+- `app/MoveAnnotation` (pure, unit-tested): the glyphs are PGN NAGs
+  (`MoveRecord::nags`), at most one judgement of the move ("!", "??"…) and one
+  assessment of the position ("±", "∞"…); choosing the one a move has takes
+  it off. PGN writes "!" and "?" as suffixes and the others as `$n`
+  (`Pgn::moveText`, read back by `Pgn::parseLine`).
+- **No schema change**: annotations are stored glued to the SAN in
+  `moves_san` ("Nf3!$16", one word per move) and split off when a game is
+  loaded, so `MoveRecord::san` is always bare. The Android app replays games
+  from `moves_uci`, so it ignores them (and drops them from a game it
+  rewrites).
+- Annotating a stored game saves it at once (`MainWindow::annotateMove` →
+  `replaceGame`, which moves `modified`, so the other copies get it); in a
+  game not yet saved the annotations travel with the project (`annotations`
+  in the `.pch`).
+- The games list ends with Line, the beginning of the game's moves
+  (`GameRecord::linePreview`, built by `Pgn::preview` from the first stored
+  SAN moves without replaying them); the view elides it with "…".
+- Which columns of the games list are shown belongs to the database
+  (`DatabaseProperties::hiddenColumns`, property `columns.hidden`, by
+  `GameListModel::columnKey`): right-click a column title to Hide it or Show
+  a hidden one. The order and widths of the columns stay in the session.
 
 ## Trash
 

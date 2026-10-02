@@ -8,6 +8,8 @@
 struct MoveRecord {
     QString san;
     QString uci;
+    /// Annotations of the move ("!", "±"…) as PGN NAGs, see MoveAnnotation.
+    QList<int> nags = {};
 };
 
 /// A game as seen by the GUI. Header-only records (for game lists) leave
@@ -25,6 +27,10 @@ struct GameRecord {
     QString result;
     QString eco;
     int plyCount = 0;
+    /// How the game begins, as a numbered line in letters ("1.e4 e5 2.Nf3…",
+    /// ending in "…" when the game goes on): what lists show without loading
+    /// the moves. Filled in for stored games (Pgn::preview).
+    QString linePreview;
     /// Empty means the standard starting position.
     QString startFen;
     /// Universal id of the game (docs/phone-link.md, "Identity"): the same in

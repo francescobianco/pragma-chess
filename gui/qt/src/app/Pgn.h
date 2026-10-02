@@ -14,10 +14,19 @@ namespace Pgn {
 
 /// Numbered SAN movetext of the first `plies` moves (all when negative),
 /// e.g. "1.e4 e5 2.Nf3". Games starting with Black to move begin with "1…".
+/// Annotated moves carry their glyphs: "2.Nf3! $14".
 QString moveText(const GameRecord &game, int plies = -1);
 
-/// A main line read from text people paste: PGN (tags, comments, variations
-/// and NAGs are skipped; a FEN tag sets the start), plain SAN with or without
+/// How a game begins, for lists: its first moves as a numbered line with the
+/// symbols of their annotations, "1.e4 e5 2.Nf3! Nc6…", from the SAN as
+/// stored (annotations glued, MoveAnnotation::storedSuffix) and without
+/// replaying it. `startFen` only says who moves first and at which number;
+/// the "…" ends a game of `plyCount` plies that goes on after `sanMoves`.
+QString preview(const QString &startFen, const QStringList &sanMoves, int plyCount);
+
+/// A main line read from text people paste: PGN (tags, comments and
+/// variations are skipped; a FEN tag sets the start; "!", "?" and the NAGs
+/// that have a symbol are kept as annotations), plain SAN with or without
 /// move numbers, or UCI moves.
 struct ParsedLine {
     /// Empty for the standard starting position.

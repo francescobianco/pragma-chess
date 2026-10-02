@@ -7,6 +7,7 @@ const QString kTypeKey = QStringLiteral("type");
 const QString kDescriptionKey = QStringLiteral("description");
 const QString kNameKey = QStringLiteral("name");
 const QString kNamePrefix = QStringLiteral("name.");
+const QString kHiddenColumnsKey = QStringLiteral("columns.hidden");
 
 } // namespace
 
@@ -17,6 +18,7 @@ DatabaseProperties DatabaseProperties::fromValues(const QHash<QString, QString> 
     properties.type = typeFromKey(values.value(kTypeKey));
     properties.description = values.value(kDescriptionKey);
     properties.name = values.value(kNameKey);
+    properties.hiddenColumns = values.value(kHiddenColumnsKey).split(QLatin1Char(','), Qt::SkipEmptyParts);
     for (auto it = values.cbegin(); it != values.cend(); ++it) {
         if (it.key().startsWith(kNamePrefix) && it.key().size() > kNamePrefix.size() && !it.value().isEmpty())
             properties.localizedNames.insert(it.key().mid(kNamePrefix.size()).toLower(), it.value());
@@ -26,7 +28,9 @@ DatabaseProperties DatabaseProperties::fromValues(const QHash<QString, QString> 
 
 QHash<QString, QString> DatabaseProperties::values() const
 {
-    QHash<QString, QString> result{{kTypeKey, typeKey(type)}, {kDescriptionKey, description}};
+    QHash<QString, QString> result{{kTypeKey, typeKey(type)},
+                                   {kDescriptionKey, description},
+                                   {kHiddenColumnsKey, hiddenColumns.join(QLatin1Char(','))}};
     if (!id.isEmpty())
         result.insert(kIdKey, id);
     if (!name.isEmpty())

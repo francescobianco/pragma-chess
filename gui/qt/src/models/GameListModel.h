@@ -9,9 +9,16 @@ class GameListModel : public QAbstractTableModel {
     Q_OBJECT
 
 public:
-    enum Column { Number, White, WhiteElo, Black, BlackElo, Result, Date, Event, Site, Eco, Moves, ColumnCount };
+    enum Column { Number, White, WhiteElo, Black, BlackElo, Result, Date, Event, Site, Eco, Moves, Line, ColumnCount };
 
     explicit GameListModel(QObject *parent = nullptr);
+
+    /// What a column is called in the files that remember it ("white-elo"):
+    /// never translated, never renumbered.
+    static QString columnKey(int column);
+    /// The column's name in full, for menus: the two "Elo" headers are
+    /// "White Elo" and "Black Elo" there.
+    static QString columnName(int column);
 
     void setDatabase(const GameDatabase *database);
     /// Call after the header of the game in `row` changed in the database.

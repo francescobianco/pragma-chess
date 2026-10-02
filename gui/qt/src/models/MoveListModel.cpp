@@ -1,6 +1,7 @@
 #include "MoveListModel.h"
 
 #include "app/GameSession.h"
+#include "app/MoveAnnotation.h"
 
 MoveListModel::MoveListModel(GameSession *session, QObject *parent)
     : QAbstractTableModel(parent)
@@ -9,6 +10,10 @@ MoveListModel::MoveListModel(GameSession *session, QObject *parent)
     connect(m_session, &GameSession::gameChanged, this, [this] {
         beginResetModel();
         endResetModel();
+    });
+    connect(m_session, &GameSession::annotationsChanged, this, [this](int ply) {
+        const QModelIndex cell = indexForPly(ply);
+        Q_EMIT dataChanged(cell, cell);
     });
 }
 
@@ -50,8 +55,10 @@ QVariant MoveListModel::data(const QModelIndex &index, int role) const
     const int ply = plyForIndex(index);
     if (ply < 0)
         return role == Qt::DisplayRole && index.isValid() ? QVariant(QStringLiteral("…")) : QVariant();
-    if (role == Qt::DisplayRole)
-        return figurineSan(m_session->game().moves.at(ply - 1).san);
+    if (role == Qt::DisplayRole) {
+        const MoveRecord &move = m_session->game().moves.at(ply - 1);
+        return figurineSan(move.san) + MoveAnnotation::symbols(move.nags);
+    }
     return {};
 }
 

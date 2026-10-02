@@ -102,6 +102,20 @@ private:
     void updateBoardFilters();
     /// "Who Is This?" on a player of the games list.
     void showGameListMenu(const QPoint &position);
+    /// Right click on a column title of the games list: Hide it, or Show one
+    /// of the hidden ones. Which columns are shown is stored in the database
+    /// (DatabaseProperties::hiddenColumns), so each one opens with its own.
+    void showGameColumnsMenu(const QPoint &position);
+    void setGameColumnsHidden(const QStringList &hidden);
+    /// Shows the columns of the games list the open database does not hide.
+    void applyGameColumns();
+    /// Right click on a move of the move list: Copy and Annotations.
+    void showMoveListMenu(const QPoint &position);
+    /// Annotates the move leading to `ply` ("!", "±"…, as NAGs), in the
+    /// database too when the game is stored.
+    void annotateMove(int ply, const QList<int> &nags);
+    /// The move leading to `ply` as copied to the clipboard: "12.Nf3!".
+    QString moveText(int ply) const;
     void setPlayerRole(const QString &player, PlayerRole role);
     /// Index of the game with `uid` in the open database, -1 if it has none.
     qint64 gameIndexOf(const QString &uid) const;

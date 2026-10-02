@@ -134,6 +134,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/GameState.h
     src/app/MoveExplanation.cpp
     src/app/MoveExplanation.h
+    src/app/MoveAnnotation.cpp
+    src/app/MoveAnnotation.h
     src/app/OpeningNames.cpp
     src/app/OpeningNames.h
     src/app/Pgn.cpp
@@ -321,6 +323,8 @@ qt_add_executable(pragma-chess
     src/widgets/FigurineFont.h
     src/widgets/GameHeaderWidget.cpp
     src/widgets/GameHeaderWidget.h
+    src/widgets/GlyphMenuAction.cpp
+    src/widgets/GlyphMenuAction.h
     src/widgets/BoardWidget.h
 )
 

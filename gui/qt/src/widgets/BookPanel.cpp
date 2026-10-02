@@ -1,5 +1,6 @@
 #include "BookPanel.h"
 
+#include "FigurineFont.h"
 #include "PaddedHeaderView.h"
 #include "PaddedItemDelegate.h"
 #include "platform/SymbolicIcons.h"
@@ -21,6 +22,7 @@ BookPanel::BookPanel(QWidget *parent)
     auto *header = new PaddedHeaderView(Qt::Horizontal, CellPadding::vertical, CellPadding::horizontal, m_moves);
     header->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter); // As a tree's own header.
     m_moves->setHeader(header);
+    m_moves->setFont(FigurineFont::apply(m_moves->font())); // The figurines of the move list.
     m_moves->setColumnCount(kColumns);
     m_moves->setHeaderLabels({tr("Move"), tr("Opening"), tr("Database"), tr("Weight")});
     m_moves->headerItem()->setToolTip(kDatabaseColumn, tr("Games of the open database with the position after the move: "

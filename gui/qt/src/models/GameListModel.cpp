@@ -1,5 +1,6 @@
 #include "GameListModel.h"
 
+#include "app/ChessPosition.h"
 #include "app/GameDatabase.h"
 
 GameListModel::GameListModel(QObject *parent)
@@ -78,6 +79,45 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
     case Site: return game.site;
     case Eco: return game.eco;
     case Moves: return (game.plyCount + 1) / 2;
+    case Line: return figurineLine(game.linePreview);
+    default: return {};
+    }
+}
+
+QString GameListModel::columnKey(int column)
+{
+    switch (column) {
+    case Number: return QStringLiteral("number");
+    case White: return QStringLiteral("white");
+    case WhiteElo: return QStringLiteral("white-elo");
+    case Black: return QStringLiteral("black");
+    case BlackElo: return QStringLiteral("black-elo");
+    case Result: return QStringLiteral("result");
+    case Date: return QStringLiteral("date");
+    case Event: return QStringLiteral("event");
+    case Site: return QStringLiteral("site");
+    case Eco: return QStringLiteral("eco");
+    case Moves: return QStringLiteral("moves");
+    case Line: return QStringLiteral("line");
+    default: return {};
+    }
+}
+
+QString GameListModel::columnName(int column)
+{
+    switch (column) {
+    case Number: return tr("Number");
+    case White: return tr("White");
+    case WhiteElo: return tr("White Elo");
+    case Black: return tr("Black");
+    case BlackElo: return tr("Black Elo");
+    case Result: return tr("Result");
+    case Date: return tr("Date");
+    case Event: return tr("Event");
+    case Site: return tr("Site");
+    case Eco: return tr("ECO");
+    case Moves: return tr("Moves");
+    case Line: return tr("Line");
     default: return {};
     }
 }
@@ -98,6 +138,7 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
     case Site: return tr("Site");
     case Eco: return tr("ECO");
     case Moves: return tr("Moves");
+    case Line: return tr("Line");
     default: return {};
     }
 }

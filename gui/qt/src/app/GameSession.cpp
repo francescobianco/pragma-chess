@@ -1,5 +1,7 @@
 #include "GameSession.h"
 
+#include "MoveAnnotation.h"
+
 #include <QtGlobal>
 
 GameSession::GameSession(QObject *parent)
@@ -84,7 +86,7 @@ bool GameSession::playMove(const ChessMove &move)
 
     ChessPosition next = current;
     next.play(move);
-    const MoveRecord record{current.san(move), move.uci()};
+    const MoveRecord record{current.san(move), move.uci(), {}};
 
     m_positions.resize(m_ply + 1);
     m_moves.resize(m_ply);
@@ -98,6 +100,18 @@ bool GameSession::playMove(const ChessMove &move)
     Q_EMIT gameChanged();
     Q_EMIT plyChanged(m_ply);
     return true;
+}
+
+void GameSession::setAnnotations(int ply, const QList<int> &nags)
+{
+    if (ply < 1 || ply > plyCount())
+        return;
+    const QList<int> annotations = MoveAnnotation::normalized(nags);
+    MoveRecord &record = m_game.moves[ply - 1];
+    if (record.nags == annotations)
+        return;
+    record.nags = annotations;
+    Q_EMIT annotationsChanged(ply);
 }
 
 void GameSession::goToPly(int ply)

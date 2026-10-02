@@ -16,6 +16,9 @@ enum class SanStyle { Letters, Figurines };
 /// Replaces the piece letters of one SAN move with figurines: "Nxe5+" → "♘xe5+",
 /// "e8=Q" → "e8=♕". Castling and pawn moves are unchanged.
 QString figurineSan(const QString &san);
+/// The same for a whole line of moves, "1.e4 e5 2.Nf3 Nc6": in SAN the
+/// capital letters K, Q, R, B and N are always pieces.
+QString figurineLine(const QString &line);
 
 /// Counts of pieces by side and type: `counts[int(side)][int(type)]`.
 using PieceCounts = std::array<std::array<int, 7>, 2>;

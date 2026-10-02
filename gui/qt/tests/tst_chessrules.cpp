@@ -9,6 +9,7 @@
 #include "app/ExplanationSearch.h"
 #include "app/GameIdentity.h"
 #include "app/GameState.h"
+#include "app/MoveAnnotation.h"
 #include "app/MoveExplanation.h"
 #include "app/OpeningNames.h"
 #include "app/Pgn.h"
@@ -290,6 +291,81 @@ private Q_SLOTS:
         QCOMPARE(Pgn::moveText(game), QStringLiteral("1…Kd7"));
     }
 
+    void annotatesMoves()
+    {
+        // One glyph for the move and one for the position, the move's first.
+        QCOMPARE(MoveAnnotation::toggled({}, 1), QList<int>{1});
+        QCOMPARE(MoveAnnotation::toggled({1}, 16), (QList<int>{1, 16}));
+        QCOMPARE(MoveAnnotation::toggled({1, 16}, 4), (QList<int>{4, 16})); // "??" takes the place of "!".
+        QCOMPARE(MoveAnnotation::toggled({4, 16}, 4), QList<int>{16});      // Chosen again, it goes.
+        QCOMPARE(MoveAnnotation::toggled({16}, 3), (QList<int>{3, 16}));
+        QCOMPARE(MoveAnnotation::normalized({16, 999, 1, 2}), (QList<int>{2, 16}));
+        QCOMPARE(MoveAnnotation::symbols({5, 14}), QStringLiteral("!? ⩲"));
+        QCOMPARE(MoveAnnotation::symbols({18}), QStringLiteral(" +−"));
+        for (const MoveAnnotation::Glyph &glyph : MoveAnnotation::glyphs())
+            QVERIFY2(!MoveAnnotation::meaning(glyph.nag).isEmpty(), qPrintable(glyph.symbol));
+
+        // Glued to the SAN where a move is one word, PGN where it is text.
+        QCOMPARE(MoveAnnotation::storedSuffix({1, 16}), QStringLiteral("!$16"));
+        QCOMPARE(MoveAnnotation::pgnSuffix({1, 16}), QStringLiteral("! $16"));
+        QCOMPARE(MoveAnnotation::pgnSuffix({7}), QStringLiteral(" $7"));
+        QList<int> nags;
+        QCOMPARE(MoveAnnotation::split(QStringLiteral("Nxe5+!$16"), &nags), QStringLiteral("Nxe5+"));
+        QCOMPARE(nags, (QList<int>{1, 16}));
+        nags.clear();
+        QCOMPARE(MoveAnnotation::split(QStringLiteral("e8=Q#"), &nags), QStringLiteral("e8=Q#"));
+        QVERIFY(nags.isEmpty());
+
+        // Copied as PGN and pasted back.
+        GameRecord game;
+        for (const char *uci : {"e2e4", "e7e5", "g1f3", "d7d6"})
+            game.moves << MoveRecord{QString(), QString::fromLatin1(uci), {}};
+        game.moves[2].nags = {1, 14};
+        game.moves[3].nags = {6};
+        QCOMPARE(Pgn::moveText(game), QStringLiteral("1.e4 e5 2.Nf3! $14 d6?!"));
+        QString error;
+        const std::optional<Pgn::ParsedLine> pasted = Pgn::parseLine(Pgn::game(game), QString(), &error);
+        QVERIFY2(pasted, qPrintable(error));
+        QCOMPARE(pasted->moves.at(2).nags, (QList<int>{1, 14}));
+        QCOMPARE(pasted->moves.at(3).nags, QList<int>{6});
+
+        // How a game begins, for lists: cut games end in "…", Black may move first.
+        QCOMPARE(Pgn::preview(QString(), {QStringLiteral("e4"), QStringLiteral("e5"), QStringLiteral("Nf3!$16")}, 3),
+                 QStringLiteral("1.e4 e5 2.Nf3! ±"));
+        QCOMPARE(Pgn::preview(QString(), {QStringLiteral("e4"), QStringLiteral("e5")}, 40), QStringLiteral("1.e4 e5…"));
+        QCOMPARE(Pgn::preview(QStringLiteral("4k3/8/8/8/8/8/4P3/4K3 b - - 0 7"),
+                              {QStringLiteral("Kd7"), QStringLiteral("e4"), QStringLiteral("Kd6")}, 3),
+                 QStringLiteral("7…Kd7 8.e4 Kd6"));
+        QCOMPARE(Pgn::preview(QString(), {}, 0), QString());
+        QCOMPARE(figurineLine(QStringLiteral("1.Nf3 d5 2.O-O e8=Q+")), QStringLiteral("1.♘f3 d5 2.O-O e8=♕+"));
+
+        // Stored with the game, without the SAN showing them.
+        QTemporaryDir dir;
+        const QString path = dir.filePath(QStringLiteral("annotated.pdb"));
+        {
+            const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::create(path, {GameRecord()}, &error);
+            QVERIFY2(database, qPrintable(error));
+            GameRecord stored = *database->loadGame(0);
+            stored.moves = pasted->moves;
+            stored.modified.clear();
+            QVERIFY2(database->replaceGame(0, stored, &error), qPrintable(error));
+            stored.uid.clear(); // A game of its own.
+            QVERIFY2(database->addGame(stored, &error) >= 0, qPrintable(error));
+        }
+        const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(path, &error);
+        QVERIFY2(database, qPrintable(error));
+        for (const qint64 index : {0, 1}) {
+            // The games list shows the line, annotations included, without loading the game.
+            QCOMPARE(database->header(index).linePreview, QStringLiteral("1.e4 e5 2.Nf3! ⩲ d6?!"));
+            const GameRecord loaded = *database->loadGame(index);
+            QCOMPARE(loaded.moves.size(), 4);
+            QCOMPARE(loaded.moves.at(2).san, QStringLiteral("Nf3"));
+            QCOMPARE(loaded.moves.at(2).nags, (QList<int>{1, 14}));
+            QCOMPARE(loaded.moves.at(3).nags, QList<int>{6});
+            QVERIFY(loaded.moves.at(0).nags.isEmpty());
+        }
+    }
+
     void parsesPastedLines()
     {
         QString error;
@@ -302,6 +378,10 @@ private Q_SLOTS:
             uci << move.uci;
         QCOMPARE(uci, (QStringList{"e2e4", "e7e5", "g1f3", "d7d6", "f3e5", "d6e5"}));
         QCOMPARE(pgn->moves.at(4).san, QStringLiteral("Nxe5"));
+        // The glyphs stay with their moves; those of the variation go with it.
+        QCOMPARE(pgn->moves.at(2).nags, QList<int>());
+        QCOMPARE(pgn->moves.at(3).nags, QList<int>{6});
+        QCOMPARE(pgn->moves.at(4).nags, QList<int>{4});
 
         const std::optional<Pgn::ParsedLine> loose = Pgn::parseLine(
             QStringLiteral("1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.Bg5 e6 7.f4 Be7 8.Qf3 Qc7 9.0-0-0 Nbd7"),
@@ -1257,6 +1337,14 @@ private Q_SLOTS:
         QCOMPARE(values.value(QStringLiteral("name")), QStringLiteral("English"));
         QCOMPARE(values.value(QStringLiteral("name.it")), QStringLiteral("Inglese"));
         QCOMPARE(DatabaseProperties::fromValues(values), properties);
+
+        // The columns a database hides are stored too, and so is showing them all again.
+        properties.hiddenColumns = {QStringLiteral("result"), QStringLiteral("site")};
+        QCOMPARE(properties.values().value(QStringLiteral("columns.hidden")), QStringLiteral("result,site"));
+        QCOMPARE(DatabaseProperties::fromValues(properties.values()), properties);
+        properties.hiddenColumns.clear();
+        QVERIFY(properties.values().contains(QStringLiteral("columns.hidden")));
+        QVERIFY(DatabaseProperties::fromValues(properties.values()).hiddenColumns.isEmpty());
 
         // The shipped ones carry their names in every language we have.
         for (const ShippedOpeningNames::Names &names : ShippedOpeningNames::all()) {

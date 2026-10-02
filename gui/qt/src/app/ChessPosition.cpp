@@ -64,18 +64,32 @@ int castlingMask(int square)
 
 } // namespace
 
+namespace {
+
+QChar figurine(QChar letter)
+{
+    switch (letter.unicode()) {
+    case 'K': return QChar(0x2654);
+    case 'Q': return QChar(0x2655);
+    case 'R': return QChar(0x2656);
+    case 'B': return QChar(0x2657);
+    case 'N': return QChar(0x2658);
+    default: return letter;
+    }
+}
+
+} // namespace
+
+QString figurineLine(const QString &line)
+{
+    QString text = line;
+    for (QChar &letter : text)
+        letter = figurine(letter);
+    return text;
+}
+
 QString figurineSan(const QString &san)
 {
-    const auto figurine = [](QChar letter) -> QChar {
-        switch (letter.unicode()) {
-        case 'K': return QChar(0x2654);
-        case 'Q': return QChar(0x2655);
-        case 'R': return QChar(0x2656);
-        case 'B': return QChar(0x2657);
-        case 'N': return QChar(0x2658);
-        default: return letter;
-        }
-    };
     QString text = san;
     if (!text.isEmpty())
         text[0] = figurine(text.at(0));

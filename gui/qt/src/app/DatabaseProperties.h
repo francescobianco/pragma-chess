@@ -2,6 +2,7 @@
 
 #include <QHash>
 #include <QString>
+#include <QStringList>
 
 /// What a database is for. Game collections are the default; an opening book
 /// holds named lines (Event = name, ECO = code) and is what Options ▸ Opening
@@ -23,6 +24,10 @@ struct DatabaseProperties {
     QString name;
     /// The name in other languages, stored as `name.<code>` (e.g. "name.it").
     QHash<QString, QString> localizedNames;
+    /// The columns of the games list this database hides, by their key
+    /// (GameListModel::columnKey: "result", "site"…), stored as
+    /// `columns.hidden`, comma separated: each database opens with its own.
+    QStringList hiddenColumns;
 
     /// The name to show in the interface language `languageCode` ("it", "en"
     /// or "it_IT"): that translation, else the default name, else `fileBaseName`.
@@ -30,8 +35,9 @@ struct DatabaseProperties {
 
     /// Reads the stored key/value rows; missing or unknown values are defaults.
     static DatabaseProperties fromValues(const QHash<QString, QString> &values);
-    /// The rows to store (defaults included, so the file says what it is; an
-    /// empty id or name is left out, so storing never erases one).
+    /// The rows to store (defaults included, so the file says what it is and
+    /// hidden columns can all be shown again; an empty id or name is left
+    /// out, so storing never erases one).
     QHash<QString, QString> values() const;
 
     /// Stored value of a type: "games", "opening-book".

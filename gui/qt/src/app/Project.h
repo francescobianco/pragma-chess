@@ -25,6 +25,9 @@ struct Project {
     QString startFen;
     /// Moves (UCI) of a game that is not in the database, e.g. a new game.
     QStringList moves;
+    /// The annotations of those moves, as "<ply>:<suffix>" with the suffix of
+    /// MoveAnnotation::storedSuffix: "3:!", "12:??$18".
+    QStringList annotations;
 
     bool boardFlipped = false;
     bool showCoordinates = true;

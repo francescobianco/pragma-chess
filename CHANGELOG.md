@@ -8,6 +8,16 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Annotations.** Right-click a move of the move list: *Annotations* lists
+  the symbols (!!, !, !?, ?!, ?, ??, □ and the assessments of the position,
+  from +− to −+), each with what it means. They are shown in the move list,
+  saved with the game and written to PGN; pasted PGN keeps them.
+- The same menu has *Copy ▸ Copy Move* and *Copy Line up to Here*.
+- The games list ends with a *Line* column: the first moves of each game,
+  cut with “…” where the column ends.
+- Right-click a column title of the games list to hide the column or show a
+  hidden one. The choice is stored in the database, so each database opens
+  with its own columns.
 - **Trash.** Right-click a game of the list and choose *Move Game to Trash*.
   The database tree ends with *Trash*, where a game can be restored or
   deleted, with *Recent* (trashed in the last seven days) and *Old* under
@@ -29,9 +39,15 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   the Android app before this change: both say it was made by a newer
   version.
 - In the games list, the Elo, Date, ECO and Moves columns are centred.
+- The Opening Tree and the engine line draw the pieces with the same
+  figurines as the move list.
+- The Sync Now button of the toolbar shows two separate arrows, and its
+  tooltip is *Sync Everything…*.
 
 ### Fixed
 
+- Opening another database could crash the application: the games list was
+  filtered with the database that had just been closed.
 - Dialog buttons and the other texts that come from Qt (OK, Cancel, Save,
   Discard…) follow the interface language in every package: on Windows and
   macOS they stayed in English.

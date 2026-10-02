@@ -462,7 +462,7 @@ Il Nero ha catturato: %2</translation>
     </message>
     <message>
         <source>Old</source>
-        <translation>Vecchi</translation>
+        <translation>Vecchie</translation>
     </message>
     <message numerus="yes">
         <source>In the trash for %n day(s) or more</source>
@@ -778,6 +778,22 @@ Il Nero ha catturato: %2</translation>
         <source>Moves</source>
         <translation>Mosse</translation>
     </message>
+    <message>
+        <source>Number</source>
+        <translation>Numero</translation>
+    </message>
+    <message>
+        <source>White Elo</source>
+        <translation>Elo del Bianco</translation>
+    </message>
+    <message>
+        <source>Black Elo</source>
+        <translation>Elo del Nero</translation>
+    </message>
+    <message>
+        <source>Line</source>
+        <translation>Linea</translation>
+    </message>
 </context>
 <context>
     <name>GitStore</name>
@@ -900,10 +916,6 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>S&amp;ync Now</source>
         <translation>Sincronizza &amp;ora</translation>
-    </message>
-    <message>
-        <source>Sync the connected sources, save the project and send the folder to the server</source>
-        <translation>Sincronizza le fonti collegate, salva il progetto e invia la cartella al server</translation>
     </message>
     <message>
         <source>Connect &amp;Mobile App…</source>
@@ -1721,6 +1733,70 @@ Non comparirà più in nessun elenco. Resta nel file finché il database non vie
         <source>Trash: %1</source>
         <translation>Cestino: %1</translation>
     </message>
+    <message>
+        <source>Sync Everything…</source>
+        <translation>Sincronizza tutto…</translation>
+    </message>
+    <message>
+        <source>Columns</source>
+        <translation>Colonne</translation>
+    </message>
+    <message>
+        <source>Could not save the columns in the database: %1</source>
+        <translation>Impossibile salvare le colonne nel database: %1</translation>
+    </message>
+    <message>
+        <source>&amp;Hide</source>
+        <translation>&amp;Nascondi</translation>
+    </message>
+    <message>
+        <source>&amp;Hide “%1”</source>
+        <translation>&amp;Nascondi “%1”</translation>
+    </message>
+    <message>
+        <source>&amp;Show</source>
+        <translation>&amp;Mostra</translation>
+    </message>
+    <message>
+        <source>&amp;All Columns</source>
+        <translation>&amp;Tutte le colonne</translation>
+    </message>
+    <message>
+        <source>Copy &amp;Move</source>
+        <translation>Copia &amp;mossa</translation>
+    </message>
+    <message>
+        <source>Copy &amp;Line up to Here</source>
+        <translation>Copia &amp;linea fino a qui</translation>
+    </message>
+    <message>
+        <source>Line copied</source>
+        <translation>Linea copiata</translation>
+    </message>
+    <message>
+        <source>&amp;Annotations</source>
+        <translation>&amp;Annotazioni</translation>
+    </message>
+    <message>
+        <source>No Annotation</source>
+        <translation>Nessuna annotazione</translation>
+    </message>
+    <message>
+        <source>The game is no longer in the database.</source>
+        <translation>La partita non è più nel database.</translation>
+    </message>
+    <message>
+        <source>Some moves of the stored game cannot be replayed.</source>
+        <translation>Alcune mosse della partita salvata non si possono riprodurre.</translation>
+    </message>
+    <message>
+        <source>Annotations</source>
+        <translation>Annotazioni</translation>
+    </message>
+    <message>
+        <source>Could not save the annotation: %1</source>
+        <translation>Impossibile salvare l’annotazione: %1</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>
@@ -1934,6 +2010,69 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>Could not remove the source: %1</source>
         <translation>Impossibile rimuovere la fonte: %1</translation>
+    </message>
+</context>
+<context>
+    <name>MoveAnnotation</name>
+    <message>
+        <source>good move</source>
+        <translation>buona mossa</translation>
+    </message>
+    <message>
+        <source>mistake</source>
+        <translation>errore</translation>
+    </message>
+    <message>
+        <source>brilliant move</source>
+        <translation>mossa brillante</translation>
+    </message>
+    <message>
+        <source>blunder</source>
+        <translation>errore grave</translation>
+    </message>
+    <message>
+        <source>interesting move</source>
+        <translation>mossa interessante</translation>
+    </message>
+    <message>
+        <source>dubious move</source>
+        <translation>mossa dubbia</translation>
+    </message>
+    <message>
+        <source>only move</source>
+        <translation>mossa unica</translation>
+    </message>
+    <message>
+        <source>equal position</source>
+        <translation>posizione pari</translation>
+    </message>
+    <message>
+        <source>unclear position</source>
+        <translation>posizione poco chiara</translation>
+    </message>
+    <message>
+        <source>White is slightly better</source>
+        <translation>il Bianco sta leggermente meglio</translation>
+    </message>
+    <message>
+        <source>Black is slightly better</source>
+        <translation>il Nero sta leggermente meglio</translation>
+    </message>
+    <message>
+        <source>White is better</source>
+        <translation>il Bianco sta meglio</translation>
+    </message>
+    <message>
+        <source>Black is better</source>
+        <translation>il Nero sta meglio</translation>
+    </message>
+    <message>
+        <source>White is winning</source>
+        <translation>il Bianco è in vantaggio decisivo</translation>
+    </message>
+    <message>
+        <source>Black is winning</source>
+        <translation>il Nero è in vantaggio decisivo</translation>
     </message>
 </context>
 <context>

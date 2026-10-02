@@ -23,6 +23,7 @@
 #endif
 #include "app/Explainer.h"
 #include "app/GameSession.h"
+#include "app/MoveAnnotation.h"
 #include "app/Pgn.h"
 #include "app/Project.h"
 #include "app/SqliteGameDatabase.h"
@@ -53,6 +54,7 @@
 #include "widgets/EvaluationBar.h"
 #include "widgets/FigurineFont.h"
 #include "widgets/GameHeaderWidget.h"
+#include "widgets/GlyphMenuAction.h"
 
 #include <QAction>
 #include <QApplication>
@@ -422,7 +424,7 @@ void MainWindow::createActions()
 
     m_syncNowAction = new QAction(themeIcon("view-refresh", QStyle::SP_BrowserReload), tr("S&ync Now"), this);
     m_syncNowAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Y));
-    m_syncNowAction->setToolTip(tr("Sync the connected sources, save the project and send the folder to the server"));
+    m_syncNowAction->setToolTip(tr("Sync Everything…"));
     connect(m_syncNowAction, &QAction::triggered, this, [this] { syncNow(); });
 
 #ifdef PRAGMA_HAS_PHONE_LINK
@@ -588,10 +590,7 @@ void MainWindow::createMenus()
         copyText(Pgn::moveText(m_session->game()), tr("Moves copied"));
     });
     QAction *copyCurrentMove = copy->addAction(tr("Current &Move"), this, [this] {
-        const int ply = m_session->ply();
-        if (ply > 0)
-            copyText(m_session->positionAt(ply - 1).lineText({m_session->game().moves.at(ply - 1).uci}),
-                     tr("Move copied"));
+        copyText(moveText(m_session->ply()), tr("Move copied"));
     });
     copy->addSeparator();
     QAction *copyPgn = copy->addAction(tr("Game as &PGN"), this, [this] {
@@ -801,6 +800,8 @@ void MainWindow::createDocks()
         if (ply > 0)
             m_session->goToPly(ply);
     });
+    m_moveView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_moveView, &QWidget::customContextMenuRequested, this, &MainWindow::showMoveListMenu);
     m_movesDock = addDock(m_sidebar, QStringLiteral("movesDock"), tr("Moves"), m_moveView, Qt::RightDockWidgetArea);
 
     m_enginePanel = new EnginePanel(m_startEngineAction);
@@ -830,6 +831,7 @@ void MainWindow::createDocks()
 
     m_gameView = new QTableView;
     m_gameView->setModel(m_gameListProxy);
+    m_gameView->setFont(FigurineFont::apply(m_gameView->font())); // The Line column shows moves.
     m_gameView->setSortingEnabled(true);
     m_gameView->sortByColumn(GameListModel::Number, Qt::AscendingOrder);
     m_gameView->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -844,6 +846,9 @@ void MainWindow::createDocks()
     connect(m_gameView, &QTableView::activated, this, &MainWindow::openGame);
     m_gameView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_gameView, &QWidget::customContextMenuRequested, this, &MainWindow::showGameListMenu);
+    m_gameView->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_gameView->horizontalHeader(), &QWidget::customContextMenuRequested, this,
+            &MainWindow::showGameColumnsMenu);
 
     m_databaseTree = new DatabaseTreeWidget;
     connect(m_databaseTree, &DatabaseTreeWidget::categorySelected, this, &MainWindow::showCategory);
@@ -885,10 +890,13 @@ void MainWindow::createStatusBar()
 void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
 {
     m_sourceSync->setDatabase(nullptr); // Before the old database goes away.
+    // The filter too: it reads the headers as soon as the list is reset.
+    m_gameListProxy->setDatabase(nullptr);
     m_gameListModel->setDatabase(nullptr);
     m_database = std::move(database);
     m_gameListModel->setDatabase(m_database.get());
     m_gameView->resizeColumnsToContents();
+    applyGameColumns();
     m_openGameIndex = -1;
 
     updateGameCount();
@@ -991,6 +999,139 @@ void MainWindow::showGameListMenu(const QPoint &position)
         menu.addAction(tr("Move Game to &Trash"), this, [this, uid] { setGameState(uid, GameState::Trashed); });
     }
     menu.exec(m_gameView->viewport()->mapToGlobal(position));
+}
+
+void MainWindow::applyGameColumns()
+{
+    const QStringList hidden = m_database ? m_database->properties().hiddenColumns : QStringList();
+    for (int column = 0; column < GameListModel::ColumnCount; ++column)
+        m_gameView->setColumnHidden(column, hidden.contains(GameListModel::columnKey(column)));
+}
+
+void MainWindow::setGameColumnsHidden(const QStringList &hidden)
+{
+    if (!m_database)
+        return;
+    DatabaseProperties properties = m_database->properties();
+    properties.hiddenColumns = hidden;
+    QString error;
+    if (!m_database->setProperties(properties, &error)) {
+        QMessageBox::warning(this, tr("Columns"), tr("Could not save the columns in the database: %1").arg(error));
+        return;
+    }
+    applyGameColumns();
+}
+
+void MainWindow::showGameColumnsMenu(const QPoint &position)
+{
+    if (!m_database)
+        return;
+    const QHeaderView *header = m_gameView->horizontalHeader();
+    const int column = header->logicalIndexAt(position);
+    const QStringList hidden = m_database->properties().hiddenColumns;
+
+    QMenu menu(this);
+    QAction *hide = menu.addAction(column < 0 ? tr("&Hide") : tr("&Hide “%1”").arg(GameListModel::columnName(column)),
+                                   this, [this, hidden, column] {
+        setGameColumnsHidden(hidden + QStringList{GameListModel::columnKey(column)});
+    });
+    // The list never loses its last column.
+    hide->setEnabled(column >= 0 && header->hiddenSectionCount() < GameListModel::ColumnCount - 1);
+
+    QMenu *show = menu.addMenu(tr("&Show"));
+    for (int hiddenColumn = 0; hiddenColumn < GameListModel::ColumnCount; ++hiddenColumn) {
+        const QString key = GameListModel::columnKey(hiddenColumn);
+        if (!hidden.contains(key))
+            continue;
+        show->addAction(GameListModel::columnName(hiddenColumn), this, [this, hidden, key] {
+            QStringList remaining = hidden;
+            remaining.removeAll(key);
+            setGameColumnsHidden(remaining);
+        });
+    }
+    if (show->actions().size() > 1) {
+        show->addSeparator();
+        show->addAction(tr("&All Columns"), this, [this] { setGameColumnsHidden({}); });
+    }
+    show->setEnabled(!show->isEmpty());
+    menu.exec(header->viewport()->mapToGlobal(position));
+}
+
+QString MainWindow::moveText(int ply) const
+{
+    if (ply < 1 || ply > m_session->plyCount())
+        return {};
+    const MoveRecord &move = m_session->game().moves.at(ply - 1);
+    return m_session->positionAt(ply - 1).lineText({move.uci}) + MoveAnnotation::pgnSuffix(move.nags);
+}
+
+void MainWindow::showMoveListMenu(const QPoint &position)
+{
+    const int ply = m_moveListModel->plyForIndex(m_moveView->indexAt(position));
+    if (ply < 1)
+        return;
+
+    QMenu menu(this);
+    QMenu *copy = menu.addMenu(themeIcon("edit-copy", QStyle::SP_FileIcon), tr("&Copy"));
+    copy->addAction(tr("Copy &Move"), this, [this, ply] { copyText(moveText(ply), tr("Move copied")); });
+    copy->addAction(tr("Copy &Line up to Here"), this, [this, ply] {
+        copyText(Pgn::moveText(m_session->game(), ply), tr("Line copied"));
+    });
+
+    // Every glyph with what it means; choosing the one the move has takes it off.
+    QMenu *annotations = menu.addMenu(tr("&Annotations"));
+    const QList<int> current = m_session->game().moves.at(ply - 1).nags;
+    MoveAnnotation::Kind kind = MoveAnnotation::Kind::Move;
+    for (const MoveAnnotation::Glyph &glyph : MoveAnnotation::glyphs()) {
+        if (glyph.kind != kind)
+            annotations->addSeparator();
+        kind = glyph.kind;
+        auto *action = new GlyphMenuAction(glyph.symbol, MoveAnnotation::meaning(glyph.nag), annotations);
+        action->setCheckable(true);
+        action->setChecked(current.contains(glyph.nag));
+        connect(action, &QAction::triggered, this, [this, ply, current, nag = glyph.nag] {
+            annotateMove(ply, MoveAnnotation::toggled(current, nag));
+        });
+        annotations->addAction(action);
+    }
+    annotations->addSeparator();
+    auto *none = new GlyphMenuAction(QString(), tr("No Annotation"), annotations);
+    none->setEnabled(!current.isEmpty());
+    connect(none, &QAction::triggered, this, [this, ply] { annotateMove(ply, {}); });
+    annotations->addAction(none);
+
+    menu.exec(m_moveView->viewport()->mapToGlobal(position));
+}
+
+void MainWindow::annotateMove(int ply, const QList<int> &nags)
+{
+    if (ply < 1 || ply > m_session->plyCount())
+        return;
+    const QList<int> before = m_session->game().moves.at(ply - 1).nags;
+    m_session->setAnnotations(ply, nags);
+    if (m_openGameIndex < 0) {
+        scheduleSaveSession(); // Not in the database yet: the project keeps it.
+        return;
+    }
+
+    // A stored game keeps its annotations in the database, at once, as its header does.
+    QString error;
+    GameRecord game = m_session->game();
+    game.modified.clear(); // Changed now.
+    bool saved = false;
+    if (!m_database || m_openGameIndex >= m_database->gameCount())
+        error = tr("The game is no longer in the database.");
+    else if (m_database->header(m_openGameIndex).plyCount != game.moves.size())
+        error = tr("Some moves of the stored game cannot be replayed."); // Never cut a stored game short.
+    else
+        saved = m_database->replaceGame(m_openGameIndex, game, &error);
+    if (!saved) {
+        m_session->setAnnotations(ply, before);
+        QMessageBox::warning(this, tr("Annotations"), tr("Could not save the annotation: %1").arg(error));
+        return;
+    }
+    m_gameListModel->refreshRow(int(m_openGameIndex));
+    m_session->setHeader(m_database->header(m_openGameIndex));
 }
 
 qint64 MainWindow::gameIndexOf(const QString &uid) const
@@ -2508,6 +2649,7 @@ void MainWindow::restoreSession()
     QHeaderView *gameHeader = m_gameView->horizontalHeader();
     if (gameHeader->restoreState(settings.value(QStringLiteral("games/header")).toByteArray()))
         m_gameView->sortByColumn(gameHeader->sortIndicatorSection(), gameHeader->sortIndicatorOrder());
+    applyGameColumns(); // Which columns are shown is the database's, not the session's.
 
     const QString yaml = settings.value(QStringLiteral("session/project")).toString();
     std::optional<Project> project = yaml.isEmpty() ? std::nullopt : Project::fromYaml(yaml, QDir(), nullptr);
@@ -2568,8 +2710,12 @@ Project MainWindow::captureProject() const
     project.ply = m_session->ply();
     if (project.gameId < 0) {
         project.startFen = m_session->game().startFen;
-        for (const MoveRecord &move : m_session->game().moves)
+        for (const MoveRecord &move : m_session->game().moves) {
             project.moves << move.uci;
+            if (!move.nags.isEmpty())
+                project.annotations << QStringLiteral("%1:%2").arg(project.moves.size())
+                                           .arg(MoveAnnotation::storedSuffix(move.nags));
+        }
     }
     project.boardFlipped = m_flipBoardAction->isChecked();
     project.showCoordinates = m_coordinatesAction->isChecked();
@@ -2624,7 +2770,12 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         game.startFen = project.startFen;
         game.result = QStringLiteral("*");
         for (const QString &uci : project.moves)
-            game.moves << MoveRecord{QString(), uci}; // SAN is filled in when the game is opened.
+            game.moves << MoveRecord{QString(), uci, {}}; // SAN is filled in when the game is opened.
+        for (const QString &annotation : project.annotations) {
+            const int ply = annotation.section(QLatin1Char(':'), 0, 0).toInt();
+            if (ply >= 1 && ply <= game.moves.size())
+                MoveAnnotation::split(annotation.section(QLatin1Char(':'), 1), &game.moves[ply - 1].nags);
+        }
         m_gameView->clearSelection();
         m_openGameIndex = -1;
         m_session->setGame(game);

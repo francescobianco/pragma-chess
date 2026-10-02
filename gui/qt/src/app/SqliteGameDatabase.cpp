@@ -2,6 +2,8 @@
 
 #include "DatabaseMigrations.h"
 #include "GameIdentity.h"
+#include "MoveAnnotation.h"
+#include "Pgn.h"
 
 #include <QDir>
 #include <QFile>
@@ -40,6 +42,19 @@ void setError(QString *errorMessage, const QString &message)
 QVariant nullIfEmpty(const QString &value)
 {
     return value.isEmpty() ? QVariant() : QVariant(value);
+}
+
+/// How many plies of a game the lists show (GameRecord::linePreview), and how
+/// much of the stored SAN is read to have them.
+constexpr int kPreviewPlies = 24;
+constexpr int kPreviewChars = 240;
+
+QString previewOf(const GameRecord &game)
+{
+    QStringList san;
+    for (qsizetype i = 0; i < game.moves.size() && i < kPreviewPlies; ++i)
+        san << game.moves.at(i).san + MoveAnnotation::storedSuffix(game.moves.at(i).nags);
+    return Pgn::preview(game.startFen, san, int(game.moves.size()));
 }
 
 /// Joined moves; a game without moves stores '' (the columns are NOT NULL, and
@@ -125,7 +140,7 @@ public:
         QStringList san;
         QStringList uci;
         for (const MoveRecord &move : game.moves) {
-            san << move.san;
+            san << move.san + MoveAnnotation::storedSuffix(move.nags);
             uci << move.uci;
         }
         m_insert.addBindValue(m_players.idFor(game.white));
@@ -163,6 +178,7 @@ public:
         GameRecord header = game;
         header.id = id;
         header.plyCount = int(game.moves.size());
+        header.linePreview = previewOf(game);
         header.moves.clear();
         header.uid = m_lastUid;
         header.modified = m_lastModified;
@@ -426,14 +442,15 @@ bool SqliteGameDatabase::loadHeaders(QString *errorMessage)
     query.setForwardOnly(true);
     if (!query.exec(QStringLiteral(
             "SELECT g.id, w.name, b.name, g.white_elo, g.black_elo, e.name, s.name,"
-            " g.date, g.round, g.result, g.eco, g.ply_count, g.start_fen, g.uid, g.modified, st.state, st.modified"
+            " g.date, g.round, g.result, g.eco, g.ply_count, g.start_fen, g.uid, g.modified, st.state, st.modified,"
+            " substr(g.moves_san, 1, %1)"
             " FROM games g"
             " LEFT JOIN players w ON w.id = g.white_id"
             " LEFT JOIN players b ON b.id = g.black_id"
             " LEFT JOIN events e ON e.id = g.event_id"
             " LEFT JOIN sites s ON s.id = g.site_id"
             " LEFT JOIN game_states st ON st.uid = g.uid"
-            " ORDER BY g.id"))) {
+            " ORDER BY g.id").arg(kPreviewChars))) {
         setError(errorMessage, query.lastError().text());
         return false;
     }
@@ -462,6 +479,12 @@ bool SqliteGameDatabase::loadHeaders(QString *errorMessage)
         // that had it) waits, hidden, for the next optimize().
         if (g.state == GameState::Purged)
             g.state = GameState::Deleted;
+        // The beginning of the moves, for the lists: the last one may be cut short.
+        const QString san = query.value(17).toString();
+        QStringList moves = san.split(QLatin1Char(' '), Qt::SkipEmptyParts);
+        if (san.size() == kPreviewChars && !moves.isEmpty())
+            moves.removeLast();
+        g.linePreview = Pgn::preview(g.startFen, moves.first(qMin(moves.size(), qsizetype(kPreviewPlies))), g.plyCount);
         m_headers << g;
     }
     return true;
@@ -527,8 +550,12 @@ std::optional<GameRecord> SqliteGameDatabase::loadGame(qint64 index) const
 
     const QStringList san = query.value(0).toString().split(QLatin1Char(' '), Qt::SkipEmptyParts);
     const QStringList uci = query.value(1).toString().split(QLatin1Char(' '), Qt::SkipEmptyParts);
-    for (qsizetype i = 0; i < qMin(san.size(), uci.size()); ++i)
-        game.moves << MoveRecord{san.at(i), uci.at(i)};
+    for (qsizetype i = 0; i < qMin(san.size(), uci.size()); ++i) {
+        // Annotations travel glued to the SAN ("Nf3!$16"), so they need no column.
+        QList<int> nags;
+        const QString bare = MoveAnnotation::split(san.at(i), &nags);
+        game.moves << MoveRecord{bare, uci.at(i), nags};
+    }
     return game;
 }
 
@@ -661,7 +688,7 @@ bool SqliteGameDatabase::replaceGame(qint64 index, const GameRecord &game, QStri
     QStringList san;
     QStringList uci;
     for (const MoveRecord &move : game.moves) {
-        san << move.san;
+        san << move.san + MoveAnnotation::storedSuffix(move.nags);
         uci << move.uci;
     }
     const QString modified = game.modified.isEmpty() ? GameIdentity::now() : game.modified;
@@ -705,6 +732,7 @@ bool SqliteGameDatabase::replaceGame(qint64 index, const GameRecord &game, QStri
     cached.stateModified = stateModified;
     cached.modified = modified;
     cached.plyCount = int(game.moves.size());
+    cached.linePreview = previewOf(game);
     cached.moves.clear();
     return true;
 }

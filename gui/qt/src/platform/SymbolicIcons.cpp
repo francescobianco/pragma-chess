@@ -1,5 +1,6 @@
 #include "SymbolicIcons.h"
 
+#include <QtMath>
 #include <QApplication>
 #include <QIconEngine>
 #include <QPainter>
@@ -129,14 +130,35 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         break;
     }
     case Shape::Sync: {
-        // Two arcs chasing each other: sync everything now.
-        const QRectF circle(3, 3, 10, 10);
-        painter->drawArc(circle, 40 * 16, 190 * 16);
-        painter->drawArc(circle, 220 * 16, 190 * 16);
-        painter->drawLine(QPointF(12.5, 6.5), QPointF(12.5, 3.5));
-        painter->drawLine(QPointF(12.5, 6.5), QPointF(9.5, 6.5));
-        painter->drawLine(QPointF(3.5, 9.5), QPointF(3.5, 12.5));
-        painter->drawLine(QPointF(3.5, 9.5), QPointF(6.5, 9.5));
+        // Two arrows chasing each other round, clockwise, well apart: each
+        // head stops short of the other's tail, so they read as two arrows
+        // and not as a circle.
+        const QPointF center(8, 8);
+        const qreal radius = 5.25;
+        const QRectF circle(center.x() - radius, center.y() - radius, 2 * radius, 2 * radius);
+        const auto onCircle = [&](qreal degrees) {
+            const qreal angle = qDegreesToRadians(degrees);
+            return center + radius * QPointF(qCos(angle), -qSin(angle));
+        };
+        for (const qreal tail : {160.0, 340.0}) {
+            // The shaft, then a solid head along the chord from its base to
+            // its tip: on so small a circle the tangent would point outwards.
+            const qreal base = tail - 90;
+            const qreal tip = base - 40;
+            painter->drawArc(circle, qRound(base * 16), 90 * 16);
+            const QPointF along = onCircle(tip) - onCircle(base);
+            const QPointF across = QPointF(-along.y(), along.x()) * (1.9 / qSqrt(QPointF::dotProduct(along, along)));
+            QPainterPath head;
+            head.moveTo(onCircle(tip));
+            head.lineTo(onCircle(base) + across);
+            head.lineTo(onCircle(base) - across);
+            head.closeSubpath();
+            painter->save();
+            painter->setPen(QPen(color, 0.75, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            painter->setBrush(color);
+            painter->drawPath(head);
+            painter->restore();
+        }
         break;
     }
     case Shape::Play: {

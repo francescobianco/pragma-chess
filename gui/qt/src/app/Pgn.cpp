@@ -1,6 +1,7 @@
 #include "Pgn.h"
 
 #include "ChessPosition.h"
+#include "MoveAnnotation.h"
 
 #include <QObject>
 #include <QRegularExpression>
@@ -50,10 +51,40 @@ QString moveText(const GameRecord &game, int plies)
         : ChessPosition::fromFen(game.startFen);
     if (!start)
         return {};
-    QStringList moves;
-    for (const MoveRecord &move : game.moves)
-        moves << move.uci;
-    return start->lineText(moves, plies);
+    QStringList parts;
+    ChessPosition position = *start;
+    for (qsizetype i = 0; i < game.moves.size() && (plies < 0 || i < plies); ++i) {
+        const MoveRecord &record = game.moves.at(i);
+        const std::optional<ChessMove> move = position.moveFromUci(record.uci);
+        if (!move)
+            break;
+        const QString san = position.san(*move) + MoveAnnotation::pgnSuffix(record.nags);
+        parts << (i == 0 || position.sideToMove() == Side::White ? position.moveNumberText() + san : san);
+        position.play(*move);
+    }
+    return parts.join(QLatin1Char(' '));
+}
+
+QString preview(const QString &startFen, const QStringList &sanMoves, int plyCount)
+{
+    const QStringList fen = startFen.split(QLatin1Char(' '), Qt::SkipEmptyParts);
+    bool whiteToMove = fen.value(1) != QLatin1String("b");
+    int number = qMax(1, fen.value(5).toInt());
+    QStringList parts;
+    for (const QString &stored : sanMoves) {
+        QList<int> nags;
+        QString san = MoveAnnotation::split(stored, &nags);
+        san += MoveAnnotation::symbols(nags);
+        if (whiteToMove)
+            parts << QString::number(number) + QLatin1Char('.') + san;
+        else
+            parts << (parts.isEmpty() ? QString::number(number) + QChar(0x2026) + san : san);
+        if (!whiteToMove)
+            ++number;
+        whiteToMove = !whiteToMove;
+    }
+    const QString text = parts.join(QLatin1Char(' '));
+    return plyCount > sanMoves.size() ? text + QChar(0x2026) : text;
 }
 
 std::optional<ParsedLine> parseLine(const QString &text, const QString &startFen, QString *errorMessage)
@@ -117,15 +148,19 @@ std::optional<ParsedLine> parseLine(const QString &text, const QString &startFen
     static const QRegularExpression separators(QStringLiteral(R"([\s,]+)"));
     for (QString token : movetext.split(separators, Qt::SkipEmptyParts)) {
         token.remove(moveNumber);
+        if (token.startsWith(QLatin1Char('$')) && !line.moves.isEmpty())
+            MoveAnnotation::split(token, &line.moves.last().nags); // A NAG belongs to the move before it.
         if (token.isEmpty() || token.startsWith(QLatin1Char('$')) || result.match(token).hasMatch())
             continue;
         if (token.front().isDigit() && token.back() == QLatin1Char('.'))
             continue;
         if (token.count(QLatin1Char('.')) + token.count(QChar(0x2026)) == token.size())
             continue; // "..." or "…" standing alone before a Black move.
-        std::optional<ChessMove> move = position->moveFromSan(token);
+        QList<int> nags;
+        const QString bare = MoveAnnotation::split(token, &nags);
+        std::optional<ChessMove> move = position->moveFromSan(bare);
         if (!move)
-            move = position->moveFromUci(token);
+            move = position->moveFromUci(bare);
         if (!move) {
             GameRecord sofar;
             sofar.startFen = line.startFen;
@@ -133,7 +168,7 @@ std::optional<ParsedLine> parseLine(const QString &text, const QString &startFen
             return fail(QObject::tr("“%1” is not a legal move after %2")
                             .arg(token, line.moves.isEmpty() ? QObject::tr("the start position") : moveText(sofar)));
         }
-        line.moves << MoveRecord{position->san(*move), move->uci()};
+        line.moves << MoveRecord{position->san(*move), move->uci(), nags};
         position->play(*move);
     }
     return line;

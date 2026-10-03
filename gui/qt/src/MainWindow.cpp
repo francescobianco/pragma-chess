@@ -3338,9 +3338,11 @@ void MainWindow::moveEvent(QMoveEvent *event)
 
 void MainWindow::updateSeparatorStyle()
 {
-    // A solid line along the whole separator, highlighted while hovered.
-    QColor line = palette().color(QPalette::WindowText);
-    line.setAlphaF(0.3);
+    // A solid line along the whole separator, highlighted while hovered. Its
+    // grey is the one Fusion draws the panels' frames with (window darker 140,
+    // lighter 108), so where a separator crosses the frames' top line the
+    // line runs on unbroken instead of looking pinned by a lighter bar.
+    const QColor line = palette().color(QPalette::Window).darker(140).lighter(108);
     const QColor hover = palette().color(QPalette::Highlight);
     const auto rgba = [](const QColor &color) {
         return QStringLiteral("rgba(%1, %2, %3, %4)").arg(color.red()).arg(color.green()).arg(color.blue()).arg(color.alpha());

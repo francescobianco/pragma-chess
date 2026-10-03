@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QAbstractTableModel>
+#include <QSet>
 
 class GameDatabase;
 
@@ -21,6 +22,9 @@ public:
     static QString columnName(int column);
 
     void setDatabase(const GameDatabase *database);
+    /// Reads again who the players are (Who Is This?): the names of "me"
+    /// are shown in bold. Called when a role changes.
+    void refreshRoles();
     /// Call after the header of the game in `row` changed in the database.
     void refreshRow(int row);
     /// Call after games were appended to the database.
@@ -33,5 +37,6 @@ public:
 
 private:
     const GameDatabase *m_database = nullptr;
+    QSet<QString> m_me; // The players who are the user, in bold.
     int m_rows = 0;
 };

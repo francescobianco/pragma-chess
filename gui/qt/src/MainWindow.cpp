@@ -378,7 +378,15 @@ MainWindow::MainWindow(QWidget *parent)
         connect(dock, &QDockWidget::visibilityChanged, this, &MainWindow::scheduleSaveSession);
         connect(dock, &QDockWidget::topLevelChanged, this, &MainWindow::scheduleSaveSession);
         connect(dock, &QDockWidget::dockLocationChanged, this, &MainWindow::scheduleSaveSession);
+        dock->installEventFilter(this); // Dragging a separator resizes the docks and tells nobody else.
     }
+}
+
+bool MainWindow::eventFilter(QObject *watched, QEvent *event)
+{
+    if (event->type() == QEvent::Resize && qobject_cast<QDockWidget *>(watched))
+        scheduleSaveSession(); // The panels' shares are part of the project.
+    return QMainWindow::eventFilter(watched, event);
 }
 
 MainWindow::~MainWindow()
@@ -1421,6 +1429,7 @@ void MainWindow::setPlayerRole(const QString &player, PlayerRole role)
         return;
     }
     m_databaseTree->refresh();
+    m_gameListModel->refreshRoles(); // "Me" is shown in bold.
     showCategory(m_category); // A filter on roles now shows other games.
     if (role == PlayerRole::Me)
         orientBoardForMe(m_session->game());
@@ -3003,6 +3012,7 @@ void MainWindow::saveSession()
     settings.setValue(QStringLiteral("games/header"), m_gameView->horizontalHeader()->saveState());
     settings.setValue(QStringLiteral("session/project"), captureProject().toYaml());
     settings.setValue(QStringLiteral("session/projectPath"), m_projectPath);
+    updateProjectModified(); // The panels may have moved: Save Project comes back if they did.
     // Superseded by session/project.
     // "workspaces" and "games/splitter" belong to the project (.pch) now.
     for (const char *key : {"window/state", "board", "games/search", "session/databasePath",

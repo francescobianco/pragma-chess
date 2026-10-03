@@ -37,7 +37,7 @@ La lista mostra le partite del database aperto, una per riga. Fai doppio clic su
 - Clic destro sul titolo di una colonna per **nasconderla**, o per **mostrare** una colonna nascosta. Ogni database ricorda le sue colonne.
 - L'ultima colonna, **Linea**, mostra come comincia la partita; è tagliata con «…» dove finisce la colonna.
 
-Clic destro su un giocatore per dire **chi è**: tu, un amico o un avversario. L'albero elenca poi quei giocatori sotto Io, Amici e Avversari, e una partita in cui giochi tu si apre con la scacchiera girata dalla tua parte.
+Clic destro su un giocatore per dire **chi è**: tu, un amico o un avversario. L'albero elenca poi quei giocatori sotto Io, Amici e Avversari, il tuo nome è in grassetto nella lista, e una partita in cui giochi tu si apre con la scacchiera girata dalla tua parte.
 
 Clic destro su una partita per metterla nel **cestino**.
 

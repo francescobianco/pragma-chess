@@ -2,6 +2,9 @@
 
 #include "app/ChessPosition.h"
 #include "app/GameDatabase.h"
+#include "app/PlayerRole.h"
+
+#include <QFont>
 
 GameListModel::GameListModel(QObject *parent)
     : QAbstractTableModel(parent)
@@ -13,7 +16,20 @@ void GameListModel::setDatabase(const GameDatabase *database)
     beginResetModel();
     m_database = database;
     m_rows = database ? int(database->gameCount()) : 0;
+    m_me.clear();
+    if (m_database) {
+        const PlayerRoles roles = m_database->playerRoles();
+        for (auto it = roles.cbegin(); it != roles.cend(); ++it) {
+            if (it.value() == PlayerRole::Me)
+                m_me.insert(it.key());
+        }
+    }
     endResetModel();
+}
+
+void GameListModel::refreshRoles()
+{
+    setDatabase(m_database); // Reads the roles again; the list is short enough to reset.
 }
 
 void GameListModel::refreshRow(int row)
@@ -59,6 +75,18 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
         default:
             return {};
         }
+    }
+
+    if (role == Qt::FontRole) {
+        // The user's own name stands out: bold wherever "me" plays.
+        if ((index.column() != White && index.column() != Black) || m_me.isEmpty())
+            return {};
+        const GameRecord game = m_database->header(index.row());
+        if (!m_me.contains(index.column() == White ? game.white : game.black))
+            return {};
+        QFont font;
+        font.setBold(true);
+        return font;
     }
 
     if (role != Qt::DisplayRole && role != Qt::ToolTipRole)

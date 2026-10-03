@@ -12,6 +12,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   title bar and the width of its shadow) until it ran off the screen; a
   window never opens larger than the screen.
 - A little less space between the board and the Moves panel.
+- In the games list the players you marked as "me" are in bold.
+- Resizing or showing a panel marks the project as changed, so Save
+  Project keeps the new proportions.
 - Opening a game from the games list turns Training Mode off: a stored
   game is for studying, and the engine must not play moves in it.
 - Project files store the panels in clear: which are shown and their

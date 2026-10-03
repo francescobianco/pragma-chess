@@ -37,7 +37,7 @@ The list shows the games of the open database, one per row. Double-click a game 
 - Right-click a column title to **hide** that column, or to **show** a hidden one. Each database remembers its own columns.
 - The last column, **Line**, shows how the game begins; it is cut with “…” where the column ends.
 
-Right-click a player to say **who it is**: you, a friend or an opponent. The tree then lists those players under Me, Friends and Opponents, and a game where you play opens with the board turned to your side.
+Right-click a player to say **who it is**: you, a friend or an opponent. The tree then lists those players under Me, Friends and Opponents, your name is in bold in the list, and a game where you play opens with the board turned to your side.
 
 Right-click a game to move it to the **trash**.
 

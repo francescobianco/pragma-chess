@@ -404,6 +404,9 @@ painted as a menu item, since QMenu draws an item in one font).
   `replaceGame`, which moves `modified`, so the other copies get it); in a
   game not yet saved the annotations travel with the project (`annotations`
   in the `.pch`).
+- The players the user said are "me" (Who Is This?) are in bold in the
+  games list (`GameListModel::m_me`, read with the database and on
+  `refreshRoles()`).
 - The games list ends with Line, the beginning of the game's moves
   (`GameRecord::linePreview`, built by `Pgn::preview` from the first stored
   SAN moves without replaying them); the view elides it with "…".

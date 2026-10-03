@@ -183,7 +183,7 @@ Deleting does not shrink the file yet. **Database ▸ Database Settings… ▸ O
 
 A project is what you are looking at: the database, the game and the move, the side the board is seen from, the engine, the panels and whether you are training. The title bar shows its name, with an asterisk when it has changes not saved.
 
-- **File ▸ New Project** starts from the default layout.
+- **File ▸ New Project** keeps what you see — database, engine, panels — and starts a new, empty game.
 - **File ▸ Open Project…** and **File ▸ Open Recent** open a `.pch` file.
 - **File ▸ Save Project** and **File ▸ Save Project As…** save it.
 

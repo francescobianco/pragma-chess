@@ -21,6 +21,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   Project keeps the new proportions; resizing the window keeps the
   proportions of the panels, so the project file does not depend on the
   window's size.
+- File ▸ New Project keeps the database, the engine and the panels as
+  they are and starts a new, empty game, with Training Mode off.
 - Opening a game from the games list turns Training Mode off: a stored
   game is for studying, and the engine must not play moves in it.
 - Project files store the panels in clear: which are shown and their

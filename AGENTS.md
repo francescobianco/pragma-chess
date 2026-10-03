@@ -595,8 +595,10 @@ while one of them is selected.
   panel squeezed by a small window, or the project would drift with it. The opaque `layout` blob
   of older projects (QMainWindow::saveState, magic `pragma-layout-N`) is
   still read (`legacyLayout`, `restoreLegacyLayout`) and honoured once,
-  never written. `View ▸ Reset Panel Layout` is `applyLayout(WorkspaceLayout{})`,
-  what a new project starts with. The window's own geometry and maximized
+  never written. `View ▸ Reset Panel Layout` is `applyLayout(WorkspaceLayout{})`.
+  **File ▸ New Project keeps what is on screen** (`newProject` captures the
+  current project and clears only the game, the ply and training): the
+  database, engine and panels go on as they are, so nothing jumps. The window's own geometry and maximized
   state are per device, in QSettings.
 - Default user folder: `~/Chess/Pragma/{Databases,Projects,Books}`, localized
   (e.g. `~/Scacchi/Pragma/…`); `PRAGMA_CHESS_DIR` overrides it. First launch

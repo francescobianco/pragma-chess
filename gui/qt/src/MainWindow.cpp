@@ -3150,10 +3150,18 @@ void MainWindow::newProject()
     if (!maybeSaveProject())
         return;
 
-    Project project; // Same database, starting position, default layout.
-    if (m_database)
-        project.databasePath = m_database->location();
-    applyProject(project, false); // Its workspace is the default layout.
+    // What is on screen goes on — database, engine, book, board side,
+    // panels — so nothing jumps: only the game is new, empty, and training
+    // is off. Reset Panel Layout is there for the default arrangement.
+    Project project = captureProject();
+    project.gameId = -1;
+    project.ply = 0;
+    project.startFen.clear();
+    project.moves.clear();
+    project.annotations.clear();
+    project.variations.clear();
+    project.training = false;
+    applyProject(project, false);
 
     m_projectPath.clear();
     m_savedProjectYaml.clear();

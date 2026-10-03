@@ -226,7 +226,11 @@ native window exists, and Qt's Wayland window stays opaque whatever is asked
 later, so the chrome destroys that window and showing the widget makes it
 again, translucent. The title is the native window's, with "[*]" resolved. On
 a dark palette the panel's edge is lighter instead of darker, or it would
-vanish. Native file dialogs are not `QDialog`s on screen and are left alone.
+vanish. `QFileDialog`s are skipped by name: on this desktop they are GTK's own
+windows, and dressing the Qt widget behind one crashed the main window's
+painting under `gtk_dialog_run` (a null backing store in
+`QWaylandShmBackingStore::ensureSize`), so Save Project on an untitled
+project — which opens Save Project As — killed the application.
 `QPainterPath::arcTo` ignores an empty rectangle: a square corner is a
 `lineTo`, or the panel is not filled.
 

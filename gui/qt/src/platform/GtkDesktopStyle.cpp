@@ -5,6 +5,7 @@
 #include <QAction>
 #include <QByteArrayList>
 #include <QDialog>
+#include <QFileDialog>
 #include <QMainWindow>
 #include <QEvent>
 #include <QGuiApplication>
@@ -54,8 +55,13 @@ void GtkDesktopStyle::polish(QWidget *widget)
         widget->setAttribute(Qt::WA_TranslucentBackground);
         widget->installEventFilter(this);
     }
-    // Dialogs and the main window would lie flat too: they get a frame with a shadow.
-    if (m_menuShadows && widget->isWindow() && (qobject_cast<QDialog *>(widget) || qobject_cast<QMainWindow *>(widget)))
+    // Dialogs and the main window would lie flat too: they get a frame with a
+    // shadow. Not the file dialogs: on this desktop they are GTK's own
+    // windows, and making the Qt widget behind them frameless and translucent
+    // left the main window painting into a backing store that was gone
+    // (a crash in QWaylandShmBackingStore under gtk_dialog_run).
+    if (m_menuShadows && widget->isWindow() && !qobject_cast<QFileDialog *>(widget)
+        && (qobject_cast<QDialog *>(widget) || qobject_cast<QMainWindow *>(widget)))
         WindowChrome::install(widget);
 }
 

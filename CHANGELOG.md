@@ -17,6 +17,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   separators between panels are a light bar whose ends carry the grey of
   the panels' frames, so the frames' lines run on across them.
 - In the games list the players you marked as "me" are in bold.
+- Saving an untitled project (which opens Save Project As), and every
+  other file dialog, no longer crashes the application on GNOME.
 - The title bar no longer swallows a click now and then: moving the
   window starts only once the pointer is dragged, so double clicks and
   drags work every time.

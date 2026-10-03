@@ -71,12 +71,11 @@ private:
     QVariantAnimation *m_glow = nullptr;
     void paintGlow();
 
-    static constexpr int kMarkColumn = 0;
-    static constexpr int kMoveColumn = 1;
-    static constexpr int kNameColumn = 2;
-    static constexpr int kDatabaseColumn = 3;
-    static constexpr int kWeightColumn = 4;
-    static constexpr int kColumns = 5;
+    static constexpr int kMoveColumn = 0;
+    static constexpr int kNameColumn = 1;
+    static constexpr int kDatabaseColumn = 2;
+    static constexpr int kWeightColumn = 3;
+    static constexpr int kColumns = 4;
     /// The rows of book moves start after the back row.
     static constexpr int kFirstMoveRow = 1;
 };

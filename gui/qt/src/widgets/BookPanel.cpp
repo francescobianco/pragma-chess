@@ -32,7 +32,7 @@ BookPanel::BookPanel(QWidget *parent)
     connect(m_glow, &QVariantAnimation::valueChanged, this, &BookPanel::paintGlow);
     connect(m_glow, &QVariantAnimation::finished, this, &BookPanel::paintGlow);
     m_moves->setColumnCount(kColumns);
-    m_moves->setHeaderLabels({QString(), tr("Move"), tr("Opening"), tr("Database"), tr("Weight")});
+    m_moves->setHeaderLabels({tr("Move"), tr("Opening"), tr("Database"), tr("Weight")});
     m_moves->headerItem()->setToolTip(kDatabaseColumn, tr("Games of the open database with the position after the move: "
                                                           "how many, and how many White won, drew and Black won"));
     m_moves->headerItem()->setTextAlignment(kMoveColumn, Qt::AlignCenter); // Only the title: the moves stay left-aligned.
@@ -42,8 +42,6 @@ BookPanel::BookPanel(QWidget *parent)
     m_moves->setFocusPolicy(Qt::NoFocus);
     m_moves->setAccessibleName(tr("Book moves"));
     m_moves->header()->setStretchLastSection(false);
-    m_moves->header()->setSectionResizeMode(kMarkColumn, QHeaderView::Fixed);
-    m_moves->header()->resizeSection(kMarkColumn, m_moves->fontMetrics().horizontalAdvance(QStringLiteral("↑")) + 2 * CellPadding::horizontal);
     m_moves->header()->setSectionResizeMode(kMoveColumn, QHeaderView::ResizeToContents);
     m_moves->header()->setSectionResizeMode(kNameColumn, QHeaderView::Stretch);
     m_moves->header()->setSectionResizeMode(kDatabaseColumn, QHeaderView::ResizeToContents);
@@ -196,8 +194,19 @@ void BookPanel::rebuild()
             item->setToolTip(kNameColumn, QStringLiteral("%1 %2").arg(name.eco, name.name));
         const double share = total > 0 ? 100.0 * move.weight / total : 100.0 / moves.size();
         // A move with next to nothing is not at zero: say so rather than show "0.0 %".
-        item->setText(kWeightColumn, (share > 0 && share < 0.05 ? QStringLiteral("< 0.1") : QLocale().toString(share, 'f', 1))
-                                         + QStringLiteral(" %"));
+        QString weightText = (share > 0 && share < 0.05 ? QStringLiteral("< 0.1") : QLocale().toString(share, 'f', 1))
+                             + QStringLiteral(" %");
+        if (m_mark && m_mark->move == move.move) {
+            // Up, down or still after the weights changed, left of the share:
+            // the cell is right-aligned, so the shares stay in line.
+            const int moved = m_mark->rowsUp;
+            weightText.prepend((moved > 0 ? QStringLiteral("↑") : moved < 0 ? QStringLiteral("↓") : QStringLiteral("="))
+                               + QStringLiteral("  "));
+            item->setToolTip(kWeightColumn, moved > 0 ? tr("Moved up %n row(s)", nullptr, moved)
+                                            : moved < 0 ? tr("Moved down %n row(s)", nullptr, -moved)
+                                                        : tr("Stayed where it was"));
+        }
+        item->setText(kWeightColumn, weightText);
         item->setTextAlignment(kWeightColumn, Qt::AlignRight | Qt::AlignVCenter);
         item->setTextAlignment(kDatabaseColumn, Qt::AlignRight | Qt::AlignVCenter);
         if (m_databaseState == DatabaseState::Indexing) {
@@ -219,22 +228,11 @@ void BookPanel::rebuild()
                                      .arg(stats.blackWins));
             }
         }
-        if (m_mark && m_mark->move == move.move) {
-            // Up, down or still, after the weights changed; the arrow has a column of its own.
-            const int moved = m_mark->rowsUp;
-            item->setText(kMarkColumn, moved > 0 ? QStringLiteral("↑") : moved < 0 ? QStringLiteral("↓") : QStringLiteral("="));
-            item->setTextAlignment(kMarkColumn, Qt::AlignCenter);
-            item->setToolTip(kMarkColumn, moved > 0 ? tr("Moved up %n row(s)", nullptr, moved)
-                                          : moved < 0 ? tr("Moved down %n row(s)", nullptr, -moved)
-                                                      : tr("Stayed where it was"));
-            item->setForeground(kMarkColumn, moved > 0 ? QBrush(QColor(0x2e, 0x8b, 0x57)) : moved < 0 ? QBrush(QColor(0xc0, 0x39, 0x2b))
-                                                                                                        : palette().brush(QPalette::PlaceholderText));
-        }
         if (move.inRepertoire()) {
             // Bold and brighter than the rest: pure white on a dark theme, pure black on a light one.
             const bool dark = palette().color(QPalette::Base).lightness() < 128;
             const QBrush bright(dark ? Qt::white : Qt::black);
-            for (int column = kMoveColumn; column < m_moves->columnCount(); ++column) {
+            for (int column = 0; column < m_moves->columnCount(); ++column) {
                 QFont font = item->font(column);
                 font.setBold(true);
                 item->setFont(column, font);

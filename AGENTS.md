@@ -639,9 +639,9 @@ line wins on transpositions). It can be opened and edited like any database.
   can be told apart; nothing passes Polyglot's 16 bits.
   `PolyglotBook::setWeights` writes them into the `.bin` in use (a repeated
   entry keeps the weight in the first and zero in the others). After the
-  change the panel marks the move in a narrow first column of its own (so
-  the moves and weights keep their alignment) with ↑/↓/= for where it went
-  in the new order, and glows its row with the highlight colour fading over
+  change the panel marks the move with ↑/↓/= for where it went in the new
+  order, inside the Weight cell left of the share (right-aligned, so the
+  shares keep their alignment), and glows its row with the highlight colour fading over
   1.8 s (`BookPanel::Mark`, `m_glow`); the mark stays until the position
   changes.
 - `app/PolyglotBook` (core library, pure, unit-tested against the reference

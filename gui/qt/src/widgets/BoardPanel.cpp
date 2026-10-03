@@ -20,7 +20,7 @@ constexpr qreal kSideColumnShare = 0.05;
 constexpr int kMinimumSideColumn = 20;
 
 /// Free space at the right of everything, so the move list does not crowd the board.
-constexpr int kTrailingSpace = 18;
+constexpr int kTrailingSpace = 10;
 
 int sideColumnWidth(int boardSide)
 {

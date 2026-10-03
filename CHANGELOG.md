@@ -11,6 +11,7 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 - The main window no longer grows at every start (by the height of its
   title bar and the width of its shadow) until it ran off the screen; a
   window never opens larger than the screen.
+- A little less space between the board and the Moves panel.
 - View lists the panels as Moves, Opening Tree, Engine and, last, Games
   List.
 - The title bar of the main window shows the Pragma Chess logo in its left

@@ -189,7 +189,7 @@ A project is what you are looking at: the database, the game and the move, the s
 
 You do not have to save: Pragma Chess reopens as you closed it.
 
-Panels can be dragged, resized and closed; the **View** menu shows them again, and **View ▸ Reset Panel Layout** puts them back where they start.
+Panels can be resized and closed; the **View** menu (Moves, Opening Tree, Engine, Games List) shows them again, and **View ▸ Reset Panel Layout** puts them back where they start.
 
 # Sync {#sync}
 

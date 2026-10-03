@@ -189,7 +189,7 @@ Un progetto è quello che stai guardando: il database, la partita e la mossa, il
 
 Non sei obbligato a salvare: Pragma Chess si riapre come l'hai chiuso.
 
-I pannelli si possono trascinare, ridimensionare e chiudere; il menu **Visualizza** li mostra di nuovo, e **Visualizza ▸ Ripristina disposizione dei pannelli** li rimette dove stanno all'inizio.
+I pannelli si possono ridimensionare e chiudere; il menu **Visualizza** (Mosse, Albero delle aperture, Motore, Lista partite) li mostra di nuovo, e **Visualizza ▸ Ripristina disposizione dei pannelli** li rimette dove stanno all'inizio.
 
 # Sincronizzazione {#sync}
 

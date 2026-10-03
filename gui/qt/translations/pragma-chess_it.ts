@@ -2042,6 +2042,10 @@ non è su questo computer.</translation>
         <source>Opening Book</source>
         <translation>Libro di aperture</translation>
     </message>
+    <message>
+        <source>Games &amp;List</source>
+        <translation>&amp;Lista partite</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>

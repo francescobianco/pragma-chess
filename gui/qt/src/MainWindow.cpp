@@ -666,8 +666,9 @@ void MainWindow::createMenus()
     m_viewMenu->addAction(m_coordinatesAction);
     m_viewMenu->addSeparator();
     m_viewMenu->addAction(m_mainToolBar->toggleViewAction());
-    for (QDockWidget *dock : {m_gamesDock, m_movesDock, m_openingTreeDock, m_engineDock})
+    for (QDockWidget *dock : {m_movesDock, m_openingTreeDock, m_engineDock, m_gamesDock})
         m_viewMenu->addAction(dock->toggleViewAction());
+    m_gamesDock->toggleViewAction()->setText(tr("Games &List")); // The panel is the tree and the list, last in the menu.
     m_viewMenu->addSeparator();
     m_viewMenu->addAction(m_defaultLayoutAction);
 

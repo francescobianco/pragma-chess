@@ -8,8 +8,8 @@
         <translation>Informazioni su Pragma Chess</translation>
     </message>
     <message>
-        <source>&lt;h2&gt;Pragma Chess %1&lt;/h2&gt;&lt;p&gt;An open source chess database with a native desktop client, made with lightness, simplicity and useful features in mind.&lt;/p&gt;&lt;p&gt;Licensed under the MIT License.&lt;/p&gt;</source>
-        <translation>&lt;h2&gt;Pragma Chess %1&lt;/h2&gt;&lt;p&gt;Un database scacchistico open source con un client desktop nativo, pensato con in mente la leggerezza, la semplicità e le funzioni utili.&lt;/p&gt;&lt;p&gt;Distribuito con licenza MIT.&lt;/p&gt;</translation>
+        <source>&lt;h2&gt;Pragma Chess %1&lt;/h2&gt;&lt;p&gt;An open source chess database for studying, training and playing, built to stay light and simple and to do what is useful.&lt;/p&gt;&lt;p&gt;Licensed under the MIT License.&lt;/p&gt;</source>
+        <translation>&lt;h2&gt;Pragma Chess %1&lt;/h2&gt;&lt;p&gt;Un database scacchistico open source per studiare, allenarsi e giocare, fatto per restare leggero e semplice e per fare ciò che serve davvero.&lt;/p&gt;&lt;p&gt;Distribuito con licenza MIT.&lt;/p&gt;</translation>
     </message>
     <message>
         <source>Supported by</source>

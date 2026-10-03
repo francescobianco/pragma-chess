@@ -14,7 +14,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 - A little less space between the board and the Moves panel, the five
   buttons under the board are exactly under its middle, and the Moves
   panel's header lines up with the Opening Tree's to the pixel; the
-  separators between panels have the exact grey of the panels' frames.
+  separators between panels are a light bar whose ends carry the grey of
+  the panels' frames, so the frames' lines run on across them.
 - In the games list the players you marked as "me" are in bold.
 - The title bar no longer swallows a click now and then: moving the
   window starts only once the pointer is dragged, so double clicks and

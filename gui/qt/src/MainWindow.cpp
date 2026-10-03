@@ -3338,18 +3338,21 @@ void MainWindow::moveEvent(QMoveEvent *event)
 
 void MainWindow::updateSeparatorStyle()
 {
-    // A solid line along the whole separator, highlighted while hovered. Its
-    // grey is the one Fusion draws the panels' frames with (window darker 140,
-    // lighter 108), so where a separator crosses the frames' top line the
-    // line runs on unbroken instead of looking pinned by a lighter bar.
-    const QColor line = palette().color(QPalette::Window).darker(140).lighter(108);
+    // A light bar along the whole separator, highlighted while hovered. Its
+    // ends carry the grey Fusion draws the panels' frames with (window darker
+    // 140, lighter 108), so the frames' line runs on across the separator
+    // instead of being cut by a bar of another shade.
+    const QColor frame = palette().color(QPalette::Window).darker(140).lighter(108);
+    const QColor bar = palette().color(QPalette::Window).darker(108);
     const QColor hover = palette().color(QPalette::Highlight);
     const auto rgba = [](const QColor &color) {
         return QStringLiteral("rgba(%1, %2, %3, %4)").arg(color.red()).arg(color.green()).arg(color.blue()).arg(color.alpha());
     };
     const QString style = QStringLiteral("QMainWindow::separator { background: %1; width: 3px; height: 3px; }"
-                                         "QMainWindow::separator:hover { background: %2; }")
-                              .arg(rgba(line), rgba(hover));
+                                         "QMainWindow::separator:vertical { border-top: 1px solid %2; border-bottom: 1px solid %2; }"
+                                         "QMainWindow::separator:horizontal { border-left: 1px solid %2; border-right: 1px solid %2; }"
+                                         "QMainWindow::separator:hover { background: %3; }")
+                              .arg(rgba(bar), rgba(frame), rgba(hover));
     for (QMainWindow *window : {static_cast<QMainWindow *>(this), m_sidebar}) {
         if (window->styleSheet() != style)
             window->setStyleSheet(style);

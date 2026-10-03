@@ -165,8 +165,10 @@ modal, so it stays open while the user tries things.
 Training, then the three resources in use — book, engine, database
 (`m_bookButton`, `m_engineButton`, `m_databaseButton`). Each of these is an
 icon only (the user found the names in the toolbar ugly) that drops down the
-same menu the menu bar has (Book, Engine ▸ Use Engine, Database ▸ Databases),
-so there is one list to maintain; `updateResourceButtons()` puts the name of
+choice: the engine and database buttons share the menu bar's menus (Engine ▸
+Use Engine, Database ▸ Databases), the book button has a menu of its own
+with only the books and No Book (`fillBookChoices`, shared with the Book
+menu, which adds New Book…, Open Book… and the folder); `updateResourceButtons()` puts the name of
 the one in use in the tooltip whenever one of them changes. Icons are drawn in `platform/SymbolicIcons` (`pragma-book`,
 `pragma-engine`, `pragma-database`).
 

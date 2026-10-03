@@ -172,7 +172,13 @@ MainWindow::MainWindow(QWidget *parent)
     createDocks();
     createToolBar();
     createMenus();
-    m_bookButton->setMenu(m_bookMenu);
+    // The toolbar's book drops down the choice alone: the books and No Book.
+    auto *bookChoices = new QMenu(this);
+    connect(bookChoices, &QMenu::aboutToShow, this, [this, bookChoices] {
+        bookChoices->clear();
+        fillBookChoices(bookChoices);
+    });
+    m_bookButton->setMenu(bookChoices);
     m_engineButton->setMenu(m_engineChoiceMenu);
     m_databaseButton->setMenu(m_databasesMenu);
     updateResourceButtons();
@@ -1753,8 +1759,20 @@ void MainWindow::newBook()
 void MainWindow::rebuildBookMenu()
 {
     m_bookMenu->clear();
+    fillBookChoices(m_bookMenu);
+    m_bookMenu->addSeparator();
+    m_bookMenu->addAction(themeIcon("document-new", QStyle::SP_FileIcon), tr("N&ew Book…"), this, &MainWindow::newBook);
+    m_bookMenu->addAction(tr("&Open Book…"), this, &MainWindow::openBookFile);
+    m_bookMenu->addAction(themeIcon("folder-open", QStyle::SP_DirOpenIcon), tr("Show Books &Folder"), this, [] {
+        UserFolders::ensureBooksDir();
+        QDesktopServices::openUrl(QUrl::fromLocalFile(UserFolders::booksDir()));
+    });
+}
+
+void MainWindow::fillBookChoices(QMenu *menu)
+{
     const QString current = m_book ? QFileInfo(m_book->path()).absoluteFilePath() : QString();
-    auto *group = new QActionGroup(m_bookMenu);
+    auto *group = new QActionGroup(menu);
 
     const QDir folder(UserFolders::booksDir());
     QFileInfoList files = folder.entryInfoList({QStringLiteral("*.") + QLatin1String(UserFolders::bookSuffix)},
@@ -1765,7 +1783,7 @@ void MainWindow::rebuildBookMenu()
         }))
         files.prepend(QFileInfo(current));
     for (const QFileInfo &file : std::as_const(files)) {
-        QAction *action = m_bookMenu->addAction(file.completeBaseName());
+        QAction *action = menu->addAction(file.completeBaseName());
         action->setCheckable(true);
         action->setActionGroup(group);
         action->setToolTip(QDir::toNativeSeparators(file.absoluteFilePath()));
@@ -1777,19 +1795,11 @@ void MainWindow::rebuildBookMenu()
                 m_openingTreeDock->show();
         });
     }
-    QAction *none = m_bookMenu->addAction(tr("&No Book"));
+    QAction *none = menu->addAction(tr("&No Book"));
     none->setCheckable(true);
     none->setActionGroup(group);
     none->setChecked(current.isEmpty());
     connect(none, &QAction::triggered, this, [this] { chooseBook(QString()); });
-
-    m_bookMenu->addSeparator();
-    m_bookMenu->addAction(themeIcon("document-new", QStyle::SP_FileIcon), tr("N&ew Book…"), this, &MainWindow::newBook);
-    m_bookMenu->addAction(tr("&Open Book…"), this, &MainWindow::openBookFile);
-    m_bookMenu->addAction(themeIcon("folder-open", QStyle::SP_DirOpenIcon), tr("Show Books &Folder"), this, [] {
-        UserFolders::ensureBooksDir();
-        QDesktopServices::openUrl(QUrl::fromLocalFile(UserFolders::booksDir()));
-    });
 }
 
 void MainWindow::updateBookMoves()

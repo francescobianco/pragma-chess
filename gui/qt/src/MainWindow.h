@@ -213,6 +213,8 @@ private:
     /// Book ▸ New Book…: a copy of the book we ship, under a name the user picks, chosen at once.
     void newBook();
     void rebuildBookMenu();
+    /// The books of the Books folder and No Book, checkable, into `menu`.
+    void fillBookChoices(QMenu *menu);
     void updateBookMoves();
     /// Chooses the database whose games name the openings; empty for none.
     /// `explicitly` when the user picked it in Options ▸ Opening Names: until

@@ -294,6 +294,7 @@ qt_add_executable(pragma-chess
     src/app/GameRecord.h
     src/app/Project.cpp
     src/app/Project.h
+    src/app/WorkspaceLayout.h
     src/app/DatabaseMerge.cpp
     src/app/DatabaseMerge.h
     src/app/DatabaseMigrations.cpp

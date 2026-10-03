@@ -3,6 +3,7 @@
 #include "app/BoardSettings.h"
 #include "app/EngineCatalog.h"
 #include "app/EngineEvaluation.h"
+#include "app/WorkspaceLayout.h"
 #include "app/PlayerRole.h"
 #include "app/TrainingTutor.h"
 #include "dialogs/NewTrainingDialog.h"
@@ -89,9 +90,14 @@ private:
     QDockWidget *addDock(QMainWindow *host, const QString &objectName, const QString &title,
                          QWidget *widget, Qt::DockWidgetArea area);
 
-    /// Layout of the main window and of the sidebar, as one blob.
-    QByteArray saveLayout() const;
-    void restoreLayout(const QByteArray &layout);
+    /// The panels as they are now: shown or not, and their shares of the
+    /// usable area (WorkspaceLayout). Hidden panels keep their last share.
+    WorkspaceLayout captureLayout();
+    /// Shows the panels of `layout` in the fixed arrangement and gives them
+    /// their shares; the sizes are set once the window is laid out.
+    void applyLayout(const WorkspaceLayout &layout);
+    /// Qt's opaque state of projects written before the shares.
+    void restoreLegacyLayout(const QByteArray &layout);
 
     void setDatabase(std::unique_ptr<GameDatabase> database);
     void openGame(const QModelIndex &proxyIndex);
@@ -195,7 +201,7 @@ private:
     bool maybeSaveProject();
     void addRecentProject(const QString &path);
     void rebuildRecentProjectsMenu();
-    Project captureProject() const;
+    Project captureProject();
     void applyProject(const Project &project, bool openFirstGameIfNone);
     void updateWindowTitle();
     /// Says in the tooltips of their toolbar buttons which book, engine and database are in use.
@@ -447,6 +453,9 @@ private:
     bool m_restoringSession = false;
     /// Maximized or full screen state to apply once the window is shown.
     Qt::WindowStates m_restoredWindowState;
+    WorkspaceLayout m_layout;      // The last layout applied or captured: hidden panels keep their share here.
+    bool m_layoutPending = false;  // applyLayout() has shares to set once the window is laid out.
+    void applyLayoutShares();
     /// Source row of the open game in the database, or -1 (e.g. a pasted FEN).
     qint64 m_openGameIndex = -1;
 

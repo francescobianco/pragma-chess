@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BoardState.h"
+#include "WorkspaceLayout.h"
 
 #include <QByteArray>
 #include <QDir>
@@ -10,7 +11,7 @@
 #include <optional>
 
 /// Everything that makes up what the user is looking at: the open database,
-/// game and move, board orientation, engine and window layout.
+/// game and move, board orientation, engine and the panels (WorkspaceLayout).
 ///
 /// Projects are saved as `.pch` files (YAML) from the File menu, and the
 /// same representation is used to restore the last session on startup.
@@ -48,8 +49,11 @@ struct Project {
     bool training = false;
     Side trainingSide = Side::White;
 
-    /// Dock and toolbar layout, as produced by QMainWindow::saveState().
-    QByteArray layout;
+    /// Which panels are shown and how the space is shared (`workspace`).
+    WorkspaceLayout workspace;
+    /// The opaque `layout` blob (QMainWindow::saveState) of projects written
+    /// before the shares: read, applied once, never written again.
+    QByteArray legacyLayout;
 
     /// Serializes to YAML. Paths inside `baseDir` are written relative to it,
     /// so a .pch file can travel together with its databases.

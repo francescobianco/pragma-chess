@@ -12,6 +12,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   title bar and the width of its shadow) until it ran off the screen; a
   window never opens larger than the screen.
 - A little less space between the board and the Moves panel.
+- Project files store the panels in clear: which are shown and their
+  shares of the window in per cent (`workspace` in the `.pch`), so a
+  project looks the same on another screen and can be read and edited by
+  hand. Older projects are still read.
 - View lists the panels as Moves, Opening Tree, Engine and, last, Games
   List.
 - The title bar of the main window shows the Pragma Chess logo in its left

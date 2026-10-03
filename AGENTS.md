@@ -571,11 +571,21 @@ while one of them is selected.
   game (`MainWindow::updateWindowTitle` writes the title in full, so Qt does
   not append the application name after its long dash).
   Anything about what the user is looking at belongs in `Project`, not in
-  QSettings. `layout` is the opaque blob of `MainWindow::saveLayout()` (magic
-  `pragma-layout-4`: window state, sidebar state, Games splitter state), so it
-  already carries which panels are visible and their proportions; give it a new
-  magic and keep reading the old ones when it grows. `View ▸ Reset Panel
-  Layout` (`applyDefaultLayout`) is what a new project starts with.
+  QSettings. The panels are `workspace` (`app/WorkspaceLayout`), in clear:
+  `panels` (toolbar, moves, openingTree, engine, games: shown or not) and
+  the shares in per cent of the area the panels can occupy — `gamesHeight`
+  of the usable height (central area + Games panel), `movesWidth` of the
+  Moves | Opening Tree row, `engineHeight` of the column right of the board,
+  `treeWidth` of the Games panel — so a project looks the same on another
+  screen. `MainWindow::captureLayout` measures them (a hidden panel keeps
+  its last share), `applyLayout` builds the fixed arrangement, shows the
+  panels and sets the sizes with `resizeDocks` once the window is laid out
+  (`m_layoutPending`, finished from `showEvent`). The opaque `layout` blob
+  of older projects (QMainWindow::saveState, magic `pragma-layout-N`) is
+  still read (`legacyLayout`, `restoreLegacyLayout`) and honoured once,
+  never written. `View ▸ Reset Panel Layout` is `applyLayout(WorkspaceLayout{})`,
+  what a new project starts with. The window's own geometry and maximized
+  state are per device, in QSettings.
 - Default user folder: `~/Chess/Pragma/{Databases,Projects,Books}`, localized
   (e.g. `~/Scacchi/Pragma/…`); `PRAGMA_CHESS_DIR` overrides it. First launch
   seeds `Classic Games.pdb`. The last session is restored on startup.

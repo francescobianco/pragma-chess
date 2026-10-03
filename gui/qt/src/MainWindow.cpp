@@ -812,16 +812,88 @@ QDockWidget *MainWindow::addDock(QMainWindow *host, const QString &objectName, c
     return dock;
 }
 
-QByteArray MainWindow::saveLayout() const
+WorkspaceLayout MainWindow::captureLayout()
 {
-    QByteArray layout;
-    QDataStream stream(&layout, QIODevice::WriteOnly);
-    stream << QByteArray("pragma-layout-4") << saveState() << m_sidebar->saveState()
-           << m_gamesSplitter->saveState();
+    WorkspaceLayout layout = m_layout;
+    layout.toolbar = m_mainToolBar->isVisibleTo(this);
+    layout.moves = m_movesDock->isVisibleTo(this);
+    layout.openingTree = m_openingTreeDock->isVisibleTo(this);
+    layout.engine = m_engineDock->isVisibleTo(this);
+    layout.games = m_gamesDock->isVisibleTo(this);
+    if (!isVisible() || m_layoutPending)
+        return layout; // Nothing on screen to measure (closing, or not yet shown): the last shares.
+    const auto percent = [](int part, int whole) {
+        return whole > 0 ? WorkspaceLayout::clamped(qRound(100.0 * part / whole)) : -1;
+    };
+    // Only what is on screen is measured: a hidden panel keeps its share.
+    if (layout.games) {
+        const int usable = centralWidget()->height() + m_gamesDock->height();
+        if (const int share = percent(m_gamesDock->height(), usable); share > 0)
+            layout.gamesHeight = share;
+    }
+    if (layout.moves && layout.openingTree) {
+        if (const int share = percent(m_movesDock->width(), m_movesDock->width() + m_openingTreeDock->width()); share > 0)
+            layout.movesWidth = share;
+    }
+    if (layout.engine && (layout.moves || layout.openingTree)) {
+        if (const int share = percent(m_engineDock->height(), m_sidebar->height()); share > 0)
+            layout.engineHeight = share;
+    }
+    const QList<int> sizes = m_gamesSplitter->sizes();
+    if (sizes.size() == 2 && layout.games) {
+        if (const int share = percent(sizes.at(0), sizes.at(0) + sizes.at(1)); share > 0)
+            layout.treeWidth = share;
+    }
+    m_layout = layout; // Remembered for when there is nothing to measure.
     return layout;
 }
 
-void MainWindow::restoreLayout(const QByteArray &layout)
+void MainWindow::applyLayout(const WorkspaceLayout &layout)
+{
+    m_layout = layout;
+    // The arrangement is fixed: Games below, Moves | Opening Tree over Engine at the right.
+    for (QDockWidget *dock : {m_movesDock, m_gamesDock, m_openingTreeDock, m_engineDock})
+        dock->setFloating(false);
+    addDockWidget(Qt::BottomDockWidgetArea, m_gamesDock);
+    for (QDockWidget *dock : {m_movesDock, m_openingTreeDock, m_engineDock})
+        m_sidebar->addDockWidget(Qt::RightDockWidgetArea, dock);
+    m_sidebar->splitDockWidget(m_movesDock, m_openingTreeDock, Qt::Horizontal);
+    m_mainToolBar->setVisible(layout.toolbar);
+    m_movesDock->setVisible(layout.moves);
+    m_openingTreeDock->setVisible(layout.openingTree);
+    m_engineDock->setVisible(layout.engine);
+    m_gamesDock->setVisible(layout.games);
+    m_layoutPending = true;
+    if (isVisible())
+        QTimer::singleShot(0, this, &MainWindow::applyLayoutShares); // Once this round of layout is done.
+}
+
+void MainWindow::applyLayoutShares()
+{
+    if (!m_layoutPending || !isVisible())
+        return;
+    m_layoutPending = false;
+    const WorkspaceLayout &layout = m_layout;
+    // Shares into pixels, out of the room the panels have now.
+    if (layout.games) {
+        const int usable = centralWidget()->height() + m_gamesDock->height();
+        resizeDocks({m_gamesDock}, {usable * layout.gamesHeight / 100}, Qt::Vertical);
+    }
+    if (layout.moves && layout.openingTree) {
+        const int row = m_movesDock->width() + m_openingTreeDock->width();
+        m_sidebar->resizeDocks({m_movesDock, m_openingTreeDock},
+                               {row * layout.movesWidth / 100, row - row * layout.movesWidth / 100}, Qt::Horizontal);
+    }
+    if (layout.engine && (layout.moves || layout.openingTree)) {
+        const int column = m_sidebar->height();
+        m_sidebar->resizeDocks({m_engineDock}, {column * layout.engineHeight / 100}, Qt::Vertical);
+    }
+    const int width = m_gamesSplitter->width();
+    if (width > 0)
+        m_gamesSplitter->setSizes({width * layout.treeWidth / 100, width - width * layout.treeWidth / 100});
+}
+
+void MainWindow::restoreLegacyLayout(const QByteArray &layout)
 {
     QDataStream stream(layout);
     QByteArray magic;
@@ -2845,21 +2917,7 @@ void MainWindow::pasteFen()
 
 void MainWindow::applyDefaultLayout()
 {
-    const QList<QDockWidget *> right{m_movesDock, m_openingTreeDock, m_engineDock};
-    for (QDockWidget *dock : {m_movesDock, m_gamesDock, m_openingTreeDock, m_engineDock})
-        dock->setFloating(false);
-    addDockWidget(Qt::BottomDockWidgetArea, m_gamesDock);
-    for (QDockWidget *dock : right)
-        m_sidebar->addDockWidget(Qt::RightDockWidgetArea, dock);
-    m_sidebar->splitDockWidget(m_movesDock, m_openingTreeDock, Qt::Horizontal);
-
-    m_openingTreeDock->hide();
-    m_gamesDock->show();
-    m_movesDock->show();
-    m_engineDock->show();
-    m_sidebar->resizeDocks({m_movesDock, m_engineDock}, {3, 1}, Qt::Vertical);
-    resizeDocks({m_gamesDock}, {220}, Qt::Vertical);
-    m_gamesSplitter->setSizes({220, 800});
+    applyLayout(WorkspaceLayout{});
 }
 
 void MainWindow::showAbout()
@@ -2911,7 +2969,6 @@ void MainWindow::restoreSession()
         applyProject(*project, false);
     } else {
         Project first; // First launch: default layout, first game of the default database.
-        first.layout = saveLayout();
         applyProject(first, true);
     }
 
@@ -2953,7 +3010,7 @@ void MainWindow::saveSession()
     updateProjectModified();
 }
 
-Project MainWindow::captureProject() const
+Project MainWindow::captureProject()
 {
     Project project;
     if (m_database) {
@@ -2979,7 +3036,7 @@ Project MainWindow::captureProject() const
     project.engineAnalyzing = m_startEngineAction->isChecked();
     project.training = m_trainingModeAction->isChecked();
     project.trainingSide = m_trainingSide;
-    project.layout = saveLayout();
+    project.workspace = captureLayout();
     return project;
 }
 
@@ -2990,8 +3047,13 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
     // Off while the game changes, or the engine would answer in the one being opened.
     m_trainingModeAction->setChecked(false);
 
-    if (!project.layout.isEmpty())
-        restoreLayout(project.layout);
+    if (!project.legacyLayout.isEmpty()) {
+        restoreLegacyLayout(project.legacyLayout); // Written before the shares: honoured once, saved as shares.
+        m_layout = project.workspace;
+        m_layoutPending = false;
+    } else {
+        applyLayout(project.workspace);
+    }
     m_flipBoardAction->setChecked(project.boardFlipped);
     m_coordinatesAction->setChecked(project.showCoordinates);
     m_engineId = m_engines.resolve(project.engineId, project.engineName).id;
@@ -3073,9 +3135,7 @@ void MainWindow::newProject()
     Project project; // Same database, starting position, default layout.
     if (m_database)
         project.databasePath = m_database->location();
-    applyDefaultLayout();
-    project.layout = saveLayout();
-    applyProject(project, false);
+    applyProject(project, false); // Its workspace is the default layout.
 
     m_projectPath.clear();
     m_savedProjectYaml.clear();
@@ -3276,6 +3336,8 @@ void MainWindow::changeEvent(QEvent *event)
 void MainWindow::showEvent(QShowEvent *event)
 {
     QMainWindow::showEvent(event);
+    if (m_layoutPending)
+        QTimer::singleShot(0, this, &MainWindow::applyLayoutShares); // Now that the window has a size.
     if (m_restoredWindowState == Qt::WindowNoState)
         return;
     const Qt::WindowStates state = std::exchange(m_restoredWindowState, Qt::WindowNoState);

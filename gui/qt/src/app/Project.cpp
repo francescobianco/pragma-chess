@@ -100,8 +100,19 @@ QString Project::toYaml(const QDir &baseDir) const
         out << YAML::EndMap;
     }
 
+    // The panels: which are shown, and the shares of the usable area, in per cent.
     out << YAML::Key << "workspace" << YAML::Value << YAML::BeginMap;
-    out << YAML::Key << "layout" << YAML::Value << toStd(QString::fromLatin1(layout.toBase64()));
+    out << YAML::Key << "panels" << YAML::Value << YAML::BeginMap;
+    out << YAML::Key << "toolbar" << YAML::Value << workspace.toolbar;
+    out << YAML::Key << "moves" << YAML::Value << workspace.moves;
+    out << YAML::Key << "openingTree" << YAML::Value << workspace.openingTree;
+    out << YAML::Key << "engine" << YAML::Value << workspace.engine;
+    out << YAML::Key << "games" << YAML::Value << workspace.games;
+    out << YAML::EndMap;
+    out << YAML::Key << "gamesHeight" << YAML::Value << workspace.gamesHeight;
+    out << YAML::Key << "movesWidth" << YAML::Value << workspace.movesWidth;
+    out << YAML::Key << "engineHeight" << YAML::Value << workspace.engineHeight;
+    out << YAML::Key << "treeWidth" << YAML::Value << workspace.treeWidth;
     out << YAML::EndMap;
 
     out << YAML::EndMap;
@@ -153,7 +164,24 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     env.training = training.IsMap();
     env.trainingSide = fromNode(training["side"]) == QLatin1String("black") ? Side::Black : Side::White;
 
-    env.layout = QByteArray::fromBase64(fromNode(root["workspace"]["layout"]).toLatin1());
+    // Looked up through non-const nodes, as the rest of the file does: a
+    // const lookup of a missing key gives a node that throws when read.
+    YAML::Node workspace = root["workspace"];
+    YAML::Node panels = workspace["panels"];
+    const bool hasShares = panels.IsMap();
+    const WorkspaceLayout defaults;
+    env.workspace.toolbar = valueOf<bool>(panels["toolbar"], defaults.toolbar);
+    env.workspace.moves = valueOf<bool>(panels["moves"], defaults.moves);
+    env.workspace.openingTree = valueOf<bool>(panels["openingTree"], defaults.openingTree);
+    env.workspace.engine = valueOf<bool>(panels["engine"], defaults.engine);
+    env.workspace.games = valueOf<bool>(panels["games"], defaults.games);
+    env.workspace.gamesHeight = WorkspaceLayout::clamped(valueOf<int>(workspace["gamesHeight"], defaults.gamesHeight));
+    env.workspace.movesWidth = WorkspaceLayout::clamped(valueOf<int>(workspace["movesWidth"], defaults.movesWidth));
+    env.workspace.engineHeight = WorkspaceLayout::clamped(valueOf<int>(workspace["engineHeight"], defaults.engineHeight));
+    env.workspace.treeWidth = WorkspaceLayout::clamped(valueOf<int>(workspace["treeWidth"], defaults.treeWidth));
+    // Older projects carry Qt's opaque state instead; it is honoured once.
+    if (!hasShares)
+        env.legacyLayout = QByteArray::fromBase64(fromNode(workspace["layout"]).toLatin1());
     return env;
 }
 

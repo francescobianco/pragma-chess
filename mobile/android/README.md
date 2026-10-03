@@ -6,7 +6,7 @@ computer on the phone, reads them offline, and is a place to enter games
 Without a computer it has one local database, "My Games" ("Le mie partite"),
 and more can be created.
 
-The protocol with the computer is [docs/phone-link.md](../../docs/phone-link.md):
+The protocol with the computer is [docs/phone-link.md](../../docs/tech/phone-link.md):
 pairing by QR code (Options ▸ Connect Mobile App… on the computer), signaling
 over public Nostr relays, files and games over a WebRTC data channel.
 

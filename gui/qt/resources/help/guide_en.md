@@ -159,6 +159,7 @@ A source brings your games from a website into the open database and keeps them 
 - **lichess.org**: sign in with your account;
 - **chess.com**: your user name;
 - **torneionline.com**: your FIDE or FSI number, for the games of the tournaments you played.
+- **ChessBase files**: a ChessBase database (`.cbh` and its files) on this computer. Choose the `.cbh` file: its games are copied in, the files stay where they are, and games added to them later arrive at the next sync. On another computer the file is not there: the sync says so and offers to ignore the source on that computer; *Database ▸ Manage Sources… ▸ Edit…* chooses the file again.
 
 Sources are read when the database is opened and every twenty minutes. A game is never imported twice. **Database ▸ Manage Sources…** syncs a source now, changes it, signs in again or removes it; the games already imported stay.
 

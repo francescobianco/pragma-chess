@@ -44,6 +44,8 @@ private:
     QString m_uuid;
     /// FIDE or FSI, for kinds whose account is a player ID.
     QComboBox *m_idType = nullptr;
+    /// The file, for kinds that read one on this computer.
+    QLineEdit *m_path = nullptr;
     QLineEdit *m_account;
     QCheckBox *m_limitSince;
     QDateEdit *m_since;

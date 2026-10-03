@@ -1,5 +1,6 @@
 #include "SourceCatalog.h"
 
+#include "ChessBaseFetch.h"
 #include "ChessComFetch.h"
 #include "LichessFetch.h"
 #include "TorneiOnlineFetch.h"
@@ -30,6 +31,10 @@ QList<SourceKind> kinds()
          Text::tr("Tournament games of a player rated in Italy, by FIDE or FSI ID: players, round and result, "
                   "without moves."),
          false, true},
+        {QStringLiteral("chessbase"), Text::tr("ChessBase files"),
+         Text::tr("The games of a ChessBase database (.cbh and its files) on this computer. The file stays where "
+                  "it is; games added to it later are picked up."),
+         false, false, true},
     };
 }
 
@@ -49,6 +54,8 @@ QString displayName(const GameSource &source)
     if (!sourceKind && source.kind == QLatin1String("phone"))
         return Text::tr("Phone · %1").arg(source.account);
     const QString name = sourceKind ? sourceKind->name : source.kind;
+    if (sourceKind && sourceKind->localFile)
+        return QStringLiteral("ChessBase · %1").arg(source.account);
     if (sourceKind && sourceKind->playerId) {
         const QString idType =
             source.settings.value(QLatin1String(TorneiOnlineSettings::idType)).toString() == QLatin1String("fsi")
@@ -87,6 +94,8 @@ SourceFetch *createFetch(const GameSource &source, QNetworkAccessManager *networ
         return new ChessComFetch(source, network, parent);
     if (source.kind == QLatin1String("torneionline"))
         return new TorneiOnlineFetch(source, network, parent);
+    if (source.kind == QLatin1String("chessbase"))
+        return new ChessBaseFetch(source, parent);
     return nullptr;
 }
 

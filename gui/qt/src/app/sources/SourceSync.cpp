@@ -1,6 +1,8 @@
 #include "SourceSync.h"
 
+#include "ChessBaseFetch.h"
 #include "SourceCatalog.h"
+#include "SourceCredentials.h"
 #include "SourceFetch.h"
 #include "app/GameDatabase.h"
 
@@ -63,7 +65,8 @@ void SourceSync::syncAll()
     if (!m_database)
         return;
     for (const GameSource &source : m_database->sources()) {
-        if (source.enabled && source.id != m_current && !m_queue.contains(source.id))
+        if (source.enabled && source.id != m_current && !m_queue.contains(source.id)
+            && !SourceCredentials::isIgnoredHere(source.uuid))
             m_queue << source.id;
     }
     startNext();
@@ -98,6 +101,15 @@ void SourceSync::startNext()
         const std::optional<GameSource> source = findSource(m_database, m_queue.takeFirst());
         if (!source)
             continue;
+        // A file that is not on this computer: nothing to read, the user is told.
+        if (source->kind == QLatin1String("chessbase") && !ChessBaseFetch::isAvailable(*source)) {
+            GameSource missing = *source;
+            missing.lastError = tr("The ChessBase database was not found at %1.").arg(ChessBaseFetch::path(*source));
+            m_database->updateSource(missing, nullptr);
+            Q_EMIT sourcesChanged();
+            Q_EMIT sourceUnavailable(missing);
+            continue;
+        }
         m_fetch = SourceCatalog::createFetch(*source, m_network, this);
         if (!m_fetch)
             continue;

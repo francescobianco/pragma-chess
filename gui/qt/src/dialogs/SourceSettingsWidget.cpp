@@ -1,5 +1,7 @@
 #include "SourceSettingsWidget.h"
 
+#include "app/chessbase/ChessBaseDatabase.h"
+#include "app/sources/ChessBaseFetch.h"
 #include "app/sources/LichessSignIn.h"
 #include "app/sources/SourceCredentials.h"
 #include "app/sources/TorneiOnlineFetch.h"
@@ -9,7 +11,10 @@
 #include <QComboBox>
 #include <QDateEdit>
 #include <QDesktopServices>
+#include <QDir>
 #include <QEventLoop>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -54,6 +59,36 @@ SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString
     }
 
     m_account->setClearButtonEnabled(true);
+    if (m_kind.localFile) {
+        // A file on this computer: chosen with the file dialog, the name shown as the account.
+        m_path = new QLineEdit;
+        m_path->setPlaceholderText(tr("The .cbh file of the database"));
+        auto *browse = new QPushButton(tr("&Browse…"));
+        connect(browse, &QPushButton::clicked, this, [this] {
+            const QString chosen = QFileDialog::getOpenFileName(this, tr("Choose a ChessBase Database"),
+                                                                m_path->text().isEmpty() ? QDir::homePath() : m_path->text(),
+                                                                tr("ChessBase databases (*.cbh *.CBH)"));
+            if (!chosen.isEmpty())
+                m_path->setText(chosen);
+        });
+        auto *row = new QHBoxLayout;
+        row->addWidget(m_path, 1);
+        row->addWidget(browse);
+        form->addRow(tr("&File:"), row);
+        connect(m_path, &QLineEdit::textChanged, this, &SourceSettingsWidget::changed);
+        m_account->hide();
+        m_limitSince->hide();
+        m_since->hide();
+        m_ratedOnly->hide();
+        auto *note = new QLabel(tr("The games are copied into this database; the ChessBase files stay where they "
+                                   "are and are read again while the database is open, so games added to them "
+                                   "later arrive too. On another computer the file will not be there: the sync "
+                                   "says so and can leave the source alone there."));
+        note->setWordWrap(true);
+        note->setEnabled(false);
+        form->addRow(QString(), note);
+        return;
+    }
     if (m_kind.playerId) {
         m_idType = new QComboBox;
         m_idType->addItem(tr("ID FIDE"), QStringLiteral("fide"));
@@ -108,6 +143,8 @@ SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString
 void SourceSettingsWidget::setSource(const GameSource &source)
 {
     m_account->setText(source.account);
+    if (m_path)
+        m_path->setText(ChessBaseFetch::path(source));
     const QString since = source.settings.value(QLatin1String(SourceSettings::since)).toString();
     m_limitSince->setChecked(!since.isEmpty());
     if (!since.isEmpty())
@@ -122,6 +159,12 @@ void SourceSettingsWidget::setSource(const GameSource &source)
 
 void SourceSettingsWidget::applyTo(GameSource &source) const
 {
+    if (m_path) {
+        const QString path = QFileInfo(m_path->text().trimmed()).absoluteFilePath();
+        source.account = QFileInfo(path).completeBaseName();
+        source.settings.insert(QLatin1String(ChessBaseSettings::path), path);
+        return;
+    }
     source.account = m_account->text().trimmed();
     source.settings.remove(QLatin1String(SourceSettings::since));
     if (m_limitSince->isChecked())
@@ -136,6 +179,20 @@ void SourceSettingsWidget::applyTo(GameSource &source) const
 
 bool SourceSettingsWidget::validate(QString *errorMessage)
 {
+    if (m_path) {
+        const QString path = m_path->text().trimmed();
+        if (path.isEmpty()) {
+            *errorMessage = tr("Choose the .cbh file of the ChessBase database.");
+            return false;
+        }
+        QString why;
+        const std::unique_ptr<ChessBaseDatabase> database = ChessBaseDatabase::open(path, &why);
+        if (!database) {
+            *errorMessage = why;
+            return false;
+        }
+        return true;
+    }
     const QString account = m_account->text().trimmed();
     if (account.isEmpty()) {
         *errorMessage = m_kind.playerId ? tr("Enter the ID of the player whose games to import.")

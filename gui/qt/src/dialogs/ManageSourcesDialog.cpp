@@ -97,6 +97,8 @@ void ManageSourcesDialog::reload()
         const std::optional<SourceKind> kind = SourceCatalog::kind(source.kind);
         if (kind && kind->needsSignIn && SourceCredentials::token(source.uuid).isEmpty())
             status = tr("Not signed in");
+        if (SourceCredentials::isIgnoredHere(source.uuid))
+            status = tr("Ignored on this computer");
 
         auto *item = new QTreeWidgetItem(m_list);
         item->setText(0, SourceCatalog::displayName(source));
@@ -170,6 +172,7 @@ void ManageSourcesDialog::editSource()
     settings->applyTo(*source);
     if (source->account != before.account || source->settings != before.settings)
         source->state = {}; // Import again with the new choice; known games are skipped.
+    SourceCredentials::setIgnoredHere(source->uuid, false); // Edited here: it is this computer's again.
     QString message;
     m_sync->cancelSource(source->id);
     if (!m_database->updateSource(*source, &message)) {

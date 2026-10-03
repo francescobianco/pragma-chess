@@ -159,6 +159,7 @@ Una fonte porta nel database aperto le tue partite da un sito e le tiene aggiorn
 - **lichess.org**: accedi con il tuo account;
 - **chess.com**: il tuo nome utente;
 - **torneionline.com**: il tuo numero FIDE o FSI, per le partite dei tornei che hai giocato.
+- **File ChessBase**: un database ChessBase (`.cbh` e i suoi file) su questo computer. Scegli il file `.cbh`: le sue partite vengono copiate, i file restano dove sono e le partite aggiunte in seguito arrivano alla sincronizzazione successiva. Su un altro computer il file non c'è: la sincronizzazione lo dice e propone di ignorare la fonte su quel computer; *Database ▸ Gestisci fonti… ▸ Modifica…* sceglie di nuovo il file.
 
 Le fonti vengono lette quando il database viene aperto e ogni venti minuti. Una partita non viene mai importata due volte. **Database ▸ Gestisci fonti…** sincronizza subito una fonte, la modifica, rifà l'accesso o la rimuove; le partite già importate restano.
 

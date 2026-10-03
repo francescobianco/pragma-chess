@@ -20,7 +20,13 @@
 #include "app/ShippedOpeningNames.h"
 #include "app/SqliteGameDatabase.h"
 #include "app/TrainingTutor.h"
+#include "app/chessbase/CbgDecoder.h"
+#include "app/chessbase/ChessBaseDatabase.h"
+#include "app/sources/ChessBaseFetch.h"
 #include "app/sources/ChessComFetch.h"
+#include "app/sources/SourceCatalog.h"
+#include "app/sources/SourceCredentials.h"
+#include "app/sources/SourceSync.h"
 #include "app/sources/TorneiOnlineFetch.h"
 #include "app/sources/LichessFetch.h"
 #include "app/sync/FolderSync.h"
@@ -291,6 +297,160 @@ private Q_SLOTS:
         game.moves = {MoveRecord{QString(), QStringLiteral("e8d7")}};
         QVERIFY(Pgn::game(game).contains(QStringLiteral("[SetUp \"1\"]\n[FEN \"4k3/8/8/8/8/8/4P3/4K3 b - - 0 1\"]")));
         QCOMPARE(Pgn::moveText(game), QStringLiteral("1…Kd7"));
+    }
+
+    /// A one-game ChessBase database (Kieseritzky – Anderssen, London 1851,
+    /// from ChessBase's own sample base) and a guiding text, written as
+    /// `london.cbh` and its files into `dir`; returns the `.cbh` path.
+    static QString writeChessBaseFixture(const QString &dir)
+    {
+        const auto fixed = [](const QString &text, int width) {
+            return text.toLatin1().leftJustified(width, '\0', true);
+        };
+        const QByteArray plain = QByteArray::fromHex(
+            "0000002dffdb66e03b32c78b06ce4712228584851b96713712b94364b61330b9315380fc8bfecbf5d69ccc5634");
+        QByteArray cbh(46, '\0');
+        QByteArray record = QByteArray::fromHex(
+            "0100002157000000000000020000030000010000000000010e76bb00000101000000003c80000000000000000014");
+        record.replace(1, 4, QByteArray::fromHex("0000001a")); // The moves, after the file's 26-byte head.
+        record.replace(9, 3, QByteArray::fromHex("000000"));   // White: player 0.
+        record.replace(12, 3, QByteArray::fromHex("000001"));  // Black: player 1.
+        record.replace(15, 3, QByteArray::fromHex("000000"));  // Tournament 0.
+        QByteArray text = record;
+        text[0] = 0x03; // A guiding text, not a game.
+        cbh += record + text;
+        QByteArray cbg(26, '\0');
+        cbg += plain;
+        QByteArray cbp(28, '\0');
+        for (const auto &[last, first] : {std::pair{QStringLiteral("Kieseritzky"), QStringLiteral("Lionel")},
+                                          std::pair{QStringLiteral("Anderssen"), QStringLiteral("Adolf")}})
+            cbp += QByteArray(9, '\0') + fixed(last, 30) + fixed(first, 20) + QByteArray(8, '\0');
+        QByteArray cbt(28, '\0');
+        cbt += QByteArray(9, '\0') + fixed(QStringLiteral("London knockout"), 40) + fixed(QStringLiteral("London"), 30)
+            + QByteArray(20, '\0');
+        for (const auto &[suffix, bytes] : {std::pair{"cbh", cbh}, std::pair{"cbg", cbg}, std::pair{"cbp", cbp},
+                                            std::pair{"cbt", cbt}}) {
+            QFile file(QDir(dir).filePath(QStringLiteral("london.%1").arg(QLatin1String(suffix))));
+            if (!file.open(QIODevice::WriteOnly))
+                return {};
+            file.write(bytes);
+        }
+        return QDir(dir).filePath(QStringLiteral("london.cbh"));
+    }
+
+    void syncsChessBaseFiles()
+    {
+        // A ChessBase database connected as a source: its games come in once,
+        // the cursor remembers how far it got, and a file that is not on this
+        // computer is reported, not imported — unless this computer ignores it.
+        QTemporaryDir dir;
+        const QString cbhPath = writeChessBaseFixture(dir.path());
+        QVERIFY(!cbhPath.isEmpty());
+        QString error;
+        std::unique_ptr<SqliteGameDatabase> database =
+            SqliteGameDatabase::create(dir.filePath(QStringLiteral("games.pdb")), {}, &error);
+        QVERIFY2(database, qPrintable(error));
+        GameSource source;
+        source.kind = QStringLiteral("chessbase");
+        source.account = QStringLiteral("london");
+        source.settings.insert(QLatin1String(ChessBaseSettings::path), cbhPath);
+        QVERIFY2(database->addSource(source, &error), qPrintable(error));
+        QCOMPARE(SourceCatalog::displayName(source), QStringLiteral("ChessBase · london"));
+        QVERIFY(SourceCatalog::kind(QStringLiteral("chessbase"))->localFile);
+
+        SourceSync sync;
+        QSignalSpy idle(&sync, &SourceSync::idle);
+        QSignalSpy unavailable(&sync, &SourceSync::sourceUnavailable);
+        sync.setDatabase(database.get()); // Syncs every source at once.
+        QVERIFY(idle.wait(5000));
+        QCOMPARE(database->gameCount(), 1);
+        QCOMPARE(database->header(0).white, QStringLiteral("Kieseritzky, Lionel"));
+        QCOMPARE(database->loadGame(0)->moves.size(), 40);
+        QCOMPARE(database->sources().first().importedGames, 1);
+        QCOMPARE(database->sources().first().state.value(QLatin1String(ChessBaseSettings::read)).toInt(), 2);
+        QVERIFY(database->sources().first().lastError.isEmpty());
+
+        // Again: nothing new, nothing twice.
+        idle.clear();
+        sync.syncAll();
+        QVERIFY(idle.wait(5000));
+        QCOMPARE(database->gameCount(), 1);
+        QCOMPARE(unavailable.count(), 0);
+
+        // The file goes away: the source is reported and marked, and skipped
+        // once this computer is told to ignore it.
+        QVERIFY(QFile::rename(cbhPath, dir.filePath(QStringLiteral("elsewhere.cbh"))));
+        idle.clear();
+        sync.syncAll(); // Nothing to read: it is over before wait() could start.
+        QVERIFY(idle.count() == 1 || idle.wait(5000));
+        QCOMPARE(unavailable.count(), 1);
+        QVERIFY(database->sources().first().lastError.contains(QStringLiteral("not found")));
+        const QString uuid = database->sources().first().uuid;
+        SourceCredentials::setIgnoredHere(uuid, true);
+        QVERIFY(SourceCredentials::isIgnoredHere(uuid));
+        idle.clear();
+        unavailable.clear();
+        sync.syncAll();
+        QVERIFY(idle.count() == 1 || idle.wait(5000));
+        QCOMPARE(unavailable.count(), 0);
+        SourceCredentials::setIgnoredHere(uuid, false);
+        QVERIFY(!SourceCredentials::isIgnoredHere(uuid));
+        sync.setDatabase(nullptr);
+    }
+
+    void readsChessBaseDatabases()
+    {
+        // Two records of ChessBase's own sample base (CB Light Database): Kieseritzky –
+        // Anderssen, London 1851, and a game with a variation after move 25.
+        const QByteArray plain = QByteArray::fromHex(
+            "0000002dffdb66e03b32c78b06ce4712228584851b96713712b94364b61330b9315380fc8bfecbf5d69ccc5634");
+        CbgDecoder::Decoded decoded = CbgDecoder::decode(plain);
+        QVERIFY2(decoded.error.isEmpty(), qPrintable(decoded.error));
+        QVERIFY(decoded.startFen.isEmpty());
+        QCOMPARE(decoded.uciMoves.size(), 40);
+        QCOMPARE(decoded.uciMoves.first(), QStringLiteral("e2e4"));
+        QCOMPARE(decoded.uciMoves.at(14), QStringLiteral("e1g1")); // 8.O-O, by its own code.
+        QCOMPARE(decoded.uciMoves.last(), QStringLiteral("a7f2"));
+
+        // The main line is what comes before the first end of line; the
+        // variation ChessBase writes after it (25…Rfe8 26.Re5 Qb4) stays out.
+        const QByteArray annotated = QByteArray::fromHex(
+            "0000003d0b08dc870269c1836c9c0c130288451a0e70105d6c8b8cdd17945030153217d972367c7b7cdcb35c0973242d52ea5"
+            "ae92a0d63f13f8522dc42");
+        decoded = CbgDecoder::decode(annotated);
+        QVERIFY2(decoded.error.isEmpty(), qPrintable(decoded.error));
+        QCOMPARE(decoded.uciMoves.size(), 51);
+        QCOMPARE(decoded.uciMoves.last(), QStringLiteral("b2e5")); // 26.Qe5
+        QCOMPARE(CbgDecoder::recordSize(annotated), 61);
+        QVERIFY(!CbgDecoder::decode(QByteArray::fromHex("05000004")).error.isEmpty()); // Another encoding.
+
+        // A database made of those files: the header record points into the
+        // moves file, players and tournaments are fixed-width Latin-1 fields.
+        QTemporaryDir dir;
+        const QString cbhPath = writeChessBaseFixture(dir.path());
+        QVERIFY(!cbhPath.isEmpty());
+        QString error;
+        const std::unique_ptr<ChessBaseDatabase> database = ChessBaseDatabase::open(cbhPath, &error);
+        QVERIFY2(database, qPrintable(error));
+        QCOMPARE(database->count(), 2);
+        const ChessBaseDatabase::Entry entry = database->entry(0);
+        QVERIFY(entry.isGame && !entry.deleted);
+        QCOMPARE(entry.header.white, QStringLiteral("Kieseritzky, Lionel"));
+        QCOMPARE(entry.header.black, QStringLiteral("Anderssen, Adolf"));
+        QCOMPARE(entry.header.event, QStringLiteral("London knockout"));
+        QCOMPARE(entry.header.site, QStringLiteral("London"));
+        QCOMPARE(entry.header.date, QStringLiteral("1851.05.27"));
+        QCOMPARE(entry.header.result, QStringLiteral("0-1"));
+        QCOMPARE(entry.header.round, QStringLiteral("1"));
+        QCOMPARE(entry.header.eco, QStringLiteral("B20"));
+        QVERIFY(!database->entry(1).isGame);
+        const GameRecord game = database->game(0, &error);
+        QVERIFY2(error.isEmpty(), qPrintable(error));
+        QCOMPARE(game.moves.size(), 40);
+        QCOMPARE(game.moves.last().san, QStringLiteral("Qf2#"));
+        QCOMPARE(ChessBaseDatabase::dateText(1851 << 9), QStringLiteral("1851.??.??"));
+        QCOMPARE(ChessBaseDatabase::dateText(0), QString());
+        QVERIFY(!ChessBaseDatabase::open(dir.filePath(QStringLiteral("missing.cbh")), &error));
     }
 
     void readsAndSearchesTheGuide()

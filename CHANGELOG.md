@@ -35,6 +35,11 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 - The toolbar has an icon each for the opening book, the engine and the
   database, with a drop-down list to choose another; the tooltip says which
   one is in use.
+- **ChessBase files as a source.** *Database ▸ Connect Source… ▸ ChessBase
+  files* imports the games of a ChessBase database (`.cbh`) on this computer
+  into the open database, main lines with players, event, date, result,
+  ratings and ECO, and picks up games added to it later. When the file is not
+  on the computer the sync says so and can ignore the source there.
 - **Trash.** Right-click a game of the list and choose *Move Game to Trash*.
   The database tree ends with *Trash*, where a game can be restored or
   deleted, with *Recent* (trashed in the last seven days) and *Old* under

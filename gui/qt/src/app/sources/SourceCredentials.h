@@ -12,4 +12,10 @@ QString token(const QString &sourceUuid);
 void setToken(const QString &sourceUuid, const QString &token);
 void remove(const QString &sourceUuid);
 
+/// A source this computer leaves alone — a ChessBase file that lives on
+/// another computer, say. Per device, like the tokens: the source itself,
+/// in the database, is the same everywhere.
+bool isIgnoredHere(const QString &sourceUuid);
+void setIgnoredHere(const QString &sourceUuid, bool ignored);
+
 } // namespace SourceCredentials

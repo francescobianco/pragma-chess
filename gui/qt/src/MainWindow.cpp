@@ -32,7 +32,9 @@
 #include "app/UiLanguage.h"
 #include "app/UciEngine.h"
 #include "app/UserFolders.h"
+#include "app/sources/ChessBaseFetch.h"
 #include "app/sources/SourceCatalog.h"
+#include "app/sources/SourceCredentials.h"
 #include "app/sources/SourceSync.h"
 #include "app/sync/FolderSync.h"
 #include "app/sync/RemoteStore.h"
@@ -245,6 +247,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_board, &BoardWidget::moveRequested, this, &MainWindow::playBoardMove);
     connect(m_sourceSync, &SourceSync::gamesImported, this, &MainWindow::showAddedGames);
     connect(m_sourceSync, &SourceSync::sourcesChanged, m_databaseTree, &DatabaseTreeWidget::scheduleRefresh);
+    connect(m_sourceSync, &SourceSync::sourceUnavailable, this, &MainWindow::reportUnavailableSource);
 
     // The whole sync, in order, from the toolbar button or before closing.
     connect(m_syncPipeline, &SyncPipeline::started, this, [this] {
@@ -2236,6 +2239,31 @@ void MainWindow::syncNow(std::function<void()> then)
 void MainWindow::updateSyncActions()
 {
     m_syncNowAction->setEnabled(!m_syncPipeline->isRunning());
+}
+
+void MainWindow::reportUnavailableSource(const GameSource &source)
+{
+    // Once per source while the application runs: the sync comes round every
+    // twenty minutes, and the answer was given.
+    if (m_unavailableSourcesReported.contains(source.uuid))
+        return;
+    m_unavailableSourcesReported.insert(source.uuid);
+    QMessageBox box(QMessageBox::Warning, tr("Source Not Found"),
+                    tr("The source “%1” cannot be found: the file\n%2\nis not on this computer.")
+                        .arg(SourceCatalog::displayName(source), QDir::toNativeSeparators(ChessBaseFetch::path(source))),
+                    QMessageBox::NoButton, this);
+    box.setInformativeText(tr("To fix it, open Database ▸ Manage Sources… and choose the file again, or remove "
+                              "the source."));
+    QPushButton *ignore = box.addButton(tr("Ignore"), QMessageBox::RejectRole);
+    QPushButton *ignoreHere = box.addButton(tr("Ignore on This Computer"), QMessageBox::AcceptRole);
+    ignoreHere->setToolTip(tr("This computer stops looking for the file; the source stays in the database for "
+                              "the computers that have it"));
+    box.setDefaultButton(ignore);
+    box.exec();
+    if (box.clickedButton() == ignoreHere) {
+        SourceCredentials::setIgnoredHere(source.uuid, true);
+        m_databaseTree->scheduleRefresh();
+    }
 }
 
 void MainWindow::manageSources()

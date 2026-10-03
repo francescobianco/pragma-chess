@@ -140,6 +140,12 @@ qt_add_library(pragma-chess-core STATIC
     src/app/OpeningNames.h
     src/app/Pgn.cpp
     src/app/Pgn.h
+    src/app/chessbase/CbgDecoder.cpp
+    src/app/chessbase/CbgDecoder.h
+    src/app/chessbase/ChessBaseDatabase.cpp
+    src/app/chessbase/ChessBaseDatabase.h
+    src/app/sources/ChessBaseFetch.cpp
+    src/app/sources/ChessBaseFetch.h
     src/app/HelpGuide.cpp
     src/app/HelpGuide.h
     src/app/TrainingTutor.cpp

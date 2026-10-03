@@ -11,11 +11,13 @@
 
 #include <QDateTime>
 #include <QHash>
+#include <QSet>
 #include <QMainWindow>
 
 #include <functional>
 #include <memory>
 
+struct GameSource;
 struct Project;
 
 class BoardWidget;
@@ -236,6 +238,8 @@ private:
     // External sources of games (lichess.org, chess.com, …), synced in the background.
     void connectSource();
     void manageSources();
+    /// A ChessBase source whose file is not on this computer: asks what to do.
+    void reportUnavailableSource(const GameSource &source);
     void editDatabaseSettings();
     void editBoardSettings();
     void applyBoardSettings(const BoardSettings &settings);
@@ -377,6 +381,8 @@ private:
     /// move against.
     EngineEvaluation m_trainingBaseline;
     QString m_trainingBaselineFen;
+    /// Sources already reported as not found while the application runs.
+    QSet<QString> m_unavailableSourcesReported;
     /// What Explain wants the border of the board to say; see updateBoardBorder().
     BoardBorder m_explainBorder = BoardBorder::Plain;
     /// The tutor's alert is up: the engine's answer it holds back, the search

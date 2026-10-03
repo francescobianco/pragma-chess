@@ -234,6 +234,83 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>CbgDecoder</name>
+    <message>
+        <source>The move record is cut short.</source>
+        <translation>Il record delle mosse è troncato.</translation>
+    </message>
+    <message>
+        <source>The moves use an encoding Pragma Chess does not read (mode %1).</source>
+        <translation>Le mosse usano una codifica che Pragma Chess non legge (modo %1).</translation>
+    </message>
+    <message>
+        <source>The start position is cut short.</source>
+        <translation>La posizione iniziale è troncata.</translation>
+    </message>
+    <message>
+        <source>The start position cannot be read.</source>
+        <translation>La posizione iniziale non si può leggere.</translation>
+    </message>
+    <message>
+        <source>Unknown move code %1.</source>
+        <translation>Codice di mossa sconosciuto %1.</translation>
+    </message>
+    <message>
+        <source>A two-byte move runs past the record.</source>
+        <translation>Una mossa a due byte supera la fine del record.</translation>
+    </message>
+    <message>
+        <source>The king is missing.</source>
+        <translation>Manca il re.</translation>
+    </message>
+    <message>
+        <source>Pawn %1 is gone.</source>
+        <translation>Il pedone %1 non c’è più.</translation>
+    </message>
+    <message>
+        <source>There is no piece number %1 of that kind.</source>
+        <translation>Non c’è un pezzo numero %1 di quel tipo.</translation>
+    </message>
+    <message>
+        <source>Move %1: there is no piece on %2.</source>
+        <translation>Mossa %1: non c’è nessun pezzo in %2.</translation>
+    </message>
+</context>
+<context>
+    <name>ChessBaseDatabase</name>
+    <message>
+        <source>Cannot read %1.</source>
+        <translation>Impossibile leggere %1.</translation>
+    </message>
+    <message>
+        <source>%1 is not a ChessBase database.</source>
+        <translation>%1 non è un database ChessBase.</translation>
+    </message>
+    <message>
+        <source>The moves file (.cbg) is missing beside %1.</source>
+        <translation>Accanto a %1 manca il file delle mosse (.cbg).</translation>
+    </message>
+    <message>
+        <source>The moves file cannot be read.</source>
+        <translation>Il file delle mosse non si può leggere.</translation>
+    </message>
+    <message>
+        <source>The start position is not valid: %1</source>
+        <translation>La posizione iniziale non è valida: %1</translation>
+    </message>
+    <message>
+        <source>Move %1 (%2) is not legal.</source>
+        <translation>La mossa %1 (%2) non è legale.</translation>
+    </message>
+</context>
+<context>
+    <name>ChessBaseFetch</name>
+    <message>
+        <source>The ChessBase database was not found at %1.</source>
+        <translation>Il database ChessBase non è stato trovato in %1.</translation>
+    </message>
+</context>
+<context>
     <name>ConnectMobileDialog</name>
     <message>
         <source>No phone is connected yet.</source>
@@ -1903,6 +1980,34 @@ Non comparirà più in nessun elenco. Resta nel file finché il database non vie
         <source>Inaccuracy: %1 (%2 → %3).</source>
         <translation>Imprecisione: %1 (%2 → %3).</translation>
     </message>
+    <message>
+        <source>Source Not Found</source>
+        <translation>Fonte non trovata</translation>
+    </message>
+    <message>
+        <source>The source “%1” cannot be found: the file
+%2
+is not on this computer.</source>
+        <translation>La fonte “%1” non si trova: il file
+%2
+non è su questo computer.</translation>
+    </message>
+    <message>
+        <source>To fix it, open Database ▸ Manage Sources… and choose the file again, or remove the source.</source>
+        <translation>Per risolvere, apri Database ▸ Gestisci fonti… e scegli di nuovo il file, oppure rimuovi la fonte.</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation>Ignora</translation>
+    </message>
+    <message>
+        <source>Ignore on This Computer</source>
+        <translation>Ignora su questo computer</translation>
+    </message>
+    <message>
+        <source>This computer stops looking for the file; the source stays in the database for the computers that have it</source>
+        <translation>Questo computer smette di cercare il file; la fonte resta nel database per i computer che lo hanno</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>
@@ -2116,6 +2221,10 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>Could not remove the source: %1</source>
         <translation>Impossibile rimuovere la fonte: %1</translation>
+    </message>
+    <message>
+        <source>Ignored on this computer</source>
+        <translation>Ignorata su questo computer</translation>
     </message>
 </context>
 <context>
@@ -2565,6 +2674,14 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>Phone · %1</source>
         <translation>Telefono · %1</translation>
     </message>
+    <message>
+        <source>ChessBase files</source>
+        <translation>File ChessBase</translation>
+    </message>
+    <message>
+        <source>The games of a ChessBase database (.cbh and its files) on this computer. The file stays where it is; games added to it later are picked up.</source>
+        <translation>Le partite di un database ChessBase (.cbh e i suoi file) su questo computer. Il file resta dov’è; le partite aggiunte in seguito vengono riprese.</translation>
+    </message>
 </context>
 <context>
     <name>SourceSettingsWidget</name>
@@ -2684,6 +2801,34 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>Sign In with %1…</source>
         <translation>Accedi con %1…</translation>
     </message>
+    <message>
+        <source>The .cbh file of the database</source>
+        <translation>Il file .cbh del database</translation>
+    </message>
+    <message>
+        <source>&amp;Browse…</source>
+        <translation>&amp;Sfoglia…</translation>
+    </message>
+    <message>
+        <source>Choose a ChessBase Database</source>
+        <translation>Scegli un database ChessBase</translation>
+    </message>
+    <message>
+        <source>ChessBase databases (*.cbh *.CBH)</source>
+        <translation>Database ChessBase (*.cbh *.CBH)</translation>
+    </message>
+    <message>
+        <source>&amp;File:</source>
+        <translation>&amp;File:</translation>
+    </message>
+    <message>
+        <source>The games are copied into this database; the ChessBase files stay where they are and are read again while the database is open, so games added to them later arrive too. On another computer the file will not be there: the sync says so and can leave the source alone there.</source>
+        <translation>Le partite vengono copiate in questo database; i file ChessBase restano dove sono e vengono riletti mentre il database è aperto, così arrivano anche le partite aggiunte in seguito. Su un altro computer il file non ci sarà: la sincronizzazione lo dice e può lasciar perdere la fonte lì.</translation>
+    </message>
+    <message>
+        <source>Choose the .cbh file of the ChessBase database.</source>
+        <translation>Scegli il file .cbh del database ChessBase.</translation>
+    </message>
 </context>
 <context>
     <name>SourceSync</name>
@@ -2701,6 +2846,10 @@ Le %n partite già importate restano nel database.</numerusform>
             <numerusform>Sincronizzazione di %1… %n nuova partita</numerusform>
             <numerusform>Sincronizzazione di %1… %n nuove partite</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>The ChessBase database was not found at %1.</source>
+        <translation>Il database ChessBase non è stato trovato in %1.</translation>
     </message>
 </context>
 <context>

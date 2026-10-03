@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GameSource.h"
+
 #include <QList>
 #include <QObject>
 
@@ -40,6 +42,9 @@ Q_SIGNALS:
     void activityChanged(const QString &text);
     /// Every queued source has been synced. A manual sync waits for this.
     void idle();
+    /// A source whose file is not on this computer (ChessBase files): it was
+    /// skipped, and the user may want to say what to do about it.
+    void sourceUnavailable(const GameSource &source);
 
 private:
     void startNext();

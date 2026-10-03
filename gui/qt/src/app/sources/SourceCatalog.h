@@ -22,6 +22,9 @@ struct SourceKind {
     bool needsSignIn = false;
     /// Whether the account is a federation player ID (FIDE or FSI) rather than a username.
     bool playerId = false;
+    /// Whether the source is a file on this computer (a ChessBase database)
+    /// rather than an account on a site: the "account" is the file's name.
+    bool localFile = false;
 };
 
 /// The kinds of sources Pragma Chess can sync with.

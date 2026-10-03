@@ -492,6 +492,21 @@ while one of them is selected.
   games are stored.
 - Tokens live in `SourceCredentials` (user settings, keyed by source uuid),
   never in the `.pdb`, which may be shared. The system keychain is a TODO.
+- **ChessBase files** (`chessbase`, `SourceKind::localFile`): the games of a
+  ChessBase database on this computer. `app/chessbase/ChessBaseDatabase`
+  reads the `.cbh` family read-only (headers, players `.cbp`, tournaments
+  `.cbt`, moves `.cbg` through `app/chessbase/CbgDecoder`, both pure and
+  unit-tested on records of ChessBase's own sample base); the format is
+  written down in TODO.md. `ChessBaseFetch` reads from where the last sync
+  stopped (`state.read` = records read; external id = record index) in
+  batches of 200. The settings widget shows a file picker instead of an
+  account; the "account" is the file's base name. A file that is not on this
+  computer makes `SourceSync` emit `sourceUnavailable` (and set `lastError`)
+  instead of fetching; `MainWindow::reportUnavailableSource` asks once per
+  run: Ignore, or Ignore on This Computer, which is per device
+  (`SourceCredentials::isIgnoredHere`, cleared when the source is edited in
+  Manage Sources). Only the main line is imported; variations wait for the
+  game tree (TODO.md).
 - Parsers (`parseGame`, `TorneiOnlineFetch::parse*`) are pure and unit-tested
   with recorded JSON or HTML; keep new kinds the same way. Be gentle with the sites' APIs when testing (one request
   at a time, send `SourceFetch::userAgent()`).

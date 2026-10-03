@@ -71,7 +71,8 @@ BookPanel::BookPanel(QWidget *parent)
             action->setEnabled(percent > 0 || move.weight > 0);
             percents.insert(action, percent);
         }
-        QAction *zero = menu.addAction(tr("&Zero Weight"));
+        weight->addSeparator();
+        QAction *zero = weight->addAction(tr("&Zero Weight"));
         zero->setToolTip(tr("Takes the move's weight and gives it to the other moves, in proportion"));
         zero->setEnabled(move.weight > 0);
         QAction *chosen = menu.exec(m_moves->viewport()->mapToGlobal(point));

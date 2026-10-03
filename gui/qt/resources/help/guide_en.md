@@ -75,7 +75,7 @@ Play a move that is not the next one of the game and it becomes a **variation**:
 
 The Moves panel lists the game on the board, with the pieces drawn as figurines. Click a move to go there.
 
-**Variations** are shown under the move they replace, indented and smaller; a variation's own variations follow it in parentheses. Click a move of a variation to follow that line: the arrows then move along it, and clicking a move of the main line brings you back. At the start of a variation, playing the main line's move takes the main line again, and another move starts a sister variation. Variations are saved with the game and travel in the PGN you copy.
+The main line is a table, one move a cell: click the cell to go to the move. **Variations** take a row of their own under the move they replace, smaller, as text; a variation's own variations follow it in parentheses. Click a move of a variation to follow that line: the arrows then move along it, and clicking a move of the main line brings you back. At the start of a variation, playing the main line's move takes the main line again, and another move starts a sister variation. Variations are saved with the game and travel in the PGN you copy.
 
 Right-click a move for its menu:
 
@@ -144,7 +144,7 @@ The **Opening Tree** panel shows, for the position on the board, each move of th
 
 **Your repertoire**: right-click a move of the Opening Tree and choose **Add to Repertoire**. Repertoire moves are listed first, in bold. The mark is stored in the book file and other programs ignore it.
 
-**Weights**: the same menu has **Adjust Weight** (+5%, +10%, +25% and the same downwards) and **Zero Weight**. The percentage is of the move's own share, and the sum of the position always stays 100%: what a move gains the other moves give up in proportion to what they have — the heavy ones most — and what it loses goes back to them the same way. A move at 0% cannot grow by a percentage, so an increase first takes 1% from the others and grows from there; a decrease of a move at 0% does nothing. Zero Weight gives the move's whole share to the other moves that have some. The changes are written into the book in use.
+**Weights**: the same menu has **Adjust Weight**, with +5%, +10%, +25%, the same downwards and **Zero Weight**. The percentage is of the move's own share, and the sum of the position always stays 100%: what a move gains the other moves give up in proportion to what they have — the heavy ones most — and what it loses goes back to them the same way. A move at 0% cannot grow by a percentage, so an increase first takes 1% from the others and grows from there; a decrease of a move at 0% does nothing. Zero Weight gives the move's whole share to the other moves that have some. The changes are written into the book in use.
 
 # Opening names {#opening-names}
 

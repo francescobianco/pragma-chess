@@ -75,7 +75,7 @@ Gioca una mossa che non è la successiva della partita e diventa una **variante*
 
 Il pannello Mosse elenca la partita sulla scacchiera, con i pezzi disegnati come figurine. Clicca una mossa per andarci.
 
-Le **varianti** sono mostrate sotto la mossa che sostituiscono, rientrate e più piccole; le varianti di una variante la seguono tra parentesi. Clicca una mossa di una variante per seguire quella linea: le frecce poi si muovono lungo di essa, e cliccando una mossa della linea principale si torna indietro. All'inizio di una variante, giocare la mossa della linea principale riprende la linea principale, e un'altra mossa apre una variante sorella. Le varianti sono salvate con la partita e viaggiano nel PGN che copi.
+La linea principale è una tabella, una mossa per cella: clicca la cella per andare alla mossa. Le **varianti** hanno una riga tutta loro sotto la mossa che sostituiscono, più piccole, come testo; le varianti di una variante la seguono tra parentesi. Clicca una mossa di una variante per seguire quella linea: le frecce poi si muovono lungo di essa, e cliccando una mossa della linea principale si torna indietro. All'inizio di una variante, giocare la mossa della linea principale riprende la linea principale, e un'altra mossa apre una variante sorella. Le varianti sono salvate con la partita e viaggiano nel PGN che copi.
 
 Clic destro su una mossa per il suo menu:
 
@@ -144,7 +144,7 @@ Il pannello **Albero delle aperture** mostra, per la posizione sulla scacchiera,
 
 **Il tuo repertorio**: clic destro su una mossa dell'Albero delle aperture e scegli **Metti nel repertorio**. Le mosse del repertorio sono elencate per prime, in grassetto. Il segno è scritto nel file del libro e gli altri programmi lo ignorano.
 
-**I pesi**: lo stesso menu ha **Regola peso** (+5%, +10%, +25% e gli stessi in negativo) e **Azzera peso**. La percentuale è della quota della mossa stessa, e la somma della posizione resta sempre 100%: quel che una mossa guadagna lo cedono le altre in proporzione a quanto hanno — le più pesanti di più — e quel che perde torna a loro allo stesso modo. Una mossa allo 0% non può crescere per percentuale, quindi un aumento prima le ruba l'1% dalle altre e cresce da lì; una diminuzione di una mossa allo 0% non fa nulla. Azzera peso dà tutta la quota della mossa alle altre che ne hanno. Le modifiche sono scritte nel libro in uso.
+**I pesi**: lo stesso menu ha **Regola peso**, con +5%, +10%, +25%, gli stessi in negativo e **Azzera peso**. La percentuale è della quota della mossa stessa, e la somma della posizione resta sempre 100%: quel che una mossa guadagna lo cedono le altre in proporzione a quanto hanno — le più pesanti di più — e quel che perde torna a loro allo stesso modo. Una mossa allo 0% non può crescere per percentuale, quindi un aumento prima le ruba l'1% dalle altre e cresce da lì; una diminuzione di una mossa allo 0% non fa nulla. Azzera peso dà tutta la quota della mossa alle altre che ne hanno. Le modifiche sono scritte nel libro in uso.
 
 # Nomi delle aperture {#opening-names}
 

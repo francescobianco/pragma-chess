@@ -361,12 +361,15 @@ branch, empty for the main line.
   moves are never overwritten**, and a stored game is written back at once
   (`MainWindow::storeOpenGame`, shared with annotations; the old "the new
   line becomes a game of its own" is gone).
-- `widgets/MoveTreeView` (QTextBrowser) draws the tree: the main line in two
-  columns with the number in front, each variation in a block under the move
-  it replaces (a White move's row is closed with "…" and reopened after the
-  block, like lichess studies), nested variations inline in parentheses.
-  Every move is a link `path/ply`; the move on the board is highlighted,
-  attributed to the line that owns it (before the branch, the parent's).
+- `widgets/MoveTreeView` (QTextBrowser) draws the tree as a classic table:
+  the main line in two columns with the number in front, one move a cell —
+  the whole cell is the move (`mouseReleaseEvent` maps the table cell to a
+  ply through `m_cellPlies`, the current cell is highlighted) — and each
+  variation in a row spanning both columns under the move it replaces (a
+  White move's row is closed with "…" and reopened after the block, like
+  lichess studies), nested variations inline in parentheses. In those rows
+  every move is a link `path/ply`. The move on the board is attributed to
+  the line that owns it (before the branch, the parent's).
   It rebuilds the document on every change — fine for games of a few hundred
   moves. `placeAt()` serves the context menu, which first follows the line
   of a move clicked in another variation.
@@ -626,7 +629,7 @@ line wins on transpositions). It can be opened and edited like any database.
   engines and other GUIs ignore `learn`, so the book stays a normal Polyglot
   book. Repertoire moves are listed first whatever their weight, in bold and
   brighter. The other `learn` bits are reserved and kept as read.
-- Weights: the same menu has Adjust Weight (±5/10/25%) and Zero Weight.
+- Weights: the same menu has Adjust Weight (±5/10/25%, then Zero Weight).
   `app/BookWeights` (pure, unit-tested) does the arithmetic on the shares of
   the position's moves: the sum is kept, the others give or take in
   proportion to what they have, a move at zero is seeded with 1% before it

@@ -2156,6 +2156,16 @@ private Q_SLOTS:
         // A move the book does not have cannot be marked.
         QVERIFY(!book.setInRepertoire(start, *start.moveFromUci(u"g1f3"), true, &error));
 
+        // The move a book plays: by weight, never one with none.
+        const QList<PolyglotBook::Move> picks{{e4, 70, 0}, {d4, 0, 0}, {*start.moveFromUci(u"c2c4"), 30, 0}};
+        QCOMPARE(PolyglotBook::totalWeight(picks), quint32(100));
+        QCOMPARE(PolyglotBook::pick(picks, 0), 0);
+        QCOMPARE(PolyglotBook::pick(picks, 69), 0);
+        QCOMPARE(PolyglotBook::pick(picks, 70), 2);
+        QCOMPARE(PolyglotBook::pick(picks, 99), 2);
+        QCOMPARE(PolyglotBook::pick(picks, 100), -1);
+        QCOMPARE(PolyglotBook::pick({{d4, 0, 0}}, 0), -1);
+
         // New weights are written into the file, learn bits untouched.
         QList<PolyglotBook::Move> moves = book.moves(start);
         for (PolyglotBook::Move &move : moves)

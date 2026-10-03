@@ -162,6 +162,9 @@ private:
     /// Hides the engine's line while the user thinks and lets the engine answer.
     void updateTraining();
     void playEngineMove();
+    /// The move the opening book plays in the position on the board, drawn
+    /// by weight; nothing when the book has no move there.
+    std::optional<ChessMove> bookReply() const;
     /// Plays the move the engine chose; `evaluation`, the search it came
     /// from, becomes what the user's next move is judged against.
     void playEngineReply(const ChessMove &move, const EngineEvaluation &evaluation);

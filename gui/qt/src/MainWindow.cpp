@@ -45,6 +45,7 @@
 #include "models/GameFilterProxyModel.h"
 #include "models/GameListModel.h"
 #include "platform/SymbolicIcons.h"
+#include "platform/WindowChrome.h"
 #include "widgets/BoardPanel.h"
 #include "widgets/BookPanel.h"
 #include "widgets/PaddedHeaderView.h"
@@ -87,6 +88,8 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QRandomGenerator>
+#include <QScreen>
 #include <QSettings>
 #include <QSplitter>
 #include <QStandardPaths>
@@ -753,6 +756,9 @@ void MainWindow::createToolBar()
     toolBar->setMovable(false);
     // Syncing everything is the one button that stands on its own.
     toolBar->addAction(m_syncNowAction);
+    toolBar->addSeparator();
+    // Saving: the project for now (the floppy).
+    toolBar->addAction(m_saveProjectAction);
     toolBar->addSeparator();
     toolBar->addAction(m_newGameAction);
     toolBar->addAction(m_quickTrainingAction);
@@ -2564,12 +2570,26 @@ void MainWindow::playEngineMove()
     const GameRecord &game = m_session->game();
     QStringList moves;
     moves.reserve(m_session->ply());
-    for (int i = 0; i < m_session->ply(); ++i)
-        moves << game.moves.at(i).uci;
+    for (int i = 1; i <= m_session->ply(); ++i)
+        moves << m_session->moveAt(i).uci; // The line on the board, variations included.
     m_trainingThinking = true;
     m_lastEvaluation = {};
     m_enginePanel->setStatus(tr("Thinking…"));
+    // The search is still run while the book answers: the tutor judges the
+    // user's move against it.
     m_engine->analyze(game.startFen, moves, m_session->position().sideToMove(), {kTrainingDepth, 0, false});
+}
+
+std::optional<ChessMove> MainWindow::bookReply() const
+{
+    if (!m_book)
+        return std::nullopt;
+    const QList<PolyglotBook::Move> moves = m_book->moves(m_session->position());
+    const quint32 total = PolyglotBook::totalWeight(moves);
+    if (total == 0)
+        return std::nullopt;
+    const int index = PolyglotBook::pick(moves, QRandomGenerator::global()->bounded(total));
+    return index < 0 ? std::nullopt : std::optional<ChessMove>(moves.at(index).move);
 }
 
 void MainWindow::finishEngineMove()
@@ -2577,9 +2597,12 @@ void MainWindow::finishEngineMove()
     if (!m_trainingThinking)
         return;
     m_trainingThinking = false;
-    const std::optional<ChessMove> move = m_lastEvaluation.pv.isEmpty()
-        ? std::nullopt
-        : m_session->position().moveFromUci(m_lastEvaluation.pv.constFirst());
+    // In the opening the engine plays the book, each move as often as its
+    // weight says — that is what the weights of the Opening Tree are for;
+    // out of the book, its own best move.
+    std::optional<ChessMove> move = bookReply();
+    if (!move && !m_lastEvaluation.pv.isEmpty())
+        move = m_session->position().moveFromUci(m_lastEvaluation.pv.constFirst());
     if (!move) {
         m_enginePanel->setStatus(tr("The engine found no move to play."));
         return;
@@ -2606,6 +2629,8 @@ void MainWindow::playEngineReply(const ChessMove &move, const EngineEvaluation &
     m_trainingBaseline = evaluation;
     m_trainingBaseline.pv = evaluation.pv.mid(1);
     m_trainingBaseline.depth = qMax(0, evaluation.depth - 1);
+    if (evaluation.pv.isEmpty() || evaluation.pv.constFirst() != move.uci())
+        m_trainingBaseline.depth = 0; // A book move the search did not look at: the analysis will tell.
     ChessPosition next = m_session->position();
     next.play(move);
     m_trainingBaselineFen = next.fen();
@@ -2858,8 +2883,15 @@ void MainWindow::restoreSession()
     QSettings settings;
 
     const QByteArray geometry = settings.value(QStringLiteral("window/geometry")).toByteArray();
-    if (geometry.isEmpty() || !restoreGeometry(geometry))
+    if (geometry.isEmpty() || !restoreGeometry(geometry)) {
         resize(1280, 820);
+    } else {
+        // The saved size is the whole window, frame included (WindowChrome),
+        // and the screen may be smaller than the one it was saved on.
+        WindowChrome::markFramed(this);
+        if (const QScreen *screen = this->screen())
+            resize(size().boundedTo(screen->availableGeometry().size()));
+    }
     // A maximized state set before the window is mapped does not survive
     // mapping (Qt's xcb plugin reads back the state the window manager has not
     // applied yet): start normal and maximize once shown (showEvent).

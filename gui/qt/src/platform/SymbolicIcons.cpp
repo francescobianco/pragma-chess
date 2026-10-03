@@ -90,15 +90,21 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
     }
     case Shape::Save:
     case Shape::SaveAs: {
-        painter->drawRoundedRect(QRectF(2.25, 2.25, 11.5, 11.5), 1.5, 1.5);
-        painter->drawLine(QPointF(8, 4.5), QPointF(8, 9.5));
-        QPainterPath arrow;
-        arrow.moveTo(5.75, 7.5);
-        arrow.lineTo(8, 9.75);
-        arrow.lineTo(10.25, 7.5);
-        painter->drawPath(arrow);
+        // The classic floppy disk: a clipped corner, the shutter above, the
+        // label below.
+        QPainterPath disk;
+        disk.moveTo(2.5, 2.5);
+        disk.lineTo(10.75, 2.5);
+        disk.lineTo(13.5, 5.25);
+        disk.lineTo(13.5, 13.5);
+        disk.lineTo(2.5, 13.5);
+        disk.closeSubpath();
+        painter->drawPath(disk);
+        painter->drawRect(QRectF(5, 2.5, 5.5, 3.5));              // The shutter.
+        painter->fillRect(QRectF(8.25, 3.25, 1.25, 2), color);     // Its slot.
+        painter->drawRect(QRectF(4.5, 9, 7, 4.5));                 // The label.
         if (shape == Shape::SaveAs)
-            painter->drawLine(QPointF(5, 12), QPointF(11, 12));
+            painter->drawLine(QPointF(6, 11.25), QPointF(10, 11.25));
         break;
     }
     case Shape::First:

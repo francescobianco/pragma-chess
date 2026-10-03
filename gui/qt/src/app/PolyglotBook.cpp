@@ -187,6 +187,25 @@ bool PolyglotBook::setWeights(const ChessPosition &position, const QList<Move> &
     return written || fail(writeError);
 }
 
+quint32 PolyglotBook::totalWeight(const QList<Move> &moves)
+{
+    quint32 total = 0;
+    for (const Move &move : moves)
+        total += quint32(qMax(0, move.weight));
+    return total;
+}
+
+int PolyglotBook::pick(const QList<Move> &moves, quint32 draw)
+{
+    for (int i = 0; i < moves.size(); ++i) {
+        const quint32 weight = quint32(qMax(0, moves.at(i).weight));
+        if (draw < weight)
+            return i;
+        draw -= weight;
+    }
+    return -1;
+}
+
 quint64 PolyglotBook::key(const ChessPosition &position)
 {
     quint64 hash = 0;

@@ -9,7 +9,7 @@ The window has the **board** in the middle and four panels around it:
 - **Opening Tree**: the moves of the opening book for the position on the board.
 - **Engine**: the evaluation, the best line and the opening the game is in.
 
-The **toolbar** has Sync Now, New Game, New Training and three icons to choose the opening book, the engine and the database in use.
+The **toolbar** has Sync Now, Save Project, New Game, New Training and three icons to choose the opening book, the engine and the database in use.
 
 Everything you see — database, game, move, panels — is a **project**: it comes back as you left it the next time you start Pragma Chess.
 
@@ -120,6 +120,8 @@ The engine in use is part of the project.
 **Game ▸ New Training…** (Ctrl+Shift+T) starts a game against the engine. Choose White, Black or Random and press Start.
 
 While it is your move the engine hides its best line and shows only the score. When you have moved, it answers by itself, slowly, so that you see its move.
+
+As long as the position is in the **opening book**, the engine answers with a book move, choosing each as often as its weight says: adjust the weights in the Opening Tree to train against the lines you want, as often as you want. Out of the book it plays its own best move.
 
 The **tutor** watches your moves. When one is an **inaccuracy**, a **mistake**, a **blunder** or a **missed chance**, the engine does not answer; the border of the board turns red, the Engine panel says what happened and offers:
 

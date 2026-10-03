@@ -60,6 +60,13 @@ public:
     /// zero. False if a move is not in the book or the file cannot be written.
     bool setWeights(const ChessPosition &position, const QList<Move> &moves, QString *errorMessage);
 
+    /// The move a book plays: the one whose weight `draw` falls in, with
+    /// `draw` in [0, sum of the weights) — a random number, or a chosen one
+    /// in a test. Moves with no weight are never picked; -1 if nothing has any.
+    static int pick(const QList<Move> &moves, quint32 draw);
+    /// The sum of the weights of the moves.
+    static quint32 totalWeight(const QList<Move> &moves);
+
     /// The Polyglot key of a position.
     static quint64 key(const ChessPosition &position);
     /// A move as a book stores it; castling is the king taking its own rook.

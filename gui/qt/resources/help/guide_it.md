@@ -9,7 +9,7 @@ La finestra ha la **scacchiera** al centro e quattro pannelli attorno:
 - **Albero delle aperture**: le mosse del libro per la posizione sulla scacchiera.
 - **Motore**: la valutazione, la linea migliore e l'apertura in cui si trova la partita.
 
-La **barra degli strumenti** ha Sincronizza, Nuova partita, Nuovo allenamento e tre icone per scegliere il libro delle aperture, il motore e il database in uso.
+La **barra degli strumenti** ha Sincronizza, Salva progetto, Nuova partita, Nuovo allenamento e tre icone per scegliere il libro delle aperture, il motore e il database in uso.
 
 Tutto quello che vedi — database, partita, mossa, pannelli — è un **progetto**: la prossima volta che avvii Pragma Chess lo ritrovi come l'hai lasciato.
 
@@ -120,6 +120,8 @@ Il motore in uso fa parte del progetto.
 **Partita ▸ Nuovo allenamento…** (Ctrl+Shift+T) comincia una partita contro il motore. Scegli Bianco, Nero o Casuale e premi Inizia.
 
 Finché tocca a te il motore nasconde la sua linea migliore e mostra solo il punteggio. Quando hai mosso risponde da solo, lentamente, così vedi la sua mossa.
+
+Finché la posizione è nel **libro di aperture**, il motore risponde con una mossa del libro, scegliendo ciascuna tanto spesso quanto dice il suo peso: regola i pesi nell'Albero delle aperture per allenarti contro le linee che vuoi, quanto vuoi. Fuori dal libro gioca la sua mossa migliore.
 
 Il **tutor** guarda le tue mosse. Quando una è un'**imprecisione**, un **errore**, un **errore grave** o un'**occasione mancata**, il motore non risponde; il bordo della scacchiera diventa rosso, il pannello Motore dice che cosa è successo e offre:
 

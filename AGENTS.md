@@ -161,7 +161,8 @@ modal, so it stays open while the user tries things.
 
 ## Toolbar
 
-`MainWindow::createToolBar`: Sync Now on its own, then New Game and New
+`MainWindow::createToolBar`: Sync Now on its own, then the saving section
+(Save Project, the floppy; more will come), then New Game and New
 Training, then the three resources in use — book, engine, database
 (`m_bookButton`, `m_engineButton`, `m_databaseButton`). Each of these is an
 icon only (the user found the names in the toolbar ugly) that drops down the
@@ -205,7 +206,11 @@ status bar reaches them), and when it is maximized the margin and the
 rounding go, as for every window of the desktop; full screen is the contents
 alone. The contents move in by contents margins — one pixel more than the
 shadow, so they do not paint over the panel's edge —, and the sizes a window
-asked for (minimum, fixed, `resize()`) grow by the frame. The main window's
+asked for (minimum, fixed, `resize()`) grow by the frame — except a size
+restored from a previous run, which already holds it
+(`WindowChrome::markFramed`, set by `restoreSession` after `restoreGeometry`):
+growing it again made the main window bigger at every start until it ran off
+the screen. A window never starts larger than its screen. The main window's
 status bar loses its size grip: the frame's edges resize, and the grip sat
 out of place inside `PaddedStatusBar`'s margins. The title bar moves the
 window (`startSystemMove`; a double click maximizes the main window), the
@@ -687,7 +692,13 @@ while the menu entry and its shortcut always ask. Everything lives in `MainWindo
   engine's colour.
 - When the engine is to move, a fixed-depth search (`kTrainingDepth`) replaces
   the infinite analysis (`analyzeCurrentPosition` steps aside while
-  `m_trainingThinking`) and its first PV move is played on `searchFinished`.
+  `m_trainingThinking`) and, on `searchFinished`, the move played is the
+  **book's** while the position is in the chosen book — drawn by weight
+  (`PolyglotBook::pick`, pure; `MainWindow::bookReply`), which is what the
+  weights of the Opening Tree are for — else the first PV move. The search
+  runs anyway: the tutor judges the user's move against it. A book move the
+  search did not pick leaves the tutor's baseline to the live analysis
+  (depth 0).
 - **The tutor** stops the game when the user's move is an error, without an
   analysis of its own: `app/TrainingTutor::judge` (pure, unit-tested, on the
   scale of Explain's `classifyMove`) compares the evaluation the user moved

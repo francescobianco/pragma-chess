@@ -8,6 +8,18 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- The main window no longer grows at every start (by the height of its
+  title bar and the width of its shadow) until it ran off the screen; a
+  window never opens larger than the screen.
+- The title bar drops the asterisk as soon as the project is saved, not
+  at the next click.
+- The toolbar has a Save Project button, the classic floppy, before New
+  Game; the Save icons of the menus are floppies too.
+- **Training plays the book.** While the position is in the opening book,
+  the engine answers with a book move, each as often as its weight says —
+  tune the weights in the Opening Tree to train against the lines you want.
+  Out of the book it plays its own move; the tutor judges your moves as
+  before.
 - **Book weights.** Right-clicking a move of the Opening Tree offers Adjust
   Weight (+5% to +100%, the same downwards, and Zero Weight): the share
   of the move changes, the other moves give or take in proportion to what

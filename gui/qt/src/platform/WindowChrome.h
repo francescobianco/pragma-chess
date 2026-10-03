@@ -20,6 +20,9 @@ public:
     /// Dresses `window`, a top-level dialog or main window; called when it is
     /// polished, before it is shown.
     static void install(QWidget *window);
+    /// Says the window's size already includes the frame — a geometry saved
+    /// by a previous run — so the chrome does not grow it again.
+    static void markFramed(QWidget *window);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;

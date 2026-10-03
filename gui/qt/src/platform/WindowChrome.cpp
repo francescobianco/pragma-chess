@@ -5,6 +5,7 @@
 #include <QMainWindow>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QScreen>
 #include <QPainterPath>
 #include <QStatusBar>
 #include <QWindow>
@@ -20,8 +21,15 @@ constexpr int kButtonSize = 24;
 constexpr int kButtonGap = 8;
 /// How near the panel's edge a press resizes the window.
 constexpr int kResizeGrip = 6;
+/// Set on a window whose size already includes the frame (a restored geometry).
+constexpr const char *kFramedProperty = "pragmaChromeFramed";
 
 } // namespace
+
+void WindowChrome::markFramed(QWidget *window)
+{
+    window->setProperty(kFramedProperty, true);
+}
 
 void WindowChrome::install(QWidget *window)
 {
@@ -61,8 +69,17 @@ WindowChrome::WindowChrome(QWidget *window)
         window->setMaximumWidth(window->maximumWidth() + frame.width());
     if (window->maximumHeight() < QWIDGETSIZE_MAX)
         window->setMaximumHeight(window->maximumHeight() + frame.height());
-    if (window->testAttribute(Qt::WA_Resized))
+    // A geometry restored from a previous run already holds the frame
+    // (kFramedProperty): growing it again would make the window bigger at
+    // every start, until it ran off the screen. Whatever the size, it never
+    // starts larger than the screen it is on.
+    if (window->testAttribute(Qt::WA_Resized) && !window->property(kFramedProperty).toBool())
         window->resize(window->size() + frame);
+    if (const QScreen *screen = window->screen()) {
+        const QSize room = screen->availableGeometry().size();
+        if (window->width() > room.width() || window->height() > room.height())
+            window->resize(window->size().boundedTo(room));
+    }
     window->setMouseTracking(true);
     window->installEventFilter(this);
 }
@@ -183,6 +200,7 @@ bool WindowChrome::eventFilter(QObject *watched, QEvent *event)
         QMetaObject::invokeMethod(this, [this] { dropSizeGrip(); }, Qt::QueuedConnection);
         return false;
     case QEvent::WindowTitleChange:
+    case QEvent::ModifiedChange: // The "[*]" asterisk: a title change without the event.
     case QEvent::WindowActivate:
     case QEvent::WindowDeactivate:
         m_window->update();

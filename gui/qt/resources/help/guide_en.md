@@ -133,7 +133,7 @@ Checkmate or stalemate ends the game, which is saved in the open database.
 
 Tick **Remember for this session** in the New Training window and the toolbar button will start the next trainings with the same choice, without asking. The menu always asks.
 
-**Engine ▸ Training Mode** turns training on or off for the game on the board. If you close Pragma Chess while training, it starts again in training.
+**Engine ▸ Training Mode** turns training on or off for the game on the board. Opening a game from the games list turns it off. If you close Pragma Chess while training, it starts again in training.
 
 # Opening books {#books}
 

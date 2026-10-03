@@ -133,7 +133,7 @@ Scacco matto o stallo chiudono la partita, che viene salvata nel database aperto
 
 Spunta **Ricorda per questa sessione** nella finestra Nuovo allenamento e il bottone della barra degli strumenti comincerà i prossimi allenamenti con la stessa scelta, senza chiedere. Il menu chiede sempre.
 
-**Motore ▸ Modalità allenamento** accende o spegne l'allenamento per la partita sulla scacchiera. Se chiudi Pragma Chess mentre ti alleni, riparte in allenamento.
+**Motore ▸ Modalità allenamento** accende o spegne l'allenamento per la partita sulla scacchiera. Aprire una partita dalla lista lo spegne. Se chiudi Pragma Chess mentre ti alleni, riparte in allenamento.
 
 # Libri delle aperture {#books}
 

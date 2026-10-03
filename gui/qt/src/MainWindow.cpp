@@ -1092,6 +1092,9 @@ void MainWindow::openGame(const QModelIndex &proxyIndex)
     if (!m_database || !source.isValid())
         return;
     if (std::optional<GameRecord> game = m_database->loadGame(source.row())) {
+        // A game from the database is to be studied, not played: training
+        // goes off first, or the engine would answer in it.
+        m_trainingModeAction->setChecked(false);
         m_gameView->selectRow(proxyIndex.row());
         m_openGameIndex = source.row();
         orientBoardForMe(*game);

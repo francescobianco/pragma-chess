@@ -27,7 +27,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 - Opening a game from the games list turns Training Mode off: a stored
   game is for studying, and the engine must not play moves in it.
 - Project files store the panels in clear: which are shown and their
-  shares of the window in per cent (`workspace` in the `.pch`), so a
+  shares of the window in per cent, with two decimals (`workspace` in
+  the `.pch`), so a
   project looks the same on another screen and can be read and edited by
   hand. Older projects are still read.
 - View lists the panels as Moves, Opening Tree, Engine and, last, Games

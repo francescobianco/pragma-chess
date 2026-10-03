@@ -175,10 +175,10 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     env.workspace.openingTree = valueOf<bool>(panels["openingTree"], defaults.openingTree);
     env.workspace.engine = valueOf<bool>(panels["engine"], defaults.engine);
     env.workspace.games = valueOf<bool>(panels["games"], defaults.games);
-    env.workspace.gamesHeight = WorkspaceLayout::clamped(valueOf<int>(workspace["gamesHeight"], defaults.gamesHeight));
-    env.workspace.movesWidth = WorkspaceLayout::clamped(valueOf<int>(workspace["movesWidth"], defaults.movesWidth));
-    env.workspace.engineHeight = WorkspaceLayout::clamped(valueOf<int>(workspace["engineHeight"], defaults.engineHeight));
-    env.workspace.treeWidth = WorkspaceLayout::clamped(valueOf<int>(workspace["treeWidth"], defaults.treeWidth));
+    env.workspace.gamesHeight = WorkspaceLayout::clamped(valueOf<double>(workspace["gamesHeight"], defaults.gamesHeight));
+    env.workspace.movesWidth = WorkspaceLayout::clamped(valueOf<double>(workspace["movesWidth"], defaults.movesWidth));
+    env.workspace.engineHeight = WorkspaceLayout::clamped(valueOf<double>(workspace["engineHeight"], defaults.engineHeight));
+    env.workspace.treeWidth = WorkspaceLayout::clamped(valueOf<double>(workspace["treeWidth"], defaults.treeWidth));
     // Older projects carry Qt's opaque state instead; it is honoured once.
     if (!hasShares)
         env.legacyLayout = QByteArray::fromBase64(fromNode(workspace["layout"]).toLatin1());

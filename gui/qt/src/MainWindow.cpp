@@ -836,25 +836,25 @@ WorkspaceLayout MainWindow::captureLayout()
     if (!isVisible() || m_layoutPending)
         return layout; // Nothing on screen to measure (closing, or not yet shown): the last shares.
     const auto percent = [](int part, int whole) {
-        return whole > 0 ? WorkspaceLayout::clamped(qRound(100.0 * part / whole)) : -1;
+        return whole > 0 ? WorkspaceLayout::clamped(100.0 * part / whole) : -1.0;
     };
     // Only what is on screen is measured: a hidden panel keeps its share.
     if (layout.games) {
         const int usable = centralWidget()->height() + m_gamesDock->height();
-        if (const int share = percent(m_gamesDock->height(), usable); share > 0)
+        if (const double share = percent(m_gamesDock->height(), usable); share > 0)
             layout.gamesHeight = share;
     }
     if (layout.moves && layout.openingTree) {
-        if (const int share = percent(m_movesDock->width(), m_movesDock->width() + m_openingTreeDock->width()); share > 0)
+        if (const double share = percent(m_movesDock->width(), m_movesDock->width() + m_openingTreeDock->width()); share > 0)
             layout.movesWidth = share;
     }
     if (layout.engine && (layout.moves || layout.openingTree)) {
-        if (const int share = percent(m_engineDock->height(), m_sidebar->height()); share > 0)
+        if (const double share = percent(m_engineDock->height(), m_sidebar->height()); share > 0)
             layout.engineHeight = share;
     }
     const QList<int> sizes = m_gamesSplitter->sizes();
     if (sizes.size() == 2 && layout.games) {
-        if (const int share = percent(sizes.at(0), sizes.at(0) + sizes.at(1)); share > 0)
+        if (const double share = percent(sizes.at(0), sizes.at(0) + sizes.at(1)); share > 0)
             layout.treeWidth = share;
     }
     m_layout = layout; // Remembered for when there is nothing to measure.
@@ -890,20 +890,22 @@ void MainWindow::applyLayoutShares()
     // Shares into pixels, out of the room the panels have now.
     if (layout.games) {
         const int usable = centralWidget()->height() + m_gamesDock->height();
-        resizeDocks({m_gamesDock}, {usable * layout.gamesHeight / 100}, Qt::Vertical);
+        resizeDocks({m_gamesDock}, {WorkspaceLayout::pixels(layout.gamesHeight, usable)}, Qt::Vertical);
     }
     if (layout.moves && layout.openingTree) {
         const int row = m_movesDock->width() + m_openingTreeDock->width();
-        m_sidebar->resizeDocks({m_movesDock, m_openingTreeDock},
-                               {row * layout.movesWidth / 100, row - row * layout.movesWidth / 100}, Qt::Horizontal);
+        const int moves = WorkspaceLayout::pixels(layout.movesWidth, row);
+        m_sidebar->resizeDocks({m_movesDock, m_openingTreeDock}, {moves, row - moves}, Qt::Horizontal);
     }
     if (layout.engine && (layout.moves || layout.openingTree)) {
         const int column = m_sidebar->height();
-        m_sidebar->resizeDocks({m_engineDock}, {column * layout.engineHeight / 100}, Qt::Vertical);
+        m_sidebar->resizeDocks({m_engineDock}, {WorkspaceLayout::pixels(layout.engineHeight, column)}, Qt::Vertical);
     }
     const int width = m_gamesSplitter->width();
-    if (width > 0)
-        m_gamesSplitter->setSizes({width * layout.treeWidth / 100, width - width * layout.treeWidth / 100});
+    if (width > 0) {
+        const int tree = WorkspaceLayout::pixels(layout.treeWidth, width);
+        m_gamesSplitter->setSizes({tree, width - tree});
+    }
 }
 
 void MainWindow::restoreLegacyLayout(const QByteArray &layout)

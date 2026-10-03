@@ -580,7 +580,7 @@ while one of them is selected.
   Anything about what the user is looking at belongs in `Project`, not in
   QSettings. The panels are `workspace` (`app/WorkspaceLayout`), in clear:
   `panels` (toolbar, moves, openingTree, engine, games: shown or not) and
-  the shares in per cent of the area the panels can occupy — `gamesHeight`
+  the shares in per cent, two decimals, of the area the panels can occupy — `gamesHeight`
   of the usable height (central area + Games panel), `movesWidth` of the
   Moves | Opening Tree row, `engineHeight` of the column right of the board,
   `treeWidth` of the Games panel — so a project looks the same on another

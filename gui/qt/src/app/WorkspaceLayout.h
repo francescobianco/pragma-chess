@@ -14,17 +14,24 @@ struct WorkspaceLayout {
     bool games = true;
 
     /// Height of the Games panel (tree and list), of the usable height.
-    int gamesHeight = 32;
+    double gamesHeight = 32;
     /// Width of the Moves panel in its row with the Opening Tree.
-    int movesWidth = 50;
+    double movesWidth = 50;
     /// Height of the Engine panel, of the height right of the board.
-    int engineHeight = 25;
+    double engineHeight = 25;
     /// Width of the database tree in the Games panel.
-    int treeWidth = 22;
+    double treeWidth = 22;
 
-    /// A share as the file may carry it: clamped so that every panel keeps
+    /// A share as the file may carry it: two decimals (whole per cents
+    /// quantize a tall window visibly), clamped so that every panel keeps
     /// some room.
-    static int clamped(int percent) { return percent < 5 ? 5 : percent > 95 ? 95 : percent; }
+    static double clamped(double percent)
+    {
+        const double rounded = static_cast<double>(static_cast<long long>(percent * 100 + (percent < 0 ? -0.5 : 0.5))) / 100;
+        return rounded < 5 ? 5 : rounded > 95 ? 95 : rounded;
+    }
+    /// The pixels a share of `whole` comes to.
+    static int pixels(double percent, int whole) { return static_cast<int>(whole * percent / 100 + 0.5); }
 
     bool operator==(const WorkspaceLayout &) const = default;
 };

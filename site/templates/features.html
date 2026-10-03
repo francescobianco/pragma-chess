@@ -1,0 +1,12 @@
+<section class="features" id="features">
+  <h2>{{features.title}}</h2>
+  <p class="section-lead">{{features.lead}}</p>
+  <div class="grid">
+    {{#each features.items}}<article class="card">
+      <div class="icon" aria-hidden="true">{{icon}}</div>
+      <h3>{{title}}</h3>
+      <p>{{text}}</p>
+    </article>
+    {{/each}}
+  </div>
+</section>

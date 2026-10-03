@@ -1,0 +1,19 @@
+<section class="support" id="support">
+  <h2>{{support.title}}</h2>
+  <p class="section-lead">{{support.lead}}</p>
+  <div class="grid">
+    {{#each support.items}}<article class="card">
+      <h3>{{title}}</h3>
+      <p>{{text}}</p>
+      {{#if link}}<a href="{{link}}" rel="noopener">{{link_text}}</a>{{/if}}
+    </article>
+    {{/each}}
+  </div>
+  <div class="clubs">
+    <h3>{{support.clubs_title}}</h3>
+    <p>{{support.clubs_text}}</p>
+    <ul>
+      <li><a href="https://circolodelre.it" rel="noopener">ASD Circolo del Re – Castelvetrano Scacchi</a></li>
+    </ul>
+  </div>
+</section>

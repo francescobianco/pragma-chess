@@ -1,0 +1,83 @@
+{
+  "language_names": {"en": "English", "it": "Italiano"},
+  "meta": {
+    "title": "Pragma Chess — an open source chess database for studying, training and playing",
+    "description": "Pragma Chess keeps your games in databases and lets you study them with an engine, an opening book and your notes; train against the engine with a tutor; play online. Light, simple, with what really matters. Windows, macOS, Linux."
+  },
+  "nav": {
+    "menu": "Menu",
+    "features": "Features",
+    "screenshots": "Screenshots",
+    "download": "Download",
+    "support": "Support"
+  },
+  "hero": {
+    "title": "Your chess, in one place.",
+    "lead": "An open source chess database for studying, training and playing: light, simple, with what really matters.",
+    "download": "Download",
+    "source": "Source code",
+    "note": "Free, MIT licensed. For Windows, macOS and Linux.",
+    "alt": "Pragma Chess explaining why 14.Rd1 wins Morphy's Opera game: arrows on the board, the evaluation and the line in the Engine panel"
+  },
+  "features": {
+    "title": "What it does",
+    "lead": "Everything a chess player needs to keep, study and improve — and nothing in the way.",
+    "items": [
+      {"icon": "♜", "title": "Databases of games", "text": "Your games in .pdb databases: import PGN, lichess.org and chess.com games, torneionline.com tournaments and ChessBase files. Search by position, variation, player, opening, tournament and year."},
+      {"icon": "♞", "title": "Explain", "text": "Press E and the engine shows on the board why the last move is good or bad: red arrows where material falls, blue arrows for the reply that makes the difference, a forced mate played out."},
+      {"icon": "♝", "title": "Variations and notes", "text": "Play a move that is not the next one and it becomes a variation, shown under the move it replaces. Annotate moves with !, ?, ±, ∞… Everything is saved with the game and travels in PGN."},
+      {"icon": "♛", "title": "Training with a tutor", "text": "Play against the engine, from the opening book you tune. When your move is a mistake the tutor stops the game and lets you take it back, explain it or go on."},
+      {"icon": "♚", "title": "Play online", "text": "Connect your lichess.org account and play people from the same board. While you play, the engine, Explain and the book are off: it is you against your opponent."},
+      {"icon": "♟", "title": "Opening books", "text": "Polyglot books with your repertoire and the weights you choose, so the engine trains you on the lines you want. Named openings in English and Italian."},
+      {"icon": "⟳", "title": "Sync between computers", "text": "Keep your databases and projects the same on every computer through an FTP, WebDAV or Git folder, and on your phone with the companion app. Nothing is ever deleted without a merge."},
+      {"icon": "☰", "title": "Projects", "text": "Database, game, move, panels and engine are a project you reopen as you left it. Native desktop interface, in English and Italian."}
+    ]
+  },
+  "screenshots": {
+    "title": "Screenshots",
+    "lead": "Pragma Chess on GNOME. Click a picture to see it full size.",
+    "close": "Close",
+    "items": [
+      {"file": "explain", "caption": "Explain: why 14.Rd1 wins the Opera game"},
+      {"file": "main", "caption": "A game of the database on the board, with the moves and the games list"},
+      {"file": "tree", "caption": "The Opening Tree: book moves with their weights and the openings they lead to"},
+      {"file": "online", "caption": "Play Online: connect a platform, choose clock and colour, find an opponent"},
+      {"file": "guide", "caption": "The guide, built in, in your language"}
+    ]
+  },
+  "download": {
+    "title": "Download",
+    "lead": "Pick your system. The latest release is",
+    "note": "Every release comes with Stockfish as the default engine; any UCI engine works.",
+    "all": "All releases and older versions →",
+    "formats_title": "What you get",
+    "platforms": [
+      {"match": "windows-x64-setup.exe", "icon": "⊞", "name": "Windows", "text": "Installer for Windows 10 and 11, 64-bit. A portable .zip is on the releases page.", "label": "Download for Windows"},
+      {"match": "macos-arm64.dmg", "icon": "⌘", "name": "macOS", "text": "Disk image for Apple Silicon Macs. Open it and drag Pragma Chess to Applications.", "label": "Download for macOS"},
+      {"match": "amd64.deb", "icon": "🐧", "name": "Linux (Debian, Ubuntu)", "text": ".deb package for Ubuntu 24.04 and later and Debian 12 and later.", "label": "Download the .deb"},
+      {"match": "x86_64.rpm", "icon": "🐧", "name": "Linux (Fedora)", "text": ".rpm package for Fedora and compatible distributions.", "label": "Download the .rpm"}
+    ],
+    "formats": [
+      {"name": ".pdb databases", "text": "SQLite files you can copy, share and open with other tools; one database per collection of games."},
+      {"name": ".pch projects", "text": "readable YAML with the database, the game, the engine and the arrangement of the panels."},
+      {"name": "PGN and Polyglot", "text": "the standard formats for games and opening books, in and out."}
+    ]
+  },
+  "support": {
+    "title": "Support and community",
+    "lead": "Pragma Chess is made in the open, with chess clubs and players.",
+    "items": [
+      {"title": "Guide", "text": "The guide is built into the application (Help ▸ Pragma Chess Guide, F1), with a search field, in English and Italian.", "link": "", "link_text": ""},
+      {"title": "Report a problem", "text": "Something wrong, or missing? Open an issue on GitHub with what you did and what you saw.", "link": "https://github.com/francescobianco/pragma-chess/issues", "link_text": "Issues on GitHub →"},
+      {"title": "Contribute", "text": "The code is MIT licensed: C++ and Qt for the desktop client, Rust for the database engine to come. Pull requests are welcome.", "link": "https://github.com/francescobianco/pragma-chess", "link_text": "The repository →"}
+    ],
+    "clubs_title": "Clubs that support Pragma Chess",
+    "clubs_text": "Thanks to the chess clubs that test it, use it and tell us what they need."
+  },
+  "footer": {
+    "license": "Pragma Chess is free software under the MIT License.",
+    "changelog": "What's new",
+    "issues": "Issues",
+    "credits": "Built with Qt. Default engine: Stockfish (GPL v3). Opening names from lichess-org/chess-openings (CC0). Pieces: Good Companion."
+  }
+}

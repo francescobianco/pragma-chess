@@ -6,7 +6,7 @@ GENERATOR := $(if $(shell command -v ninja),-G Ninja,)
 
 PREFIX ?= $(HOME)/.local
 
-.PHONY: help start build run test install desktop-dev configure clean deps stockfish
+.PHONY: help start build run test install desktop-dev configure clean deps stockfish site
 
 help: ## Show available targets
 	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-10s %s\n", $$1, $$2}'
@@ -45,6 +45,9 @@ desktop-dev: ## Show the app icon for the development build (user menu entry)
 
 stockfish: ## Download the bundled engine (packaging/stockfish.env) next to the development build
 	@./scripts/fetch-stockfish.sh $(BUILD_DIR)/gui/qt/engines
+
+site: ## Generate the web site (docs/) from site/
+	@python3 site/build.py
 
 clean: ## Remove the build directory
 	@rm -rf $(BUILD_DIR)

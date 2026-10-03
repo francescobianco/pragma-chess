@@ -1,0 +1,16 @@
+<section class="screenshots" id="screenshots">
+  <h2>{{screenshots.title}}</h2>
+  <p class="section-lead">{{screenshots.lead}}</p>
+  <div class="gallery">
+    {{#each screenshots.items}}<a class="shot" href="../assets/screenshots/{{file}}.png" data-caption="{{caption}}">
+      <img src="../assets/screenshots/{{file}}-thumb.png" alt="{{caption}}" loading="lazy" width="720" height="438">
+      <span>{{caption}}</span>
+    </a>
+    {{/each}}
+  </div>
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="close" type="button" aria-label="{{screenshots.close}}">×</button>
+    <img src="" alt="">
+    <p></p>
+  </div>
+</section>

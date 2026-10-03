@@ -1,0 +1,22 @@
+<section class="download" id="download">
+  <h2>{{download.title}}</h2>
+  <p class="section-lead">{{download.lead}} <span id="release-version" class="version"></span></p>
+  <div class="platforms">
+    {{#each download.platforms}}<article class="platform" data-match="{{match}}">
+      <div class="icon" aria-hidden="true">{{icon}}</div>
+      <h3>{{name}}</h3>
+      <p>{{text}}</p>
+      <a class="button primary asset" href="{{releases_url}}" rel="noopener">{{label}}</a>
+      <small class="asset-name"></small>
+    </article>
+    {{/each}}
+  </div>
+  <p class="download-note">{{download.note}} <a href="{{releases_url}}" rel="noopener">{{download.all}}</a></p>
+  <div class="formats">
+    <h3>{{download.formats_title}}</h3>
+    <ul>
+      {{#each download.formats}}<li><strong>{{name}}</strong> — {{text}}</li>
+      {{/each}}
+    </ul>
+  </div>
+</section>

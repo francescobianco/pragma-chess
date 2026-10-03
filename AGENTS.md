@@ -60,7 +60,13 @@ gui/qt/
   resources/help/      the guide, one Markdown file per language
   resources/credits/   logos of the supporting clubs, shown in About
   translations/        interface translations (.ts), built with Qt Linguist tools
-docs/                  design and tuning notes (explain-tuning.md)
+docs/                  the web site, as GitHub Pages serves it (generated: do not
+                       edit; `make site`), and docs/tech/ the design and tuning
+                       notes (explain-tuning.md, phone-link.md)
+site/                  the site's sources: build.py (Python, no dependencies),
+                       templates/ (composable HTML partials), content/<lang>.json
+                       (the texts, one file per language), assets/ (style, script,
+                       screenshots)
 packaging/             installers: windows/ (Inno Setup), macos/ (dmg), linux/
                        (CPack .deb/.rpm), artwork; see packaging/README.md
 .github/workflows/release.yml  builds them all and publishes a release on a v* tag
@@ -131,7 +137,7 @@ playing a move turns it off, and the user asks again at the next move.
   with a red frame, restoring the position on `stopSequence()`.
 - `tools/explain` builds `pragma-explain`, the same explanation on the command
   line with a trace. **Tuning happens there**: read
-  [docs/explain-tuning.md](docs/explain-tuning.md) first, and log feedback
+  [docs/explain-tuning.md](docs/tech/explain-tuning.md) first, and log feedback
   and decisions in it. Enrich the explanation, don't replace what works.
 
 ## Guide and About
@@ -798,6 +804,25 @@ a platform; lichess.org for now, through its Board API, more to come.
   game). The end (`onlineGameFinished`) writes the result and saves the game
   to the open database with players, ratings, "lichess.org rated/casual
   game" and the game's URL as site. The flag is not part of the project.
+
+## Web site
+
+`site/build.py` writes `docs/` from `site/`: `templates/page.html` composes
+the partials (`{{> header}}`, hero, features, screenshots, download, support,
+footer) with `{{placeholders}}`, `{{#each list}}…{{/each}}` and
+`{{#if value}}…{{/if}}` over the texts of `content/<lang>.json`, one page per
+language under `docs/<lang>/`; the root `index.html` (and `404.html`) sends
+the browser to its language by `navigator.languages`, falling back to
+English, with relative paths so the site works under
+`/pragma-chess/` on GitHub Pages. **Edit `site/`, never `docs/`** (except
+`docs/tech/`, the notes, which the build leaves alone), then run `make site`
+and commit both. A new text goes in every `content/<lang>.json`. The
+download section links the latest release; `assets/site.js` fills version,
+asset names and direct links from GitHub's API when it can, and highlights
+the visitor's own system. Screenshots are taken in the headless GNOME
+session at 1920×1200, maximized, cropped of the top bar and scaled to 1440
+(thumbnails 720); replace them when the interface changes. GitHub Pages is
+set to the `main` branch, folder `/docs`.
 
 ## Working agreements
 

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pragma Chess</title>
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="1; url={{default}}/">
+<script>
+  // The language of the browser decides, among the ones the site speaks.
+  (function () {
+    var languages = {{languages}};
+    var wanted = (navigator.languages || [navigator.language || "{{default}}"]).map(function (l) { return l.slice(0, 2).toLowerCase(); });
+    var chosen = "{{default}}";
+    for (var i = 0; i < wanted.length; i++) {
+      if (languages.indexOf(wanted[i]) >= 0) { chosen = wanted[i]; break; }
+    }
+    // Keep the base path (GitHub Pages serves the site under /pragma-chess/).
+    var base = location.pathname.replace(/[^/]*$/, "");
+    location.replace(base + chosen + "/" + location.hash);
+  })();
+</script>
+</head>
+<body>
+<p><a href="en/">English</a> · <a href="it/">Italiano</a></p>
+</body>
+</html>

@@ -238,7 +238,10 @@ painting under `gtk_dialog_run` (a null backing store in
 `QWaylandShmBackingStore::ensureSize`), so Save Project on an untitled
 project — which opens Save Project As — killed the application.
 `QPainterPath::arcTo` ignores an empty rectangle: a square corner is a
-`lineTo`, or the panel is not filled.
+`lineTo`, or the panel is not filled. The panel is filled in `Source` mode
+(it replaces the shadow) and its one-pixel edge stroked afterwards in
+`SourceOver`: stroked together with the fill, the edge's antialiased pixels
+were half transparent and let the desktop show through.
 
 To see what the client really does, run it in a headless GNOME Shell of its
 own, invisible to the user: `dbus-run-session` → `gnome-shell --headless

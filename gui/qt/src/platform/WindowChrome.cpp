@@ -372,13 +372,22 @@ void WindowChrome::paint()
     corner(inner.bottomLeft(), bottomRadius, 270, QPointF(1, -1));
     shape.closeSubpath();
     const QColor window = palette.color(QPalette::Window);
+    // The panel replaces the shadow under it (Source), opaque. The edge is
+    // stroked afterwards, blended over that opaque fill: stroked together
+    // with the fill in Source mode, its antialiased pixels replaced the
+    // panel with half-transparent ones, and the edge let the desktop show
+    // through — brighter over a white window, cut where a dark panel sat
+    // inside. No edge when the window fills the screen, as on the desktop.
     painter.setCompositionMode(QPainter::CompositionMode_Source);
+    painter.setPen(Qt::NoPen);
     painter.setBrush(window);
-    // No edge when the window fills the screen, as on the desktop.
-    painter.setPen(margin() > 0 ? QPen(window.lightness() < 128 ? window.lighter(170) : window.darker(150), 1)
-                                : QPen(Qt::NoPen));
     painter.drawPath(shape);
     painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    if (margin() > 0) {
+        painter.setBrush(Qt::NoBrush);
+        painter.setPen(QPen(window.lightness() < 128 ? window.lighter(170) : window.darker(150), 1));
+        painter.drawPath(shape);
+    }
 
     // The title, in the middle, and the buttons at its right.
     QFont font = m_window->font();

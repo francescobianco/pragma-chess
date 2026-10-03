@@ -222,6 +222,7 @@ bool WindowChrome::eventFilter(QObject *watched, QEvent *event)
         return release(static_cast<QMouseEvent *>(event));
     case QEvent::MouseMove:
         hover(static_cast<QMouseEvent *>(event)->pos());
+        drag(static_cast<QMouseEvent *>(event));
         return false;
     case QEvent::Leave:
         hover(QPoint(-1, -1));
@@ -241,20 +242,46 @@ bool WindowChrome::press(QMouseEvent *event)
         m_window->update(buttonRect(button));
         return true;
     }
+    // A move or a resize starts only once the pointer has travelled: the
+    // compositor takes the pointer over from the first step and Qt never sees
+    // the release, so a plain click or a double click on the title bar must
+    // not hand it over, or the clicks that follow are lost.
     if (const Qt::Edges edges = edgesAt(event->pos()); edges && native) {
-        native->startSystemResize(edges);
+        m_dragStart = event->pos();
+        m_dragEdges = edges;
         return true;
     }
     if (titleRect().contains(event->pos()) && native) {
-        native->startSystemMove();
+        m_dragStart = event->pos();
+        m_dragEdges = Qt::Edges();
         return true;
     }
     return false;
 }
 
+void WindowChrome::drag(QMouseEvent *event)
+{
+    if (!m_dragStart || !(event->buttons() & Qt::LeftButton))
+        return;
+    if ((event->pos() - *m_dragStart).manhattanLength() < QApplication::startDragDistance())
+        return;
+    const Qt::Edges edges = m_dragEdges;
+    m_dragStart.reset();
+    if (QWindow *native = m_window->windowHandle()) {
+        if (edges)
+            native->startSystemResize(edges);
+        else
+            native->startSystemMove();
+    }
+}
+
 bool WindowChrome::release(QMouseEvent *event)
 {
+    const bool wasDragging = m_dragStart.has_value();
+    m_dragStart.reset();
     const Button pressed = std::exchange(m_pressed, Button::None);
+    if (pressed == Button::None)
+        return wasDragging; // A click on the frame that went nowhere: ours all the same.
     if (pressed == Button::None)
         return false;
     m_window->update(buttonRect(pressed));

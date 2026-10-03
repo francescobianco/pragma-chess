@@ -1,6 +1,9 @@
 #pragma once
 
 #include <QObject>
+#include <QPoint>
+
+#include <optional>
 
 class QMouseEvent;
 class QWidget;
@@ -50,6 +53,8 @@ private:
     bool isResizable() const;
     bool press(QMouseEvent *event);
     bool release(QMouseEvent *event);
+    /// Starts the system move or resize once a press on the frame has travelled.
+    void drag(QMouseEvent *event);
     void hover(const QPoint &position);
     void toggleMaximized();
 
@@ -58,4 +63,6 @@ private:
     bool m_mainWindow;
     Button m_hovered = Button::None;
     Button m_pressed = Button::None;
+    std::optional<QPoint> m_dragStart; // A press on the frame, until it moves far enough or lets go.
+    Qt::Edges m_dragEdges;           // What that press would resize; none moves the window.
 };

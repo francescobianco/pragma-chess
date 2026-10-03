@@ -77,6 +77,7 @@ protected:
     void changeEvent(QEvent *event) override;
     void showEvent(QShowEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
 
 private:
@@ -457,6 +458,8 @@ private:
     WorkspaceLayout m_layout;      // The last layout applied or captured: hidden panels keep their share here.
     bool m_layoutPending = false;  // applyLayout() has shares to set once the window is laid out.
     void applyLayoutShares();
+    /// The user let go of a separator: the panels' shares are measured and kept.
+    void separatorReleased();
     /// Source row of the open game in the database, or -1 (e.g. a pasted FEN).
     qint64 m_openGameIndex = -1;
 

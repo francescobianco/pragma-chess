@@ -373,7 +373,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(gameHeader, &QHeaderView::sectionMoved, this, &MainWindow::scheduleSaveSession);
     connect(gameHeader, &QHeaderView::sectionResized, this, &MainWindow::scheduleSaveSession);
     connect(gameHeader, &QHeaderView::sortIndicatorChanged, this, &MainWindow::scheduleSaveSession);
-    connect(m_gamesSplitter, &QSplitter::splitterMoved, this, &MainWindow::scheduleSaveSession);
+    connect(m_gamesSplitter, &QSplitter::splitterMoved, this, &MainWindow::separatorReleased);
+    m_sidebar->installEventFilter(this);
     for (QDockWidget *dock : findChildren<QDockWidget *>()) {
         connect(dock, &QDockWidget::visibilityChanged, this, &MainWindow::scheduleSaveSession);
         connect(dock, &QDockWidget::topLevelChanged, this, &MainWindow::scheduleSaveSession);
@@ -386,6 +387,10 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::Resize && qobject_cast<QDockWidget *>(watched))
         scheduleSaveSession(); // The panels' shares are part of the project.
+    // A separator of the sidebar let go: QMainWindow moves its separators
+    // in its own mouse events, so the release is where a drag has ended.
+    if (event->type() == QEvent::MouseButtonRelease && watched == m_sidebar)
+        separatorReleased();
     return QMainWindow::eventFilter(watched, event);
 }
 
@@ -3361,9 +3366,28 @@ void MainWindow::showEvent(QShowEvent *event)
     });
 }
 
+void MainWindow::mouseReleaseEvent(QMouseEvent *event)
+{
+    QMainWindow::mouseReleaseEvent(event); // Ends a drag of the Games panel's separator.
+    separatorReleased();
+}
+
+void MainWindow::separatorReleased()
+{
+    // Only a drag by the user changes the shares: a panel squeezed by a
+    // small window is not measured, or the project would drift with it.
+    if (isVisible() && !m_layoutPending)
+        captureLayout();
+    scheduleSaveSession();
+}
+
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     QMainWindow::resizeEvent(event);
+    // Qt would give the new room to the board and keep the panels as they
+    // were: the shares are what the project holds, so they are kept instead.
+    m_layoutPending = true;
+    QTimer::singleShot(0, this, &MainWindow::applyLayoutShares);
     scheduleSaveSession();
 }
 

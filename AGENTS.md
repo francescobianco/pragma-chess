@@ -213,8 +213,12 @@ growing it again made the main window bigger at every start until it ran off
 the screen. A window never starts larger than its screen. The main window's
 status bar loses its size grip: the frame's edges resize, and the grip sat
 out of place inside `PaddedStatusBar`'s margins. The title bar moves the
-window (`startSystemMove`; a double click maximizes the main window), the
-edges resize it, the buttons do what they say. A window is polished after its
+window and the edges resize it (`startSystemMove`/`startSystemResize`, but
+only once the press has travelled `startDragDistance`: the compositor takes
+the pointer over from the first step and Qt never sees the release, so a
+plain click handed over at the press left Qt with a button it thought was
+still down and the next click or double click lost), a double click
+maximizes the main window, the buttons do what they say. A window is polished after its
 native window exists, and Qt's Wayland window stays opaque whatever is asked
 later, so the chrome destroys that window and showing the widget makes it
 again, translucent. The title is the native window's, with "[*]" resolved. On
@@ -583,7 +587,12 @@ while one of them is selected.
   screen. `MainWindow::captureLayout` measures them (a hidden panel keeps
   its last share), `applyLayout` builds the fixed arrangement, shows the
   panels and sets the sizes with `resizeDocks` once the window is laid out
-  (`m_layoutPending`, finished from `showEvent`). The opaque `layout` blob
+  (`m_layoutPending`, finished from `showEvent`). Resizing the window keeps
+  the shares (`resizeEvent` applies them again; Qt would give the new room
+  to the board alone), and only a separator dragged by the user is measured
+  (`separatorReleased`: the release QMainWindow handles its separators in,
+  the sidebar's through `eventFilter`, `splitterMoved` for the tree), never a
+  panel squeezed by a small window, or the project would drift with it. The opaque `layout` blob
   of older projects (QMainWindow::saveState, magic `pragma-layout-N`) is
   still read (`legacyLayout`, `restoreLegacyLayout`) and honoured once,
   never written. `View ▸ Reset Panel Layout` is `applyLayout(WorkspaceLayout{})`,

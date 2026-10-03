@@ -169,7 +169,9 @@ private:
     // platform, through the account's client. `m_onlinePlay` is the flag
     // against cheating: while it is on, the engine, Explain and the opening
     // book are off and cannot be turned on.
-    void playOnline();
+    /// Game ▸ Play Online… always asks; the toolbar's button (`alwaysAsk`
+    /// false) looks for an opponent with the remembered choices.
+    void playOnline(bool alwaysAsk);
     void stopOnline();
     void setOnlinePlay(bool on);
     bool isOpponentTurn() const;
@@ -453,6 +455,8 @@ private:
     QAction *m_newGameAction;
     QAction *m_newTrainingAction;
     QAction *m_playOnlineAction;
+    QAction *m_quickOnlineAction;
+    std::optional<LichessBoardClient::Seek> m_rememberedOnline; // "Remember for this session", never saved.
     QAction *m_stopOnlineAction;
     std::unique_ptr<LichessBoardClient> m_online; // Alive while looking for an opponent or playing.
     OnlineAccount m_onlineAccount;

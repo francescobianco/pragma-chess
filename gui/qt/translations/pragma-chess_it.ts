@@ -2783,6 +2783,14 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>Connected to %1 as %2.</source>
         <translation>Connesso a %1 come %2.</translation>
     </message>
+    <message>
+        <source>Remember for this &amp;session</source>
+        <translation>Ricorda per questa &amp;sessione</translation>
+    </message>
+    <message>
+        <source>The Play Online button of the toolbar looks for an opponent with these choices without asking, until Pragma Chess is closed; the menu always asks</source>
+        <translation>Il bottone Gioca online della barra degli strumenti cerca un avversario con queste scelte senza chiedere, finché Pragma Chess non viene chiuso; il menu chiede sempre</translation>
+    </message>
 </context>
 <context>
     <name>QObject</name>

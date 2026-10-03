@@ -22,12 +22,17 @@ class PlayOnlineDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit PlayOnlineDialog(QWidget *parent = nullptr);
+    /// `remembered` says whether the last choice was asked to be remembered.
+    explicit PlayOnlineDialog(bool remembered, QWidget *parent = nullptr);
     ~PlayOnlineDialog() override;
 
     /// The account chosen, once accepted.
     OnlineAccount account() const;
     LichessBoardClient::Seek seek() const;
+    /// "Remember for this session": the toolbar's Play Online then looks for
+    /// an opponent with these choices without asking, until the application
+    /// is closed.
+    bool remember() const;
 
 private:
     void rebuildAccounts();
@@ -45,6 +50,7 @@ private:
     QSpinBox *m_increment;
     QCheckBox *m_rated;
     QComboBox *m_color;
+    QCheckBox *m_remember;
     QPushButton *m_play;
     LichessSignIn *m_signIn = nullptr;
 };

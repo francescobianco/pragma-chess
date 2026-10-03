@@ -583,9 +583,13 @@ void MainWindow::createActions()
     m_quickTrainingAction->setToolTip(m_newTrainingAction->toolTip());
     connect(m_quickTrainingAction, &QAction::triggered, this, [this] { newTraining(false); });
 
-    m_playOnlineAction = new QAction(tr("Play &Online…"), this);
+    m_playOnlineAction = new QAction(themeIcon("pragma-online", QStyle::SP_ComputerIcon), tr("Play &Online…"), this);
     m_playOnlineAction->setToolTip(tr("Play a game against a person on lichess.org, with one of your accounts"));
-    connect(m_playOnlineAction, &QAction::triggered, this, &MainWindow::playOnline);
+    connect(m_playOnlineAction, &QAction::triggered, this, [this] { playOnline(true); });
+    // The toolbar's button skips the question once an answer was remembered.
+    m_quickOnlineAction = new QAction(m_playOnlineAction->icon(), m_playOnlineAction->text(), this);
+    m_quickOnlineAction->setToolTip(m_playOnlineAction->toolTip());
+    connect(m_quickOnlineAction, &QAction::triggered, this, [this] { playOnline(false); });
     m_stopOnlineAction = new QAction(tr("Stop Playing Online"), this);
     m_stopOnlineAction->setEnabled(false);
     connect(m_stopOnlineAction, &QAction::triggered, this, &MainWindow::stopOnline);
@@ -786,6 +790,7 @@ void MainWindow::createToolBar()
     toolBar->addSeparator();
     toolBar->addAction(m_newGameAction);
     toolBar->addAction(m_quickTrainingAction);
+    toolBar->addAction(m_quickOnlineAction);
     // Some air around each icon: bigger buttons to aim at, the same icons.
     constexpr int kButtonPadding = 4;
     // The book, the engine and the database in use: an icon each, which
@@ -2644,14 +2649,22 @@ bool MainWindow::isOpponentTurn() const
     return m_onlinePlay && (!m_onlineSide || m_session->position().sideToMove() != *m_onlineSide);
 }
 
-void MainWindow::playOnline()
+void MainWindow::playOnline(bool alwaysAsk)
 {
     if (m_online)
         return; // Already looking, or playing: Stop Playing Online first.
-    PlayOnlineDialog dialog(this);
-    if (dialog.exec() != QDialog::Accepted || dialog.account().id.isEmpty())
-        return;
-    m_onlineAccount = dialog.account();
+    LichessBoardClient::Seek seek;
+    if (alwaysAsk || !m_rememberedOnline) {
+        PlayOnlineDialog dialog(m_rememberedOnline.has_value(), this);
+        if (dialog.exec() != QDialog::Accepted || dialog.account().id.isEmpty())
+            return;
+        m_onlineAccount = dialog.account();
+        seek = dialog.seek();
+        // Unticking it forgets the choice: the toolbar asks again.
+        m_rememberedOnline = dialog.remember() ? std::optional<LichessBoardClient::Seek>(seek) : std::nullopt;
+    } else {
+        seek = *m_rememberedOnline;
+    }
     const QString token = SourceCredentials::token(m_onlineAccount.id);
     if (token.isEmpty()) {
         QMessageBox::warning(this, tr("Play Online"), tr("The account %1 has no sign-in on this computer: sign in again.").arg(m_onlineAccount.username));
@@ -2664,7 +2677,6 @@ void MainWindow::playOnline()
     connect(m_online.get(), &LichessBoardClient::failed, this, &MainWindow::onlineFailed);
     setOnlinePlay(true);
     m_onlineSide.reset();
-    const LichessBoardClient::Seek seek = dialog.seek();
     m_enginePanel->setStatus(tr("Looking for an opponent on %1 (%2+%3, %4)…")
                                  .arg(OnlineAccounts::platformName(m_onlineAccount.platform))
                                  .arg(seek.minutes)
@@ -2709,6 +2721,7 @@ void MainWindow::setOnlinePlay(bool on)
         action->setEnabled(!on);
     m_stopOnlineAction->setEnabled(on);
     m_playOnlineAction->setEnabled(!on);
+    m_quickOnlineAction->setEnabled(!on);
     m_bookPanel->setEnabled(!on);
     if (!on) {
         m_onlineSide.reset();

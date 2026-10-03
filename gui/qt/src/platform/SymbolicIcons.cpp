@@ -32,6 +32,7 @@ enum class Shape {
     Database,
     Sync,
     Training,
+    Online,
     Book,
     Engine,
 };
@@ -143,6 +144,17 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
             painter->fillPath(eye, color);
         }
         painter->drawLine(QPointF(6.75, 10.6), QPointF(9.25, 10.6));
+        break;
+    }
+    case Shape::Online: {
+        // Playing online: the same square as New Game and New Training, with
+        // the world inside — a globe with its equator and a meridian.
+        painter->drawRoundedRect(kBoardIcon, 1.25, 1.25);
+        const QRectF globe(4.75, 4.75, 6.5, 6.5);
+        painter->setPen(QPen(color, 1.1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        painter->drawEllipse(globe);
+        painter->drawLine(QPointF(globe.left(), 8), QPointF(globe.right(), 8));
+        painter->drawEllipse(QRectF(6.6, globe.top(), 2.8, globe.height()));
         break;
     }
     case Shape::Sync: {
@@ -381,6 +393,7 @@ QIcon icon(const QString &name)
         {QStringLiteral("pragma-database"), Shape::Database},
         {QStringLiteral("view-refresh"), Shape::Sync},
         {QStringLiteral("pragma-training"), Shape::Training},
+        {QStringLiteral("pragma-online"), Shape::Online},
         {QStringLiteral("pragma-book"), Shape::Book},
         {QStringLiteral("pragma-engine"), Shape::Engine},
     };

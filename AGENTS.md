@@ -162,8 +162,11 @@ modal, so it stays open while the user tries things.
 ## Toolbar
 
 `MainWindow::createToolBar`: Sync Now on its own, then the saving section
-(Save Project, the floppy; more will come), then New Game and New
-Training, then the three resources in use — book, engine, database
+(Save Project, the floppy; more will come), then New Game, New Training
+and Play Online (the board-sized square with a globe, `pragma-online`;
+like New Training it skips the dialog once "Remember for this session" was
+ticked, `m_rememberedOnline`, while the menu always asks), then the three
+resources in use — book, engine, database
 (`m_bookButton`, `m_engineButton`, `m_databaseButton`). Each of these is an
 icon only (the user found the names in the toolbar ugly) that drops down the
 choice: the engine and database buttons share the menu bar's menus (Engine ▸

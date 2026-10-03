@@ -48,7 +48,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   opponent. While looking and while playing, the engine, Explain, Training
   Mode and the Opening Tree are off: it is you against your opponent. The
   finished game is saved in the open database. Connections are yours on
-  this computer, not the project's.
+  this computer, not the project's. The toolbar has a Play Online button
+  after New Training; tick "Remember for this session" in the dialog and
+  it looks for an opponent without asking.
 - **Training plays the book.** While the position is in the opening book,
   the engine answers with a book move, each as often as its weight says —
   tune the weights in the Opening Tree to train against the lines you want.

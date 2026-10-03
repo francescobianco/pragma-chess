@@ -19,7 +19,7 @@
 #include <QUuid>
 #include <QVBoxLayout>
 
-PlayOnlineDialog::PlayOnlineDialog(QWidget *parent)
+PlayOnlineDialog::PlayOnlineDialog(bool remembered, QWidget *parent)
     : QDialog(parent)
     , m_list(new QListWidget)
     , m_connect(new QPushButton(tr("Connect Platform…")))
@@ -29,6 +29,7 @@ PlayOnlineDialog::PlayOnlineDialog(QWidget *parent)
     , m_increment(new QSpinBox)
     , m_rated(new QCheckBox(tr("Rated game")))
     , m_color(new QComboBox)
+    , m_remember(new QCheckBox(tr("Remember for this &session")))
 {
     setWindowTitle(tr("Play Online"));
     QSettings settings;
@@ -82,6 +83,10 @@ PlayOnlineDialog::PlayOnlineDialog(QWidget *parent)
                                "it is you against your opponent."));
     note->setWordWrap(true);
     layout->addWidget(note);
+    m_remember->setToolTip(tr("The Play Online button of the toolbar looks for an opponent with these choices "
+                              "without asking, until Pragma Chess is closed; the menu always asks"));
+    m_remember->setChecked(remembered);
+    layout->addWidget(m_remember);
 
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Cancel);
     m_play = buttons->addButton(tr("Find an Opponent"), QDialogButtonBox::AcceptRole);
@@ -140,6 +145,11 @@ OnlineAccount PlayOnlineDialog::account() const
     const QListWidgetItem *item = m_list->currentItem();
     const OnlineAccount *account = item ? m_accounts.find(item->data(Qt::UserRole).toString()) : nullptr;
     return account ? *account : OnlineAccount();
+}
+
+bool PlayOnlineDialog::remember() const
+{
+    return m_remember->isChecked();
 }
 
 LichessBoardClient::Seek PlayOnlineDialog::seek() const

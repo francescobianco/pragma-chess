@@ -119,7 +119,7 @@ MoveTreeView::MoveTreeView(GameSession *session, QWidget *parent)
     setOpenExternalLinks(false);
     setFocusPolicy(Qt::NoFocus); // The arrows move through the game, not the text.
     setTextInteractionFlags(Qt::LinksAccessibleByMouse);
-    setFrameShape(QFrame::NoFrame);
+    // The same frame as the other tables, or its header sits a pixel higher than theirs.
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); // The table is as wide as the view, whatever its padding adds.
     setMouseTracking(true);
     document()->setDocumentMargin(0);
@@ -187,7 +187,8 @@ int MoveTreeView::cellPlyAt(const QPoint &position) const
 void MoveTreeView::resizeEvent(QResizeEvent *event)
 {
     QTextBrowser::resizeEvent(event);
-    m_header->setGeometry(0, 0, viewport()->width(), m_header->sizeHint().height());
+    const int frame = frameWidth();
+    m_header->setGeometry(frame, frame, viewport()->width(), m_header->sizeHint().height());
 }
 
 void MoveTreeView::mouseMoveEvent(QMouseEvent *event)

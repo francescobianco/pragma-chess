@@ -286,6 +286,142 @@ bool readStart(const QByteArray &start, State &state, QString *fen)
     return true;
 }
 
+
+/// Reads the stream of moves as ChessBase writes the tree: the main line
+/// first, and at a branch code the continuation of the line up to the
+/// matching end code, then the alternatives to that continuation's first
+/// move, which end with the line they belong to.
+struct Reader {
+    const QByteArray &record;
+    int end;
+    int i;
+    int decodedMoves; // Also the key of the table.
+
+    int translate(int at) const { return int(kTable[quint8(quint8(record.at(at)) - quint8(decodedMoves))]); }
+
+    /// Decodes the move the code names in `state`; `from` stays -1 for a null move.
+    QString moveOf(int code, const State &state, int &from, int &to, Piece &promotion)
+    {
+        const int us = state.sideToMove;
+        const int forward = us == kWhite ? 1 : -1;
+        from = to = -1;
+        promotion = None;
+        if (code == kTwoBytes) {
+            if (i + 2 > end)
+                return Text::tr("A two-byte move runs past the record.");
+            const int word = (translate(i) << 8) | translate(i + 1);
+            i += 2;
+            from = word & 0x3F;
+            to = (word >> 6) & 0x3F;
+            if (state.board[from].piece == Pawn && (Square::at(to).rank == 0 || Square::at(to).rank == 7))
+                promotion = Piece(std::array<Piece, 4>{Queen, Rook, Bishop, Knight}[(word >> 12) & 3]);
+            return {};
+        }
+        if (code == kNullMove)
+            return {};
+        if (code >= 1 && code <= 8) {
+            from = state.king(us);
+            if (from < 0)
+                return Text::tr("The king is missing.");
+            to = stepped(from, kKing[code - 1]);
+            return {};
+        }
+        if (code == 9 || code == 10) {
+            from = state.king(us);
+            if (from < 0)
+                return Text::tr("The king is missing.");
+            to = Square{code == 9 ? 6 : 2, Square::at(from).rank}.index();
+            return {};
+        }
+        if (code >= 111 && code <= 142) {
+            const int pawn = (code - 111) / 4;
+            const Delta ways[4] = {{0, forward}, {0, 2 * forward}, {forward, forward}, {-forward, forward}};
+            from = state.pawns[us][pawn];
+            if (from < 0)
+                return Text::tr("Pawn %1 is gone.").arg(pawn + 1);
+            to = stepped(from, ways[(code - 111) % 4]);
+            return {};
+        }
+        // Queens, rooks, bishops and knights, three of each, by number.
+        struct Range {
+            int first, last, kind, number;
+        };
+        static const Range ranges[] = {{11, 38, 0, 0},   {39, 52, 1, 0},   {53, 66, 1, 1},   {67, 80, 2, 0},
+                                       {81, 94, 2, 1},   {95, 102, 3, 0},  {103, 110, 3, 1}, {143, 170, 0, 1},
+                                       {171, 198, 0, 2}, {199, 212, 1, 2}, {213, 226, 2, 2}, {227, 234, 3, 2}};
+        const Range *range = nullptr;
+        for (const Range &candidate : ranges)
+            if (code >= candidate.first && code <= candidate.last)
+                range = &candidate;
+        if (!range)
+            return Text::tr("Unknown move code %1.").arg(code);
+        const QList<int> &list = state.kinds[us][range->kind];
+        if (range->number >= list.size())
+            return Text::tr("There is no piece number %1 of that kind.").arg(range->number + 1);
+        from = list.at(range->number);
+        const int rel = code - range->first;
+        Delta delta{};
+        switch (range->kind) {
+        case 0: delta = along(rel, kQueenDirections); break;
+        case 1: delta = along(rel, kRookDirections); break;
+        case 2: delta = along(rel, kBishopDirections); break;
+        default: delta = kKnight[rel]; break;
+        }
+        to = stepped(from, delta);
+        return {};
+    }
+
+    /// Reads a line from `state` to its end code (or the record's end) into
+    /// `moves`, with the alternatives to its moves into `variations`. Null
+    /// moves end what is recorded of a line, but it is played on to keep the
+    /// pieces in step. Returns an error message, or nothing.
+    QString readLine(State &state, QList<MoveRecord> &moves, QList<Variation> &variations, bool recording)
+    {
+        while (i < end) {
+            const int code = translate(i++);
+            if (code == kIgnore)
+                continue;
+            if (code == kEndLine)
+                return {};
+            if (code == kBranch) {
+                // The line goes on inside the block; what follows the block
+                // is an alternative to the block's first move.
+                State before = state;
+                const qsizetype branch = moves.size();
+                if (const QString error = readLine(state, moves, variations, recording); !error.isEmpty())
+                    return error;
+                Variation alternative;
+                alternative.atPly = int(branch) + 1;
+                const QString error = readLine(before, alternative.moves, alternative.variations, recording && moves.size() > branch);
+                if (recording && !alternative.moves.isEmpty() && moves.size() > branch)
+                    variations << alternative;
+                return error;
+            }
+            if (code > kTwoBytes && code < kBranch)
+                return Text::tr("Unknown move code %1.").arg(code);
+            int from, to;
+            Piece promotion;
+            if (const QString error = moveOf(code, state, from, to, promotion); !error.isEmpty())
+                return error;
+            if (from < 0) {
+                state.sideToMove = 1 - state.sideToMove; // A null move: nothing of ours.
+                recording = false;
+            } else {
+                if (state.board[from].piece == None)
+                    return Text::tr("Move %1: there is no piece on %2.").arg(decodedMoves + 1).arg(Square::at(from).uci());
+                QString uci = Square::at(from).uci() + Square::at(to).uci();
+                if (promotion != None)
+                    uci += QLatin1Char("?kqrbnp"[promotion]);
+                if (recording)
+                    moves << MoveRecord{QString(), uci, {}};
+                state.play(from, to, promotion);
+            }
+            ++decodedMoves;
+        }
+        return {};
+    }
+};
+
 } // namespace
 
 namespace CbgDecoder {
@@ -324,95 +460,13 @@ Decoded decode(const QByteArray &record)
     }
 
     const int end = recordSize(record);
-    int decodedMoves = 0; // Also the key of the table.
-    const auto translate = [&](int i) { return int(kTable[quint8(quint8(record.at(i)) - quint8(decodedMoves))]); };
-
-    for (int i = offset; i < end;) {
-        const int code = translate(i++);
-        if (code == kIgnore || code == kBranch)
-            continue;
-        if (code == kEndLine)
-            break; // The main line is over: variations, if any, follow.
-        if (code > kTwoBytes && code < kBranch)
-            return fail(Text::tr("Unknown move code %1.").arg(code));
-
-        // The move: by squares when two more bytes name it, else by the
-        // piece's number and its way.
-        int from = -1;
-        int to = -1;
-        Piece promotion = None;
-        const int us = state.sideToMove;
-        const int forward = us == kWhite ? 1 : -1;
-        if (code == kTwoBytes) {
-            if (i + 2 > end)
-                return fail(Text::tr("A two-byte move runs past the record."));
-            const int word = (translate(i) << 8) | translate(i + 1);
-            i += 2;
-            from = word & 0x3F;
-            to = (word >> 6) & 0x3F;
-            const Man man = state.board[from];
-            if (man.piece == Pawn && (Square::at(to).rank == 0 || Square::at(to).rank == 7))
-                promotion = Piece(std::array<Piece, 4>{Queen, Rook, Bishop, Knight}[(word >> 12) & 3]);
-        } else if (code == kNullMove) {
-            // Nothing moves; the side to move passes.
-        } else if (code >= 1 && code <= 8) {
-            from = state.king(us);
-            if (from < 0)
-                return fail(Text::tr("The king is missing."));
-            to = stepped(from, kKing[code - 1]);
-        } else if (code == 9 || code == 10) {
-            from = state.king(us);
-            if (from < 0)
-                return fail(Text::tr("The king is missing."));
-            to = Square{code == 9 ? 6 : 2, Square::at(from).rank}.index();
-        } else if (code >= 111 && code <= 142) {
-            const int pawn = (code - 111) / 4;
-            const Delta ways[4] = {{0, forward}, {0, 2 * forward}, {forward, forward}, {-forward, forward}};
-            from = state.pawns[us][pawn];
-            if (from < 0)
-                return fail(Text::tr("Pawn %1 is gone.").arg(pawn + 1));
-            to = stepped(from, ways[(code - 111) % 4]);
-        } else {
-            // Queens, rooks, bishops and knights, three of each, by number.
-            struct Range {
-                int first, last, kind, number;
-            };
-            static const Range ranges[] = {{11, 38, 0, 0},   {39, 52, 1, 0},   {53, 66, 1, 1},   {67, 80, 2, 0},
-                                           {81, 94, 2, 1},   {95, 102, 3, 0},  {103, 110, 3, 1}, {143, 170, 0, 1},
-                                           {171, 198, 0, 2}, {199, 212, 1, 2}, {213, 226, 2, 2}, {227, 234, 3, 2}};
-            const Range *range = nullptr;
-            for (const Range &candidate : ranges)
-                if (code >= candidate.first && code <= candidate.last)
-                    range = &candidate;
-            if (!range)
-                return fail(Text::tr("Unknown move code %1.").arg(code));
-            const int number = range->number;
-            const QList<int> &list = state.kinds[us][range->kind];
-            if (number >= list.size())
-                return fail(Text::tr("There is no piece number %1 of that kind.").arg(number + 1));
-            from = list.at(number);
-            const int rel = code - range->first;
-            Delta delta{};
-            switch (range->kind) {
-            case 0: delta = along(rel, kQueenDirections); break;
-            case 1: delta = along(rel, kRookDirections); break;
-            case 2: delta = along(rel, kBishopDirections); break;
-            default: delta = kKnight[rel]; break;
-            }
-            to = stepped(from, delta);
-        }
-
-        if (code == kNullMove)
-            break; // Our games have no null moves: the line ends here.
-        if (state.board[from].piece == None)
-            return fail(Text::tr("Move %1: there is no piece on %2.").arg(decodedMoves + 1).arg(Square::at(from).uci()));
-        QString uci = Square::at(from).uci() + Square::at(to).uci();
-        if (promotion != None)
-            uci += QLatin1Char("?kqrbnp"[promotion]);
-        decoded.uciMoves << uci;
-        state.play(from, to, promotion);
-        ++decodedMoves;
-    }
+    Reader reader{record, end, offset, 0};
+    QList<MoveRecord> moves;
+    const QString error = reader.readLine(state, moves, decoded.variations, true);
+    for (const MoveRecord &move : moves)
+        decoded.uciMoves << move.uci;
+    if (!error.isEmpty())
+        return fail(error);
     return decoded;
 }
 

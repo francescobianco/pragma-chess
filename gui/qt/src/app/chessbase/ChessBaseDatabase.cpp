@@ -2,6 +2,7 @@
 
 #include "CbgDecoder.h"
 #include "app/ChessPosition.h"
+#include "app/GameVariations.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -171,6 +172,7 @@ GameRecord ChessBaseDatabase::game(int index, QString *errorMessage) const
         game.startFen.clear();
         return game;
     }
+    const ChessPosition start = *position;
     for (const QString &uci : decoded.uciMoves) {
         const std::optional<ChessMove> move = position->moveFromUci(uci);
         if (!move) {
@@ -182,5 +184,8 @@ GameRecord ChessBaseDatabase::game(int index, QString *errorMessage) const
         position->play(*move);
     }
     game.plyCount = int(game.moves.size());
+    // The variations: SAN filled in, illegal tails cut, with the rules.
+    game.variations = decoded.variations;
+    GameVariations::resolve(game, start);
     return game;
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "app/GameRecord.h"
+
 #include <QByteArray>
 #include <QString>
 #include <QStringList>
@@ -10,10 +12,10 @@
 /// number in the side's list of that kind and the way it goes — "the second
 /// rook, three squares up" — through a table that also hides the bytes. The
 /// decoder follows the lists and the board move by move and gives back the
-/// main line as UCI moves. ChessBase writes the main line first and the
-/// variations after it, each introduced by the end of the line it is an
-/// alternative to, so the main line is everything before the first end of
-/// line, and the variations are left where they are.
+/// game tree as UCI moves. ChessBase writes the main line first: a branch
+/// code opens a block holding the continuation of the line up to the
+/// matching end code, and what follows that end is the alternative to the
+/// block's first move, which lasts to the end of the line it belongs to.
 namespace CbgDecoder {
 
 struct Decoded {
@@ -21,6 +23,8 @@ struct Decoded {
     QString startFen;
     /// The main line, UCI; cut before a null move.
     QStringList uciMoves;
+    /// The variations, UCI only (SAN empty), as GameRecord holds them.
+    QList<Variation> variations;
     /// Why the record could not be read, else empty; the moves read so far stay.
     QString error;
 };

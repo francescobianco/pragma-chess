@@ -414,8 +414,8 @@ private Q_SLOTS:
         QCOMPARE(decoded.uciMoves.at(14), QStringLiteral("e1g1")); // 8.O-O, by its own code.
         QCOMPARE(decoded.uciMoves.last(), QStringLiteral("a7f2"));
 
-        // The main line is what comes before the first end of line; the
-        // variation ChessBase writes after it (25…Rfe8 26.Re5 Qb4) stays out.
+        // The main line is the first block; the variation ChessBase writes after
+        // it (25…Rfe8 26.Re5 Qb4) is an alternative to the block's first move.
         const QByteArray annotated = QByteArray::fromHex(
             "0000003d0b08dc870269c1836c9c0c130288451a0e70105d6c8b8cdd17945030153217d972367c7b7cdcb35c0973242d52ea5"
             "ae92a0d63f13f8522dc42");
@@ -423,6 +423,10 @@ private Q_SLOTS:
         QVERIFY2(decoded.error.isEmpty(), qPrintable(decoded.error));
         QCOMPARE(decoded.uciMoves.size(), 51);
         QCOMPARE(decoded.uciMoves.last(), QStringLiteral("b2e5")); // 26.Qe5
+        QCOMPARE(decoded.variations.size(), 1);
+        QCOMPARE(decoded.variations.first().atPly, 50);
+        QCOMPARE(decoded.variations.first().moves.size(), 3);
+        QCOMPARE(decoded.variations.first().moves.first().uci, QStringLiteral("f8e8"));
         QCOMPARE(CbgDecoder::recordSize(annotated), 61);
         QVERIFY(!CbgDecoder::decode(QByteArray::fromHex("05000004")).error.isEmpty()); // Another encoding.
 

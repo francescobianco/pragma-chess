@@ -597,8 +597,9 @@ while one of them is selected.
   still read (`legacyLayout`, `restoreLegacyLayout`) and honoured once,
   never written. `View ▸ Reset Panel Layout` is `applyLayout(WorkspaceLayout{})`.
   **File ▸ New Project keeps what is on screen** (`newProject` captures the
-  current project and clears only the game, the ply and training): the
-  database, engine and panels go on as they are, so nothing jumps. The window's own geometry and maximized
+  current project and clears only the game, the ply, the board's side —
+  White below — and training): the database, engine and panels go on as
+  they are, so nothing jumps. The window's own geometry and maximized
   state are per device, in QSettings.
 - Default user folder: `~/Chess/Pragma/{Databases,Projects,Books}`, localized
   (e.g. `~/Scacchi/Pragma/…`); `PRAGMA_CHESS_DIR` overrides it. First launch

@@ -3150,9 +3150,10 @@ void MainWindow::newProject()
     if (!maybeSaveProject())
         return;
 
-    // What is on screen goes on — database, engine, book, board side,
-    // panels — so nothing jumps: only the game is new, empty, and training
-    // is off. Reset Panel Layout is there for the default arrangement.
+    // What is on screen goes on — database, engine, book, panels — so
+    // nothing jumps: only the game is new, empty, seen from White's side,
+    // and training is off. Reset Panel Layout is there for the default
+    // arrangement.
     Project project = captureProject();
     project.gameId = -1;
     project.ply = 0;
@@ -3160,6 +3161,7 @@ void MainWindow::newProject()
     project.moves.clear();
     project.annotations.clear();
     project.variations.clear();
+    project.boardFlipped = false;
     project.training = false;
     applyProject(project, false);
 

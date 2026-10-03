@@ -56,7 +56,7 @@ QVariant MoveListModel::data(const QModelIndex &index, int role) const
     if (ply < 0)
         return role == Qt::DisplayRole && index.isValid() ? QVariant(QStringLiteral("…")) : QVariant();
     if (role == Qt::DisplayRole) {
-        const MoveRecord &move = m_session->game().moves.at(ply - 1);
+        const MoveRecord &move = m_session->moveAt(ply);
         return figurineSan(move.san) + MoveAnnotation::symbols(move.nags);
     }
     return {};

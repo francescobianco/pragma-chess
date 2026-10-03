@@ -8,7 +8,9 @@
 #include "app/EngineDetector.h"
 #include "app/ExplanationSearch.h"
 #include "app/GameIdentity.h"
+#include "app/GameSession.h"
 #include "app/GameState.h"
+#include "app/GameVariations.h"
 #include "app/HelpGuide.h"
 #include "app/MoveAnnotation.h"
 #include "app/MoveExplanation.h"
@@ -546,6 +548,159 @@ private Q_SLOTS:
         EngineEvaluation expected = eval(50);
         expected.pv = {QStringLiteral("e2e4")};
         QCOMPARE(TrainingTutor::judge(expected, eval(-300), Side::White, played), Alert::None);
+    }
+
+    void keepsVariations()
+    {
+        // The text form: each variation in parentheses after the ply it replaces,
+        // nested ones counted from their own line's first move.
+        GameRecord game;
+        for (const char *uci : {"e2e4", "e7e5", "g1f3", "b8c6", "f1b5"})
+            game.moves << MoveRecord{QString(), QString::fromLatin1(uci), {}};
+        Variation sicilian{2, {MoveRecord{QStringLiteral("c5"), QString(), {}}, MoveRecord{QStringLiteral("Nf3"), QString(), {5}}}, {}};
+        sicilian.variations << Variation{2, {MoveRecord{QStringLiteral("Nc3"), QString(), {}}}, {}};
+        game.variations << sicilian;
+        game.variations << Variation{5, {MoveRecord{QStringLiteral("Bc4"), QString(), {1}}}, {}};
+        const QString text = GameVariations::toText(game.variations);
+        QCOMPARE(text, QStringLiteral("(2 c5 Nf3!? (2 Nc3 ) ) (5 Bc4! )"));
+        QList<Variation> read = GameVariations::fromText(text);
+        QCOMPARE(read.size(), 2);
+        QCOMPARE(read.at(0).atPly, 2);
+        QCOMPARE(read.at(0).moves.size(), 2);
+        QCOMPARE(read.at(0).moves.at(1).nags, QList<int>{5});
+        QCOMPARE(read.at(0).variations.size(), 1);
+        QCOMPARE(read.at(0).variations.first().moves.first().san, QStringLiteral("Nc3"));
+        QCOMPARE(read.at(1).moves.first().nags, QList<int>{1});
+        QCOMPARE(GameVariations::toText(read), text);
+
+        // Resolving fills in UCI and SAN and drops what cannot be played.
+        game.variations = read;
+        game.variations << Variation{9, {MoveRecord{QStringLiteral("d4"), QString(), {}}}, {}}; // Past the line.
+        game.variations << Variation{3, {MoveRecord{QStringLiteral("Qh5"), QString(), {}}, MoveRecord{QStringLiteral("Ke3"), QString(), {}}}, {}};
+        GameVariations::resolve(game, ChessPosition::startingPosition());
+        QCOMPARE(game.variations.size(), 3);
+        QCOMPARE(game.variations.at(0).moves.first().uci, QStringLiteral("c7c5"));
+        QCOMPARE(game.variations.at(0).variations.first().moves.first().uci, QStringLiteral("b1c3"));
+        QCOMPARE(game.variations.at(2).moves.size(), 1); // 3.Qh5 stays, Ke3 goes.
+        QCOMPARE(game.moves.at(0).san, QStringLiteral("e4"));
+
+        // The lines a path leads to.
+        QCOMPARE(GameVariations::lineMoves(game, {}).size(), 5);
+        const QList<MoveRecord> sicilianLine = GameVariations::lineMoves(game, {0});
+        QCOMPARE(sicilianLine.size(), 3); // e4, then c5 Nf3.
+        QCOMPARE(sicilianLine.at(1).san, QStringLiteral("c5"));
+        QCOMPARE(GameVariations::lineMoves(game, {0, 0}).size(), 3); // e4 c5 Nc3
+        QCOMPARE(GameVariations::lineMoves(game, {0, 0}).last().san, QStringLiteral("Nc3"));
+        QCOMPARE(GameVariations::branchPly(game, {0}), 1);
+        QCOMPARE(GameVariations::branchPly(game, {0, 0}), 2);
+        QVERIFY(!GameVariations::variationsOf(game, {7}));
+
+        // PGN writes them in parentheses after the move each replaces, and reads them back.
+        const QString pgn = Pgn::moveText(game);
+        // After a variation the move is numbered again, even Black's.
+        QCOMPARE(pgn, QStringLiteral("1.e4 e5 ( 1…c5 2.Nf3!? ( 2.Nc3 ) ) 2.Nf3 ( 2.Qh5 ) 2…Nc6 3.Bb5 ( 3.Bc4! )"));
+        QCOMPARE(Pgn::moveText(game, 3), QStringLiteral("1.e4 e5 2.Nf3")); // A cut line has no variations.
+        QString error;
+        const std::optional<Pgn::ParsedLine> parsed = Pgn::parseLine(
+            QStringLiteral("1. e4 e5 (1... c5 2. Nf3 (2. Nc3 d6) Nc6) 2. Nf3 Nc6 3. Bb5 (3. Bc4 Bc5 4. d3 Ke3 Nf6) a6"),
+            QString(), &error);
+        QVERIFY2(parsed, qPrintable(error));
+        QCOMPARE(parsed->moves.size(), 6);
+        QCOMPARE(parsed->variations.size(), 2);
+        QCOMPARE(parsed->variations.at(0).atPly, 2);
+        QCOMPARE(parsed->variations.at(0).moves.size(), 3); // c5 Nf3 Nc6
+        QCOMPARE(parsed->variations.at(0).variations.first().atPly, 2);
+        QCOMPARE(parsed->variations.at(0).variations.first().moves.size(), 2); // Nc3 d6
+        QCOMPARE(parsed->variations.at(1).atPly, 5);
+        QCOMPARE(parsed->variations.at(1).moves.size(), 3); // Bc4 Bc5 d3: Ke3 is illegal, the rest is dropped.
+        QVERIFY(!Pgn::parseLine(QStringLiteral("1.e4 e5 (1...c5) 2.Ke3"), QString(), &error)); // Main line still strict.
+
+        // Stored with the game and read back.
+        QTemporaryDir dir;
+        {
+            GameRecord stored = game;
+            const std::unique_ptr<SqliteGameDatabase> database =
+                SqliteGameDatabase::create(dir.filePath(QStringLiteral("var.pdb")), {stored}, &error);
+            QVERIFY2(database, qPrintable(error));
+            const GameRecord loaded = *database->loadGame(0);
+            QCOMPARE(loaded.moves.size(), 5);
+            QCOMPARE(loaded.variations.size(), 3);
+            QCOMPARE(loaded.variations.at(0).variations.size(), 1);
+            QCOMPARE(loaded.variations.at(2).moves.first().san, QStringLiteral("Qh5"));
+        }
+    }
+
+    void playsIntoVariations()
+    {
+        GameRecord game;
+        for (const char *uci : {"e2e4", "e7e5", "g1f3", "b8c6"})
+            game.moves << MoveRecord{QString(), QString::fromLatin1(uci), {}};
+        GameSession session;
+        session.setGame(game);
+        QSignalSpy changed(&session, &GameSession::gameChanged);
+        const auto move = [&](const char *uci) { return *session.position().moveFromUci(QString::fromLatin1(uci)); };
+
+        // The next move of the line just steps forward; another one at the
+        // same place starts a variation, and the session follows it.
+        session.goToPly(1);
+        QVERIFY(session.playMove(move("e7e5")));
+        QCOMPARE(session.ply(), 2);
+        QVERIFY(session.path().isEmpty());
+        QCOMPARE(changed.count(), 0);
+        session.goToPly(1);
+        QVERIFY(session.playMove(move("c7c5")));
+        QCOMPARE(session.path(), QList<int>{0});
+        QCOMPARE(session.ply(), 2);
+        QCOMPARE(session.plyCount(), 2);
+        QCOMPARE(session.branchPly(), 1);
+        QCOMPARE(session.moveAt(2).san, QStringLiteral("c5"));
+        QCOMPARE(session.game().moves.size(), 4); // The main line is untouched.
+        QCOMPARE(session.game().variations.size(), 1);
+        QCOMPARE(session.game().variations.first().atPly, 2);
+        QCOMPARE(changed.count(), 1);
+
+        // The variation goes on at its end; its own variations count from its first move.
+        QVERIFY(session.playMove(move("g1f3")));
+        QCOMPARE(session.plyCount(), 3);
+        QCOMPARE(session.game().variations.first().moves.size(), 2);
+        session.goToPly(2);
+        QVERIFY(session.playMove(move("b1c3")));
+        QCOMPARE(session.path(), (QList<int>{0, 0}));
+        QCOMPARE(session.game().variations.first().variations.first().atPly, 2);
+        QCOMPARE(session.lineMoves().size(), 3);
+        QCOMPARE(session.moveAt(3).san, QStringLiteral("Nc3"));
+
+        // Back at the branch, the main line's move follows the main line; a
+        // third alternative is a sibling, not a variation of a variation.
+        session.goToLine({0}, 1);
+        QCOMPARE(session.ply(), 1);
+        QVERIFY(session.playMove(move("e7e5")));
+        QVERIFY(session.path().isEmpty());
+        QCOMPARE(session.ply(), 2);
+        session.goToLine({0}, 1);
+        QVERIFY(session.playMove(move("e7e6")));
+        QCOMPARE(session.path(), QList<int>{1});
+        QCOMPARE(session.game().variations.size(), 2);
+        QCOMPARE(session.game().variations.at(1).atPly, 2);
+        // Playing the existing variation's move again takes it, adding nothing.
+        session.goToLine({}, 1);
+        QVERIFY(session.playMove(move("c7c5")));
+        QCOMPARE(session.path(), QList<int>{0});
+        QCOMPARE(session.game().variations.size(), 2);
+
+        // Annotations land on the record of the line followed.
+        session.setAnnotations(2, {1});
+        QCOMPARE(session.game().variations.first().moves.first().nags, QList<int>{1});
+        QVERIFY(session.game().moves.at(1).nags.isEmpty());
+        session.setAnnotations(1, {6}); // Before the branch: the main line's move.
+        QCOMPARE(session.game().moves.first().nags, QList<int>{6});
+
+        // Opening the game again keeps the tree and starts on the main line.
+        session.setGame(session.game());
+        QVERIFY(session.path().isEmpty());
+        QCOMPARE(session.plyCount(), 4);
+        QCOMPARE(session.game().variations.size(), 2);
+        QCOMPARE(session.game().variations.first().variations.size(), 1);
     }
 
     void annotatesMoves()
@@ -1291,7 +1446,7 @@ private Q_SLOTS:
         for (int i = 0; i < migrations.size(); ++i)
             QCOMPARE(migrations.at(i).version, i + 1);
         const int latest = DatabaseMigrations::latestVersion();
-        QCOMPARE(latest, 6);
+        QCOMPARE(latest, 7);
 
         QTemporaryDir dir;
         const QString path = dir.filePath(QStringLiteral("games.pdb"));
@@ -1335,9 +1490,9 @@ private Q_SLOTS:
             QCOMPARE(database->header(0).state, GameState::Live);
             QVERIFY2(database->setGameState(0, GameState::Trashed, &error), qPrintable(error));
         }
-        // Only the missing migration ran, and the file is at the latest version.
+        // Only the missing migrations ran (6 and later), and the file is at the latest version.
         QCOMPARE(inFile(QStringLiteral("PRAGMA user_version")).toInt(), latest);
-        QCOMPARE(inFile(QStringLiteral("SELECT COUNT(*) FROM migrations")).toInt(), 1);
+        QCOMPARE(inFile(QStringLiteral("SELECT COUNT(*) FROM migrations")).toInt(), latest - 5);
         QCOMPARE(inFile(QStringLiteral("SELECT MIN(version) FROM migrations")).toInt(), 6);
 
         // A file from a later version is refused, untouched.

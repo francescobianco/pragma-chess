@@ -25,6 +25,7 @@
 #endif
 #include "app/Explainer.h"
 #include "app/GameSession.h"
+#include "app/GameVariations.h"
 #include "app/MoveAnnotation.h"
 #include "app/Pgn.h"
 #include "app/Project.h"
@@ -1126,7 +1127,7 @@ QString MainWindow::moveText(int ply) const
 {
     if (ply < 1 || ply > m_session->plyCount())
         return {};
-    const MoveRecord &move = m_session->game().moves.at(ply - 1);
+    const MoveRecord &move = m_session->moveAt(ply);
     return m_session->positionAt(ply - 1).lineText({move.uci}) + MoveAnnotation::pgnSuffix(move.nags);
 }
 
@@ -1145,7 +1146,7 @@ void MainWindow::showMoveListMenu(const QPoint &position)
 
     // Every glyph with what it means; choosing the one the move has takes it off.
     QMenu *annotations = menu.addMenu(tr("&Annotations"));
-    const QList<int> current = m_session->game().moves.at(ply - 1).nags;
+    const QList<int> current = m_session->moveAt(ply).nags;
     MoveAnnotation::Kind kind = MoveAnnotation::Kind::Move;
     for (const MoveAnnotation::Glyph &glyph : MoveAnnotation::glyphs()) {
         if (glyph.kind != kind)
@@ -1172,7 +1173,7 @@ void MainWindow::annotateMove(int ply, const QList<int> &nags)
 {
     if (ply < 1 || ply > m_session->plyCount())
         return;
-    const QList<int> before = m_session->game().moves.at(ply - 1).nags;
+    const QList<int> before = m_session->moveAt(ply).nags;
     m_session->setAnnotations(ply, nags);
     if (m_openGameIndex < 0) {
         scheduleSaveSession(); // Not in the database yet: the project keeps it.
@@ -2602,7 +2603,7 @@ void MainWindow::holdEngineReply(const ChessMove &reply, const EngineEvaluation 
     m_tutorEvaluation = evaluation;
     m_tutorPly = m_session->ply();
     const QString move = m_session->positionAt(m_tutorPly - 1)
-                             .lineText({m_session->game().moves.at(m_tutorPly - 1).uci}, 1, SanStyle::Figurines);
+                             .lineText({m_session->moveAt(m_tutorPly).uci}, 1, SanStyle::Figurines);
     const QString before = m_trainingBaseline.text();
     const QString after = evaluation.text();
     QString message;
@@ -2920,6 +2921,7 @@ Project MainWindow::captureProject() const
                 project.annotations << QStringLiteral("%1:%2").arg(project.moves.size())
                                            .arg(MoveAnnotation::storedSuffix(move.nags));
         }
+        project.variations = GameVariations::toText(m_session->game().variations);
     }
     project.boardFlipped = m_flipBoardAction->isChecked();
     project.showCoordinates = m_coordinatesAction->isChecked();
@@ -2985,6 +2987,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
             if (ply >= 1 && ply <= game.moves.size())
                 MoveAnnotation::split(annotation.section(QLatin1Char(':'), 1), &game.moves[ply - 1].nags);
         }
+        game.variations = GameVariations::fromText(project.variations);
         m_gameView->clearSelection();
         m_openGameIndex = -1;
         m_session->setGame(game);

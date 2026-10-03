@@ -146,6 +146,10 @@ qt_add_library(pragma-chess-core STATIC
     src/app/chessbase/ChessBaseDatabase.h
     src/app/sources/ChessBaseFetch.cpp
     src/app/sources/ChessBaseFetch.h
+    src/app/GameSession.cpp
+    src/app/GameSession.h
+    src/app/GameVariations.cpp
+    src/app/GameVariations.h
     src/app/HelpGuide.cpp
     src/app/HelpGuide.h
     src/app/TrainingTutor.cpp
@@ -288,8 +292,6 @@ qt_add_executable(pragma-chess
     src/app/GameRecord.h
     src/app/Project.cpp
     src/app/Project.h
-    src/app/GameSession.cpp
-    src/app/GameSession.h
     src/app/DatabaseMerge.cpp
     src/app/DatabaseMerge.h
     src/app/DatabaseMigrations.cpp

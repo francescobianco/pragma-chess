@@ -178,6 +178,21 @@ bool createGameStates(QSqlDatabase &db, QString *error)
     }, error);
 }
 
+// 7: the variations of a game, as GameVariations::toText writes them; the
+// main line stays in moves_san/moves_uci, so everything that reads only the
+// main line (the indexes, the phone) goes on as before.
+bool addVariations(QSqlDatabase &db, QString *error)
+{
+    QSqlQuery query(db);
+    if (query.exec(QStringLiteral("PRAGMA table_info(games)"))) {
+        while (query.next())
+            if (query.value(1).toString() == QLatin1String("variations"))
+                return true; // Files made by hand (and tests) may have it already.
+    }
+    query.finish();
+    return run(db, {"ALTER TABLE games ADD COLUMN variations TEXT NOT NULL DEFAULT ''"}, error);
+}
+
 } // namespace
 
 const QList<Migration> &all()
@@ -189,6 +204,7 @@ const QList<Migration> &all()
         {4, "create_properties", &createProperties},
         {5, "add_game_identity", &addGameIdentity},
         {6, "create_game_states", &createGameStates},
+        {7, "add_variations", &addVariations},
     };
     return migrations;
 }

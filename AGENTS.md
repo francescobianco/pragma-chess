@@ -304,7 +304,7 @@ cargo run -p chessdb-cli -- <args>
 ## File formats and user data
 
 - **`.pdb` database**: SQLite with `PRAGMA application_id` = `PRAG` and schema
-  version in `PRAGMA user_version` (currently 6). **The schema is a list of
+  version in `PRAGMA user_version` (currently 7). **The schema is a list of
   migrations**, as in web frameworks (`app/DatabaseMigrations`): each takes a
   file from the version before to its own, a new file runs them all, an older
   file runs the ones it is missing when it is opened (each in a transaction,
@@ -331,7 +331,11 @@ cargo run -p chessdb-cli -- <args>
   `Reconcile` (pure, unit-tested) merges two copies by uid, newer wins, and
   reports conflicts; the phone link's `put` uses it.
   Version 6 added the trash: `game_states` (`uid`, `state`, `modified`), see
-  "Trash" below.
+  "Trash" below. Version 7 added `games.variations`, the variations of the
+  game as `GameVariations::toText` writes them; the main line stays in
+  `moves_san`/`moves_uci`, so the indexes and the phone read it as before
+  (the phone shows the main line and drops the variations of a game it
+  rewrites).
 
 ## Move list, annotations and the games list
 

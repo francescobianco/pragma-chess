@@ -72,6 +72,8 @@ QString Project::toYaml(const QDir &baseDir) const
         out << YAML::Key << "moves" << YAML::Value << toStd(moves.join(QLatin1Char(' ')));
     if (gameId < 0 && !moves.isEmpty() && !annotations.isEmpty())
         out << YAML::Key << "annotations" << YAML::Value << toStd(annotations.join(QLatin1Char(' ')));
+    if (gameId < 0 && !variations.isEmpty())
+        out << YAML::Key << "variations" << YAML::Value << toStd(variations);
     out << YAML::Key << "ply" << YAML::Value << ply;
     out << YAML::EndMap;
 
@@ -136,6 +138,7 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     env.startFen = fromNode(game["fen"]);
     env.moves = fromNode(game["moves"]).split(QLatin1Char(' '), Qt::SkipEmptyParts);
     env.annotations = fromNode(game["annotations"]).split(QLatin1Char(' '), Qt::SkipEmptyParts);
+    env.variations = fromNode(game["variations"]);
 
     const YAML::Node board = root["board"];
     env.boardFlipped = valueOf<bool>(board["flipped"], false);

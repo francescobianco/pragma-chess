@@ -16,7 +16,7 @@ data class GameStateRecord(val uid: String, val state: String, val modified: Str
 
 /**
  * A Pragma .pdb database: SQLite with the desktop's schema (application_id
- * PRAG, user_version 6; see gui/qt/src/app/DatabaseMigrations.cpp). The phone
+ * PRAG, user_version 7; see gui/qt/src/app/DatabaseMigrations.cpp). The phone
  * reads any file of version 1 to 6 and upgrades the ones it opens for
  * writing; a file of a later version is refused with [NewerSchemaException].
  */
@@ -252,7 +252,7 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
     companion object {
         const val APPLICATION_ID = 0x50524147 // "PRAG"
         /** The last schema this app knows: the desktop's DatabaseMigrations::latestVersion(). */
-        const val SCHEMA_VERSION = 6
+        const val SCHEMA_VERSION = 7
         const val STATE_PURGED = "purged"
         const val PROPERTY_ID = "id"
         const val PROPERTY_TYPE = "type"
@@ -275,6 +275,8 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
                 " start_fen TEXT," +
                 " moves_san TEXT NOT NULL DEFAULT ''," +
                 " moves_uci TEXT NOT NULL DEFAULT ''," +
+                // Version 7: the variations, as the desktop writes them; the phone shows the main line.
+                " variations TEXT NOT NULL DEFAULT ''," +
                 " uid TEXT, modified TEXT)",
             "CREATE INDEX games_white ON games(white_id)",
             "CREATE INDEX games_black ON games(black_id)",
@@ -359,6 +361,9 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
                         PdbDatabase(file, db).fillUids()
                     }
                     db.execSQL(UID_INDEX)
+                    if (version < 7) {
+                        db.execSQL("ALTER TABLE games ADD COLUMN variations TEXT NOT NULL DEFAULT ''")
+                    }
                     val hasId = db.rawQuery("SELECT 1 FROM properties WHERE key = ? AND value <> ''", arrayOf(PROPERTY_ID))
                         .use { it.moveToFirst() }
                     if (!hasId) {

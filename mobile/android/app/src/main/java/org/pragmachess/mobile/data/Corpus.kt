@@ -17,7 +17,7 @@ data class CorpusEntry(
 class Corpus(private val library: Library, private val store: AppStore) {
 
     /**
-     * Makes every file current (schema version 6, a lineage) and records
+     * Makes every file current (schema version 7, a lineage) and records
      * where it came from. Files that had no lineage get a provisional one,
      * which the first sync replaces with the computer's for the same name;
      * the databases Pragma Chess ships get their fixed ids at once.

@@ -30,6 +30,8 @@ struct Project {
     /// The annotations of those moves, as "<ply>:<suffix>" with the suffix of
     /// MoveAnnotation::storedSuffix: "3:!", "12:??$18".
     QStringList annotations;
+    /// Their variations, as GameVariations::toText writes them.
+    QString variations;
 
     bool boardFlipped = false;
     bool showCoordinates = true;

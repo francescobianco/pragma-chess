@@ -44,6 +44,143 @@ QString wrap(const QString &text, int width)
 
 namespace Pgn {
 
+namespace {
+
+/// Writes `moves` from `position`, numbered, with the variations off them
+/// when `withVariations`: each in parentheses after the move it replaces,
+/// and the move after a variation numbered again.
+void writeLine(const QList<MoveRecord> &moves, const QList<Variation> &variations, ChessPosition position,
+               int maxPlies, bool withVariations, QStringList &parts)
+{
+    bool numbered = false;
+    for (qsizetype i = 0; i < moves.size() && (maxPlies < 0 || i < maxPlies); ++i) {
+        const MoveRecord &record = moves.at(i);
+        std::optional<ChessMove> move = position.moveFromUci(record.uci);
+        if (!move && !record.san.isEmpty())
+            move = position.moveFromSan(record.san);
+        if (!move)
+            break;
+        const QString san = position.san(*move) + MoveAnnotation::pgnSuffix(record.nags);
+        parts << (!numbered || position.sideToMove() == Side::White ? position.moveNumberText() + san : san);
+        numbered = true;
+        const ChessPosition before = position;
+        position.play(*move);
+        if (!withVariations)
+            continue;
+        for (const Variation &variation : variations) {
+            if (variation.atPly != i + 1)
+                continue;
+            parts << QStringLiteral("(");
+            writeLine(variation.moves, variation.variations, before, -1, true, parts);
+            parts << QStringLiteral(")");
+            numbered = false; // "3…Nc6" after the parenthesis.
+        }
+    }
+}
+
+/// The tokens of a movetext: tags, comments and line comments gone, the
+/// parentheses of variations as tokens of their own.
+QStringList tokenize(const QString &text)
+{
+    QString movetext;
+    bool inComment = false;
+    bool inTag = false;
+    bool inLineComment = false;
+    for (QChar c : text) {
+        if (inLineComment) {
+            inLineComment = c != QLatin1Char('\n');
+            continue;
+        }
+        if (inComment) {
+            inComment = c != QLatin1Char('}');
+            continue;
+        }
+        if (inTag) {
+            inTag = c != QLatin1Char(']');
+            continue;
+        }
+        if (c == QLatin1Char('{')) {
+            inComment = true;
+        } else if (c == QLatin1Char('[')) {
+            inTag = true;
+        } else if (c == QLatin1Char(';')) {
+            inLineComment = true;
+        } else if (c == QLatin1Char('(') || c == QLatin1Char(')')) {
+            movetext += QLatin1Char(' ') + c + QLatin1Char(' ');
+        } else {
+            movetext += c;
+        }
+    }
+    static const QRegularExpression separators(QStringLiteral(R"([\s,]+)"));
+    return movetext.split(separators, Qt::SkipEmptyParts);
+}
+
+/// Reads one line of tokens from `i`, to its closing parenthesis or the end,
+/// with the variations that open after its moves. Returns false with
+/// `errorMessage` on an illegal move when `strict`; otherwise the line stops
+/// there and the rest of it is skipped.
+bool readLine(const QStringList &tokens, qsizetype &i, const ChessPosition &start, QList<MoveRecord> &moves,
+              QList<Variation> &variations, bool strict, QString *errorMessage)
+{
+    static const QRegularExpression moveNumber(QStringLiteral(R"(^\d+\s*(\.+|…)\s*)"));
+    static const QRegularExpression result(QStringLiteral(R"(^(1-0|0-1|1/2-1/2|½-½|\*)$)"));
+    QList<ChessPosition> positions{start};
+    bool stopped = false;
+    while (i < tokens.size()) {
+        QString token = tokens.at(i++);
+        if (token == QLatin1String(")"))
+            return true;
+        if (token == QLatin1String("(")) {
+            // An alternative to the last move of this line, from before it.
+            Variation variation;
+            variation.atPly = int(moves.size());
+            const ChessPosition &before = moves.isEmpty() ? positions.first() : positions.at(moves.size() - 1);
+            if (!readLine(tokens, i, before, variation.moves, variation.variations, false, errorMessage))
+                return false;
+            if (!stopped && variation.atPly >= 1 && !variation.moves.isEmpty())
+                variations << variation;
+            continue;
+        }
+        if (stopped)
+            continue; // The rest of a cut variation, up to its parenthesis.
+        token.remove(moveNumber);
+        if (token.startsWith(QLatin1Char('$')) && !moves.isEmpty())
+            MoveAnnotation::split(token, &moves.last().nags); // A NAG belongs to the move before it.
+        if (token.isEmpty() || token.startsWith(QLatin1Char('$')) || result.match(token).hasMatch())
+            continue;
+        if (token.front().isDigit() && token.back() == QLatin1Char('.'))
+            continue;
+        if (token.count(QLatin1Char('.')) + token.count(QChar(0x2026)) == token.size())
+            continue; // "..." or "…" standing alone before a Black move.
+        QList<int> nags;
+        const QString bare = MoveAnnotation::split(token, &nags);
+        ChessPosition &position = positions.last();
+        std::optional<ChessMove> move = position.moveFromSan(bare);
+        if (!move)
+            move = position.moveFromUci(bare);
+        if (!move) {
+            if (!strict) {
+                stopped = true;
+                continue;
+            }
+            GameRecord sofar;
+            sofar.startFen = start.fen();
+            sofar.moves = moves;
+            if (errorMessage)
+                *errorMessage = QObject::tr("“%1” is not a legal move after %2")
+                                    .arg(token, moves.isEmpty() ? QObject::tr("the start position") : moveText(sofar));
+            return false;
+        }
+        moves << MoveRecord{position.san(*move), move->uci(), nags};
+        ChessPosition next = position;
+        next.play(*move);
+        positions << next;
+    }
+    return true;
+}
+
+} // namespace
+
 QString moveText(const GameRecord &game, int plies)
 {
     const std::optional<ChessPosition> start = game.startFen.isEmpty()
@@ -52,16 +189,7 @@ QString moveText(const GameRecord &game, int plies)
     if (!start)
         return {};
     QStringList parts;
-    ChessPosition position = *start;
-    for (qsizetype i = 0; i < game.moves.size() && (plies < 0 || i < plies); ++i) {
-        const MoveRecord &record = game.moves.at(i);
-        const std::optional<ChessMove> move = position.moveFromUci(record.uci);
-        if (!move)
-            break;
-        const QString san = position.san(*move) + MoveAnnotation::pgnSuffix(record.nags);
-        parts << (i == 0 || position.sideToMove() == Side::White ? position.moveNumberText() + san : san);
-        position.play(*move);
-    }
+    writeLine(game.moves, game.variations, *start, plies, plies < 0, parts);
     return parts.join(QLatin1Char(' '));
 }
 
@@ -100,77 +228,16 @@ std::optional<ParsedLine> parseLine(const QString &text, const QString &startFen
     static const QRegularExpression fenTag(QStringLiteral(R"re(\[\s*FEN\s+"([^"]*)"\s*\])re"));
     if (const QRegularExpressionMatch match = fenTag.match(text); match.hasMatch())
         line.startFen = match.captured(1).trimmed();
-
-    // Strip tags, comments, variations and line comments, keeping the main line.
-    QString movetext;
-    int depth = 0;
-    bool inComment = false;
-    bool inTag = false;
-    bool inLineComment = false;
-    for (QChar c : text) {
-        if (inLineComment) {
-            inLineComment = c != QLatin1Char('\n');
-            continue;
-        }
-        if (inComment) {
-            inComment = c != QLatin1Char('}');
-            continue;
-        }
-        if (inTag) {
-            inTag = c != QLatin1Char(']');
-            continue;
-        }
-        if (c == QLatin1Char('{')) {
-            inComment = true;
-        } else if (c == QLatin1Char('[') && depth == 0) {
-            inTag = true;
-        } else if (c == QLatin1Char(';')) {
-            inLineComment = true;
-        } else if (c == QLatin1Char('(')) {
-            ++depth;
-        } else if (c == QLatin1Char(')')) {
-            depth = qMax(0, depth - 1);
-        } else if (depth == 0) {
-            movetext += c;
-        }
-        if (depth > 0 || inComment || inTag || inLineComment)
-            movetext += QLatin1Char(' ');
-    }
-
-    std::optional<ChessPosition> position = line.startFen.isEmpty() ? ChessPosition::startingPosition()
-                                                                     : ChessPosition::fromFen(line.startFen);
+    const std::optional<ChessPosition> position = line.startFen.isEmpty() ? ChessPosition::startingPosition()
+                                                                           : ChessPosition::fromFen(line.startFen);
     if (!position)
         return fail(QObject::tr("Invalid FEN: %1").arg(line.startFen));
 
-    // Move numbers may be glued to the move: "12.Nf3", "12...Nc6", "12…Nc6".
-    static const QRegularExpression moveNumber(QStringLiteral(R"(^\d+\s*(\.+|…)\s*)"));
-    static const QRegularExpression result(QStringLiteral(R"(^(1-0|0-1|1/2-1/2|½-½|\*)$)"));
-    static const QRegularExpression separators(QStringLiteral(R"([\s,]+)"));
-    for (QString token : movetext.split(separators, Qt::SkipEmptyParts)) {
-        token.remove(moveNumber);
-        if (token.startsWith(QLatin1Char('$')) && !line.moves.isEmpty())
-            MoveAnnotation::split(token, &line.moves.last().nags); // A NAG belongs to the move before it.
-        if (token.isEmpty() || token.startsWith(QLatin1Char('$')) || result.match(token).hasMatch())
-            continue;
-        if (token.front().isDigit() && token.back() == QLatin1Char('.'))
-            continue;
-        if (token.count(QLatin1Char('.')) + token.count(QChar(0x2026)) == token.size())
-            continue; // "..." or "…" standing alone before a Black move.
-        QList<int> nags;
-        const QString bare = MoveAnnotation::split(token, &nags);
-        std::optional<ChessMove> move = position->moveFromSan(bare);
-        if (!move)
-            move = position->moveFromUci(bare);
-        if (!move) {
-            GameRecord sofar;
-            sofar.startFen = line.startFen;
-            sofar.moves = line.moves;
-            return fail(QObject::tr("“%1” is not a legal move after %2")
-                            .arg(token, line.moves.isEmpty() ? QObject::tr("the start position") : moveText(sofar)));
-        }
-        line.moves << MoveRecord{position->san(*move), move->uci(), nags};
-        position->play(*move);
-    }
+    const QStringList tokens = tokenize(text);
+    qsizetype i = 0;
+    QString error;
+    if (!readLine(tokens, i, *position, line.moves, line.variations, true, &error))
+        return fail(error);
     return line;
 }
 

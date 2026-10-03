@@ -12,6 +12,16 @@ struct MoveRecord {
     QList<int> nags = {};
 };
 
+/// A line of moves that branches off another: an alternative to the move
+/// at `atPly` (1-based) of the line it belongs to, played from the position
+/// before that move. Its own alternatives hang off it the same way, so the
+/// game is a tree whose trunk is GameRecord::moves. See GameVariations.
+struct Variation {
+    int atPly = 0;
+    QList<MoveRecord> moves;
+    QList<Variation> variations;
+};
+
 /// A game as seen by the GUI. Header-only records (for game lists) leave
 /// `moves` empty; `GameDatabase::loadGame` fills it.
 struct GameRecord {
@@ -45,6 +55,8 @@ struct GameRecord {
     /// 8601 UTC; empty for a game that was never in the trash.
     QString stateModified;
     QList<MoveRecord> moves;
+    /// Alternatives to moves of the main line, in the order they are shown.
+    QList<Variation> variations;
 };
 
 /// The moves of a stored game, for indexing positions and lines.

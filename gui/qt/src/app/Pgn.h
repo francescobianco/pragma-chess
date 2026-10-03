@@ -14,7 +14,9 @@ namespace Pgn {
 
 /// Numbered SAN movetext of the first `plies` moves (all when negative),
 /// e.g. "1.e4 e5 2.Nf3". Games starting with Black to move begin with "1…".
-/// Annotated moves carry their glyphs: "2.Nf3! $14".
+/// Annotated moves carry their glyphs: "2.Nf3! $14". The whole game (plies
+/// negative) carries its variations too, in parentheses after the move each
+/// is an alternative to: "2.Nf3 Nc6 (2…d6 3.d4) 3.Bb5".
 QString moveText(const GameRecord &game, int plies = -1);
 
 /// How a game begins, for lists: its first moves as a numbered line with the
@@ -24,18 +26,21 @@ QString moveText(const GameRecord &game, int plies = -1);
 /// the "…" ends a game of `plyCount` plies that goes on after `sanMoves`.
 QString preview(const QString &startFen, const QStringList &sanMoves, int plyCount);
 
-/// A main line read from text people paste: PGN (tags, comments and
-/// variations are skipped; a FEN tag sets the start; "!", "?" and the NAGs
-/// that have a symbol are kept as annotations), plain SAN with or without
-/// move numbers, or UCI moves.
+/// A game read from text people paste: PGN (tags and comments are skipped; a
+/// FEN tag sets the start; "!", "?" and the NAGs that have a symbol are kept
+/// as annotations; variations in parentheses are kept, each an alternative
+/// to the move before it), plain SAN with or without move numbers, or UCI
+/// moves.
 struct ParsedLine {
     /// Empty for the standard starting position.
     QString startFen;
     QList<MoveRecord> moves;
+    QList<Variation> variations;
 };
 
-/// Parses a main line starting from `startFen` (unless the text has a FEN
-/// tag). On an unreadable or illegal move, returns nothing and explains why.
+/// Parses a game starting from `startFen` (unless the text has a FEN tag).
+/// On an unreadable or illegal move of the main line, returns nothing and
+/// explains why; a variation is cut at its first illegal move.
 std::optional<ParsedLine> parseLine(const QString &text, const QString &startFen, QString *errorMessage);
 
 /// A complete PGN game: the seven tag roster, ratings, ECO, the start

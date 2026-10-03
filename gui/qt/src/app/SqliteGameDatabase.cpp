@@ -2,6 +2,7 @@
 
 #include "DatabaseMigrations.h"
 #include "GameIdentity.h"
+#include "GameVariations.h"
 #include "MoveAnnotation.h"
 #include "Pgn.h"
 
@@ -115,8 +116,8 @@ public:
     {
         m_insert.prepare(QStringLiteral(
             "INSERT INTO games (white_id, black_id, event_id, site_id, date, round, result,"
-            " white_elo, black_elo, eco, ply_count, start_fen, moves_san, moves_uci, uid, modified)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+            " white_elo, black_elo, eco, ply_count, start_fen, moves_san, moves_uci, variations, uid, modified)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
         m_uidTaken.prepare(QStringLiteral("SELECT 1 FROM games WHERE uid = ?"));
         m_revive.prepare(QStringLiteral("UPDATE game_states SET state = 'live', modified = ? WHERE uid = ? AND state = 'purged'"));
     }
@@ -157,6 +158,7 @@ public:
         m_insert.addBindValue(nullIfEmpty(game.startFen));
         m_insert.addBindValue(movesText(san));
         m_insert.addBindValue(movesText(uci));
+        m_insert.addBindValue(GameVariations::toText(game.variations));
         m_insert.addBindValue(m_lastUid);
         m_insert.addBindValue(m_lastModified);
         if (!m_insert.exec())
@@ -543,10 +545,11 @@ std::optional<GameRecord> SqliteGameDatabase::loadGame(qint64 index) const
 
     GameRecord game = m_headers.at(index);
     QSqlQuery query(QSqlDatabase::database(m_connectionName));
-    query.prepare(QStringLiteral("SELECT moves_san, moves_uci FROM games WHERE id = ?"));
+    query.prepare(QStringLiteral("SELECT moves_san, moves_uci, variations FROM games WHERE id = ?"));
     query.addBindValue(game.id);
     if (!query.exec() || !query.next())
         return std::nullopt;
+    game.variations = GameVariations::fromText(query.value(2).toString()); // UCI filled by GameSession.
 
     const QStringList san = query.value(0).toString().split(QLatin1Char(' '), Qt::SkipEmptyParts);
     const QStringList uci = query.value(1).toString().split(QLatin1Char(' '), Qt::SkipEmptyParts);
@@ -697,7 +700,7 @@ bool SqliteGameDatabase::replaceGame(qint64 index, const GameRecord &game, QStri
     update.prepare(QStringLiteral(
         "UPDATE games SET white_id = ?, black_id = ?, event_id = ?, site_id = ?, date = ?, round = ?,"
         " result = ?, white_elo = ?, black_elo = ?, eco = ?, ply_count = ?, start_fen = ?, moves_san = ?,"
-        " moves_uci = ?, modified = ? WHERE id = ?"));
+        " moves_uci = ?, variations = ?, modified = ? WHERE id = ?"));
     update.addBindValue(players.idFor(game.white));
     update.addBindValue(players.idFor(game.black));
     update.addBindValue(events.idFor(game.event));
@@ -712,6 +715,7 @@ bool SqliteGameDatabase::replaceGame(qint64 index, const GameRecord &game, QStri
     update.addBindValue(nullIfEmpty(game.startFen));
     update.addBindValue(movesText(san));
     update.addBindValue(movesText(uci));
+    update.addBindValue(GameVariations::toText(game.variations));
     update.addBindValue(modified);
     update.addBindValue(m_headers.at(index).id);
     if (!update.exec() || !db.commit()) {

@@ -581,6 +581,9 @@ private Q_SLOTS:
         // The only move that counts cannot trade; a book of zeros gives the move everything.
         QCOMPARE(BookWeights::adjusted({100, 0}, 0, 25), (QList<int>{100, 0}));
         QCOMPARE(BookWeights::adjusted({0, 0}, 1, 10), (QList<int>{0, 1}));
+        // −100% is Zero Weight by another name; +100% doubles the share.
+        QCOMPARE(BookWeights::adjusted({2000, 6000, 2000, 0}, 0, -100), BookWeights::zeroed({2000, 6000, 2000, 0}, 0));
+        QCOMPARE(BookWeights::adjusted({2000, 6000, 2000}, 0, 100), (QList<int>{4000, 4500, 1500}));
         // Zeroing hands the share out in proportion to the moves that have some.
         weights = BookWeights::zeroed({2000, 6000, 2000, 0}, 0);
         QCOMPARE(weights, (QList<int>{0, 7500, 2500, 0}));

@@ -73,7 +73,7 @@ BookPanel::BookPanel(QWidget *parent)
         // a move at zero can grow but not shrink.
         QMenu *weight = menu.addMenu(tr("Adjust &Weight"));
         QHash<QAction *, int> percents;
-        for (const int percent : {25, 10, 5, -5, -10, -25}) {
+        for (const int percent : {100, 50, 25, 10, 5, -5, -10, -25, -50, -100}) {
             if (percent == -5)
                 weight->addSeparator();
             QAction *action = weight->addAction(QStringLiteral("%1%2%").arg(percent > 0 ? QStringLiteral("+") : QStringLiteral("−")).arg(qAbs(percent)));

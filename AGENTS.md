@@ -629,7 +629,7 @@ line wins on transpositions). It can be opened and edited like any database.
   engines and other GUIs ignore `learn`, so the book stays a normal Polyglot
   book. Repertoire moves are listed first whatever their weight, in bold and
   brighter. The other `learn` bits are reserved and kept as read.
-- Weights: the same menu has Adjust Weight (±5/10/25%, then Zero Weight).
+- Weights: the same menu has Adjust Weight (±5/10/25/50/100%, then Zero Weight).
   `app/BookWeights` (pure, unit-tested) does the arithmetic on the shares of
   the position's moves: the sum is kept, the others give or take in
   proportion to what they have, a move at zero (or under 1%, which shows

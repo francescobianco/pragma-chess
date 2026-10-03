@@ -8,6 +8,12 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Variations.** Play a move that is not the next one of the game and it
+  becomes a variation, shown in the Moves panel under the move it replaces;
+  variations nest, are followed by clicking their moves, and are saved with
+  the game — at once when it comes from the database — and written to and
+  read from PGN. A game's moves are never overwritten any more: the old
+  "the new line becomes a game of its own" is gone.
 - **A guide.** *Help ▸ Pragma Chess Guide* (F1) explains the application
   topic by topic, in the language of the interface. Type in the search field
   and the list shows the topics that match, each with the words found.
@@ -55,11 +61,11 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- The `.pdb` schema is now version 6 and is described by migrations: a
-  database of an older version is upgraded step by step when it is opened.
-  A database opened by this version can no longer be opened by 0.2.0 or by
-  the Android app before this change: both say it was made by a newer
-  version.
+- The `.pdb` schema is now version 7 (version 6 added the trash, 7 the
+  variations) and is described by migrations: a database of an older
+  version is upgraded step by step when it is opened. A database opened by
+  this version can no longer be opened by 0.2.0 or by the Android app before
+  this change: both say it was made by a newer version.
 - In the games list, the Elo, Date, ECO and Moves columns are centred.
 - The Opening Tree and the engine line draw the pieces with the same
   figurines as the move list.

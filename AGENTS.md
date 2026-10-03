@@ -44,7 +44,7 @@ gui/qt/
                        ChessPosition (rules),
                        BoardState, Project (.pch), UciEngine, Explainer and
                        MoveExplanation, UserFolders, ClassicGames seed data
-  src/models/          Qt item models (games list, move list)
+  src/models/          Qt item models (games list)
   src/widgets/         board, evaluation bar, engine panel, game header, …
   src/dialogs/         dialogs
   src/platform/        GTK/GNOME desktop style, flat symbolic icons drawn in code
@@ -339,7 +339,41 @@ cargo run -p chessdb-cli -- <args>
   (the phone shows the main line and drops the variations of a game it
   rewrites).
 
-## Move list, annotations and the games list
+## Moves, variations, annotations and the games list
+
+A game is a tree. The main line is `GameRecord::moves`; `GameRecord::variations`
+are the alternatives to its moves (`Variation`: `atPly`, 1-based in the line
+it hangs off, counted from that line's own first move; `moves`;
+`variations` of its own). `app/GameVariations` (pure, unit-tested) is the
+text form stored in `games.variations` ("(4 Nc6 Bc4 (2 Nc3 ) )"), the
+resolution of SAN to UCI with the rules (illegal tails cut, empty variations
+dropped), and the lines by *path* — the index of the variation taken at each
+branch, empty for the main line.
+
+- `GameSession` follows one line at a time: `path()`, `lineMoves()`,
+  `moveAt(ply)`, `branchPly()`; `goToLine(path, ply)` switches line. Every
+  reader of the moves on the board goes through the session, never through
+  `game().moves` (that is the main line). `playMove`: the next move steps
+  forward; a move that begins an existing variation takes it; at the end of
+  the line the move is appended; anywhere else it starts a variation. At the
+  very branch of a variation the parent's move takes the parent line and a
+  new move becomes a sister, not a variation of the variation. **A game's
+  moves are never overwritten**, and a stored game is written back at once
+  (`MainWindow::storeOpenGame`, shared with annotations; the old "the new
+  line becomes a game of its own" is gone).
+- `widgets/MoveTreeView` (QTextBrowser) draws the tree: the main line in two
+  columns with the number in front, each variation in a block under the move
+  it replaces (a White move's row is closed with "…" and reopened after the
+  block, like lichess studies), nested variations inline in parentheses.
+  Every move is a link `path/ply`; the move on the board is highlighted,
+  attributed to the line that owns it (before the branch, the parent's).
+  It rebuilds the document on every change — fine for games of a few hundred
+  moves. `placeAt()` serves the context menu, which first follows the line
+  of a move clicked in another variation.
+- `Pgn::moveText` writes variations in parentheses after the move each
+  replaces (a cut line, `plies >= 0`, has none); `Pgn::parseLine` reads them
+  (an illegal move in a variation cuts that variation only). The project
+  carries the variations of an unsaved game (`variations`).
 
 Right-clicking a move of the move list (`MainWindow::showMoveListMenu`) offers
 Copy ▸ Copy Move / Copy Line up to Here and Annotations ▸, the glyphs with
@@ -512,8 +546,7 @@ while one of them is selected.
   instead of fetching; `MainWindow::reportUnavailableSource` asks once per
   run: Ignore, or Ignore on This Computer, which is per device
   (`SourceCredentials::isIgnoredHere`, cleared when the source is edited in
-  Manage Sources). Only the main line is imported; variations wait for the
-  game tree (TODO.md).
+  Manage Sources). Only the main line is imported for now (TODO.md).
 - Parsers (`parseGame`, `TorneiOnlineFetch::parse*`) are pure and unit-tested
   with recorded JSON or HTML; keep new kinds the same way. Be gentle with the sites' APIs when testing (one request
   at a time, send `SourceFetch::userAgent()`).

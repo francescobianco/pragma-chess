@@ -310,8 +310,6 @@ qt_add_executable(pragma-chess
     src/models/GameFilterProxyModel.h
     src/models/GameListModel.cpp
     src/models/GameListModel.h
-    src/models/MoveListModel.cpp
-    src/models/MoveListModel.h
     src/widgets/BoardPanel.cpp
     src/widgets/BoardPanel.h
     src/widgets/BookPanel.cpp
@@ -343,6 +341,8 @@ qt_add_executable(pragma-chess
     src/widgets/GameHeaderWidget.h
     src/widgets/GlyphMenuAction.cpp
     src/widgets/GlyphMenuAction.h
+    src/widgets/MoveTreeView.cpp
+    src/widgets/MoveTreeView.h
     src/widgets/BoardWidget.h
 )
 

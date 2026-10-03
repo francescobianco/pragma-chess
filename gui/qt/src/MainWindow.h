@@ -35,7 +35,7 @@ class GameDatabase;
 class GameListModel;
 class GameSession;
 class HelpDialog;
-class MoveListModel;
+class MoveTreeView;
 class BookPanel;
 struct ChessMove;
 class OpeningNames;
@@ -121,6 +121,9 @@ private:
     /// Annotates the move leading to `ply` ("!", "±"…, as NAGs), in the
     /// database too when the game is stored.
     void annotateMove(int ply, const QList<int> &nags);
+    /// Writes the game on the board back to the database when it comes from
+    /// there (moves, variations, annotations); otherwise the project keeps it.
+    bool storeOpenGame(QString *error);
     /// The move leading to `ply` as copied to the clipboard: "12.Nf3!".
     QString moveText(int ply) const;
     void setPlayerRole(const QString &player, PlayerRole role);
@@ -292,7 +295,6 @@ private:
     GameSession *m_session;
     GameListModel *m_gameListModel;
     GameFilterProxyModel *m_gameListProxy;
-    MoveListModel *m_moveListModel;
 
     BoardWidget *m_board;
     /// Hosts the sidebar docks next to the board (no central widget).
@@ -315,7 +317,7 @@ private:
     QHash<QString, QString> m_movedDatabases;
     UciEngine *m_engine;
     Explainer *m_explainer;
-    QTableView *m_moveView;
+    MoveTreeView *m_moveView;
     QTableView *m_gameView;
     DatabaseTreeWidget *m_databaseTree;
     /// Databases tree | games list, inside the Games dock.

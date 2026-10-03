@@ -43,7 +43,6 @@
 #include "app/sync/SyncTasks.h"
 #include "models/GameFilterProxyModel.h"
 #include "models/GameListModel.h"
-#include "models/MoveListModel.h"
 #include "platform/SymbolicIcons.h"
 #include "widgets/BoardPanel.h"
 #include "widgets/BookPanel.h"
@@ -60,6 +59,7 @@
 #include "widgets/FigurineFont.h"
 #include "widgets/GameHeaderWidget.h"
 #include "widgets/GlyphMenuAction.h"
+#include "widgets/MoveTreeView.h"
 
 #include <QAction>
 #include <QApplication>
@@ -141,7 +141,6 @@ MainWindow::MainWindow(QWidget *parent)
     , m_session(new GameSession(this))
     , m_gameListModel(new GameListModel(this))
     , m_gameListProxy(new GameFilterProxyModel(this))
-    , m_moveListModel(new MoveListModel(m_session, this))
     , m_board(new BoardWidget)
     , m_sidebar(new QMainWindow)
     , m_evaluationBar(new EvaluationBar)
@@ -842,32 +841,8 @@ void MainWindow::restoreLayout(const QByteArray &layout)
 
 void MainWindow::createDocks()
 {
-    m_moveView = new QTableView;
-    m_moveView->setModel(m_moveListModel);
-    m_moveView->setFont(FigurineFont::apply(m_moveView->font()));
-    m_moveView->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_moveView->setSelectionBehavior(QAbstractItemView::SelectItems);
-    m_moveView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_moveView->setShowGrid(false);
-    m_moveView->setFocusPolicy(Qt::NoFocus);
-    m_moveView->setItemDelegate(new PaddedItemDelegate(CellPadding::vertical, CellPadding::horizontal, m_moveView));
-    for (Qt::Orientation orientation : {Qt::Horizontal, Qt::Vertical}) {
-        auto *header = new PaddedHeaderView(orientation, CellPadding::vertical, CellPadding::horizontal, m_moveView);
-        // As a table's own headers: the current move's number and column stand out.
-        header->setSectionsClickable(true);
-        header->setHighlightSections(true);
-        if (orientation == Qt::Horizontal)
-            m_moveView->setHorizontalHeader(header);
-        else
-            m_moveView->setVerticalHeader(header);
-    }
-    m_moveView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    m_moveView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    connect(m_moveView, &QTableView::clicked, this, [this](const QModelIndex &index) {
-        const int ply = m_moveListModel->plyForIndex(index);
-        if (ply > 0)
-            m_session->goToPly(ply);
-    });
+    m_moveView = new MoveTreeView(m_session);
+    connect(m_moveView, &MoveTreeView::moveActivated, m_session, &GameSession::goToLine);
     m_moveView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_moveView, &QWidget::customContextMenuRequested, this, &MainWindow::showMoveListMenu);
     m_movesDock = addDock(m_sidebar, QStringLiteral("movesDock"), tr("Moves"), m_moveView, Qt::RightDockWidgetArea);
@@ -1139,9 +1114,13 @@ QString MainWindow::moveText(int ply) const
 
 void MainWindow::showMoveListMenu(const QPoint &position)
 {
-    const int ply = m_moveListModel->plyForIndex(m_moveView->indexAt(position));
-    if (ply < 1)
+    const MoveTreeView::Place place = m_moveView->placeAt(position);
+    if (!place.isValid())
         return;
+    // A move of another line is brought on the board first: the menu acts on the line followed.
+    if (place.path != m_session->path())
+        m_session->goToLine(place.path, place.ply);
+    const int ply = place.ply;
 
     QMenu menu(this);
     QMenu *copy = menu.addMenu(themeIcon("edit-copy", QStyle::SP_FileIcon), tr("&Copy"));
@@ -1181,29 +1160,37 @@ void MainWindow::annotateMove(int ply, const QList<int> &nags)
         return;
     const QList<int> before = m_session->moveAt(ply).nags;
     m_session->setAnnotations(ply, nags);
-    if (m_openGameIndex < 0) {
-        scheduleSaveSession(); // Not in the database yet: the project keeps it.
-        return;
-    }
-
-    // A stored game keeps its annotations in the database, at once, as its header does.
     QString error;
-    GameRecord game = m_session->game();
-    game.modified.clear(); // Changed now.
-    bool saved = false;
-    if (!m_database || m_openGameIndex >= m_database->gameCount())
-        error = tr("The game is no longer in the database.");
-    else if (m_database->header(m_openGameIndex).plyCount != game.moves.size())
-        error = tr("Some moves of the stored game cannot be replayed."); // Never cut a stored game short.
-    else
-        saved = m_database->replaceGame(m_openGameIndex, game, &error);
-    if (!saved) {
+    if (!storeOpenGame(&error)) {
         m_session->setAnnotations(ply, before);
         QMessageBox::warning(this, tr("Annotations"), tr("Could not save the annotation: %1").arg(error));
-        return;
     }
+}
+
+bool MainWindow::storeOpenGame(QString *error)
+{
+    if (m_openGameIndex < 0) {
+        scheduleSaveSession(); // Not in the database yet: the project keeps it.
+        return true;
+    }
+    // A stored game keeps its moves, variations and annotations in the
+    // database at once, as its header does.
+    GameRecord game = m_session->game();
+    game.modified.clear(); // Changed now.
+    if (!m_database || m_openGameIndex >= m_database->gameCount()) {
+        *error = tr("The game is no longer in the database.");
+        return false;
+    }
+    if (m_database->header(m_openGameIndex).plyCount > game.moves.size()) {
+        *error = tr("Some moves of the stored game cannot be replayed."); // Never cut a stored game short.
+        return false;
+    }
+    if (!m_database->replaceGame(m_openGameIndex, game, error))
+        return false;
     m_gameListModel->refreshRow(int(m_openGameIndex));
     m_session->setHeader(m_database->header(m_openGameIndex));
+    rebuildPositionIndex(); // The main line may have grown.
+    return true;
 }
 
 qint64 MainWindow::gameIndexOf(const QString &uid) const
@@ -1355,14 +1342,6 @@ void MainWindow::syncBoard()
     m_explainAction->setChecked(false);
     updateExplainer();
 
-    const QModelIndex current = m_moveListModel->indexForPly(m_session->ply());
-    if (current.isValid()) {
-        m_moveView->setCurrentIndex(current);
-        m_moveView->scrollTo(current);
-    } else {
-        m_moveView->clearSelection();
-        m_moveView->scrollToTop();
-    }
     updateNavigationActions();
 }
 
@@ -2709,14 +2688,14 @@ void MainWindow::playBoardMove(int from, int to, const QPoint &globalPosition)
 
 void MainWindow::playMove(const ChessMove &move)
 {
-    if (!m_session->isNextMove(move) && m_openGameIndex >= 0) {
-        // Never rewrite a stored game: the new line becomes a game of its own.
-        m_openGameIndex = -1;
-        m_gameView->clearSelection();
-        statusBar()->showMessage(tr("The game in the database is unchanged. Use Game ▸ Save Game to "
-                                    "Database to keep this line."), 8000);
-    }
-    m_session->playMove(move);
+    // The next move of the line only steps forward; anything else adds to the
+    // game — at its end, or as a variation — and a stored game is saved at once.
+    const bool adds = !m_session->isNextMove(move);
+    if (!m_session->playMove(move) || !adds)
+        return;
+    QString error;
+    if (!storeOpenGame(&error))
+        statusBar()->showMessage(tr("The move could not be saved in the database: %1").arg(error), 8000);
 }
 
 void MainWindow::saveGameToDatabase()

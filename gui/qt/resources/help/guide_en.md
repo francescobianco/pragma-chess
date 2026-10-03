@@ -67,13 +67,15 @@ Move a piece by dragging it, or by clicking it and then its square. A pawn reach
 
 **Game ▸ New Game** (Ctrl+Shift+N) starts a game to enter move by move. **Game ▸ Save Game to Database** stores it in the open database.
 
-If you play a different move in a game that is stored, the stored game is not changed: your line becomes a game of its own, to save if you want to keep it.
+Play a move that is not the next one of the game and it becomes a **variation**: the game keeps its line, and the new one appears in the Moves panel under the move it replaces. A game stored in the database is saved at once, variations included.
 
 **Edit ▸ Copy** puts on the clipboard the moves, the game as PGN, the position as FEN (Ctrl+Shift+C), the engine line or the explanation. **Edit ▸ Paste FEN** (Ctrl+Shift+V) sets up the position on the clipboard.
 
 # Moves and annotations {#moves}
 
 The Moves panel lists the game on the board, with the pieces drawn as figurines. Click a move to go there.
+
+**Variations** are shown under the move they replace, indented and smaller; a variation's own variations follow it in parentheses. Click a move of a variation to follow that line: the arrows then move along it, and clicking a move of the main line brings you back. At the start of a variation, playing the main line's move takes the main line again, and another move starts a sister variation. Variations are saved with the game and travel in the PGN you copy.
 
 Right-click a move for its menu:
 

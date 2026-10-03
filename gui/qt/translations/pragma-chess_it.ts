@@ -1645,10 +1645,6 @@ Il Nero ha catturato: %2</translation>
         <translation>Cavallo</translation>
     </message>
     <message>
-        <source>The game in the database is unchanged. Use Game ▸ Save Game to Database to keep this line.</source>
-        <translation>La partita nel database non è cambiata. Usa Partita ▸ Salva partita nel database per conservare questa linea.</translation>
-    </message>
-    <message>
         <source>Save Game</source>
         <translation>Salva partita</translation>
     </message>
@@ -2007,6 +2003,10 @@ non è su questo computer.</translation>
     <message>
         <source>This computer stops looking for the file; the source stays in the database for the computers that have it</source>
         <translation>Questo computer smette di cercare il file; la fonte resta nel database per i computer che lo hanno</translation>
+    </message>
+    <message>
+        <source>The move could not be saved in the database: %1</source>
+        <translation>La mossa non si è potuta salvare nel database: %1</translation>
     </message>
 </context>
 <context>
@@ -2446,7 +2446,7 @@ Le %n partite già importate restano nel database.</numerusform>
     </message>
 </context>
 <context>
-    <name>MoveListModel</name>
+    <name>MoveTreeView</name>
     <message>
         <source>White</source>
         <translation>Bianco</translation>

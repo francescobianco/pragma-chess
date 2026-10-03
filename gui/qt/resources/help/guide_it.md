@@ -67,13 +67,15 @@ Muovi un pezzo trascinandolo, oppure cliccandolo e poi cliccando la casa d'arriv
 
 **Partita ▸ Nuova partita** (Ctrl+Shift+N) comincia una partita da inserire mossa per mossa. **Partita ▸ Salva partita nel database** la mette nel database aperto.
 
-Se giochi una mossa diversa in una partita già salvata, la partita salvata non cambia: la tua linea diventa una partita a sé, da salvare se la vuoi tenere.
+Gioca una mossa che non è la successiva della partita e diventa una **variante**: la partita tiene la sua linea, e quella nuova compare nel pannello Mosse sotto la mossa che sostituisce. Una partita salvata nel database viene salvata subito, varianti comprese.
 
 **Modifica ▸ Copia** mette negli appunti le mosse, la partita come PGN, la posizione come FEN (Ctrl+Shift+C), la linea del motore o la spiegazione. **Modifica ▸ Incolla FEN** (Ctrl+Shift+V) imposta la posizione che c'è negli appunti.
 
 # Mosse e annotazioni {#moves}
 
 Il pannello Mosse elenca la partita sulla scacchiera, con i pezzi disegnati come figurine. Clicca una mossa per andarci.
+
+Le **varianti** sono mostrate sotto la mossa che sostituiscono, rientrate e più piccole; le varianti di una variante la seguono tra parentesi. Clicca una mossa di una variante per seguire quella linea: le frecce poi si muovono lungo di essa, e cliccando una mossa della linea principale si torna indietro. All'inizio di una variante, giocare la mossa della linea principale riprende la linea principale, e un'altra mossa apre una variante sorella. Le varianti sono salvate con la partita e viaggiano nel PGN che copi.
 
 Clic destro su una mossa per il suo menu:
 

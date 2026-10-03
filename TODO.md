@@ -8,49 +8,28 @@ l'ultimo commit è `48eb8cc` (sorgente ChessBase).
 
 ## Da fare, in ordine di priorità
 
-### 1. Varianti nelle partite (richiesta esplicita, grande)
+### 1. Varianti: quel che resta
 
-Oggi una partita è una lista piatta di mosse (`GameRecord::moves`,
-`moves_san`/`moves_uci` nel `.pdb`). Giocare una mossa diversa in una partita
-salvata non la modifica: la nuova linea diventa una partita a sé
-(`MainWindow::playMove`). L'utente vuole invece che **giocare una mossa su una
-partita con linea principale crei una variante**, come fa ChessBase.
+Il grosso è fatto (vedi CHANGELOG: modello, archiviazione in `games.variations`
+con migrazione 7, PGN, sessione per linee, vista ad albero `MoveTreeView`,
+salvataggio immediato nelle partite del database). Restano:
 
-Riferimento visivo indicato dall'utente (non gli piace, ma è un riferimento):
-la vista mosse degli studi lichess. Struttura: le mosse della linea principale
-in colonna (`<index>1</index><move>e4</move><move>d5</move>…`); dove ci sono
-alternative, un blocco `<interrupt><lines><line>…</line></lines></interrupt>`
-sotto la mossa, con una `<line>` per variante, le sotto-varianti `<inline>`
-dentro la riga, e `<move class="empty">...</move>` per riprendere la numerazione
-del nero dopo il blocco. Vogliamo qualcosa del genere ma più pulito.
-
-Cosa comporta (da progettare prima, non partire a caso):
-
-- **Modello**: albero di mosse al posto della lista. Nodo = mossa (SAN, UCI,
-  NAG) + figli; la linea principale è il primo figlio a ogni nodo. Da decidere
-  se `GameRecord::moves` resta la linea principale (così indici, filtri
-  Posizione/Variante, `linePreview`, `GameIdentity::uid` restano com'è) e le
-  varianti vivono accanto, oppure se tutto diventa albero.
-- **Storage**: `moves_san`/`moves_uci` contengono una parola per mossa; le
-  annotazioni viaggiano incollate alla SAN ("Nf3!$16"). Idea compatibile:
-  varianti in una colonna nuova (migrazione 7, `DatabaseMigrations`) in
-  testo PGN-like "( … )" oppure JSON, lasciando la linea principale dov'è.
-  Ricordare: schema solo per migrazioni appese; `PdbDatabase.SCHEMA_VERSION`
-  nell'app Android va tenuto in passo e l'app deve almeno ignorare la colonna.
-- **PGN**: `Pgn::moveText`/`Pgn::game` devono scrivere le varianti tra
-  parentesi; `Pgn::parseLine` oggi le salta (`depth > 0`): deve leggerle.
-- **Sessione/progetto**: `GameSession` ha `m_moves`/`m_positions` lineari e
-  `playMove` tronca la coda; deve diventare navigazione su albero (ply → nodo).
-  Il progetto salva le mosse UCI di una partita non salvata (`Project::moves`):
-  servirà l'albero anche lì.
-- **Vista**: `MoveListModel` è una tabella Bianco/Nero; servirà un modello ad
-  albero o una vista a testo ricco con blocchi delle varianti. Le annotazioni
-  (menu tasto destro) e il tutor devono continuare a funzionare.
-- **Import ChessBase**: il decodificatore `.cbg` legge già la struttura con le
-  varianti (vedi sotto, "formato ChessBase"); oggi tiene solo la linea
-  principale. Con l'albero si importano anche le varianti.
-- **Allenamento**: `playMove` in allenamento con `m_openGameIndex >= 0` oggi
-  stacca la partita; con le varianti il comportamento va ridefinito.
+- **Import delle varianti da ChessBase**: `CbgDecoder` si ferma al primo
+  codice di fine linea; con la regola del formato (sotto) può costruire
+  l'albero intero. Verificare sulla base di esempio (253 partite annotate).
+- **Comandi sulle varianti**: promuovere una variante a linea principale,
+  eliminarla, tagliare la coda di una linea. Oggi non c'è modo di toglierle
+  se non con un editor del PGN.
+- **Allenamento con una partita del database aperta**: le risposte del
+  motore ora finiscono nelle varianti della partita salvata (prima la
+  partita si staccava). Decidere se va bene.
+- **Il telefono** mostra la linea principale e, se riscrive una partita,
+  perde le varianti (`PdbDatabase.kt`, `put("moves_san", …)` senza
+  `variations`): da sistemare quando si tocca l'app Android.
+- Riferimento visivo indicato dall'utente: la vista mosse degli studi lichess
+  (blocchi `interrupt` sotto la mossa, varianti `inline` tra parentesi,
+  `move.empty` per riprendere la numerazione del nero). La nostra vista fa la
+  stessa cosa in forma più sobria.
 
 ### 2. Taratura dello Spiega (decisione dell'utente aperta)
 

@@ -632,8 +632,9 @@ line wins on transpositions). It can be opened and edited like any database.
 - Weights: the same menu has Adjust Weight (±5/10/25%, then Zero Weight).
   `app/BookWeights` (pure, unit-tested) does the arithmetic on the shares of
   the position's moves: the sum is kept, the others give or take in
-  proportion to what they have, a move at zero is seeded with 1% before it
-  grows and cannot shrink, Zero Weight hands the share to the moves that have
+  proportion to what they have, a move at zero (or under 1%, which shows
+  as nothing) is seeded with 1% before it grows and one at zero cannot
+  shrink, Zero Weight hands the share to the moves that have
   some. Small totals are rewritten on a scale of 10 000 so a few per cent
   can be told apart; nothing passes Polyglot's 16 bits.
   `PolyglotBook::setWeights` writes them into the `.bin` in use (a repeated

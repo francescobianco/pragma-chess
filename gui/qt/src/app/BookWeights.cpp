@@ -12,6 +12,9 @@ constexpr int kMaxWeight = 65535;
 /// A book of small weights is rewritten on a finer scale, so a few per cent
 /// of a move can still be told apart.
 constexpr int kMinScale = 10000;
+/// A move at zero, or with next to nothing, gains nothing by a percentage of
+/// itself: an increase first brings it to this share, taken from the others.
+constexpr double kSeed = 0.01;
 
 /// Shares back to integer weights that sum to about the same total, and to
 /// at least `kMinScale`; a share that is not zero never rounds to zero.
@@ -65,11 +68,10 @@ QList<int> adjusted(const QList<int> &weights, int index, int percent)
         return result;
     }
     QList<double> shares = sharesOf(weights, total);
-    if (shares.at(index) == 0.0) {
-        if (percent < 0)
-            return weights; // Nothing to take.
-        setShare(shares, index, 0.01); // Seeded from the others, then grown.
-    }
+    if (shares.at(index) == 0.0 && percent < 0)
+        return weights; // Nothing to take.
+    if (shares.at(index) < kSeed && percent > 0)
+        setShare(shares, index, kSeed); // Seeded from the others, then grown.
     if (shares.at(index) >= 1.0)
         return weights; // The only move that counts: there is nobody to trade with.
     const double wanted = qBound(0.0, shares.at(index) * (1.0 + percent / 100.0), 1.0);

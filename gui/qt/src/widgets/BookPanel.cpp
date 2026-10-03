@@ -157,7 +157,9 @@ void BookPanel::rebuild()
         if (!name.isEmpty())
             item->setToolTip(1, QStringLiteral("%1 %2").arg(name.eco, name.name));
         const double share = total > 0 ? 100.0 * move.weight / total : 100.0 / moves.size();
-        item->setText(kWeightColumn, QLocale().toString(share, 'f', 1) + QStringLiteral(" %"));
+        // A move with next to nothing is not at zero: say so rather than show "0.0 %".
+        item->setText(kWeightColumn, (share > 0 && share < 0.05 ? QStringLiteral("< 0.1") : QLocale().toString(share, 'f', 1))
+                                         + QStringLiteral(" %"));
         item->setTextAlignment(kWeightColumn, Qt::AlignRight | Qt::AlignVCenter);
         item->setTextAlignment(kDatabaseColumn, Qt::AlignRight | Qt::AlignVCenter);
         if (m_databaseState == DatabaseState::Indexing) {

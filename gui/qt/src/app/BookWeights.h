@@ -10,9 +10,10 @@
 namespace BookWeights {
 
 /// The weights with the move at `index` changed by `percent` of its own
-/// share (+25 makes it a quarter heavier). A move at zero gains nothing by
-/// a percentage, so an increase first takes one per cent from the others
-/// and grows from there; a decrease of a move at zero takes nothing.
+/// share (+25 makes it a quarter heavier). A move at zero — or under one per
+/// cent, which shows as nothing — gains nothing by a percentage, so an
+/// increase first takes one per cent from the others and grows from there;
+/// a decrease of a move at zero takes nothing.
 QList<int> adjusted(const QList<int> &weights, int index, int percent);
 
 /// The weights with the move at `index` at zero, its share given to the

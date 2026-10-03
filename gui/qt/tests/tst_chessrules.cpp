@@ -575,6 +575,9 @@ private Q_SLOTS:
         QCOMPARE(weights.at(1), 5925);
         QCOMPARE(weights.at(2), 3950);
         QCOMPARE(BookWeights::adjusted({0, 600, 400}, 0, -25), (QList<int>{0, 600, 400}));
+        // Next to nothing (0.1%) counts as nothing for an increase; a decrease still works on it.
+        QCOMPARE(BookWeights::adjusted({1, 600, 399}, 0, 25).at(0), 125);
+        QCOMPARE(BookWeights::adjusted({10, 600, 390}, 0, -50).at(0), 50); // 1% → 0.5% of 10000
         // The only move that counts cannot trade; a book of zeros gives the move everything.
         QCOMPARE(BookWeights::adjusted({100, 0}, 0, 25), (QList<int>{100, 0}));
         QCOMPARE(BookWeights::adjusted({0, 0}, 1, 10), (QList<int>{0, 1}));

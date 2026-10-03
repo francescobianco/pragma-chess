@@ -11,7 +11,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 - The main window no longer grows at every start (by the height of its
   title bar and the width of its shadow) until it ran off the screen; a
   window never opens larger than the screen.
-- A little less space between the board and the Moves panel.
+- A little less space between the board and the Moves panel, and the
+  five buttons under the board are exactly under its middle.
 - In the games list the players you marked as "me" are in bold.
 - The title bar no longer swallows a click now and then: moving the
   window starts only once the pointer is dragged, so double clicks and

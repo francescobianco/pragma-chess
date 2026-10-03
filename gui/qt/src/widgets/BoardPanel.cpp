@@ -21,6 +21,8 @@ constexpr int kMinimumSideColumn = 20;
 
 /// Free space at the right of everything, so the move list does not crowd the board.
 constexpr int kTrailingSpace = 10;
+/// Room between the navigation and what sits at the ends of its row.
+constexpr int kControlsGap = 8;
 
 int sideColumnWidth(int boardSide)
 {
@@ -68,7 +70,11 @@ BoardPanel::BoardPanel(BoardWidget *board, EvaluationBar *evaluationBar, GameHea
     // centered.
     auto *layout = new QGridLayout(m_controls);
     layout->setContentsMargins(8, 4, 8, 4);
-    layout->setHorizontalSpacing(8);
+    // No spacing between the columns: the grid drops it next to an empty
+    // column (the captured pieces, when they are not shown here), which put
+    // the navigation off centre by half of it. The gap is in the side
+    // columns' widths instead (balanceControls).
+    layout->setHorizontalSpacing(0);
 
     auto *navigation = new QHBoxLayout;
     navigation->setSpacing(2);
@@ -77,15 +83,30 @@ BoardPanel::BoardPanel(BoardWidget *board, EvaluationBar *evaluationBar, GameHea
 
     layout->addWidget(capturedPieces, 0, 0, Qt::AlignLeft | Qt::AlignVCenter);
     layout->addLayout(navigation, 0, 1, Qt::AlignCenter);
-    layout->addWidget(controlButton(actions.flip), 0, 2, Qt::AlignRight | Qt::AlignVCenter);
+    m_flipButton = controlButton(actions.flip);
+    layout->addWidget(m_flipButton, 0, 2, Qt::AlignRight | Qt::AlignVCenter);
     layout->setColumnStretch(0, 1);
     layout->setColumnStretch(2, 1);
+    m_controlsLayout = layout;
+    balanceControls();
 }
 
 void BoardPanel::setCapturedPiecesBelow(bool below)
 {
     m_capturedPieces->setVisible(below);
     m_sideColumn->setShowCaptured(!below);
+    balanceControls();
+}
+
+void BoardPanel::balanceControls()
+{
+    // Equal stretch shares only the spare room: the side columns must start
+    // from the same width too, or the navigation sits off the board's middle
+    // by half the flip button (or half the captured pieces).
+    const int side = qMax(m_flipButton->sizeHint().width(),
+                          m_capturedPieces->isVisibleTo(m_controls) ? m_capturedPieces->sizeHint().width() : 0);
+    m_controlsLayout->setColumnMinimumWidth(0, side + kControlsGap);
+    m_controlsLayout->setColumnMinimumWidth(2, side + kControlsGap);
 }
 
 QSize BoardPanel::sizeHint() const

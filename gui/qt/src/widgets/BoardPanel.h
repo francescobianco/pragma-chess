@@ -8,6 +8,7 @@ class CapturedPiecesWidget;
 class EvaluationBar;
 class GameHeaderWidget;
 class QAction;
+class QGridLayout;
 class QToolButton;
 
 /// The board with the game header above, the evaluation bar on its left, the
@@ -57,4 +58,9 @@ private:
     CapturedPiecesWidget *m_capturedPieces;
     BoardSideColumn *m_sideColumn;
     QWidget *m_controls;
+    QGridLayout *m_controlsLayout = nullptr;
+    QToolButton *m_flipButton = nullptr;
+    /// Gives the two side columns of the controls the same width, so the
+    /// navigation stays under the middle of the board.
+    void balanceControls();
 };

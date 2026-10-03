@@ -300,7 +300,7 @@ void WindowChrome::paint()
         painter.setPen(Qt::NoPen);
         for (int spread = kShadow; spread >= 1; --spread) {
             const qreal fade = 1.0 - qreal(spread) / kShadow;
-            painter.setBrush(QColor(0, 0, 0, qRound(depth * (2.5 + 14 * fade * fade))));
+            painter.setBrush(QColor(0, 0, 0, qRound(depth * (1.5 + 9 * fade * fade))));
             const QRectF ring = panel.adjusted(-spread, -spread + 4, spread, spread + 3)
                                     .intersected(QRectF(m_window->rect()));
             painter.drawRoundedRect(ring, radius + spread, radius + spread);

@@ -182,7 +182,7 @@ void GtkDesktopStyle::drawPrimitive(PrimitiveElement element, const QStyleOption
         painter->setPen(Qt::NoPen);
         for (int spread = kMenuShadow; spread >= 1; --spread) {
             const qreal fade = 1.0 - qreal(spread) / kMenuShadow;
-            painter->setBrush(QColor(0, 0, 0, qRound(4 + 18 * fade * fade)));
+            painter->setBrush(QColor(0, 0, 0, qRound(2.5 + 12 * fade * fade)));
             const QRectF ring = panel.adjusted(-spread, -spread + 2, spread, spread + 1)
                                     .intersected(QRectF(option->rect));
             painter->drawRoundedRect(ring, kMenuRadius + spread, kMenuRadius + spread);

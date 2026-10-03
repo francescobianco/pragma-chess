@@ -17,9 +17,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   separators between panels are a light bar whose ends carry the grey of
   the panels' frames, so the frames' lines run on across them.
 - In the games list the players you marked as "me" are in bold.
-- The one-pixel edge of the main window is opaque: it let the desktop
-  show through, so it brightened over a white window and looked cut where
-  a dark panel sat inside.
+- The one-pixel edge of the main window is opaque, maximized too: it let
+  the desktop show through, so it brightened over a white window and
+  looked cut where a dark panel sat inside.
 - Saving an untitled project (which opens Save Project As), and every
   other file dialog, no longer crashes the application on GNOME.
 - The title bar no longer swallows a click now and then: moving the

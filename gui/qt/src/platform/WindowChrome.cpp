@@ -381,13 +381,20 @@ void WindowChrome::paint()
     painter.setCompositionMode(QPainter::CompositionMode_Source);
     painter.setPen(Qt::NoPen);
     painter.setBrush(window);
-    painter.drawPath(shape);
-    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     if (margin() > 0) {
+        painter.drawPath(shape);
+        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter.setBrush(Qt::NoBrush);
         painter.setPen(QPen(window.lightness() < 128 ? window.lighter(170) : window.darker(150), 1));
         painter.drawPath(shape);
+    } else {
+        // Maximized or full screen: the whole window, to the pixel. The path
+        // runs half a pixel inside, and antialiased it left the outermost
+        // row and column half transparent — a thin white line over a white
+        // window behind, cut by the panels that reach the edge.
+        painter.fillRect(m_window->rect(), window);
     }
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 
     // The title, in the middle, and the buttons at its right.
     QFont font = m_window->font();

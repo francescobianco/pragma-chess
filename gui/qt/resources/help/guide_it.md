@@ -144,6 +144,8 @@ Il pannello **Albero delle aperture** mostra, per la posizione sulla scacchiera,
 
 **Il tuo repertorio**: clic destro su una mossa dell'Albero delle aperture e scegli **Metti nel repertorio**. Le mosse del repertorio sono elencate per prime, in grassetto. Il segno è scritto nel file del libro e gli altri programmi lo ignorano.
 
+**I pesi**: lo stesso menu ha **Regola peso** (+5%, +10%, +25% e gli stessi in negativo) e **Azzera peso**. La percentuale è della quota della mossa stessa, e la somma della posizione resta sempre 100%: quel che una mossa guadagna lo cedono le altre in proporzione a quanto hanno — le più pesanti di più — e quel che perde torna a loro allo stesso modo. Una mossa allo 0% non può crescere per percentuale, quindi un aumento prima le ruba l'1% dalle altre e cresce da lì; una diminuzione di una mossa allo 0% non fa nulla. Azzera peso dà tutta la quota della mossa alle altre che ne hanno. Le modifiche sono scritte nel libro in uso.
+
 # Nomi delle aperture {#opening-names}
 
 Il pannello Motore dice in quale apertura si trova la partita, e l'Albero delle aperture dice dove porta ogni mossa.

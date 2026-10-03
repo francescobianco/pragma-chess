@@ -626,6 +626,15 @@ line wins on transpositions). It can be opened and edited like any database.
   engines and other GUIs ignore `learn`, so the book stays a normal Polyglot
   book. Repertoire moves are listed first whatever their weight, in bold and
   brighter. The other `learn` bits are reserved and kept as read.
+- Weights: the same menu has Adjust Weight (±5/10/25%) and Zero Weight.
+  `app/BookWeights` (pure, unit-tested) does the arithmetic on the shares of
+  the position's moves: the sum is kept, the others give or take in
+  proportion to what they have, a move at zero is seeded with 1% before it
+  grows and cannot shrink, Zero Weight hands the share to the moves that have
+  some. Small totals are rewritten on a scale of 10 000 so a few per cent
+  can be told apart; nothing passes Polyglot's 16 bits.
+  `PolyglotBook::setWeights` writes them into the `.bin` in use (a repeated
+  entry keeps the weight in the first and zero in the others).
 - `app/PolyglotBook` (core library, pure, unit-tested against the reference
   keys of the format): Zobrist key (`PolyglotRandom.cpp` holds the format's
   781 random numbers), move encoding (castling as king takes rook), a

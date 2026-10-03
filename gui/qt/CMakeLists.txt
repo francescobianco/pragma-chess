@@ -107,6 +107,8 @@ set(APP_ID "io.github.francescobianco.PragmaChess")
 qt_add_library(pragma-chess-core STATIC
     src/app/AdvantageProbe.cpp
     src/app/AdvantageProbe.h
+    src/app/BookWeights.cpp
+    src/app/BookWeights.h
     src/app/BoardSettings.cpp
     src/app/BoardSettings.h
     src/app/BoardState.cpp

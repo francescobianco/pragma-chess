@@ -41,6 +41,9 @@ Q_SIGNALS:
     void backActivated();
     /// The user put a book move in their repertoire or took it out (right-click menu).
     void repertoireToggled(const ChessMove &move, bool inRepertoire);
+    /// The user asked to change a move's weight by `percent` of its share,
+    /// or, with 0, to take it all away (BookWeights).
+    void weightAdjustRequested(const ChessMove &move, int percent);
 
 private:
     void rebuild();

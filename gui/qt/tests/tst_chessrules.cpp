@@ -1,4 +1,5 @@
 #include "app/AdvantageProbe.h"
+#include "app/BookWeights.h"
 #include "app/ChessPosition.h"
 #include "app/DatabaseDedupe.h"
 #include "app/DatabaseMerge.h"
@@ -552,6 +553,40 @@ private Q_SLOTS:
         EngineEvaluation expected = eval(50);
         expected.pv = {QStringLiteral("e2e4")};
         QCOMPARE(TrainingTutor::judge(expected, eval(-300), Side::White, played), Alert::None);
+    }
+
+    void shiftsBookWeights()
+    {
+        // +25% of its own share, the rest shrinking in proportion: the sum stays.
+        QList<int> weights = BookWeights::adjusted({50, 30, 20}, 0, 25);
+        const auto sum = [](const QList<int> &w) { int s = 0; for (int x : w) s += x; return s; };
+        QCOMPARE(sum(weights), 10000); // Small books are rewritten on a finer scale.
+        QCOMPARE(weights.at(0), 6250);          // 50% → 62.5%
+        QCOMPARE(weights.at(1), 2250);          // 30% of the remaining 37.5%, in proportion 3:2.
+        QCOMPARE(weights.at(2), 1500);
+        // −10%: the others grow in proportion.
+        weights = BookWeights::adjusted({6000, 3000, 1000}, 0, -10);
+        QCOMPARE(weights.at(0), 5400);
+        QCOMPARE(weights.at(1), 3450);
+        QCOMPARE(weights.at(2), 1150);
+        // A move at zero: an increase takes one per cent first and grows from it; a decrease does nothing.
+        weights = BookWeights::adjusted({0, 600, 400}, 0, 25);
+        QCOMPARE(weights.at(0), 125); // 1% → 1.25% of 10000
+        QCOMPARE(weights.at(1), 5925);
+        QCOMPARE(weights.at(2), 3950);
+        QCOMPARE(BookWeights::adjusted({0, 600, 400}, 0, -25), (QList<int>{0, 600, 400}));
+        // The only move that counts cannot trade; a book of zeros gives the move everything.
+        QCOMPARE(BookWeights::adjusted({100, 0}, 0, 25), (QList<int>{100, 0}));
+        QCOMPARE(BookWeights::adjusted({0, 0}, 1, 10), (QList<int>{0, 1}));
+        // Zeroing hands the share out in proportion to the moves that have some.
+        weights = BookWeights::zeroed({2000, 6000, 2000, 0}, 0);
+        QCOMPARE(weights, (QList<int>{0, 7500, 2500, 0}));
+        QCOMPARE(BookWeights::zeroed({100, 0}, 0), (QList<int>{100, 0}));
+        QCOMPARE(BookWeights::zeroed({0, 100}, 0), (QList<int>{0, 100}));
+        // Large books keep their scale and never pass Polyglot's 16 bits.
+        weights = BookWeights::adjusted({60000, 5000}, 0, 25);
+        QCOMPARE(sum(weights), 65000);
+        QVERIFY(weights.at(0) <= 65535);
     }
 
     void keepsVariations()
@@ -2114,6 +2149,18 @@ private Q_SLOTS:
         QCOMPARE(book.moves(start).at(1).learn, quint32(0x80));
         // A move the book does not have cannot be marked.
         QVERIFY(!book.setInRepertoire(start, *start.moveFromUci(u"g1f3"), true, &error));
+
+        // New weights are written into the file, learn bits untouched.
+        QList<PolyglotBook::Move> moves = book.moves(start);
+        for (PolyglotBook::Move &move : moves)
+            move.weight = move.move == e4 ? 2000 : 8000;
+        QVERIFY2(book.setWeights(start, moves, &error), qPrintable(error));
+        QCOMPARE(book.moves(start).at(0).move, d4);
+        QCOMPARE(book.moves(start).at(0).weight, 8000);
+        QCOMPARE(book.moves(start).at(0).learn, quint32(0x80));
+        QCOMPARE(book.moves(start).at(1).weight, 2000);
+        moves << PolyglotBook::Move{*start.moveFromUci(u"g1f3"), 1, 0};
+        QVERIFY(!book.setWeights(start, moves, &error));
     }
 
     void parsesTorneiOnlinePages()

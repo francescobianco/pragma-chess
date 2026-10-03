@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 
+#include "app/BookWeights.h"
 #include "app/ClassicGames.h"
 #include "app/GameIdentity.h"
 #include "app/OpeningNames.h"
@@ -865,6 +866,32 @@ void MainWindow::createDocks()
         QString error;
         if (!m_book || !m_book->setInRepertoire(m_session->position(), move, inRepertoire, &error))
             QMessageBox::warning(this, tr("Repertoire"), tr("Could not change the book: %1").arg(error));
+        updateBookMoves();
+    });
+    connect(m_bookPanel, &BookPanel::weightAdjustRequested, this, [this](const ChessMove &move, int percent) {
+        // The shares of the position's moves shift and are written into the book in use.
+        if (!m_book)
+            return;
+        const ChessPosition &position = m_session->position();
+        QList<PolyglotBook::Move> moves = m_book->moves(position);
+        QList<int> weights;
+        int index = -1;
+        for (int i = 0; i < moves.size(); ++i) {
+            weights << moves.at(i).weight;
+            if (moves.at(i).move == move)
+                index = i;
+        }
+        if (index < 0)
+            return;
+        const QList<int> changed = percent == 0 ? BookWeights::zeroed(weights, index)
+                                                : BookWeights::adjusted(weights, index, percent);
+        if (changed == weights)
+            return;
+        for (int i = 0; i < moves.size(); ++i)
+            moves[i].weight = changed.at(i);
+        QString error;
+        if (!m_book->setWeights(position, moves, &error))
+            QMessageBox::warning(this, tr("Opening Book"), tr("Could not change the book: %1").arg(error));
         updateBookMoves();
     });
     m_openingTreeDock = addDock(m_sidebar, QStringLiteral("openingTreeDock"), tr("Opening Tree"), m_bookPanel,

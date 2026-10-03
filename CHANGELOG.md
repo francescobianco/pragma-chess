@@ -8,6 +8,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Book weights.** Right-clicking a move of the Opening Tree offers Adjust
+  Weight (+5%, +10%, +25% and the same downwards) and Zero Weight: the share
+  of the move changes, the other moves give or take in proportion to what
+  they have, the sum stays 100%, and the book in use is written.
 - **Variations.** Play a move that is not the next one of the game and it
   becomes a variation, shown in the Moves panel under the move it replaces;
   variations nest, are followed by clicking their moves, and are saved with

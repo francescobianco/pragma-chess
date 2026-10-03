@@ -195,6 +195,18 @@ Il Nero ha catturato: %2</translation>
             <numerusform>%n partite: vinte dal Bianco %1, patte %2, vinte dal Nero %3</numerusform>
         </translation>
     </message>
+    <message>
+        <source>Adjust &amp;Weight</source>
+        <translation>Regola &amp;peso</translation>
+    </message>
+    <message>
+        <source>&amp;Zero Weight</source>
+        <translation>A&amp;zzera peso</translation>
+    </message>
+    <message>
+        <source>Takes the move&apos;s weight and gives it to the other moves, in proportion</source>
+        <translation>Toglie il peso alla mossa e lo dà alle altre, in proporzione</translation>
+    </message>
 </context>
 <context>
     <name>CapturedPiecesWidget</name>
@@ -2007,6 +2019,10 @@ non è su questo computer.</translation>
     <message>
         <source>The move could not be saved in the database: %1</source>
         <translation>La mossa non si è potuta salvare nel database: %1</translation>
+    </message>
+    <message>
+        <source>Opening Book</source>
+        <translation>Libro di aperture</translation>
     </message>
 </context>
 <context>

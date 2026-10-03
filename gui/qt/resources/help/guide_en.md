@@ -144,6 +144,8 @@ The **Opening Tree** panel shows, for the position on the board, each move of th
 
 **Your repertoire**: right-click a move of the Opening Tree and choose **Add to Repertoire**. Repertoire moves are listed first, in bold. The mark is stored in the book file and other programs ignore it.
 
+**Weights**: the same menu has **Adjust Weight** (+5%, +10%, +25% and the same downwards) and **Zero Weight**. The percentage is of the move's own share, and the sum of the position always stays 100%: what a move gains the other moves give up in proportion to what they have — the heavy ones most — and what it loses goes back to them the same way. A move at 0% cannot grow by a percentage, so an increase first takes 1% from the others and grows from there; a decrease of a move at 0% does nothing. Zero Weight gives the move's whole share to the other moves that have some. The changes are written into the book in use.
+
 # Opening names {#opening-names}
 
 The Engine panel names the opening the game is in, and the Opening Tree names where each move leads.

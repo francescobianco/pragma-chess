@@ -54,6 +54,11 @@ public:
     /// file cannot be written.
     bool setInRepertoire(const ChessPosition &position, const ChessMove &move, bool inRepertoire,
                          QString *errorMessage);
+    /// Writes new weights for the book moves of a position, in the file
+    /// itself: `moves` as moves() gave them, with the weights wanted. A move
+    /// the book repeats keeps its weight in the first entry, the others go to
+    /// zero. False if a move is not in the book or the file cannot be written.
+    bool setWeights(const ChessPosition &position, const QList<Move> &moves, QString *errorMessage);
 
     /// The Polyglot key of a position.
     static quint64 key(const ChessPosition &position);

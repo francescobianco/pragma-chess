@@ -143,6 +143,50 @@ bool PolyglotBook::setInRepertoire(const ChessPosition &position, const ChessMov
     return written || fail(writeError);
 }
 
+bool PolyglotBook::setWeights(const ChessPosition &position, const QList<Move> &moves, QString *errorMessage)
+{
+    const auto fail = [&](const QString &message) {
+        if (errorMessage)
+            *errorMessage = message;
+        return false;
+    };
+    if (!m_data)
+        return fail(QObject::tr("No book is open."));
+
+    const quint64 wanted = key(position);
+    QList<std::pair<qint64, quint16>> changes;
+    for (const Move &move : moves) {
+        bool first = true;
+        for (qint64 index = lowerBound(wanted);
+             index < m_count && qFromBigEndian<quint64>(m_data + index * kEntrySize) == wanted; ++index) {
+            const uchar *entry = m_data + index * kEntrySize;
+            if (decodeMove(position, qFromBigEndian<quint16>(entry + 8)) != move.move)
+                continue;
+            changes << std::pair{index, quint16(first ? qBound(0, move.weight, 65535) : 0)};
+            first = false;
+        }
+        if (first)
+            return fail(QObject::tr("The move is not in the book."));
+    }
+
+    const QString bookPath = path();
+    close();
+    QFile file(bookPath);
+    bool written = file.open(QIODevice::ReadWrite);
+    for (const auto &[index, weight] : std::as_const(changes)) {
+        uchar bytes[2];
+        qToBigEndian(weight, bytes);
+        written = written && file.seek(index * kEntrySize + 10)
+                  && file.write(reinterpret_cast<const char *>(bytes), 2) == 2;
+    }
+    const QString writeError = file.errorString();
+    file.close();
+    QString reopenError;
+    if (!open(bookPath, &reopenError))
+        return fail(reopenError);
+    return written || fail(writeError);
+}
+
 quint64 PolyglotBook::key(const ChessPosition &position)
 {
     quint64 hash = 0;

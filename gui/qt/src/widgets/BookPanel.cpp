@@ -5,6 +5,7 @@
 #include "PaddedItemDelegate.h"
 #include "platform/SymbolicIcons.h"
 
+#include <QHash>
 #include <QHeaderView>
 #include <QMenu>
 #include <QTreeWidget>
@@ -59,8 +60,27 @@ BookPanel::BookPanel(QWidget *parent)
         QMenu menu(this);
         QAction *toggle = menu.addAction(move.inRepertoire() ? tr("Remove from Repertoire")
                                                              : tr("Add to Repertoire"));
-        if (menu.exec(m_moves->viewport()->mapToGlobal(point)) == toggle)
+        // The weight: by a share of its own, so the heavy moves move most;
+        // a move at zero can grow but not shrink.
+        QMenu *weight = menu.addMenu(tr("Adjust &Weight"));
+        QHash<QAction *, int> percents;
+        for (const int percent : {25, 10, 5, -5, -10, -25}) {
+            if (percent == -5)
+                weight->addSeparator();
+            QAction *action = weight->addAction(QStringLiteral("%1%2%").arg(percent > 0 ? QStringLiteral("+") : QStringLiteral("−")).arg(qAbs(percent)));
+            action->setEnabled(percent > 0 || move.weight > 0);
+            percents.insert(action, percent);
+        }
+        QAction *zero = menu.addAction(tr("&Zero Weight"));
+        zero->setToolTip(tr("Takes the move's weight and gives it to the other moves, in proportion"));
+        zero->setEnabled(move.weight > 0);
+        QAction *chosen = menu.exec(m_moves->viewport()->mapToGlobal(point));
+        if (chosen == toggle)
             Q_EMIT repertoireToggled(move.move, !move.inRepertoire());
+        else if (chosen == zero)
+            Q_EMIT weightAdjustRequested(move.move, 0);
+        else if (chosen && percents.contains(chosen))
+            Q_EMIT weightAdjustRequested(move.move, percents.value(chosen));
     });
 
     // Rows that do something show the hand, as links do.

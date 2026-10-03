@@ -1,5 +1,8 @@
 {
-  "language_names": {"en": "English", "it": "Italiano"},
+  "language_names": {
+    "en": "English",
+    "it": "Italiano"
+  },
   "meta": {
     "title": "Pragma Chess — un database scacchistico open source per studiare, allenarsi e giocare",
     "description": "Pragma Chess conserva le tue partite in database e te le fa studiare con un motore, un libro di aperture e le tue note; ti allena contro il motore con un tutor; ti fa giocare online. Leggero, semplice, con ciò che serve davvero. Windows, macOS, Linux."
@@ -9,6 +12,7 @@
     "features": "Funzioni",
     "screenshots": "Schermate",
     "download": "Download",
+    "supporters": "Sostenitori",
     "support": "Supporto"
   },
   "hero": {
@@ -23,14 +27,46 @@
     "title": "Cosa fa",
     "lead": "Tutto quello che serve a chi gioca a scacchi per conservare, studiare e migliorare — e niente tra i piedi.",
     "items": [
-      {"icon": "♜", "title": "Database di partite", "text": "Le tue partite in database .pdb: importa PGN, le partite di lichess.org e chess.com, i tornei di torneionline.com e i file ChessBase. Cerca per posizione, variante, giocatore, apertura, torneo e anno."},
-      {"icon": "♞", "title": "Spiega", "text": "Premi E e il motore mostra sulla scacchiera perché l'ultima mossa è buona o cattiva: frecce rosse dove cade materiale, blu per la risposta che fa la differenza, un matto forzato giocato fino in fondo."},
-      {"icon": "♝", "title": "Varianti e note", "text": "Gioca una mossa che non è la successiva e diventa una variante, mostrata sotto la mossa che sostituisce. Annota le mosse con !, ?, ±, ∞… Tutto si salva con la partita e viaggia nel PGN."},
-      {"icon": "♛", "title": "Allenamento con tutor", "text": "Gioca contro il motore, che segue il libro di aperture che regoli tu. Quando la tua mossa è un errore il tutor ferma la partita e ti lascia riprenderla, farla spiegare o andare avanti."},
-      {"icon": "♚", "title": "Gioca online", "text": "Connetti il tuo account lichess.org e gioca con le persone dalla stessa scacchiera. Mentre giochi, motore, Spiega e libro sono spenti: sei tu contro il tuo avversario."},
-      {"icon": "♟", "title": "Libri di aperture", "text": "Libri Polyglot con il tuo repertorio e i pesi che scegli, così il motore ti allena sulle linee che vuoi. Nomi delle aperture in italiano e inglese."},
-      {"icon": "⟳", "title": "Sincronizzazione tra computer", "text": "Tieni database e progetti uguali su ogni computer attraverso una cartella FTP, WebDAV o Git, e sul telefono con l'app compagna. Nulla viene mai cancellato senza una fusione."},
-      {"icon": "☰", "title": "Progetti", "text": "Database, partita, mossa, pannelli e motore sono un progetto che riapri come l'hai lasciato. Interfaccia desktop nativa, in italiano e inglese."}
+      {
+        "icon": "♜",
+        "title": "Database di partite",
+        "text": "Le tue partite in database .pdb: importa PGN, le partite di lichess.org e chess.com, i tornei di torneionline.com e i file ChessBase. Cerca per posizione, variante, giocatore, apertura, torneo e anno."
+      },
+      {
+        "icon": "♞",
+        "title": "Spiega",
+        "text": "Premi E e il motore mostra sulla scacchiera perché l'ultima mossa è buona o cattiva: frecce rosse dove cade materiale, blu per la risposta che fa la differenza, un matto forzato giocato fino in fondo."
+      },
+      {
+        "icon": "♝",
+        "title": "Varianti e note",
+        "text": "Gioca una mossa che non è la successiva e diventa una variante, mostrata sotto la mossa che sostituisce. Annota le mosse con !, ?, ±, ∞… Tutto si salva con la partita e viaggia nel PGN."
+      },
+      {
+        "icon": "♛",
+        "title": "Allenamento con tutor",
+        "text": "Gioca contro il motore, che segue il libro di aperture che regoli tu. Quando la tua mossa è un errore il tutor ferma la partita e ti lascia riprenderla, farla spiegare o andare avanti."
+      },
+      {
+        "icon": "♚",
+        "title": "Gioca online",
+        "text": "Connetti il tuo account lichess.org e gioca con le persone dalla stessa scacchiera. Mentre giochi, motore, Spiega e libro sono spenti: sei tu contro il tuo avversario."
+      },
+      {
+        "icon": "♟",
+        "title": "Libri di aperture",
+        "text": "Libri Polyglot con il tuo repertorio e i pesi che scegli, così il motore ti allena sulle linee che vuoi. Nomi delle aperture in italiano e inglese."
+      },
+      {
+        "icon": "⟳",
+        "title": "Sincronizzazione tra computer",
+        "text": "Tieni database e progetti uguali su ogni computer attraverso una cartella FTP, WebDAV o Git, e sul telefono con l'app compagna. Nulla viene mai cancellato senza una fusione."
+      },
+      {
+        "icon": "☰",
+        "title": "Progetti",
+        "text": "Database, partita, mossa, pannelli e motore sono un progetto che riapri come l'hai lasciato. Interfaccia desktop nativa, in italiano e inglese."
+      }
     ]
   },
   "screenshots": {
@@ -38,11 +74,26 @@
     "lead": "Pragma Chess su GNOME. Clicca un'immagine per vederla a grandezza piena.",
     "close": "Chiudi",
     "items": [
-      {"file": "explain", "caption": "Spiega: perché 14.Td1 vince la partita dell'Opera"},
-      {"file": "main", "caption": "Una partita del database sulla scacchiera, con le mosse e la lista delle partite"},
-      {"file": "tree", "caption": "L'Albero delle aperture: le mosse del libro con i pesi e le aperture a cui portano"},
-      {"file": "online", "caption": "Gioca online: connetti una piattaforma, scegli orologio e colore, cerca un avversario"},
-      {"file": "guide", "caption": "La guida, integrata, nella tua lingua"}
+      {
+        "file": "explain",
+        "caption": "Spiega: perché 14.Td1 vince la partita dell'Opera"
+      },
+      {
+        "file": "main",
+        "caption": "Una partita del database sulla scacchiera, con le mosse e la lista delle partite"
+      },
+      {
+        "file": "tree",
+        "caption": "L'Albero delle aperture: le mosse del libro con i pesi e le aperture a cui portano"
+      },
+      {
+        "file": "online",
+        "caption": "Gioca online: connetti una piattaforma, scegli orologio e colore, cerca un avversario"
+      },
+      {
+        "file": "guide",
+        "caption": "La guida, integrata, nella tua lingua"
+      }
     ]
   },
   "download": {
@@ -52,32 +103,93 @@
     "all": "Tutte le versioni, anche quelle precedenti →",
     "formats_title": "Cosa ottieni",
     "platforms": [
-      {"match": "windows-x64-setup.exe", "icon": "⊞", "name": "Windows", "text": "Installer per Windows 10 e 11, 64 bit. Nella pagina delle versioni c'è anche uno .zip portabile.", "label": "Scarica per Windows"},
-      {"match": "macos-arm64.dmg", "icon": "⌘", "name": "macOS", "text": "Immagine disco per i Mac con Apple Silicon. Aprila e trascina Pragma Chess in Applicazioni.", "label": "Scarica per macOS"},
-      {"match": "amd64.deb", "icon": "🐧", "name": "Linux (Debian, Ubuntu)", "text": "Pacchetto .deb per Ubuntu 24.04 e successive e Debian 12 e successive.", "label": "Scarica il .deb"},
-      {"match": "x86_64.rpm", "icon": "🐧", "name": "Linux (Fedora)", "text": "Pacchetto .rpm per Fedora e distribuzioni compatibili.", "label": "Scarica l'.rpm"}
+      {
+        "match": "windows-x64-setup.exe",
+        "icon": "⊞",
+        "name": "Windows",
+        "text": "Installer per Windows 10 e 11, 64 bit. Nella pagina delle versioni c'è anche uno .zip portabile.",
+        "label": "Scarica per Windows"
+      },
+      {
+        "match": "macos-arm64.dmg",
+        "icon": "⌘",
+        "name": "macOS",
+        "text": "Immagine disco per i Mac con Apple Silicon. Aprila e trascina Pragma Chess in Applicazioni.",
+        "label": "Scarica per macOS"
+      },
+      {
+        "match": "amd64.deb",
+        "icon": "🐧",
+        "name": "Linux (Debian, Ubuntu)",
+        "text": "Pacchetto .deb per Ubuntu 24.04 e successive e Debian 12 e successive.",
+        "label": "Scarica il .deb"
+      },
+      {
+        "match": "x86_64.rpm",
+        "icon": "🐧",
+        "name": "Linux (Fedora)",
+        "text": "Pacchetto .rpm per Fedora e distribuzioni compatibili.",
+        "label": "Scarica l'.rpm"
+      }
     ],
     "formats": [
-      {"name": "Database .pdb", "text": "file SQLite che puoi copiare, condividere e aprire con altri strumenti; un database per ogni raccolta di partite."},
-      {"name": "Progetti .pch", "text": "YAML leggibile con il database, la partita, il motore e la disposizione dei pannelli."},
-      {"name": "PGN e Polyglot", "text": "i formati standard per partite e libri di aperture, in entrata e in uscita."}
+      {
+        "name": "Database .pdb",
+        "text": "file SQLite che puoi copiare, condividere e aprire con altri strumenti; un database per ogni raccolta di partite."
+      },
+      {
+        "name": "Progetti .pch",
+        "text": "YAML leggibile con il database, la partita, il motore e la disposizione dei pannelli."
+      },
+      {
+        "name": "PGN e Polyglot",
+        "text": "i formati standard per partite e libri di aperture, in entrata e in uscita."
+      }
     ]
   },
   "support": {
     "title": "Supporto e comunità",
     "lead": "Pragma Chess nasce alla luce del sole, con i circoli e i giocatori.",
     "items": [
-      {"title": "Guida", "text": "La guida è dentro l'applicazione (Aiuto ▸ Guida di Pragma Chess, F1), con un campo di ricerca, in italiano e inglese.", "link": "", "link_text": ""},
-      {"title": "Segnala un problema", "text": "Qualcosa non va, o manca? Apri una segnalazione su GitHub con quello che hai fatto e quello che hai visto.", "link": "https://github.com/francescobianco/pragma-chess/issues", "link_text": "Segnalazioni su GitHub →"},
-      {"title": "Contribuisci", "text": "Il codice è con licenza MIT: C++ e Qt per il client desktop, Rust per il motore di database che verrà. Le pull request sono benvenute.", "link": "https://github.com/francescobianco/pragma-chess", "link_text": "Il repository →"}
-    ],
-    "clubs_title": "I circoli che sostengono Pragma Chess",
-    "clubs_text": "Grazie ai circoli scacchistici che lo provano, lo usano e ci dicono di cosa hanno bisogno."
+      {
+        "title": "Guida",
+        "text": "La guida è dentro l'applicazione (Aiuto ▸ Guida di Pragma Chess, F1), con un campo di ricerca, in italiano e inglese.",
+        "link": "",
+        "link_text": ""
+      },
+      {
+        "title": "Segnala un problema",
+        "text": "Qualcosa non va, o manca? Apri una segnalazione su GitHub con quello che hai fatto e quello che hai visto.",
+        "link": "https://github.com/francescobianco/pragma-chess/issues",
+        "link_text": "Segnalazioni su GitHub →"
+      },
+      {
+        "title": "Contribuisci",
+        "text": "Il codice è con licenza MIT: C++ e Qt per il client desktop, Rust per il motore di database che verrà. Le pull request sono benvenute.",
+        "link": "https://github.com/francescobianco/pragma-chess",
+        "link_text": "Il repository →"
+      }
+    ]
   },
   "footer": {
     "license": "Pragma Chess è software libero con licenza MIT.",
     "changelog": "Novità",
     "issues": "Segnalazioni",
     "credits": "Costruito con Qt. Motore predefinito: Stockfish (GPL v3). Nomi delle aperture da lichess-org/chess-openings (CC0). Pezzi: Good Companion."
+  },
+  "supporters": {
+    "title": "Sostenitori",
+    "lead": "I circoli scacchistici che sostengono Pragma Chess: lo usano, lo provano e ci dicono di cosa hanno bisogno.",
+    "clubs": [
+      {
+        "name": "ASD Circolo del Re – Castelvetrano Scacchi",
+        "logo": "circolo-del-re.png",
+        "url": "https://circolodelre.it"
+      }
+    ],
+    "join_title": "Vuoi che il tuo circolo appaia qui?",
+    "join_text": "Fai conoscere Pragma Chess ai tuoi soci, poi raccontaci la tua esperienza nel nostro gruppo WhatsApp e mandaci lì il tuo logo.",
+    "join_button": "Entra nel gruppo WhatsApp",
+    "whatsapp": "https://chat.whatsapp.com/GHBDbRkejmYJ8Hev585ZCj"
   }
 }

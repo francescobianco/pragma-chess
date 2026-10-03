@@ -812,7 +812,11 @@ a platform; lichess.org for now, through its Board API, more to come.
 
 `site/build.py` writes `docs/` from `site/`: `templates/page.html` composes
 the partials (`{{> header}}`, hero, features, screenshots, download, support,
-footer) with `{{placeholders}}`, `{{#each list}}…{{/each}}` and
+footer, and supporters: the clubs of the About window, each with its logo
+in `assets/supporters/`, and the invitation to the WhatsApp group for a
+club that wants to be listed — add a club to `supporters.clubs` in every
+`content/<lang>.json` and to `kSupporters` in `AboutDialog`) with
+`{{placeholders}}`, `{{#each list}}…{{/each}}` and
 `{{#if value}}…{{/if}}` over the texts of `content/<lang>.json`, one page per
 language under `docs/<lang>/`; the root `index.html` (and `404.html`) sends
 the browser to its language by `navigator.languages`, falling back to

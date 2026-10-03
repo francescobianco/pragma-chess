@@ -1,0 +1,16 @@
+<section class="supporters" id="supporters">
+  <h2>{{supporters.title}}</h2>
+  <p class="section-lead">{{supporters.lead}}</p>
+  <div class="clubs-grid">
+    {{#each supporters.clubs}}<a class="club" href="{{url}}" rel="noopener">
+      <img src="../assets/supporters/{{logo}}" alt="{{name}}" loading="lazy" width="120" height="120">
+      <span>{{name}}</span>
+    </a>
+    {{/each}}
+  </div>
+  <div class="join">
+    <h3>{{supporters.join_title}}</h3>
+    <p>{{supporters.join_text}}</p>
+    <a class="button primary" href="{{supporters.whatsapp}}" rel="noopener">{{supporters.join_button}}</a>
+  </div>
+</section>

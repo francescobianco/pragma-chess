@@ -11,6 +11,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 - The main window no longer grows at every start (by the height of its
   title bar and the width of its shadow) until it ran off the screen; a
   window never opens larger than the screen.
+- The title bar of the main window shows the Pragma Chess logo in its left
+  corner.
 - The title bar drops the asterisk as soon as the project is saved, not
   at the next click.
 - The toolbar has a Save Project button, the classic floppy, before New

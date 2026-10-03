@@ -1,13 +1,17 @@
 #include "MoveTreeView.h"
 
 #include "FigurineFont.h"
+#include "PaddedHeaderView.h"
+#include "PaddedItemDelegate.h"
 #include "app/ChessPosition.h"
 #include "app/GameSession.h"
 #include "app/GameVariations.h"
 #include "app/MoveAnnotation.h"
 
 #include <QMouseEvent>
+#include <QResizeEvent>
 #include <QScrollBar>
+#include <QStandardItemModel>
 #include <QTextBlock>
 #include <QTextDocument>
 #include <QTextFragment>
@@ -116,8 +120,28 @@ MoveTreeView::MoveTreeView(GameSession *session, QWidget *parent)
     setFocusPolicy(Qt::NoFocus); // The arrows move through the game, not the text.
     setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     setFrameShape(QFrame::NoFrame);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); // The table is as wide as the view, whatever its padding adds.
     setMouseTracking(true);
     document()->setDocumentMargin(0);
+
+    // The header: number, White, Black; the number column fits "199." and
+    // the others share the rest.
+    m_columns = new QStandardItemModel(0, 3, this);
+    m_columns->setHorizontalHeaderLabels({QString(), tr("White"), tr("Black")});
+    auto *header = new PaddedHeaderView(Qt::Horizontal, CellPadding::vertical, CellPadding::horizontal, this);
+    m_header = header;
+    header->setModel(m_columns);
+    header->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    header->setSectionsClickable(false);
+    header->setSectionsMovable(false);
+    header->setHighlightSections(false);
+    header->setStretchLastSection(false);
+    header->setSectionResizeMode(0, QHeaderView::Fixed);
+    header->resizeSection(0, fontMetrics().horizontalAdvance(QStringLiteral("199.")) + 2 * CellPadding::horizontal);
+    header->setSectionResizeMode(1, QHeaderView::Stretch);
+    header->setSectionResizeMode(2, QHeaderView::Stretch);
+    setViewportMargins(0, header->sizeHint().height(), 0, 0);
+    connect(header, &QHeaderView::sectionResized, this, [this] { rebuild(); });
     connect(this, &QTextBrowser::anchorClicked, this, [this](const QUrl &url) {
         const Place place = placeOf(url.toString());
         if (place.isValid())
@@ -160,6 +184,12 @@ int MoveTreeView::cellPlyAt(const QPoint &position) const
     return m_cellPlies.value(cell.row() << 2 | cell.column(), 0);
 }
 
+void MoveTreeView::resizeEvent(QResizeEvent *event)
+{
+    QTextBrowser::resizeEvent(event);
+    m_header->setGeometry(0, 0, viewport()->width(), m_header->sizeHint().height());
+}
+
 void MoveTreeView::mouseMoveEvent(QMouseEvent *event)
 {
     QTextBrowser::mouseMoveEvent(event);
@@ -189,7 +219,6 @@ void MoveTreeView::rebuild()
     const QString text = pal.color(QPalette::Text).name();
     QColor dim = pal.color(QPalette::Text);
     dim.setAlphaF(0.65f);
-    QColor rule = pal.color(QPalette::Mid);
 
     // The move on the board, by the line that owns it: before the branch, the
     // moves of a variation's line are its parent's.
@@ -200,22 +229,23 @@ void MoveTreeView::rebuild()
     QString &html = writer.html;
     html += QStringLiteral("<style>"
                            "table { border-collapse: collapse; }"
-                           "th { font-weight: normal; color: %1; padding: 4px 8px; border-bottom: 1px solid %2; }"
                            "td { padding: 4px 8px; vertical-align: top; }"
                            "td.n { color: %1; text-align: right; }"
                            "td.dots { color: %1; }"
-                           "td.cur { color: %5; background-color: %6; }"
-                           "td.var { font-size: 92%; color: %3; padding-left: 14px; }"
+                           "td.cur { color: %4; background-color: %5; }"
+                           "td.var { font-size: 92%; color: %2; padding-left: 14px; }"
                            "a { text-decoration: none; }"
-                           "a.mv { color: %4; }"
-                           "a.cur { color: %5; background-color: %6; }"
+                           "a.mv { color: %3; }"
+                           "a.cur { color: %4; background-color: %5; }"
                            "</style>")
-                .arg(dim.name(QColor::HexArgb), rule.name(), dim.name(QColor::HexArgb), text, highlighted, highlight);
-    html += QStringLiteral("<table width=\"100%\" cellspacing=\"0\"><tr><th></th><th width=\"45%\">%1</th><th width=\"45%\">%2</th></tr>")
-                .arg(tr("White"), tr("Black"));
+                .arg(dim.name(QColor::HexArgb), dim.name(QColor::HexArgb), text, highlighted, highlight);
+    // The columns are as wide as the header's sections, so the two line up.
+    const QString widths[3] = {QString::number(m_header->sectionSize(0)), QString::number(m_header->sectionSize(1)),
+                               QString::number(m_header->sectionSize(2))};
+    html += QStringLiteral("<table width=\"100%\" cellspacing=\"0\">");
     m_cellPlies.clear();
     m_currentCell = -1;
-    int row = 0; // The header.
+    int row = -1; // openRow() counts the rows, from 0.
     const int currentPly = owner.isEmpty() ? m_session->ply() : 0;
 
     const std::optional<ChessPosition> start = game.startFen.isEmpty() ? ChessPosition::startingPosition()
@@ -223,7 +253,7 @@ void MoveTreeView::rebuild()
     ChessPosition position = start.value_or(ChessPosition::startingPosition());
     bool rowOpen = false;
     const auto openRow = [&](const QString &number) {
-        html += QStringLiteral("<tr><td class=\"n\">%1</td>").arg(number);
+        html += QStringLiteral("<tr><td class=\"n\" width=\"%1\">%2</td>").arg(widths[0], number);
         rowOpen = true;
         ++row;
     };
@@ -234,7 +264,8 @@ void MoveTreeView::rebuild()
         const bool current = ply == currentPly;
         if (current)
             m_currentCell = key;
-        html += QStringLiteral("<td class=\"%1\">%2</td>").arg(current ? QStringLiteral("cur") : QStringLiteral("mv"), shown(move));
+        html += QStringLiteral("<td class=\"%1\" width=\"%2\">%3</td>")
+                    .arg(current ? QStringLiteral("cur") : QStringLiteral("mv"), widths[white ? 1 : 2], shown(move));
     };
     const auto closeRow = [&] {
         if (rowOpen)

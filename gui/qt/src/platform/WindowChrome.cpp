@@ -4,6 +4,7 @@
 #include <QEvent>
 #include <QMainWindow>
 #include <QMouseEvent>
+#include <QApplication>
 #include <QPainter>
 #include <QScreen>
 #include <QPainterPath>
@@ -367,6 +368,13 @@ void WindowChrome::paint()
     // The native window's title has the "[*]" placeholder resolved.
     const QString shown = m_window->windowHandle() ? m_window->windowHandle()->title() : m_window->windowTitle();
     painter.drawText(caption, Qt::AlignCenter, painter.fontMetrics().elidedText(shown, Qt::ElideRight, caption.width()));
+    if (m_mainWindow) {
+        // The application's logo in the left corner, where desktops put the window's icon.
+        const QIcon icon = m_window->windowIcon().isNull() ? QApplication::windowIcon() : m_window->windowIcon();
+        const int inset = (kTitleHeight - kButtonSize) / 2;
+        const QRect logo(title.left() + inset, title.top() + inset, kButtonSize, kButtonSize);
+        icon.paint(&painter, logo, Qt::AlignCenter, active ? QIcon::Normal : QIcon::Disabled);
+    }
 
     for (const Button button : {Button::Minimize, Button::Maximize, Button::Close}) {
         const QRect rect = buttonRect(button);

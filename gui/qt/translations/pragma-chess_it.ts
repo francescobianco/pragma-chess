@@ -223,7 +223,7 @@ Il Nero ha catturato: %2</translation>
     </message>
     <message>
         <source>Stayed where it was</source>
-        <translation>Rimasta dov'era</translation>
+        <translation>Rimasta dov&apos;era</translation>
     </message>
 </context>
 <context>

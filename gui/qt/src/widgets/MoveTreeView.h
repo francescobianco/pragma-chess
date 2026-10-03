@@ -4,6 +4,8 @@
 #include <QList>
 #include <QTextBrowser>
 
+class QHeaderView;
+class QStandardItemModel;
 class QTextTable;
 
 class GameSession;
@@ -14,7 +16,8 @@ class GameSession;
 /// the move on the board is highlighted. Under the move each variation
 /// replaces, a row spanning both columns holds that variation as text, its
 /// own variations inline in parentheses; there every move is a link.
-/// Pieces are figurines.
+/// Pieces are figurines. The header is a real QHeaderView over the text, so
+/// it looks like the other tables', and its sections set the columns' widths.
 class MoveTreeView : public QTextBrowser {
     Q_OBJECT
 
@@ -37,6 +40,7 @@ Q_SIGNALS:
 protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
     void rebuild();
@@ -47,6 +51,8 @@ private:
     QTextTable *table() const;
 
     GameSession *m_session;
+    QHeaderView *m_header;         // The classic header above the text, as the other tables have.
+    QStandardItemModel *m_columns; // Its titles.
     QHash<int, int> m_cellPlies; // (row << 2 | column) → ply, main line.
     int m_currentCell = -1;      // The highlighted cell, same key; -1 if the current move is in a variation.
 };

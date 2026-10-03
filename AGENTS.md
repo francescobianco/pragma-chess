@@ -201,8 +201,8 @@ installed by the style when a top-level `QDialog` or `QMainWindow` is
 polished, makes the window frameless and translucent and draws its frame: a
 rounded panel with the title and its buttons, in a transparent margin that
 holds the shadow. A dialog has a close button and four rounded corners; the
-main window has minimize, maximize and close, square bottom corners (its
-status bar reaches them), and when it is maximized the margin and the
+main window has the application's logo in the left corner, minimize,
+maximize and close, square bottom corners (its status bar reaches them), and when it is maximized the margin and the
 rounding go, as for every window of the desktop; full screen is the contents
 alone. The contents move in by contents margins — one pixel more than the
 shadow, so they do not paint over the panel's edge —, and the sizes a window
@@ -366,8 +366,10 @@ branch, empty for the main line.
   moves are never overwritten**, and a stored game is written back at once
   (`MainWindow::storeOpenGame`, shared with annotations; the old "the new
   line becomes a game of its own" is gone).
-- `widgets/MoveTreeView` (QTextBrowser) draws the tree as a classic table:
-  the main line in two columns with the number in front, one move a cell —
+- `widgets/MoveTreeView` (QTextBrowser) draws the tree as a classic table
+  under a real `PaddedHeaderView` (set in the viewport margins, its sections
+  give the HTML columns their widths): the main line in two columns with
+  the number in front, one move a cell —
   the whole cell is the move (`mouseReleaseEvent` maps the table cell to a
   ply through `m_cellPlies`, the current cell is highlighted) — and each
   variation in a row spanning both columns under the move it replaces (a

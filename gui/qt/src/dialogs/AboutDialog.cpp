@@ -77,7 +77,8 @@ AboutDialog::AboutDialog(const QString &version, QWidget *parent)
     header->setHorizontalSpacing(16);
     header->addWidget(logoLabel(QApplication::windowIcon().pixmap(kLogoSize, kLogoSize)), 0, 0, Qt::AlignTop);
     header->addWidget(textLabel(tr("<h2>Pragma Chess %1</h2>"
-                                   "<p>An open source chess database engine with a native desktop client.</p>"
+                                   "<p>An open source chess database with a native desktop client, "
+                                   "made with lightness, simplicity and useful features in mind.</p>"
                                    "<p>Licensed under the MIT License.</p>").arg(version)),
                       0, 1);
     header->setColumnStretch(1, 1);

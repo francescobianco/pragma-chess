@@ -638,7 +638,12 @@ line wins on transpositions). It can be opened and edited like any database.
   some. Small totals are rewritten on a scale of 10 000 so a few per cent
   can be told apart; nothing passes Polyglot's 16 bits.
   `PolyglotBook::setWeights` writes them into the `.bin` in use (a repeated
-  entry keeps the weight in the first and zero in the others).
+  entry keeps the weight in the first and zero in the others). After the
+  change the panel marks the move in a narrow first column of its own (so
+  the moves and weights keep their alignment) with ↑/↓/= for where it went
+  in the new order, and glows its row with the highlight colour fading over
+  1.8 s (`BookPanel::Mark`, `m_glow`); the mark stays until the position
+  changes.
 - `app/PolyglotBook` (core library, pure, unit-tested against the reference
   keys of the format): Zobrist key (`PolyglotRandom.cpp` holds the format's
   781 random numbers), move encoding (castling as king takes rook), a

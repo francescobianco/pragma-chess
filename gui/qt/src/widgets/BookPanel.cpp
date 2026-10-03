@@ -9,6 +9,7 @@
 #include <QHeaderView>
 #include <QMenu>
 #include <QTreeWidget>
+#include <QVariantAnimation>
 #include <QVBoxLayout>
 
 BookPanel::BookPanel(QWidget *parent)
@@ -24,19 +25,27 @@ BookPanel::BookPanel(QWidget *parent)
     header->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter); // As a tree's own header.
     m_moves->setHeader(header);
     m_moves->setFont(FigurineFont::apply(m_moves->font())); // The figurines of the move list.
+    m_glow = new QVariantAnimation(this);
+    m_glow->setDuration(1800);
+    m_glow->setStartValue(0.0);
+    m_glow->setEndValue(1.0);
+    connect(m_glow, &QVariantAnimation::valueChanged, this, &BookPanel::paintGlow);
+    connect(m_glow, &QVariantAnimation::finished, this, &BookPanel::paintGlow);
     m_moves->setColumnCount(kColumns);
-    m_moves->setHeaderLabels({tr("Move"), tr("Opening"), tr("Database"), tr("Weight")});
+    m_moves->setHeaderLabels({QString(), tr("Move"), tr("Opening"), tr("Database"), tr("Weight")});
     m_moves->headerItem()->setToolTip(kDatabaseColumn, tr("Games of the open database with the position after the move: "
                                                           "how many, and how many White won, drew and Black won"));
-    m_moves->headerItem()->setTextAlignment(0, Qt::AlignCenter); // Only the title: the moves stay left-aligned.
+    m_moves->headerItem()->setTextAlignment(kMoveColumn, Qt::AlignCenter); // Only the title: the moves stay left-aligned.
     m_moves->setRootIsDecorated(false);
     m_moves->setUniformRowHeights(true);
     m_moves->setItemDelegate(new PaddedItemDelegate(CellPadding::vertical, CellPadding::horizontal, m_moves));
     m_moves->setFocusPolicy(Qt::NoFocus);
     m_moves->setAccessibleName(tr("Book moves"));
     m_moves->header()->setStretchLastSection(false);
-    m_moves->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    m_moves->header()->setSectionResizeMode(1, QHeaderView::Stretch);
+    m_moves->header()->setSectionResizeMode(kMarkColumn, QHeaderView::Fixed);
+    m_moves->header()->resizeSection(kMarkColumn, m_moves->fontMetrics().horizontalAdvance(QStringLiteral("↑")) + 2 * CellPadding::horizontal);
+    m_moves->header()->setSectionResizeMode(kMoveColumn, QHeaderView::ResizeToContents);
+    m_moves->header()->setSectionResizeMode(kNameColumn, QHeaderView::Stretch);
     m_moves->header()->setSectionResizeMode(kDatabaseColumn, QHeaderView::ResizeToContents);
     m_moves->header()->setSectionResizeMode(kWeightColumn, QHeaderView::ResizeToContents);
     connect(m_moves, &QTreeWidget::itemClicked, this, [this](QTreeWidgetItem *item) {
@@ -78,10 +87,10 @@ BookPanel::BookPanel(QWidget *parent)
         QAction *chosen = menu.exec(m_moves->viewport()->mapToGlobal(point));
         if (chosen == toggle)
             Q_EMIT repertoireToggled(move.move, !move.inRepertoire());
-        else if (chosen == zero)
-            Q_EMIT weightAdjustRequested(move.move, 0);
-        else if (chosen && percents.contains(chosen))
-            Q_EMIT weightAdjustRequested(move.move, percents.value(chosen));
+        else if (chosen == zero || (chosen && percents.contains(chosen))) {
+            m_pendingMark = Mark{move.move, row, 0};
+            Q_EMIT weightAdjustRequested(move.move, chosen == zero ? 0 : percents.value(chosen));
+        }
     });
 
     // Rows that do something show the hand, as links do.
@@ -103,11 +112,40 @@ void BookPanel::setBookName(const QString &name)
 void BookPanel::setMoves(const ChessPosition &position, const QList<PolyglotBook::Move> &moves,
                          const QList<OpeningNames::Name> &names, const QString &lastMove)
 {
+    const bool samePosition = PolyglotBook::key(position) == PolyglotBook::key(m_position);
     m_position = position;
     m_bookMoves = moves;
     m_names = names;
     m_lastMove = lastMove;
+    // The move whose weight changed: where it went in the new order, with a
+    // glow that fades, so the eye finds it again. The mark goes with the position.
+    if (!samePosition)
+        m_mark.reset();
+    if (m_pendingMark && samePosition) {
+        for (int i = 0; i < moves.size(); ++i) {
+            if (moves.at(i).move == m_pendingMark->move) {
+                m_mark = Mark{m_pendingMark->move, i, m_pendingMark->row - i};
+                m_glow->stop();
+                m_glow->start();
+            }
+        }
+    }
+    m_pendingMark.reset();
     rebuild();
+}
+
+void BookPanel::paintGlow()
+{
+    if (!m_mark)
+        return;
+    QTreeWidgetItem *item = m_moves->topLevelItem(m_mark->row + kFirstMoveRow);
+    if (!item)
+        return;
+    QColor glow = palette().color(QPalette::Highlight);
+    glow.setAlphaF(0.45f * (1.0f - float(m_glow->currentTime()) / float(m_glow->duration())));
+    const QBrush brush = m_glow->state() == QAbstractAnimation::Running ? QBrush(glow) : QBrush();
+    for (int column = 0; column < m_moves->columnCount(); ++column)
+        item->setBackground(column, brush);
 }
 
 void BookPanel::setDatabaseStats(DatabaseState state, const QList<PositionIndex::Stats> &stats)
@@ -126,21 +164,21 @@ void BookPanel::rebuild()
 
     // A row, not a button, that goes one level up the tree: just an arrow in the Move column.
     auto *back = new QTreeWidgetItem(m_moves);
-    back->setTextAlignment(0, Qt::AlignCenter); // The arrow sits in the middle of its cell.
+    back->setTextAlignment(kMoveColumn, Qt::AlignCenter); // The arrow sits in the middle of its cell.
     if (m_lastMove.isEmpty()) {
         // Nothing to take back: the row says where we are, with no arrow.
-        back->setText(1, tr("Starting position"));
+        back->setText(kNameColumn, tr("Starting position"));
         back->setFlags(Qt::NoItemFlags);
     } else {
-        back->setIcon(0, SymbolicIcons::icon(QStringLiteral("go-previous")));
-        back->setText(1, tr("Take back %1").arg(m_lastMove));
-        back->setToolTip(0, tr("Go back one move"));
-        back->setToolTip(1, tr("Go back one move"));
+        back->setIcon(kMoveColumn, SymbolicIcons::icon(QStringLiteral("go-previous")));
+        back->setText(kNameColumn, tr("Take back %1").arg(m_lastMove));
+        back->setToolTip(kMoveColumn, tr("Go back one move"));
+        back->setToolTip(kNameColumn, tr("Go back one move"));
         back->setFlags(Qt::ItemIsEnabled); // Clickable, never selected.
-        QFont font = back->font(1);
+        QFont font = back->font(kNameColumn);
         font.setItalic(true);
-        back->setFont(1, font);
-        back->setForeground(1, m_moves->palette().brush(QPalette::PlaceholderText));
+        back->setFont(kNameColumn, font);
+        back->setForeground(kNameColumn, m_moves->palette().brush(QPalette::PlaceholderText));
     }
 
     const QList<PolyglotBook::Move> moves = m_bookName.isEmpty() ? QList<PolyglotBook::Move>() : m_bookMoves;
@@ -150,12 +188,12 @@ void BookPanel::rebuild()
     for (qsizetype i = 0; i < moves.size(); ++i) {
         const PolyglotBook::Move &move = moves.at(i);
         auto *item = new QTreeWidgetItem(m_moves);
-        item->setText(0, m_position.moveNumberText() + figurineSan(m_position.san(move.move)));
-        item->setToolTip(0, tr("Play %1").arg(m_position.san(move.move)));
+        item->setText(kMoveColumn, m_position.moveNumberText() + figurineSan(m_position.san(move.move)));
+        item->setToolTip(kMoveColumn, tr("Play %1").arg(m_position.san(move.move)));
         const OpeningNames::Name name = m_names.value(i);
-        item->setText(1, name.name);
+        item->setText(kNameColumn, name.name);
         if (!name.isEmpty())
-            item->setToolTip(1, QStringLiteral("%1 %2").arg(name.eco, name.name));
+            item->setToolTip(kNameColumn, QStringLiteral("%1 %2").arg(name.eco, name.name));
         const double share = total > 0 ? 100.0 * move.weight / total : 100.0 / moves.size();
         // A move with next to nothing is not at zero: say so rather than show "0.0 %".
         item->setText(kWeightColumn, (share > 0 && share < 0.05 ? QStringLiteral("< 0.1") : QLocale().toString(share, 'f', 1))
@@ -181,11 +219,22 @@ void BookPanel::rebuild()
                                      .arg(stats.blackWins));
             }
         }
+        if (m_mark && m_mark->move == move.move) {
+            // Up, down or still, after the weights changed; the arrow has a column of its own.
+            const int moved = m_mark->rowsUp;
+            item->setText(kMarkColumn, moved > 0 ? QStringLiteral("↑") : moved < 0 ? QStringLiteral("↓") : QStringLiteral("="));
+            item->setTextAlignment(kMarkColumn, Qt::AlignCenter);
+            item->setToolTip(kMarkColumn, moved > 0 ? tr("Moved up %n row(s)", nullptr, moved)
+                                          : moved < 0 ? tr("Moved down %n row(s)", nullptr, -moved)
+                                                      : tr("Stayed where it was"));
+            item->setForeground(kMarkColumn, moved > 0 ? QBrush(QColor(0x2e, 0x8b, 0x57)) : moved < 0 ? QBrush(QColor(0xc0, 0x39, 0x2b))
+                                                                                                        : palette().brush(QPalette::PlaceholderText));
+        }
         if (move.inRepertoire()) {
             // Bold and brighter than the rest: pure white on a dark theme, pure black on a light one.
             const bool dark = palette().color(QPalette::Base).lightness() < 128;
             const QBrush bright(dark ? Qt::white : Qt::black);
-            for (int column = 0; column < m_moves->columnCount(); ++column) {
+            for (int column = kMoveColumn; column < m_moves->columnCount(); ++column) {
                 QFont font = item->font(column);
                 font.setBold(true);
                 item->setFont(column, font);
@@ -195,12 +244,14 @@ void BookPanel::rebuild()
         }
     }
 
+    paintGlow();
+
     if (moves.isEmpty()) { // A greyed row says why there are no moves.
         auto *item = new QTreeWidgetItem(m_moves);
-        item->setText(0, QStringLiteral("–"));
-        item->setText(1, m_bookName.isEmpty() ? tr("No book chosen: choose one from the Book menu")
+        item->setText(kMoveColumn, QStringLiteral("–"));
+        item->setText(kNameColumn, m_bookName.isEmpty() ? tr("No book chosen: choose one from the Book menu")
                                               : tr("The position is not in the book"));
-        item->setTextAlignment(0, Qt::AlignCenter);
+        item->setTextAlignment(kMoveColumn, Qt::AlignCenter);
         item->setFlags(Qt::NoItemFlags);
     }
 }

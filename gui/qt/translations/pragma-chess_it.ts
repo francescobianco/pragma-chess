@@ -207,6 +207,24 @@ Il Nero ha catturato: %2</translation>
         <source>Takes the move&apos;s weight and gives it to the other moves, in proportion</source>
         <translation>Toglie il peso alla mossa e lo dà alle altre, in proporzione</translation>
     </message>
+    <message numerus="yes">
+        <source>Moved up %n row(s)</source>
+        <translation>
+            <numerusform>Salita di una riga</numerusform>
+            <numerusform>Salita di %n righe</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Moved down %n row(s)</source>
+        <translation>
+            <numerusform>Scesa di una riga</numerusform>
+            <numerusform>Scesa di %n righe</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Stayed where it was</source>
+        <translation>Rimasta dov'era</translation>
+    </message>
 </context>
 <context>
     <name>CapturedPiecesWidget</name>

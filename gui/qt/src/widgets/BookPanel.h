@@ -6,7 +6,10 @@
 
 #include <QWidget>
 
+#include <optional>
+
 class QTreeWidget;
+class QVariantAnimation;
 
 /// Contents of the Opening Tree dock: the moves the chosen book plays in the
 /// position on the board, with the name of the opening each move leads to and
@@ -56,9 +59,24 @@ private:
     QString m_lastMove;
     DatabaseState m_databaseState = DatabaseState::NoDatabase;
     QList<PositionIndex::Stats> m_stats;
-    static constexpr int kDatabaseColumn = 2;
-    static constexpr int kWeightColumn = 3;
-    static constexpr int kColumns = 4;
+    /// The move whose weight the user changed last: its row in the list,
+    /// and (once the list is rebuilt) how many rows it went up.
+    struct Mark {
+        ChessMove move;
+        int row = 0;
+        int rowsUp = 0;
+    };
+    std::optional<Mark> m_pendingMark; // Asked, list not yet rebuilt: row is the old one.
+    std::optional<Mark> m_mark;        // Shown: row is the new one.
+    QVariantAnimation *m_glow = nullptr;
+    void paintGlow();
+
+    static constexpr int kMarkColumn = 0;
+    static constexpr int kMoveColumn = 1;
+    static constexpr int kNameColumn = 2;
+    static constexpr int kDatabaseColumn = 3;
+    static constexpr int kWeightColumn = 4;
+    static constexpr int kColumns = 5;
     /// The rows of book moves start after the back row.
     static constexpr int kFirstMoveRow = 1;
 };

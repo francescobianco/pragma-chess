@@ -42,6 +42,13 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   at the next click.
 - The toolbar has a Save Project button, the classic floppy, before New
   Game; the Save icons of the menus are floppies too.
+- **Play online.** Game ▸ Play Online… plays against a person on
+  lichess.org: connect the platform from the dialog (it signs you in with
+  your browser), choose clock, colour and rated or casual, and find an
+  opponent. While looking and while playing, the engine, Explain, Training
+  Mode and the Opening Tree are off: it is you against your opponent. The
+  finished game is saved in the open database. Connections are yours on
+  this computer, not the project's.
 - **Training plays the book.** While the position is in the opening book,
   the engine answers with a book move, each as often as its weight says —
   tune the weights in the Opening Tree to train against the lines you want.

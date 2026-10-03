@@ -266,7 +266,7 @@ std::optional<QString> SourceSettingsWidget::signIn(const SourceKind &kind, cons
                 loop.quit();
             });
     connect(&progress, &QProgressDialog::canceled, &loop, &QEventLoop::quit);
-    QTimer::singleShot(0, &flow, &LichessSignIn::start);
+    QTimer::singleShot(0, &flow, [&flow] { flow.start(); });
     progress.show();
     loop.exec();
     progress.close();

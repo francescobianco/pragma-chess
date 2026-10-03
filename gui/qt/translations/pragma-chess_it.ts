@@ -1032,6 +1032,13 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>LichessBoardClient</name>
+    <message>
+        <source>The connection with lichess.org was lost.</source>
+        <translation>La connessione con lichess.org si è interrotta.</translation>
+    </message>
+</context>
+<context>
     <name>LichessFetch</name>
     <message>
         <source>Sign in to lichess.org to download the games.</source>
@@ -2046,6 +2053,74 @@ non è su questo computer.</translation>
         <source>Games &amp;List</source>
         <translation>&amp;Lista partite</translation>
     </message>
+    <message>
+        <source>Play &amp;Online…</source>
+        <translation>Gioca &amp;online…</translation>
+    </message>
+    <message>
+        <source>Play a game against a person on lichess.org, with one of your accounts</source>
+        <translation>Gioca una partita contro una persona su lichess.org, con uno dei tuoi account</translation>
+    </message>
+    <message>
+        <source>Stop Playing Online</source>
+        <translation>Smetti di giocare online</translation>
+    </message>
+    <message>
+        <source>Play Online</source>
+        <translation>Gioca online</translation>
+    </message>
+    <message>
+        <source>The account %1 has no sign-in on this computer: sign in again.</source>
+        <translation>L&apos;account %1 non ha un accesso su questo computer: accedi di nuovo.</translation>
+    </message>
+    <message>
+        <source>Looking for an opponent on %1 (%2+%3, %4)…</source>
+        <translation>Cerco un avversario su %1 (%2+%3, %4)…</translation>
+    </message>
+    <message>
+        <source>rated</source>
+        <translation>classificata</translation>
+    </message>
+    <message>
+        <source>casual</source>
+        <translation>amichevole</translation>
+    </message>
+    <message>
+        <source>Resign the game against %1?</source>
+        <translation>Abbandonare la partita contro %1?</translation>
+    </message>
+    <message>
+        <source>No longer looking for an opponent.</source>
+        <translation>Non cerco più un avversario.</translation>
+    </message>
+    <message>
+        <source>%1 %2 game</source>
+        <translation>Partita %2 su %1</translation>
+    </message>
+    <message>
+        <source>Playing %1 as %2.</source>
+        <translation>Giochi contro %1 con il %2.</translation>
+    </message>
+    <message>
+        <source>White</source>
+        <translation>Bianco</translation>
+    </message>
+    <message>
+        <source>Black</source>
+        <translation>Nero</translation>
+    </message>
+    <message>
+        <source>Online: %1 – %2</source>
+        <translation>Online: %1 – %2</translation>
+    </message>
+    <message>
+        <source>waiting for the opponent…</source>
+        <translation>aspetto l&apos;avversario…</translation>
+    </message>
+    <message>
+        <source>your move</source>
+        <translation>tocca a te</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>
@@ -2530,6 +2605,57 @@ Le %n partite già importate restano nel database.</numerusform>
     </message>
 </context>
 <context>
+    <name>OnlineGame</name>
+    <message>
+        <source>White</source>
+        <translation>Bianco</translation>
+    </message>
+    <message>
+        <source>Black</source>
+        <translation>Nero</translation>
+    </message>
+    <message>
+        <source>Checkmate: %1 wins.</source>
+        <translation>Scacco matto: vince il %1.</translation>
+    </message>
+    <message>
+        <source>%1 resigned.</source>
+        <translation>Il %1 ha abbandonato.</translation>
+    </message>
+    <message>
+        <source>Time ran out: draw.</source>
+        <translation>Tempo scaduto: patta.</translation>
+    </message>
+    <message>
+        <source>%1 ran out of time.</source>
+        <translation>Il %1 ha esaurito il tempo.</translation>
+    </message>
+    <message>
+        <source>Stalemate: draw.</source>
+        <translation>Stallo: patta.</translation>
+    </message>
+    <message>
+        <source>Draw.</source>
+        <translation>Patta.</translation>
+    </message>
+    <message>
+        <source>The game was aborted.</source>
+        <translation>La partita è stata annullata.</translation>
+    </message>
+    <message>
+        <source>The game was ended by the platform.</source>
+        <translation>La partita è stata chiusa dalla piattaforma.</translation>
+    </message>
+    <message>
+        <source>The game is over.</source>
+        <translation>La partita è finita.</translation>
+    </message>
+    <message>
+        <source>%1 wins.</source>
+        <translation>Vince il %1.</translation>
+    </message>
+</context>
+<context>
     <name>PhoneLink</name>
     <message>
         <source>Phone</source>
@@ -2573,6 +2699,89 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>Invalid answer</source>
         <translation>Risposta non valida</translation>
+    </message>
+</context>
+<context>
+    <name>PlayOnlineDialog</name>
+    <message>
+        <source>Rated game</source>
+        <translation>Partita classificata</translation>
+    </message>
+    <message>
+        <source>Play Online</source>
+        <translation>Gioca online</translation>
+    </message>
+    <message>
+        <source>Game</source>
+        <translation>Partita</translation>
+    </message>
+    <message>
+        <source> min</source>
+        <translation> min</translation>
+    </message>
+    <message>
+        <source> s</source>
+        <translation> s</translation>
+    </message>
+    <message>
+        <source>Clock:</source>
+        <translation>Orologio:</translation>
+    </message>
+    <message>
+        <source>Random</source>
+        <translation>Casuale</translation>
+    </message>
+    <message>
+        <source>White</source>
+        <translation>Bianco</translation>
+    </message>
+    <message>
+        <source>Black</source>
+        <translation>Nero</translation>
+    </message>
+    <message>
+        <source>Play as:</source>
+        <translation>Gioca con:</translation>
+    </message>
+    <message>
+        <source>While you play online the engine, Explain and the opening book are off: it is you against your opponent.</source>
+        <translation>Mentre giochi online il motore, Spiega e il libro di aperture sono spenti: sei tu contro il tuo avversario.</translation>
+    </message>
+    <message>
+        <source>Find an Opponent</source>
+        <translation>Cerca un avversario</translation>
+    </message>
+    <message>
+        <source>Connect Platform…</source>
+        <translation>Connetti piattaforma…</translation>
+    </message>
+    <message>
+        <source>Disconnect</source>
+        <translation>Disconnetti</translation>
+    </message>
+    <message>
+        <source>Platforms</source>
+        <translation>Piattaforme</translation>
+    </message>
+    <message>
+        <source>The platforms you are connected to, each with the account you play as. They are yours on this computer: a project does not carry them.</source>
+        <translation>Le piattaforme a cui sei connesso, ciascuna con l&apos;account con cui giochi. Sono tue su questo computer: un progetto non le porta con sé.</translation>
+    </message>
+    <message>
+        <source>No platform connected yet: connect one to play.</source>
+        <translation>Nessuna piattaforma connessa: connettine una per giocare.</translation>
+    </message>
+    <message>
+        <source>Sign in to %1 in your browser to connect it…</source>
+        <translation>Accedi a %1 nel browser per connetterla…</translation>
+    </message>
+    <message>
+        <source>Could not connect: %1</source>
+        <translation>Connessione non riuscita: %1</translation>
+    </message>
+    <message>
+        <source>Connected to %1 as %2.</source>
+        <translation>Connesso a %1 come %2.</translation>
     </message>
 </context>
 <context>

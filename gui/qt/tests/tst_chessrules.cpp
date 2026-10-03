@@ -1,5 +1,6 @@
 #include "app/AdvantageProbe.h"
 #include "app/BookWeights.h"
+#include "app/online/OnlineGame.h"
 #include "app/ChessPosition.h"
 #include "app/DatabaseDedupe.h"
 #include "app/DatabaseMerge.h"
@@ -553,6 +554,47 @@ private Q_SLOTS:
         EngineEvaluation expected = eval(50);
         expected.pv = {QStringLiteral("e2e4")};
         QCOMPARE(TrainingTutor::judge(expected, eval(-300), Side::White, played), Alert::None);
+    }
+
+    void followsLichessGameStreams()
+    {
+        // The event stream says when a game starts; everything else is left alone.
+        QVERIFY(!LichessBoard::gameStarted(""));
+        QVERIFY(!LichessBoard::gameStarted(R"({"type":"challenge","challenge":{"id":"x"}})"));
+        QCOMPARE(LichessBoard::gameStarted(R"({"type":"gameStart","game":{"gameId":"abcd1234","color":"black"}})").value(),
+                 QStringLiteral("abcd1234"));
+
+        // The game stream: the full game first, then its states.
+        OnlineGame game;
+        QVERIFY(LichessBoard::applyGameLine(
+            R"({"type":"gameFull","id":"abcd1234","rated":true,"initialFen":"startpos",)"
+            R"("white":{"id":"me","name":"Me","rating":1500},"black":{"id":"them","name":"Them","rating":1620},)"
+            R"("state":{"type":"gameState","moves":"e2e4 c7c5","wtime":600000,"btime":598000,"status":"started"}})",
+            game));
+        QCOMPARE(game.id, QStringLiteral("abcd1234"));
+        QCOMPARE(game.white, QStringLiteral("Me"));
+        QCOMPARE(game.blackRating, 1620);
+        QVERIFY(game.rated);
+        QVERIFY(game.initialFen.isEmpty());
+        QCOMPARE(game.moves, (QStringList{"e2e4", "c7c5"}));
+        QCOMPARE(game.blackTimeMs, 598000);
+        QVERIFY(!game.isOver());
+        QCOMPARE(game.result(), QStringLiteral("*"));
+        QVERIFY(!LichessBoard::applyGameLine(R"({"type":"chatLine","username":"Them","text":"hi","room":"player"})", game));
+        QVERIFY(!LichessBoard::applyGameLine("", game));
+        QVERIFY(LichessBoard::applyGameLine(
+            R"({"type":"gameState","moves":"e2e4 c7c5 g1f3","wtime":590000,"btime":598000,"status":"started"})", game));
+        QCOMPARE(game.moves.size(), 3);
+        QVERIFY(LichessBoard::applyGameLine(
+            R"({"type":"gameState","moves":"e2e4 c7c5 g1f3","wtime":590000,"btime":598000,"status":"resign","winner":"white"})", game));
+        QVERIFY(game.isOver());
+        QCOMPARE(game.result(), QStringLiteral("1-0"));
+        QVERIFY(game.endText().contains(QStringLiteral("resigned")));
+        // An aborted game has no result.
+        OnlineGame aborted;
+        LichessBoard::applyGameLine(R"({"type":"gameState","moves":"","status":"aborted"})", aborted);
+        QVERIFY(aborted.isOver());
+        QCOMPARE(aborted.result(), QStringLiteral("*"));
     }
 
     void shiftsBookWeights()

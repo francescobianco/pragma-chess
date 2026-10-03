@@ -173,6 +173,12 @@ qt_add_library(pragma-chess-core STATIC
     src/app/UciEngine.h
     src/app/UiLanguage.cpp
     src/app/UiLanguage.h
+    src/app/online/LichessBoardClient.cpp
+    src/app/online/LichessBoardClient.h
+    src/app/online/OnlineAccount.cpp
+    src/app/online/OnlineAccount.h
+    src/app/online/OnlineGame.cpp
+    src/app/online/OnlineGame.h
     src/app/sources/ChessComFetch.cpp
     src/app/sources/ChessComFetch.h
     src/app/sources/GameSource.h
@@ -284,6 +290,8 @@ qt_add_executable(pragma-chess
     src/dialogs/HelpDialog.h
     src/dialogs/NewTrainingDialog.cpp
     src/dialogs/NewTrainingDialog.h
+    src/dialogs/PlayOnlineDialog.cpp
+    src/dialogs/PlayOnlineDialog.h
     src/dialogs/SyncDialog.cpp
     src/dialogs/SyncDialog.h
     src/dialogs/SourceSettingsWidget.cpp

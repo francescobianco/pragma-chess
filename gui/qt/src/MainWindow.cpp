@@ -18,6 +18,7 @@
 #include "dialogs/ManageEnginesDialog.h"
 #include "dialogs/ManageSourcesDialog.h"
 #include "dialogs/NewTrainingDialog.h"
+#include "dialogs/PlayOnlineDialog.h"
 #include "dialogs/SyncDialog.h"
 #ifdef PRAGMA_HAS_PHONE_LINK
 #include "app/phone/DatabaseFolderStore.h"
@@ -582,6 +583,13 @@ void MainWindow::createActions()
     m_quickTrainingAction->setToolTip(m_newTrainingAction->toolTip());
     connect(m_quickTrainingAction, &QAction::triggered, this, [this] { newTraining(false); });
 
+    m_playOnlineAction = new QAction(tr("Play &Online…"), this);
+    m_playOnlineAction->setToolTip(tr("Play a game against a person on lichess.org, with one of your accounts"));
+    connect(m_playOnlineAction, &QAction::triggered, this, &MainWindow::playOnline);
+    m_stopOnlineAction = new QAction(tr("Stop Playing Online"), this);
+    m_stopOnlineAction->setEnabled(false);
+    connect(m_stopOnlineAction, &QAction::triggered, this, &MainWindow::stopOnline);
+
     m_trainingModeAction = new QAction(tr("&Training Mode"), this);
     m_trainingModeAction->setCheckable(true);
     m_trainingModeAction->setToolTip(tr("The engine answers as the other colour and hides its line while you think"));
@@ -688,6 +696,8 @@ void MainWindow::createMenus()
     QMenu *game = menuBar()->addMenu(tr("&Game"));
     game->addAction(m_newGameAction);
     game->addAction(m_newTrainingAction);
+    game->addAction(m_playOnlineAction);
+    game->addAction(m_stopOnlineAction);
     game->addAction(m_saveGameAction);
     game->addSeparator();
     game->addAction(m_firstMoveAction);
@@ -1456,8 +1466,9 @@ void MainWindow::syncBoard()
     m_boardSideColumn->setCaptured(captured);
     m_boardSideColumn->setSideToMove(m_session->position().sideToMove());
     QMultiHash<int, int> legalMoves;
-    // In training the user only moves their own colour; the engine answers by itself.
-    if (!isEngineTurn()) {
+    // In training the user only moves their own colour; the engine answers by
+    // itself. Online the opponent does, and only the live position is played.
+    if (!isEngineTurn() && !isOpponentTurn() && !(m_onlinePlay && m_session->ply() != m_session->plyCount())) {
         for (const ChessMove &move : m_session->position().legalMoves())
             legalMoves.insert(move.from, move.to);
     }
@@ -2628,6 +2639,186 @@ bool MainWindow::isEngineTurn() const
     return m_trainingModeAction->isChecked() && m_session->position().sideToMove() != m_trainingSide;
 }
 
+bool MainWindow::isOpponentTurn() const
+{
+    return m_onlinePlay && (!m_onlineSide || m_session->position().sideToMove() != *m_onlineSide);
+}
+
+void MainWindow::playOnline()
+{
+    if (m_online)
+        return; // Already looking, or playing: Stop Playing Online first.
+    PlayOnlineDialog dialog(this);
+    if (dialog.exec() != QDialog::Accepted || dialog.account().id.isEmpty())
+        return;
+    m_onlineAccount = dialog.account();
+    const QString token = SourceCredentials::token(m_onlineAccount.id);
+    if (token.isEmpty()) {
+        QMessageBox::warning(this, tr("Play Online"), tr("The account %1 has no sign-in on this computer: sign in again.").arg(m_onlineAccount.username));
+        return;
+    }
+    m_online = std::make_unique<LichessBoardClient>(token);
+    connect(m_online.get(), &LichessBoardClient::gameStarted, this, &MainWindow::onlineGameStarted);
+    connect(m_online.get(), &LichessBoardClient::gameUpdated, this, &MainWindow::onlineGameUpdated);
+    connect(m_online.get(), &LichessBoardClient::gameFinished, this, &MainWindow::onlineGameFinished);
+    connect(m_online.get(), &LichessBoardClient::failed, this, &MainWindow::onlineFailed);
+    setOnlinePlay(true);
+    m_onlineSide.reset();
+    const LichessBoardClient::Seek seek = dialog.seek();
+    m_enginePanel->setStatus(tr("Looking for an opponent on %1 (%2+%3, %4)…")
+                                 .arg(OnlineAccounts::platformName(m_onlineAccount.platform))
+                                 .arg(seek.minutes)
+                                 .arg(seek.increment)
+                                 .arg(seek.rated ? tr("rated") : tr("casual")));
+    m_online->seek(seek);
+}
+
+void MainWindow::stopOnline()
+{
+    if (!m_online)
+        return;
+    if (m_online->isPlaying()) {
+        const auto answer = QMessageBox::question(this, tr("Stop Playing Online"),
+                                                  tr("Resign the game against %1?").arg(m_onlineSide == Side::White ? m_session->game().black : m_session->game().white),
+                                                  QMessageBox::Yes | QMessageBox::No);
+        if (answer != QMessageBox::Yes)
+            return;
+        m_online->resign(); // The stream brings the end, and the game is saved then.
+        return;
+    }
+    m_online->cancelSeek();
+    m_online.reset();
+    setOnlinePlay(false);
+    statusBar()->showMessage(tr("No longer looking for an opponent."), 5000);
+}
+
+void MainWindow::setOnlinePlay(bool on)
+{
+    if (m_onlinePlay == on)
+        return;
+    m_onlinePlay = on;
+    // Against cheating: nothing that thinks for the user runs while they play.
+    if (on) {
+        m_trainingModeAction->setChecked(false);
+        m_startEngineAction->setChecked(false);
+        m_explainAction->setChecked(false);
+        m_openingTreeDock->hide();
+    }
+    for (QAction *action : {m_startEngineAction, m_explainAction, m_trainingModeAction, m_newTrainingAction,
+                            m_quickTrainingAction, m_openingTreeDock->toggleViewAction()})
+        action->setEnabled(!on);
+    m_stopOnlineAction->setEnabled(on);
+    m_playOnlineAction->setEnabled(!on);
+    m_bookPanel->setEnabled(!on);
+    if (!on) {
+        m_onlineSide.reset();
+        m_enginePanel->setStatus(QString());
+    }
+    syncBoard();
+}
+
+void MainWindow::onlineGameStarted(const OnlineGame &game)
+{
+    const bool white = game.white.compare(m_onlineAccount.username, Qt::CaseInsensitive) == 0;
+    m_onlineSide = white ? Side::White : Side::Black;
+    GameRecord record;
+    record.white = game.white;
+    record.black = game.black;
+    record.whiteElo = game.whiteRating;
+    record.blackElo = game.blackRating;
+    record.event = tr("%1 %2 game").arg(OnlineAccounts::platformName(m_onlineAccount.platform), game.rated ? tr("rated") : tr("casual"));
+    record.site = QStringLiteral("https://lichess.org/%1").arg(game.id);
+    record.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
+    record.result = QStringLiteral("*");
+    record.startFen = game.initialFen;
+    startGame(record);
+    m_flipBoardAction->setChecked(!white);
+    m_engineDock->show();
+    statusBar()->showMessage(tr("Playing %1 as %2.").arg(white ? game.black : game.white, white ? tr("White") : tr("Black")), 8000);
+}
+
+void MainWindow::onlineGameUpdated(const OnlineGame &game)
+{
+    // The platform's moves are the truth: ours are played ahead and confirmed
+    // here, the opponent's arrive here, and a refused move is taken back.
+    QStringList ours;
+    for (const MoveRecord &move : m_session->game().moves)
+        ours << move.uci;
+    const bool extends = game.moves.size() >= ours.size()
+                         && std::equal(ours.cbegin(), ours.cend(), game.moves.cbegin());
+    if (!extends) {
+        GameRecord record = m_session->game();
+        record.moves.clear();
+        record.variations.clear();
+        ChessPosition position = record.startFen.isEmpty() ? ChessPosition::startingPosition()
+                                                           : ChessPosition::fromFen(record.startFen).value_or(ChessPosition::startingPosition());
+        for (const QString &uci : game.moves) {
+            const std::optional<ChessMove> move = position.moveFromUci(uci);
+            if (!move)
+                break;
+            record.moves << MoveRecord{position.san(*move), uci, {}};
+            position.play(*move);
+        }
+        record.plyCount = int(record.moves.size());
+        m_session->setGame(record);
+        m_session->goToEnd();
+    } else {
+        for (qsizetype i = ours.size(); i < game.moves.size(); ++i) {
+            m_session->goToEnd();
+            const std::optional<ChessMove> move = m_session->position().moveFromUci(game.moves.at(i));
+            if (!move)
+                break;
+            m_animateNextBoard = true; // The opponent's move slides across the board, as the engine's does.
+            m_session->playMove(*move);
+        }
+    }
+    updateOnlineStatus(game);
+}
+
+void MainWindow::updateOnlineStatus(const OnlineGame &game)
+{
+    const auto clock = [](int ms) {
+        const int seconds = qMax(0, ms / 1000);
+        return QStringLiteral("%1:%2").arg(seconds / 60).arg(seconds % 60, 2, 10, QLatin1Char('0'));
+    };
+    const QString white = QStringLiteral("%1 (%2) %3").arg(game.white).arg(game.whiteRating).arg(clock(game.whiteTimeMs));
+    const QString black = QStringLiteral("%1 (%2) %3").arg(game.black).arg(game.blackRating).arg(clock(game.blackTimeMs));
+    QString status = tr("Online: %1 – %2").arg(white, black);
+    if (game.isOver())
+        status = game.endText() + QLatin1Char(' ') + status;
+    else if (isOpponentTurn())
+        status += QLatin1String(" — ") + tr("waiting for the opponent…");
+    else
+        status += QLatin1String(" — ") + tr("your move");
+    m_enginePanel->setStatus(status);
+}
+
+void MainWindow::onlineGameFinished(const OnlineGame &game)
+{
+    GameRecord record = m_session->game();
+    record.result = game.result();
+    m_session->setHeader(record);
+    if (record.result != QLatin1String("*"))
+        saveGameToDatabase(); // The game goes to the open database, like a finished training game.
+    statusBar()->showMessage(game.endText(), 10000);
+    updateOnlineStatus(game);
+    // The client is in the middle of its signal: let go of it afterwards.
+    QTimer::singleShot(0, this, [this, text = game.endText()] {
+        m_online.reset();
+        setOnlinePlay(false);
+        m_enginePanel->setStatus(text);
+    });
+}
+
+void MainWindow::onlineFailed(const QString &message)
+{
+    QMessageBox::warning(this, tr("Play Online"), message);
+    QTimer::singleShot(0, this, [this] {
+        m_online.reset();
+        setOnlinePlay(false);
+    });
+}
+
 void MainWindow::updateTraining()
 {
     const bool training = m_trainingModeAction->isChecked();
@@ -2832,6 +3023,11 @@ void MainWindow::playBoardMove(int from, int to, const QPoint &globalPosition)
 
 void MainWindow::playMove(const ChessMove &move)
 {
+    // Online, the move goes to the platform; the board follows at once and
+    // the game's stream confirms it (or takes it back).
+    if (m_onlinePlay && m_online && m_online->isPlaying() && !isOpponentTurn()
+        && m_session->ply() == m_session->plyCount())
+        m_online->move(move.uci());
     // The next move of the line only steps forward; anything else adds to the
     // game — at its end, or as a variation — and a stored game is saved at once.
     const bool adds = !m_session->isNextMove(move);

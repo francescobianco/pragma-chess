@@ -135,6 +135,16 @@ Tick **Remember for this session** in the New Training window and the toolbar bu
 
 **Engine ▸ Training Mode** turns training on or off for the game on the board. Opening a game from the games list turns it off. If you close Pragma Chess while training, it starts again in training.
 
+# Playing online {#online}
+
+**Game ▸ Play Online…** plays a game against a person on lichess.org (more platforms will follow).
+
+The window lists the **platforms you are connected to**, each with the account you play as. **Connect Platform…** asks which kind of platform, opens its own sign-in page in your browser and brings the connection here; **Disconnect** removes one. Connections are yours on this computer, kept with your settings, never in a project. Choose the connection, the **clock** (minutes and increment), the colour and whether the game is **rated**, then **Find an Opponent**.
+
+While Pragma Chess looks for an opponent and while you play, it is **online play mode**: the engine, Explain, Training Mode and the Opening Tree are off and cannot be turned on — it is you against your opponent. The Engine panel shows the names, the ratings, the clocks and whose move it is. Your moves go to the platform as you make them; your opponent's slide onto the board. Only the live position can be played: you may look back at earlier moves, and come back to the end to move.
+
+**Game ▸ Stop Playing Online** cancels the search, or resigns the game after asking. When the game ends — checkmate, resignation, time, draw — the result is written and the game is saved in the open database, with the players, their ratings and a link to the game.
+
 # Opening books {#books}
 
 An opening book is a Polyglot `.bin` file: the moves known in each position, each with a weight. The **Book** menu lists the books of your Books folder; the book icon of the toolbar drops down the same list.

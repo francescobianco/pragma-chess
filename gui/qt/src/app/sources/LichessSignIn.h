@@ -18,7 +18,9 @@ public:
     ~LichessSignIn() override;
 
     /// Starts listening and emits openBrowser() with the sign-in page.
-    void start();
+    /// `scopes` are lichess's OAuth scopes the token is asked for (none for
+    /// reading one's own games; "board:play" to play).
+    void start(const QStringList &scopes = {});
     void cancel();
 
 Q_SIGNALS:

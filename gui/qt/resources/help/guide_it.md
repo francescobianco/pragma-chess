@@ -135,6 +135,16 @@ Spunta **Ricorda per questa sessione** nella finestra Nuovo allenamento e il bot
 
 **Motore ▸ Modalità allenamento** accende o spegne l'allenamento per la partita sulla scacchiera. Aprire una partita dalla lista lo spegne. Se chiudi Pragma Chess mentre ti alleni, riparte in allenamento.
 
+# Giocare online {#online}
+
+**Partita ▸ Gioca online…** gioca una partita contro una persona su lichess.org (altre piattaforme seguiranno).
+
+La finestra elenca le **piattaforme a cui sei connesso**, ciascuna con l'account con cui giochi. **Connetti piattaforma…** chiede di che tipo è, apre nel browser la sua pagina di accesso e porta qui la connessione; **Disconnetti** ne toglie una. Le connessioni sono tue su questo computer, conservate con le tue impostazioni, mai in un progetto. Scegli la connessione, l'**orologio** (minuti e incremento), il colore e se la partita è **classificata**, poi **Cerca un avversario**.
+
+Mentre Pragma Chess cerca un avversario e mentre giochi, è in **modalità gioco online**: il motore, Spiega, la Modalità allenamento e l'Albero delle aperture sono spenti e non si possono accendere — sei tu contro il tuo avversario. Il pannello Motore mostra i nomi, i punteggi, gli orologi e a chi tocca. Le tue mosse vanno alla piattaforma appena le fai; quelle dell'avversario scivolano sulla scacchiera. Si gioca solo la posizione in corso: puoi riguardare le mosse precedenti, e tornare alla fine per muovere.
+
+**Partita ▸ Smetti di giocare online** interrompe la ricerca, o abbandona la partita dopo averlo chiesto. Quando la partita finisce — scacco matto, abbandono, tempo, patta — il risultato viene scritto e la partita è salvata nel database aperto, con i giocatori, i loro punteggi e un collegamento alla partita.
+
 # Libri delle aperture {#books}
 
 Un libro delle aperture è un file Polyglot `.bin`: le mosse conosciute in ogni posizione, ciascuna con un peso. Il menu **Libro** elenca i libri della tua cartella dei libri; l'icona del libro nella barra degli strumenti apre lo stesso elenco.

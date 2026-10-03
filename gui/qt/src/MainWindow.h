@@ -3,6 +3,8 @@
 #include "app/BoardSettings.h"
 #include "app/EngineCatalog.h"
 #include "app/EngineEvaluation.h"
+#include "app/online/LichessBoardClient.h"
+#include "app/online/OnlineAccount.h"
 #include "app/WorkspaceLayout.h"
 #include "app/PlayerRole.h"
 #include "app/TrainingTutor.h"
@@ -162,6 +164,20 @@ private:
     /// Asks for the colour and starts a game against the engine. The toolbar
     /// passes false: it does not ask when a choice was remembered for the session.
     void newTraining(bool alwaysAsk);
+
+    // Online play (Game ▸ Play Online…): a game against a person on a
+    // platform, through the account's client. `m_onlinePlay` is the flag
+    // against cheating: while it is on, the engine, Explain and the opening
+    // book are off and cannot be turned on.
+    void playOnline();
+    void stopOnline();
+    void setOnlinePlay(bool on);
+    bool isOpponentTurn() const;
+    void onlineGameStarted(const OnlineGame &game);
+    void onlineGameUpdated(const OnlineGame &game);
+    void onlineGameFinished(const OnlineGame &game);
+    void onlineFailed(const QString &message);
+    void updateOnlineStatus(const OnlineGame &game);
     /// The header of a training game: the user on their side, the engine on the other.
     GameRecord trainingHeader() const;
     void setTrainingMode(bool enabled);
@@ -436,6 +452,12 @@ private:
     QAction *m_coordinatesAction;
     QAction *m_newGameAction;
     QAction *m_newTrainingAction;
+    QAction *m_playOnlineAction;
+    QAction *m_stopOnlineAction;
+    std::unique_ptr<LichessBoardClient> m_online; // Alive while looking for an opponent or playing.
+    OnlineAccount m_onlineAccount;
+    bool m_onlinePlay = false;
+    std::optional<Side> m_onlineSide; // The user's colour, once the game is on.
     /// The same in the toolbar, which may skip the dialog.
     QAction *m_quickTrainingAction;
     /// The toolbar's book, engine and database: an icon each, dropping down

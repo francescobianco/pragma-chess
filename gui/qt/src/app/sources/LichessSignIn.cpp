@@ -41,7 +41,7 @@ LichessSignIn::LichessSignIn(QObject *parent)
 
 LichessSignIn::~LichessSignIn() = default;
 
-void LichessSignIn::start()
+void LichessSignIn::start(const QStringList &scopes)
 {
     if (!m_server->listen(QHostAddress::LocalHost)) {
         finish({}, {}, m_server->errorString());
@@ -61,6 +61,8 @@ void LichessSignIn::start()
     query.addQueryItem(QStringLiteral("code_challenge_method"), QStringLiteral("S256"));
     query.addQueryItem(QStringLiteral("code_challenge"), QString::fromLatin1(challenge));
     query.addQueryItem(QStringLiteral("state"), m_state);
+    if (!scopes.isEmpty())
+        query.addQueryItem(QStringLiteral("scope"), scopes.join(QLatin1Char(' ')));
     url.setQuery(query);
     m_timeout->start(kTimeoutMs);
     Q_EMIT openBrowser(url);

@@ -759,6 +759,39 @@ while the menu entry and its shortcut always ask. Everything lives in `MainWindo
   `SlideStep`s. It never special-cases castling by name, so any move that
   shifts a second piece animates properly.
 
+## Online play
+
+Game ▸ Play Online… (`dialogs/PlayOnlineDialog`) plays against a person on
+a platform; lichess.org for now, through its Board API, more to come.
+
+- **Connections are the user's, per computer**, never the project's: a
+  connection is a platform signed in to as some account,
+  `app/online/OnlineAccount` (`OnlineAccounts`, in QSettings
+  `online/accounts`: id, platform, user name), the token in
+  `SourceCredentials` by the connection's id. Connect Platform… asks the
+  kind (a menu; lichess only) and runs `LichessSignIn` with the scope
+  `board:play` (`start(scopes)`; the sources' sign-in asks for none). The
+  platform's own accounts are its business: nothing here creates one.
+- `app/online/LichessBoardClient` (core, Qt Network): `seek()` POSTs
+  `/api/board/seek` (the request stays open while the seek lives) and
+  follows `/api/stream/event` for the game's start, then
+  `/api/board/game/stream/{id}` for `gameFull`/`gameState`; `move()`,
+  `resign()`, `abort()` POST. The streams are NDJSON; the parsing is pure in
+  `app/online/OnlineGame` (`LichessBoard::gameStarted`, `applyGameLine`,
+  `OnlineGame::result/endText`; unit-tested). A new platform gets a client
+  of its own with the same signals.
+- **`MainWindow::m_onlinePlay` is the flag against cheating**
+  (`setOnlinePlay`): while the client looks for an opponent or plays, the
+  engine, Explain, Training Mode and the Opening Tree are turned off and
+  their actions disabled; `isOpponentTurn()` keeps the board still on the
+  opponent's move, and only the end of the line can be played. The user's
+  move is sent and played at once; `onlineGameUpdated` makes the
+  platform's move list the truth (the opponent's moves are played with the
+  slide of the engine's, a refused move is taken back by rebuilding the
+  game). The end (`onlineGameFinished`) writes the result and saves the game
+  to the open database with players, ratings, "lichess.org rated/casual
+  game" and the game's URL as site. The flag is not part of the project.
+
 ## Working agreements
 
 - Keep changes focused; follow the style of the surrounding code.

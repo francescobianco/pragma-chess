@@ -130,8 +130,9 @@ playing a move turns it off, and the user asks again at the next move.
   (`Explained`) and goes back to plain when Explain is turned off or the
   answer is empty. Only the colour changes, never the width. A sequence being
   played still wins, with its red border. In training the border is also red
-  (`Alert`) while the tutor's alert is up; Explain's colours take over while
-  it is on, and the red comes back after it. `MainWindow::updateBoardBorder`
+  (`Alert`) while the tutor's alert is up, and so is it whenever the position
+  on the board is checkmate; Explain's colours take over while it is on, and
+  the red comes back after it. `MainWindow::updateBoardBorder`
   is the one place that decides: add new meanings there, do not call
   `setBorder` elsewhere.
 - `widgets/BoardWidget` only paints `BoardArrow`s and lost-piece rings, and

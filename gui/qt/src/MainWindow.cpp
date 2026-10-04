@@ -1617,6 +1617,7 @@ void MainWindow::syncBoard()
     // An explanation belongs to one move: moving on turns it off until asked again.
     m_explainAction->setChecked(false);
     updateExplainer();
+    updateBoardBorder(); // A checkmate on the board turns it red.
 
     updateNavigationActions();
 }
@@ -2699,11 +2700,14 @@ void MainWindow::setExplainEnabled(bool enabled)
 void MainWindow::updateBoardBorder()
 {
     // Explain speaks first, while it is on; under it the tutor's alert keeps
-    // the border red until the user has chosen what to do with the move.
+    // the border red until the user has chosen what to do with the move, and
+    // a checkmate on the board is red too.
     if (m_explainBorder != BoardBorder::Plain)
         m_board->setBorder(m_explainBorder);
+    else if (m_tutorReply || m_session->position().isCheckmate())
+        m_board->setBorder(BoardBorder::Alert);
     else
-        m_board->setBorder(m_tutorReply ? BoardBorder::Alert : BoardBorder::Plain);
+        m_board->setBorder(BoardBorder::Plain);
 }
 
 void MainWindow::updateExplainer()

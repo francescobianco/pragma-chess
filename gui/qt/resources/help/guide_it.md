@@ -64,6 +64,7 @@ Muovi un pezzo trascinandolo, oppure cliccandolo e poi cliccando la casa d'arriv
 - **Sinistra** e **Destra** vanno indietro e avanti di una mossa, **Home** e **Fine** all'inizio e alla fine. Cliccando una mossa nel pannello Mosse si va lì.
 - **Visualizza ▸ Gira scacchiera** (Ctrl+R) gira la scacchiera; **Visualizza ▸ Mostra coordinate** mostra o nasconde lettere e numeri.
 - **Opzioni ▸ Impostazioni scacchiera…** sceglie dove mostrare i pezzi catturati e se indicare a chi tocca.
+- Quando la posizione sulla scacchiera è **scacco matto**, il bordo della scacchiera diventa rosso.
 
 **Partita ▸ Nuova partita** (Ctrl+Shift+N) comincia una partita da inserire mossa per mossa. **Partita ▸ Salva partita nel database** la mette nel database aperto.
 

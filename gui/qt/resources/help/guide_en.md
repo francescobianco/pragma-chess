@@ -64,6 +64,7 @@ Move a piece by dragging it, or by clicking it and then its square. A pawn reach
 - **Left** and **Right** go one move back and forward, **Home** and **End** to the start and the end. Clicking a move in the Moves panel goes there.
 - **View ▸ Flip Board** (Ctrl+R) turns the board around; **View ▸ Show Coordinates** shows or hides the letters and numbers.
 - **Options ▸ Board Settings…** chooses where the captured pieces are shown and whether to show whose turn it is.
+- When the position on the board is **checkmate**, the border of the board turns red.
 
 **Game ▸ New Game** (Ctrl+Shift+N) starts a game to enter move by move. **Game ▸ Save Game to Database** stores it in the open database.
 

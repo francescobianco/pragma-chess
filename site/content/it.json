@@ -21,7 +21,9 @@
     "download": "Scarica",
     "source": "Codice sorgente",
     "note": "Gratuito, con licenza MIT. Per Windows, macOS e Linux.",
-    "alt": "Pragma Chess spiega perché 14.Td1 vince la partita dell'Opera di Morphy: frecce sulla scacchiera, valutazione e linea nel pannello Motore"
+    "alt": "Pragma Chess spiega perché 14.Td1 vince la partita dell'Opera di Morphy: frecce sulla scacchiera, valutazione e linea nel pannello Motore",
+    "video_alt": "Quaranta secondi di Pragma Chess: si scorre la partita dell'Opera di Morphy e si preme E su 14.Td1, Spiega disegna perché vince",
+    "video_caption": "La partita dell'Opera di Morphy: premi E su 14.Td1 e Spiega mostra perché vince."
   },
   "features": {
     "title": "Cosa fa",

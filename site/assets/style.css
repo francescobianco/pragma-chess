@@ -78,7 +78,9 @@ section > .download-note, section > .formats, section > .clubs { max-width: var(
 .lead { font-size: 1.25rem; color: var(--ink-soft); }
 .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0 0.75rem; }
 .hero-note { color: var(--ink-soft); font-size: 0.95rem; }
-.hero-shot img, .gallery img {
+.hero-shot video { width: 100%; height: auto; display: block; background: #000; }
+.hero-shot figcaption { color: var(--ink-soft); font-size: 0.9rem; text-align: center; margin-top: 0.6rem; }
+.hero-shot video, .hero-shot img, .gallery img {
   border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--line);
 }
 .button {

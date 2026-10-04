@@ -37,7 +37,7 @@ the downloads.
 | GitHub Discussions | Turned on; add Q&A and Ideas categories and link it from the site's Support section | ✅ on 2026-10-04 · ☐ categories, site link |
 | Releases | Each `vX.Y.Z` tag publishes installers and the CHANGELOG section as notes (CI) | ✅ since 0.2.0 |
 | lichess.org blog | "Vi presento Pragma Chess…" (IT) — write the English counterpart and a post per notable release | ✅ IT · ☐ EN |
-| Screen recording | 45 s: open a game, press E on 14.Rd1, show the arrows; New Training; Play Online. For every post and the site | ☐ |
+| Screen recording | 40 s, recorded in the headless session: the Opera game move by move, E on 14.Rd1, Explain's arrows (`site/assets/pragma-chess-explain.webm`, the hero of the site). A longer tour with Training and Play Online is still to make | ✅ clip 2026-10-04 · ☐ tour |
 
 ## 2. Package channels
 
@@ -219,3 +219,4 @@ books and lichess.org play; Windows, macOS, Linux.`
 | 2026-10-04 | awesome-italia-opensource | https://github.com/italia-opensource/awesome-italia-opensource/pull/222 | PR |
 | 2026-10-04 | winget | https://github.com/microsoft/winget-pkgs/pull/446459 | New package 0.2.0 |
 | 2026-10-04 | Flathub | packaging/flatpak/ | manifest ready, not yet built or submitted |
+| 2026-10-04 | Clip | https://yafb.net/pragma-chess/assets/pragma-chess-explain.webm | 40 s, Explain on the Opera game; the site's hero |

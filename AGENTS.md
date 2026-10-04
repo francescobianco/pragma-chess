@@ -830,7 +830,11 @@ download section links the latest release; `assets/site.js` fills version,
 asset names and direct links from GitHub's API when it can, and highlights
 the visitor's own system. Screenshots are taken in the headless GNOME
 session at 1920×1200, maximized, cropped of the top bar and scaled to 1440
-(thumbnails 720); replace them when the interface changes. GitHub Pages is
+(thumbnails 720); the hero's clip (`assets/pragma-chess-explain.webm`, VP8,
+40 s) is recorded there too, through `org.gnome.Mutter.ScreenCast` and
+`gst-launch-1.0 pipewiresrc ! videocrop top=32 ! vp8enc ! webmmux`, while
+the keys drive the Opera game to 14.Rd1 and press E; replace them when the
+interface changes. GitHub Pages is
 set to the `main` branch, folder `/docs`.
 
 ## Working agreements

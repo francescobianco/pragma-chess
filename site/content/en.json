@@ -21,7 +21,9 @@
     "download": "Download",
     "source": "Source code",
     "note": "Free, MIT licensed. For Windows, macOS and Linux.",
-    "alt": "Pragma Chess explaining why 14.Rd1 wins Morphy's Opera game: arrows on the board, the evaluation and the line in the Engine panel"
+    "alt": "Pragma Chess explaining why 14.Rd1 wins Morphy's Opera game: arrows on the board, the evaluation and the line in the Engine panel",
+    "video_alt": "Forty seconds of Pragma Chess: stepping through Morphy's Opera game and pressing E on 14.Rd1, Explain draws why it wins",
+    "video_caption": "Morphy's Opera game: press E on 14.Rd1 and Explain shows why it wins."
   },
   "features": {
     "title": "What it does",

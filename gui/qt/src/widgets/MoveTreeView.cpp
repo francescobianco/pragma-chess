@@ -13,6 +13,7 @@
 #include <QAbstractTextDocumentLayout>
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QResizeEvent>
 #include <QScrollBar>
 #include <QStandardItemModel>
@@ -83,6 +84,37 @@ QTextBlockFormat paragraphFormat(qreal indent)
     return format;
 }
 
+/// The editor of a paragraph. Its hint, while it is empty, is set as the
+/// paragraph will be — indented, justified —: QTextEdit's own placeholder
+/// would sit at the left edge, where the text does not begin.
+class ParagraphEditor : public QTextEdit {
+public:
+    using QTextEdit::QTextEdit;
+
+    QString hint;
+
+protected:
+    void paintEvent(QPaintEvent *event) override
+    {
+        QTextEdit::paintEvent(event);
+        if (!document()->isEmpty() || hint.isEmpty())
+            return;
+        QTextDocument shown;
+        shown.setDocumentMargin(document()->documentMargin());
+        shown.setDefaultFont(font());
+        shown.setPlainText(hint);
+        QTextCursor all(&shown);
+        all.select(QTextCursor::Document);
+        all.mergeBlockFormat(paragraphFormat(BookFont::indent(font())));
+        shown.setTextWidth(viewport()->width());
+        QPainter painter(viewport());
+        QAbstractTextDocumentLayout::PaintContext context;
+        context.palette = palette();
+        context.palette.setColor(QPalette::Text, palette().color(QPalette::PlaceholderText));
+        shown.documentLayout()->draw(&painter, context);
+    }
+};
+
 struct Writer {
     int game = 0;
     QString currentHref;
@@ -133,7 +165,7 @@ struct Writer {
 MoveTreeView::MoveTreeView(GameSession *session, QWidget *parent)
     : QTextBrowser(parent)
     , m_session(session)
-    , m_editor(new QTextEdit(viewport()))
+    , m_editor(new ParagraphEditor(viewport()))
 {
     setFont(FigurineFont::apply(font()));
     setOpenLinks(false);
@@ -184,7 +216,7 @@ MoveTreeView::MoveTreeView(GameSession *session, QWidget *parent)
     m_editor->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_editor->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_editor->document()->setDocumentMargin(0);
-    m_editor->setPlaceholderText(tr("Write here; Esc or a click elsewhere ends"));
+    static_cast<ParagraphEditor *>(m_editor)->hint = tr("Write here; Esc or a click elsewhere ends");
     m_editor->hide();
     m_editor->installEventFilter(this);
     connect(m_editor, &QTextEdit::textChanged, this, [this] {

@@ -1,7 +1,12 @@
-# pragma-chess
+# Pragma Chess
 
-An open-source chess database engine with a native cross-platform desktop client.
-See [DESIGN.md](DESIGN.md) for the vision and architecture.
+An open source chess database for studying, training and playing: light,
+simple, with what really matters. For Windows, macOS and Linux.
+
+**Web site: <https://yafb.net/pragma-chess/>** (English and Italian, with
+screenshots and downloads). See [DESIGN.md](DESIGN.md) for the vision and
+architecture, [CHANGELOG.md](CHANGELOG.md) for what changed, and
+[DISTRIBUTING.md](DISTRIBUTING.md) for how we make it known.
 
 ## Download
 

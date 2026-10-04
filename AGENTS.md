@@ -35,6 +35,7 @@ core/                  chessdb-core: chess model, PGN, storage, index, search
 cli/                   chessdb-cli, binary `chessdb`
 CMakeLists.txt         top-level CMake, only adds gui/qt
 CHANGELOG.md           what changed in each version, for users (Keep a Changelog)
+DISTRIBUTING.md        how Pragma Chess is made known: channels, messages, log
 TODO.md                handoff: what is left to do, open decisions, formats decoded
 gui/qt/
   src/main.cpp         entry point (signal handling → clean quit, session save)

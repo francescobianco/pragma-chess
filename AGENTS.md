@@ -463,9 +463,10 @@ deleted games for good, drops the names only they used and compacts the file
 
 ## Folder sync
 
-File ▸ Sync… keeps the Pragma folder (databases, projects) the same on several
-computers through a folder on an FTP (optionally FTPS) or WebDAV server, or a
-Git repository.
+Options ▸ Sync Settings… (`SyncDialog`) keeps the Pragma folder (databases,
+projects) the same on several computers through a folder on an FTP
+(optionally FTPS) or WebDAV server, or a Git repository; File ▸ Sync Now is
+the toolbar's first button (`m_syncNowAction`, Ctrl+Y).
 
 - `app/sync/` (core library): `RemoteStore` with `FtpStore` (own client on
   QSslSocket: passive mode, binary, upload as `.part` then rename) and
@@ -477,14 +478,30 @@ Git repository.
   `SyncManifest` is the remote `.pragma-chess.sync` (files with SHA-256 and a
   revision); `FolderSync` runs the plan, writes the manifest last and starts
   over if another device changed it; uploads send a snapshot copy.
+- **The manifest changes only when the files on the server change**
+  (`FolderSync::commit`: same files, merges and deletions → nothing is
+  written, whatever was downloaded), so a Git history holds real changes:
+  no commit for a sync that only receives or finds nothing, and each commit
+  is named after its files ("Update a.pdb; delete b.pch",
+  `GitStore::commitMessage`, the manifest left out). Do not put anything in
+  the manifest that changes at every sync: what only one device needs goes
+  in its local state file (below).
 - **The sync reconciles; it never deletes anything that has not been merged
   or that the user did not delete knowingly** (below).
   A folder of databases is not a working copy: a file missing on one side
   means that side has yet to receive it. `planSync` (pure, unit-tested)
   returns the union of both sides — only here → Upload, only there →
-  Download, changed on both → KeepBoth — and the base only says who changed a
-  file both sides have. A database deleted by hand comes back on the next
-  sync. There are no tombstones: entries left by older versions are dropped
+  Download, changed on both → KeepBoth — and the base says who changed a
+  file both sides have. The base also tells a file deleted by hand from one
+  not received yet: in the base, unchanged on the server, missing here →
+  `DeletedHere`, which moves nothing; `FolderSync::deletedByHand` reports
+  it after the sync and `MainWindow::askAboutFilesDeletedByHand` asks:
+  Delete Everywhere (`deleteEverywhere`), Restore (`restoreDeleted` drops
+  the base entry, so it is downloaded) or Ask Me Later (again at the next
+  start). Changed on the server since → Download, no question. A file the
+  application itself removes from the folder (e.g. `migrateOpeningNames`)
+  is reported with `FolderSync::noteRemoved`, or the user would be asked
+  about it. There are no tombstones: entries left by older versions are dropped
   when the manifest is read. `GitStore::publish()` stages with
   `git add --ignore-removal`, so nothing can drop out of the repository even
   if the clone loses it, and `RemoteStore::listFiles()` (only Git implements
@@ -509,18 +526,26 @@ Git repository.
   `tst_chessrules::mergesDuplicatesAcrossGitDevices` covers a duplicate
   holding a game only the second device had.
 - **The other way out is a deletion the user confirmed** after being told
-  it goes from every synced device (today only after a phone deleted the
-  database, `MainWindow::askAboutPhoneDeletions`). `FolderSync::deleteDatabase`
-  moves the file to the trash (`DatabaseHooks::discard`, the system trash
-  by default; tests remove instead) and records a `SyncDeletionRecord`
-  (`deleted` in the manifest: path and lineage) with the next sync: a device
-  that has that file with that lineage moves it to the trash (planSync
-  `Delete`), a remote copy is removed (`Forget`), and the path is never
-  synced again while a file of that lineage is there; a file at the path
-  with another lineage is a new database. A manifest with deletions is
+  it goes from every synced device: a database a phone deleted
+  (`MainWindow::askAboutPhoneDeletions`, `FolderSync::deleteDatabase`), a
+  file deleted by hand (above), or files deleted in Options ▸ Sync Settings ▸
+  Manage Files… (`dialogs/ManageSyncFilesDialog`: `FolderSync::listRemote`
+  lists the manifest's files and what a Git clone holds besides, then
+  `deleteEverywhere` and a sync). The file goes to the trash here
+  (`DatabaseHooks::discard`, the system trash by default; tests remove
+  instead) and a `SyncDeletionRecord` is recorded with the next sync
+  (`deleted` in the manifest: path, and the lineage of a database or else
+  the content's SHA-256): a device that has that file — that lineage, or
+  that content — moves it to the trash (planSync `Delete`), a remote copy
+  is removed (`Forget`), and the path is never synced again while the
+  record stands. A file at the path with another lineage, or a copy changed
+  since (a change the deleter never saw), is not deleted: the record goes
+  and the file syncs normally (`dropInapplicableDeletions`, pure,
+  unit-tested). A manifest with deletions is
   written as format 2, which older versions refuse to sync with rather than
   bring the file back. `tst_chessrules::deletesDatabasesAcrossGitDevices`
-  covers it. Never delete anything else through it without the same warning.
+  and `reconcilesGitFoldersWithoutDeleting` cover it. Never delete anything
+  else through it without the same warning.
 - `app/sync/SyncPipeline` runs the sync **in order**, one `SyncTask` at a
   time: `SourceSyncTask` (sources → database), a `SyncStepTask` for the
   project file, one for the session and one merging duplicate databases,
@@ -530,16 +555,23 @@ Git repository.
   A task says whether it `isNeeded()` (skipped steps never report an error)
   and whether it `isCritical()` (a normal failure is collected and the rest
   still runs, so a server that is down does not block importing games).
-  The toolbar's Sync Now button, the Sync dialog's Sync Now button and "Sync
-  before closing" (a `SyncSettings` field, shown in the Sync dialog and in the
+  The toolbar's Sync Now button (also File ▸ Sync Now), the Sync Settings
+  dialog's Sync Now button and "Sync before closing" (a `SyncSettings`
+  field, shown in the Sync Settings dialog and in the
   dialog that asks to save on quit) all go through it; closing waits for the
   pipeline with a timeout, so a dead server cannot keep the window open.
 - `MainWindow::quitWithoutAsking()` exists because Qt 6 closes the windows on
   `QApplication::quit()`: a SIGTERM (`make start`) must not raise the "save
   before quitting?" dialog. Anything new in `closeEvent` has to honour it.
-- The base and a hash cache live per device in AppLocalData
-  (`folder-sync.json`), never in the synced folder. Settings and password are
-  in the user's settings (`SyncSettings`; keychain is a TODO).
+- The base, a hash cache and the deletions and merges not published yet live
+  per device in the root of the local Pragma folder, `.pragma-chess.local`
+  (`SyncManifest::localStateFileName`). It is never uploaded (hidden files
+  are not synced), but it sits with the files it describes: the base must
+  match the folder it was taken from, or a file deleted by hand could not be
+  told from one not received yet, and a folder restored from a backup or
+  moved brings its state along. Older versions kept it in AppLocalData
+  (`folder-sync.json`, `SyncSettings::statePath`); it is moved once. Settings
+  and password are in the user's settings (`SyncSettings`; keychain is a TODO).
 - The open database is closed while the sync replaces it and opened again.
 - To test for real, run pyftpdlib / wsgidav locally (or a bare Git repo) and
   two `FolderSync` instances with separate folders and state files, including
@@ -674,9 +706,10 @@ line wins on transpositions). It can be opened and edited like any database.
   aperture.pdb`), goes to its place (`English.pdb`, `Italian.pdb`). If the
   place already has every game of the copy, none older
   (`ShippedOpeningNames::addsNothing` over `readRevisions`: uid → modified),
-  the copy is removed rather than piling up — the folder sync never deletes,
-  so a server brings an old path back on every sync until it is removed
-  there; otherwise it is kept under `Old/`. Nothing is overwritten. A project
+  the copy is removed rather than piling up; otherwise it is kept under
+  `Old/`. Either way the old path is reported to the folder sync
+  (`FolderSync::noteRemoved`), which deletes it from the server and the other
+  devices instead of asking the user about it. Nothing is overwritten. A project
   or setting pointing at a moved file, or at another copy that adds nothing to
   the shipped one, opens the shipped one.
 - Seeding copies `resources/openings/opening-names*.pdb` (ready made, version 5,

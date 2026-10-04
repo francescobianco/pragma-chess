@@ -13,8 +13,9 @@ class QPushButton;
 class QSpinBox;
 class QStackedWidget;
 
-/// File ▸ Sync: the server folder (FTP or WebDAV) that keeps the Pragma folder
-/// (databases and projects) the same on every computer set up with it.
+/// Options ▸ Sync Settings: the server folder (FTP, WebDAV or a Git
+/// repository) that keeps the Pragma folder (databases and projects) the same
+/// on every computer set up with it.
 class SyncDialog : public QDialog {
     Q_OBJECT
 
@@ -27,6 +28,8 @@ Q_SIGNALS:
     /// Sync everything now with the settings shown (they are applied first):
     /// the sources of the open database, the project, then the folder.
     void syncRequested(const SyncSettings &settings);
+    /// Manage Files with the settings shown (they are applied first).
+    void manageFilesRequested(const SyncSettings &settings);
 
 private:
     void updateStatus();
@@ -51,4 +54,5 @@ private:
     QLabel *m_status;
     QPushButton *m_testButton;
     QPushButton *m_syncButton;
+    QPushButton *m_manageButton;
 };

@@ -294,6 +294,8 @@ qt_add_executable(pragma-chess
     src/dialogs/PlayOnlineDialog.h
     src/dialogs/SyncDialog.cpp
     src/dialogs/SyncDialog.h
+    src/dialogs/ManageSyncFilesDialog.cpp
+    src/dialogs/ManageSyncFilesDialog.h
     src/dialogs/SourceSettingsWidget.cpp
     src/dialogs/SourceSettingsWidget.h
     src/app/ClassicGames.cpp

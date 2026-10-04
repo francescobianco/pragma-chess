@@ -8,6 +8,19 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Folder sync notices a file deleted by hand from the Pragma folder (it no
+  longer comes back by itself) and asks: Delete Everywhere, Restore, or Ask
+  Me Later. Each computer keeps what it last synced in a hidden
+  `.pragma-chess.local` file of its Pragma folder, which is never uploaded.
+- Manage Files…, in the Sync Settings, lists the files on the server and
+  deletes the ones you no longer want from every synced device, after a
+  confirmation.
+- File ▸ Sync… is now Options ▸ Sync Settings…, and File ▸ Sync Now is the
+  toolbar's first button.
+- With a Git repository, a sync that only receives or finds nothing new no
+  longer makes a commit, and each commit is named after the files it
+  changes ("Update Databases/Games.pdb; add Projects/Study.pch").
+
 - A database deleted in the mobile app is no longer sent back to it, and
   the computer asks whether to delete it there too or keep it. Delete
   Everywhere… warns first, then moves it to the trash and deletes it from

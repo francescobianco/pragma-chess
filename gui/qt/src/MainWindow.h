@@ -277,8 +277,14 @@ private:
     void editDatabaseSettings();
     void editBoardSettings();
     void applyBoardSettings(const BoardSettings &settings);
-    // File ▸ Sync: the Pragma folder kept the same on several computers.
+    // Options ▸ Sync Settings: the Pragma folder kept the same on several computers.
     void openSyncDialog();
+    /// Manage Files of the Sync Settings dialog: the files on the server,
+    /// deleted from every device.
+    void openManageSyncFiles(QWidget *parent);
+    /// Files deleted by hand from the Pragma folder (FolderSync::deletedByHand):
+    /// deleted from every synced device, restored, or asked again next time.
+    void askAboutFilesDeletedByHand(const QStringList &paths);
     // Options ▸ Connect Mobile App: the Android app copies the databases
     // (docs/phone-link.md) and sends back the games played on the phone.
     void createPhoneLink();
@@ -423,6 +429,9 @@ private:
     /// again at the next start), and whether a question is on screen.
     QSet<QString> m_postponedPhoneDeletions;
     bool m_askingPhoneDeletions = false;
+    /// Files deleted by hand the user said to ask about later: not again in this run.
+    QSet<QString> m_postponedHandDeletions;
+    bool m_askingHandDeletions = false;
     /// What Explain wants the border of the board to say; see updateBoardBorder().
     BoardBorder m_explainBorder = BoardBorder::Plain;
     /// The tutor's alert is up: the engine's answer it holds back, the search

@@ -5,6 +5,9 @@
 #include <QList>
 #include <QMap>
 #include <QString>
+#include <QStringList>
+
+#include <functional>
 
 #include <optional>
 
@@ -38,18 +41,22 @@ struct SyncMergeRecord {
     bool operator==(const SyncMergeRecord &) const = default;
 };
 
-/// A database file the user deleted on purpose, after being warned that it
-/// goes from every device (e.g. after a phone deleted it): every device that
-/// still has that file with that lineage moves it to the trash, and the
-/// remote copy is removed.
+/// A file the user deleted on purpose, after being warned that it goes from
+/// every device (a database a phone deleted, a file deleted by hand from the
+/// Pragma folder, one deleted in Manage Files): every device that still has
+/// that file moves it to the trash, and the remote copy is removed.
 struct SyncDeletionRecord {
     /// Path of the deleted file, relative to the synced folder.
     QString path;
-    /// Lineage of the deleted file: a file at this path with another id is a
-    /// new database and syncs as any other.
+    /// Lineage of a deleted database: a file at this path with another id is
+    /// a new database and syncs as any other.
     QString lineage;
     QDateTime at;
     QString device;
+    /// Content of the deleted file, when it has no lineage (any file, or a
+    /// database that was already gone): only a copy with this content goes;
+    /// one changed since is a change the user never saw, and syncs as any other.
+    QString hash = {};
 
     bool operator==(const SyncDeletionRecord &) const = default;
 };
@@ -66,6 +73,9 @@ struct SyncDeletionRecord {
 /// versions refuse to sync with rather than bring the files back.
 struct SyncManifest {
     static constexpr char fileName[] = ".pragma-chess.sync";
+    /// This device's own record of the folder (what it last synced, hashes),
+    /// in the root of the local folder and never uploaded (see FolderSync).
+    static constexpr char localStateFileName[] = ".pragma-chess.local";
     /// Held while a device syncs with a store that cannot publish atomically.
     static constexpr char lockFileName[] = ".pragma-chess.lock";
     static constexpr int formatVersion = 2;
@@ -113,6 +123,10 @@ struct SyncAction {
         /// A deleted file (SyncDeletionRecord) still here: move it to the
         /// trash, then remove it remotely if it is there.
         Delete,
+        /// Here at the last sync, unchanged remotely since, missing now: the
+        /// user deleted it by hand. Nothing moves until they say whether it
+        /// goes from every device or comes back (FolderSync::deletedByHand).
+        DeletedHere,
     };
 
     Kind kind;
@@ -127,10 +141,14 @@ struct SyncAction {
 /// A folder full of databases is not a working copy: a file missing on one
 /// side means that side has yet to receive it, not that it should go. So the
 /// result is the union of both sides — a file only here is uploaded, a file
-/// only there is downloaded (a database deleted by hand comes back on the
-/// next sync) — and `base`, the content both sides had when this device last
-/// synced, only decides who changed a file that exists on both sides. When
-/// both changed it, both versions are kept.
+/// only there is downloaded — and `base`, the content both sides had when
+/// this device last synced, decides who changed a file that exists on both
+/// sides. When both changed it, both versions are kept.
+///
+/// The base also tells a file deleted by hand from one not received yet: a
+/// file this device had at its last sync, that nobody changed remotely since
+/// and that is missing here now was deleted here (DeletedHere), and the user
+/// is asked; one changed remotely since comes back (Download).
 ///
 /// The only way out is a merge: a path in `remote.merged` is never uploaded
 /// or downloaded again; a local copy is merged into its database first
@@ -139,6 +157,15 @@ struct SyncAction {
 /// caller drops the records whose local file has another lineage before planning.
 QList<SyncAction> planSync(const QMap<QString, LocalFileState> &local, const QMap<QString, QString> &base,
                            const SyncManifest &remote);
+
+/// Drops the deletion records that do not apply to the file at their path
+/// (from `manifest.deleted`): a record with a lineage only takes a file of
+/// that lineage (`lineage` reads a local file's), one without only a copy
+/// with its content, here (`local`) and on the server (`manifest.files`). A
+/// file changed since it was deleted is a change its deleter never saw: it
+/// stays and syncs as any other, and the record goes. Returns the paths dropped.
+QStringList dropInapplicableDeletions(SyncManifest &manifest, const QMap<QString, LocalFileState> &local,
+                                      const std::function<QString(const QString &path)> &lineage);
 
 /// "Databases/Games.pdb" → "Databases/Games (conflict, laptop, 2026-09-17 10.30).pdb"
 QString conflictPath(const QString &path, const QString &device, const QDateTime &when);

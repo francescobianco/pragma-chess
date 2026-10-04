@@ -207,11 +207,17 @@ I pannelli si possono ridimensionare e chiudere; il menu **Visualizza** (Mosse, 
 
 La sincronizzazione tiene uguale la tua cartella Pragma — database e progetti — su più computer, attraverso una cartella su un server.
 
-**File ▸ Sincronizza…** la imposta: un server **FTP** (anche con TLS), un server **WebDAV** o un **repository Git**. **Prova connessione** la verifica.
+**Opzioni ▸ Impostazioni di sincronizzazione…** la imposta: un server **FTP** (anche con TLS), un server **WebDAV** o un **repository Git**. **Prova connessione** la verifica.
 
-**Sincronizza ora** (Ctrl+Y, primo bottone della barra degli strumenti) fa tutto in ordine: legge le fonti, salva il progetto e scambia i file con il server. **Sincronizza prima di chiudere** lo fa ogni volta che esci.
+**File ▸ Sincronizza ora** (Ctrl+Y, anche primo bottone della barra degli strumenti) fa tutto in ordine: legge le fonti, salva il progetto e scambia i file con il server. **Sincronizza prima di chiudere** lo fa ogni volta che esci.
 
-La sincronizzazione non elimina mai: un database che manca da una parte viene copiato lì, e un database modificato su due computer viene unito partita per partita. Per liberarti di una partita usa il cestino, che gli altri computer seguono. L'unico database che elimina è quello che hai scelto di eliminare ovunque, dopo un avviso (vedi sotto).
+La sincronizzazione non elimina niente di sua iniziativa: un database che manca da una parte viene copiato lì, e un database modificato su due computer viene unito partita per partita. Per liberarti di una partita usa il cestino, che gli altri computer seguono.
+
+Ogni computer ricorda cosa ha sincronizzato l'ultima volta in un file nascosto della sua cartella Pragma, `.pragma-chess.local`, che non va mai sul server. Così distingue un file che hai eliminato a mano — dal file manager, per esempio — da uno che deve ancora ricevere: alla sincronizzazione successiva ti chiede cosa farne: **Elimina ovunque**, **Ripristina** o **Chiedimelo più tardi** (te lo richiede al prossimo avvio di Pragma Chess). Eliminato ovunque, il file viene tolto dal server e ogni altro computer sposta la sua copia nel cestino alla sincronizzazione successiva. Un file che nel frattempo qualcuno ha modificato su un altro computer torna semplicemente indietro.
+
+**Gestisci file…**, nelle Impostazioni di sincronizzazione, elenca i file della cartella sul server. Selezionane alcuni e premi **Elimina…** per fare pulizia: dopo la conferma vengono eliminati da tutti i dispositivi sincronizzati, compreso questo computer (nel cestino), e smettono di girare tra i tuoi computer.
+
+Con un repository Git ogni sincronizzazione che cambia dei file fa un commit, che porta il loro nome ("Update Databases/Games.pdb; add Projects/Study.pch"): una sincronizzazione che riceve soltanto, o non trova niente di nuovo, lascia la storia com'è.
 
 **Opzioni ▸ Collega app mobile…** mostra un codice da inquadrare con Pragma Chess sul telefono, che da quel momento tiene una copia dei tuoi database.
 

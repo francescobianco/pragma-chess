@@ -25,6 +25,9 @@ public:
 
     /// The clone for a repository and branch, under the app's data folder.
     static QString defaultCloneDirectory(const QString &repository, const QString &branch);
+    /// The commit message for `git diff --cached --name-status` output: what
+    /// changed among the files ("Add a; update b"), the manifest left out.
+    static QString commitMessage(const QString &nameStatus, const QString &device);
 
     QString identity() const override;
     void begin(Callback done) override;

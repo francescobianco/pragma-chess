@@ -1041,10 +1041,11 @@ private Q_SLOTS:
                     {"new-both-same.pdb", "s"}, {"new-both-different.pdb", "y"}}));
 
         // Nothing is ever deleted: a file missing on one side comes back from
-        // the other, whether it is new or was deleted by hand.
+        // the other, except one deleted by hand here and untouched there since
+        // the last sync, which waits for the user.
         const QList<SyncAction> expected{
             {Kind::Download, "deleted-here-edited-there.pdb"},
-            {Kind::Download, "deleted-here.pdb"},
+            {Kind::DeletedHere, "deleted-here.pdb"},
             {Kind::Upload, "deleted-there.pdb"},
             {Kind::Upload, "dropped-from-manifest.pch"},
             {Kind::KeepBoth, "edited-both.pdb"},
@@ -1074,12 +1075,47 @@ private Q_SLOTS:
         QCOMPARE(conflictPath(QStringLiteral("Databases/Games.pdb"), QStringLiteral("laptop"),
                               QDateTime(QDate(2026, 9, 17), QTime(10, 30))),
                  QStringLiteral("Databases/Games (conflict, laptop, 2026-09-17 10.30).pdb"));
+
+        // A deletion takes the file that was deleted: a database by lineage,
+        // anything else by content; a copy changed since stays, the record goes.
+        SyncManifest deleting = remote({{"Projects/Old.pch", "o"}, {"Projects/Edited.pch", "new"},
+                                        {"Databases/Games.pdb", "g"}, {"Databases/Taken.pdb", "t"}});
+        const auto record = [&](const char *path, const char *lineage, const char *hash) {
+            deleting.deleted.insert(QString::fromLatin1(path),
+                                    SyncDeletionRecord{QString::fromLatin1(path), QString::fromLatin1(lineage), {},
+                                                       QStringLiteral("laptop"), QString::fromLatin1(hash)});
+        };
+        record("Projects/Old.pch", "", "o");
+        record("Projects/Edited.pch", "", "old");      // Changed on the server since.
+        record("Projects/Local.pch", "", "l");         // Changed here since.
+        record("Databases/Games.pdb", "games", "");    // Same database, whatever its content.
+        record("Databases/Taken.pdb", "gone", "");     // Another database took the name.
+        const QStringList dropped = dropInapplicableDeletions(
+            deleting, local({{"Projects/Old.pch", "o"}, {"Projects/Local.pch", "changed"},
+                             {"Databases/Games.pdb", "edited"}, {"Databases/Taken.pdb", "t"}}),
+            [](const QString &path) { return path.endsWith(QLatin1String("Games.pdb")) ? QStringLiteral("games")
+                                                                                       : QStringLiteral("other"); });
+        QCOMPARE(dropped, (QStringList{"Databases/Taken.pdb", "Projects/Edited.pch", "Projects/Local.pch"}));
+        QCOMPARE(deleting.deleted.keys(), (QStringList{"Databases/Games.pdb", "Projects/Old.pch"}));
+        const std::optional<SyncManifest> readBack = SyncManifest::fromJson(deleting.toJson(), nullptr);
+        QVERIFY(readBack);
+        QCOMPARE(readBack->deleted, deleting.deleted);
+
+        // Git commits say which files changed, never the manifest.
+        QCOMPARE(GitStore::commitMessage(QStringLiteral("M\tDatabases/Games.pdb\nM\t.pragma-chess.sync\n"),
+                                         QStringLiteral("laptop")),
+                 QStringLiteral("Update Databases/Games.pdb\n\nSynced from laptop"));
+        QCOMPARE(GitStore::commitMessage(QStringLiteral("A\tProjects/New.pch\nD\tOld/x.pdb\n"), QStringLiteral("pc")),
+                 QStringLiteral("Add Projects/New.pch; delete Old/x.pdb\n\n- Add Projects/New.pch\n- Delete Old/x.pdb\n\n"
+                                "Synced from pc"));
     }
 
 
     /// Two devices sharing a bare Git repository. The sync reconciles, it does
-    /// not mirror: a database deleted by hand comes back, and nothing ever
-    /// leaves the repository.
+    /// not mirror: a file missing on one side comes from the other, one
+    /// deleted by hand is asked about (restored, or deleted everywhere), and
+    /// nothing else ever leaves the repository, whose history holds only
+    /// real changes of files.
     void reconcilesGitFoldersWithoutDeleting()
     {
         const QString git = QStandardPaths::findExecutable(QStringLiteral("git"));
@@ -1143,23 +1179,90 @@ private Q_SLOTS:
         syncOnce(laptop);
         QVERIFY(QFile::exists(laptop.folder + QStringLiteral("/Projects/Study.pch")));
 
-        // The database is deleted by hand: the next sync brings it back
-        // instead of deleting it everywhere.
+        // Commits are real changes only: a sync that changes nothing, or
+        // only receives, leaves the history alone.
+        const auto commits = [&] {
+            QProcess count;
+            count.start(git, {QStringLiteral("--git-dir=") + origin, QStringLiteral("rev-list"), QStringLiteral("--count"),
+                              QStringLiteral("main")});
+            count.waitForFinished(30000);
+            return QString::fromUtf8(count.readAllStandardOutput()).trimmed().toInt();
+        };
+        const auto lastSubject = [&] {
+            QProcess log;
+            log.start(git, {QStringLiteral("--git-dir=") + origin, QStringLiteral("log"), QStringLiteral("-1"),
+                            QStringLiteral("--format=%s"), QStringLiteral("main")});
+            log.waitForFinished(30000);
+            return QString::fromUtf8(log.readAllStandardOutput()).trimmed();
+        };
+        const int history = commits();
+        QCOMPARE(history, 2);
+        QCOMPARE(lastSubject(), QStringLiteral("Add Projects/Study.pch"));
+        syncOnce(laptop);
+        syncOnce(desktop);
+        QCOMPARE(commits(), history);
+
+        // The state of each device lives in its folder, and never in the repository.
+        QVERIFY(QFile::exists(laptop.folder + QStringLiteral("/.pragma-chess.local")));
+
+        // The database is deleted by hand: the sync notices and asks, and
+        // until the user answers it neither comes back nor goes elsewhere.
+        QVERIFY(QFile::remove(laptopGames));
+        QSignalSpy asked(laptop.sync.get(), &FolderSync::deletedByHand);
+        syncOnce(laptop);
+        QCOMPARE(asked.count(), 1);
+        QCOMPARE(asked.constFirst().at(0).toStringList(), QStringList{QStringLiteral("Databases/Games.pdb")});
+        QVERIFY2(!QFile::exists(laptopGames), "a file deleted by hand must not come back unasked");
+        syncOnce(desktop);
+        QVERIFY2(QFile::exists(desktopGames), "the other device keeps its copy until the user says");
+        QCOMPARE(commits(), history);
+
+        // "Restore": it comes back.
+        laptop.sync->restoreDeleted({QStringLiteral("Databases/Games.pdb")});
+        syncOnce(laptop);
+        QVERIFY(QFile::exists(laptopGames));
+        QCOMPARE(asked.count(), 1);
+
+        // "Delete Everywhere": it goes from the repository and from the other device.
         QVERIFY(QFile::remove(laptopGames));
         syncOnce(laptop);
-        QVERIFY2(QFile::exists(laptopGames), "a deleted database must come back, not disappear");
+        QCOMPARE(asked.count(), 2);
+        QString error;
+        QCOMPARE(laptop.sync->deleteEverywhere({QStringLiteral("Databases/Games.pdb")}, &error), 1);
+        syncOnce(laptop);
+        QCOMPARE(lastSubject(), QStringLiteral("Delete Databases/Games.pdb"));
         syncOnce(desktop);
-        QVERIFY2(QFile::exists(desktopGames), "the other device must keep its copy");
+        QVERIFY2(!QFile::exists(desktopGames), "deleted everywhere must reach the other device");
+        syncOnce(laptop);
+        QVERIFY(!QFile::exists(laptopGames));
+        QCOMPARE(asked.count(), 2);
 
-        // And the repository still holds it.
         QProcess tree;
         tree.setWorkingDirectory(origin);
         tree.start(git, {QStringLiteral("ls-tree"), QStringLiteral("-r"), QStringLiteral("--name-only"),
                          QStringLiteral("main")});
         QVERIFY(tree.waitForFinished(30000));
         const QString listing = QString::fromUtf8(tree.readAll());
-        QVERIFY2(listing.contains(QLatin1String("Databases/Games.pdb")), qPrintable(listing));
+        QVERIFY2(!listing.contains(QLatin1String("Databases/Games.pdb")), qPrintable(listing));
         QVERIFY2(listing.contains(QLatin1String("Projects/Study.pch")), qPrintable(listing));
+        QVERIFY2(!listing.contains(QLatin1String(".pragma-chess.local")), qPrintable(listing));
+
+        // Manage Files lists what the server holds, and deletes from there everywhere.
+        QList<FolderSync::RemoteFile> files;
+        bool answered = false;
+        laptop.sync->listRemote([&](const QList<FolderSync::RemoteFile> &found, const QString &listError) {
+            QCOMPARE(listError, QString());
+            files = found;
+            answered = true;
+        });
+        QTRY_VERIFY_WITH_TIMEOUT(answered, 30000);
+        QCOMPARE(files.size(), 1);
+        QCOMPARE(files.constFirst().path, QStringLiteral("Projects/Study.pch"));
+        QCOMPARE(laptop.sync->deleteEverywhere({QStringLiteral("Projects/Study.pch")}, &error), 1);
+        QVERIFY(!QFile::exists(laptop.folder + QStringLiteral("/Projects/Study.pch")));
+        syncOnce(laptop);
+        syncOnce(desktop);
+        QVERIFY(!QFile::exists(desktop.folder + QStringLiteral("/Projects/Study.pch")));
     }
 
     void findsDuplicateDatabases()

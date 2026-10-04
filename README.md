@@ -145,20 +145,25 @@ The first of them (Ctrl+Y) syncs everything in one
 go and in the order that keeps the pieces consistent: the games of the
 connected sources come down into the database, the project file and the
 session are written, and only then does the folder go to the server. What is
-pushed is always what you are looking at. *File ▸ Sync…* holds the same
-button and a *Sync before closing* option, which is remembered and also
-offered by the dialog that asks to save a modified project on quit.
+pushed is always what you are looking at. *File ▸ Sync Now* is the same
+button; *Options ▸ Sync Settings…* holds it too, with a *Sync before
+closing* option, which is remembered and also offered by the dialog that
+asks to save a modified project on quit.
 
-Syncing reconciles, it never deletes. Every computer ends up with the union
-of what all of them have: a file that appears anywhere is added everywhere, a
-database deleted by hand comes back on the next sync, and nothing is ever
-removed from the server or the Git repository. Two computers editing the same
-file keep both versions.
+Syncing reconciles, it deletes nothing on its own. Every computer ends up
+with the union of what all of them have: a file that appears anywhere is
+added everywhere, and two computers editing the same file keep both
+versions. A file deleted by hand from the Pragma folder is noticed (each
+computer keeps what it last synced in a hidden `.pragma-chess.local` there)
+and you are asked whether to delete it everywhere or restore it; *Manage
+Files…* in the Sync Settings deletes files from the server and every
+computer, after a confirmation. Nothing else is ever removed.
 
-*File ▸ Sync…* connects the Pragma folder to a folder on an FTP or WebDAV
-server (Nextcloud, a NAS…) or to a Git repository. With Git the real files
-never become a repository: each sync copies them into a clone kept by Pragma
-Chess, commits and pushes (databases are binary, so the history grows with
+*Options ▸ Sync Settings…* connects the Pragma folder to a folder on an FTP
+or WebDAV server (Nextcloud, a NAS…) or to a Git repository. With Git the
+real files never become a repository: each sync copies them into a clone
+kept by Pragma Chess, commits and pushes, one commit per sync that changes
+files, named after them (databases are binary, so the history grows with
 every change). Every computer set up with the same server folder
 keeps the same databases and projects: changes are sent and received every few
 minutes and a `.pragma-chess.sync` file on the server tracks what changed

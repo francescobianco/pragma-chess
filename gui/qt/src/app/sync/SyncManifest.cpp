@@ -27,9 +27,13 @@ QByteArray SyncManifest::toJson() const
     }
     QJsonObject deletedEntries;
     for (auto it = deleted.cbegin(); it != deleted.cend(); ++it) {
-        deletedEntries.insert(it.key(), QJsonObject{{QStringLiteral("lineage"), it->lineage},
-                                                    {QStringLiteral("at"), it->at.toUTC().toString(Qt::ISODate)},
-                                                    {QStringLiteral("device"), it->device}});
+        QJsonObject entry{{QStringLiteral("at"), it->at.toUTC().toString(Qt::ISODate)},
+                          {QStringLiteral("device"), it->device}};
+        if (!it->lineage.isEmpty())
+            entry.insert(QStringLiteral("lineage"), it->lineage);
+        if (!it->hash.isEmpty())
+            entry.insert(QStringLiteral("sha256"), it->hash);
+        deletedEntries.insert(it.key(), entry);
     }
     QJsonObject root;
     // Format 1 while nothing was deleted, so older versions keep syncing; they
@@ -104,8 +108,9 @@ std::optional<SyncManifest> SyncManifest::fromJson(const QByteArray &json, QStri
         record.lineage = entry.value(QStringLiteral("lineage")).toString();
         record.at = QDateTime::fromString(entry.value(QStringLiteral("at")).toString(), Qt::ISODate);
         record.device = entry.value(QStringLiteral("device")).toString();
-        // Without a lineage any file at that path could go: not trusted.
-        if (record.lineage.isEmpty() || manifest.merged.contains(record.path))
+        record.hash = entry.value(QStringLiteral("sha256")).toString();
+        // Without a lineage or a content any file at that path could go: not trusted.
+        if ((record.lineage.isEmpty() && record.hash.isEmpty()) || manifest.merged.contains(record.path))
             continue;
         manifest.deleted.insert(record.path, record);
     }
@@ -153,7 +158,9 @@ QList<SyncAction> planSync(const QMap<QString, LocalFileState> &local, const QMa
             if (!localHash.isEmpty() && baseHash != localHash)
                 actions << SyncAction{Kind::Record, path};
         } else if (localHash.isEmpty()) {
-            actions << SyncAction{Kind::Download, path}; // Only there: bring it here.
+            // Here at the last sync and nobody changed it since: deleted by
+            // hand, the user says what happens. Otherwise only there: bring it here.
+            actions << SyncAction{remoteHash == baseHash ? Kind::DeletedHere : Kind::Download, path};
         } else if (remoteHash.isEmpty()) {
             actions << SyncAction{Kind::Upload, path}; // Only here: send it there.
         } else if (localHash == baseHash) {
@@ -165,6 +172,32 @@ QList<SyncAction> planSync(const QMap<QString, LocalFileState> &local, const QMa
         }
     }
     return actions;
+}
+
+QStringList dropInapplicableDeletions(SyncManifest &manifest, const QMap<QString, LocalFileState> &local,
+                                      const std::function<QString(const QString &path)> &lineage)
+{
+    QStringList dropped;
+    for (auto it = manifest.deleted.begin(); it != manifest.deleted.end();) {
+        const SyncDeletionRecord &record = it.value();
+        bool applies = true;
+        if (!record.lineage.isEmpty()) {
+            // A database: whatever its content, as long as it is the same database.
+            if (local.contains(it.key()) && lineage)
+                applies = lineage(it.key()) == record.lineage;
+        } else {
+            const QString here = local.value(it.key()).hash;
+            const QString there = manifest.files.value(it.key()).hash;
+            applies = (here.isEmpty() || here == record.hash) && (there.isEmpty() || there == record.hash);
+        }
+        if (applies) {
+            ++it;
+            continue;
+        }
+        dropped << it.key();
+        it = manifest.deleted.erase(it);
+    }
+    return dropped;
 }
 
 QString conflictPath(const QString &path, const QString &device, const QDateTime &when)

@@ -1,5 +1,7 @@
 #include "GitStore.h"
 
+#include "SyncManifest.h"
+
 #include <QCryptographicHash>
 #include <QDir>
 #include <QDirIterator>
@@ -211,8 +213,10 @@ void GitStore::publish(Callback done)
                 done(success()); // Nothing changed.
                 return;
             }
+            git({QStringLiteral("diff"), QStringLiteral("--cached"), QStringLiteral("--name-status"),
+                 QStringLiteral("--no-renames")}, [this, done](const Output &changed) {
             git({QStringLiteral("commit"), QStringLiteral("--quiet"), QStringLiteral("-m"),
-                 QStringLiteral("Sync from %1").arg(m_device)},
+                 commitMessage(changed.output, m_device)},
                 [this, done](const Output &committed) {
                     if (committed.exitCode != 0) {
                         done(gitFailure(tr("Git could not commit"), committed));
@@ -238,8 +242,38 @@ void GitStore::publish(Callback done)
                                 });
                         });
                 });
+            });
         });
     });
+}
+
+QString GitStore::commitMessage(const QString &nameStatus, const QString &device)
+{
+    // "M\tDatabases/Games.pdb" lines; the manifest is bookkeeping, not news.
+    QStringList changes; // "add Databases/Games.pdb"
+    for (const QString &line : nameStatus.split(QLatin1Char('\n'), Qt::SkipEmptyParts)) {
+        const QString status = line.section(QLatin1Char('\t'), 0, 0).trimmed();
+        const QString path = line.section(QLatin1Char('\t'), 1).trimmed();
+        if (path.isEmpty() || path == QLatin1String(SyncManifest::fileName))
+            continue;
+        const char *verb = status.startsWith(QLatin1Char('A')) ? "add"
+            : status.startsWith(QLatin1Char('D'))              ? "delete"
+                                                               : "update";
+        changes << QLatin1String(verb) + QLatin1Char(' ') + path;
+    }
+    constexpr int kListed = 5;
+    QString subject = changes.isEmpty() ? QStringLiteral("record merged and deleted files")
+                                        : changes.mid(0, kListed).join(QStringLiteral("; "));
+    if (changes.size() > kListed)
+        subject += QStringLiteral("; %1 more").arg(changes.size() - kListed);
+    subject[0] = subject.at(0).toUpper();
+    QString body;
+    if (changes.size() > 1) {
+        for (const QString &change : std::as_const(changes))
+            body += QStringLiteral("- ") + change.at(0).toUpper() + change.mid(1) + QLatin1Char('\n');
+        body += QLatin1Char('\n');
+    }
+    return subject + QStringLiteral("\n\n") + body + QStringLiteral("Synced from %1").arg(device);
 }
 
 void GitStore::read(const QString &path, Callback done)

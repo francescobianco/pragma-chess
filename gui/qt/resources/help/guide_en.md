@@ -207,11 +207,17 @@ Panels can be resized and closed; the **View** menu (Moves, Opening Tree, Engine
 
 Sync keeps your Pragma folder — databases and projects — the same on several computers, through a folder on a server.
 
-**File ▸ Sync…** sets it up: an **FTP** server (also with TLS), a **WebDAV** server or a **Git repository**. **Test Connection** checks it.
+**Options ▸ Sync Settings…** sets it up: an **FTP** server (also with TLS), a **WebDAV** server or a **Git repository**. **Test Connection** checks it.
 
-**Sync Now** (Ctrl+Y, first button of the toolbar) does everything in order: reads the sources, saves the project and exchanges the files with the server. **Sync before closing** does it every time you quit.
+**File ▸ Sync Now** (Ctrl+Y, also the first button of the toolbar) does everything in order: reads the sources, saves the project and exchanges the files with the server. **Sync before closing** does it every time you quit.
 
-Sync never deletes: a database missing on one side is copied there, and a database changed on two computers is merged game by game. To get rid of a game use the trash, which the other computers follow. The one database it deletes is one you chose to delete everywhere, after a warning (see below).
+Sync deletes nothing on its own: a database missing on one side is copied there, and a database changed on two computers is merged game by game. To get rid of a game use the trash, which the other computers follow.
+
+Each computer remembers what it synced last in a hidden file of its Pragma folder, `.pragma-chess.local`, which never goes to the server. So it can tell a file you deleted by hand — in the file manager, say — from one it has yet to receive: at the next sync it asks whether to **Delete Everywhere**, **Restore** it, or **Ask Me Later** (asked again the next time you start Pragma Chess). Deleted everywhere, the file is removed from the server, and every other computer moves its copy to the trash at its next sync. A file someone changed on another computer meanwhile simply comes back.
+
+**Manage Files…**, in the Sync Settings, lists the files in the folder on the server. Select some and press **Delete…** to clean up: after you confirm, they are deleted from every synced device, this computer included (into the trash), so they stop travelling between your computers.
+
+With a Git repository each sync that changes files makes one commit, named after them ("Update Databases/Games.pdb; add Projects/Study.pch"): a sync that only receives, or finds nothing new, leaves the history alone.
 
 **Options ▸ Connect Mobile App…** shows a code to scan with Pragma Chess on your phone, which then keeps a copy of your databases.
 

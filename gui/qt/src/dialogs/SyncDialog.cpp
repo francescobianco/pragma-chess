@@ -42,8 +42,9 @@ SyncDialog::SyncDialog(const SyncSettings &settings, FolderSync *sync, QWidget *
     , m_status(new QLabel)
     , m_testButton(new QPushButton(tr("&Test Connection")))
     , m_syncButton(new QPushButton(tr("S&ync Now")))
+    , m_manageButton(new QPushButton(tr("&Manage Files…")))
 {
-    setWindowTitle(tr("Sync"));
+    setWindowTitle(tr("Sync Settings"));
     setModal(true);
     setMinimumWidth(520);
 
@@ -115,7 +116,9 @@ SyncDialog::SyncDialog(const SyncSettings &settings, FolderSync *sync, QWidget *
     auto *actions = new QHBoxLayout;
     actions->addWidget(m_testButton);
     actions->addWidget(m_syncButton);
+    actions->addWidget(m_manageButton);
     actions->addStretch();
+    m_manageButton->setToolTip(tr("The files on the server; delete the ones no device should have any more"));
 
     m_beforeClosing->setChecked(settings.syncBeforeClosing);
     m_beforeClosing->setToolTip(tr("Closing the window syncs everything first, and waits for it"));
@@ -136,6 +139,7 @@ SyncDialog::SyncDialog(const SyncSettings &settings, FolderSync *sync, QWidget *
     connect(m_service, &QComboBox::currentIndexChanged, this, &SyncDialog::updateFields);
     connect(m_testButton, &QPushButton::clicked, this, &SyncDialog::testConnection);
     connect(m_syncButton, &QPushButton::clicked, this, [this] { Q_EMIT syncRequested(this->settings()); });
+    connect(m_manageButton, &QPushButton::clicked, this, [this] { Q_EMIT manageFilesRequested(this->settings()); });
     connect(m_sync, &FolderSync::started, this, &SyncDialog::updateStatus);
     connect(m_sync, &FolderSync::progress, m_status, &QLabel::setText);
     connect(m_sync, &FolderSync::finished, this, &SyncDialog::updateStatus);
@@ -166,7 +170,8 @@ void SyncDialog::updateFields()
     m_pages->setCurrentIndex(m_service->currentIndex());
     const bool on = service != SyncSettings::Service::None;
     for (QWidget *widget : {static_cast<QWidget *>(m_user), static_cast<QWidget *>(m_password),
-                            static_cast<QWidget *>(m_testButton), static_cast<QWidget *>(m_syncButton)})
+                            static_cast<QWidget *>(m_testButton), static_cast<QWidget *>(m_syncButton),
+                            static_cast<QWidget *>(m_manageButton)})
         widget->setEnabled(on);
     const bool git = service == SyncSettings::Service::Git;
     m_passwordLabel->setText(git ? tr("&Token:") : tr("&Password:"));

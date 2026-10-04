@@ -14,19 +14,24 @@ class RemoteStore;
 /// in sync with a remote folder shared by several devices.
 ///
 /// Each sync compares the local files, the remote `.pragma-chess.sync`
-/// manifest and what this device last synced (kept in `statePath`), then
-/// uploads or downloads files (see planSync). The manifest is written last,
-/// and only if no other device changed it meanwhile; otherwise the sync
-/// starts over. Nothing is ever lost: conflicting edits keep both files, and
-/// the only files that go are databases merged into another one — a
-/// duplicate — whose games live on there (SyncMergeRecord), and databases
-/// the user deleted knowing they go from every device (SyncDeletionRecord),
-/// which go to the trash.
+/// manifest and what this device last synced, then uploads or downloads files
+/// (see planSync). What this device last synced is kept in the root of the
+/// local folder, `.pragma-chess.local`, which never leaves it: it describes
+/// these files and travels with them, and it is what tells a file deleted by
+/// hand (asked about, deletedByHand) from one not received yet. The manifest
+/// is written last, only if the files on the server changed, and only if no
+/// other device changed it meanwhile; otherwise the sync starts over. Nothing
+/// is ever lost: conflicting edits keep both files, and the only files that
+/// go are databases merged into another one — a duplicate — whose games live
+/// on there (SyncMergeRecord), and files the user deleted knowing they go
+/// from every device (SyncDeletionRecord), which go to the trash.
 class FolderSync : public QObject {
     Q_OBJECT
 
 public:
-    FolderSync(const QString &localRoot, const QString &statePath, const QString &deviceName,
+    /// `legacyStatePath` is where older versions kept the state (the app's
+    /// data folder): it is moved into the folder once, then removed.
+    FolderSync(const QString &localRoot, const QString &legacyStatePath, const QString &deviceName,
                QObject *parent = nullptr);
     ~FolderSync() override;
 
@@ -66,6 +71,32 @@ public:
     /// a sync runs.
     bool deleteDatabase(const QString &absolutePath, QString *errorMessage);
 
+    /// Deletes files (relative paths) on every device: the copies here go to
+    /// the trash now, and the next sync records the deletions in the
+    /// manifest, so the server and the other devices drop them too and never
+    /// bring them back. A database goes by lineage, any other file by content
+    /// (a copy changed elsewhere since is kept). Returns how many were
+    /// recorded; the others are named in the error. Not while a sync runs.
+    int deleteEverywhere(const QStringList &relativePaths, QString *errorMessage);
+    /// Files deleted by hand (deletedByHand) that the user wants back: the
+    /// next sync downloads them.
+    void restoreDeleted(const QStringList &relativePaths);
+    /// The application removed a file of the folder (e.g. a copy that adds
+    /// nothing): the other devices drop their copy of that content too.
+    void noteRemoved(const QString &absolutePath);
+
+    /// A file of the remote folder, for Manage Files; `size` is -1 when unknown.
+    struct RemoteFile {
+        QString path;
+        qint64 size = -1;
+        QDateTime modified;
+        QString device;
+    };
+    /// Lists the files of the remote folder (the manifest's, and what a Git
+    /// clone holds besides), without the sync's own files; `error` is empty
+    /// on success. Not while a sync runs; a sync asked for meanwhile runs after.
+    void listRemote(std::function<void(const QList<RemoteFile> &files, const QString &error)> done);
+
     /// Starts a sync, or runs another one right after the current one.
     void sync();
     bool isRunning() const { return m_running; }
@@ -85,6 +116,11 @@ Q_SIGNALS:
     void localFileDeleted(const QString &absolutePath);
     /// A database file was merged into another and removed.
     void localFileMerged(const QString &fromAbsolutePath, const QString &intoAbsolutePath);
+    /// Files (relative paths) this device had at its last sync, unchanged on
+    /// the server since, are missing here: deleted by hand. They stay as they
+    /// are everywhere until the user chooses deleteEverywhere() or
+    /// restoreDeleted(); each sync reports them again until then.
+    void deletedByHand(const QStringList &relativePaths);
 
 private:
     struct Run;
@@ -106,7 +142,7 @@ private:
     QString findDatabase(const QString &lineage, const QString &hint, const QString &except) const;
     QString hashFile(const QString &absolutePath) const;
     bool discard(const QString &absolutePath) const;
-    void loadState();
+    void loadState(const QString &path);
     void saveState() const;
 
     QString m_root;
@@ -129,6 +165,10 @@ private:
     QMap<QString, SyncMergeRecord> m_pendingMerges;
     /// Deletions made here that the remote manifest does not record yet, by path.
     QMap<QString, SyncDeletionRecord> m_pendingDeletions;
+    /// Deleted by hand, found by the sync being finished (reported by finish()).
+    QStringList m_deletedByHand;
+    /// Content of the remote files of the last listRemote(), by path.
+    QMap<QString, QString> m_listedHashes;
     QDateTime m_lastSync;
     QString m_lastError;
 };

@@ -19,6 +19,7 @@
 #include "dialogs/ManageSourcesDialog.h"
 #include "dialogs/NewTrainingDialog.h"
 #include "dialogs/PlayOnlineDialog.h"
+#include "dialogs/ManageSyncFilesDialog.h"
 #include "dialogs/SyncDialog.h"
 #ifdef PRAGMA_HAS_PHONE_LINK
 #include "app/phone/DatabaseFolderStore.h"
@@ -308,6 +309,10 @@ MainWindow::MainWindow(QWidget *parent)
         if (changes > 0)
             statusBar()->showMessage(tr("Synced %n file(s) with the server", nullptr, changes), 5000);
     });
+    // Files the user deleted by hand: asked once the sync has finished.
+    connect(m_folderSync, &FolderSync::deletedByHand, this, [this](const QStringList &paths) {
+        QTimer::singleShot(0, this, [this, paths] { askAboutFilesDeletedByHand(paths); });
+    });
     // A database the sync replaces is closed first and opened again after.
     connect(m_folderSync, &FolderSync::localFileAboutToChange, this, [this](const QString &path) {
         if (!m_database || QFileInfo(m_database->location()) != QFileInfo(path))
@@ -519,6 +524,49 @@ void MainWindow::askAboutPhoneDeletions()
 #endif
 }
 
+void MainWindow::askAboutFilesDeletedByHand(const QStringList &paths)
+{
+    QStringList asked;
+    for (const QString &path : paths) {
+        if (!m_postponedHandDeletions.contains(path))
+            asked << path;
+    }
+    if (asked.isEmpty() || m_askingHandDeletions)
+        return;
+    m_askingHandDeletions = true;
+    QStringList names;
+    for (const QString &path : std::as_const(asked))
+        names << QStringLiteral("“%1”").arg(QDir::toNativeSeparators(path));
+    QMessageBox box(QMessageBox::Question, tr("Files Deleted from the Pragma Folder"),
+                    tr("%n file(s) deleted from this computer's Pragma folder: %1.", nullptr, int(asked.size()))
+                        .arg(names.join(QStringLiteral(", "))),
+                    QMessageBox::NoButton, this);
+    box.setInformativeText(tr("Delete them from every synced device, or bring them back? Deleted everywhere, "
+                              "they are removed from the sync folder on the server, and every other computer "
+                              "that syncs with it moves its copy to the trash at its next sync."));
+    QPushButton *remove = box.addButton(tr("Delete Everywhere"), QMessageBox::DestructiveRole);
+    QPushButton *restore = box.addButton(tr("Restore"), QMessageBox::AcceptRole);
+    QPushButton *later = box.addButton(tr("Ask Me Later"), QMessageBox::RejectRole);
+    box.setDefaultButton(restore);
+    box.setEscapeButton(later);
+    box.exec();
+    m_askingHandDeletions = false;
+    if (box.clickedButton() == restore) {
+        m_folderSync->restoreDeleted(asked);
+    } else if (box.clickedButton() == remove) {
+        QString error;
+        m_folderSync->deleteEverywhere(asked, &error);
+        if (!error.isEmpty())
+            QMessageBox::warning(this, tr("Could Not Delete the Files"), error);
+    } else {
+        // Asked again when Pragma Chess starts next.
+        for (const QString &path : std::as_const(asked))
+            m_postponedHandDeletions.insert(path);
+        return;
+    }
+    QTimer::singleShot(0, m_folderSync, &FolderSync::sync);
+}
+
 void MainWindow::openConnectMobileDialog()
 {
 #ifdef PRAGMA_HAS_PHONE_LINK
@@ -561,7 +609,7 @@ void MainWindow::createActions()
     m_connectMobileAction->setToolTip(tr("Copy your databases to the Pragma Chess app on your phone"));
     connect(m_connectMobileAction, &QAction::triggered, this, &MainWindow::openConnectMobileDialog);
 #endif
-    m_syncAction = new QAction(tr("S&ync…"), this);
+    m_syncAction = new QAction(tr("&Sync Settings…"), this);
     m_syncAction->setToolTip(tr("Keep databases and projects the same on several computers through a server"));
     connect(m_syncAction, &QAction::triggered, this, &MainWindow::openSyncDialog);
 
@@ -720,7 +768,8 @@ void MainWindow::createMenus()
     file->addAction(m_saveProjectAction);
     file->addAction(m_saveProjectAsAction);
     file->addSeparator();
-    file->addAction(m_syncAction);
+    // The toolbar's first button; its settings are in Options.
+    file->addAction(m_syncNowAction);
     file->addSeparator();
     file->addAction(m_quitAction);
 
@@ -826,10 +875,11 @@ void MainWindow::createMenus()
     menuBar()->addMenu(tr("&Tools"))->setEnabled(false);
 
     QMenu *options = menuBar()->addMenu(tr("&Options"));
-    if (m_connectMobileAction) {
+    // How this computer reaches the others: the phone, the server.
+    if (m_connectMobileAction)
         options->addAction(m_connectMobileAction);
-        options->addSeparator();
-    }
+    options->addAction(m_syncAction);
+    options->addSeparator();
     options->addAction(tr("&Board Settings…"), this, &MainWindow::editBoardSettings);
     m_openingNamesMenu = options->addMenu(tr("Opening &Names"));
     m_openingNamesMenu->setToolTip(tr("The database whose games name the openings and variations"));
@@ -2110,16 +2160,19 @@ void MainWindow::migrateOpeningNames()
     // Moves a shipped names database to its place in the Opening Names folder
     // (English.pdb, Italian.pdb). When that place already holds every game of
     // this copy, none older, the copy adds nothing and is removed instead of
-    // piling up (the folder sync never deletes, so a server brings an old path
-    // back on every sync); any other copy is kept under Old/. Nothing is ever
-    // overwritten.
+    // piling up; any other copy is kept under Old/. Nothing is ever
+    // overwritten. Either way the folder sync is told the old path went, so
+    // it goes from the server and the other devices instead of being asked
+    // about as a file deleted by hand.
     const auto relocate = [&](const QString &source, const ShippedOpeningNames::Names &shipped) {
         const QString place = QDir(UserFolders::openingNamesDir()).filePath(shipped.fileName);
         if (QFile::exists(place) && SqliteGameDatabase::readProperties(place).id == shipped.lineage
             && ShippedOpeningNames::addsNothing(SqliteGameDatabase::readRevisions(place),
                                                 SqliteGameDatabase::readRevisions(source))) {
-            if (QFile::remove(source))
+            if (QFile::remove(source)) {
+                m_folderSync->noteRemoved(source); // The other devices drop their copy too.
                 follow(source, place);
+            }
             return;
         }
         const QString target = ShippedOpeningNames::moveTarget(UserFolders::openingNamesDir(), shipped,
@@ -2129,6 +2182,7 @@ void MainWindow::migrateOpeningNames()
                                                                           QDir::toNativeSeparators(target)), 8000);
             return;
         }
+        m_folderSync->noteRemoved(source); // Moved: the old path goes on every device.
         SqliteGameDatabase::adoptLineage(target, shipped.lineage);
         markAsOpeningBook(target);
         follow(source, target);
@@ -2383,10 +2437,27 @@ void MainWindow::openSyncDialog()
         applySyncSettings();
         syncNow(); // The whole thing, in order, as the toolbar button does.
     });
+    connect(&dialog, &SyncDialog::manageFilesRequested, this, [this, &dialog](const SyncSettings &settings) {
+        if (!(settings == SyncSettings::load())) {
+            settings.save();
+            applySyncSettings();
+        }
+        openManageSyncFiles(&dialog);
+    });
     if (dialog.exec() != QDialog::Accepted)
         return;
     dialog.settings().save();
     applySyncSettings();
+}
+
+void MainWindow::openManageSyncFiles(QWidget *parent)
+{
+    if (!m_folderSync->hasStore()) {
+        QMessageBox::information(parent, tr("Manage Files"), tr("Set up the server first."));
+        return;
+    }
+    ManageSyncFilesDialog dialog(m_folderSync, parent);
+    dialog.exec();
 }
 
 void MainWindow::applySyncSettings()

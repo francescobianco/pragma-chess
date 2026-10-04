@@ -45,15 +45,27 @@ struct FolderSync::Run {
     SyncManifest updated;
     QMap<QString, QString> base;
     int changes = 0;
+    /// Files deleted by hand here, waiting for the user (DeletedHere).
+    QStringList deletedByHand;
 };
 
-FolderSync::FolderSync(const QString &localRoot, const QString &statePath, const QString &deviceName, QObject *parent)
+FolderSync::FolderSync(const QString &localRoot, const QString &legacyStatePath, const QString &deviceName,
+                       QObject *parent)
     : QObject(parent)
     , m_root(QDir(localRoot).absolutePath())
-    , m_statePath(statePath)
+    , m_statePath(QDir(m_root).filePath(QLatin1String(SyncManifest::localStateFileName)))
     , m_device(deviceName)
 {
-    loadState();
+    if (!QFileInfo::exists(m_statePath) && !legacyStatePath.isEmpty() && QFileInfo::exists(legacyStatePath)) {
+        // Older versions kept the state in the app's data folder: it moves
+        // next to the files it describes.
+        loadState(legacyStatePath);
+        saveState();
+        if (QFileInfo::exists(m_statePath))
+            QFile::remove(legacyStatePath);
+        return;
+    }
+    loadState(m_statePath);
 }
 
 FolderSync::~FolderSync() = default;
@@ -167,6 +179,138 @@ bool FolderSync::deleteDatabase(const QString &absolutePath, QString *errorMessa
     Q_EMIT localFileDeleted(absolutePath);
     Q_EMIT localFileChanged(absolutePath);
     return true;
+}
+
+int FolderSync::deleteEverywhere(const QStringList &relativePaths, QString *errorMessage)
+{
+    QStringList failed;
+    if (m_running) {
+        if (errorMessage)
+            *errorMessage = tr("A sync is running; try again when it has finished.");
+        return 0;
+    }
+    int recorded = 0;
+    for (const QString &path : relativePaths) {
+        const QString absolute = QDir(m_root).filePath(path);
+        const bool here = QFileInfo::exists(absolute);
+        // What every device must have to let it go: the database, or this content.
+        const QString lineage = here && path.endsWith(QLatin1String(".pdb")) && m_hooks.lineage
+            ? m_hooks.lineage(absolute) : QString();
+        // The server's content as just listed (Manage Files), else as of the last sync.
+        QString hash = m_listedHashes.value(path);
+        if (hash.isEmpty())
+            hash = m_base.value(path);
+        if (hash.isEmpty() && here)
+            hash = hashFile(absolute);
+        if (lineage.isEmpty() && hash.isEmpty()) {
+            failed << path;
+            continue;
+        }
+        if (here) {
+            Q_EMIT localFileAboutToChange(absolute);
+            if (!discard(absolute)) {
+                Q_EMIT localFileChanged(absolute);
+                failed << path;
+                continue;
+            }
+            for (const char *side : {"-journal", "-wal", "-shm"})
+                QFile::remove(absolute + QLatin1String(side));
+            Q_EMIT localFileDeleted(absolute);
+            Q_EMIT localFileChanged(absolute);
+        }
+        m_pendingMerges.remove(path);
+        m_pendingDeletions.insert(path, SyncDeletionRecord{path, lineage, QDateTime::currentDateTimeUtc(), m_device, hash});
+        ++recorded;
+    }
+    saveState();
+    if (!failed.isEmpty() && errorMessage)
+        *errorMessage = tr("Could not delete %1.").arg(failed.join(QStringLiteral(", ")));
+    return recorded;
+}
+
+void FolderSync::restoreDeleted(const QStringList &relativePaths)
+{
+    // Without its base the file is one this device has yet to receive.
+    for (const QString &path : relativePaths)
+        m_base.remove(path);
+    saveState();
+}
+
+void FolderSync::noteRemoved(const QString &absolutePath)
+{
+    const QString relative = QDir(m_root).relativeFilePath(QFileInfo(absolutePath).absoluteFilePath());
+    const QString hash = m_base.value(relative);
+    if (hash.isEmpty() || QFileInfo::exists(absolutePath))
+        return; // Never synced, or still there: nothing to tell the other devices.
+    m_pendingDeletions.insert(relative, SyncDeletionRecord{relative, QString(), QDateTime::currentDateTimeUtc(), m_device, hash});
+    saveState();
+}
+
+void FolderSync::listRemote(std::function<void(const QList<RemoteFile> &files, const QString &error)> done)
+{
+    if (!m_store) {
+        done({}, tr("No server is set up."));
+        return;
+    }
+    if (m_running) {
+        done({}, tr("A sync is running; try again when it has finished."));
+        return;
+    }
+    // Holds the store like a sync: one started meanwhile runs right after.
+    m_running = true;
+    const int generation = m_generation;
+    const auto end = [this, done, generation](const QList<RemoteFile> &files, const QString &error) {
+        if (generation != m_generation)
+            return;
+        m_running = false;
+        done(files, error);
+        if (m_again) {
+            m_again = false;
+            sync();
+        }
+    };
+    m_store->begin([this, end, generation](const RemoteStore::Result &begun) {
+        if (generation != m_generation)
+            return;
+        if (!begun.ok) {
+            end({}, begun.error);
+            return;
+        }
+        m_store->read(QLatin1String(SyncManifest::fileName), [this, end, generation](const RemoteStore::Result &read) {
+            if (generation != m_generation)
+                return;
+            if (!read.ok) {
+                end({}, read.error);
+                return;
+            }
+            SyncManifest manifest;
+            if (!read.notFound) {
+                QString error;
+                const std::optional<SyncManifest> parsed = SyncManifest::fromJson(read.data, &error);
+                if (!parsed) {
+                    end({}, error);
+                    return;
+                }
+                manifest = *parsed;
+            }
+            QList<RemoteFile> files;
+            m_listedHashes.clear();
+            for (auto it = manifest.files.cbegin(); it != manifest.files.cend(); ++it) {
+                if (manifest.merged.contains(it.key()) || manifest.deleted.contains(it.key()))
+                    continue;
+                files << RemoteFile{it.key(), it->size, it->modified, it->device};
+                m_listedHashes.insert(it.key(), it->hash);
+            }
+            // What a Git clone holds that the manifest lost track of.
+            for (const QString &path : m_store->listFiles()) {
+                if (!manifest.files.contains(path) && !manifest.merged.contains(path) && !manifest.deleted.contains(path))
+                    files << RemoteFile{path, -1, {}, {}};
+            }
+            std::sort(files.begin(), files.end(),
+                      [](const RemoteFile &a, const RemoteFile &b) { return a.path < b.path; });
+            end(files, QString());
+        });
+    });
 }
 
 QString FolderSync::findDatabase(const QString &lineage, const QString &hint, const QString &except) const
@@ -308,6 +452,7 @@ void FolderSync::attempt(int round)
     Q_EMIT progress(tr("Comparing files…"));
     auto run = std::make_shared<Run>();
     run->round = round;
+    m_listedHashes.clear(); // A listing is only good until the next sync.
     mergeDuplicates();
     run->local = scanLocal();
 
@@ -354,18 +499,20 @@ void FolderSync::attempt(int round)
                     m_pendingMerges.remove(path);
                 }
             }
-            // The same for a deleted path: only a file of the deleted lineage goes.
-            for (const QString &path : effective.deleted.keys()) {
-                if (!run->local.contains(path))
-                    continue;
-                const QString lineage = m_hooks.lineage(QDir(m_root).filePath(path));
-                if (lineage != effective.deleted.value(path).lineage) {
-                    effective.deleted.remove(path);
-                    m_pendingDeletions.remove(path);
-                }
-            }
         }
+        // The same for a deleted path: only the file that was deleted goes.
+        const QString root = m_root;
+        const auto lineageOf = m_hooks.lineage;
+        const QStringList inapplicable = dropInapplicableDeletions(
+            effective, run->local,
+            [root, lineageOf](const QString &path) { return lineageOf ? lineageOf(QDir(root).filePath(path)) : QString(); });
+        for (const QString &path : inapplicable)
+            m_pendingDeletions.remove(path);
         run->actions = planSync(run->local, m_base, effective);
+        for (const SyncAction &action : std::as_const(run->actions)) {
+            if (action.kind == SyncAction::Kind::DeletedHere)
+                run->deletedByHand << action.path;
+        }
         // A store that can look at its own folder (a Git clone) may hold files
         // the manifest lost track of. This device has never seen them, so bring
         // them back; the next sync puts them in the manifest again. Merged
@@ -493,6 +640,10 @@ void FolderSync::execute(std::shared_ptr<Run> run, qsizetype index)
         run->base.insert(action.path, run->local.value(action.path).hash);
         execute(run, index + 1);
         return;
+    case SyncAction::Kind::DeletedHere:
+        // Left as it is everywhere until the user says (deletedByHand).
+        execute(run, index + 1);
+        return;
     case SyncAction::Kind::Merge:
     case SyncAction::Kind::Forget:
     case SyncAction::Kind::Delete: {
@@ -572,11 +723,14 @@ void FolderSync::execute(std::shared_ptr<Run> run, qsizetype index)
 void FolderSync::commit(std::shared_ptr<Run> run)
 {
     const int generation = m_generation;
-    if (run->changes == 0 && run->updated.files == run->remote.files && run->updated.merged == run->remote.merged
+    if (run->updated.files == run->remote.files && run->updated.merged == run->remote.merged
         && run->updated.deleted == run->remote.deleted) {
-        // Nothing moved: no need to touch the manifest.
+        // The folder on the server is as it was (this device only received,
+        // or nothing moved): the manifest stays as it is, so a Git history
+        // holds real changes of files, never a revision bumped for nothing.
         m_base = run->base;
-        finish(QString(), 0);
+        m_deletedByHand = run->deletedByHand;
+        finish(QString(), run->changes);
         return;
     }
     run->updated.revision = run->remote.revision + 1;
@@ -602,6 +756,7 @@ void FolderSync::commit(std::shared_ptr<Run> run)
                                }
                                if (published.ok) {
                                    m_base = run->base;
+                                   m_deletedByHand = run->deletedByHand;
                                    forgetPublishedMerges(run->updated);
                                }
                                finish(published.ok ? QString() : published.error, run->changes);
@@ -635,6 +790,7 @@ void FolderSync::commit(std::shared_ptr<Run> run)
                                return;
                            if (written.ok) {
                                m_base = run->base;
+                               m_deletedByHand = run->deletedByHand;
                                forgetPublishedMerges(run->updated);
                            }
                            finish(written.ok ? QString() : written.error, run->changes);
@@ -666,7 +822,10 @@ void FolderSync::finish(const QString &errorMessage, int changes)
     if (errorMessage.isEmpty())
         m_lastSync = QDateTime::currentDateTimeUtc();
     saveState();
+    const QStringList deletedByHand = std::exchange(m_deletedByHand, {});
     Q_EMIT finished(errorMessage, changes);
+    if (!deletedByHand.isEmpty())
+        Q_EMIT this->deletedByHand(deletedByHand);
     if (m_again) {
         m_again = false;
         sync();
@@ -713,9 +872,9 @@ QString FolderSync::hashFile(const QString &absolutePath) const
     return QString::fromLatin1(hash.result().toHex());
 }
 
-void FolderSync::loadState()
+void FolderSync::loadState(const QString &path)
 {
-    QFile file(m_statePath);
+    QFile file(path);
     if (!file.open(QIODevice::ReadOnly))
         return;
     const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();

@@ -765,6 +765,14 @@ Il Nero ha catturato: %2</translation>
         <source>Deleting %1, deleted on another device…</source>
         <translation>Eliminazione di %1, eliminato su un altro dispositivo…</translation>
     </message>
+    <message>
+        <source>Could not delete %1.</source>
+        <translation>Impossibile eliminare %1.</translation>
+    </message>
+    <message>
+        <source>No server is set up.</source>
+        <translation>Nessun server configurato.</translation>
+    </message>
 </context>
 <context>
     <name>FolderSyncTask</name>
@@ -1144,10 +1152,6 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>Copy your databases to the Pragma Chess app on your phone</source>
         <translation>Copia i tuoi database nell&apos;app Pragma Chess sul telefono</translation>
-    </message>
-    <message>
-        <source>S&amp;ync…</source>
-        <translation>Sincroni&amp;zza…</translation>
     </message>
     <message>
         <source>Keep databases and projects the same on several computers through a server</source>
@@ -2197,6 +2201,45 @@ non è su questo computer.</translation>
         <source>Deleted “%1”</source>
         <translation>Eliminato “%1”</translation>
     </message>
+    <message>
+        <source>Files Deleted from the Pragma Folder</source>
+        <translation>File eliminati dalla cartella Pragma</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n file(s) deleted from this computer&apos;s Pragma folder: %1.</source>
+        <translation>
+            <numerusform>%n file eliminato dalla cartella Pragma di questo computer: %1.</numerusform>
+            <numerusform>%n file eliminati dalla cartella Pragma di questo computer: %1.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Delete them from every synced device, or bring them back? Deleted everywhere, they are removed from the sync folder on the server, and every other computer that syncs with it moves its copy to the trash at its next sync.</source>
+        <translation>Eliminarli da tutti i dispositivi sincronizzati o riportarli indietro? Eliminati ovunque, vengono tolti dalla cartella di sincronizzazione sul server e ogni altro computer che si sincronizza con essa sposta la sua copia nel cestino alla sincronizzazione successiva.</translation>
+    </message>
+    <message>
+        <source>Delete Everywhere</source>
+        <translation>Elimina ovunque</translation>
+    </message>
+    <message>
+        <source>Restore</source>
+        <translation>Ripristina</translation>
+    </message>
+    <message>
+        <source>Could Not Delete the Files</source>
+        <translation>Impossibile eliminare i file</translation>
+    </message>
+    <message>
+        <source>&amp;Sync Settings…</source>
+        <translation>Impostazioni di &amp;sincronizzazione…</translation>
+    </message>
+    <message>
+        <source>Manage Files</source>
+        <translation>Gestisci file</translation>
+    </message>
+    <message>
+        <source>Set up the server first.</source>
+        <translation>Configura prima il server.</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>
@@ -2414,6 +2457,95 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>Ignored on this computer</source>
         <translation>Ignorata su questo computer</translation>
+    </message>
+</context>
+<context>
+    <name>ManageSyncFilesDialog</name>
+    <message>
+        <source>&amp;Delete…</source>
+        <translation>&amp;Elimina…</translation>
+    </message>
+    <message>
+        <source>&amp;Refresh</source>
+        <translation>&amp;Aggiorna</translation>
+    </message>
+    <message>
+        <source>Manage Files</source>
+        <translation>Gestisci file</translation>
+    </message>
+    <message>
+        <source>The files in the sync folder on the server. A file deleted here is deleted from every synced device, this computer included.</source>
+        <translation>I file della cartella di sincronizzazione sul server. Un file eliminato qui viene eliminato da tutti i dispositivi sincronizzati, compreso questo computer.</translation>
+    </message>
+    <message>
+        <source>File</source>
+        <translation>File</translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation>Dimensione</translation>
+    </message>
+    <message>
+        <source>Modified</source>
+        <translation>Modificato</translation>
+    </message>
+    <message>
+        <source>Device</source>
+        <translation>Dispositivo</translation>
+    </message>
+    <message>
+        <source>The sync failed: %1</source>
+        <translation>La sincronizzazione non è riuscita: %1</translation>
+    </message>
+    <message>
+        <source>Waiting for the sync to finish…</source>
+        <translation>In attesa che la sincronizzazione finisca…</translation>
+    </message>
+    <message>
+        <source>Reading the folder on the server…</source>
+        <translation>Lettura della cartella sul server…</translation>
+    </message>
+    <message>
+        <source>The folder on the server is empty.</source>
+        <translation>La cartella sul server è vuota.</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n file(s) on the server.</source>
+        <translation>
+            <numerusform>%n file sul server.</numerusform>
+            <numerusform>%n file sul server.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n file(s)</source>
+        <translation>
+            <numerusform>%n file</numerusform>
+            <numerusform>%n file</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Delete Files Everywhere?</source>
+        <translation>Eliminare i file ovunque?</translation>
+    </message>
+    <message>
+        <source>Are you sure you want to delete %1 from every synced device?</source>
+        <translation>Vuoi davvero eliminare %1 da tutti i dispositivi sincronizzati?</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Elimina</translation>
+    </message>
+    <message>
+        <source>Could Not Delete the Files</source>
+        <translation>Impossibile eliminare i file</translation>
+    </message>
+    <message>
+        <source>Deleting…</source>
+        <translation>Eliminazione…</translation>
+    </message>
+    <message>
+        <source>What you delete is removed from the sync folder on the server and goes to the trash on this computer, and every other computer that syncs with it moves its copy to the trash at its next sync.</source>
+        <translation>Ciò che elimini viene tolto dalla cartella di sincronizzazione sul server e finisce nel cestino di questo computer, e ogni altro computer che si sincronizza con essa sposta la sua copia nel cestino alla sincronizzazione successiva.</translation>
     </message>
 </context>
 <context>
@@ -3213,10 +3345,6 @@ Le %n partite già importate restano nel database.</numerusform>
         <translation>Sincronizza &amp;ora</translation>
     </message>
     <message>
-        <source>Sync</source>
-        <translation>Sincronizzazione</translation>
-    </message>
-    <message>
         <source>Keep the databases and projects of &lt;b&gt;%1&lt;/b&gt; the same on every computer: set each one up with the same folder on a server.</source>
         <translation>Mantieni uguali i database e i progetti di &lt;b&gt;%1&lt;/b&gt; su ogni computer: configura ciascuno con la stessa cartella su un server.</translation>
     </message>
@@ -3318,6 +3446,18 @@ Le %n partite già importate restano nel database.</numerusform>
             <numerusform>Connesso. La cartella contiene %n file, sincronizzata l&apos;ultima volta da %1 il %2.</numerusform>
             <numerusform>Connesso. La cartella contiene %n file, sincronizzata l&apos;ultima volta da %1 il %2.</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>&amp;Manage Files…</source>
+        <translation>&amp;Gestisci file…</translation>
+    </message>
+    <message>
+        <source>Sync Settings</source>
+        <translation>Impostazioni di sincronizzazione</translation>
+    </message>
+    <message>
+        <source>The files on the server; delete the ones no device should have any more</source>
+        <translation>I file sul server; elimina quelli che nessun dispositivo deve più avere</translation>
     </message>
 </context>
 <context>

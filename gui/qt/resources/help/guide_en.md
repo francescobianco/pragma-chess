@@ -165,7 +165,7 @@ The **Opening Tree** panel shows, for the position on the board, each move of th
 
 The Engine panel names the opening the game is in, and the Opening Tree names where each move leads.
 
-The names come from a database of named lines. **Options ▸ Opening Names** chooses which: English, Italian or none. Until you choose, the names follow the language of the interface.
+The names come from a database of named lines. **Options ▸ Switch Opening Names** chooses which: English, Italian or none. Until you choose, the names follow the language of the interface.
 
 A names database is an ordinary database of type Opening Book: you can open it and add your own lines, giving each the name in the Event field and the code in ECO.
 

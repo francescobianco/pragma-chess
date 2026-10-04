@@ -696,7 +696,7 @@ line wins on transpositions). It can be opened and edited like any database.
   language, then the default name, then the file name). The shipped ones are
   "English"/"Inglese" and "Italian"/"Italiano". Database Settings edits the
   default name and shows the translations.
-- Options ▸ Opening Names lists, by that name in the interface language (not
+- Options ▸ Switch Opening Names lists, by that name in the interface language (not
   the file name), the opening books of that folder, then any opening book
   among the databases, and No Names. Until the user picks one
   there (`book/openingNamesExplicit`), the names follow the interface language

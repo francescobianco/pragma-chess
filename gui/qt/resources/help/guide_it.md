@@ -165,7 +165,7 @@ Il pannello **Albero delle aperture** mostra, per la posizione sulla scacchiera,
 
 Il pannello Motore dice in quale apertura si trova la partita, e l'Albero delle aperture dice dove porta ogni mossa.
 
-I nomi vengono da un database di linee con un nome. **Opzioni ▸ Nomi delle aperture** sceglie quale: inglese, italiano o nessuno. Finché non scegli, i nomi seguono la lingua dell'interfaccia.
+I nomi vengono da un database di linee con un nome. **Opzioni ▸ Cambia nomi delle aperture** sceglie quale: inglese, italiano o nessuno. Finché non scegli, i nomi seguono la lingua dell'interfaccia.
 
 Un database dei nomi è un normale database di tipo Libro d'aperture: puoi aprirlo e aggiungere le tue linee, mettendo il nome nel campo Evento e il codice in ECO.
 

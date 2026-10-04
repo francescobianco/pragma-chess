@@ -881,7 +881,7 @@ void MainWindow::createMenus()
     options->addAction(m_syncAction);
     options->addSeparator();
     options->addAction(tr("&Board Settings…"), this, &MainWindow::editBoardSettings);
-    m_openingNamesMenu = options->addMenu(tr("Opening &Names"));
+    m_openingNamesMenu = options->addMenu(tr("Switch Opening &Names"));
     m_openingNamesMenu->setToolTip(tr("The database whose games name the openings and variations"));
     connect(m_openingNamesMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildOpeningNamesMenu);
     rebuildOpeningNamesMenu();

@@ -1591,8 +1591,8 @@ Il Nero ha catturato: %2</translation>
         <translation>&amp;Nessun libro</translation>
     </message>
     <message>
-        <source>Opening &amp;Names</source>
-        <translation>Nomi delle ape&amp;rture</translation>
+        <source>Switch Opening &amp;Names</source>
+        <translation>Cambia nomi delle ape&amp;rture</translation>
     </message>
     <message>
         <source>The database whose games name the openings and variations</source>

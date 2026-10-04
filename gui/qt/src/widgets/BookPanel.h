@@ -8,8 +8,6 @@
 
 #include <optional>
 
-class QLabel;
-class QStackedWidget;
 class QTreeWidget;
 class QVariantAnimation;
 
@@ -39,8 +37,9 @@ public:
     /// move (`stats` matches the moves given to setMoves when Ready).
     void setDatabaseStats(DatabaseState state, const QList<PositionIndex::Stats> &stats);
 
-    /// Covers the moves with `notice` (online play, where a book is help the
-    /// user may not have); an empty notice shows them again.
+    /// Lists no moves and says `notice` in the first row instead (online
+    /// play, where a book is help the user may not have); an empty notice
+    /// lists them again.
     void setCensored(const QString &notice);
 
 Q_SIGNALS:
@@ -58,8 +57,8 @@ private:
     void rebuild();
 
     QTreeWidget *m_moves;
-    QStackedWidget *m_pages;
-    QLabel *m_notice;
+    /// Why no moves are listed, while they may not be.
+    QString m_censored;
     QString m_bookName;
     ChessPosition m_position = ChessPosition::startingPosition();
     QList<PolyglotBook::Move> m_bookMoves;

@@ -905,7 +905,7 @@ a platform; lichess.org for now, through its Board API, more to come.
   engine, Explain and Training Mode are turned off and their actions
   disabled; the Opening Tree is not hidden (panels are the user's, shown
   and hidden from the menu and saved in the project) but its moves are
-  covered by a notice (`BookPanel::setCensored`); `isOpponentTurn()` keeps the board still on the
+  covered by a notice (`BookPanel::setCensored`: the table stays, empty, the notice in the first row); `isOpponentTurn()` keeps the board still on the
   opponent's move, and only the end of the line can be played. The user's
   move is sent and played at once; `onlineGameUpdated` makes the
   platform's move list the truth (the opponent's moves are played with the

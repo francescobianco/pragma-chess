@@ -7,9 +7,7 @@
 
 #include <QHash>
 #include <QHeaderView>
-#include <QLabel>
 #include <QMenu>
-#include <QStackedWidget>
 #include <QTreeWidget>
 #include <QVariantAnimation>
 #include <QVBoxLayout>
@@ -17,19 +15,11 @@
 BookPanel::BookPanel(QWidget *parent)
     : QWidget(parent)
     , m_moves(new QTreeWidget)
-    , m_pages(new QStackedWidget)
-    , m_notice(new QLabel)
 {
     auto *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
-    layout->addWidget(m_pages, 1);
-    m_pages->addWidget(m_moves);
-    m_notice->setAlignment(Qt::AlignCenter);
-    m_notice->setWordWrap(true);
-    m_notice->setMargin(16);
-    m_notice->setEnabled(false); // Greyed: a remark, not content.
-    m_pages->addWidget(m_notice);
+    layout->addWidget(m_moves, 1);
 
     auto *header = new PaddedHeaderView(Qt::Horizontal, CellPadding::vertical, CellPadding::horizontal, m_moves);
     header->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter); // As a tree's own header.
@@ -113,8 +103,10 @@ BookPanel::BookPanel(QWidget *parent)
 
 void BookPanel::setCensored(const QString &notice)
 {
-    m_notice->setText(notice);
-    m_pages->setCurrentWidget(notice.isEmpty() ? static_cast<QWidget *>(m_moves) : m_notice);
+    if (m_censored == notice)
+        return;
+    m_censored = notice;
+    rebuild();
 }
 
 void BookPanel::setBookName(const QString &name)
@@ -179,6 +171,17 @@ void BookPanel::rebuild()
     // A row, not a button, that goes one level up the tree: just an arrow in the Move column.
     auto *back = new QTreeWidgetItem(m_moves);
     back->setTextAlignment(kMoveColumn, Qt::AlignCenter); // The arrow sits in the middle of its cell.
+    if (!m_censored.isEmpty()) {
+        // The table stays, empty, and its first row says why.
+        back->setText(kNameColumn, m_censored);
+        back->setToolTip(kNameColumn, m_censored);
+        back->setFlags(Qt::NoItemFlags);
+        QFont font = back->font(kNameColumn);
+        font.setItalic(true);
+        back->setFont(kNameColumn, font);
+        back->setForeground(kNameColumn, m_moves->palette().brush(QPalette::PlaceholderText));
+        return;
+    }
     if (m_lastMove.isEmpty()) {
         // Nothing to take back: the row says where we are, with no arrow.
         back->setText(kNameColumn, tr("Starting position"));

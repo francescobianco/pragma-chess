@@ -139,6 +139,10 @@ PositionSetupDialog::PositionSetupDialog(const QString &fen, bool flipped, QWidg
     fenRow->addRow(tr("FE&N:"), m_fen);
     m_problem = new QLabel(this);
     m_problem->setWordWrap(true);
+    m_problem->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    // Its room is there from the start, two lines of it: a message coming and
+    // going must not shrink and grow the board above it.
+    m_problem->setFixedHeight(2 * m_problem->fontMetrics().lineSpacing());
     m_buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     connect(m_buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(m_buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -196,7 +200,6 @@ void PositionSetupDialog::showSetup(bool fenToo)
         m_fen->setText(setup.fen());
     const QString problem = setup.problem();
     m_problem->setText(problem);
-    m_problem->setVisible(!problem.isEmpty());
     m_buttons->button(QDialogButtonBox::Ok)->setEnabled(problem.isEmpty());
     m_updating = false;
 }

@@ -1087,13 +1087,6 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
-    <name>LichessFetch</name>
-    <message>
-        <source>Sign in to lichess.org to download the games.</source>
-        <translation>Accedi a lichess.org per scaricare le partite.</translation>
-    </message>
-</context>
-<context>
     <name>LichessSignIn</name>
     <message>
         <source>Signing in took too long.</source>
@@ -3138,10 +3131,6 @@ Le %n partite già importate restano nel database.</numerusform>
 <context>
     <name>SourceCatalog</name>
     <message>
-        <source>Games played on lichess.org by an account. Needs signing in to lichess.org.</source>
-        <translation>Partite giocate su lichess.org da un account. Richiede l&apos;accesso a lichess.org.</translation>
-    </message>
-    <message>
         <source>Games played on chess.com by an account, from its public archives.</source>
         <translation>Partite giocate su chess.com da un account, dai suoi archivi pubblici.</translation>
     </message>
@@ -3160,6 +3149,10 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>The games of a ChessBase database (.cbh and its files) on this computer. The file stays where it is; games added to it later are picked up.</source>
         <translation>Le partite di un database ChessBase (.cbh e i suoi file) su questo computer. Il file resta dov’è; le partite aggiunte in seguito vengono riprese.</translation>
+    </message>
+    <message>
+        <source>Public games played on lichess.org by an account. Signing in to lichess.org is optional: it downloads them faster.</source>
+        <translation>Partite pubbliche giocate su lichess.org da un account. L&apos;accesso a lichess.org è facoltativo: le scarica più in fretta.</translation>
     </message>
 </context>
 <context>
@@ -3307,6 +3300,10 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>Choose the .cbh file of the ChessBase database.</source>
         <translation>Scegli il file .cbh del database ChessBase.</translation>
+    </message>
+    <message>
+        <source>Not signed in: public games only</source>
+        <translation>Accesso non effettuato: solo partite pubbliche</translation>
     </message>
 </context>
 <context>

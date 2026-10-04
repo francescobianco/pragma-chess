@@ -40,7 +40,7 @@ SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString
     auto *form = new QFormLayout(this);
     form->setContentsMargins(0, 0, 0, 0);
 
-    if (m_kind.needsSignIn) {
+    if (m_kind.needsSignIn || m_kind.canSignIn) {
         m_signInStatus = new QLabel;
         m_signInButton = new QPushButton;
         auto *row = new QHBoxLayout;
@@ -286,6 +286,8 @@ std::optional<QString> SourceSettingsWidget::signIn(const SourceKind &kind, cons
 void SourceSettingsWidget::updateSignInStatus()
 {
     const bool signedIn = !SourceCredentials::token(m_uuid).isEmpty();
-    m_signInStatus->setText(signedIn ? tr("Signed in to %1").arg(m_kind.name) : tr("Not signed in"));
+    m_signInStatus->setText(signedIn             ? tr("Signed in to %1").arg(m_kind.name)
+                            : m_kind.needsSignIn ? tr("Not signed in")
+                                                 : tr("Not signed in: public games only"));
     m_signInButton->setText(signedIn ? tr("Sign In Again…") : tr("Sign In with %1…").arg(m_kind.name));
 }

@@ -24,7 +24,9 @@ QList<SourceKind> kinds()
 {
     return {
         {QStringLiteral("lichess"), QStringLiteral("lichess.org"),
-         Text::tr("Games played on lichess.org by an account. Needs signing in to lichess.org."), true},
+         Text::tr("Public games played on lichess.org by an account. Signing in to lichess.org is optional: "
+                  "it downloads them faster."),
+         false, false, false, true},
         {QStringLiteral("chesscom"), QStringLiteral("chess.com"),
          Text::tr("Games played on chess.com by an account, from its public archives."), false},
         {QStringLiteral("torneionline"), QStringLiteral("torneionline.com"),

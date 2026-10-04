@@ -174,7 +174,7 @@ A source brings your games from a website into the open database and keeps them 
 
 **Database ▸ Connect Source…** adds one:
 
-- **lichess.org**: sign in with your account;
+- **lichess.org**: the account's public games; signing in is optional and downloads them faster;
 - **chess.com**: your user name;
 - **torneionline.com**: your FIDE or FSI number, for the games of the tournaments you played.
 - **ChessBase files**: a ChessBase database (`.cbh` and its files) on this computer. Choose the `.cbh` file: its games are copied in, the files stay where they are, and games added to them later arrive at the next sync. On another computer the file is not there: the sync says so and offers to ignore the source on that computer; *Database ▸ Manage Sources… ▸ Edit…* chooses the file again.

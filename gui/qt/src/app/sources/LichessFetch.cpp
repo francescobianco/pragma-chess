@@ -82,11 +82,8 @@ std::optional<ImportedGame> LichessFetch::parseGame(const QJsonObject &game)
 
 void LichessFetch::start()
 {
+    // Without a token the export gives the account's public games, more slowly.
     const QString token = SourceCredentials::token(m_source.uuid);
-    if (token.isEmpty()) {
-        Q_EMIT finished(tr("Sign in to lichess.org to download the games."));
-        return;
-    }
 
     QUrl url(QStringLiteral("https://lichess.org/api/games/user/%1")
                  .arg(QString::fromLatin1(QUrl::toPercentEncoding(m_source.account))));
@@ -111,7 +108,8 @@ void LichessFetch::start()
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::UserAgentHeader, userAgent());
     request.setRawHeader("Accept", "application/x-ndjson");
-    request.setRawHeader("Authorization", "Bearer " + token.toUtf8());
+    if (!token.isEmpty())
+        request.setRawHeader("Authorization", "Bearer " + token.toUtf8());
     m_reply = m_network->get(request);
     connect(m_reply, &QNetworkReply::readyRead, this, [this] { readLines(false); });
     connect(m_reply, &QNetworkReply::finished, this, [this] {

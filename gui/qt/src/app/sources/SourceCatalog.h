@@ -25,6 +25,9 @@ struct SourceKind {
     /// Whether the source is a file on this computer (a ChessBase database)
     /// rather than an account on a site: the "account" is the file's name.
     bool localFile = false;
+    /// Whether signing in is offered: required (needsSignIn), or optional
+    /// when the games can be downloaded without it.
+    bool canSignIn = false;
 };
 
 /// The kinds of sources Pragma Chess can sync with.

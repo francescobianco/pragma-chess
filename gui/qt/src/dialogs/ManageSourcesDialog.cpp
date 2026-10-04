@@ -134,9 +134,10 @@ void ManageSourcesDialog::updateButtons()
     m_syncButton->setEnabled(source.has_value());
     m_editButton->setEnabled(source.has_value());
     m_removeButton->setEnabled(source.has_value());
-    m_signInButton->setEnabled(kind && kind->needsSignIn);
-    m_signInButton->setToolTip(kind && !kind->needsSignIn ? tr("%1 does not need signing in.").arg(kind->name)
-                                                          : QString());
+    m_signInButton->setEnabled(kind && (kind->needsSignIn || kind->canSignIn));
+    m_signInButton->setToolTip(kind && !kind->needsSignIn && !kind->canSignIn
+                                   ? tr("%1 does not need signing in.").arg(kind->name)
+                                   : QString());
 }
 
 void ManageSourcesDialog::editSource()
@@ -190,7 +191,7 @@ void ManageSourcesDialog::signInAgain()
 {
     const std::optional<GameSource> source = findSource(m_database, selectedSourceId());
     const std::optional<SourceKind> kind = source ? SourceCatalog::kind(source->kind) : std::nullopt;
-    if (!kind || !kind->needsSignIn)
+    if (!kind || !(kind->needsSignIn || kind->canSignIn))
         return;
     if (SourceSettingsWidget::signIn(*kind, source->uuid, this))
         m_sync->syncSource(source->id);

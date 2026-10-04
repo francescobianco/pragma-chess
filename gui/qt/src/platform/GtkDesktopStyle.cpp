@@ -20,6 +20,8 @@ namespace {
 /// The transparent margin around a menu that holds its shadow, and the
 /// radius of the menu's corners.
 constexpr int kMenuShadow = 12;
+/// Set on a menu whose left shadow is cut short (see eventFilter): how much.
+constexpr const char *kShadowCutProperty = "pragmaMenuShadowCut";
 constexpr qreal kMenuRadius = 6;
 
 /// A menu opened from an item of another menu that is on screen.
@@ -71,8 +73,31 @@ bool GtkDesktopStyle::eventFilter(QObject *watched, QEvent *event)
     // shadow goes outside. (A submenu is placed by PM_SubMenuOverlap.) The
     // show event comes before the window is shown, so it can still be moved.
     if (event->type() == QEvent::Show && m_menuShadows) {
-        if (auto *menu = qobject_cast<QMenu *>(watched); menu && !isSubMenu(menu))
-            menu->move(menu->pos() - QPoint(kMenuShadow, kMenuShadow));
+        if (auto *menu = qobject_cast<QMenu *>(watched); menu && !isSubMenu(menu)) {
+            QPoint corner = menu->pos() - QPoint(kMenuShadow, kMenuShadow);
+            // Against the left edge of a maximized window (File, the first
+            // menu) the shadow would reach past the screen's usable area, and
+            // the compositor would push the whole menu right, out of line with
+            // its title: there the left shadow is cut short instead, the menu's
+            // contents moving with it.
+            const QWidget *parent = menu->parentWidget();
+            const QWidget *window = parent ? parent->window() : nullptr;
+            const int cut = window ? qBound(0, window->mapToGlobal(QPoint(0, 0)).x() - corner.x(), kMenuShadow) : 0;
+            if (cut > 0) {
+                menu->setProperty(kShadowCutProperty, cut);
+                menu->setContentsMargins(-cut, 0, 0, 0);
+                menu->resize(menu->width() - cut, menu->height());
+                corner.rx() += cut;
+            }
+            menu->move(corner);
+        }
+    }
+    if (event->type() == QEvent::Hide && m_menuShadows) {
+        // The next time it may open elsewhere, with its whole shadow.
+        if (auto *menu = qobject_cast<QMenu *>(watched); menu && menu->property(kShadowCutProperty).toInt() > 0) {
+            menu->setProperty(kShadowCutProperty, 0);
+            menu->setContentsMargins(0, 0, 0, 0);
+        }
     }
     return QProxyStyle::eventFilter(watched, event);
 }
@@ -180,7 +205,8 @@ void GtkDesktopStyle::drawPrimitive(PrimitiveElement element, const QStyleOption
         if (!m_menuShadows || !qobject_cast<const QMenu *>(widget))
             break;
         // The menu itself, inside the margin: rounded, with Fusion's colours.
-        const QRectF panel = QRectF(option->rect).adjusted(kMenuShadow, kMenuShadow, -kMenuShadow, -kMenuShadow);
+        const int left = kMenuShadow - widget->property(kShadowCutProperty).toInt();
+        const QRectF panel = QRectF(option->rect).adjusted(left, kMenuShadow, -kMenuShadow, -kMenuShadow);
         painter->save();
         painter->setRenderHint(QPainter::Antialiasing);
         // The shadow: darker near the menu, fading out across the margin and

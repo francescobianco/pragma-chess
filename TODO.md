@@ -8,6 +8,67 @@ l'ultimo commit è `48eb8cc` (sorgente ChessBase).
 
 ## Da fare, in ordine di priorità
 
+### 0. Release Windows: sbloccare la verifica dei pacchetti (blocca la 0.3.0)
+
+Contesto (4 ottobre 2026, commit `6644142` e `22ef96c`). Un utente ha
+segnalato che la 0.2.0 su Windows non parte: "libssl-3-x64.dll non è stato
+trovato" (e `libcrypto-3-x64.dll`). Causa: Phone Link → libdatachannel →
+OpenSSL linkato dinamicamente, DLL mai copiate nel pacchetto; sul runner
+c'erano, quindi nessun test se ne accorgeva. In più i pacchetti pesavano
+85–113 MB per colpa di Stockfish (103 MB, quasi tutto la rete NNUE grande);
+l'utente vuole restare **sotto i 20 MB**.
+
+Fatto (vedi `packaging/README.md`, "Bundled engine" e "Packages that start"):
+
+- Stockfish ora è nostro: Stockfish 18 dal sorgente con
+  `packaging/stockfish/small-net.patch` (solo la rete piccola,
+  `nn-37f18f62d772.nnue`), costruito da `scripts/build-stockfish.sh`
+  (ex `fetch-stockfish.sh`): 4,1 MB su Linux, 5,1 MB su Windows (MinGW,
+  job `engine-windows` su Ubuntu), `x86-64-sse41-popcnt`. Stockfish 19 non
+  ha più la rete piccola: per aggiornare serve una release che ce l'abbia.
+  Il sorgente GPL allegato alla release è `stockfish-sf_18-pragma-source.tar.gz`.
+  Explain confrontato con Stockfish 16 ufficiale: valutazioni vicine
+  (`docs/tech/explain-tuning.md`, voce del 2026-10-04).
+- `packaging/windows/build.ps1`: `dumpbin /dependents` su ogni exe/dll del
+  pacchetto, copia OpenSSL e il runtime C++ (mai dati per presenti in
+  System32), fallisce se una DLL non si trova; poi avvia `stockfish.exe`
+  (deve rispondere `uci`/`bestmove`) e `pragma-chess.exe` (deve essere vivo
+  dopo 15 s) con PATH = solo Windows e `SetErrorMode` che trasforma il
+  dialogo "DLL mancante" in un exit code. Via anche `dxcompiler.dll`,
+  `dxil.dll` (`--no-system-dxc-compiler`) e le traduzioni Qt separate
+  (`--no-translations`: le nostre sono incorporate).
+- macOS (`build.sh`): `otool -L` su tutto il bundle, niente fuori da
+  `@rpath`/`/System`/`/usr/lib`; motore e app devono partire. **Passato in CI.**
+- Linux: il motore deve rispondere. .deb e .rpm **passati in CI.**
+- I test hanno impostazioni proprie (`initTestCase`: organizzazione
+  "Pragma Chess Tests", INI): `syncsChessBaseFiles` falliva su Windows
+  perché `QSettings()` senza organizzazione non scriveva nel registro.
+
+Da fare:
+
+1. Il job Windows si ferma ancora ai test, prima del packaging, quindi **la
+   verifica delle DLL e l'avvio da pacchetto non sono mai stati eseguiti su
+   Windows**. Fallisce `deletesDatabasesAcrossGitDevices` ("Access is
+   denied", run 37215734260): è lo stesso problema della sync Git su
+   Windows per cui `build.ps1` salta già `reconcilesGitFoldersWithoutDeleting`
+   e `mergesDuplicatesAcrossGitDevices` (`$knownFailures`). Correggere il
+   bug (meglio: probabilmente file del clone ancora aperti o in sola
+   lettura quando git li sostituisce) o aggiungerlo a `$knownFailures`.
+2. Rilanciare il workflow a mano (Actions ▸ Release ▸ Run workflow, o
+   `gh workflow run release.yml --ref main`) finché il job `windows` passa.
+   Il codice PowerShell nuovo di `build.ps1` non è mai girato (non c'è
+   `pwsh` sulla macchina di sviluppo): aspettarsi qualche errore da
+   correggere lì (parsing di `dumpbin`, `OPENSSL_INCLUDE_DIR` dal
+   `CMakeCache.txt`, avvio del processo).
+3. Controllare il peso degli artifact: stime ~12 MB l'installer Windows,
+   ~20 MB (incerto) il dmg macOS. Se il dmg supera i 20 MB, sfoltire i
+   plugin che `macdeployqt` copia e non servono (imageformats, ecc.).
+   Poi correggere se serve "about 80 MB smaller" nel CHANGELOG.
+4. Solo allora il tag della release. Dopo: aggiornare il `tag` nel manifest
+   Flatpak (il modulo `stockfish` ora compila dal sorgente: verificarlo con
+   `flatpak-builder`, mai provato) e avvisare l'utente che aveva la 0.2.0
+   rotta su Windows.
+
 ### 1. Varianti: quel che resta
 
 Il grosso è fatto (vedi CHANGELOG: modello, archiviazione in `games.variations`

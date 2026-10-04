@@ -176,6 +176,11 @@ private:
     /// Leaves online play, asking first whether to keep playing or resign a
     /// game in progress, then runs `next` (after the game ended, if resigned).
     void leaveOnlineThen(std::function<void()> next);
+    /// Makes the client for m_onlineAccount; false (and says so) without a sign-in.
+    bool startOnlineClient();
+    /// Follows again, at startup, the online game left in progress.
+    void resumeOnlineGame();
+    void forgetActiveOnlineGame();
     void stopOnline();
     void setOnlinePlay(bool on);
     bool isOpponentTurn() const;
@@ -483,6 +488,8 @@ private:
     std::optional<LichessBoardClient::Seek> m_rememberedOnline; // "Remember for this session", never saved.
     /// Run once the online game resigned by leaveOnlineThen has ended and been saved.
     std::function<void()> m_afterOnlineGame;
+    /// Following again a game left in progress, until its start comes back.
+    bool m_resumingOnline = false;
     std::unique_ptr<LichessBoardClient> m_online; // Alive while looking for an opponent or playing.
     OnlineAccount m_onlineAccount;
     bool m_onlinePlay = false;

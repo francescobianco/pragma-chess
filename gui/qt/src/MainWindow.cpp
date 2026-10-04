@@ -109,6 +109,10 @@
 
 namespace {
 
+/// The online game in progress (QSettings, per user and computer), followed again at the next start.
+constexpr char kActiveGameKey[] = "online/activeGame";
+constexpr char kActiveAccountKey[] = "online/activeAccount";
+
 /// Delay before maximizing a window restored maximized, once it is mapped.
 constexpr int kRestoreWindowStateDelayMs = 250;
 
@@ -371,6 +375,7 @@ MainWindow::MainWindow(QWidget *parent)
     restoreBook();
     migrateOpeningNames(); // Before the session, which may have the moved database open.
     restoreSession();
+    resumeOnlineGame(); // After the session: the online game takes the board.
     adoptShippedLineages();
     restoreOpeningNames(); // After the session, so the first launch still seeds Classic Games first.
     applySyncSettings();
@@ -2894,16 +2899,8 @@ void MainWindow::playOnline(bool alwaysAsk)
     } else {
         seek = *m_rememberedOnline;
     }
-    const QString token = SourceCredentials::token(m_onlineAccount.id);
-    if (token.isEmpty()) {
-        QMessageBox::warning(this, tr("Play Online"), tr("The account %1 has no sign-in on this computer: sign in again.").arg(m_onlineAccount.username));
+    if (!startOnlineClient())
         return;
-    }
-    m_online = std::make_unique<LichessBoardClient>(token);
-    connect(m_online.get(), &LichessBoardClient::gameStarted, this, &MainWindow::onlineGameStarted);
-    connect(m_online.get(), &LichessBoardClient::gameUpdated, this, &MainWindow::onlineGameUpdated);
-    connect(m_online.get(), &LichessBoardClient::gameFinished, this, &MainWindow::onlineGameFinished);
-    connect(m_online.get(), &LichessBoardClient::failed, this, &MainWindow::onlineFailed);
     setOnlinePlay(true);
     m_onlineSide.reset();
     m_enginePanel->setStatus(tr("Looking for an opponent on %1 (%2+%3, %4)…")
@@ -2943,6 +2940,52 @@ void MainWindow::leaveOnlineThen(std::function<void()> next)
     // started now, the end would be written into it.
     m_afterOnlineGame = std::move(next);
     m_online->resign();
+}
+
+bool MainWindow::startOnlineClient()
+{
+    const QString token = SourceCredentials::token(m_onlineAccount.id);
+    if (token.isEmpty()) {
+        QMessageBox::warning(this, tr("Play Online"), tr("The account %1 has no sign-in on this computer: sign in again.").arg(m_onlineAccount.username));
+        return false;
+    }
+    m_online = std::make_unique<LichessBoardClient>(token);
+    connect(m_online.get(), &LichessBoardClient::gameStarted, this, &MainWindow::onlineGameStarted);
+    connect(m_online.get(), &LichessBoardClient::gameUpdated, this, &MainWindow::onlineGameUpdated);
+    connect(m_online.get(), &LichessBoardClient::gameFinished, this, &MainWindow::onlineGameFinished);
+    connect(m_online.get(), &LichessBoardClient::failed, this, &MainWindow::onlineFailed);
+    return true;
+}
+
+void MainWindow::resumeOnlineGame()
+{
+    // The game being played when the application was closed (or crashed):
+    // the platform kept it going, so it is followed again where it is now.
+    QSettings settings;
+    const QString gameId = settings.value(QLatin1String(kActiveGameKey)).toString();
+    const QString accountId = settings.value(QLatin1String(kActiveAccountKey)).toString();
+    if (gameId.isEmpty())
+        return;
+    const OnlineAccount *account = OnlineAccounts::load(settings).find(accountId);
+    if (!account || SourceCredentials::token(account->id).isEmpty()) {
+        forgetActiveOnlineGame();
+        return;
+    }
+    m_onlineAccount = *account;
+    if (!startOnlineClient())
+        return;
+    m_resumingOnline = true;
+    setOnlinePlay(true);
+    m_onlineSide.reset();
+    m_enginePanel->setStatus(tr("Reconnecting to your game on %1…").arg(OnlineAccounts::platformName(account->platform)));
+    m_online->resume(gameId);
+}
+
+void MainWindow::forgetActiveOnlineGame()
+{
+    QSettings settings;
+    settings.remove(QLatin1String(kActiveGameKey));
+    settings.remove(QLatin1String(kActiveAccountKey));
 }
 
 void MainWindow::stopOnline()
@@ -2991,6 +3034,11 @@ void MainWindow::setOnlinePlay(bool on)
 
 void MainWindow::onlineGameStarted(const OnlineGame &game)
 {
+    // Remembered until the game ends, so a restart follows it again.
+    m_resumingOnline = false;
+    QSettings settings;
+    settings.setValue(QLatin1String(kActiveGameKey), game.id);
+    settings.setValue(QLatin1String(kActiveAccountKey), m_onlineAccount.id);
     const bool white = game.white.compare(m_onlineAccount.username, Qt::CaseInsensitive) == 0;
     m_onlineSide = white ? Side::White : Side::Black;
     GameRecord record;
@@ -3018,7 +3066,9 @@ void MainWindow::onlineGameUpdated(const OnlineGame &game)
         ours << move.uci;
     const bool extends = game.moves.size() >= ours.size()
                          && std::equal(ours.cbegin(), ours.cend(), game.moves.cbegin());
-    if (!extends) {
+    // Several moves at once (a game followed again after a restart) are set
+    // up at once rather than slid one after the other.
+    if (!extends || game.moves.size() - ours.size() > 1) {
         GameRecord record = m_session->game();
         record.moves.clear();
         record.variations.clear();
@@ -3067,6 +3117,7 @@ void MainWindow::updateOnlineStatus(const OnlineGame &game)
 
 void MainWindow::onlineGameFinished(const OnlineGame &game)
 {
+    forgetActiveOnlineGame();
     GameRecord record = m_session->game();
     record.result = game.result();
     m_session->setHeader(record);
@@ -3087,6 +3138,12 @@ void MainWindow::onlineGameFinished(const OnlineGame &game)
 
 void MainWindow::onlineFailed(const QString &message)
 {
+    // A game that cannot be followed again is forgotten; one whose connection
+    // was lost while playing is kept, and the next start tries again.
+    if (m_resumingOnline) {
+        m_resumingOnline = false;
+        forgetActiveOnlineGame();
+    }
     QMessageBox::warning(this, tr("Play Online"), message);
     QTimer::singleShot(0, this, [this] {
         m_online.reset();

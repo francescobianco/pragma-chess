@@ -863,7 +863,11 @@ a platform; lichess.org for now, through its Board API, more to come.
   `leaveOnlineThen`, which asks to Keep Playing or Resign the game in
   progress (a search is just cancelled) and starts the new game only once
   the resigned one has ended and been saved (`m_afterOnlineGame`), so the
-  end coming from the stream is never written into the new game. There is
+  end coming from the stream is never written into the new game. The game in
+  progress is remembered in QSettings (`online/activeGame`, `online/activeAccount`,
+  per computer) from its start to its end: at startup `resumeOnlineGame`
+  follows it again (`LichessBoardClient::resume`, the game stream sends the
+  whole game, or its end, again); a resume that fails forgets it. There is
   no Stop Playing Online entry; Engine ▸ Online Play Mode, chosen while on,
   stops. The flag is not part of the project. Opening another database while it is
   on (`keepOnlineGame`: Switch Database, New Database, the sync opening the

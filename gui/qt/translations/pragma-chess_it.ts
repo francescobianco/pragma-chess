@@ -2285,6 +2285,10 @@ non è su questo computer.</translation>
         <source>Resign</source>
         <translation>Abbandona</translation>
     </message>
+    <message>
+        <source>Reconnecting to your game on %1…</source>
+        <translation>Mi ricollego alla tua partita su %1…</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>

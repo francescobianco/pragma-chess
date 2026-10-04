@@ -74,6 +74,13 @@ void LichessBoardClient::cancelSeek()
     }
 }
 
+void LichessBoardClient::resume(const QString &gameId)
+{
+    if (m_seek || m_gameStream || gameId.isEmpty())
+        return;
+    openGameStream(gameId);
+}
+
 void LichessBoardClient::openEventStream()
 {
     if (m_events)

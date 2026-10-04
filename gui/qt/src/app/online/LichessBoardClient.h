@@ -30,6 +30,9 @@ public:
     /// Looks for an opponent; gameStarted() follows when one is found.
     void seek(const Seek &seek);
     void cancelSeek();
+    /// Follows again a game already started, e.g. after the application was
+    /// closed during it: the stream sends the whole game (or its end) again.
+    void resume(const QString &gameId);
     bool isSeeking() const { return m_seek != nullptr; }
 
     const OnlineGame &game() const { return m_game; }

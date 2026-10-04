@@ -1995,6 +1995,58 @@ private Q_SLOTS:
         QCOMPARE(b->header(0).uid, first);
     }
 
+    void mergesSourcesAndRolesWithTheGames()
+    {
+        QTemporaryDir dir;
+        QString error;
+        const QString pathA = dir.filePath(QStringLiteral("a.pdb"));
+        const QString pathB = dir.filePath(QStringLiteral("b.pdb"));
+        GameRecord game;
+        game.white = QStringLiteral("Anna");
+        game.black = QStringLiteral("Bruno");
+        game.moves = {{QStringLiteral("e2e4"), QStringLiteral("e2e4")}};
+        std::unique_ptr<SqliteGameDatabase> a = SqliteGameDatabase::create(pathA, {game}, &error);
+        QVERIFY2(a, qPrintable(error));
+        QVERIFY2(a->saveCopy(pathB, &error), qPrintable(error));
+        std::unique_ptr<SqliteGameDatabase> b = SqliteGameDatabase::open(pathB, &error);
+        QVERIFY2(b, qPrintable(error));
+
+        // B connects a source and imports from it; each copy says who someone is.
+        GameSource lichess;
+        lichess.kind = QStringLiteral("lichess");
+        lichess.account = QStringLiteral("anna");
+        lichess.state = QJsonObject{{QStringLiteral("since"), 42}};
+        QVERIFY2(b->addSource(lichess, &error), qPrintable(error));
+        ImportedGame imported;
+        imported.externalId = QStringLiteral("abcd1234");
+        imported.game.white = QStringLiteral("Anna");
+        imported.game.black = QStringLiteral("Carla");
+        imported.game.moves = {{QStringLiteral("d2d4"), QStringLiteral("d2d4")}};
+        QCOMPARE(b->importGames(lichess.id, {imported}, &error), 1);
+        QVERIFY(b->setPlayerRole(QStringLiteral("Anna"), PlayerRole::Me, &error));
+        QVERIFY(b->setPlayerRole(QStringLiteral("Bruno"), PlayerRole::Opponent, &error));
+        QVERIFY(a->setPlayerRole(QStringLiteral("Bruno"), PlayerRole::Friend, &error));
+
+        QVERIFY2(DatabaseMerge::mergeInto(*a, pathB, &error), qPrintable(error));
+        QCOMPARE(a->gameCount(), 2);
+        const QList<GameSource> sources = a->sources();
+        QCOMPARE(sources.size(), 1);
+        QCOMPARE(sources.first().uuid, lichess.uuid);
+        QCOMPARE(sources.first().state, lichess.state);
+        QCOMPARE(sources.first().importedGames, 1);
+        // The same game again from the source is known: no copy of it.
+        QCOMPARE(a->importGames(sources.first().id, {imported}, &error), 0);
+        QCOMPARE(a->gameCount(), 2);
+        // Roles: what A lacked is taken, what A said stays.
+        QCOMPARE(a->playerRoles().value(QStringLiteral("Anna")), PlayerRole::Me);
+        QCOMPARE(a->playerRoles().value(QStringLiteral("Bruno")), PlayerRole::Friend);
+
+        // Merging again changes nothing.
+        QVERIFY2(DatabaseMerge::mergeInto(*a, pathB, &error), qPrintable(error));
+        QCOMPARE(a->sources().size(), 1);
+        QCOMPARE(a->sourceLinks().size(), 1);
+    }
+
     void choosesShippedOpeningNames()
     {
         // One per language, English for any language without its own.

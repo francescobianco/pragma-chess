@@ -66,6 +66,28 @@ std::optional<Result> mergeInto(GameDatabase &into, const QString &from, QString
             return std::nullopt;
         ++result.stored;
     }
+
+    // The sources it connected, and what each imported: without them a sync
+    // would import those games again, as copies of the ones just merged.
+    QSet<QString> connected;
+    for (const GameSource &known : into.sources())
+        connected.insert(known.uuid);
+    for (GameSource incomingSource : source->sources()) {
+        if (connected.contains(incomingSource.uuid))
+            continue;
+        incomingSource.id = 0;
+        if (!into.addSource(incomingSource, errorMessage) || !into.updateSource(incomingSource, errorMessage))
+            return std::nullopt;
+    }
+    if (!into.mergeSourceLinks(source->sourceLinks(), errorMessage))
+        return std::nullopt;
+
+    // Who the players are, where this copy does not say.
+    const PlayerRoles roles = into.playerRoles();
+    for (const auto &[player, role] : source->playerRoles().asKeyValueRange()) {
+        if (!roles.contains(player) && !into.setPlayerRole(player, role, errorMessage))
+            return std::nullopt;
+    }
     return result;
 }
 

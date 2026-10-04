@@ -170,6 +170,11 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- When two copies of a database are merged (a file changed on two devices,
+  or the phone link), the sources connected on the other copy and the games
+  they already imported come along, so the next sync no longer imports those
+  games again as duplicates; so do the player roles (Me, Friends, Opponents)
+  set only on the other copy.
 - On Windows the application did not start, saying that
   `libssl-3-x64.dll` and `libcrypto-3-x64.dll` were not found: they are now
   in the package, and every Windows package is started on the build machine

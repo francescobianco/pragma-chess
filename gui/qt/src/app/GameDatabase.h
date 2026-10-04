@@ -92,6 +92,11 @@ public:
     /// Appends the games not imported from the source before (by external id).
     /// Returns how many were added, or -1 on failure.
     virtual int importGames(qint64 sourceId, const QList<ImportedGame> &games, QString *errorMessage) = 0;
+    /// What every source imported, so another copy does not import it again.
+    virtual QList<SourceLink> sourceLinks() const = 0;
+    /// Records the links of another copy this one lacks, for the sources it
+    /// has (by uuid); a game it does not hold is recorded as purged.
+    virtual bool mergeSourceLinks(const QList<SourceLink> &incoming, QString *errorMessage) = 0;
 
     /// Properties stored in the database (universal id, type, description).
     virtual DatabaseProperties properties() const = 0;

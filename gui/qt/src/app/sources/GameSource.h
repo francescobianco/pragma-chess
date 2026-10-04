@@ -43,3 +43,11 @@ struct ImportedGame {
     QString externalId;
     GameRecord game;
 };
+
+/// A game imported from a source, as another copy of the database finds it:
+/// by the source's uuid and the game's uid (empty once the game was purged).
+struct SourceLink {
+    QString sourceUuid;
+    QString externalId;
+    QString gameUid;
+};

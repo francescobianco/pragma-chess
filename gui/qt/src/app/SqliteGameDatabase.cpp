@@ -880,6 +880,54 @@ int SqliteGameDatabase::importGames(qint64 sourceId, const QList<ImportedGame> &
     return int(added.size());
 }
 
+QList<SourceLink> SqliteGameDatabase::sourceLinks() const
+{
+    QList<SourceLink> links;
+    QSqlQuery query(QSqlDatabase::database(m_connectionName));
+    query.setForwardOnly(true);
+    if (query.exec(QStringLiteral(
+            "SELECT s.uuid, gs.external_id, g.uid FROM game_sources gs"
+            " JOIN sources s ON s.id = gs.source_id LEFT JOIN games g ON g.id = gs.game_id"))) {
+        while (query.next())
+            links << SourceLink{query.value(0).toString(), query.value(1).toString(), query.value(2).toString()};
+    }
+    return links;
+}
+
+bool SqliteGameDatabase::mergeSourceLinks(const QList<SourceLink> &incoming, QString *errorMessage)
+{
+    QHash<QString, qint64> sourceIds;
+    for (const GameSource &source : sources())
+        sourceIds.insert(source.uuid, source.id);
+
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    db.transaction();
+    QSqlQuery insert(db);
+    // A game this copy does not hold (purged here) gets 0, as optimize() leaves it.
+    insert.prepare(QStringLiteral(
+        "INSERT OR IGNORE INTO game_sources (game_id, source_id, external_id)"
+        " VALUES (COALESCE((SELECT id FROM games WHERE uid = ?), 0), ?, ?)"));
+    for (const SourceLink &link : incoming) {
+        const auto source = sourceIds.constFind(link.sourceUuid);
+        if (source == sourceIds.constEnd())
+            continue;
+        insert.addBindValue(link.gameUid);
+        insert.addBindValue(*source);
+        insert.addBindValue(link.externalId);
+        if (!insert.exec()) {
+            setError(errorMessage, insert.lastError().text());
+            db.rollback();
+            return false;
+        }
+    }
+    if (!db.commit()) {
+        setError(errorMessage, db.lastError().text());
+        db.rollback();
+        return false;
+    }
+    return true;
+}
+
 QSet<qint64> SqliteGameDatabase::sourceGameIds(qint64 sourceId) const
 {
     QSet<qint64> ids;

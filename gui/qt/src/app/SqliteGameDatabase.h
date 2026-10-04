@@ -50,6 +50,8 @@ public:
     bool removeSource(qint64 sourceId, QString *errorMessage) override;
     QSet<qint64> sourceGameIds(qint64 sourceId) const override;
     int importGames(qint64 sourceId, const QList<ImportedGame> &games, QString *errorMessage) override;
+    QList<SourceLink> sourceLinks() const override;
+    bool mergeSourceLinks(const QList<SourceLink> &incoming, QString *errorMessage) override;
     DatabaseProperties properties() const override { return m_properties; }
     bool setProperties(const DatabaseProperties &properties, QString *errorMessage) override;
     bool setGameState(qint64 index, GameState state, QString *errorMessage) override;

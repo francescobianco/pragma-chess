@@ -177,6 +177,47 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
         return added
     }
 
+    /**
+     * Takes from another copy, after its games ([merge]), what the desktop's
+     * DatabaseMerge takes too: the sources it connected (by uuid, ours kept),
+     * what each imported (or a sync on a computer would import those games
+     * again, as copies) and who its players are where this copy does not say.
+     */
+    fun mergeRecords(from: File) {
+        db.execSQL("ATTACH DATABASE ? AS incoming", arrayOf(from.path))
+        try {
+            val tables = db.rawQuery("SELECT name FROM incoming.sqlite_master WHERE type = 'table'", null).use { c ->
+                buildSet { while (c.moveToNext()) add(c.getString(0)) }
+            }
+            db.beginTransaction()
+            try {
+                if ("sources" in tables && "game_sources" in tables) {
+                    db.execSQL(
+                        "INSERT OR IGNORE INTO main.sources (uuid, kind, account, settings, state, enabled, created_at, last_sync_at, last_error)" +
+                            " SELECT uuid, kind, account, settings, state, enabled, created_at, last_sync_at, last_error FROM incoming.sources")
+                    // A game this copy does not hold (purged here) gets 0, as a purge leaves it.
+                    db.execSQL(
+                        "INSERT OR IGNORE INTO main.game_sources (game_id, source_id, external_id)" +
+                            " SELECT COALESCE((SELECT g.id FROM main.games g WHERE g.uid = ig.uid), 0), s.id, igs.external_id" +
+                            " FROM incoming.game_sources igs JOIN incoming.sources isrc ON isrc.id = igs.source_id" +
+                            " JOIN main.sources s ON s.uuid = isrc.uuid LEFT JOIN incoming.games ig ON ig.id = igs.game_id")
+                }
+                if ("player_roles" in tables) {
+                    val roles = "FROM incoming.player_roles r JOIN incoming.players p ON p.id = r.player_id"
+                    db.execSQL("INSERT OR IGNORE INTO main.players (name) SELECT p.name $roles")
+                    db.execSQL(
+                        "INSERT OR IGNORE INTO main.player_roles (player_id, role)" +
+                            " SELECT mp.id, r.role $roles JOIN main.players mp ON mp.name = p.name")
+                }
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+        } finally {
+            db.execSQL("DETACH DATABASE incoming")
+        }
+    }
+
     /** The state of every game that was ever trashed, deleted or purged; empty before version 6. */
     fun states(): List<GameStateRecord> {
         if (!hasStates) return emptyList()

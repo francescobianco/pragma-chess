@@ -522,7 +522,13 @@ the toolbar's first button (`m_syncNowAction`, Ctrl+Y).
   is the shipped canonical one, else the plain name, and it takes the
   smallest lineage). The merge is by uid through `Reconcile` (lossless;
   newer version wins a conflict), done by `app/DatabaseMerge` behind
-  `FolderSync::DatabaseHooks`, since SQLite lives in the app. Each merged
+  `FolderSync::DatabaseHooks`, since SQLite lives in the app. The merge
+  takes along what else can be joined without a revision: the sources the
+  other copy connected (by uuid, ours kept), what each imported
+  (`sourceLinks`, or a sync would import those games again as copies) and
+  the player roles this copy lacks (ours win). Database properties (name,
+  description, hidden columns) have no revision and stay the kept file's.
+  The phone does the same (`PdbDatabase.mergeRecords`, after `merge`). Each merged
   file becomes a `SyncMergeRecord` (`merged` in the manifest: path, its
   lineage, the lineage and path it went into): a device that still has that
   file with that lineage merges it into its own copy (planSync `Merge`, run

@@ -249,6 +249,7 @@ class ComputerSync(
                         db.mergeStates(states)
                         val plan = Reconciler.plan(db.allGames(), incoming)
                         tally.stored += db.merge(plan)
+                        db.mergeRecords(temp)
                         tally.updated += plan.update.size
                         tally.conflicts += plan.conflicts
                         if (plan.send.isNotEmpty() && !aliased) toSend[key] = plan.send

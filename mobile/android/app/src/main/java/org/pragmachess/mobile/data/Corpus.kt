@@ -58,6 +58,7 @@ class Corpus(private val library: Library, private val store: AppStore) {
                     val (games, states) = PdbDatabase.open(library.file(entry.ref)).use { it.allGames() to it.states() }
                     db.mergeStates(states)
                     db.merge(Reconciler.plan(db.allGames(), games))
+                    db.mergeRecords(library.file(entry.ref))
                     library.delete(entry.ref)
                     store.alias(other, group.keeper)
                     removed++

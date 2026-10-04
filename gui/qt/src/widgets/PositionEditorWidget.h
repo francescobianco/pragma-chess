@@ -6,8 +6,8 @@
 
 /// A board to set up a position on: a click puts the chosen piece on a
 /// square (or takes it off when the square has that piece already), a
-/// right click empties it, a piece is dragged to another square, or off the
-/// board to take it away.
+/// right click empties it, and a piece is dragged to another square (let go
+/// off the board, it goes back where it was).
 class PositionEditorWidget : public QWidget {
     Q_OBJECT
 

@@ -134,16 +134,19 @@ void PositionEditorWidget::mouseReleaseEvent(QMouseEvent *event)
         return;
     const int from = m_pressSquare;
     m_pressSquare = -1;
-    if (!m_dragged.isNull()) {
-        // Dropped on a square it goes there; off the board it goes away.
-        const int to = squareAt(event->position());
-        m_setup.setPiece(from, Piece());
-        if (to >= 0)
-            m_setup.setPiece(to, m_dragged);
+    const int to = squareAt(event->position());
+    const Piece pressed = m_setup.at(from);
+    // A piece taken and let go elsewhere moves, however short the way: only
+    // a press and release on the same square is a click.
+    if (!m_dragged.isNull() || (!pressed.isNull() && to != from)) {
+        // On a square it goes there; off the board it goes back home.
+        if (to >= 0 && to != from) {
+            m_setup.setPiece(from, Piece());
+            m_setup.setPiece(to, pressed);
+        }
         m_dragged = Piece();
     } else {
-        const bool same = m_setup.at(from) == m_brush;
-        m_setup.setPiece(from, same ? Piece() : m_brush);
+        m_setup.setPiece(from, pressed == m_brush ? Piece() : m_brush);
     }
     update();
     Q_EMIT changed();

@@ -446,7 +446,7 @@ painted as a menu item, since QMenu draws an item in one font).
 ## Set Up Position
 
 Game ▸ Set Up Position… (`dialogs/PositionSetupDialog`, the board is
-`widgets/PositionEditorWidget`) edits a `PositionSetup` (pure,
+`widgets/PositionEditorWidget`: a click puts the chosen piece or takes it off, a drag only ever moves one — let go off the board, it goes back) edits a `PositionSetup` (pure,
 unit-tested: pieces, side, castling the placement allows, en passant
 squares, FEN, `problem()` for a position no game can start from) and
 starts a game from its FEN. Before the board is replaced,

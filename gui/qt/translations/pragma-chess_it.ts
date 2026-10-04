@@ -3303,10 +3303,6 @@ Le %n partite già importate restano nel database.</numerusform>
         <translation>Togli</translation>
     </message>
     <message>
-        <source>A click takes the piece off the square. A right click or dragging a piece off the board does it too.</source>
-        <translation>Un clic toglie il pezzo dalla casa. Lo fanno anche il tasto destro o trascinare un pezzo fuori dalla scacchiera.</translation>
-    </message>
-    <message>
         <source>Side to move</source>
         <translation>Tratto</translation>
     </message>
@@ -3369,6 +3365,10 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>None</source>
         <translation>Nessuno</translation>
+    </message>
+    <message>
+        <source>A click takes the piece off the square. A right click does it too.</source>
+        <translation>Un clic toglie il pezzo dalla casa. Lo fa anche il tasto destro.</translation>
     </message>
 </context>
 <context>

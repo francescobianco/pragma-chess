@@ -68,8 +68,7 @@ PositionSetupDialog::PositionSetupDialog(const QString &fen, bool flipped, QWidg
     eraser->setCheckable(true);
     eraser->setAutoRaise(true);
     eraser->setText(tr("Remove"));
-    eraser->setToolTip(tr("A click takes the piece off the square. A right click or dragging a piece off the board "
-                          "does it too."));
+    eraser->setToolTip(tr("A click takes the piece off the square. A right click does it too."));
     m_palette->addButton(eraser, id);
     palette->addWidget(eraser, 2, 0, 1, 6);
     m_palette->button(5)->setChecked(true); // White pawn: the piece put down most.

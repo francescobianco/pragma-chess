@@ -52,7 +52,7 @@ A sinistra della lista delle partite, l'albero mostra che cosa contiene il datab
 - **Io**, **Amici**, **Avversari**: i giocatori che hai indicato con «Chi è?».
 - **ECO**: le partite per codice d'apertura.
 - **Tornei** e **Anni**.
-- **Fonti**: le partite arrivate da lichess.org, chess.com o torneionline.com.
+- **Sorgenti**: le partite arrivate da lichess.org, chess.com o torneionline.com.
 - **Cestino**: le partite che hai buttato.
 
 Posizione e Variante seguono la scacchiera: scorri una partita e i loro conteggi cambiano.
@@ -168,20 +168,20 @@ I nomi vengono da un database di linee con un nome. **Opzioni ▸ Nomi delle ape
 
 Un database dei nomi è un normale database di tipo Libro d'aperture: puoi aprirlo e aggiungere le tue linee, mettendo il nome nel campo Evento e il codice in ECO.
 
-# Fonti di partite {#sources}
+# Sorgenti di partite {#sources}
 
-Una fonte porta nel database aperto le tue partite da un sito e le tiene aggiornate.
+Una sorgente porta nel database aperto le tue partite da un sito e le tiene aggiornate.
 
-**Database ▸ Collega fonte…** ne aggiunge una:
+**Database ▸ Collega sorgente…** ne aggiunge una:
 
 - **lichess.org**: accedi con il tuo account;
 - **chess.com**: il tuo nome utente;
 - **torneionline.com**: il tuo numero FIDE o FSI, per le partite dei tornei che hai giocato.
-- **File ChessBase**: un database ChessBase (`.cbh` e i suoi file) su questo computer. Scegli il file `.cbh`: le sue partite vengono copiate, i file restano dove sono e le partite aggiunte in seguito arrivano alla sincronizzazione successiva. Su un altro computer il file non c'è: la sincronizzazione lo dice e propone di ignorare la fonte su quel computer; *Database ▸ Gestisci fonti… ▸ Modifica…* sceglie di nuovo il file.
+- **File ChessBase**: un database ChessBase (`.cbh` e i suoi file) su questo computer. Scegli il file `.cbh`: le sue partite vengono copiate, i file restano dove sono e le partite aggiunte in seguito arrivano alla sincronizzazione successiva. Su un altro computer il file non c'è: la sincronizzazione lo dice e propone di ignorare la sorgente su quel computer; *Database ▸ Gestisci sorgenti… ▸ Modifica…* sceglie di nuovo il file.
 
-Le fonti vengono lette quando il database viene aperto e ogni venti minuti. Una partita non viene mai importata due volte. **Database ▸ Gestisci fonti…** sincronizza subito una fonte, la modifica, rifà l'accesso o la rimuove; le partite già importate restano.
+Le sorgenti vengono lette quando il database viene aperto e ogni venti minuti. Una partita non viene mai importata due volte. **Database ▸ Gestisci sorgenti…** sincronizza subito una sorgente, la modifica, rifà l'accesso o la rimuove; le partite già importate restano.
 
-Il nodo **Fonti** dell'albero elenca le partite di ogni fonte.
+Il nodo **Sorgenti** dell'albero elenca le partite di ogni sorgente.
 
 # Cestino {#trash}
 
@@ -209,7 +209,7 @@ La sincronizzazione tiene uguale la tua cartella Pragma — database e progetti 
 
 **Opzioni ▸ Impostazioni di sincronizzazione…** la imposta: un server **FTP** (anche con TLS), un server **WebDAV** o un **repository Git**. **Prova connessione** la verifica.
 
-**File ▸ Sincronizza ora** (Ctrl+Y, anche primo bottone della barra degli strumenti) fa tutto in ordine: legge le fonti, salva il progetto e scambia i file con il server. **Sincronizza prima di chiudere** lo fa ogni volta che esci.
+**File ▸ Sincronizza ora** (Ctrl+Y, anche primo bottone della barra degli strumenti) fa tutto in ordine: legge le sorgenti, salva il progetto e scambia i file con il server. **Sincronizza prima di chiudere** lo fa ogni volta che esci.
 
 La sincronizzazione non elimina niente di sua iniziativa: un database che manca da una parte viene copiato lì, e un database modificato su due computer viene unito partita per partita. Per liberarti di una partita usa il cestino, che gli altri computer seguono.
 

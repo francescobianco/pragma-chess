@@ -403,23 +403,23 @@ Il Nero ha catturato: %2</translation>
     <name>ConnectSourceWizard</name>
     <message>
         <source>Connect Source</source>
-        <translation>Collega fonte</translation>
+        <translation>Collega sorgente</translation>
     </message>
     <message>
         <source>Connect a Source to “%1”</source>
-        <translation>Collega una fonte a “%1”</translation>
+        <translation>Collega una sorgente a “%1”</translation>
     </message>
     <message>
         <source>Games from the source are added to this database and kept up to date in the background while it is open.</source>
-        <translation>Le partite della fonte vengono aggiunte a questo database e tenute aggiornate in background finché è aperto.</translation>
+        <translation>Le partite della sorgente vengono aggiunte a questo database e tenute aggiornate in background finché è aperto.</translation>
     </message>
     <message>
         <source>&amp;Source:</source>
-        <translation>&amp;Fonte:</translation>
+        <translation>&amp;Sorgente:</translation>
     </message>
     <message>
         <source>Source</source>
-        <translation>Fonte</translation>
+        <translation>Sorgente</translation>
     </message>
     <message>
         <source>Ready to Connect</source>
@@ -451,7 +451,7 @@ Il Nero ha catturato: %2</translation>
     </message>
     <message>
         <source>The %1 of &lt;b&gt;%2&lt;/b&gt; will be imported into &lt;b&gt;%3&lt;/b&gt;.&lt;br&gt;&lt;br&gt;The first import starts when you finish and runs in the background; new games keep arriving while the database is open. Sources can be removed or signed in again from Database ▸ Manage Sources.</source>
-        <translation>Le %1 di &lt;b&gt;%2&lt;/b&gt; verranno importate in &lt;b&gt;%3&lt;/b&gt;.&lt;br&gt;&lt;br&gt;La prima importazione inizia quando termini e prosegue in background; le nuove partite continuano ad arrivare finché il database è aperto. Le fonti possono essere rimosse o si può accedere di nuovo da Database ▸ Gestisci fonti.</translation>
+        <translation>Le %1 di &lt;b&gt;%2&lt;/b&gt; verranno importate in &lt;b&gt;%3&lt;/b&gt;.&lt;br&gt;&lt;br&gt;La prima importazione inizia quando termini e prosegue in background; le nuove partite continuano ad arrivare finché il database è aperto. Le sorgenti possono essere rimosse o si può accedere di nuovo da Database ▸ Gestisci sorgenti.</translation>
     </message>
 </context>
 <context>
@@ -549,7 +549,7 @@ Il Nero ha catturato: %2</translation>
     </message>
     <message>
         <source>Sources</source>
-        <translation>Fonti</translation>
+        <translation>Sorgenti</translation>
     </message>
     <message>
         <source>S&amp;ync Now</source>
@@ -557,11 +557,11 @@ Il Nero ha catturato: %2</translation>
     </message>
     <message>
         <source>Connect &amp;Source…</source>
-        <translation>Collega &amp;fonte…</translation>
+        <translation>Collega so&amp;rgente…</translation>
     </message>
     <message>
         <source>&amp;Manage Sources…</source>
-        <translation>&amp;Gestisci fonti…</translation>
+        <translation>&amp;Gestisci sorgenti…</translation>
     </message>
     <message>
         <source>Board</source>
@@ -1195,7 +1195,7 @@ Il Nero ha catturato: %2</translation>
     </message>
     <message>
         <source>Connect &amp;Source…</source>
-        <translation>Collega &amp;fonte…</translation>
+        <translation>Collega so&amp;rgente…</translation>
     </message>
     <message>
         <source>Import and keep in sync the games of a lichess.org or chess.com account</source>
@@ -1203,7 +1203,7 @@ Il Nero ha catturato: %2</translation>
     </message>
     <message>
         <source>&amp;Manage Sources…</source>
-        <translation>&amp;Gestisci fonti…</translation>
+        <translation>&amp;Gestisci sorgenti…</translation>
     </message>
     <message>
         <source>Database Se&amp;ttings…</source>
@@ -1631,11 +1631,11 @@ Il Nero ha catturato: %2</translation>
     </message>
     <message>
         <source>Connect Source</source>
-        <translation>Collega fonte</translation>
+        <translation>Collega sorgente</translation>
     </message>
     <message>
         <source>Could not connect the source: %1</source>
-        <translation>Impossibile collegare la fonte: %1</translation>
+        <translation>Impossibile collegare la sorgente: %1</translation>
     </message>
     <message>
         <source>Connected %1 to %2</source>
@@ -2055,19 +2055,19 @@ Non comparirà più in nessun elenco. Resta nel file finché il database non vie
     </message>
     <message>
         <source>Source Not Found</source>
-        <translation>Fonte non trovata</translation>
+        <translation>Sorgente non trovata</translation>
     </message>
     <message>
         <source>The source “%1” cannot be found: the file
 %2
 is not on this computer.</source>
-        <translation>La fonte “%1” non si trova: il file
+        <translation>La sorgente “%1” non si trova: il file
 %2
 non è su questo computer.</translation>
     </message>
     <message>
         <source>To fix it, open Database ▸ Manage Sources… and choose the file again, or remove the source.</source>
-        <translation>Per risolvere, apri Database ▸ Gestisci fonti… e scegli di nuovo il file, oppure rimuovi la fonte.</translation>
+        <translation>Per risolvere, apri Database ▸ Gestisci sorgenti… e scegli di nuovo il file, oppure rimuovi la sorgente.</translation>
     </message>
     <message>
         <source>Ignore</source>
@@ -2079,7 +2079,7 @@ non è su questo computer.</translation>
     </message>
     <message>
         <source>This computer stops looking for the file; the source stays in the database for the computers that have it</source>
-        <translation>Questo computer smette di cercare il file; la fonte resta nel database per i computer che lo hanno</translation>
+        <translation>Questo computer smette di cercare il file; la sorgente resta nel database per i computer che lo hanno</translation>
     </message>
     <message>
         <source>The move could not be saved in the database: %1</source>
@@ -2391,11 +2391,11 @@ non è su questo computer.</translation>
     </message>
     <message>
         <source>Sources of “%1”</source>
-        <translation>Fonti di “%1”</translation>
+        <translation>Sorgenti di “%1”</translation>
     </message>
     <message>
         <source>Source</source>
-        <translation>Fonte</translation>
+        <translation>Sorgente</translation>
     </message>
     <message>
         <source>Games</source>
@@ -2411,11 +2411,11 @@ non è su questo computer.</translation>
     </message>
     <message>
         <source>Sources</source>
-        <translation>Fonti</translation>
+        <translation>Sorgenti</translation>
     </message>
     <message>
         <source>&amp;Connect Source…</source>
-        <translation>&amp;Collega fonte…</translation>
+        <translation>&amp;Collega sorgente…</translation>
     </message>
     <message>
         <source>Syncing…</source>
@@ -2443,15 +2443,15 @@ non è su questo computer.</translation>
     </message>
     <message>
         <source>Edit Source</source>
-        <translation>Modifica fonte</translation>
+        <translation>Modifica sorgente</translation>
     </message>
     <message>
         <source>Could not save the source: %1</source>
-        <translation>Impossibile salvare la fonte: %1</translation>
+        <translation>Impossibile salvare la sorgente: %1</translation>
     </message>
     <message>
         <source>Remove Source</source>
-        <translation>Rimuovi fonte</translation>
+        <translation>Rimuovi sorgente</translation>
     </message>
     <message numerus="yes">
         <source>Remove “%1” from this database?
@@ -2468,7 +2468,7 @@ Le %n partite già importate restano nel database.</numerusform>
     </message>
     <message>
         <source>Could not remove the source: %1</source>
-        <translation>Impossibile rimuovere la fonte: %1</translation>
+        <translation>Impossibile rimuovere la sorgente: %1</translation>
     </message>
     <message>
         <source>Ignored on this computer</source>
@@ -3302,7 +3302,7 @@ Le %n partite già importate restano nel database.</numerusform>
     </message>
     <message>
         <source>The games are copied into this database; the ChessBase files stay where they are and are read again while the database is open, so games added to them later arrive too. On another computer the file will not be there: the sync says so and can leave the source alone there.</source>
-        <translation>Le partite vengono copiate in questo database; i file ChessBase restano dove sono e vengono riletti mentre il database è aperto, così arrivano anche le partite aggiunte in seguito. Su un altro computer il file non ci sarà: la sincronizzazione lo dice e può lasciar perdere la fonte lì.</translation>
+        <translation>Le partite vengono copiate in questo database; i file ChessBase restano dove sono e vengono riletti mentre il database è aperto, così arrivano anche le partite aggiunte in seguito. Su un altro computer il file non ci sarà: la sincronizzazione lo dice e può lasciar perdere la sorgente lì.</translation>
     </message>
     <message>
         <source>Choose the .cbh file of the ChessBase database.</source>
@@ -3335,7 +3335,7 @@ Le %n partite già importate restano nel database.</numerusform>
     <name>SourceSyncTask</name>
     <message>
         <source>Sources</source>
-        <translation>Fonti</translation>
+        <translation>Sorgenti</translation>
     </message>
 </context>
 <context>

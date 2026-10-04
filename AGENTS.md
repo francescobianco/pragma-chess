@@ -857,7 +857,7 @@ a platform; lichess.org for now, through its Board API, more to come.
   slide of the engine's, a refused move is taken back by rebuilding the
   game). The end (`onlineGameFinished`) writes the result and saves the game
   to the open database with players, ratings, "lichess.org rated/casual
-  game" and the game's URL as site. Play Online… and New Game stay enabled while it is on: both go through
+  game" and the game's URL as site. Play Online…, New Game and New Training… stay enabled while it is on: they go through
   `leaveOnlineThen`, which asks to Keep Playing or Resign the game in
   progress (a search is just cancelled) and starts the new game only once
   the resigned one has ended and been saved (`m_afterOnlineGame`), so the

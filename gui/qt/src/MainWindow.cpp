@@ -2782,6 +2782,11 @@ void MainWindow::startGame(const GameRecord &game)
 
 void MainWindow::newTraining(bool alwaysAsk)
 {
+    // Training is against the engine: an online game in progress is left first.
+    if (m_onlinePlay) {
+        leaveOnlineThen([this, alwaysAsk] { newTraining(alwaysAsk); });
+        return;
+    }
     using Choice = NewTrainingDialog::Choice;
     Choice choice = m_rememberedTraining.value_or(m_trainingSide == Side::White ? Choice::White : Choice::Black);
     if (alwaysAsk || !m_rememberedTraining) {
@@ -2956,8 +2961,9 @@ void MainWindow::setOnlinePlay(bool on)
         m_explainAction->setChecked(false);
         m_openingTreeDock->hide();
     }
-    for (QAction *action : {m_startEngineAction, m_explainAction, m_trainingModeAction, m_newTrainingAction,
-                            m_quickTrainingAction, m_openingTreeDock->toggleViewAction()})
+    // New Training stays available: like New Game, it asks about the game in progress first.
+    for (QAction *action : {m_startEngineAction, m_explainAction, m_trainingModeAction,
+                            m_openingTreeDock->toggleViewAction()})
         action->setEnabled(!on);
     m_bookPanel->setEnabled(!on);
     if (!on) {

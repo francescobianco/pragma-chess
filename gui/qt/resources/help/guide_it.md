@@ -146,7 +146,7 @@ Mentre Pragma Chess cerca un avversario e mentre giochi, è in **modalità gioco
 
 Spunta **Ricorda per questa sessione** e il bottone Gioca online della barra degli strumenti cerca un avversario con le stesse scelte senza chiedere; il menu chiede sempre.
 
-**Partita ▸ Gioca online…** durante una partita ne inizia una nuova online, e **Partita ▸ Nuova partita** una nuova partita da analizzare; entrambe chiedono prima se **continuare a giocare** la partita in corso o **abbandonarla** (se si sta ancora cercando un avversario, la ricerca si interrompe e basta). Scegliere **Motore ▸ Modalità gioco online** quando è attiva interrompe la ricerca, o abbandona la partita dopo averlo chiesto. Quando la partita finisce — scacco matto, abbandono, tempo, patta — il risultato viene scritto e la partita è salvata nel database aperto, con i giocatori, i loro punteggi e un collegamento alla partita.
+**Partita ▸ Gioca online…** durante una partita ne inizia una nuova online, **Partita ▸ Nuova partita** una nuova partita da analizzare e **Partita ▸ Nuovo allenamento…** una partita contro il motore; ciascuna chiede prima se **continuare a giocare** la partita in corso o **abbandonarla** (se si sta ancora cercando un avversario, la ricerca si interrompe e basta). Scegliere **Motore ▸ Modalità gioco online** quando è attiva interrompe la ricerca, o abbandona la partita dopo averlo chiesto. Quando la partita finisce — scacco matto, abbandono, tempo, patta — il risultato viene scritto e la partita è salvata nel database aperto, con i giocatori, i loro punteggi e un collegamento alla partita.
 
 # Libri delle aperture {#books}
 

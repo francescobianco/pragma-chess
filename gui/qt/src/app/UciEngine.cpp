@@ -75,6 +75,7 @@ void UciEngine::shutdown()
         m_process->kill();
     m_state = State::Stopped;
     m_pending.reset();
+    m_name.clear(); // The next engine says its own name.
 }
 
 bool UciEngine::isRunning() const

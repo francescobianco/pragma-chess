@@ -2676,10 +2676,22 @@ void MainWindow::selectEngine(const QString &id)
     const EngineProfile &profile = m_engines.resolve(id);
     if (profile.id == m_engineId)
         return;
+    // The names the training game may show for the engine, before they change:
+    // the one it gives itself, or that of its profile.
+    const QStringList oldNames{m_engine->name(), m_engineName, tr("Engine")};
     m_engineId = profile.id;
     m_engineName = profile.name;
     m_enginePanel->setEngineName(profile.name);
     updateResourceButtons();
+    if (m_trainingModeAction->isChecked()) {
+        // The engine plays the other side of the training game: it is the new one now.
+        GameRecord header = m_session->game();
+        QString &opponent = m_trainingSide == Side::White ? header.black : header.white;
+        if (oldNames.contains(opponent)) {
+            opponent = profile.name;
+            m_session->setHeader(header);
+        }
+    }
     const bool analyzing = m_startEngineAction->isChecked();
     m_trainingThinking = false; // A search in progress dies with the old engine.
     m_startEngineAction->setChecked(false);

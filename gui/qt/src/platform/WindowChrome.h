@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QList>
 #include <QObject>
 #include <QPoint>
 
@@ -42,6 +43,7 @@ private:
     void applyMargins();
     /// Takes the size grip off the main window's status bar: the frame resizes.
     void dropSizeGrip();
+    void placeWizardBodies();
     void paint();
     /// The panel inside the shadow, and its parts.
     QRect panelRect() const;
@@ -61,6 +63,9 @@ private:
     QWidget *m_window;
     /// The window has minimize and maximize besides close.
     bool m_mainWindow;
+    /// A QWizard lays its own body over the whole window, whatever the
+    /// contents margins: the bodies are put back inside the frame.
+    QList<QWidget *> m_wizardBodies;
     Button m_hovered = Button::None;
     Button m_pressed = Button::None;
     std::optional<QPoint> m_dragStart; // A press on the frame, until it moves far enough or lets go.

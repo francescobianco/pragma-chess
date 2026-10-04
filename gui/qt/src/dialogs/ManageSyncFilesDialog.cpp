@@ -1,5 +1,7 @@
 #include "ManageSyncFilesDialog.h"
 
+#include "widgets/PaddedHeaderView.h"
+
 #include "app/sync/FolderSync.h"
 
 #include <QDialogButtonBox>
@@ -50,6 +52,7 @@ ManageSyncFilesDialog::ManageSyncFilesDialog(FolderSync *sync, QWidget *parent)
                                 "every synced device, this computer included."));
     intro->setWordWrap(true);
 
+    PaddedHeaderView::install(m_files); // Room around titles and cells, as in the main window.
     m_files->setHeaderLabels({tr("File"), tr("Size"), tr("Modified"), tr("Device")});
     m_files->setRootIsDecorated(false);
     m_files->setUniformRowHeights(true);

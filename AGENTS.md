@@ -232,7 +232,7 @@ still down and the next click or double click lost), a double click
 maximizes the main window, the buttons do what they say. A window is polished after its
 native window exists, and Qt's Wayland window stays opaque whatever is asked
 later, so the chrome destroys that window and showing the widget makes it
-again, translucent. The title is the native window's, with "[*]" resolved. On
+again, translucent — asking the window for an alpha channel first, or it is made again with its old opaque format and the compositor shows the shadow's margin as a hole (a `QWizard`, whose native window exists before it is polished). A `QWizard` also lays its body over the whole window, whatever the contents margins: the chrome puts that body back inside the frame. The title is the native window's, with "[*]" resolved. On
 a dark palette the panel's edge is lighter instead of darker, or it would
 vanish. `QFileDialog`s are skipped by name: on this desktop they are GTK's own
 windows, and dressing the Qt widget behind one crashed the main window's

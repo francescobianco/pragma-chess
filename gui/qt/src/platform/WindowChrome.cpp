@@ -9,7 +9,9 @@
 #include <QScreen>
 #include <QPainterPath>
 #include <QStatusBar>
+#include <QSurfaceFormat>
 #include <QWindow>
+#include <QWizard>
 
 namespace {
 
@@ -53,6 +55,12 @@ WindowChrome::WindowChrome(QWidget *window)
     if (QWindow *native = window->windowHandle()) {
         window->overrideWindowFlags(flags);
         native->setFlags(flags);
+        // The window keeps its surface format when it is made again: without
+        // an alpha channel the compositor takes it as opaque and the shadow's
+        // margin shows as a hole (a QWizard is made before it is polished).
+        QSurfaceFormat format = native->format();
+        format.setAlphaBufferSize(8);
+        native->setFormat(format);
         // The native window was made opaque and stays so whatever is asked
         // later: drop it, and showing the window makes it again, translucent.
         native->destroy();
@@ -83,6 +91,30 @@ WindowChrome::WindowChrome(QWidget *window)
     }
     window->setMouseTracking(true);
     window->installEventFilter(this);
+    if (qobject_cast<QWizard *>(window)) {
+        for (QWidget *child : window->findChildren<QWidget *>(Qt::FindDirectChildrenOnly)) {
+            if (child->isWindow())
+                continue;
+            m_wizardBodies.append(child);
+            child->installEventFilter(this);
+        }
+        placeWizardBodies();
+    }
+}
+
+void WindowChrome::placeWizardBodies()
+{
+    const QRect inside = m_window->contentsRect();
+    const QMargins margins = m_window->contentsMargins();
+    const QSize frame(margins.left() + margins.right(), margins.top() + margins.bottom());
+    for (QWidget *body : std::as_const(m_wizardBodies)) {
+        if (body->geometry() != inside)
+            body->setGeometry(inside);
+        // The wizard's own minimum is its body's: the frame comes on top.
+        const QSize least = body->minimumSizeHint().expandedTo(body->minimumSize()) + frame;
+        if (m_window->minimumWidth() < least.width() || m_window->minimumHeight() < least.height())
+            m_window->setMinimumSize(m_window->minimumSize().expandedTo(least));
+    }
 }
 
 bool WindowChrome::isMaximized() const
@@ -184,8 +216,13 @@ Qt::Edges WindowChrome::edgesAt(const QPoint &position) const
 
 bool WindowChrome::eventFilter(QObject *watched, QEvent *event)
 {
-    if (watched != m_window)
+    if (watched != m_window) {
+        // A wizard's body, moved or resized over the frame by the wizard.
+        if ((event->type() == QEvent::Resize || event->type() == QEvent::Move || event->type() == QEvent::LayoutRequest)
+            && m_wizardBodies.contains(static_cast<QWidget *>(watched)))
+            QMetaObject::invokeMethod(this, [this] { placeWizardBodies(); }, Qt::QueuedConnection);
         return false;
+    }
     switch (event->type()) {
     case QEvent::Paint:
         if (!isFullScreen())
@@ -193,6 +230,7 @@ bool WindowChrome::eventFilter(QObject *watched, QEvent *event)
         return false;
     case QEvent::WindowStateChange:
         applyMargins();
+        placeWizardBodies();
         m_window->update();
         return false;
     case QEvent::Show:

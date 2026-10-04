@@ -1145,6 +1145,8 @@ void MainWindow::createDocks()
     m_sidebar->splitDockWidget(m_movesDock, m_openingTreeDock, Qt::Horizontal);
 
     m_gameView = new QTableView;
+    // The column titles with the padding of the Moves and Opening Tree headers.
+    PaddedHeaderView::install(m_gameView, false);
     m_gameView->setModel(m_gameListProxy);
     m_gameView->setFont(FigurineFont::apply(m_gameView->font())); // The Line column shows moves.
     m_gameView->setSortingEnabled(true);

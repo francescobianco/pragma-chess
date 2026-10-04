@@ -1,5 +1,7 @@
 #include "ConnectMobileDialog.h"
 
+#include "widgets/PaddedHeaderView.h"
+
 #include "app/phone/PhoneLink.h"
 
 #include <QApplication>
@@ -82,6 +84,7 @@ ConnectMobileDialog::ConnectMobileDialog(PhoneLink *link, QWidget *parent)
     QFont bold = devicesTitle->font();
     bold.setBold(true);
     devicesTitle->setFont(bold);
+    PaddedHeaderView::install(m_devices); // Room around titles and cells, as in the main window.
     m_devices->setColumnCount(4);
     m_devices->setHeaderLabels({tr("Name"), tr("Paired"), tr("Last Sync"), QString()});
     m_devices->setRootIsDecorated(false);

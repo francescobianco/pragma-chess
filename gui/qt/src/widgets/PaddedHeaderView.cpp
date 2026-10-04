@@ -1,7 +1,11 @@
 #include "PaddedHeaderView.h"
 
+#include "PaddedItemDelegate.h"
+
 #include <QPainter>
 #include <QStyleOptionHeader>
+#include <QTableView>
+#include <QTreeView>
 
 PaddedHeaderView::PaddedHeaderView(Qt::Orientation orientation, int vertical, int horizontal, QWidget *parent)
     : QHeaderView(orientation, parent)
@@ -42,4 +46,36 @@ void PaddedHeaderView::paintSection(QPainter *painter, const QRect &rect, int lo
 QSize PaddedHeaderView::sectionSizeFromContents(int logicalIndex) const
 {
     return QHeaderView::sectionSizeFromContents(logicalIndex) + QSize(2 * m_horizontal, 2 * m_vertical);
+}
+
+namespace {
+
+/// A padded header with the settings of `old`, the header it replaces.
+PaddedHeaderView *paddedLike(const QHeaderView *old, QWidget *parent)
+{
+    auto *header = new PaddedHeaderView(old->orientation(), CellPadding::vertical, CellPadding::horizontal, parent);
+    header->setStretchLastSection(old->stretchLastSection());
+    header->setSectionsMovable(old->sectionsMovable());
+    header->setSectionsClickable(old->sectionsClickable());
+    header->setHighlightSections(old->highlightSections());
+    header->setDefaultAlignment(old->defaultAlignment());
+    header->setSortIndicatorShown(old->isSortIndicatorShown());
+    header->setVisible(!old->isHidden());
+    return header;
+}
+
+} // namespace
+
+void PaddedHeaderView::install(QTreeView *view, bool cells)
+{
+    view->setHeader(paddedLike(view->header(), view));
+    if (cells)
+        view->setItemDelegate(new PaddedItemDelegate(CellPadding::vertical, CellPadding::horizontal, view));
+}
+
+void PaddedHeaderView::install(QTableView *view, bool cells)
+{
+    view->setHorizontalHeader(paddedLike(view->horizontalHeader(), view));
+    if (cells)
+        view->setItemDelegate(new PaddedItemDelegate(CellPadding::vertical, CellPadding::horizontal, view));
 }

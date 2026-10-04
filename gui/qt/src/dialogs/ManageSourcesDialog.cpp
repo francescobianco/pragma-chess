@@ -1,5 +1,7 @@
 #include "ManageSourcesDialog.h"
 
+#include "widgets/PaddedHeaderView.h"
+
 #include "SourceSettingsWidget.h"
 #include "app/GameDatabase.h"
 #include "app/sources/SourceCatalog.h"
@@ -42,6 +44,7 @@ ManageSourcesDialog::ManageSourcesDialog(GameDatabase *database, SourceSync *syn
     setWindowTitle(tr("Sources of “%1”").arg(database->name()));
     resize(760, 360);
 
+    PaddedHeaderView::install(m_list); // Room around titles and cells, as in the main window.
     m_list->setRootIsDecorated(false);
     m_list->setUniformRowHeights(true);
     m_list->setAlternatingRowColors(true);

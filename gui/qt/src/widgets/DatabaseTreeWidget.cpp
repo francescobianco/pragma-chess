@@ -1,5 +1,7 @@
 #include "DatabaseTreeWidget.h"
 
+#include "PaddedItemDelegate.h"
+
 #include "app/DatabaseOutline.h"
 #include "app/GameDatabase.h"
 #include "app/sources/SourceCatalog.h"
@@ -30,6 +32,8 @@ DatabaseTreeWidget::DatabaseTreeWidget(QWidget *parent)
     header()->setSectionResizeMode(0, QHeaderView::Stretch);
     header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     setUniformRowHeights(true);
+    // A little room between the entries, the least that keeps them apart.
+    setItemDelegate(new PaddedItemDelegate(2, 2, this));
     setAccessibleName(tr("Database"));
     m_refreshTimer->setSingleShot(true);
     m_refreshTimer->setInterval(700);

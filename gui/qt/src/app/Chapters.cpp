@@ -96,6 +96,21 @@ void ChapterBook::removeEmptyGames()
     }
 }
 
+void ChapterBook::moveGame(int from, int to)
+{
+    Chapter &open = chapter();
+    if (from < 0 || from >= open.games.size() || to < 0 || to >= open.games.size() || from == to)
+        return;
+    const int current = open.currentGame;
+    open.games.move(from, to);
+    if (current == from)
+        open.currentGame = to;
+    else if (from < current && to >= current)
+        open.currentGame = current - 1;
+    else if (from > current && to <= current)
+        open.currentGame = current + 1;
+}
+
 int ChapterBook::findGame(const QString &uid) const
 {
     if (uid.isEmpty())

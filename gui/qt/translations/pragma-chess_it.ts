@@ -2503,6 +2503,10 @@ non è su questo computer.</translation>
         <source>A new game at the end of the chapter, from the starting position; the numbering starts again</source>
         <translation>Una nuova partita in fondo al capitolo, dalla posizione iniziale; la numerazione riparte</translation>
     </message>
+    <message>
+        <source>Move G&amp;ame</source>
+        <translation>Sposta p&amp;artita</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

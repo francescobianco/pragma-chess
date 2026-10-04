@@ -72,6 +72,9 @@ public:
     /// Takes away the empty games of the open chapter (breaks with nothing
     /// after them) but the current one, which keeps its place in the list.
     void removeEmptyGames();
+    /// Moves a game of the open chapter to the place `to`; the current game
+    /// stays current wherever it goes.
+    void moveGame(int from, int to);
     /// The game of the open chapter stored under `uid`, or -1.
     int findGame(const QString &uid) const;
 

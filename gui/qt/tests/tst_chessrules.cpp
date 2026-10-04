@@ -2475,6 +2475,16 @@ private Q_SLOTS:
         QCOMPARE(book.chapter().games.size(), 2);
         book.insertGame(0); // As before: a new game right after the first, current.
         QCOMPARE(book.chapter().currentGame, 1);
+        // Games move, and the one on the board stays the current one.
+        const QString stored = book.chapter().games.at(0).game.uid;
+        book.moveGame(0, 2);
+        QCOMPARE(book.chapter().games.at(2).game.uid, stored);
+        QCOMPARE(book.chapter().currentGame, 0);
+        book.moveGame(0, 1);
+        QCOMPARE(book.chapter().currentGame, 1);
+        book.moveGame(2, 0);
+        QCOMPARE(book.chapter().games.at(0).game.uid, stored);
+        QCOMPARE(book.chapter().currentGame, 2);
 
         // Chapters: added at the end, moved with the open one followed, never none.
         QCOMPARE(book.addChapter(QString()), 1);

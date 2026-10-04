@@ -1540,6 +1540,18 @@ void MainWindow::showMoveListMenu(const QPoint &position)
             chapterChanged();
         });
     }
+    // The game the place belongs to, moved in the chapter.
+    const int games = int(m_chapters.chapter().games.size());
+    QMenu *moveGame = menu.addMenu(tr("Move G&ame"));
+    moveGame->setEnabled(games > 1);
+    const auto gameTo = [this, game](int to) {
+        m_chapters.moveGame(game, to);
+        chapterChanged();
+    };
+    moveGame->addAction(tr("To the &Top"), this, [gameTo] { gameTo(0); })->setEnabled(game > 0);
+    moveGame->addAction(tr("&Up"), this, [gameTo, game] { gameTo(game - 1); })->setEnabled(game > 0);
+    moveGame->addAction(tr("&Down"), this, [gameTo, game] { gameTo(game + 1); })->setEnabled(game < games - 1);
+    moveGame->addAction(tr("To the &Bottom"), this, [gameTo, games] { gameTo(games - 1); })->setEnabled(game < games - 1);
     QAction *gameBreak = menu.addAction(tr("Insert &Game Break"), this, &MainWindow::insertGameBreak);
     gameBreak->setToolTip(tr("A new game at the end of the chapter, from the starting position; the numbering starts again"));
     gameBreak->setEnabled(!m_onlinePlay);

@@ -478,7 +478,8 @@ tools this is a study or a chess book.
   chapter (`relinkChapterGame`). Insert Game Break (`insertGameBreak`,
   `ChapterBook::breakGame`) is a new empty game at the end of the chapter
   (every game but the last has a break after it already), or the empty one
-  there; empty games but the current one are removed
+  there; Move Game reorders them (`moveGame`, the current game followed);
+  empty games but the current one are removed
   (`removeEmptyGames`) when the board leaves a game and when a project
   opens. While
   playing online the board cannot leave its game (`canLeaveGame`).

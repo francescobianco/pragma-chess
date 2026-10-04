@@ -61,7 +61,7 @@ advert, and each needs a maintainer: us, until someone else steps in.
 | **awesome-chess** lists on GitHub | <https://github.com/mbiesiad/awesome-chess>: PR [#59](https://github.com/mbiesiad/awesome-chess/pull/59) (Projects). <https://github.com/mersesarvari/awesome-chess>: issue [#2](https://github.com/mersesarvari/awesome-chess/issues/2) (its directory is a wiki). <https://github.com/atamano/awesome-chess> (Desktop GUIs, lists Scid/ChessX/En Croissant) requires ~50 stars and 3 months: submit then. <https://github.com/hkirat/awesome-chess> has no software section: skip | ✅ 2 of 4 · ☐ atamano at 50★ |
 | **awesome-italia-opensource** | PR [#222](https://github.com/italia-opensource/awesome-italia-opensource/pull/222) (`awesome/opensource/data/pragma-chess.json`) | ✅ PR open 2026-10-04 |
 | **AlternativeTo** | Add Pragma Chess as an alternative to ChessBase, Scid vs. PC, ChessX, En Croissant (<https://alternativeto.net/software/new/>) | ☐ |
-| **OpenSourceAlternative.to** | Form at <https://www.opensourcealternative.to/submit>, no account: email, site, name, repository, proprietary site and name (ChessBase, https://shop.chessbase.com/en/categories/chessbase-cb). Free = waitlist of 6+ months; 48 h review costs $29. Needs the author's email, so it is sent by hand | ☐ |
+| **OpenSourceAlternative.to** | Submitted to the free waitlist (6+ months; the 48 h review costs $29) as an alternative to ChessBase: <https://www.opensourcealternative.to/project/pragma-chess> says "under review" | ✅ 2026-10-04 · waiting |
 | **Flathub / winget / Homebrew pages** | Come with section 2: they are the directories most people use | — |
 | **FossHub, Softpedia, Uptodown** | Submit the Windows installer; they mirror and list. Softpedia reviews are read by Windows users | ☐ |
 | **SourceForge mirror** | Optional: a project page mirroring the releases gives another download channel and listing | ☐ |
@@ -220,3 +220,4 @@ books and lichess.org play; Windows, macOS, Linux.`
 | 2026-10-04 | winget | https://github.com/microsoft/winget-pkgs/pull/446459 | New package 0.2.0 |
 | 2026-10-04 | Flathub | packaging/flatpak/ | manifest ready, not yet built or submitted |
 | 2026-10-04 | Clip | https://yafb.net/pragma-chess/assets/pragma-chess-explain.webm | 40 s, Explain on the Opera game; the site's hero |
+| 2026-10-04 | OpenSourceAlternative.to | https://www.opensourcealternative.to/project/pragma-chess | waitlist, alternative to ChessBase |

@@ -72,6 +72,8 @@ Move a piece by dragging it, or by clicking it and then its square. A pawn reach
 
 Play a move that is not the next one of the game and it becomes a **variation**: the game keeps its line, and the new one appears in the Moves panel under the move it replaces. A game stored in the database is saved at once, variations included.
 
+**Game ▸ Set Up Position…** opens a board to draw a position on: choose a piece on the right and click the squares to put it down (a click on the same piece takes it off), drag a piece to move it or off the board to take it away, right-click a square to empty it. Set the side to move, castling, en passant and the move number, or type a FEN; **Starting Position**, **Clear Board** and **Flip Board** help. OK is enabled only for a position a game can start from, and the text below the board says what is wrong. The position replaces the game on the board: if that game has moves not saved in a database, you are asked to **Discard** them, save them to the open database, or **Save to Another Database…** (the open one stays open). An online game in progress is kept or resigned first.
+
 **Edit ▸ Copy** puts on the clipboard the moves, the game as PGN, the position as FEN (Ctrl+Shift+C), the engine line or the explanation. **Edit ▸ Paste** takes what is on the clipboard: **Paste FEN** (Ctrl+Shift+V) sets up the position, **Paste Line** starts a new game with the moves (PGN, moves with or without numbers, or UCI), and **Paste Line from Current Position** (Ctrl+Alt+V) plays the moves from the position on the board, as if you played them: at the end of the game they are added, elsewhere they become a variation.
 
 # Moves and annotations {#moves}

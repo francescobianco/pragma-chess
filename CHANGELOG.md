@@ -8,6 +8,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Game ▸ Set Up Position… draws a position on a board — pieces, side to
+  move, castling, en passant, move number, or a FEN — and starts a game from
+  it. Moves on the board not saved yet can be discarded, saved to the open
+  database or saved to another one, which is not opened.
 - Edit ▸ Paste is a menu: Paste FEN, Paste Line (a new game with the moves
   on the clipboard) and Paste Line from Current Position (Ctrl+Alt+V, plays
   them from the board: added at the end of the game, a variation elsewhere).

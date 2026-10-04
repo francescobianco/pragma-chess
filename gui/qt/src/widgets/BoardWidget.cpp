@@ -301,6 +301,16 @@ QSize BoardWidget::minimumSizeHint() const
     return {200, 200};
 }
 
+QColor BoardWidget::lightSquareColor()
+{
+    return kLightSquare;
+}
+
+QColor BoardWidget::darkSquareColor()
+{
+    return kDarkSquare;
+}
+
 int BoardWidget::sideForAvailable(int available)
 {
     // Squares are whole pixels so that edges stay crisp.

@@ -155,6 +155,16 @@ private:
     /// Opens `game` as the game being entered, unlinked from the database.
     void startGame(const GameRecord &game);
     void saveGameToDatabase();
+    /// Game ▸ Set Up Position…: draws a position and starts a game from it,
+    /// after asking what to do with moves on the board not saved yet.
+    void setUpPosition();
+    /// Before the game on the board is replaced: when it has moves not in a
+    /// database, asks to discard them or save them, here or in another
+    /// database. False when the user cancels.
+    bool keepUnsavedGame(const QString &title);
+    /// Saves the game on the board to a database chosen by the user, without
+    /// opening it. False when nothing was saved.
+    bool saveGameToAnotherDatabase();
     /// Plays the move the user made on the board, asking for the promotion piece if needed.
     void playBoardMove(int from, int to, const QPoint &globalPosition);
     void updateGameActions();
@@ -490,6 +500,7 @@ private:
     QAction *m_newGameAction;
     QAction *m_newTrainingAction;
     QAction *m_playOnlineAction;
+    QAction *m_setUpPositionAction;
     QAction *m_quickOnlineAction;
     std::optional<LichessBoardClient::Seek> m_rememberedOnline; // "Remember for this session", never saved.
     /// Run once the online game resigned by leaveOnlineThen has ended and been saved.

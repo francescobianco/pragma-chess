@@ -159,6 +159,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/PlayerRole.cpp
     src/app/PlayerRole.h
     src/app/PolyglotBook.cpp
+    src/app/PositionSetup.cpp
+    src/app/PositionSetup.h
     src/app/PolyglotBook.h
     src/app/PolyglotRandom.cpp
     src/app/PositionIndex.cpp
@@ -303,6 +305,8 @@ qt_add_executable(pragma-chess
     src/dialogs/NewTrainingDialog.cpp
     src/dialogs/NewTrainingDialog.h
     src/dialogs/PlayOnlineDialog.cpp
+    src/dialogs/PositionSetupDialog.cpp
+    src/dialogs/PositionSetupDialog.h
     src/dialogs/PlayOnlineDialog.h
     src/dialogs/SyncDialog.cpp
     src/dialogs/SyncDialog.h
@@ -351,6 +355,8 @@ qt_add_executable(pragma-chess
     src/widgets/PaddedStatusBar.cpp
     src/widgets/PaddedStatusBar.h
     src/widgets/PieceRenderer.cpp
+    src/widgets/PositionEditorWidget.cpp
+    src/widgets/PositionEditorWidget.h
     src/widgets/PieceRenderer.h
     src/widgets/CentralArea.cpp
     src/widgets/DatabaseTreeWidget.cpp

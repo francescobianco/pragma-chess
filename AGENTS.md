@@ -443,6 +443,19 @@ painted as a menu item, since QMenu draws an item in one font).
   `GameListModel::columnKey`): right-click a column title to Hide it or Show
   a hidden one. The order and widths of the columns stay in the session.
 
+## Set Up Position
+
+Game ▸ Set Up Position… (`dialogs/PositionSetupDialog`, the board is
+`widgets/PositionEditorWidget`) edits a `PositionSetup` (pure,
+unit-tested: pieces, side, castling the placement allows, en passant
+squares, FEN, `problem()` for a position no game can start from) and
+starts a game from its FEN. Before the board is replaced,
+`MainWindow::keepUnsavedGame` asks about moves not in a database: Discard,
+save to the open database, or `saveGameToAnotherDatabase` (opens the file
+on its own, the open database does not change). Use it for anything else
+that replaces the game on the board. An online game goes through
+`leaveOnlineThen` first.
+
 ## Trash
 
 Right-clicking a game of the list offers Move Game to Trash; the tree's last

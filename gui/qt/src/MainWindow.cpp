@@ -20,6 +20,7 @@
 #include "dialogs/ManageSourcesDialog.h"
 #include "dialogs/NewGameChoiceDialog.h"
 #include "dialogs/NewTrainingDialog.h"
+#include "dialogs/PositionSetupDialog.h"
 #include "dialogs/PlayOnlineDialog.h"
 #include "dialogs/ManageSyncFilesDialog.h"
 #include "dialogs/SyncDialog.h"
@@ -748,6 +749,10 @@ void MainWindow::createActions()
     m_quickOnlineAction->setToolTip(m_playOnlineAction->toolTip());
     connect(m_quickOnlineAction, &QAction::triggered, this, [this] { playOnline(false); });
 
+    m_setUpPositionAction = new QAction(tr("Set &Up Position…"), this);
+    m_setUpPositionAction->setToolTip(tr("Draw a position on a board and start a game from it"));
+    connect(m_setUpPositionAction, &QAction::triggered, this, &MainWindow::setUpPosition);
+
     m_trainingModeAction = new QAction(tr("&Training Mode"), this);
     m_trainingModeAction->setCheckable(true);
     m_trainingModeAction->setToolTip(tr("The engine answers as the other colour and hides its line while you think"));
@@ -883,6 +888,7 @@ void MainWindow::createMenus()
     game->addAction(m_newGameAction);
     game->addAction(m_newTrainingAction);
     game->addAction(m_playOnlineAction);
+    game->addAction(m_setUpPositionAction);
     game->addAction(m_saveGameAction);
     game->addSeparator();
     game->addAction(m_firstMoveAction);
@@ -2841,6 +2847,80 @@ void MainWindow::newGame()
     game.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
     startGame(game);
     statusBar()->showMessage(tr("New game: enter the moves on the board"), 5000);
+}
+
+void MainWindow::setUpPosition()
+{
+    // An online game in progress is kept, or resigned and saved, first.
+    if (m_onlinePlay) {
+        leaveOnlineThen([this] { setUpPosition(); });
+        return;
+    }
+    PositionSetupDialog dialog(m_session->position().fen(), m_flipBoardAction->isChecked(), this);
+    if (dialog.exec() != QDialog::Accepted || !keepUnsavedGame(tr("Set Up Position")))
+        return;
+    m_trainingModeAction->setChecked(false); // A position set up is studied, not played against the engine.
+    GameRecord game;
+    const QString fen = dialog.fen();
+    if (fen != ChessPosition::startingPosition().fen())
+        game.startFen = fen;
+    game.result = QStringLiteral("*");
+    game.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
+    startGame(game);
+    statusBar()->showMessage(tr("Position set up: enter the moves on the board"), 5000);
+}
+
+bool MainWindow::keepUnsavedGame(const QString &title)
+{
+    // A stored game is saved already, and a board without moves has nothing to lose.
+    if (m_openGameIndex >= 0 || m_session->plyCount() == 0)
+        return true;
+    QMessageBox box(QMessageBox::Question, title,
+                    tr("The game on the board has moves that are not saved in a database."), QMessageBox::NoButton,
+                    this);
+    box.setInformativeText(tr("Save them before the board changes, or discard them?"));
+    QPushButton *saveHere = nullptr;
+    if (m_database)
+        saveHere = box.addButton(tr("Save to “%1”").arg(m_database->name()), QMessageBox::AcceptRole);
+    QPushButton *saveElsewhere = box.addButton(tr("Save to Another Database…"), QMessageBox::AcceptRole);
+    saveElsewhere->setToolTip(tr("The game goes into the database you choose; the open database stays open"));
+    QPushButton *discard = box.addButton(tr("Discard"), QMessageBox::DestructiveRole);
+    QPushButton *cancel = box.addButton(QMessageBox::Cancel);
+    box.setDefaultButton(saveHere ? saveHere : saveElsewhere);
+    box.setEscapeButton(cancel);
+    box.exec();
+    if (box.clickedButton() == discard)
+        return true;
+    if (saveHere && box.clickedButton() == saveHere) {
+        saveGameToDatabase();
+        return m_openGameIndex >= 0;
+    }
+    if (box.clickedButton() == saveElsewhere)
+        return saveGameToAnotherDatabase();
+    return false;
+}
+
+bool MainWindow::saveGameToAnotherDatabase()
+{
+    UserFolders::ensureDatabasesDir();
+    const QString path = QFileDialog::getOpenFileName(this, tr("Save to Another Database"),
+                                                      UserFolders::databasesDir(),
+                                                      tr("Pragma databases (*.%1)").arg(QLatin1String(UserFolders::databaseSuffix)));
+    if (path.isEmpty())
+        return false;
+    // The open one, chosen from the file dialog: saved as usual, its list follows.
+    if (m_database && QFileInfo(path) == QFileInfo(m_database->location())) {
+        saveGameToDatabase();
+        return m_openGameIndex >= 0;
+    }
+    QString error;
+    const std::unique_ptr<SqliteGameDatabase> other = SqliteGameDatabase::open(path, &error);
+    if (!other || other->addGame(m_session->game(), &error) < 0) {
+        QMessageBox::warning(this, tr("Save Game"), tr("Could not save the game: %1").arg(error));
+        return false;
+    }
+    statusBar()->showMessage(tr("Game saved to %1").arg(other->name()), 3000);
+    return true;
 }
 
 void MainWindow::startGame(const GameRecord &game)

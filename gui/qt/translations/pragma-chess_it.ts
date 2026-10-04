@@ -2380,6 +2380,54 @@ non è su questo computer.</translation>
         <source>The moves could not be saved in the database: %1</source>
         <translation>Impossibile salvare le mosse nel database: %1</translation>
     </message>
+    <message>
+        <source>Set &amp;Up Position…</source>
+        <translation>Inserisci &amp;posizione…</translation>
+    </message>
+    <message>
+        <source>Draw a position on a board and start a game from it</source>
+        <translation>Disegna una posizione su una scacchiera e comincia una partita da lì</translation>
+    </message>
+    <message>
+        <source>Set Up Position</source>
+        <translation>Inserisci posizione</translation>
+    </message>
+    <message>
+        <source>Position set up: enter the moves on the board</source>
+        <translation>Posizione inserita: gioca le mosse sulla scacchiera</translation>
+    </message>
+    <message>
+        <source>The game on the board has moves that are not saved in a database.</source>
+        <translation>La partita sulla scacchiera ha mosse non salvate in un database.</translation>
+    </message>
+    <message>
+        <source>Save them before the board changes, or discard them?</source>
+        <translation>Salvarle prima che la scacchiera cambi, o abbandonarle?</translation>
+    </message>
+    <message>
+        <source>Save to “%1”</source>
+        <translation>Salva in “%1”</translation>
+    </message>
+    <message>
+        <source>Save to Another Database…</source>
+        <translation>Salva in un altro database…</translation>
+    </message>
+    <message>
+        <source>The game goes into the database you choose; the open database stays open</source>
+        <translation>La partita va nel database che scegli; il database aperto resta aperto</translation>
+    </message>
+    <message>
+        <source>Discard</source>
+        <translation>Abbandona</translation>
+    </message>
+    <message>
+        <source>Save to Another Database</source>
+        <translation>Salva in un altro database</translation>
+    </message>
+    <message>
+        <source>Pragma databases (*.%1)</source>
+        <translation>Database Pragma (*.%1)</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>
@@ -3199,6 +3247,124 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>The Play Online button of the toolbar looks for an opponent with these choices without asking, until Pragma Chess is closed; the menu always asks</source>
         <translation>Il bottone Gioca online della barra degli strumenti cerca un avversario con queste scelte senza chiedere, finché Pragma Chess non viene chiuso; il menu chiede sempre</translation>
+    </message>
+</context>
+<context>
+    <name>PositionSetup</name>
+    <message>
+        <source>White has no king.</source>
+        <translation>Il Bianco non ha il re.</translation>
+    </message>
+    <message>
+        <source>White has more than one king.</source>
+        <translation>Il Bianco ha più di un re.</translation>
+    </message>
+    <message>
+        <source>Black has no king.</source>
+        <translation>Il Nero non ha il re.</translation>
+    </message>
+    <message>
+        <source>Black has more than one king.</source>
+        <translation>Il Nero ha più di un re.</translation>
+    </message>
+    <message>
+        <source>A pawn cannot stand on the first or the last rank.</source>
+        <translation>Un pedone non può stare sulla prima o sull&apos;ultima traversa.</translation>
+    </message>
+    <message>
+        <source>A side cannot have more than eight pawns.</source>
+        <translation>Un colore non può avere più di otto pedoni.</translation>
+    </message>
+    <message>
+        <source>A side cannot have more than sixteen pieces.</source>
+        <translation>Un colore non può avere più di sedici pezzi.</translation>
+    </message>
+    <message>
+        <source>Black is in check, but it is White to move.</source>
+        <translation>Il Nero è sotto scacco, ma tocca al Bianco.</translation>
+    </message>
+    <message>
+        <source>White is in check, but it is Black to move.</source>
+        <translation>Il Bianco è sotto scacco, ma tocca al Nero.</translation>
+    </message>
+</context>
+<context>
+    <name>PositionSetupDialog</name>
+    <message>
+        <source>Set Up Position</source>
+        <translation>Inserisci posizione</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Togli</translation>
+    </message>
+    <message>
+        <source>A click takes the piece off the square. A right click or dragging a piece off the board does it too.</source>
+        <translation>Un clic toglie il pezzo dalla casa. Lo fanno anche il tasto destro o trascinare un pezzo fuori dalla scacchiera.</translation>
+    </message>
+    <message>
+        <source>Side to move</source>
+        <translation>Tratto</translation>
+    </message>
+    <message>
+        <source>&amp;White</source>
+        <translation>&amp;Bianco</translation>
+    </message>
+    <message>
+        <source>Blac&amp;k</source>
+        <translation>&amp;Nero</translation>
+    </message>
+    <message>
+        <source>Castling</source>
+        <translation>Arrocco</translation>
+    </message>
+    <message>
+        <source>White O-O</source>
+        <translation>Bianco O-O</translation>
+    </message>
+    <message>
+        <source>White O-O-O</source>
+        <translation>Bianco O-O-O</translation>
+    </message>
+    <message>
+        <source>Black O-O</source>
+        <translation>Nero O-O</translation>
+    </message>
+    <message>
+        <source>Black O-O-O</source>
+        <translation>Nero O-O-O</translation>
+    </message>
+    <message>
+        <source>&amp;En passant:</source>
+        <translation>&amp;En passant:</translation>
+    </message>
+    <message>
+        <source>&amp;Move number:</source>
+        <translation>Numero di &amp;mossa:</translation>
+    </message>
+    <message>
+        <source>&amp;Starting Position</source>
+        <translation>Posizione &amp;iniziale</translation>
+    </message>
+    <message>
+        <source>&amp;Clear Board</source>
+        <translation>&amp;Svuota scacchiera</translation>
+    </message>
+    <message>
+        <source>&amp;Flip Board</source>
+        <translation>&amp;Gira scacchiera</translation>
+    </message>
+    <message>
+        <source>Type or paste a FEN to set up its position</source>
+        <translation>Scrivi o incolla un FEN per inserire la sua posizione</translation>
+    </message>
+    <message>
+        <source>FE&amp;N:</source>
+        <translation>FE&amp;N:</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>Nessuno</translation>
     </message>
 </context>
 <context>

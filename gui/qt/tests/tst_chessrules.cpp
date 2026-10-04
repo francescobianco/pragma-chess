@@ -39,6 +39,7 @@
 #include "app/sync/FolderSync.h"
 #include "app/sync/GitStore.h"
 #include "app/sync/SyncManifest.h"
+#include "app/PositionSetup.h"
 #include "app/UserFolders.h"
 
 #include <QCoreApplication>
@@ -2311,6 +2312,55 @@ private Q_SLOTS:
                 QCOMPARE(second->gameCount(), 1);
             }
         }
+    }
+
+    void setsUpPositions()
+    {
+        // The starting position goes round unchanged.
+        const QString start = QStringLiteral("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        QCOMPARE(PositionSetup::startingPosition().fen(), start);
+        QVERIFY(PositionSetup::startingPosition().problem().isEmpty());
+
+        // An empty board needs its kings.
+        PositionSetup setup = PositionSetup::empty();
+        QVERIFY(!setup.problem().isEmpty());
+        setup.setPiece(BoardState::squareFromName(u"e1"), {PieceType::King, Side::White});
+        setup.setPiece(BoardState::squareFromName(u"e8"), {PieceType::King, Side::Black});
+        QVERIFY2(setup.problem().isEmpty(), qPrintable(setup.problem()));
+        QCOMPARE(setup.fen(), QStringLiteral("4k3/8/8/8/8/8/8/4K3 w - - 0 1"));
+
+        // Castling only where king and rook are at home.
+        setup.whiteKingSide = setup.whiteQueenSide = true;
+        setup.setPiece(BoardState::squareFromName(u"h1"), {PieceType::Rook, Side::White});
+        QVERIFY(setup.canCastle(Side::White, true));
+        QVERIFY(!setup.canCastle(Side::White, false));
+        QCOMPARE(setup.fen(), QStringLiteral("4k3/8/8/8/8/8/8/4K2R w K - 0 1"));
+
+        // Pawns: never on the edges; en passant behind one that came two squares.
+        setup.setPiece(BoardState::squareFromName(u"a8"), {PieceType::Pawn, Side::Black});
+        QVERIFY(!setup.problem().isEmpty());
+        setup.setPiece(BoardState::squareFromName(u"a8"), Piece());
+        setup.setPiece(BoardState::squareFromName(u"d5"), {PieceType::Pawn, Side::Black});
+        QCOMPARE(setup.enPassantSquares(), QList<int>{BoardState::squareFromName(u"d6")});
+        setup.enPassant = BoardState::squareFromName(u"d6");
+        QVERIFY(setup.fen().contains(QStringLiteral(" d6 ")));
+        setup.sideToMove = Side::Black; // Then it was White who moved: no en passant.
+        QVERIFY(setup.fen().contains(QStringLiteral(" - 0 1")));
+
+        // The side that just moved cannot be in check.
+        setup.setPiece(BoardState::squareFromName(u"e4"), {PieceType::Rook, Side::Black});
+        QVERIFY(!setup.problem().isEmpty()); // Black to move with White in check: White moved into it.
+        setup.sideToMove = Side::White;
+        QVERIFY2(setup.problem().isEmpty(), qPrintable(setup.problem()));
+
+        // A FEN is read back with its fields.
+        const std::optional<PositionSetup> read =
+            PositionSetup::fromFen(QStringLiteral("4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 31"));
+        QVERIFY(read);
+        QCOMPARE(read->fullMove, 31);
+        QCOMPARE(read->fen(), QStringLiteral("4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 31"));
+        QCOMPARE(PositionSetup::fromFen(QStringLiteral("4k3/8/8/8/8/8/8/4K3 b - - 12 40"))->fen(),
+                 QStringLiteral("4k3/8/8/8/8/8/8/4K3 b - - 12 40"));
     }
 
     void choosesShippedOpeningNames()

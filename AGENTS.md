@@ -483,7 +483,8 @@ tools this is a study or a chess book.
   each game after the first begins, its numbering starting again — no
   titles, and not the chapter's —, paragraphs as rows
   spanning the table in the book face (`widgets/BookFont`: Crimson Pro
-  ExtraLight, line height 125%, the first line of each paragraph indented).
+  ExtraLight, justified, line height 125%, the first line of each paragraph
+  indented).
   Paragraphs are written in place: `editParagraph` lays a `QTextEdit` with
   the same font, width and block format over the paragraph's row, the row
   is rebuilt with the text as it is typed, and Esc, Ctrl+Enter or a click

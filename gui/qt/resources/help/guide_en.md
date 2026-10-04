@@ -217,7 +217,7 @@ A project is a collection of **chapters**, as a study or a chess book is, and a 
 
 Right-click the move list — on a move, on a paragraph, or anywhere, even with no moves — for:
 
-- **Insert Paragraph**: a paragraph after the move (or where the board is), written right there in the move list. Write as in a book: each new line starts a new paragraph, indented. **Esc**, **Ctrl+Enter** or a click elsewhere ends; a paragraph left empty goes away. Click a paragraph to write in it again; **Edit Paragraph** and **Delete Paragraph** are on its menu. Paragraphs go on the main line.
+- **Insert Paragraph**: a paragraph after the move (or where the board is), written right there in the move list. Write as in a book: the text is justified, and each new line starts a new paragraph, indented. **Esc**, **Ctrl+Enter** or a click elsewhere ends; a paragraph left empty goes away. Click a paragraph to write in it again; **Edit Paragraph** and **Delete Paragraph** are on its menu. Paragraphs go on the main line.
 - **Insert Game Break**: a new game after this one, from the starting position; its numbering starts from 1 again.
 
 New Game, New Training, Set Up Position, the pastes and online games all add their game at the end of the chapter, and so does a game opened from the games list (one the chapter has already is simply shown). Games stored in a database are saved there as they change; the others, and every paragraph, are saved with the project.

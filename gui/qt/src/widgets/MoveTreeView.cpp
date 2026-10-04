@@ -59,13 +59,13 @@ QString shown(const MoveRecord &move)
 constexpr int kParagraphPadding = 14;
 
 /// A paragraph's text as the view shows it: each line a paragraph of a book,
-/// its first line indented, a quarter of a line apart.
+/// justified, its first line indented, a quarter of a line apart.
 QString paragraphHtml(const QString &text, qreal indent)
 {
     QString html;
     // An empty paragraph (one just inserted) still has a line to write on.
     for (const QString &line : (text.isEmpty() ? QStringList{QString()} : text.split(QLatin1Char('\n')))) {
-        html += QStringLiteral("<p style=\"margin: 0; text-indent: %1px; line-height: %2%;\">%3</p>")
+        html += QStringLiteral("<p style=\"margin: 0; text-indent: %1px; line-height: %2%; text-align: justify;\">%3</p>")
                     .arg(qRound(indent))
                     .arg(BookFont::lineHeight)
                     .arg(line.isEmpty() ? QStringLiteral("&nbsp;") : line.toHtmlEscaped());
@@ -78,6 +78,7 @@ QTextBlockFormat paragraphFormat(qreal indent)
 {
     QTextBlockFormat format;
     format.setTextIndent(indent);
+    format.setAlignment(Qt::AlignJustify);
     format.setLineHeight(BookFont::lineHeight, QTextBlockFormat::ProportionalHeight);
     return format;
 }
@@ -343,7 +344,7 @@ void MoveTreeView::editParagraph(int game, int index)
 
 void MoveTreeView::formatEditor()
 {
-    // Every line a book's paragraph: indented, a quarter of a line apart.
+    // Every line a book's paragraph: justified, indented, a quarter of a line apart.
     const QScopedValueRollback<bool> formatting(m_formatting, true);
     QTextCursor all(m_editor->document());
     all.select(QTextCursor::Document);

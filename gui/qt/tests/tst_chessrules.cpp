@@ -37,6 +37,7 @@
 #include "app/sync/GitStore.h"
 #include "app/sync/SyncManifest.h"
 
+#include <QCoreApplication>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -107,6 +108,7 @@ class TestChessRules : public QObject {
     Q_OBJECT
 
 private Q_SLOTS:
+    void initTestCase();
     void keepsTheBundledEngine();
     void savesAndResolvesEngines();
     void addsDetectedEnginesOnce();
@@ -2490,6 +2492,17 @@ private:
             || verdict == MoveExplanation::Verdict::Blunder;
     }
 };
+
+void TestChessRules::initTestCase()
+{
+    // The user settings of the tests are their own INI file, emptied at each
+    // run: without an organization QSettings() wrote to the user's real
+    // settings on Linux and nowhere at all in the Windows registry.
+    QCoreApplication::setOrganizationName(QStringLiteral("Pragma Chess Tests"));
+    QCoreApplication::setApplicationName(QStringLiteral("tst_chessrules"));
+    QSettings::setDefaultFormat(QSettings::IniFormat);
+    QSettings().clear();
+}
 
 void TestChessRules::keepsTheBundledEngine()
 {

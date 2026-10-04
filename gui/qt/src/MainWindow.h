@@ -287,6 +287,7 @@ private:
     void reportUnavailableSource(const GameSource &source);
     void editDatabaseSettings();
     void editBoardSettings();
+    void editFolderSettings();
     void applyBoardSettings(const BoardSettings &settings);
     // Options ▸ Sync Settings: the Pragma folder kept the same on several computers.
     void openSyncDialog();

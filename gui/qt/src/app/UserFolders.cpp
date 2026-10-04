@@ -2,6 +2,7 @@
 
 #include <QDir>
 #include <QHash>
+#include <QSettings>
 #include <QStandardPaths>
 
 namespace {
@@ -46,9 +47,76 @@ QLocale uiLocale()
     return languages.isEmpty() ? QLocale::system() : QLocale(languages.first());
 }
 
+QString chosenOr(const QString &chosen, const QString &fallback)
+{
+    return chosen.trimmed().isEmpty() ? fallback : QDir::cleanPath(chosen.trimmed());
+}
+
+/// The folders of this run: the choices as they were at the first call.
+const UserFolders::Folders &active()
+{
+    static const UserFolders::Folders folders = UserFolders::resolve(
+        UserFolders::isOverridden() ? UserFolders::FolderChoice{} : UserFolders::chosenFolders(),
+        UserFolders::defaultPragmaDir());
+    return folders;
+}
+
 } // namespace
 
 namespace UserFolders {
+
+Folders resolve(const FolderChoice &choice, const QString &defaultPragma)
+{
+    Folders folders;
+    folders.pragma = chosenOr(choice.pragma, defaultPragma);
+    const QDir pragma(folders.pragma);
+    folders.databases = chosenOr(choice.databases, pragma.filePath(QStringLiteral("Databases")));
+    folders.projects = chosenOr(choice.projects, pragma.filePath(QStringLiteral("Projects")));
+    folders.books = chosenOr(choice.books, pragma.filePath(QStringLiteral("Books")));
+    folders.openingNames = chosenOr(choice.openingNames, QDir(folders.books).filePath(QStringLiteral("Opening Names")));
+    return folders;
+}
+
+QString defaultPragmaDir()
+{
+    return QDir(chessDir()).filePath(QStringLiteral("Pragma"));
+}
+
+bool isOverridden()
+{
+    return !qEnvironmentVariable("PRAGMA_CHESS_DIR").isEmpty();
+}
+
+FolderChoice chosenFolders()
+{
+    QSettings settings;
+    settings.beginGroup(QStringLiteral("folders"));
+    FolderChoice choice;
+    choice.pragma = settings.value(QStringLiteral("pragma")).toString();
+    choice.databases = settings.value(QStringLiteral("databases")).toString();
+    choice.projects = settings.value(QStringLiteral("projects")).toString();
+    choice.books = settings.value(QStringLiteral("books")).toString();
+    choice.openingNames = settings.value(QStringLiteral("openingNames")).toString();
+    return choice;
+}
+
+void setChosenFolders(const FolderChoice &choice)
+{
+    QSettings settings;
+    settings.beginGroup(QStringLiteral("folders"));
+    const auto store = [&settings](const char *key, const QString &value) {
+        if (value.trimmed().isEmpty())
+            settings.remove(QLatin1String(key));
+        else
+            settings.setValue(QLatin1String(key), QDir::cleanPath(value.trimmed()));
+    };
+    store("pragma", choice.pragma);
+    store("databases", choice.databases);
+    store("projects", choice.projects);
+    store("books", choice.books);
+    store("openingNames", choice.openingNames);
+}
+
 
 QString chessFolderName(const QLocale &locale)
 {
@@ -77,27 +145,27 @@ QString chessDir()
 
 QString pragmaDir()
 {
-    return QDir(chessDir()).filePath(QStringLiteral("Pragma"));
+    return active().pragma;
 }
 
 QString databasesDir()
 {
-    return QDir(pragmaDir()).filePath(QStringLiteral("Databases"));
+    return active().databases;
 }
 
 QString projectsDir()
 {
-    return QDir(pragmaDir()).filePath(QStringLiteral("Projects"));
+    return active().projects;
 }
 
 QString booksDir()
 {
-    return QDir(pragmaDir()).filePath(QStringLiteral("Books"));
+    return active().books;
 }
 
 QString openingNamesDir()
 {
-    return QDir(booksDir()).filePath(QStringLiteral("Opening Names"));
+    return active().openingNames;
 }
 
 bool ensureBooksDir()

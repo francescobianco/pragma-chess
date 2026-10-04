@@ -284,6 +284,8 @@ qt_add_executable(pragma-chess
     src/dialogs/ManageSourcesDialog.h
     src/dialogs/BoardSettingsDialog.cpp
     src/dialogs/BoardSettingsDialog.h
+    src/dialogs/FolderSettingsDialog.cpp
+    src/dialogs/FolderSettingsDialog.h
     src/dialogs/DatabaseSettingsDialog.cpp
     src/dialogs/DatabaseSettingsDialog.h
     src/dialogs/AboutDialog.cpp
@@ -495,7 +497,9 @@ if(TARGET Qt6::Test)
         src/app/DatabaseMigrations.cpp
         src/app/DatabaseMigrations.h
         src/app/SqliteGameDatabase.cpp
-        src/app/SqliteGameDatabase.h)
+        src/app/SqliteGameDatabase.h
+        src/app/UserFolders.cpp
+        src/app/UserFolders.h)
     target_link_libraries(tst_chessrules PRIVATE pragma-chess-core Qt6::Sql Qt6::Test)
     target_compile_definitions(tst_chessrules PRIVATE
         PRAGMA_HELP_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/help")

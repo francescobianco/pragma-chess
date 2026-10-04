@@ -678,7 +678,15 @@ while one of them is selected.
   they are, so nothing jumps. The window's own geometry and maximized
   state are per device, in QSettings.
 - Default user folder: `~/Chess/Pragma/{Databases,Projects,Books}`, localized
-  (e.g. `~/Scacchi/Pragma/…`); `PRAGMA_CHESS_DIR` overrides it. First launch
+  (e.g. `~/Scacchi/Pragma/…`). Options ▸ Folder Settings…
+  (`dialogs/FolderSettingsDialog`) moves the Pragma folder or any of
+  Databases, Projects, Books, Opening Names elsewhere, per computer
+  (QSettings `folders/*`, `UserFolders::FolderChoice`; empty = the default,
+  `UserFolders::resolve`, unit-tested). `UserFolders` reads them once per
+  run, so a change takes effect at the next start: the folder sync and the
+  phone link take their folder when they are made. Files are not moved, and
+  only what is inside the Pragma folder is synced. `PRAGMA_CHESS_DIR`
+  overrides the chess folder and ignores the choices. First launch
   seeds `Classic Games.pdb`. The last session is restored on startup.
 - When testing, set `PRAGMA_CHESS_DIR` to a scratch directory rather than
   touching the user's real chess folder.

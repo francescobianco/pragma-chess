@@ -8,6 +8,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Options ▸ Folder Settings… chooses where this computer keeps the Pragma
+  folder, or just the databases, projects, books or opening names. The new
+  folders are used from the next start; files are not moved.
 - Folder sync notices a file deleted by hand from the Pragma folder (it no
   longer comes back by itself) and asks: Delete Everywhere, Restore, or Ask
   Me Later. Each computer keeps what it last synced in a hidden

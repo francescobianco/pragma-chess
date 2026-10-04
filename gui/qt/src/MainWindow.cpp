@@ -8,6 +8,7 @@
 #include "app/ShippedOpeningNames.h"
 #include "dialogs/AboutDialog.h"
 #include "dialogs/BoardSettingsDialog.h"
+#include "dialogs/FolderSettingsDialog.h"
 #include "dialogs/DatabaseSettingsDialog.h"
 #include "app/PolyglotBook.h"
 #include "app/PositionIndexBuilder.h"
@@ -913,6 +914,7 @@ void MainWindow::createMenus()
     options->addAction(m_syncAction);
     options->addSeparator();
     options->addAction(tr("&Board Settings…"), this, &MainWindow::editBoardSettings);
+    options->addAction(tr("&Folder Settings…"), this, &MainWindow::editFolderSettings);
     m_openingNamesMenu = options->addMenu(tr("Switch Opening &Names"));
     m_openingNamesMenu->setToolTip(tr("The database whose games name the openings and variations"));
     connect(m_openingNamesMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildOpeningNamesMenu);
@@ -2422,6 +2424,19 @@ void MainWindow::updateDatabaseActions()
     m_connectSourceAction->setEnabled(hasDatabase);
     m_manageSourcesAction->setEnabled(hasDatabase);
     m_databaseSettingsAction->setEnabled(hasDatabase && !m_database->location().isEmpty());
+}
+
+void MainWindow::editFolderSettings()
+{
+    const UserFolders::FolderChoice current = UserFolders::chosenFolders();
+    FolderSettingsDialog dialog(current, this);
+    if (dialog.exec() != QDialog::Accepted || dialog.choice() == current)
+        return;
+    UserFolders::setChosenFolders(dialog.choice());
+    // The folders are read once: the sync, the phone link and the seeded
+    // files would otherwise each be left with a different one.
+    QMessageBox::information(this, tr("Folder Settings"),
+                             tr("The new folders are used the next time Pragma Chess starts."));
 }
 
 void MainWindow::editBoardSettings()

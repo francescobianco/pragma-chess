@@ -692,6 +692,53 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>FolderSettingsDialog</name>
+    <message>
+        <source>Folder Settings</source>
+        <translation>Impostazioni cartelle</translation>
+    </message>
+    <message>
+        <source>Where Pragma Chess keeps your files on this computer. Leave a folder empty to keep it in its usual place.</source>
+        <translation>Dove Pragma Chess tiene i tuoi file su questo computer. Lascia vuota una cartella per tenerla al suo posto solito.</translation>
+    </message>
+    <message>
+        <source>&amp;Pragma folder:</source>
+        <translation>Cartella &amp;Pragma:</translation>
+    </message>
+    <message>
+        <source>&amp;Databases:</source>
+        <translation>&amp;Database:</translation>
+    </message>
+    <message>
+        <source>P&amp;rojects:</source>
+        <translation>P&amp;rogetti:</translation>
+    </message>
+    <message>
+        <source>&amp;Books:</source>
+        <translation>&amp;Libri:</translation>
+    </message>
+    <message>
+        <source>&amp;Opening names:</source>
+        <translation>&amp;Nomi delle aperture:</translation>
+    </message>
+    <message>
+        <source>Sync keeps only what is inside the Pragma folder the same on your other computers. Files already in a folder are not moved. The new folders are used the next time Pragma Chess starts.</source>
+        <translation>La sincronizzazione tiene uguale sugli altri computer solo ciò che sta dentro la cartella Pragma. I file già presenti in una cartella non vengono spostati. Le nuove cartelle si usano dal prossimo avvio di Pragma Chess.</translation>
+    </message>
+    <message>
+        <source>PRAGMA_CHESS_DIR is set, so Pragma Chess uses “%1” and ignores these folders while it is.</source>
+        <translation>PRAGMA_CHESS_DIR è impostata: finché lo è, Pragma Chess usa “%1” e ignora queste cartelle.</translation>
+    </message>
+    <message>
+        <source>Choose…</source>
+        <translation>Scegli…</translation>
+    </message>
+    <message>
+        <source>Choose Folder</source>
+        <translation>Scegli cartella</translation>
+    </message>
+</context>
+<context>
     <name>FolderSync</name>
     <message>
         <source>%1 is syncing; trying again later.</source>
@@ -2288,6 +2335,18 @@ non è su questo computer.</translation>
     <message>
         <source>Reconnecting to your game on %1…</source>
         <translation>Mi ricollego alla tua partita su %1…</translation>
+    </message>
+    <message>
+        <source>&amp;Folder Settings…</source>
+        <translation>Impostazioni &amp;cartelle…</translation>
+    </message>
+    <message>
+        <source>Folder Settings</source>
+        <translation>Impostazioni cartelle</translation>
+    </message>
+    <message>
+        <source>The new folders are used the next time Pragma Chess starts.</source>
+        <translation>Le nuove cartelle si usano dal prossimo avvio di Pragma Chess.</translation>
     </message>
 </context>
 <context>

@@ -36,6 +36,7 @@
 #include "app/sync/FolderSync.h"
 #include "app/sync/GitStore.h"
 #include "app/sync/SyncManifest.h"
+#include "app/UserFolders.h"
 
 #include <QCoreApplication>
 #include <QDateTime>
@@ -2045,6 +2046,27 @@ private Q_SLOTS:
         QVERIFY2(DatabaseMerge::mergeInto(*a, pathB, &error), qPrintable(error));
         QCOMPARE(a->sources().size(), 1);
         QCOMPARE(a->sourceLinks().size(), 1);
+    }
+
+    void resolvesChosenFolders()
+    {
+        const QString home = QStringLiteral("/home/anna/Chess/Pragma");
+        // Nothing chosen: everything in the Pragma folder, opening names with the books.
+        UserFolders::Folders folders = UserFolders::resolve({}, home);
+        QCOMPARE(folders.pragma, home);
+        QCOMPARE(folders.databases, home + QStringLiteral("/Databases"));
+        QCOMPARE(folders.projects, home + QStringLiteral("/Projects"));
+        QCOMPARE(folders.openingNames, home + QStringLiteral("/Books/Opening Names"));
+
+        // Another Pragma folder carries the default ones along; a chosen one stays where it is.
+        UserFolders::FolderChoice choice;
+        choice.pragma = QStringLiteral(" /data/Pragma/ ");
+        choice.books = QStringLiteral("/shared/books/");
+        folders = UserFolders::resolve(choice, home);
+        QCOMPARE(folders.pragma, QStringLiteral("/data/Pragma"));
+        QCOMPARE(folders.databases, QStringLiteral("/data/Pragma/Databases"));
+        QCOMPARE(folders.books, QStringLiteral("/shared/books"));
+        QCOMPARE(folders.openingNames, QStringLiteral("/shared/books/Opening Names"));
     }
 
     void choosesShippedOpeningNames()

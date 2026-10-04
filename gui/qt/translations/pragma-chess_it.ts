@@ -2428,6 +2428,10 @@ non è su questo computer.</translation>
         <source>Pragma databases (*.%1)</source>
         <translation>Database Pragma (*.%1)</translation>
     </message>
+    <message>
+        <source>The Opening Tree cannot be used while playing online.</source>
+        <translation>L&apos;Albero delle aperture non si può usare durante il gioco online.</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>

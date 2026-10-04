@@ -155,6 +155,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- In online play the Opening Tree no longer disappears: the panel stays
+  where you put it, its moves covered by a notice until the game ends.
 - The packages are about 80 MB smaller: the bundled Stockfish is now
   Stockfish 18 built by us with its small evaluation network only (about
   4 MB instead of 100). It is weaker than the official Stockfish and still

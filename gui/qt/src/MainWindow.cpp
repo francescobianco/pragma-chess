@@ -3147,13 +3147,13 @@ void MainWindow::setOnlinePlay(bool on)
         m_trainingModeAction->setChecked(false);
         m_startEngineAction->setChecked(false);
         m_explainAction->setChecked(false);
-        m_openingTreeDock->hide();
     }
     // New Training stays available: like New Game, it asks about the game in progress first.
-    for (QAction *action : {m_startEngineAction, m_explainAction, m_trainingModeAction,
-                            m_openingTreeDock->toggleViewAction()})
+    for (QAction *action : {m_startEngineAction, m_explainAction, m_trainingModeAction})
         action->setEnabled(!on);
-    m_bookPanel->setEnabled(!on);
+    // The panels are the user's (and the project's): the Opening Tree stays
+    // where it is, its moves covered while the game lasts.
+    m_bookPanel->setCensored(on ? tr("The Opening Tree cannot be used while playing online.") : QString());
     if (!on) {
         m_onlineSide.reset();
         m_enginePanel->setStatus(QString());

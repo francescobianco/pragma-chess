@@ -7,7 +7,9 @@
 
 #include <QHash>
 #include <QHeaderView>
+#include <QLabel>
 #include <QMenu>
+#include <QStackedWidget>
 #include <QTreeWidget>
 #include <QVariantAnimation>
 #include <QVBoxLayout>
@@ -15,11 +17,19 @@
 BookPanel::BookPanel(QWidget *parent)
     : QWidget(parent)
     , m_moves(new QTreeWidget)
+    , m_pages(new QStackedWidget)
+    , m_notice(new QLabel)
 {
     auto *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
-    layout->addWidget(m_moves, 1);
+    layout->addWidget(m_pages, 1);
+    m_pages->addWidget(m_moves);
+    m_notice->setAlignment(Qt::AlignCenter);
+    m_notice->setWordWrap(true);
+    m_notice->setMargin(16);
+    m_notice->setEnabled(false); // Greyed: a remark, not content.
+    m_pages->addWidget(m_notice);
 
     auto *header = new PaddedHeaderView(Qt::Horizontal, CellPadding::vertical, CellPadding::horizontal, m_moves);
     header->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter); // As a tree's own header.
@@ -99,6 +109,12 @@ BookPanel::BookPanel(QWidget *parent)
     });
 
     rebuild();
+}
+
+void BookPanel::setCensored(const QString &notice)
+{
+    m_notice->setText(notice);
+    m_pages->setCurrentWidget(notice.isEmpty() ? static_cast<QWidget *>(m_moves) : m_notice);
 }
 
 void BookPanel::setBookName(const QString &name)

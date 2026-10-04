@@ -902,8 +902,10 @@ a platform; lichess.org for now, through its Board API, more to come.
   of its own with the same signals.
 - **`MainWindow::m_onlinePlay` is the flag against cheating**
   (`setOnlinePlay`): while the client looks for an opponent or plays, the
-  engine, Explain, Training Mode and the Opening Tree are turned off and
-  their actions disabled; `isOpponentTurn()` keeps the board still on the
+  engine, Explain and Training Mode are turned off and their actions
+  disabled; the Opening Tree is not hidden (panels are the user's, shown
+  and hidden from the menu and saved in the project) but its moves are
+  covered by a notice (`BookPanel::setCensored`); `isOpponentTurn()` keeps the board still on the
   opponent's move, and only the end of the line can be played. The user's
   move is sent and played at once; `onlineGameUpdated` makes the
   platform's move list the truth (the opponent's moves are played with the

@@ -8,6 +8,8 @@
 
 #include <optional>
 
+class QLabel;
+class QStackedWidget;
 class QTreeWidget;
 class QVariantAnimation;
 
@@ -37,6 +39,10 @@ public:
     /// move (`stats` matches the moves given to setMoves when Ready).
     void setDatabaseStats(DatabaseState state, const QList<PositionIndex::Stats> &stats);
 
+    /// Covers the moves with `notice` (online play, where a book is help the
+    /// user may not have); an empty notice shows them again.
+    void setCensored(const QString &notice);
+
 Q_SIGNALS:
     /// The user picked a book move to play.
     void moveActivated(const ChessMove &move);
@@ -52,6 +58,8 @@ private:
     void rebuild();
 
     QTreeWidget *m_moves;
+    QStackedWidget *m_pages;
+    QLabel *m_notice;
     QString m_bookName;
     ChessPosition m_position = ChessPosition::startingPosition();
     QList<PolyglotBook::Move> m_bookMoves;

@@ -50,23 +50,26 @@ Da fare:
    sync Git (`reconcilesGitFoldersWithoutDeleting`,
    `mergesDuplicatesAcrossGitDevices`, `deletesDatabasesAcrossGitDevices`)
    girano a parte in `build.ps1`, con l'output nel log, e **non bloccano** il
-   pacchetto. "Access is denied" veniva da `GitStore` (l'unico che passa un
-   `errorString()` grezzo: la copia clone ↔ cartella locale o la scrittura
-   del manifest, cioè un replace di `QSaveFile`): ora su Windows il replace
-   è ritentato per 2 s (antivirus/indicizzatore che tengono il file appena
-   scritto) e l'errore dice operazione e file. Da fare: guardare nel log del
-   job se i tre test passano; se no, il messaggio dice dove, correggere e
-   rimetterli fra i test che bloccano.
+   pacchetto. Run 37216697952: il job `windows` è **passato** (verifica DLL e
+   avvio da pacchetto compresi), i tre test falliscono ancora con
+   `Could not write ".pragma-chess.sync": Access is denied.` — è la
+   scrittura del manifest nel clone (`GitStore::write`), sempre, non a
+   intermittenza: i 2 s di tentativi non bastano. Ora, dopo i tentativi,
+   su Windows il vecchio file viene rimosso e il nuovo scritto al suo posto
+   (`saveReplacing`): verificare nel log del prossimo run. Se passa,
+   rimettere i tre test fra quelli che bloccano; se no, indagare (attributo
+   nascosto o sola lettura sul file nel clone? un handle rimasto aperto?).
 2. Rilanciare il workflow a mano (Actions ▸ Release ▸ Run workflow, o
    `gh workflow run release.yml --ref main`) finché il job `windows` passa.
    Il codice PowerShell nuovo di `build.ps1` non è mai girato (non c'è
    `pwsh` sulla macchina di sviluppo): aspettarsi qualche errore da
    correggere lì (parsing di `dumpbin`, `OPENSSL_INCLUDE_DIR` dal
    `CMakeCache.txt`, avvio del processo).
-3. Controllare il peso degli artifact: stime ~12 MB l'installer Windows,
-   ~20 MB (incerto) il dmg macOS. Se il dmg supera i 20 MB, sfoltire i
-   plugin che `macdeployqt` copia e non servono (imageformats, ecc.).
-   Poi correggere se serve "about 80 MB smaller" nel CHANGELOG.
+3. Peso degli artifact (run 37216697952, zip degli artifact di Actions):
+   **windows 41 MB, macos 32 MB**, deb 7 MB, rpm 6 MB: Windows e macOS sono
+   sopra i 20 MB voluti. Guardare cosa c'è dentro (plugin Qt superflui di
+   `windeployqt`/`macdeployqt`: imageformats, tls, styles, …; il runtime) e
+   sfoltire. Poi correggere se serve "about 80 MB smaller" nel CHANGELOG.
 4. Solo allora il tag della release. Dopo: aggiornare il `tag` nel manifest
    Flatpak (il modulo `stockfish` ora compila dal sorgente: verificarlo con
    `flatpak-builder`, mai provato) e avvisare l'utente che aveva la 0.2.0

@@ -30,8 +30,9 @@ QProcessEnvironment quietEnvironment()
 
 /// Writes `to` through a QSaveFile. On Windows a file that was just written
 /// can be held for a moment (an antivirus, the indexer), and replacing it is
-/// then refused: it is tried again for a short while before giving up.
-bool saveReplacing(const QString &to, const std::function<bool(QSaveFile &)> &fill, QString *error)
+/// then refused: it is tried again for a short while, and at last the old
+/// file is removed and the new one written in its place.
+bool saveReplacing(const QString &to, const std::function<bool(QIODevice &)> &fill, QString *error)
 {
     QDir().mkpath(QFileInfo(to).absolutePath());
 #ifdef Q_OS_WIN
@@ -45,9 +46,20 @@ bool saveReplacing(const QString &to, const std::function<bool(QSaveFile &)> &fi
             return true;
         *error = target.errorString();
         if (attempt >= kAttempts)
-            return false;
+            break;
         QThread::msleep(100);
     }
+#ifdef Q_OS_WIN
+    // Replacing ".pragma-chess.sync" in the clone is refused every time on
+    // Windows ("Access is denied", TODO.md): not atomic, but the clone is
+    // only a working copy, made again from the repository at every sync.
+    QFile::remove(to);
+    QFile direct(to);
+    if (direct.open(QIODevice::WriteOnly) && fill(direct) && direct.flush())
+        return true;
+    *error += QStringLiteral(" / ") + direct.errorString();
+#endif
+    return false;
 }
 
 bool copyReplacing(const QString &from, const QString &to, QString *error)
@@ -57,7 +69,7 @@ bool copyReplacing(const QString &from, const QString &to, QString *error)
         *error = source.errorString();
         return false;
     }
-    return saveReplacing(to, [&source](QSaveFile &target) {
+    return saveReplacing(to, [&source](QIODevice &target) {
         source.seek(0);
         while (!source.atEnd()) {
             const QByteArray chunk = source.read(1 << 20);
@@ -316,7 +328,7 @@ void GitStore::read(const QString &path, Callback done)
 void GitStore::write(const QString &path, const QByteArray &data, Callback done)
 {
     QString error;
-    const bool written = saveReplacing(filePath(path), [&data](QSaveFile &file) { return file.write(data) == data.size(); }, &error);
+    const bool written = saveReplacing(filePath(path), [&data](QIODevice &file) { return file.write(data) == data.size(); }, &error);
     done(written ? success() : failure(tr("Could not write “%1”: %2").arg(path, error)));
 }
 

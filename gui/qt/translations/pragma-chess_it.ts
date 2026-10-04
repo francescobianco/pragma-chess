@@ -741,6 +741,30 @@ Il Nero ha catturato: %2</translation>
         <source>Merging %1 into %2…</source>
         <translation>Unione di %1 in %2…</translation>
     </message>
+    <message>
+        <source>A sync is running; try again when it has finished.</source>
+        <translation>È in corso una sincronizzazione; riprova quando è finita.</translation>
+    </message>
+    <message>
+        <source>“%1” is not in the synced folder.</source>
+        <translation>“%1” non è nella cartella sincronizzata.</translation>
+    </message>
+    <message>
+        <source>“%1” has no database id, so the other devices could not tell it apart.</source>
+        <translation>“%1” non ha un identificativo di database, quindi gli altri dispositivi non potrebbero riconoscerlo.</translation>
+    </message>
+    <message>
+        <source>Could not delete “%1”.</source>
+        <translation>Impossibile eliminare “%1”.</translation>
+    </message>
+    <message>
+        <source>Removing %1, deleted on another device…</source>
+        <translation>Rimozione di %1, eliminato su un altro dispositivo…</translation>
+    </message>
+    <message>
+        <source>Deleting %1, deleted on another device…</source>
+        <translation>Eliminazione di %1, eliminato su un altro dispositivo…</translation>
+    </message>
 </context>
 <context>
     <name>FolderSyncTask</name>
@@ -2120,6 +2144,58 @@ non è su questo computer.</translation>
     <message>
         <source>your move</source>
         <translation>tocca a te</translation>
+    </message>
+    <message>
+        <source>Phone</source>
+        <translation>Telefono</translation>
+    </message>
+    <message>
+        <source>Database Deleted on the Mobile App</source>
+        <translation>Database eliminato nell&apos;app mobile</translation>
+    </message>
+    <message>
+        <source>The database “%1” was deleted on the mobile app “%2”.</source>
+        <translation>Il database “%1” è stato eliminato nell&apos;app mobile “%2”.</translation>
+    </message>
+    <message>
+        <source>Do you want to delete it here too, or keep it on this computer? The mobile app will not receive it again either way.</source>
+        <translation>Vuoi eliminarlo anche qui o tenerlo su questo computer? In ogni caso l&apos;app mobile non lo riceverà più.</translation>
+    </message>
+    <message>
+        <source>Delete Everywhere…</source>
+        <translation>Elimina ovunque…</translation>
+    </message>
+    <message>
+        <source>Keep It</source>
+        <translation>Tienilo</translation>
+    </message>
+    <message>
+        <source>Ask Me Later</source>
+        <translation>Chiedimelo più tardi</translation>
+    </message>
+    <message>
+        <source>Delete “%1” Everywhere?</source>
+        <translation>Eliminare “%1” ovunque?</translation>
+    </message>
+    <message>
+        <source>The database “%1” will be deleted from every synced device.</source>
+        <translation>Il database “%1” sarà eliminato da tutti i dispositivi sincronizzati.</translation>
+    </message>
+    <message>
+        <source>It goes to the trash on this computer, it is removed from the sync folder on the server, and every other computer that syncs with it deletes its copy at its next sync. Its games go with it.</source>
+        <translation>Finisce nel cestino di questo computer, viene tolto dalla cartella di sincronizzazione sul server e ogni altro computer che si sincronizza con essa elimina la sua copia alla sincronizzazione successiva. Le sue partite se ne vanno con lui.</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Elimina</translation>
+    </message>
+    <message>
+        <source>Could Not Delete the Database</source>
+        <translation>Impossibile eliminare il database</translation>
+    </message>
+    <message>
+        <source>Deleted “%1”</source>
+        <translation>Eliminato “%1”</translation>
     </message>
 </context>
 <context>

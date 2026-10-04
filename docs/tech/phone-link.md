@@ -96,6 +96,8 @@ Text frames are JSON; binary frames are file data.
 | phone | `{"op":"get","name":"Classic Games.pdb"}` |
 | computer | `{"op":"file","name":"…","size":123,"sha256":"<hex>"}`, then binary frames of at most 16 KiB, then `{"op":"done","name":"…"}` |
 | computer | `{"op":"error","message":"…"}` (for a `get` it cannot serve) |
+| phone | `{"op":"deleted","db":"<lineage>","name":"<file on the phone>","when":"<ISO 8601 UTC>"}` (see "A database deleted on the phone") |
+| computer | `{"op":"deleted","db":"<lineage>"}` once recorded, or `{"op":"error",…}` |
 
 - `files` are the `.pdb` databases under the computer's Databases folder,
   `name` relative to it with `/` separators. A `get` for anything not in the
@@ -157,8 +159,9 @@ There are no sources and no sections: the databases of the phone and of every
 computer paired with it are **one corpus** that is merged and reconciled.
 A sync never deletes anything that has not been merged: a database that
 exists only on one side is kept and copied to the other, in both directions,
-and the only file that ever goes is a duplicate whose games were merged into
-the database it duplicates (see "Duplicates"). With two computers paired to
+and the only files that ever go are a duplicate whose games were merged into
+the database it duplicates (see "Duplicates") and a database the user
+deleted knowingly (see "A database deleted on the phone"). With two computers paired to
 the same phone, the phone is the **bridge**: what it learnt from one computer
 it brings to the other.
 
@@ -279,9 +282,40 @@ path with another lineage is a new database and syncs normally. The phone
 remembers the lineages it merged away as aliases, so a computer still
 listing one is merged, not downloaded as new.
 
+### A database deleted on the phone
+
+Deleting a database on the phone is a decision the computers are asked
+about, not a file that silently goes:
+
+- The phone remembers the lineage it deleted, and from then on never `get`s
+  it (whatever computer lists it) and never `put`s it.
+- At each sync, after `list`, for every deleted lineage that computer lists
+  and has not acknowledged yet, the phone sends
+  `{"op":"deleted","db":"<lineage>","name":"<file name on the phone>","when":"<ISO 8601 UTC>"}`.
+  The computer answers `{"op":"deleted","db":"<lineage>"}` once it has
+  recorded the request, and the phone stops sending it to that computer.
+  An error (an older computer answers "unknown op"; "busy, try again later"
+  while a folder sync replaces files) leaves the notice for the next sync.
+- The computer keeps the request in its `phone-link.json`
+  (`deletionRequests`: lineage, its file, the phone and when) and asks its
+  user, outside the phone's session, at once and at every start while it is
+  unanswered: **Keep It** drops the request (the database stays on the
+  computer; the phone still does not receive it), **Ask Me Later** asks
+  again at the next start, **Delete Everywhere…** warns that the database
+  goes from every synced device and, confirmed, moves it to the trash and
+  records the deletion for the folder sync (AGENTS.md, "Folder sync"; the
+  manifest's `deleted`), so the server and the other computers drop it too.
+- A lineage deleted on a computer is remembered there (`deletedDatabases`):
+  it is not listed to phones even if a copy comes back, and a `put` for it
+  is answered with every game `known`, storing nothing, so another phone
+  cannot bring it back.
+- A lineage the computer does not have is acknowledged and nothing is asked.
+
 ### The sync, from the phone
 
 1. `list`: each file also carries `"id":"<lineage>"` and `"games":<count>`.
+   Then the `deleted` notices this computer has not acknowledged (see "A
+   database deleted on the phone"); a deleted lineage is skipped below.
 2. For every database of the computer: if the phone has the same lineage
    (whatever the name) and the same `sha256`, skip it. Otherwise `get` it to a
    temporary file and merge it into the phone's copy (or keep it as the

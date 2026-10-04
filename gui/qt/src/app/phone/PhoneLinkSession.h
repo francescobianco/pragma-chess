@@ -39,6 +39,7 @@ private:
     void processNext();
     void handle(const QJsonObject &request);
     void handlePut(const QJsonObject &request);
+    void handleDeleted(const QJsonObject &request);
     void sendJson(const QJsonObject &message);
     void sendError(const QString &message);
     void startTransfer(const QString &name);

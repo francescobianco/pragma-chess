@@ -283,6 +283,9 @@ private:
     // (docs/phone-link.md) and sends back the games played on the phone.
     void createPhoneLink();
     void openConnectMobileDialog();
+    /// A phone deleted databases this computer has: asks, one at a time,
+    /// whether they go from every synced device too or stay.
+    void askAboutPhoneDeletions();
     /// Games were appended to the open database (a source, a phone): show them.
     void showAddedGames();
     // Syncing everything, in order: the sources fill the database, the project
@@ -416,6 +419,10 @@ private:
     QString m_trainingBaselineFen;
     /// Sources already reported as not found while the application runs.
     QSet<QString> m_unavailableSourcesReported;
+    /// Deletions on a phone the user put off answering in this run (asked
+    /// again at the next start), and whether a question is on screen.
+    QSet<QString> m_postponedPhoneDeletions;
+    bool m_askingPhoneDeletions = false;
     /// What Explain wants the border of the board to say; see updateBoardBorder().
     BoardBorder m_explainBorder = BoardBorder::Plain;
     /// The tutor's alert is up: the engine's answer it holds back, the search

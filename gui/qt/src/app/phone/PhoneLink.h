@@ -36,6 +36,18 @@ public:
         QDateTime lastSyncAt;
     };
 
+    /// A phone said its user deleted a database this computer has
+    /// (docs/phone-link.md, "A database deleted on the phone"): kept until
+    /// the user here says whether it goes from this computer too.
+    struct DeletionRequest {
+        QString lineage;
+        /// The file here, relative to the Databases folder, when the phone said so.
+        QString name;
+        QString phoneKey;
+        QString phoneName;
+        QDateTime when;
+    };
+
     /// `stateFile` keeps the computer's key and the paired phones (per
     /// device, e.g. AppLocalData/phone-link.json); `databasesDir` is served.
     PhoneLink(QString stateFile, QString databasesDir, QObject *parent = nullptr);
@@ -66,6 +78,16 @@ public:
     /// Unpairs a phone: its offers are refused from now on.
     void removeDevice(const QString &key);
 
+    /// Deletions the user has not answered yet, oldest first.
+    QList<DeletionRequest> deletionRequests() const { return m_deletionRequests; }
+    /// The user answered: the database was deleted here too (`deletedHere`:
+    /// its lineage is then neither listed nor stored again, whatever phone
+    /// sends it) or kept (the request is dropped).
+    void resolveDeletion(const QString &lineage, bool deletedHere);
+    bool isDeletedHere(const QString &lineage) const { return m_deletedLineages.contains(lineage); }
+    /// The absolute path of the database with that lineage; empty if there is none.
+    QString databasePath(const QString &lineage);
+
     bool isListening() const;
     int connectedRelays() const;
     int activeSessions() const;
@@ -82,6 +104,8 @@ Q_SIGNALS:
     void statusChanged();
     /// Games from a phone were stored in (or replaced in) the database at `path`.
     void gamesStored(const QString &path, int count);
+    /// A phone deleted a database this computer has: see deletionRequests().
+    void deletionRequested(const QString &lineage);
 
 private:
     friend class PhoneLinkSession;
@@ -92,6 +116,8 @@ private:
     void onEvent(const NostrEvent &event);
     void sendSignal(const QByteArray &recipient, const QJsonObject &message);
     void touchDevice(const QString &key);
+    /// Records a phone's deletion of `lineage`; false if the database is not listed here.
+    bool requestDeletion(const DeletionRequest &request);
     /// The databases offered, described by the game store (ids, game counts).
     QList<PhoneFiles::Entry> listFiles();
     void setActivity(const QString &activity);
@@ -107,6 +133,8 @@ private:
     PhoneGameStore *m_gameStore = nullptr;
     QByteArray m_pairingSecret;
     QList<Device> m_devices;
+    QList<DeletionRequest> m_deletionRequests;
+    QSet<QString> m_deletedLineages;
     NostrRelayPool *m_pool = nullptr;
     QHash<QString, PhoneLinkSession *> m_sessions;
     QSet<QString> m_answeredSessions;

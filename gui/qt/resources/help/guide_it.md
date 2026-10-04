@@ -211,9 +211,11 @@ La sincronizzazione tiene uguale la tua cartella Pragma — database e progetti 
 
 **Sincronizza ora** (Ctrl+Y, primo bottone della barra degli strumenti) fa tutto in ordine: legge le fonti, salva il progetto e scambia i file con il server. **Sincronizza prima di chiudere** lo fa ogni volta che esci.
 
-La sincronizzazione non elimina mai: un database che manca da una parte viene copiato lì, e un database modificato su due computer viene unito partita per partita. Per liberarti di una partita usa il cestino, che gli altri computer seguono.
+La sincronizzazione non elimina mai: un database che manca da una parte viene copiato lì, e un database modificato su due computer viene unito partita per partita. Per liberarti di una partita usa il cestino, che gli altri computer seguono. L'unico database che elimina è quello che hai scelto di eliminare ovunque, dopo un avviso (vedi sotto).
 
 **Opzioni ▸ Collega app mobile…** mostra un codice da inquadrare con Pragma Chess sul telefono, che da quel momento tiene una copia dei tuoi database.
+
+Quando elimini un database sul telefono, il computer ti chiede alla sincronizzazione successiva con il telefono se eliminarlo anche qui o tenerlo: **Tienilo** lo lascia sul computer, **Chiedimelo più tardi** te lo chiede di nuovo al prossimo avvio di Pragma Chess, ed **Elimina ovunque…** ti avvisa prima che il database sarà eliminato da tutti i dispositivi sincronizzati — finisce nel cestino di questo computer, viene tolto dalla cartella di sincronizzazione sul server e gli altri computer che si sincronizzano con essa eliminano la loro copia. In ogni caso il telefono non lo riceve più.
 
 # Lingua {#language}
 

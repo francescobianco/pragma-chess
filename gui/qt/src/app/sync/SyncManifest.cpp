@@ -25,8 +25,16 @@ QByteArray SyncManifest::toJson() const
                                                    {QStringLiteral("at"), it->at.toUTC().toString(Qt::ISODate)},
                                                    {QStringLiteral("device"), it->device}});
     }
+    QJsonObject deletedEntries;
+    for (auto it = deleted.cbegin(); it != deleted.cend(); ++it) {
+        deletedEntries.insert(it.key(), QJsonObject{{QStringLiteral("lineage"), it->lineage},
+                                                    {QStringLiteral("at"), it->at.toUTC().toString(Qt::ISODate)},
+                                                    {QStringLiteral("device"), it->device}});
+    }
     QJsonObject root;
-    root.insert(QStringLiteral("pragma-chess-sync"), formatVersion);
+    // Format 1 while nothing was deleted, so older versions keep syncing; they
+    // would bring a deleted file back, so they are refused once one is.
+    root.insert(QStringLiteral("pragma-chess-sync"), deleted.isEmpty() ? 1 : formatVersion);
     root.insert(QStringLiteral("revision"), revision);
     root.insert(QStringLiteral("updatedBy"), updatedBy);
     root.insert(QStringLiteral("updatedAt"), updatedAt.toUTC().toString(Qt::ISODate));
@@ -35,6 +43,8 @@ QByteArray SyncManifest::toJson() const
     // next device that knows merges again.
     if (!merged.isEmpty())
         root.insert(QStringLiteral("merged"), mergedEntries);
+    if (!deleted.isEmpty())
+        root.insert(QStringLiteral("deleted"), deletedEntries);
     return QJsonDocument(root).toJson(QJsonDocument::Indented);
 }
 
@@ -86,6 +96,19 @@ std::optional<SyncManifest> SyncManifest::fromJson(const QByteArray &json, QStri
             continue;
         manifest.merged.insert(record.path, record);
     }
+    const QJsonObject deletedEntries = root.value(QStringLiteral("deleted")).toObject();
+    for (auto it = deletedEntries.constBegin(); it != deletedEntries.constEnd(); ++it) {
+        const QJsonObject entry = it.value().toObject();
+        SyncDeletionRecord record;
+        record.path = it.key();
+        record.lineage = entry.value(QStringLiteral("lineage")).toString();
+        record.at = QDateTime::fromString(entry.value(QStringLiteral("at")).toString(), Qt::ISODate);
+        record.device = entry.value(QStringLiteral("device")).toString();
+        // Without a lineage any file at that path could go: not trusted.
+        if (record.lineage.isEmpty() || manifest.merged.contains(record.path))
+            continue;
+        manifest.deleted.insert(record.path, record);
+    }
     return manifest;
 }
 
@@ -99,9 +122,11 @@ QList<SyncAction> planSync(const QMap<QString, LocalFileState> &local, const QMa
         paths.insert(it.key());
     for (auto it = remote.merged.cbegin(); it != remote.merged.cend(); ++it)
         paths.insert(it.key());
+    for (auto it = remote.deleted.cbegin(); it != remote.deleted.cend(); ++it)
+        paths.insert(it.key());
     // `base` is deliberately not a source of paths: a file that is gone from
     // both sides is gone, and one that is gone from a single side comes back
-    // from the other. Nothing here can make a file disappear.
+    // from the other. Only a merge or a deletion record makes a file disappear.
 
     QStringList sorted = paths.values();
     sorted.sort();
@@ -116,6 +141,12 @@ QList<SyncAction> planSync(const QMap<QString, LocalFileState> &local, const QMa
             // Merged into another database: its games are there, never here again.
             if (!localHash.isEmpty())
                 actions << SyncAction{Kind::Merge, path};
+            else if (!remoteHash.isEmpty())
+                actions << SyncAction{Kind::Forget, path};
+        } else if (remote.deleted.contains(path)) {
+            // Deleted by a user who was told it goes from every device.
+            if (!localHash.isEmpty())
+                actions << SyncAction{Kind::Delete, path};
             else if (!remoteHash.isEmpty())
                 actions << SyncAction{Kind::Forget, path};
         } else if (localHash == remoteHash) {

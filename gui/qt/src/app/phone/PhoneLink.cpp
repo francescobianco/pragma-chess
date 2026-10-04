@@ -92,7 +92,48 @@ QList<PhoneFiles::Entry> PhoneLink::listFiles()
     PhoneFiles::Describe describe;
     if (m_gameStore)
         describe = [store = m_gameStore](const QString &path) { return store->describe(path); };
-    return m_files.list(describe);
+    QList<PhoneFiles::Entry> entries = m_files.list(describe);
+    // A database deleted here after a phone deleted it is not offered again,
+    // even if a copy came back (from a device that did not know yet).
+    entries.removeIf([this](const PhoneFiles::Entry &entry) { return m_deletedLineages.contains(entry.id); });
+    return entries;
+}
+
+QString PhoneLink::databasePath(const QString &lineage)
+{
+    if (lineage.isEmpty())
+        return {};
+    for (const PhoneFiles::Entry &entry : listFiles()) {
+        if (entry.id == lineage)
+            return PhoneFiles::resolve(m_files.root(), entry.name).value_or(QString());
+    }
+    return {};
+}
+
+bool PhoneLink::requestDeletion(const DeletionRequest &request)
+{
+    if (m_deletedLineages.contains(request.lineage))
+        return true; // Gone already.
+    for (DeletionRequest &known : m_deletionRequests) {
+        if (known.lineage == request.lineage) {
+            known = request; // The latest phone to say so.
+            saveState();
+            Q_EMIT deletionRequested(request.lineage);
+            return true;
+        }
+    }
+    m_deletionRequests.append(request);
+    saveState();
+    Q_EMIT deletionRequested(request.lineage);
+    return true;
+}
+
+void PhoneLink::resolveDeletion(const QString &lineage, bool deletedHere)
+{
+    m_deletionRequests.removeIf([&lineage](const DeletionRequest &request) { return request.lineage == lineage; });
+    if (deletedHere && !lineage.isEmpty())
+        m_deletedLineages.insert(lineage);
+    saveState();
 }
 
 void PhoneLink::setComputerName(const QString &name)
@@ -122,6 +163,19 @@ void PhoneLink::loadState()
         if (device.key.size() == 64)
             m_devices.append(device);
     }
+    for (const QJsonValue &value : state.value(QStringLiteral("deletionRequests")).toArray()) {
+        const QJsonObject object = value.toObject();
+        DeletionRequest request;
+        request.lineage = object.value(QStringLiteral("db")).toString();
+        request.name = object.value(QStringLiteral("name")).toString();
+        request.phoneKey = object.value(QStringLiteral("phoneKey")).toString();
+        request.phoneName = object.value(QStringLiteral("phoneName")).toString();
+        request.when = QDateTime::fromString(object.value(QStringLiteral("when")).toString(), Qt::ISODate);
+        if (!request.lineage.isEmpty())
+            m_deletionRequests.append(request);
+    }
+    for (const QJsonValue &value : state.value(QStringLiteral("deletedDatabases")).toArray())
+        m_deletedLineages.insert(value.toString());
 }
 
 void PhoneLink::saveState() const
@@ -136,10 +190,26 @@ void PhoneLink::saveState() const
              device.lastSyncAt.isValid() ? device.lastSyncAt.toUTC().toString(Qt::ISODate) : QString()},
         });
     }
-    const QJsonObject state{
+    QJsonArray requests;
+    for (const DeletionRequest &request : m_deletionRequests) {
+        requests.append(QJsonObject{
+            {QStringLiteral("db"), request.lineage},
+            {QStringLiteral("name"), request.name},
+            {QStringLiteral("phoneKey"), request.phoneKey},
+            {QStringLiteral("phoneName"), request.phoneName},
+            {QStringLiteral("when"), request.when.isValid() ? request.when.toUTC().toString(Qt::ISODate) : QString()},
+        });
+    }
+    QStringList deleted = m_deletedLineages.values();
+    deleted.sort();
+    QJsonObject state{
         {QStringLiteral("secret"), QString::fromLatin1(m_key.secret().toHex())},
         {QStringLiteral("devices"), devices},
     };
+    if (!requests.isEmpty())
+        state.insert(QStringLiteral("deletionRequests"), requests);
+    if (!deleted.isEmpty())
+        state.insert(QStringLiteral("deletedDatabases"), QJsonArray::fromStringList(deleted));
     QDir().mkpath(QFileInfo(m_stateFile).absolutePath());
     QSaveFile file(m_stateFile);
     if (!file.open(QIODevice::WriteOnly))

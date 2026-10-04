@@ -433,6 +433,89 @@ void MainWindow::createPhoneLink()
                               .filePath(QStringLiteral("phone-link.json"));
     m_phoneLink = new PhoneLink(state, UserFolders::databasesDir(), this);
     m_phoneLink->setGameStore(m_phoneGameStore.get());
+    // Never asked from inside the phone's session: it is answered first.
+    connect(m_phoneLink, &PhoneLink::deletionRequested, this,
+            [this] { QTimer::singleShot(0, this, &MainWindow::askAboutPhoneDeletions); });
+    // What was left unanswered last time, once the window is up.
+    QTimer::singleShot(0, this, &MainWindow::askAboutPhoneDeletions);
+#endif
+}
+
+void MainWindow::askAboutPhoneDeletions()
+{
+#ifdef PRAGMA_HAS_PHONE_LINK
+    if (!m_phoneLink || m_askingPhoneDeletions)
+        return;
+    if (m_syncPipeline->isRunning() || m_folderSync->isRunning()) {
+        // Files are being replaced: ask when they are not.
+        QTimer::singleShot(5000, this, &MainWindow::askAboutPhoneDeletions);
+        return;
+    }
+    m_askingPhoneDeletions = true;
+    for (const PhoneLink::DeletionRequest &request : m_phoneLink->deletionRequests()) {
+        if (m_postponedPhoneDeletions.contains(request.lineage))
+            continue;
+        const QString path = m_phoneLink->databasePath(request.lineage);
+        if (path.isEmpty()) {
+            m_phoneLink->resolveDeletion(request.lineage, false); // Gone already: nothing to ask.
+            continue;
+        }
+        const QString name = QFileInfo(path).completeBaseName();
+        const QString phone = request.phoneName.isEmpty() ? tr("Phone") : request.phoneName;
+        QMessageBox box(QMessageBox::Question, tr("Database Deleted on the Mobile App"),
+                        tr("The database “%1” was deleted on the mobile app “%2”.").arg(name, phone),
+                        QMessageBox::NoButton, this);
+        box.setInformativeText(tr("Do you want to delete it here too, or keep it on this computer? "
+                                  "The mobile app will not receive it again either way."));
+        QPushButton *remove = box.addButton(tr("Delete Everywhere…"), QMessageBox::DestructiveRole);
+        QPushButton *keep = box.addButton(tr("Keep It"), QMessageBox::AcceptRole);
+        QPushButton *later = box.addButton(tr("Ask Me Later"), QMessageBox::RejectRole);
+        box.setDefaultButton(keep);
+        box.setEscapeButton(later);
+        box.exec();
+        if (box.clickedButton() == keep) {
+            m_phoneLink->resolveDeletion(request.lineage, false);
+            continue;
+        }
+        if (box.clickedButton() != remove) {
+            m_postponedPhoneDeletions.insert(request.lineage);
+            continue;
+        }
+
+        QMessageBox warning(QMessageBox::Warning, tr("Delete “%1” Everywhere?").arg(name),
+                            tr("The database “%1” will be deleted from every synced device.").arg(name),
+                            QMessageBox::NoButton, this);
+        warning.setInformativeText(
+            tr("It goes to the trash on this computer, it is removed from the sync folder on the server, and "
+               "every other computer that syncs with it deletes its copy at its next sync. Its games go with it."));
+        QPushButton *confirm = warning.addButton(tr("Delete"), QMessageBox::DestructiveRole);
+        QPushButton *cancel = warning.addButton(QMessageBox::Cancel);
+        warning.setDefaultButton(cancel);
+        warning.setEscapeButton(cancel);
+        warning.exec();
+        if (warning.clickedButton() != confirm) {
+            m_postponedPhoneDeletions.insert(request.lineage);
+            continue;
+        }
+        QString error;
+        if (!m_folderSync->deleteDatabase(path, &error)) {
+            QMessageBox::warning(this, tr("Could Not Delete the Database"), error);
+            m_postponedPhoneDeletions.insert(request.lineage);
+            continue;
+        }
+        m_phoneLink->resolveDeletion(request.lineage, true);
+        statusBar()->showMessage(tr("Deleted “%1”").arg(name), 5000);
+        if (m_folderSync->hasStore())
+            QTimer::singleShot(0, m_folderSync, &FolderSync::sync); // The other devices hear of it.
+    }
+    m_askingPhoneDeletions = false;
+    // A phone may have deleted more while a question was on screen.
+    for (const PhoneLink::DeletionRequest &request : m_phoneLink->deletionRequests()) {
+        if (!m_postponedPhoneDeletions.contains(request.lineage)) {
+            QTimer::singleShot(0, this, &MainWindow::askAboutPhoneDeletions);
+            break;
+        }
+    }
 #endif
 }
 

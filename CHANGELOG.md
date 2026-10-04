@@ -8,6 +8,11 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- A database deleted in the mobile app is no longer sent back to it, and
+  the computer asks whether to delete it there too or keep it. Delete
+  Everywhere… warns first, then moves it to the trash and deletes it from
+  the sync folder on the server and from the other computers that sync
+  with it.
 - The main window no longer grows at every start (by the height of its
   title bar and the width of its shadow) until it ran off the screen; a
   window never opens larger than the screen.

@@ -596,6 +596,47 @@ void PhoneLinkTest::pairsListsGetsAndPutsEndToEnd()
     QVERIFY(!QFile::exists(databases + QStringLiteral("/Classici.pdb")));
     QVERIFY(link.devices().first().lastSyncAt.isValid());
 
+    // The phone deleted Classic: recorded for the user to answer, not deleted.
+    QSignalSpy deletion(&link, &PhoneLink::deletionRequested);
+    phone.sendJson({{QStringLiteral("op"), QStringLiteral("deleted")},
+                    {QStringLiteral("db"), classicId},
+                    {QStringLiteral("name"), QStringLiteral("Classici.pdb")},
+                    {QStringLiteral("when"), QStringLiteral("2026-10-04T10:00:00Z")}});
+    answer = next();
+    QCOMPARE(answer.value(QStringLiteral("op")).toString(), QStringLiteral("deleted"));
+    QCOMPARE(answer.value(QStringLiteral("db")).toString(), classicId);
+    QCOMPARE(deletion.count(), 1);
+    QCOMPARE(link.deletionRequests().size(), 1);
+    QCOMPARE(link.deletionRequests().first().name, QStringLiteral("Classic.pdb"));
+    QCOMPARE(link.deletionRequests().first().phoneName, QStringLiteral("Test phone"));
+    QVERIFY(QFile::exists(databases + QStringLiteral("/Classic.pdb")));
+    QCOMPARE(link.databasePath(classicId), QFileInfo(databases + QStringLiteral("/Classic.pdb")).absoluteFilePath());
+    {
+        // Kept across restarts until answered.
+        PhoneLink reloaded(dir.filePath(QStringLiteral("phone-link.json")), databases);
+        QCOMPARE(reloaded.deletionRequests().size(), 1);
+        QCOMPARE(reloaded.deletionRequests().first().lineage, classicId);
+    }
+    // A database this computer does not have: acknowledged, nothing to ask.
+    const QString unknown = QStringLiteral("0b0c5a1e-3f0d-4a55-9e3c-6f1d0a9b4c99");
+    phone.sendJson({{QStringLiteral("op"), QStringLiteral("deleted")}, {QStringLiteral("db"), unknown}});
+    QCOMPARE(next().value(QStringLiteral("db")).toString(), unknown);
+    QCOMPARE(link.deletionRequests().size(), 1);
+
+    // Deleted here too: no longer listed, and a put cannot bring it back.
+    QVERIFY(QFile::remove(databases + QStringLiteral("/Classic.pdb")));
+    link.resolveDeletion(classicId, true);
+    QVERIFY(link.deletionRequests().isEmpty());
+    QVERIFY(link.isDeletedHere(classicId));
+    phone.sendJson({{QStringLiteral("op"), QStringLiteral("put")},
+                    {QStringLiteral("db"), classicId},
+                    {QStringLiteral("name"), QStringLiteral("Classic.pdb")},
+                    {QStringLiteral("games"), QJsonArray{phoneGame(QStringLiteral("p3"))}}});
+    answer = next();
+    QCOMPARE(answer.value(QStringLiteral("stored")).toInt(), 0);
+    QCOMPARE(answer.value(QStringLiteral("known")).toInt(), 1);
+    QVERIFY(!QFile::exists(databases + QStringLiteral("/Classic.pdb")));
+
     // Unpairing the last phone stops listening once the dialog is closed.
     link.endPairing();
     QVERIFY(link.isListening());

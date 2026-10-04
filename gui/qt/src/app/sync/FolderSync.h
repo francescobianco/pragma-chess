@@ -19,7 +19,9 @@ class RemoteStore;
 /// and only if no other device changed it meanwhile; otherwise the sync
 /// starts over. Nothing is ever lost: conflicting edits keep both files, and
 /// the only files that go are databases merged into another one — a
-/// duplicate — whose games live on there (SyncMergeRecord).
+/// duplicate — whose games live on there (SyncMergeRecord), and databases
+/// the user deleted knowing they go from every device (SyncDeletionRecord),
+/// which go to the trash.
 class FolderSync : public QObject {
     Q_OBJECT
 
@@ -46,6 +48,9 @@ public:
         /// Merges every game of `from` into `into` by uid, losing none, and gives
         /// `into` the id `lineage` if not empty. False, with an error, if it could not.
         std::function<bool(const QString &from, const QString &into, const QString &lineage, QString *error)> merge;
+        /// Takes a deleted database out of the folder; empty: the system
+        /// trash, or removed where there is none.
+        std::function<bool(const QString &absolutePath)> discard;
     };
     void setDatabaseHooks(DatabaseHooks hooks) { m_hooks = std::move(hooks); }
 
@@ -53,6 +58,13 @@ public:
     /// one and removes the others; the next sync tells the other devices,
     /// which merge their copies too. Returns how many files were merged.
     int mergeDuplicates();
+
+    /// Deletes the database at `absolutePath` (under the synced folder) on
+    /// every device: it goes to the trash here, and the next sync records
+    /// the deletion, so the server and the other devices drop it too. False,
+    /// with an error, if it has no lineage or could not be moved. Not while
+    /// a sync runs.
+    bool deleteDatabase(const QString &absolutePath, QString *errorMessage);
 
     /// Starts a sync, or runs another one right after the current one.
     void sync();
@@ -69,6 +81,8 @@ Q_SIGNALS:
     /// A local file is about to be replaced or deleted (e.g. to close an open database).
     void localFileAboutToChange(const QString &absolutePath);
     void localFileChanged(const QString &absolutePath);
+    /// A database file was deleted here, by the user or by a sync.
+    void localFileDeleted(const QString &absolutePath);
     /// A database file was merged into another and removed.
     void localFileMerged(const QString &fromAbsolutePath, const QString &intoAbsolutePath);
 
@@ -84,13 +98,14 @@ private:
     void execute(std::shared_ptr<Run> run, qsizetype index);
     void commit(std::shared_ptr<Run> run);
     void finish(const QString &errorMessage, int changes);
-    /// Drops the merges a published manifest now records.
+    /// Drops the merges and deletions a published manifest now records.
     void forgetPublishedMerges(const SyncManifest &published);
 
     QMap<QString, LocalFileState> scanLocal();
     /// The local database with this lineage other than `except`, preferring `hint`; relative, or empty.
     QString findDatabase(const QString &lineage, const QString &hint, const QString &except) const;
     QString hashFile(const QString &absolutePath) const;
+    bool discard(const QString &absolutePath) const;
     void loadState();
     void saveState() const;
 
@@ -112,6 +127,8 @@ private:
     DatabaseHooks m_hooks;
     /// Merges made here that the remote manifest does not record yet, by path.
     QMap<QString, SyncMergeRecord> m_pendingMerges;
+    /// Deletions made here that the remote manifest does not record yet, by path.
+    QMap<QString, SyncDeletionRecord> m_pendingDeletions;
     QDateTime m_lastSync;
     QString m_lastError;
 };

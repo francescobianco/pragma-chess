@@ -477,7 +477,8 @@ Git repository.
   `SyncManifest` is the remote `.pragma-chess.sync` (files with SHA-256 and a
   revision); `FolderSync` runs the plan, writes the manifest last and starts
   over if another device changed it; uploads send a snapshot copy.
-- **The sync reconciles; it never deletes anything that has not been merged.**
+- **The sync reconciles; it never deletes anything that has not been merged
+  or that the user did not delete knowingly** (below).
   A folder of databases is not a working copy: a file missing on one side
   means that side has yet to receive it. `planSync` (pure, unit-tested)
   returns the union of both sides — only here → Upload, only there →
@@ -507,6 +508,19 @@ Git repository.
   another lineage is a new database and syncs normally.
   `tst_chessrules::mergesDuplicatesAcrossGitDevices` covers a duplicate
   holding a game only the second device had.
+- **The other way out is a deletion the user confirmed** after being told
+  it goes from every synced device (today only after a phone deleted the
+  database, `MainWindow::askAboutPhoneDeletions`). `FolderSync::deleteDatabase`
+  moves the file to the trash (`DatabaseHooks::discard`, the system trash
+  by default; tests remove instead) and records a `SyncDeletionRecord`
+  (`deleted` in the manifest: path and lineage) with the next sync: a device
+  that has that file with that lineage moves it to the trash (planSync
+  `Delete`), a remote copy is removed (`Forget`), and the path is never
+  synced again while a file of that lineage is there; a file at the path
+  with another lineage is a new database. A manifest with deletions is
+  written as format 2, which older versions refuse to sync with rather than
+  bring the file back. `tst_chessrules::deletesDatabasesAcrossGitDevices`
+  covers it. Never delete anything else through it without the same warning.
 - `app/sync/SyncPipeline` runs the sync **in order**, one `SyncTask` at a
   time: `SourceSyncTask` (sources → database), a `SyncStepTask` for the
   project file, one for the session and one merging duplicate databases,

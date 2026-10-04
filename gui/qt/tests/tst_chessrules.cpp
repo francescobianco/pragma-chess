@@ -1218,6 +1218,133 @@ private Q_SLOTS:
         const std::optional<SyncManifest> read = SyncManifest::fromJson(remote.toJson(), nullptr);
         QVERIFY(read);
         QCOMPARE(read->merged, remote.merged);
+
+        // A deleted file goes to the trash here, or is forgotten remotely; never synced again.
+        SyncManifest deleting;
+        deleting.files.insert(QStringLiteral("Databases/Old.pdb"), SyncFileState{QStringLiteral("o"), 1, {}, {}});
+        deleting.files.insert(QStringLiteral("Databases/Gone.pdb"), SyncFileState{QStringLiteral("g"), 1, {}, {}});
+        deleting.files.insert(QStringLiteral("Databases/Kept.pdb"), SyncFileState{QStringLiteral("k"), 1, {}, {}});
+        for (const char *path : {"Databases/Old.pdb", "Databases/Gone.pdb", "Databases/Nowhere.pdb"}) {
+            deleting.deleted.insert(QString::fromLatin1(path),
+                                    SyncDeletionRecord{QString::fromLatin1(path), QStringLiteral("l"), {},
+                                                       QStringLiteral("laptop")});
+        }
+        QMap<QString, LocalFileState> mine;
+        mine.insert(QStringLiteral("Databases/Old.pdb"), LocalFileState{QStringLiteral("edited here"), 1, {}});
+        mine.insert(QStringLiteral("Databases/Kept.pdb"), LocalFileState{QStringLiteral("k"), 1, {}});
+        QCOMPARE(planSync(mine, {{QStringLiteral("Databases/Kept.pdb"), QStringLiteral("k")}}, deleting),
+                 (QList<SyncAction>{{Kind::Forget, QStringLiteral("Databases/Gone.pdb")},
+                                    {Kind::Delete, QStringLiteral("Databases/Old.pdb")}}));
+        // Written as format 2, which older versions refuse rather than bring the files back.
+        const QByteArray json = deleting.toJson();
+        QVERIFY(json.contains("\"pragma-chess-sync\": 2"));
+        QVERIFY(remote.toJson().contains("\"pragma-chess-sync\": 1"));
+        const std::optional<SyncManifest> readDeleted = SyncManifest::fromJson(json, nullptr);
+        QVERIFY(readDeleted);
+        QCOMPARE(readDeleted->deleted, deleting.deleted);
+    }
+
+    /// A database deleted on one device (the user was told it goes from every
+    /// device) goes on every device and from the repository, and is not
+    /// brought back; a new database at its path syncs as any other.
+    void deletesDatabasesAcrossGitDevices()
+    {
+        const QString git = QStandardPaths::findExecutable(QStringLiteral("git"));
+        if (git.isEmpty())
+            QSKIP("git is not installed");
+        QTemporaryDir root;
+        QVERIFY(root.isValid());
+        const QDir base(root.path());
+        const QString origin = base.filePath(QStringLiteral("origin.git"));
+        QProcess init;
+        init.start(git, {QStringLiteral("init"), QStringLiteral("--bare"), QStringLiteral("--initial-branch=main"), origin});
+        QVERIFY(init.waitForFinished(30000));
+        QCOMPARE(init.exitCode(), 0);
+
+        struct Device {
+            std::unique_ptr<GitStore> store;
+            std::unique_ptr<FolderSync> sync;
+            QString folder;
+        };
+        const auto makeDevice = [&](const QString &name) {
+            Device device;
+            device.folder = base.filePath(name + QStringLiteral("/Pragma"));
+            QDir().mkpath(device.folder + QStringLiteral("/Databases"));
+            device.store = std::make_unique<GitStore>(origin, QStringLiteral("main"), QString(), QString(),
+                                                      base.filePath(name + QStringLiteral("/clone")), name);
+            device.sync = std::make_unique<FolderSync>(device.folder, base.filePath(name + QStringLiteral("/state.json")), name);
+            device.sync->setStore(device.store.get());
+            FolderSync::DatabaseHooks hooks = DatabaseMerge::hooks();
+            hooks.discard = [](const QString &path) { return QFile::remove(path); }; // Not the user's trash.
+            device.sync->setDatabaseHooks(hooks);
+            return device;
+        };
+        const auto syncOnce = [](Device &device) {
+            QSignalSpy finished(device.sync.get(), &FolderSync::finished);
+            device.sync->sync();
+            do {
+                QVERIFY(finished.wait(60000));
+                QCOMPARE(finished.constLast().at(0).toString(), QString());
+            } while (device.sync->isRunning() || finished.count() == 0);
+        };
+        const auto makeDatabase = [](const QString &path, const char *white, const QString &lineage) {
+            GameRecord record;
+            record.white = QString::fromLatin1(white);
+            record.black = QStringLiteral("Black");
+            record.result = QStringLiteral("1-0");
+            record.moves = {MoveRecord{QStringLiteral("e4"), QStringLiteral("e2e4")}};
+            QString error;
+            const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::create(path, {record}, &error);
+            QVERIFY2(database, qPrintable(error));
+            DatabaseProperties properties = database->properties();
+            properties.id = lineage;
+            QVERIFY(database->setProperties(properties, &error));
+        };
+        const QString lineage = QStringLiteral("00000000-0000-4000-8000-0000000000d1");
+
+        Device laptop = makeDevice(QStringLiteral("laptop"));
+        const QString laptopFile = laptop.folder + QStringLiteral("/Databases/Phone Games.pdb");
+        makeDatabase(laptopFile, "A", lineage);
+        makeDatabase(laptop.folder + QStringLiteral("/Databases/Other.pdb"), "B",
+                     QStringLiteral("00000000-0000-4000-8000-0000000000d2"));
+        syncOnce(laptop);
+        Device desktop = makeDevice(QStringLiteral("desktop"));
+        syncOnce(desktop);
+        const QString desktopFile = desktop.folder + QStringLiteral("/Databases/Phone Games.pdb");
+        QVERIFY(QFile::exists(desktopFile));
+
+        // Deleted on the laptop: it goes there at once, from the server with the next sync.
+        QSignalSpy deletedHere(laptop.sync.get(), &FolderSync::localFileDeleted);
+        QString error;
+        QVERIFY2(laptop.sync->deleteDatabase(laptopFile, &error), qPrintable(error));
+        QVERIFY(!QFile::exists(laptopFile));
+        QCOMPARE(deletedHere.count(), 1);
+        syncOnce(laptop);
+        QVERIFY(!QFile::exists(laptopFile)); // Not brought back.
+
+        // The desktop's copy goes too; the other database stays.
+        QSignalSpy deletedThere(desktop.sync.get(), &FolderSync::localFileDeleted);
+        syncOnce(desktop);
+        QVERIFY2(!QFile::exists(desktopFile), "a deleted database must go on every device");
+        QCOMPARE(deletedThere.count(), 1);
+        QVERIFY(QFile::exists(desktop.folder + QStringLiteral("/Databases/Other.pdb")));
+        syncOnce(desktop);
+        QVERIFY(!QFile::exists(desktopFile));
+
+        QProcess tree;
+        tree.start(git, {QStringLiteral("--git-dir=") + origin, QStringLiteral("ls-tree"), QStringLiteral("-r"),
+                         QStringLiteral("--name-only"), QStringLiteral("main")});
+        QVERIFY(tree.waitForFinished(30000));
+        const QString files = QString::fromUtf8(tree.readAllStandardOutput());
+        QVERIFY2(!files.contains(QLatin1String("Phone Games.pdb")), qPrintable(files));
+        QVERIFY(files.contains(QLatin1String("Other.pdb")));
+
+        // A new database at the same path, another lineage, is a new database.
+        makeDatabase(desktopFile, "C", QStringLiteral("00000000-0000-4000-8000-0000000000d3"));
+        syncOnce(desktop);
+        syncOnce(laptop);
+        QVERIFY(QFile::exists(laptopFile));
+        QCOMPARE(SqliteGameDatabase::readProperties(laptopFile).id, QStringLiteral("00000000-0000-4000-8000-0000000000d3"));
     }
 
     /// A duplicate merged on one device is merged on every device: its games

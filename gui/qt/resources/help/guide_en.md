@@ -211,9 +211,11 @@ Sync keeps your Pragma folder — databases and projects — the same on several
 
 **Sync Now** (Ctrl+Y, first button of the toolbar) does everything in order: reads the sources, saves the project and exchanges the files with the server. **Sync before closing** does it every time you quit.
 
-Sync never deletes: a database missing on one side is copied there, and a database changed on two computers is merged game by game. To get rid of a game use the trash, which the other computers follow.
+Sync never deletes: a database missing on one side is copied there, and a database changed on two computers is merged game by game. To get rid of a game use the trash, which the other computers follow. The one database it deletes is one you chose to delete everywhere, after a warning (see below).
 
 **Options ▸ Connect Mobile App…** shows a code to scan with Pragma Chess on your phone, which then keeps a copy of your databases.
+
+When you delete a database on the phone, the computer asks you at its next sync with the phone whether to delete it here too or keep it: **Keep It** leaves it on the computer, **Ask Me Later** asks again the next time you start Pragma Chess, and **Delete Everywhere…** warns you first that the database will be deleted from every synced device — it goes to the trash on this computer, it is removed from the sync folder on the server, and the other computers that sync with it delete their copy. Either way the phone does not receive it again.
 
 # Language {#language}
 

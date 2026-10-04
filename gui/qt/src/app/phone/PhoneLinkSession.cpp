@@ -111,6 +111,8 @@ void PhoneLinkSession::handle(const QJsonObject &request)
         startTransfer(request.value(QStringLiteral("name")).toString());
     } else if (op == QLatin1String("put")) {
         handlePut(request);
+    } else if (op == QLatin1String("deleted")) {
+        handleDeleted(request);
     } else {
         sendError(QStringLiteral("unknown op: %1").arg(op));
     }
@@ -137,8 +139,9 @@ void PhoneLinkSession::handlePut(const QJsonObject &request)
         properties.id = lineage.toString(QUuid::WithoutBraces);
         // The opening names we ship are reference data kept with the books,
         // updated by releases, not by phones: they are acknowledged as known and
-        // never recreated among the databases of games.
-        if (ShippedOpeningNames::byLineage(properties.id)) {
+        // never recreated among the databases of games. So is a database the
+        // user deleted here after a phone deleted it: no phone brings it back.
+        if (ShippedOpeningNames::byLineage(properties.id) || m_link->isDeletedHere(properties.id)) {
             const int count = int(request.value(QStringLiteral("games")).toArray().size());
             sendJson({{QStringLiteral("op"), QStringLiteral("put")}, {QStringLiteral("name"), name},
                       {QStringLiteral("db"), properties.id}, {QStringLiteral("stored"), 0},
@@ -189,6 +192,46 @@ void PhoneLinkSession::handlePut(const QJsonObject &request)
     m_link->touchDevice(m_phoneKey);
     if (result->stored + result->updated > 0)
         Q_EMIT m_link->gamesStored(*path, result->stored + result->updated);
+}
+
+void PhoneLinkSession::handleDeleted(const QJsonObject &request)
+{
+    // The phone's user deleted a database (docs/phone-link.md, "A database
+    // deleted on the phone"): the user here is asked later, so the answer
+    // only says the request was recorded.
+    const QUuid lineage = QUuid::fromString(request.value(QStringLiteral("db")).toString().trimmed());
+    if (lineage.isNull()) {
+        sendError(QStringLiteral("invalid database id"));
+        return;
+    }
+    const QString id = lineage.toString(QUuid::WithoutBraces);
+    const QList<PhoneFiles::Entry> entries = m_link->listFiles();
+    const PhoneFiles::Entry *found = nullptr;
+    bool undescribed = false;
+    for (const PhoneFiles::Entry &entry : entries) {
+        undescribed = undescribed || entry.id.isEmpty();
+        if (entry.id == id)
+            found = &entry;
+    }
+    if (!found && undescribed) {
+        // A database could not be read now (a sync replacing files): it may be this one.
+        sendError(QStringLiteral("busy, try again later"));
+        return;
+    }
+    if (found) {
+        PhoneLink::DeletionRequest deletion;
+        deletion.lineage = id;
+        deletion.name = found->name;
+        deletion.phoneKey = m_phoneKey;
+        deletion.phoneName = m_phoneName;
+        deletion.when = QDateTime::fromString(request.value(QStringLiteral("when")).toString(), Qt::ISODate);
+        if (!deletion.when.isValid())
+            deletion.when = QDateTime::currentDateTimeUtc();
+        m_link->requestDeletion(deletion);
+    }
+    // Nothing here with that id: nothing to ask, the phone may forget it.
+    sendJson({{QStringLiteral("op"), QStringLiteral("deleted")}, {QStringLiteral("db"), id}});
+    m_link->touchDevice(m_phoneKey);
 }
 
 void PhoneLinkSession::sendJson(const QJsonObject &message)

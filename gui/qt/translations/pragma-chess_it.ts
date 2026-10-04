@@ -1350,8 +1350,8 @@ Il Nero ha catturato: %2</translation>
         <translation>&amp;File</translation>
     </message>
     <message>
-        <source>Open &amp;Recent</source>
-        <translation>Apri &amp;recenti</translation>
+        <source>Open &amp;Recent Project</source>
+        <translation>Apri progetto &amp;recente</translation>
     </message>
     <message>
         <source>&amp;Edit</source>

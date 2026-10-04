@@ -199,7 +199,7 @@ Eliminare non rimpicciolisce ancora il file. **Database ▸ Impostazioni databas
 Un progetto è quello che stai guardando: il database, la partita e la mossa, il lato da cui vedi la scacchiera, il motore, i pannelli e se ti stai allenando. La barra del titolo ne mostra il nome, con un asterisco quando ha modifiche non salvate.
 
 - **File ▸ Nuovo progetto** tiene quello che vedi — database, motore, pannelli — e comincia una partita nuova, vuota, col Bianco in basso.
-- **File ▸ Apri progetto…** e **File ▸ Apri recenti** aprono un file `.pch`.
+- **File ▸ Apri progetto…** e **File ▸ Apri progetto recente** aprono un file `.pch`.
 - **File ▸ Salva progetto** e **File ▸ Salva progetto come…** lo salvano.
 
 Non sei obbligato a salvare: Pragma Chess si riapre come l'hai chiuso.

@@ -792,7 +792,7 @@ void MainWindow::createMenus()
     QMenu *file = menuBar()->addMenu(tr("&File"));
     file->addAction(m_newProjectAction);
     file->addAction(m_openProjectAction);
-    m_recentProjectsMenu = file->addMenu(tr("Open &Recent"));
+    m_recentProjectsMenu = file->addMenu(tr("Open &Recent Project"));
     connect(m_recentProjectsMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildRecentProjectsMenu);
     file->addSeparator();
     file->addAction(m_saveProjectAction);

@@ -8,6 +8,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Edit ▸ Paste is a menu: Paste FEN, Paste Line (a new game with the moves
+  on the clipboard) and Paste Line from Current Position (Ctrl+Alt+V, plays
+  them from the board: added at the end of the game, a variation elsewhere).
 - A new source, PGN file: a `.pgn` file on this computer kept in step with
   the database, in the direction you choose — Read and write, Read only or
   Write only. The file can be created while connecting it. Games saved,

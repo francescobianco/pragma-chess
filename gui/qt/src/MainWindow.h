@@ -326,6 +326,11 @@ private:
     void updateGameHeader();
     void copyFen();
     void pasteFen();
+    /// A new game with the moves on the clipboard (PGN, SAN or UCI).
+    void pasteLine();
+    /// The moves on the clipboard played from the position on the board, into
+    /// the game: at its end, or as a variation.
+    void pasteLineFromCurrentPosition();
     /// Edit ▸ Copy: puts `text` on the clipboard and confirms with `message`.
     void copyText(const QString &text, const QString &message);
     /// Puts the panels back where they start: what a new project opens with.

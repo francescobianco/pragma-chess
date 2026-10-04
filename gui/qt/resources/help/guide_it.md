@@ -72,7 +72,7 @@ Muovi un pezzo trascinandolo, oppure cliccandolo e poi cliccando la casa d'arriv
 
 Gioca una mossa che non è la successiva della partita e diventa una **variante**: la partita tiene la sua linea, e quella nuova compare nel pannello Mosse sotto la mossa che sostituisce. Una partita salvata nel database viene salvata subito, varianti comprese.
 
-**Modifica ▸ Copia** mette negli appunti le mosse, la partita come PGN, la posizione come FEN (Ctrl+Shift+C), la linea del motore o la spiegazione. **Modifica ▸ Incolla FEN** (Ctrl+Shift+V) imposta la posizione che c'è negli appunti.
+**Modifica ▸ Copia** mette negli appunti le mosse, la partita come PGN, la posizione come FEN (Ctrl+Shift+C), la linea del motore o la spiegazione. **Modifica ▸ Incolla** prende quello che c'è negli appunti: **Incolla FEN** (Ctrl+Shift+V) imposta la posizione, **Incolla linea** comincia una nuova partita con le mosse (PGN, mosse con o senza numeri, o UCI), e **Incolla linea dalla posizione attuale** (Ctrl+Alt+V) gioca le mosse dalla posizione sulla scacchiera, come se le giocassi tu: alla fine della partita vengono aggiunte, altrove diventano una variante.
 
 # Mosse e annotazioni {#moves}
 

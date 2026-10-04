@@ -684,7 +684,7 @@ void MainWindow::createActions()
     m_copyFenAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_C));
     connect(m_copyFenAction, &QAction::triggered, this, &MainWindow::copyFen);
 
-    m_pasteFenAction = new QAction(themeIcon("edit-paste", QStyle::SP_FileIcon), tr("&Paste FEN"), this);
+    m_pasteFenAction = new QAction(tr("Paste &FEN"), this);
     m_pasteFenAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_V));
     connect(m_pasteFenAction, &QAction::triggered, this, &MainWindow::pasteFen);
 
@@ -859,7 +859,14 @@ void MainWindow::createMenus()
     connect(m_session, &GameSession::gameChanged, this, updateCopyActions);
     updateCopyActions();
     edit->addSeparator();
-    edit->addAction(m_pasteFenAction);
+    QMenu *paste = edit->addMenu(themeIcon("edit-paste", QStyle::SP_FileIcon), tr("&Paste"));
+    paste->addAction(m_pasteFenAction);
+    paste->addAction(tr("Paste &Line"), this, &MainWindow::pasteLine);
+    QAction *pasteHere = paste->addAction(tr("Paste Line from &Current Position"), this,
+                                          &MainWindow::pasteLineFromCurrentPosition);
+    pasteHere->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_V)); // As Copy ▸ Moves up to Current Position.
+    // Online the moves are the platform's: none are played from the clipboard.
+    connect(paste, &QMenu::aboutToShow, this, [this, pasteHere] { pasteHere->setEnabled(!m_onlinePlay); });
 
     m_viewMenu = menuBar()->addMenu(tr("&View"));
     m_viewMenu->addAction(m_flipBoardAction);
@@ -3504,6 +3511,60 @@ void MainWindow::pasteFen()
     m_gameView->clearSelection();
     m_openGameIndex = -1;
     m_session->setGame(game);
+}
+
+void MainWindow::pasteLine()
+{
+    QString error;
+    const std::optional<Pgn::ParsedLine> line =
+        Pgn::parseLine(QGuiApplication::clipboard()->text().trimmed(), QString(), &error);
+    if (!line || line->moves.isEmpty()) {
+        statusBar()->showMessage(line ? tr("The clipboard does not contain moves")
+                                      : tr("The clipboard does not contain a valid line: %1").arg(error),
+                                 5000);
+        return;
+    }
+    GameRecord game;
+    game.startFen = line->startFen;
+    game.moves = line->moves;
+    game.variations = line->variations;
+    m_gameView->clearSelection();
+    m_openGameIndex = -1;
+    m_session->setGame(game);
+    m_session->goToEnd();
+}
+
+void MainWindow::pasteLineFromCurrentPosition()
+{
+    if (m_onlinePlay)
+        return;
+    QString error;
+    const std::optional<Pgn::ParsedLine> line =
+        Pgn::parseLine(QGuiApplication::clipboard()->text().trimmed(), m_session->position().fen(), &error);
+    if (!line || line->moves.isEmpty()) {
+        statusBar()->showMessage(line ? tr("The clipboard does not contain moves")
+                                      : tr("The moves on the clipboard cannot be played from this position: %1").arg(error),
+                                 5000);
+        return;
+    }
+    if (!line->startFen.isEmpty() && line->startFen != m_session->position().fen()) {
+        statusBar()->showMessage(tr("The line on the clipboard starts from another position"), 5000);
+        return;
+    }
+    // As if played on the board: steps along moves the game has, adds the others.
+    bool added = false;
+    for (const MoveRecord &record : line->moves) {
+        const std::optional<ChessMove> move = m_session->position().moveFromUci(record.uci);
+        if (!move)
+            break;
+        added = !m_session->isNextMove(*move) || added;
+        if (!m_session->playMove(*move))
+            break;
+    }
+    if (!added)
+        return;
+    if (!storeOpenGame(&error))
+        statusBar()->showMessage(tr("The moves could not be saved in the database: %1").arg(error), 8000);
 }
 
 void MainWindow::applyDefaultLayout()

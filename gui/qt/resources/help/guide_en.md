@@ -72,7 +72,7 @@ Move a piece by dragging it, or by clicking it and then its square. A pawn reach
 
 Play a move that is not the next one of the game and it becomes a **variation**: the game keeps its line, and the new one appears in the Moves panel under the move it replaces. A game stored in the database is saved at once, variations included.
 
-**Edit ▸ Copy** puts on the clipboard the moves, the game as PGN, the position as FEN (Ctrl+Shift+C), the engine line or the explanation. **Edit ▸ Paste FEN** (Ctrl+Shift+V) sets up the position on the clipboard.
+**Edit ▸ Copy** puts on the clipboard the moves, the game as PGN, the position as FEN (Ctrl+Shift+C), the engine line or the explanation. **Edit ▸ Paste** takes what is on the clipboard: **Paste FEN** (Ctrl+Shift+V) sets up the position, **Paste Line** starts a new game with the moves (PGN, moves with or without numbers, or UCI), and **Paste Line from Current Position** (Ctrl+Alt+V) plays the moves from the position on the board, as if you played them: at the end of the game they are added, elsewhere they become a variation.
 
 # Moves and annotations {#moves}
 

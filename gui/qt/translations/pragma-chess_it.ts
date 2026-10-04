@@ -1262,10 +1262,6 @@ Il Nero ha catturato: %2</translation>
         <translation>Posizione (&amp;FEN)</translation>
     </message>
     <message>
-        <source>&amp;Paste FEN</source>
-        <translation>&amp;Incolla FEN</translation>
-    </message>
-    <message>
         <source>&amp;First Move</source>
         <translation>&amp;Prima mossa</translation>
     </message>
@@ -2347,6 +2343,42 @@ non è su questo computer.</translation>
     <message>
         <source>The new folders are used the next time Pragma Chess starts.</source>
         <translation>Le nuove cartelle si usano dal prossimo avvio di Pragma Chess.</translation>
+    </message>
+    <message>
+        <source>Paste &amp;FEN</source>
+        <translation>Incolla &amp;FEN</translation>
+    </message>
+    <message>
+        <source>&amp;Paste</source>
+        <translation>&amp;Incolla</translation>
+    </message>
+    <message>
+        <source>Paste &amp;Line</source>
+        <translation>Incolla &amp;linea</translation>
+    </message>
+    <message>
+        <source>Paste Line from &amp;Current Position</source>
+        <translation>Incolla linea dalla posizione &amp;attuale</translation>
+    </message>
+    <message>
+        <source>The clipboard does not contain moves</source>
+        <translation>Gli appunti non contengono mosse</translation>
+    </message>
+    <message>
+        <source>The clipboard does not contain a valid line: %1</source>
+        <translation>Gli appunti non contengono una linea valida: %1</translation>
+    </message>
+    <message>
+        <source>The moves on the clipboard cannot be played from this position: %1</source>
+        <translation>Le mosse negli appunti non si possono giocare da questa posizione: %1</translation>
+    </message>
+    <message>
+        <source>The line on the clipboard starts from another position</source>
+        <translation>La linea negli appunti parte da un&apos;altra posizione</translation>
+    </message>
+    <message>
+        <source>The moves could not be saved in the database: %1</source>
+        <translation>Impossibile salvare le mosse nel database: %1</translation>
     </message>
 </context>
 <context>

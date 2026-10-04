@@ -39,6 +39,7 @@
 #include "app/sync/FolderSync.h"
 #include "app/sync/GitStore.h"
 #include "app/sync/SyncManifest.h"
+#include "app/PersonalSettings.h"
 #include "app/PositionSetup.h"
 #include "app/UserFolders.h"
 
@@ -1268,6 +1269,56 @@ private Q_SLOTS:
         syncOnce(laptop);
         syncOnce(desktop);
         QVERIFY(!QFile::exists(desktop.folder + QStringLiteral("/Projects/Study.pch")));
+
+        // The personal settings travel although hidden; other hidden files do not.
+        const QString conf = QLatin1String(SyncManifest::personalFileName);
+        const auto read = [](const QString &path) {
+            QFile file(path);
+            return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
+        };
+        write(laptop.folder + QLatin1Char('/') + conf, "name: Anna\n");
+        write(laptop.folder + QStringLiteral("/.private"), "local");
+        syncOnce(laptop);
+        syncOnce(desktop);
+        QCOMPARE(read(desktop.folder + QLatin1Char('/') + conf), QByteArray("name: Anna\n"));
+        QVERIFY(!QFile::exists(desktop.folder + QStringLiteral("/.private")));
+
+        // Changed on both: the newer wins, and no copy is left beside it.
+        const QDateTime now = QDateTime::currentDateTime();
+        write(laptop.folder + QLatin1Char('/') + conf, "name: Anna L\n");
+        QFile(laptop.folder + QLatin1Char('/') + conf).setFileTime(now.addSecs(-60), QFileDevice::FileModificationTime);
+        write(desktop.folder + QLatin1Char('/') + conf, "name: Anna D\n");
+        QFile(desktop.folder + QLatin1Char('/') + conf).setFileTime(now, QFileDevice::FileModificationTime);
+        syncOnce(laptop);
+        syncOnce(desktop);
+        syncOnce(laptop);
+        QCOMPARE(read(laptop.folder + QLatin1Char('/') + conf), QByteArray("name: Anna D\n"));
+        QCOMPARE(read(desktop.folder + QLatin1Char('/') + conf), QByteArray("name: Anna D\n"));
+        QCOMPARE(QDir(desktop.folder).entryList(QDir::Files | QDir::Hidden).filter(QStringLiteral("conflict")).size(), 0);
+    }
+
+    void keepsPersonalSettings()
+    {
+        // Read and written as YAML, keeping what this version does not know.
+        const QByteArray existing = "name: Old\nfuture: kept\n";
+        PersonalSettings settings = PersonalSettings::fromYaml(existing);
+        QCOMPARE(settings.name, QStringLiteral("Old"));
+        settings.name = QStringLiteral("Bianco, Francesco");
+        settings.birthYear = 1980;
+        settings.fideId = QStringLiteral("896489");
+        const QByteArray yaml = settings.toYaml(existing);
+        QVERIFY(yaml.contains("future: kept"));
+        QCOMPARE(PersonalSettings::fromYaml(yaml), settings);
+        settings.birthYear = 0; // Not given: left out.
+        QVERIFY(!settings.toYaml(yaml).contains("birthYear"));
+        QCOMPARE(PersonalSettings::fromYaml("not: [a, map").name, QString());
+
+        // The database's "me" wins over the personal name.
+        QCOMPARE(settings.nameIn({}), QStringLiteral("Bianco, Francesco"));
+        QCOMPARE(settings.nameIn({{QStringLiteral("fbianco"), PlayerRole::Me},
+                                  {QStringLiteral("Rossi"), PlayerRole::Friend}}),
+                 QStringLiteral("fbianco"));
+        QCOMPARE(PersonalSettings().nameIn({}), QString());
     }
 
     void findsDuplicateDatabases()

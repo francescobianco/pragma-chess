@@ -167,6 +167,11 @@ QList<SyncAction> planSync(const QMap<QString, LocalFileState> &local, const QMa
             actions << SyncAction{Kind::Download, path}; // Only the remote side changed it.
         } else if (remoteHash == baseHash) {
             actions << SyncAction{Kind::Upload, path}; // Only this side changed it.
+        } else if (path == QLatin1String(SyncManifest::personalFileName)) {
+            // Both changed the personal settings: the newer is the user's last word.
+            actions << SyncAction{local.value(path).modified > remote.files.value(path).modified ? Kind::Upload
+                                                                                                : Kind::Download,
+                                  path};
         } else {
             actions << SyncAction{Kind::KeepBoth, path}; // Both changed it: keep both.
         }

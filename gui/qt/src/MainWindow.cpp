@@ -21,6 +21,7 @@
 #include "dialogs/NewGameChoiceDialog.h"
 #include "dialogs/NewTrainingDialog.h"
 #include "dialogs/PositionSetupDialog.h"
+#include "dialogs/PersonalSettingsDialog.h"
 #include "dialogs/PlayOnlineDialog.h"
 #include "dialogs/ManageSyncFilesDialog.h"
 #include "dialogs/SyncDialog.h"
@@ -35,6 +36,7 @@
 #include "app/MoveAnnotation.h"
 #include "app/Pgn.h"
 #include "app/Project.h"
+#include "app/PersonalSettings.h"
 #include "app/SqliteGameDatabase.h"
 #include "app/UiLanguage.h"
 #include "app/UciEngine.h"
@@ -941,6 +943,7 @@ void MainWindow::createMenus()
     options->addSeparator();
     options->addAction(tr("&Board Settings…"), this, &MainWindow::editBoardSettings);
     options->addAction(tr("&Folder Settings…"), this, &MainWindow::editFolderSettings);
+    options->addAction(tr("&Personal Settings…"), this, &MainWindow::editPersonalSettings);
     m_openingNamesMenu = options->addMenu(tr("Switch Opening &Names"));
     m_openingNamesMenu->setToolTip(tr("The database whose games name the openings and variations"));
     connect(m_openingNamesMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildOpeningNamesMenu);
@@ -2454,6 +2457,36 @@ void MainWindow::updateDatabaseActions()
     m_databaseSettingsAction->setEnabled(hasDatabase && !m_database->location().isEmpty());
 }
 
+void MainWindow::editPersonalSettings()
+{
+    const QString path = PersonalSettings::path();
+    const PersonalSettings current = PersonalSettings::read(path);
+    PersonalSettingsDialog dialog(current, this);
+    if (dialog.exec() != QDialog::Accepted || dialog.settings() == current)
+        return;
+    QString error;
+    QDir().mkpath(QFileInfo(path).absolutePath());
+    if (!PersonalSettings::write(path, dialog.settings(), &error))
+        QMessageBox::warning(this, tr("Personal Settings"),
+                             tr("Could not save the personal settings in “%1”: %2")
+                                 .arg(QDir::toNativeSeparators(path), error));
+}
+
+QString MainWindow::myName() const
+{
+    // Read each time: a sync may have brought another computer's version.
+    return PersonalSettings::read(PersonalSettings::path()).nameIn(m_database ? m_database->playerRoles()
+                                                                               : PlayerRoles());
+}
+
+void MainWindow::nameMe(GameRecord &game) const
+{
+    const QString me = myName();
+    if (me.isEmpty())
+        return;
+    (m_flipBoardAction->isChecked() ? game.black : game.white) = me;
+}
+
 void MainWindow::editFolderSettings()
 {
     const UserFolders::FolderChoice current = UserFolders::chosenFolders();
@@ -2845,6 +2878,7 @@ void MainWindow::newGame()
     GameRecord game;
     game.result = QStringLiteral("*");
     game.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
+    nameMe(game);
     startGame(game);
     statusBar()->showMessage(tr("New game: enter the moves on the board"), 5000);
 }
@@ -2866,6 +2900,7 @@ void MainWindow::setUpPosition()
         game.startFen = fen;
     game.result = QStringLiteral("*");
     game.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
+    nameMe(game);
     startGame(game);
     statusBar()->showMessage(tr("Position set up: enter the moves on the board"), 5000);
 }
@@ -2964,17 +2999,11 @@ void MainWindow::newTraining(bool alwaysAsk)
 
 GameRecord MainWindow::trainingHeader() const
 {
-    // Who the user is, as the database already knows them from "Who Is This?".
-    QString me = tr("Me");
-    if (m_database) {
-        const PlayerRoles roles = m_database->playerRoles();
-        for (auto it = roles.constBegin(); it != roles.constEnd(); ++it) {
-            if (it.value() == PlayerRole::Me) {
-                me = it.key();
-                break;
-            }
-        }
-    }
+    // Who the user is: as the database knows them from "Who Is This?", else
+    // as the personal settings say.
+    QString me = myName();
+    if (me.isEmpty())
+        me = tr("Me");
     const QString engineName = m_engine->name().isEmpty()
         ? (m_engineName.isEmpty() ? tr("Engine") : m_engineName)
         : m_engine->name();

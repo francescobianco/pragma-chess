@@ -15,6 +15,8 @@ Tutto quello che vedi — database, partita, mossa, pannelli — è un **progett
 
 I tuoi file stanno nella cartella Pragma dentro la tua cartella degli scacchi (per esempio `Scacchi/Pragma` nella tua home), con `Databases`, `Projects` e `Books`. Al primo avvio ci trovi un database di partite classiche.
 
+**Opzioni ▸ Impostazioni personali…** dice chi sei: il tuo nome, il tuo anno di nascita e il tuo ID FIDE. Il tuo nome va dalla tua parte in una nuova partita, in una partita da Inserisci posizione (dal lato in basso della scacchiera) e in un allenamento (col colore che hai scelto), a meno che il database aperto ti conosca già — vince il giocatore segnato come Io con **Chi è?**. Stanno in `.pragma-chess.conf`, un file YAML nella tua cartella Pragma, che la sincronizzazione porta sugli altri tuoi computer anche se è nascosto; cambiato su due computer insieme, vince il più recente.
+
 **Opzioni ▸ Impostazioni cartelle…** le sposta altrove su questo computer: la cartella Pragma stessa, oppure solo i database, i progetti, i libri o i nomi delle aperture. Lascia vuota una cartella per tenerla al suo posto solito. I file che ci sono già non vengono spostati, e le nuove cartelle si usano dal prossimo avvio di Pragma Chess. La sincronizzazione tiene uguale sugli altri computer solo ciò che sta dentro la cartella Pragma.
 
 # Database {#databases}

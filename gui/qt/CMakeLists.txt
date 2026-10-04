@@ -304,6 +304,8 @@ qt_add_executable(pragma-chess
     src/dialogs/NewGameChoiceDialog.h
     src/dialogs/NewTrainingDialog.cpp
     src/dialogs/NewTrainingDialog.h
+    src/dialogs/PersonalSettingsDialog.cpp
+    src/dialogs/PersonalSettingsDialog.h
     src/dialogs/PlayOnlineDialog.cpp
     src/dialogs/PositionSetupDialog.cpp
     src/dialogs/PositionSetupDialog.h
@@ -318,6 +320,8 @@ qt_add_executable(pragma-chess
     src/app/ClassicGames.h
     src/app/GameDatabase.h
     src/app/GameRecord.h
+    src/app/PersonalSettings.cpp
+    src/app/PersonalSettings.h
     src/app/Project.cpp
     src/app/Project.h
     src/app/WorkspaceLayout.h
@@ -511,8 +515,10 @@ if(TARGET Qt6::Test)
         src/app/SqliteGameDatabase.cpp
         src/app/SqliteGameDatabase.h
         src/app/UserFolders.cpp
-        src/app/UserFolders.h)
-    target_link_libraries(tst_chessrules PRIVATE pragma-chess-core Qt6::Sql Qt6::Test)
+        src/app/UserFolders.h
+        src/app/PersonalSettings.cpp
+        src/app/PersonalSettings.h)
+    target_link_libraries(tst_chessrules PRIVATE pragma-chess-core Qt6::Sql Qt6::Test yaml-cpp::yaml-cpp)
     target_compile_definitions(tst_chessrules PRIVATE
         PRAGMA_HELP_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/help")
     target_compile_options(tst_chessrules PRIVATE ${PRAGMA_WARNINGS})

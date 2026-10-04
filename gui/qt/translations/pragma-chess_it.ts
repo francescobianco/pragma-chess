@@ -2432,6 +2432,18 @@ non è su questo computer.</translation>
         <source>The Opening Tree cannot be used while playing online.</source>
         <translation>L&apos;Albero delle aperture non si può usare durante il gioco online.</translation>
     </message>
+    <message>
+        <source>&amp;Personal Settings…</source>
+        <translation>Impostazioni &amp;personali…</translation>
+    </message>
+    <message>
+        <source>Personal Settings</source>
+        <translation>Impostazioni personali</translation>
+    </message>
+    <message>
+        <source>Could not save the personal settings in “%1”: %2</source>
+        <translation>Impossibile salvare le impostazioni personali in “%1”: %2</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>
@@ -3088,6 +3100,37 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>%1 wins.</source>
         <translation>Vince il %1.</translation>
+    </message>
+</context>
+<context>
+    <name>PersonalSettingsDialog</name>
+    <message>
+        <source>Personal Settings</source>
+        <translation>Impostazioni personali</translation>
+    </message>
+    <message>
+        <source>As it should appear in your games, e.g. Rossi, Mario</source>
+        <translation>Come deve comparire nelle tue partite, per esempio Rossi, Mario</translation>
+    </message>
+    <message>
+        <source>Digits only, e.g. 896489</source>
+        <translation>Solo cifre, per esempio 896489</translation>
+    </message>
+    <message>
+        <source>My &amp;name:</source>
+        <translation>Il mio &amp;nome:</translation>
+    </message>
+    <message>
+        <source>Year of &amp;birth:</source>
+        <translation>Anno di &amp;nascita:</translation>
+    </message>
+    <message>
+        <source>&amp;FIDE ID:</source>
+        <translation>ID &amp;FIDE:</translation>
+    </message>
+    <message>
+        <source>Your name goes on your side of new games and training games, unless the open database already knows you: a player marked as Me with Who Is This? wins. These settings are kept in .pragma-chess.conf in your Pragma folder, which Sync carries to your other computers.</source>
+        <translation>Il tuo nome va dalla tua parte nelle nuove partite e negli allenamenti, a meno che il database aperto ti conosca già: vince il giocatore segnato come Io con Chi è?. Queste impostazioni stanno in .pragma-chess.conf nella tua cartella Pragma, che la sincronizzazione porta sugli altri tuoi computer.</translation>
     </message>
 </context>
 <context>

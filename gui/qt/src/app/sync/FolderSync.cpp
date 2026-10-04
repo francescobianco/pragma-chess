@@ -836,12 +836,15 @@ QMap<QString, LocalFileState> FolderSync::scanLocal()
 {
     QMap<QString, LocalFileState> files;
     QMap<QString, std::tuple<qint64, qint64, QString>> seen; // Forget hashes of files gone.
-    QDirIterator it(m_root, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    // Hidden files too, for the personal settings: the others stay local.
+    QDirIterator it(m_root, QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden, QDirIterator::Subdirectories);
     while (it.hasNext()) {
         const QString absolute = it.next();
         const QFileInfo info = it.fileInfo();
         const QString relative = QDir(m_root).relativeFilePath(absolute);
-        if (relative.split(QLatin1Char('/')).first().startsWith(QLatin1Char('.')) || !isSyncedName(info.fileName()))
+        const bool personal = relative == QLatin1String(SyncManifest::personalFileName);
+        if (!personal
+            && (relative.split(QLatin1Char('/')).first().startsWith(QLatin1Char('.')) || !isSyncedName(info.fileName())))
             continue;
 
         LocalFileState state;

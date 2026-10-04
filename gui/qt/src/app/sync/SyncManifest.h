@@ -76,6 +76,10 @@ struct SyncManifest {
     /// This device's own record of the folder (what it last synced, hashes),
     /// in the root of the local folder and never uploaded (see FolderSync).
     static constexpr char localStateFileName[] = ".pragma-chess.local";
+    /// The user's personal settings (PersonalSettings): hidden like the
+    /// state, but synced, the one hidden file that is. Changed on two
+    /// devices, the newer wins: a copy beside it would never be read.
+    static constexpr char personalFileName[] = ".pragma-chess.conf";
     /// Held while a device syncs with a store that cannot publish atomically.
     static constexpr char lockFileName[] = ".pragma-chess.lock";
     static constexpr int formatVersion = 2;

@@ -591,7 +591,8 @@ the toolbar's first button (`m_syncNowAction`, Ctrl+Y).
 - The base, a hash cache and the deletions and merges not published yet live
   per device in the root of the local Pragma folder, `.pragma-chess.local`
   (`SyncManifest::localStateFileName`). It is never uploaded (hidden files
-  are not synced), but it sits with the files it describes: the base must
+  are not synced — except `.pragma-chess.conf`, the personal settings,
+  `PersonalSettings`, whose conflict the newer copy wins in `planSync`), but it sits with the files it describes: the base must
   match the folder it was taken from, or a file deleted by hand could not be
   told from one not received yet, and a folder restored from a backup or
   moved brings its state along. Older versions kept it in AppLocalData
@@ -678,6 +679,14 @@ while one of them is selected.
 - Parsers (`parseGame`, `TorneiOnlineFetch::parse*`) are pure and unit-tested
   with recorded JSON or HTML; keep new kinds the same way. Be gentle with the sites' APIs when testing (one request
   at a time, send `SourceFetch::userAgent()`).
+- **Personal settings**: Options ▸ Personal Settings…
+  (`dialogs/PersonalSettingsDialog`) edits `PersonalSettings` (name, year
+  of birth, FIDE ID), kept as YAML in `.pragma-chess.conf` at the root of
+  the Pragma folder; writing keeps the keys it does not know. The name goes
+  on the user's side of new games, Set Up Position and training
+  (`MainWindow::myName`, `nameMe`), unless the open database has a player
+  marked Me, who wins (`PersonalSettings::nameIn`, unit-tested). It is read
+  each time, so a sync's version is used at once.
 - **`.pch` project**: YAML (yaml-cpp, system package or fetched by CMake)
   capturing database, open game/ply (or the moves of a game not saved to the
   database), board orientation, engine, window layout.

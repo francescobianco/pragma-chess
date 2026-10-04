@@ -15,6 +15,8 @@ Everything you see — database, game, move, panels — is a **project**: it com
 
 Your files live in the Pragma folder inside your chess folder (for example `Chess/Pragma` in your home), with `Databases`, `Projects` and `Books`. The first launch puts a database of classic games there.
 
+**Options ▸ Personal Settings…** says who you are: your name, your year of birth and your FIDE ID. Your name goes on your side of a new game, a game from Set Up Position (on the side at the bottom of the board) and a training game (on the colour you chose), unless the open database already knows you — a player marked as Me with **Who Is This?** wins. They are kept in `.pragma-chess.conf`, a YAML file in your Pragma folder, which Sync carries to your other computers although it is hidden; changed on two computers at once, the newer one wins.
+
 **Options ▸ Folder Settings…** puts them somewhere else on this computer: the Pragma folder itself, or just the databases, the projects, the books or the opening names. Leave a folder empty to keep it in its usual place. The files already there are not moved, and the new folders are used the next time you start Pragma Chess. Sync keeps only what is inside the Pragma folder the same on your other computers.
 
 # Databases {#databases}

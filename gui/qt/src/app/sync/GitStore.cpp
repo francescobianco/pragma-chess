@@ -361,7 +361,8 @@ QStringList GitStore::listFiles() const
     QDirIterator it(m_clone, QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden, QDirIterator::Subdirectories);
     while (it.hasNext()) {
         const QString relative = root.relativeFilePath(it.next());
-        if (relative.startsWith(QLatin1String(".git/")) || relative.startsWith(QLatin1Char('.')))
+        if (relative.startsWith(QLatin1String(".git/"))
+            || (relative.startsWith(QLatin1Char('.')) && relative != QLatin1String(SyncManifest::personalFileName)))
             continue;
         paths << relative;
     }

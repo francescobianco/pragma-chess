@@ -8,6 +8,11 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Options ▸ Personal Settings…: your name, year of birth and FIDE ID. Your
+  name goes on your side of new games, set-up positions and training games
+  (a player marked as Me in the open database still wins). They are kept in
+  `.pragma-chess.conf` in the Pragma folder, which Sync carries to your
+  other computers.
 - Game ▸ Set Up Position… draws a position on a board — pieces, side to
   move, castling, en passant, move number, or a FEN — and starts a game from
   it. Moves on the board not saved yet can be discarded, saved to the open

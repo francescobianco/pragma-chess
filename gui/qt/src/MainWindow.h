@@ -298,6 +298,12 @@ private:
     void editDatabaseSettings();
     void editBoardSettings();
     void editFolderSettings();
+    void editPersonalSettings();
+    /// The user's name for new games: the open database's "me", else the
+    /// personal settings'; empty when neither says.
+    QString myName() const;
+    /// Puts myName() on the side at the bottom of the board.
+    void nameMe(GameRecord &game) const;
     void applyBoardSettings(const BoardSettings &settings);
     // Options ▸ Sync Settings: the Pragma folder kept the same on several computers.
     void openSyncDialog();

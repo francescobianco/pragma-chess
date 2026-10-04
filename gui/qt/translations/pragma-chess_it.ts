@@ -2269,6 +2269,22 @@ non è su questo computer.</translation>
         <source>The online game goes on; when it ends it is saved to “%1”.</source>
         <translation>La partita online continua; quando finisce viene salvata in “%1”.</translation>
     </message>
+    <message>
+        <source>Game in Progress</source>
+        <translation>Partita in corso</translation>
+    </message>
+    <message>
+        <source>You are playing an online game against %1. Keep playing it, or resign it and start a new game?</source>
+        <translation>Stai giocando una partita online contro %1. Vuoi continuare a giocarla, o abbandonarla e iniziare una nuova partita?</translation>
+    </message>
+    <message>
+        <source>Keep Playing</source>
+        <translation>Continua a giocare</translation>
+    </message>
+    <message>
+        <source>Resign</source>
+        <translation>Abbandona</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>

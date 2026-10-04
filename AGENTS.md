@@ -857,7 +857,13 @@ a platform; lichess.org for now, through its Board API, more to come.
   slide of the engine's, a refused move is taken back by rebuilding the
   game). The end (`onlineGameFinished`) writes the result and saves the game
   to the open database with players, ratings, "lichess.org rated/casual
-  game" and the game's URL as site. The flag is not part of the project. Opening another database while it is
+  game" and the game's URL as site. Play Online… and New Game stay enabled while it is on: both go through
+  `leaveOnlineThen`, which asks to Keep Playing or Resign the game in
+  progress (a search is just cancelled) and starts the new game only once
+  the resigned one has ended and been saved (`m_afterOnlineGame`), so the
+  end coming from the stream is never written into the new game. There is
+  no Stop Playing Online entry; Engine ▸ Online Play Mode, chosen while on,
+  stops. The flag is not part of the project. Opening another database while it is
   on (`keepOnlineGame`: Switch Database, New Database, the sync opening the
   file again) leaves the game on the board; it is saved to the database open
   when it ends.

@@ -104,6 +104,7 @@
 #include <QVBoxLayout>
 
 #include <algorithm>
+#include <utility>
 
 namespace {
 
@@ -726,9 +727,6 @@ void MainWindow::createActions()
     m_quickOnlineAction = new QAction(m_playOnlineAction->icon(), m_playOnlineAction->text(), this);
     m_quickOnlineAction->setToolTip(m_playOnlineAction->toolTip());
     connect(m_quickOnlineAction, &QAction::triggered, this, [this] { playOnline(false); });
-    m_stopOnlineAction = new QAction(tr("Stop Playing Online"), this);
-    m_stopOnlineAction->setEnabled(false);
-    connect(m_stopOnlineAction, &QAction::triggered, this, &MainWindow::stopOnline);
 
     m_trainingModeAction = new QAction(tr("&Training Mode"), this);
     m_trainingModeAction->setCheckable(true);
@@ -858,7 +856,6 @@ void MainWindow::createMenus()
     game->addAction(m_newGameAction);
     game->addAction(m_newTrainingAction);
     game->addAction(m_playOnlineAction);
-    game->addAction(m_stopOnlineAction);
     game->addAction(m_saveGameAction);
     game->addSeparator();
     game->addAction(m_firstMoveAction);
@@ -2763,6 +2760,11 @@ void MainWindow::updateExplainer()
 
 void MainWindow::newGame()
 {
+    // A new game is one to analyse: an online game in progress is left first.
+    if (m_onlinePlay) {
+        leaveOnlineThen([this] { newGame(); });
+        return;
+    }
     m_trainingModeAction->setChecked(false); // A plain new game is not a training one.
     GameRecord game;
     game.result = QStringLiteral("*");
@@ -2854,8 +2856,11 @@ bool MainWindow::isOpponentTurn() const
 
 void MainWindow::playOnline(bool alwaysAsk)
 {
-    if (m_online)
-        return; // Already looking, or playing: Stop Playing Online first.
+    if (m_online) {
+        // A new online game: the current one is kept or resigned first.
+        leaveOnlineThen([this, alwaysAsk] { playOnline(alwaysAsk); });
+        return;
+    }
     LichessBoardClient::Seek seek;
     if (alwaysAsk || !m_rememberedOnline) {
         PlayOnlineDialog dialog(m_rememberedOnline.has_value(), this);
@@ -2886,6 +2891,37 @@ void MainWindow::playOnline(bool alwaysAsk)
                                  .arg(seek.increment)
                                  .arg(seek.rated ? tr("rated") : tr("casual")));
     m_online->seek(seek);
+}
+
+void MainWindow::leaveOnlineThen(std::function<void()> next)
+{
+    if (!m_online) {
+        next();
+        return;
+    }
+    if (!m_online->isPlaying()) {
+        // Only looking for an opponent: nothing to lose.
+        m_online->cancelSeek();
+        m_online.reset();
+        setOnlinePlay(false);
+        next();
+        return;
+    }
+    QMessageBox box(QMessageBox::Question, tr("Game in Progress"),
+                    tr("You are playing an online game against %1. Keep playing it, or resign it and start a new game?")
+                        .arg(m_onlineSide == Side::White ? m_session->game().black : m_session->game().white),
+                    QMessageBox::NoButton, this);
+    QPushButton *keep = box.addButton(tr("Keep Playing"), QMessageBox::RejectRole);
+    QPushButton *resign = box.addButton(tr("Resign"), QMessageBox::DestructiveRole);
+    box.setDefaultButton(keep);
+    box.setEscapeButton(keep);
+    box.exec();
+    if (box.clickedButton() != resign || !m_online)
+        return;
+    // The new game starts once the end has come back and the game is saved:
+    // started now, the end would be written into it.
+    m_afterOnlineGame = std::move(next);
+    m_online->resign();
 }
 
 void MainWindow::stopOnline()
@@ -2923,9 +2959,6 @@ void MainWindow::setOnlinePlay(bool on)
     for (QAction *action : {m_startEngineAction, m_explainAction, m_trainingModeAction, m_newTrainingAction,
                             m_quickTrainingAction, m_openingTreeDock->toggleViewAction()})
         action->setEnabled(!on);
-    m_stopOnlineAction->setEnabled(on);
-    m_playOnlineAction->setEnabled(!on);
-    m_quickOnlineAction->setEnabled(!on);
     m_bookPanel->setEnabled(!on);
     if (!on) {
         m_onlineSide.reset();
@@ -3024,6 +3057,9 @@ void MainWindow::onlineGameFinished(const OnlineGame &game)
         m_online.reset();
         setOnlinePlay(false);
         m_enginePanel->setStatus(text);
+        // What was waiting for this game to end: a new game, online or not.
+        if (std::function<void()> next = std::exchange(m_afterOnlineGame, {}))
+            next();
     });
 }
 
@@ -3033,6 +3069,7 @@ void MainWindow::onlineFailed(const QString &message)
     QTimer::singleShot(0, this, [this] {
         m_online.reset();
         setOnlinePlay(false);
+        m_afterOnlineGame = {}; // The game did not end as asked: nothing starts by itself.
     });
 }
 

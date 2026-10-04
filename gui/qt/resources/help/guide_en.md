@@ -146,7 +146,7 @@ While Pragma Chess looks for an opponent and while you play, it is **online play
 
 Tick **Remember for this session** and the toolbar's Play Online button looks for an opponent with the same choices without asking; the menu always asks.
 
-**Game ▸ Stop Playing Online** cancels the search, or resigns the game after asking. When the game ends — checkmate, resignation, time, draw — the result is written and the game is saved in the open database, with the players, their ratings and a link to the game.
+**Game ▸ Play Online…** during a game starts a new online game, and **Game ▸ New Game** a new game to analyse; both ask first whether to **keep playing** the current game or **resign** it (while still looking for an opponent, the search just stops). Choosing **Engine ▸ Online Play Mode** while it is on stops the search, or resigns the game after asking. When the game ends — checkmate, resignation, time, draw — the result is written and the game is saved in the open database, with the players, their ratings and a link to the game.
 
 # Opening books {#books}
 

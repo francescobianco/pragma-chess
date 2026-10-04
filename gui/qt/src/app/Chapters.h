@@ -72,6 +72,10 @@ public:
     /// main-line move `ply`, below the paragraphs already there (or right
     /// after the paragraph `after` when it is given). Returns its index.
     int insertParagraph(int game, int ply, int after = -1);
+    /// Moves a paragraph of the game `game` of the open chapter after the
+    /// main-line ply `ply` (0: before the first move), first or last among
+    /// the paragraphs already there. Returns its new index.
+    int moveParagraph(int game, int index, int ply, bool first);
     /// Sets the text of a paragraph; an empty text removes it.
     void setParagraph(int game, int index, const QString &text);
 };

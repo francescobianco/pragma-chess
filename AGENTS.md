@@ -488,7 +488,9 @@ tools this is a study or a chess book.
   Paragraphs are written in place: `editParagraph` lays a `QTextEdit` with
   the same font, width and block format over the paragraph's row, the row
   is rebuilt with the text as it is typed, and Esc, Ctrl+Enter or a click
-  elsewhere ends (`paragraphEdited`; empty removes it). A first row of
+  elsewhere ends (`paragraphEdited`; empty removes it). Move Paragraph
+  (`ChapterBook::moveParagraph`) goes by half-moves: arriving from above a
+  paragraph goes first among those of its move, from below last. A first row of
   nothing pins the columns' widths, and `rebuild` never runs inside
   itself (`setHtml` resizes the view, whose header asks for another).
   Links are `game:path/ply`; another game's moves emit `gameMoveActivated`.

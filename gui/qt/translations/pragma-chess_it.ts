@@ -2483,6 +2483,26 @@ non è su questo computer.</translation>
         <source>Title of the chapter:</source>
         <translation>Titolo del capitolo:</translation>
     </message>
+    <message>
+        <source>&amp;Move Paragraph</source>
+        <translation>&amp;Sposta paragrafo</translation>
+    </message>
+    <message>
+        <source>To the &amp;Top</source>
+        <translation>In &amp;testa</translation>
+    </message>
+    <message>
+        <source>&amp;Up</source>
+        <translation>&amp;Su</translation>
+    </message>
+    <message>
+        <source>&amp;Down</source>
+        <translation>&amp;Giù</translation>
+    </message>
+    <message>
+        <source>To the &amp;Bottom</source>
+        <translation>In &amp;fondo</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

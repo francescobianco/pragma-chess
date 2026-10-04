@@ -1522,6 +1522,19 @@ void MainWindow::showMoveListMenu(const QPoint &position)
         menu.addAction(tr("&Edit Paragraph"), this, [this, game, index = place.paragraph] {
             m_moveView->editParagraph(game, index);
         });
+        // Along the game, a half-move at a time: after White's move, Down
+        // takes it after Black's, which comes back on White's row.
+        const int at = m_chapters.chapter().games.at(game).paragraphs.at(place.paragraph).ply;
+        const int last = int(m_chapters.chapter().games.at(game).game.moves.size());
+        QMenu *move = menu.addMenu(tr("&Move Paragraph"));
+        const auto moveTo = [this, game, index = place.paragraph](int ply, bool first) {
+            m_chapters.moveParagraph(game, index, ply, first);
+            chapterChanged();
+        };
+        move->addAction(tr("To the &Top"), this, [moveTo] { moveTo(0, true); })->setEnabled(at > 0);
+        move->addAction(tr("&Up"), this, [moveTo, at] { moveTo(at - 1, false); })->setEnabled(at > 0);
+        move->addAction(tr("&Down"), this, [moveTo, at] { moveTo(at + 1, true); })->setEnabled(at < last);
+        move->addAction(tr("To the &Bottom"), this, [moveTo, last] { moveTo(last, false); })->setEnabled(at < last);
         menu.addAction(tr("&Delete Paragraph"), this, [this, game, index = place.paragraph] {
             m_chapters.setParagraph(game, index, QString());
             chapterChanged();

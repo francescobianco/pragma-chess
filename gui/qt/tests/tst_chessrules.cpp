@@ -2437,6 +2437,17 @@ private Q_SLOTS:
         book.setParagraph(0, 1, QStringLiteral("  "));
         QCOMPARE(book.game().paragraphs.size(), 3);
 
+        // Moved by half-moves: arriving from above it goes first among the
+        // paragraphs of that move, from below last.
+        QCOMPARE(book.moveParagraph(0, 2, 2, true), 1); // "Also after 2" before "After 2".
+        QCOMPARE(book.game().paragraphs.at(1).text, QStringLiteral("Also after 2"));
+        QCOMPARE(book.moveParagraph(0, 1, 3, true), 2);
+        QCOMPARE(book.game().paragraphs.at(2).ply, 3);
+        QCOMPARE(book.moveParagraph(0, 2, 0, false), 1); // To the top, after the intro.
+        QCOMPARE(book.game().paragraphs,
+                 (QList<Paragraph>{{0, QStringLiteral("Before the moves")}, {0, QStringLiteral("Also after 2")},
+                                   {2, QStringLiteral("After 2")}}));
+
         // A game break: a new game after the one given, which becomes current.
         book.game().game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4")}};
         book.game().game.uid = QStringLiteral("stored");

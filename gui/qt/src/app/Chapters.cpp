@@ -99,6 +99,20 @@ int ChapterBook::insertParagraph(int game, int ply, int after)
     return index;
 }
 
+int ChapterBook::moveParagraph(int game, int index, int ply, bool first)
+{
+    QList<Paragraph> &paragraphs = chapter().games[game].paragraphs;
+    if (index < 0 || index >= paragraphs.size())
+        return index;
+    Paragraph moved = paragraphs.takeAt(index);
+    moved.ply = qMax(0, ply);
+    int to = 0;
+    while (to < paragraphs.size() && (paragraphs.at(to).ply < moved.ply || (!first && paragraphs.at(to).ply == moved.ply)))
+        ++to;
+    paragraphs.insert(to, moved);
+    return to;
+}
+
 void ChapterBook::setParagraph(int game, int index, const QString &text)
 {
     QList<Paragraph> &paragraphs = chapter().games[game].paragraphs;

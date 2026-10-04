@@ -38,7 +38,6 @@
 #include "app/UiLanguage.h"
 #include "app/UciEngine.h"
 #include "app/UserFolders.h"
-#include "app/sources/ChessBaseFetch.h"
 #include "app/sources/SourceCatalog.h"
 #include "app/sources/SourceCredentials.h"
 #include "app/sources/SourceSync.h"
@@ -265,6 +264,20 @@ MainWindow::MainWindow(QWidget *parent)
             [this](int steps) { m_session->goToPly(m_session->ply() + steps); });
     connect(m_board, &BoardWidget::moveRequested, this, &MainWindow::playBoardMove);
     connect(m_sourceSync, &SourceSync::gamesImported, this, &MainWindow::showAddedGames);
+    connect(m_sourceSync, &SourceSync::gamesUpdated, this, [this](const QList<qint64> &indexes) {
+        for (const qint64 index : indexes)
+            m_gameListModel->refreshRow(int(index));
+        // The game on the board changed in its file: the board shows the new
+        // version, or a later edit here would write the old one back.
+        if (m_database && indexes.contains(m_openGameIndex)) {
+            if (const std::optional<GameRecord> game = m_database->loadGame(m_openGameIndex)) {
+                const int ply = m_session->ply();
+                m_session->setGame(*game);
+                m_session->goToPly(qMin(ply, int(game->moves.size())));
+            }
+        }
+        m_positionIndexTimer->start(); // Their moves may differ.
+    });
     connect(m_sourceSync, &SourceSync::sourcesChanged, m_databaseTree, &DatabaseTreeWidget::scheduleRefresh);
     connect(m_sourceSync, &SourceSync::sourceUnavailable, this, &MainWindow::reportUnavailableSource);
 
@@ -1266,6 +1279,8 @@ void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
 void MainWindow::rebuildPositionIndex()
 {
     m_positionIndexTimer->stop();
+    // Games were added or changed: the sources that write them out follow.
+    m_sourceSync->scheduleWrite();
     if (m_database)
         m_positionIndex->build(m_database->gameLines());
     else
@@ -2599,7 +2614,7 @@ void MainWindow::reportUnavailableSource(const GameSource &source)
     m_unavailableSourcesReported.insert(source.uuid);
     QMessageBox box(QMessageBox::Warning, tr("Source Not Found"),
                     tr("The source “%1” cannot be found: the file\n%2\nis not on this computer.")
-                        .arg(SourceCatalog::displayName(source), QDir::toNativeSeparators(ChessBaseFetch::path(source))),
+                        .arg(SourceCatalog::displayName(source), QDir::toNativeSeparators(SourceCatalog::localPath(source))),
                     QMessageBox::NoButton, this);
     box.setInformativeText(tr("To fix it, open Database ▸ Manage Sources… and choose the file again, or remove "
                               "the source."));
@@ -3460,6 +3475,7 @@ void MainWindow::editGameInfo()
     }
     m_gameListModel->refreshRow(int(m_openGameIndex));
     m_session->setHeader(m_database->header(m_openGameIndex));
+    m_sourceSync->scheduleWrite();
 }
 
 void MainWindow::copyFen()

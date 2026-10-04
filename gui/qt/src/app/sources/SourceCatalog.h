@@ -8,6 +8,7 @@
 
 #include <optional>
 
+class GameDatabase;
 class QNetworkAccessManager;
 class QObject;
 class SourceFetch;
@@ -43,7 +44,15 @@ QString displayName(const GameSource &source);
 /// with a player ID, the search page to read with TorneiOnlineFetch.
 QNetworkRequest accountRequest(const GameSource &source);
 
-/// The fetch that downloads the new games of `source`, or nullptr for an unknown kind.
-SourceFetch *createFetch(const GameSource &source, QNetworkAccessManager *network, QObject *parent);
+/// The file of a source on this computer (SourceKind::localFile), and
+/// whether it is there.
+QString localPath(const GameSource &source);
+bool isLocalFileAvailable(const GameSource &source);
+
+/// The fetch that downloads the new games of `source`, or nullptr for an
+/// unknown kind. `database` is the one the source belongs to: a PGN file
+/// works on it directly, both ways.
+SourceFetch *createFetch(const GameSource &source, QNetworkAccessManager *network, GameDatabase *database,
+                         QObject *parent);
 
 } // namespace SourceCatalog

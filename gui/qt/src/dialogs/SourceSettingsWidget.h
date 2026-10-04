@@ -8,6 +8,7 @@
 class QCheckBox;
 class QComboBox;
 class QDateEdit;
+class QFormLayout;
 class QLabel;
 class QLineEdit;
 class QPushButton;
@@ -39,6 +40,9 @@ Q_SIGNALS:
 
 private:
     void updateSignInStatus();
+    /// The file and the direction of a PGN file source.
+    void addPgnFile(QFormLayout *form);
+    bool isPgn() const { return m_kind.id == QLatin1String("pgn"); }
 
     SourceKind m_kind;
     QString m_uuid;
@@ -46,6 +50,8 @@ private:
     QComboBox *m_idType = nullptr;
     /// The file, for kinds that read one on this computer.
     QLineEdit *m_path = nullptr;
+    /// Which way the games go, for a PGN file.
+    QComboBox *m_direction = nullptr;
     QLineEdit *m_account;
     QCheckBox *m_limitSince;
     QDateEdit *m_since;

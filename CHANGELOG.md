@@ -8,6 +8,12 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- A new source, PGN file: a `.pgn` file on this computer kept in step with
+  the database, in the direction you choose — Read and write, Read only or
+  Write only. The file can be created while connecting it. Games saved,
+  changed or annotated reach the file a few seconds later; games added or
+  edited in the file come into the database. Nothing is deleted on either
+  side, and a game changed on both sides is kept twice.
 - Options ▸ Folder Settings… chooses where this computer keeps the Pragma
   folder, or just the databases, projects, books or opening names. The new
   folders are used from the next start; files are not moved.

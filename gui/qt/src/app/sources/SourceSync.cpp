@@ -1,6 +1,6 @@
 #include "SourceSync.h"
 
-#include "ChessBaseFetch.h"
+#include "PgnFileFetch.h"
 #include "SourceCatalog.h"
 #include "SourceCredentials.h"
 #include "SourceFetch.h"
@@ -13,6 +13,8 @@ namespace {
 
 /// How often the sources of an open database are synced again.
 constexpr int kPeriodMs = 20 * 60 * 1000;
+/// How long after a change of the database its games are written out.
+constexpr int kWriteDelayMs = 3000;
 
 std::optional<GameSource> findSource(GameDatabase *database, qint64 id)
 {
@@ -31,9 +33,26 @@ SourceSync::SourceSync(QObject *parent)
     : QObject(parent)
     , m_network(new QNetworkAccessManager(this))
     , m_periodic(new QTimer(this))
+    , m_writeSoon(new QTimer(this))
 {
     m_periodic->setInterval(kPeriodMs);
     connect(m_periodic, &QTimer::timeout, this, &SourceSync::syncAll);
+    m_writeSoon->setSingleShot(true);
+    m_writeSoon->setInterval(kWriteDelayMs);
+    connect(m_writeSoon, &QTimer::timeout, this, [this] {
+        if (!m_database)
+            return;
+        for (const GameSource &source : m_database->sources()) {
+            if (source.enabled && source.kind == QLatin1String("pgn")
+                && PgnFilePlan::writes(PgnFileFetch::mode(source)))
+                syncSource(source.id);
+        }
+    });
+}
+
+void SourceSync::scheduleWrite()
+{
+    m_writeSoon->start();
 }
 
 SourceSync::~SourceSync()
@@ -102,15 +121,18 @@ void SourceSync::startNext()
         if (!source)
             continue;
         // A file that is not on this computer: nothing to read, the user is told.
-        if (source->kind == QLatin1String("chessbase") && !ChessBaseFetch::isAvailable(*source)) {
+        const std::optional<SourceKind> kind = SourceCatalog::kind(source->kind);
+        if (kind && kind->localFile && !SourceCatalog::isLocalFileAvailable(*source)) {
             GameSource missing = *source;
-            missing.lastError = tr("The ChessBase database was not found at %1.").arg(ChessBaseFetch::path(*source));
+            missing.lastError = source->kind == QLatin1String("pgn")
+                ? tr("The PGN file was not found at %1.").arg(SourceCatalog::localPath(*source))
+                : tr("The ChessBase database was not found at %1.").arg(SourceCatalog::localPath(*source));
             m_database->updateSource(missing, nullptr);
             Q_EMIT sourcesChanged();
             Q_EMIT sourceUnavailable(missing);
             continue;
         }
-        m_fetch = SourceCatalog::createFetch(*source, m_network, this);
+        m_fetch = SourceCatalog::createFetch(*source, m_network, m_database, this);
         if (!m_fetch)
             continue;
 
@@ -140,6 +162,15 @@ void SourceSync::startNext()
                         Q_EMIT activityChanged(tr("Syncing %1… %n new game(s)", nullptr, m_importedThisSync).arg(name));
                     }
                 });
+        connect(m_fetch, &SourceFetch::gamesChanged, this, [this, name](int added, const QList<qint64> &updated) {
+            if (added > 0) {
+                m_importedThisSync += added;
+                Q_EMIT gamesImported(added);
+                Q_EMIT activityChanged(tr("Syncing %1… %n new game(s)", nullptr, m_importedThisSync).arg(name));
+            }
+            if (!updated.isEmpty())
+                Q_EMIT gamesUpdated(updated);
+        });
         connect(m_fetch, &SourceFetch::finished, this, &SourceSync::finishCurrent);
         m_fetch->start();
         return;

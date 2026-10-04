@@ -186,6 +186,12 @@ qt_add_library(pragma-chess-core STATIC
     src/app/sources/LichessFetch.h
     src/app/sources/LichessSignIn.cpp
     src/app/sources/LichessSignIn.h
+    src/app/sources/PgnFile.cpp
+    src/app/sources/PgnFile.h
+    src/app/sources/PgnFileFetch.cpp
+    src/app/sources/PgnFileFetch.h
+    src/app/sources/PgnFilePlan.cpp
+    src/app/sources/PgnFilePlan.h
     src/app/sources/SourceCatalog.cpp
     src/app/sources/SourceCatalog.h
     src/app/sources/SourceCredentials.cpp

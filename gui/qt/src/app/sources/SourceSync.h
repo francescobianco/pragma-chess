@@ -24,6 +24,9 @@ public:
     void setDatabase(GameDatabase *database);
 
     void syncAll();
+    /// Soon, the sources that write the database's games somewhere (a PGN
+    /// file): after the database changed. Changes close together are one sync.
+    void scheduleWrite();
     void syncSource(qint64 sourceId);
     /// Stops the sync of a source, e.g. before removing it.
     void cancelSource(qint64 sourceId);
@@ -36,13 +39,15 @@ public:
 Q_SIGNALS:
     /// `count` games were appended to the database.
     void gamesImported(int count);
+    /// Games of the database, by index, were replaced by a source's version.
+    void gamesUpdated(const QList<qint64> &indexes);
     /// A source's state, error or sync time changed.
     void sourcesChanged();
     /// What is being synced, for the status bar; empty when idle.
     void activityChanged(const QString &text);
     /// Every queued source has been synced. A manual sync waits for this.
     void idle();
-    /// A source whose file is not on this computer (ChessBase files): it was
+    /// A source whose file is not on this computer (ChessBase or PGN files): it was
     /// skipped, and the user may want to say what to do about it.
     void sourceUnavailable(const GameSource &source);
 
@@ -53,6 +58,7 @@ private:
     GameDatabase *m_database = nullptr;
     QNetworkAccessManager *m_network;
     QTimer *m_periodic;
+    QTimer *m_writeSoon;
     QList<qint64> m_queue;
     SourceFetch *m_fetch = nullptr;
     qint64 m_current = 0;

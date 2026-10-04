@@ -3007,6 +3007,32 @@ Le %n partite già importate restano nel database.</numerusform>
     </message>
 </context>
 <context>
+    <name>PgnFileFetch</name>
+    <message>
+        <source>The PGN file was not found at %1.</source>
+        <translation>Il file PGN non è stato trovato in %1.</translation>
+    </message>
+    <message>
+        <source>Could not save the games: %1</source>
+        <translation>Impossibile salvare le partite: %1</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n game(s) of the file could not be read.</source>
+        <translation>
+            <numerusform>%n partita del file non si è potuta leggere.</numerusform>
+            <numerusform>%n partite del file non si sono potute leggere.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The PGN file changed while it was being synced; it is synced again next time.</source>
+        <translation>Il file PGN è cambiato durante la sincronizzazione; verrà sincronizzato la prossima volta.</translation>
+    </message>
+    <message>
+        <source>Could not write the PGN file: %1</source>
+        <translation>Impossibile scrivere il file PGN: %1</translation>
+    </message>
+</context>
+<context>
     <name>PhoneLink</name>
     <message>
         <source>Phone</source>
@@ -3288,6 +3314,14 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>Public games played on lichess.org by an account. Signing in to lichess.org is optional: it downloads them faster.</source>
         <translation>Partite pubbliche giocate su lichess.org da un account. L&apos;accesso a lichess.org è facoltativo: le scarica più in fretta.</translation>
     </message>
+    <message>
+        <source>PGN file</source>
+        <translation>File PGN</translation>
+    </message>
+    <message>
+        <source>A PGN file on this computer, kept in step with the database: its games come into the database, the database&apos;s games go into the file, or both.</source>
+        <translation>Un file PGN su questo computer, tenuto al passo con il database: le sue partite entrano nel database, le partite del database vanno nel file, o entrambe le cose.</translation>
+    </message>
 </context>
 <context>
     <name>SourceSettingsWidget</name>
@@ -3439,6 +3473,82 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>Not signed in: public games only</source>
         <translation>Accesso non effettuato: solo partite pubbliche</translation>
     </message>
+    <message>
+        <source>A .pgn file on this computer</source>
+        <translation>Un file .pgn su questo computer</translation>
+    </message>
+    <message>
+        <source>Choose a PGN File</source>
+        <translation>Scegli un file PGN</translation>
+    </message>
+    <message>
+        <source>PGN files (*.pgn *.PGN)</source>
+        <translation>File PGN (*.pgn *.PGN)</translation>
+    </message>
+    <message>
+        <source>&amp;New File…</source>
+        <translation>&amp;Nuovo file…</translation>
+    </message>
+    <message>
+        <source>Creates an empty PGN file, for the database to write its games into</source>
+        <translation>Crea un file PGN vuoto, in cui il database scriverà le sue partite</translation>
+    </message>
+    <message>
+        <source>New PGN File</source>
+        <translation>Nuovo file PGN</translation>
+    </message>
+    <message>
+        <source>Could not create “%1”: %2</source>
+        <translation>Impossibile creare “%1”: %2</translation>
+    </message>
+    <message>
+        <source>Read and write</source>
+        <translation>Leggi e scrivi</translation>
+    </message>
+    <message>
+        <source>Read only</source>
+        <translation>Solo lettura</translation>
+    </message>
+    <message>
+        <source>Write only</source>
+        <translation>Solo scrittura</translation>
+    </message>
+    <message>
+        <source>&amp;Direction:</source>
+        <translation>&amp;Direzione:</translation>
+    </message>
+    <message>
+        <source>The games of the file come into the database, and the database&apos;s games go into the file: a game added or changed on either side reaches the other.</source>
+        <translation>Le partite del file entrano nel database e le partite del database vanno nel file: una partita aggiunta o modificata da una parte arriva all&apos;altra.</translation>
+    </message>
+    <message>
+        <source>The games of the file come into the database, and so do the ones added or changed in it later. The file is never written.</source>
+        <translation>Le partite del file entrano nel database, e così quelle aggiunte o modificate in seguito. Il file non viene mai scritto.</translation>
+    </message>
+    <message>
+        <source>Every game of the database goes into the file, and so do the ones added or changed later. The file&apos;s other games are left as they are.</source>
+        <translation>Tutte le partite del database vanno nel file, e così quelle aggiunte o modificate in seguito. Le altre partite del file restano come sono.</translation>
+    </message>
+    <message>
+        <source>The file stays where it is. A game removed on one side is not removed on the other, and a game changed on both sides between two syncs is kept twice. Pragma Chess marks the games it writes with a PragmaUid tag and keeps an index of the file beside it, in a hidden file.</source>
+        <translation>Il file resta dov&apos;è. Una partita tolta da una parte non viene tolta dall&apos;altra, e una partita modificata da entrambe le parti tra due sincronizzazioni viene tenuta due volte. Pragma Chess segna le partite che scrive con un tag PragmaUid e tiene un indice del file accanto a esso, in un file nascosto.</translation>
+    </message>
+    <message>
+        <source>Choose the PGN file, or create one with New File….</source>
+        <translation>Scegli il file PGN, o creane uno con Nuovo file….</translation>
+    </message>
+    <message>
+        <source>There is no file “%1”. New File… creates one.</source>
+        <translation>Il file “%1” non esiste. Nuovo file… ne crea uno.</translation>
+    </message>
+    <message>
+        <source>The file “%1” cannot be read.</source>
+        <translation>Il file “%1” non si può leggere.</translation>
+    </message>
+    <message>
+        <source>The file “%1” cannot be written: choose Read only, or another file.</source>
+        <translation>Il file “%1” non si può scrivere: scegli Solo lettura, o un altro file.</translation>
+    </message>
 </context>
 <context>
     <name>SourceSync</name>
@@ -3460,6 +3570,10 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>The ChessBase database was not found at %1.</source>
         <translation>Il database ChessBase non è stato trovato in %1.</translation>
+    </message>
+    <message>
+        <source>The PGN file was not found at %1.</source>
+        <translation>Il file PGN non è stato trovato in %1.</translation>
     </message>
 </context>
 <context>

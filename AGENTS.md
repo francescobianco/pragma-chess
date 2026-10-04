@@ -592,7 +592,7 @@ the toolbar's first button (`m_syncNowAction`, Ctrl+Y).
 ## Game sources
 
 Database ▸ Connect Source… adds an external source (lichess.org, chess.com,
-torneionline.com) to the open database; Database ▸ Manage Sources… syncs,
+torneionline.com, ChessBase files, a PGN file) to the open database; Database ▸ Manage Sources… syncs,
 edits, signs in again or removes them.
 
 The tree left of the games list (`DatabaseTreeWidget`) shows only the open
@@ -640,6 +640,28 @@ while one of them is selected.
   run: Ignore, or Ignore on This Computer, which is per device
   (`SourceCredentials::isIgnoredHere`, cleared when the source is edited in
   Manage Sources). Only the main line is imported for now (TODO.md).
+- **PGN file** (`pgn`, `localFile`): the first source that goes both ways.
+  Settings `path` and `mode` (`readwrite`, `read`, `write`). `PgnFile`
+  (pure) cuts the file into entries that cover it byte for byte, so a game
+  not touched keeps its text, comments and line endings; a game tied to the
+  database carries `[PragmaUid "<uid>"]` (in Read and write the tag is
+  added to the file's own games, the rest of the entry untouched). The
+  index `.<name>.pragma-index` beside the file holds the file's SHA-256 and
+  its entries; it is used only while the hash matches, otherwise the file
+  is scanned again. `PgnFilePlan` (pure, unit-tested) decides against the
+  base kept in the source's state (per uid: the entry's hash and the
+  database game's `modified` at the last sync): changed in the file →
+  `replaceGame`; changed in the database → the entry is rewritten;
+  changed on both → the file's version is imported as a game of its own
+  and the database's keeps the uid; live games the file never had are
+  appended. Nothing is deleted on either side (the base remembers what left
+  the file, so it is not written back). `PgnFileFetch` applies it on the
+  open database (`SourceCatalog::createFetch` gets it), imports in batches,
+  and writes with `QSaveFile` only if the file is still the one it read.
+  `SourceSync::scheduleWrite()` (from `rebuildPositionIndex` and header
+  edits) runs the writing ones a few seconds after the database changes;
+  `gamesUpdated` refreshes replaced rows and the game on the board.
+  `tst_chessrules::syncsPgnFilesBothWays` covers the whole round.
 - Parsers (`parseGame`, `TorneiOnlineFetch::parse*`) are pure and unit-tested
   with recorded JSON or HTML; keep new kinds the same way. Be gentle with the sites' APIs when testing (one request
   at a time, send `SourceFetch::userAgent()`).

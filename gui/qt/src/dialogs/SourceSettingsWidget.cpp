@@ -3,6 +3,7 @@
 #include "app/chessbase/ChessBaseDatabase.h"
 #include "app/sources/ChessBaseFetch.h"
 #include "app/sources/LichessSignIn.h"
+#include "app/sources/PgnFileFetch.h"
 #include "app/sources/SourceCredentials.h"
 #include "app/sources/TorneiOnlineFetch.h"
 
@@ -13,6 +14,7 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QEventLoop>
+#include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFormLayout>
@@ -59,6 +61,10 @@ SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString
     }
 
     m_account->setClearButtonEnabled(true);
+    if (isPgn()) {
+        addPgnFile(form);
+        return;
+    }
     if (m_kind.localFile) {
         // A file on this computer: chosen with the file dialog, the name shown as the account.
         m_path = new QLineEdit;
@@ -74,7 +80,9 @@ SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString
         auto *row = new QHBoxLayout;
         row->addWidget(m_path, 1);
         row->addWidget(browse);
-        form->addRow(tr("&File:"), row);
+        auto *fileLabel = new QLabel(tr("&File:"));
+        fileLabel->setBuddy(m_path); // The row is a layout: the label needs it for its shortcut.
+        form->addRow(fileLabel, row);
         connect(m_path, &QLineEdit::textChanged, this, &SourceSettingsWidget::changed);
         m_account->hide();
         m_limitSince->hide();
@@ -140,11 +148,96 @@ SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString
     connect(m_account, &QLineEdit::textChanged, this, &SourceSettingsWidget::changed);
 }
 
+void SourceSettingsWidget::addPgnFile(QFormLayout *form)
+{
+    m_path = new QLineEdit;
+    m_path->setPlaceholderText(tr("A .pgn file on this computer"));
+    m_path->setClearButtonEnabled(true);
+    const auto startFolder = [this] {
+        return m_path->text().isEmpty() ? QDir::homePath() : QFileInfo(m_path->text()).absolutePath();
+    };
+    auto *browse = new QPushButton(tr("&Browse…"));
+    connect(browse, &QPushButton::clicked, this, [this, startFolder] {
+        const QString chosen = QFileDialog::getOpenFileName(this, tr("Choose a PGN File"), startFolder(),
+                                                            tr("PGN files (*.pgn *.PGN)"));
+        if (!chosen.isEmpty())
+            m_path->setText(QDir::toNativeSeparators(chosen));
+    });
+    auto *create = new QPushButton(tr("&New File…"));
+    create->setToolTip(tr("Creates an empty PGN file, for the database to write its games into"));
+    connect(create, &QPushButton::clicked, this, [this, startFolder] {
+        QString chosen = QFileDialog::getSaveFileName(this, tr("New PGN File"), startFolder(),
+                                                      tr("PGN files (*.pgn *.PGN)"));
+        if (chosen.isEmpty())
+            return;
+        if (QFileInfo(chosen).suffix().isEmpty())
+            chosen += QStringLiteral(".pgn");
+        QFile file(chosen);
+        // An existing file is kept as it is: the file dialog already asked about it.
+        if (!file.exists() && !file.open(QIODevice::WriteOnly)) {
+            QMessageBox::warning(this, tr("New PGN File"),
+                                 tr("Could not create “%1”: %2").arg(QDir::toNativeSeparators(chosen), file.errorString()));
+            return;
+        }
+        m_path->setText(QDir::toNativeSeparators(chosen));
+    });
+    auto *row = new QHBoxLayout;
+    row->addWidget(m_path, 1);
+    row->addWidget(browse);
+    row->addWidget(create);
+    auto *fileLabel = new QLabel(tr("&File:"));
+    fileLabel->setBuddy(m_path); // The row is a layout: the label needs it for its shortcut.
+    form->addRow(fileLabel, row);
+    connect(m_path, &QLineEdit::textChanged, this, &SourceSettingsWidget::changed);
+
+    m_direction = new QComboBox;
+    m_direction->addItem(tr("Read and write"), PgnFilePlan::modeKey(PgnFilePlan::Mode::ReadWrite));
+    m_direction->addItem(tr("Read only"), PgnFilePlan::modeKey(PgnFilePlan::Mode::Read));
+    m_direction->addItem(tr("Write only"), PgnFilePlan::modeKey(PgnFilePlan::Mode::Write));
+    form->addRow(tr("&Direction:"), m_direction);
+    auto *explanation = new QLabel;
+    explanation->setWordWrap(true);
+    form->addRow(QString(), explanation);
+    const auto explain = [this, explanation] {
+        switch (PgnFilePlan::modeFromKey(m_direction->currentData().toString())) {
+        case PgnFilePlan::Mode::ReadWrite:
+            explanation->setText(tr("The games of the file come into the database, and the database's games go "
+                                    "into the file: a game added or changed on either side reaches the other."));
+            break;
+        case PgnFilePlan::Mode::Read:
+            explanation->setText(tr("The games of the file come into the database, and so do the ones added or "
+                                    "changed in it later. The file is never written."));
+            break;
+        case PgnFilePlan::Mode::Write:
+            explanation->setText(tr("Every game of the database goes into the file, and so do the ones added or "
+                                    "changed later. The file's other games are left as they are."));
+            break;
+        }
+    };
+    connect(m_direction, &QComboBox::currentIndexChanged, this, explain);
+    connect(m_direction, &QComboBox::currentIndexChanged, this, &SourceSettingsWidget::changed);
+    explain();
+
+    m_account->hide();
+    m_limitSince->hide();
+    m_since->hide();
+    m_ratedOnly->hide();
+    auto *note = new QLabel(tr("The file stays where it is. A game removed on one side is not removed on the "
+                               "other, and a game changed on both sides between two syncs is kept twice. "
+                               "Pragma Chess marks the games it writes with a PragmaUid tag and keeps an index "
+                               "of the file beside it, in a hidden file."));
+    note->setWordWrap(true);
+    note->setEnabled(false);
+    form->addRow(QString(), note);
+}
+
 void SourceSettingsWidget::setSource(const GameSource &source)
 {
     m_account->setText(source.account);
     if (m_path)
-        m_path->setText(ChessBaseFetch::path(source));
+        m_path->setText(QDir::toNativeSeparators(SourceCatalog::localPath(source)));
+    if (m_direction)
+        m_direction->setCurrentIndex(qMax(0, m_direction->findData(PgnFilePlan::modeKey(PgnFileFetch::mode(source)))));
     const QString since = source.settings.value(QLatin1String(SourceSettings::since)).toString();
     m_limitSince->setChecked(!since.isEmpty());
     if (!since.isEmpty())
@@ -160,9 +253,11 @@ void SourceSettingsWidget::setSource(const GameSource &source)
 void SourceSettingsWidget::applyTo(GameSource &source) const
 {
     if (m_path) {
-        const QString path = QFileInfo(m_path->text().trimmed()).absoluteFilePath();
+        const QString path = QFileInfo(QDir::fromNativeSeparators(m_path->text().trimmed())).absoluteFilePath();
         source.account = QFileInfo(path).completeBaseName();
         source.settings.insert(QLatin1String(ChessBaseSettings::path), path);
+        if (m_direction)
+            source.settings.insert(QLatin1String(PgnFileSettings::mode), m_direction->currentData().toString());
         return;
     }
     source.account = m_account->text().trimmed();
@@ -179,6 +274,27 @@ void SourceSettingsWidget::applyTo(GameSource &source) const
 
 bool SourceSettingsWidget::validate(QString *errorMessage)
 {
+    if (m_path && isPgn()) {
+        const QFileInfo file(QDir::fromNativeSeparators(m_path->text().trimmed()));
+        if (m_path->text().trimmed().isEmpty()) {
+            *errorMessage = tr("Choose the PGN file, or create one with New File….");
+            return false;
+        }
+        if (!file.isFile()) {
+            *errorMessage = tr("There is no file “%1”. New File… creates one.").arg(m_path->text().trimmed());
+            return false;
+        }
+        if (!file.isReadable()) {
+            *errorMessage = tr("The file “%1” cannot be read.").arg(m_path->text().trimmed());
+            return false;
+        }
+        if (PgnFilePlan::writes(PgnFilePlan::modeFromKey(m_direction->currentData().toString())) && !file.isWritable()) {
+            *errorMessage = tr("The file “%1” cannot be written: choose Read only, or another file.")
+                                .arg(m_path->text().trimmed());
+            return false;
+        }
+        return true;
+    }
     if (m_path) {
         const QString path = m_path->text().trimmed();
         if (path.isEmpty()) {

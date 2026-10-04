@@ -3,9 +3,11 @@
 #include "ChessBaseFetch.h"
 #include "ChessComFetch.h"
 #include "LichessFetch.h"
+#include "PgnFileFetch.h"
 #include "TorneiOnlineFetch.h"
 
 #include <QCoreApplication>
+#include <QFileInfo>
 #include <QUrl>
 
 namespace {
@@ -37,6 +39,10 @@ QList<SourceKind> kinds()
          Text::tr("The games of a ChessBase database (.cbh and its files) on this computer. The file stays where "
                   "it is; games added to it later are picked up."),
          false, false, true},
+        {QStringLiteral("pgn"), Text::tr("PGN file"),
+         Text::tr("A PGN file on this computer, kept in step with the database: its games come into the database, "
+                  "the database's games go into the file, or both."),
+         false, false, true},
     };
 }
 
@@ -57,7 +63,9 @@ QString displayName(const GameSource &source)
         return Text::tr("Phone · %1").arg(source.account);
     const QString name = sourceKind ? sourceKind->name : source.kind;
     if (sourceKind && sourceKind->localFile)
-        return QStringLiteral("ChessBase · %1").arg(source.account);
+        return QStringLiteral("%1 · %2")
+            .arg(source.kind == QLatin1String("pgn") ? QStringLiteral("PGN") : QStringLiteral("ChessBase"),
+                 source.account);
     if (sourceKind && sourceKind->playerId) {
         const QString idType =
             source.settings.value(QLatin1String(TorneiOnlineSettings::idType)).toString() == QLatin1String("fsi")
@@ -88,7 +96,20 @@ QNetworkRequest accountRequest(const GameSource &source)
     return request;
 }
 
-SourceFetch *createFetch(const GameSource &source, QNetworkAccessManager *network, QObject *parent)
+QString localPath(const GameSource &source)
+{
+    // Both kinds of file keep it under the same key.
+    return source.settings.value(QLatin1String(PgnFileSettings::path)).toString();
+}
+
+bool isLocalFileAvailable(const GameSource &source)
+{
+    const QString file = localPath(source);
+    return !file.isEmpty() && QFileInfo::exists(file);
+}
+
+SourceFetch *createFetch(const GameSource &source, QNetworkAccessManager *network, GameDatabase *database,
+                         QObject *parent)
 {
     if (source.kind == QLatin1String("lichess"))
         return new LichessFetch(source, network, parent);
@@ -98,6 +119,8 @@ SourceFetch *createFetch(const GameSource &source, QNetworkAccessManager *networ
         return new TorneiOnlineFetch(source, network, parent);
     if (source.kind == QLatin1String("chessbase"))
         return new ChessBaseFetch(source, parent);
+    if (source.kind == QLatin1String("pgn"))
+        return database ? new PgnFileFetch(source, database, parent) : nullptr;
     return nullptr;
 }
 

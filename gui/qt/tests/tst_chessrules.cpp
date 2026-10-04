@@ -33,6 +33,9 @@
 #include "app/sources/SourceSync.h"
 #include "app/sources/TorneiOnlineFetch.h"
 #include "app/sources/LichessFetch.h"
+#include "app/sources/PgnFile.h"
+#include "app/sources/PgnFileFetch.h"
+#include "app/sources/PgnFilePlan.h"
 #include "app/sync/FolderSync.h"
 #include "app/sync/GitStore.h"
 #include "app/sync/SyncManifest.h"
@@ -2067,6 +2070,247 @@ private Q_SLOTS:
         QCOMPARE(folders.databases, QStringLiteral("/data/Pragma/Databases"));
         QCOMPARE(folders.books, QStringLiteral("/shared/books"));
         QCOMPARE(folders.openingNames, QStringLiteral("/shared/books/Opening Names"));
+    }
+
+    void cutsPgnFilesIntoGames()
+    {
+        const QByteArray file = "; exported\n"
+                                "[Event \"Club\"]\n[White \"Anna\"]\n[Black \"Bruno\"]\n[Result \"1-0\"]\n\n"
+                                "1. e4 {best by test} e5 2. Qh5 Nc6 3. Bc4 Nf6 4. Qxf7# 1-0\n\n"
+                                "[Event \"?\"]\r\n[White \"Carla\"]\r\n[Black \"Anna\"]\r\n[Result \"*\"]\r\n\r\n"
+                                "1. d4 d5 *\r\n";
+        const QList<PgnFile::Entry> entries = PgnFile::scan(file);
+        QCOMPARE(entries.size(), 2);
+        QCOMPARE(entries.at(0).offset, 0); // What precedes the first game belongs to it.
+        QCOMPARE(entries.at(0).length + entries.at(1).length, file.size());
+        QVERIFY(entries.at(0).isGame && entries.at(1).isGame);
+        QVERIFY(entries.at(0).uid.isEmpty());
+
+        std::optional<GameRecord> game = PgnFile::read(file.mid(0, entries.at(0).length), nullptr);
+        QVERIFY(game);
+        QCOMPARE(game->white, QStringLiteral("Anna"));
+        QCOMPARE(game->event, QStringLiteral("Club"));
+        QCOMPARE(game->result, QStringLiteral("1-0"));
+        QCOMPARE(game->moves.size(), 7);
+        game = PgnFile::read(file.mid(entries.at(1).offset), nullptr);
+        QVERIFY(game);
+        QVERIFY(game->event.isEmpty()); // "?" is unknown.
+        QVERIFY(game->result.isEmpty());
+
+        // The uid goes after the tags, and nothing else moves, line endings included.
+        const QByteArray second = file.mid(entries.at(1).offset);
+        const QByteArray tagged = PgnFile::withUid(second, QStringLiteral("u-1"));
+        QCOMPARE(tagged, QByteArray("[Event \"?\"]\r\n[White \"Carla\"]\r\n[Black \"Anna\"]\r\n[Result \"*\"]\r\n"
+                                    "[PragmaUid \"u-1\"]\r\n\r\n1. d4 d5 *\r\n"));
+        QCOMPARE(PgnFile::withUid(tagged, QStringLiteral("u-2")).count("PragmaUid"), 1);
+        QCOMPARE(PgnFile::scan(tagged).first().uid, QStringLiteral("u-1"));
+
+        // A written game reads back the same, uid included.
+        GameRecord written = *PgnFile::read(file.mid(0, entries.at(0).length), nullptr);
+        written.uid = QStringLiteral("u-3");
+        const std::optional<GameRecord> back = PgnFile::read(PgnFile::write(written), nullptr);
+        QVERIFY(back);
+        QCOMPARE(back->uid, QStringLiteral("u-3"));
+        QCOMPARE(back->moves.size(), written.moves.size());
+        QCOMPARE(back->white, written.white);
+    }
+
+    void plansPgnFileSyncs()
+    {
+        using namespace PgnFilePlan;
+        const auto entry = [](const QString &hash, const QString &uid) {
+            PgnFile::Entry e;
+            e.hash = hash;
+            e.uid = uid;
+            e.isGame = true;
+            return e;
+        };
+        // a: untouched; b: changed in the file; c: changed in the database;
+        // d: changed on both sides; e: untagged and new; f: gone from the database.
+        const QList<PgnFile::Entry> entries{entry("a1", "a"), entry("b2", "b"), entry("c1", "c"),
+                                            entry("d2", "d"), entry("e1", QString()), entry("f1", "f")};
+        const Base base{{"a", {"a1", "t1"}}, {"b", {"b1", "t1"}}, {"c", {"c1", "t1"}},
+                        {"d", {"d1", "t1"}}, {"f", {"f1", "t1"}}, {"g", {"", "t1"}}};
+        const QHash<QString, DatabaseGame> games{{"a", {"t1", true}}, {"b", {"t1", true}}, {"c", {"t2", true}},
+                                                 {"d", {"t2", true}}, {"g", {"t1", true}}, {"h", {"t1", true}},
+                                                 {"i", {"t1", false}}};
+
+        ReadPlan plan = planRead(Mode::ReadWrite, entries, base, games, {});
+        QCOMPARE(plan.imports, QList<int>{4});
+        QCOMPARE(plan.updates, (QList<QPair<int, QString>>{{1, "b"}}));
+        QCOMPARE(plan.conflicts, QList<int>{3});
+        QCOMPARE(plan.rewrites, (QList<QPair<int, QString>>{{2, "c"}, {3, "d"}}));
+        // Read only: nothing for the file. Write only: nothing for the database.
+        plan = planRead(Mode::Read, entries, base, games, {});
+        QVERIFY(plan.rewrites.isEmpty());
+        QCOMPARE(plan.conflicts, QList<int>{3});
+        plan = planRead(Mode::Write, entries, base, games, {});
+        QVERIFY(plan.imports.isEmpty() && plan.updates.isEmpty() && plan.conflicts.isEmpty());
+        QCOMPARE(plan.rewrites.size(), 2);
+        // Imported before: not again.
+        QVERIFY(planRead(Mode::Read, entries, base, games, {externalId(entries.at(4))}).imports.isEmpty());
+
+        // The imported game is tagged; h is new in the database and goes in;
+        // g left the file and i is in the trash: neither comes back.
+        const WritePlan write = planWrite(Mode::ReadWrite, entries, base, games, {{externalId(entries.at(4)), "e"}},
+                                          {"a", "b", "c", "d", "e", "g", "h", "i"});
+        QCOMPARE(write.tags, (QList<QPair<int, QString>>{{4, "e"}}));
+        QCOMPARE(write.appends, QStringList{"h"});
+        QVERIFY(planWrite(Mode::Read, entries, base, games, {}, {"h"}).appends.isEmpty());
+
+        // A rewrite that did not happen keeps its base; what left the file is remembered.
+        const Base next = nextBase(base, entries, games, {"c"});
+        QCOMPARE(next.value("c").modified, QStringLiteral("t1"));
+        QCOMPARE(next.value("d").modified, QStringLiteral("t2"));
+        QCOMPARE(next.value("b").hash, QStringLiteral("b2"));
+        QVERIFY(next.contains("g") && next.value("g").hash.isEmpty());
+        QCOMPARE(baseFromJson(baseToJson(next)).value("d").hash, next.value("d").hash);
+    }
+
+    void syncsPgnFilesBothWays()
+    {
+        QTemporaryDir dir;
+        QString error;
+        const QString pgnPath = dir.filePath(QStringLiteral("games.pgn"));
+        const auto writeFile = [&pgnPath](const QByteArray &bytes) {
+            QFile file(pgnPath);
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            file.write(bytes);
+        };
+        const auto readFile = [&pgnPath] {
+            QFile file(pgnPath);
+            return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
+        };
+        writeFile("[Event \"Club\"]\n[White \"Anna\"]\n[Black \"Bruno\"]\n[Result \"1-0\"]\n\n"
+                  "1. e4 {a comment} e5 2. Qh5 Nc6 3. Bc4 Nf6 4. Qxf7# 1-0\n\n"
+                  "[Event \"Club\"]\n[White \"Carla\"]\n[Black \"Anna\"]\n[Result \"1/2-1/2\"]\n\n"
+                  "1. d4 d5 1/2-1/2\n");
+
+        std::unique_ptr<SqliteGameDatabase> db =
+            SqliteGameDatabase::create(dir.filePath(QStringLiteral("db.pdb")), {}, &error);
+        QVERIFY2(db, qPrintable(error));
+        GameSource pgn;
+        pgn.kind = QStringLiteral("pgn");
+        pgn.account = QStringLiteral("games");
+        pgn.settings = QJsonObject{{QLatin1String(PgnFileSettings::path), pgnPath},
+                                   {QLatin1String(PgnFileSettings::mode), QStringLiteral("readwrite")}};
+        QVERIFY(db->addSource(pgn, &error));
+        const auto sync = [&]() -> QString {
+            GameSource current;
+            for (const GameSource &source : db->sources()) {
+                if (source.id == pgn.id)
+                    current = source;
+            }
+            PgnFileFetch fetch(current, db.get());
+            QSignalSpy finished(&fetch, &SourceFetch::finished);
+            fetch.start();
+            if (!finished.wait(5000))
+                return QStringLiteral("timeout");
+            return finished.first().first().toString();
+        };
+        const auto indexOf = [&db](const QString &white) {
+            for (qint64 i = 0; i < db->gameCount(); ++i) {
+                if (db->header(i).white == white)
+                    return i;
+            }
+            return qint64(-1);
+        };
+
+        // The file's games come in, and the file gets their uids, comments kept.
+        QCOMPARE(sync(), QString());
+        QCOMPARE(db->gameCount(), 2);
+        QByteArray bytes = readFile();
+        QCOMPARE(bytes.count("[PragmaUid \""), 2);
+        QVERIFY(bytes.contains("{a comment}"));
+        QVERIFY(bytes.contains(QStringLiteral("[PragmaUid \"%1\"]").arg(db->header(0).uid).toUtf8()));
+        QVERIFY(QFile::exists(PgnFile::indexPath(pgnPath)));
+
+        // Nothing changed: nothing moves.
+        QCOMPARE(sync(), QString());
+        QCOMPARE(readFile(), bytes);
+        QCOMPARE(db->gameCount(), 2);
+
+        // A game added to the database goes into the file.
+        GameRecord added;
+        added.white = QStringLiteral("Dario");
+        added.black = QStringLiteral("Anna");
+        added.moves = {{QStringLiteral("c4"), QStringLiteral("c2c4")}};
+        QVERIFY(db->addGame(added, &error) >= 0);
+        QCOMPARE(sync(), QString());
+        bytes = readFile();
+        QVERIFY(bytes.contains("[White \"Dario\"]"));
+        QCOMPARE(bytes.count("[PragmaUid \""), 3);
+
+        // A game changed in the file changes in the database, same game.
+        const QString carla = db->header(indexOf(QStringLiteral("Carla"))).uid;
+        writeFile(bytes.replace("[White \"Carla\"]", "[White \"Carla Rossi\"]"));
+        QCOMPARE(sync(), QString());
+        QCOMPARE(db->gameCount(), 3);
+        QCOMPARE(db->header(indexOf(QStringLiteral("Carla Rossi"))).uid, carla);
+
+        // A game changed in the database changes in the file.
+        QTest::qWait(5); // A later `modified`.
+        GameRecord dario = *db->loadGame(indexOf(QStringLiteral("Dario")));
+        dario.event = QStringLiteral("Simul");
+        dario.modified.clear();
+        QVERIFY(db->replaceGame(indexOf(QStringLiteral("Dario")), dario, &error));
+        QCOMPARE(sync(), QString());
+        QVERIFY(readFile().contains("[Event \"Simul\"]"));
+
+        // Changed on both sides: both are kept, in the database and in the file.
+        QTest::qWait(5);
+        GameRecord anna = *db->loadGame(indexOf(QStringLiteral("Anna")));
+        anna.event = QStringLiteral("Edited here");
+        anna.modified.clear();
+        QVERIFY(db->replaceGame(indexOf(QStringLiteral("Anna")), anna, &error));
+        writeFile(readFile().replace("[Event \"Club\"]\n[White \"Anna\"]", "[Event \"Edited there\"]\n[White \"Anna\"]"));
+        QCOMPARE(sync(), QString());
+        QCOMPARE(db->gameCount(), 4);
+        bytes = readFile();
+        QVERIFY(bytes.contains("Edited here"));
+        QVERIFY(bytes.contains("Edited there"));
+        QCOMPARE(bytes.count("[PragmaUid \""), 4);
+
+        // A game deleted from the file stays in the database and is not written back.
+        const QList<PgnFile::Entry> entries = PgnFile::scan(bytes);
+        const PgnFile::Entry dropped = entries.at(entries.size() - 2);
+        writeFile(bytes.left(dropped.offset) + bytes.mid(dropped.offset + dropped.length));
+        QCOMPARE(sync(), QString());
+        QCOMPARE(db->gameCount(), 4);
+        QCOMPARE(readFile().count("[PragmaUid \""), 3);
+
+        // Read only: the file is never written. Write only: the file's other games stay out.
+        const QByteArray foreign = "[White \"Elena\"]\n[Black \"Fabio\"]\n\n1. e4 *\n";
+        const QString otherPath = dir.filePath(QStringLiteral("other.pgn"));
+        for (const QString &mode : {QStringLiteral("read"), QStringLiteral("write")}) {
+            QFile other(otherPath);
+            QVERIFY(other.open(QIODevice::WriteOnly));
+            other.write(foreign);
+            other.close();
+            QFile::remove(PgnFile::indexPath(otherPath));
+            std::unique_ptr<SqliteGameDatabase> second =
+                SqliteGameDatabase::create(dir.filePath(mode + QStringLiteral(".pdb")), {added}, &error);
+            QVERIFY2(second, qPrintable(error));
+            GameSource source = pgn;
+            source.uuid.clear();
+            source.settings = QJsonObject{{QLatin1String(PgnFileSettings::path), otherPath},
+                                          {QLatin1String(PgnFileSettings::mode), mode}};
+            QVERIFY(second->addSource(source, &error));
+            PgnFileFetch fetch(source, second.get());
+            QSignalSpy finished(&fetch, &SourceFetch::finished);
+            fetch.start();
+            QVERIFY(finished.wait(5000));
+            QVERIFY(other.open(QIODevice::ReadOnly));
+            const QByteArray after = other.readAll();
+            if (mode == QLatin1String("read")) {
+                QCOMPARE(after, foreign);
+                QCOMPARE(second->gameCount(), 2);
+            } else {
+                QVERIFY(after.startsWith(foreign));
+                QVERIFY(after.contains("[White \"Dario\"]"));
+                QCOMPARE(second->gameCount(), 1);
+            }
+        }
     }
 
     void choosesShippedOpeningNames()

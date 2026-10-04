@@ -29,6 +29,9 @@ public:
 Q_SIGNALS:
     /// Games fetched, oldest first, and the state to store once they are saved.
     void gamesFetched(const QList<ImportedGame> &games, const QJsonObject &state);
+    /// For sources that work on the database themselves (a PGN file): games
+    /// added, and the indexes of games replaced.
+    void gamesChanged(int added, const QList<qint64> &updated);
     /// The fetch is over; `errorMessage` is empty on success.
     void finished(const QString &errorMessage);
 };

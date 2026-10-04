@@ -69,7 +69,8 @@ site/                  the site's sources: build.py (Python, no dependencies),
                        (the texts, one file per language), assets/ (style, script,
                        screenshots)
 packaging/             installers: windows/ (Inno Setup), macos/ (dmg), linux/
-                       (CPack .deb/.rpm), artwork; see packaging/README.md
+                       (CPack .deb/.rpm), flatpak/ (Flathub manifest), winget/
+                       (manifests for winget-pkgs), artwork; see packaging/README.md
 .github/workflows/release.yml  builds them all and publishes a release on a v* tag
 scripts/dev-watch.sh   rebuild + restart loop used by `make start`
 scripts/make-icons.py  regenerates every platform icon from data/icons/pragma-chess.png
@@ -839,7 +840,11 @@ set to the `main` branch, folder `/docs`.
 - Releases: bump `PRAGMA_VERSION` in the top-level `CMakeLists.txt`, add the
   version's section to `CHANGELOG.md` (user-visible changes, in English; it
   becomes the "What's new" of the release), push a `vX.Y.Z` tag; CI publishes
-  the installers (see packaging/README.md). A new
+  the installers (see packaging/README.md). Then the channels: a
+  `<release>` in `gui/qt/data/*.metainfo.xml` (validate with
+  `appstreamcli validate --no-net`), the `tag` in
+  `packaging/flatpak/*.yml`, `packaging/winget/make-winget.sh <version>` and
+  its PR to winget-pkgs; DISTRIBUTING.md has the list and the log. A new
   runtime file the app needs must reach all three: `install()` for Linux,
   the deploy steps in `packaging/windows/build.ps1` and `packaging/macos/build.sh`.
 - Commit messages: short imperative subject, blank line, then a bullet list of

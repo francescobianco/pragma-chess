@@ -1,0 +1,70 @@
+# Flatpak manifest of Pragma Chess, for Flathub (https://github.com/flathub/flathub).
+# Builds the desktop client from a release tag on the KDE Qt 6 runtime, with
+# the two libraries CMake would otherwise fetch (yaml-cpp, qrcodegen) as
+# modules, and the official Stockfish binary as the bundled engine, where
+# EngineCatalog::bundledEngineDirs looks for it (lib/pragma-chess/engines).
+# Phone Link is off: libdatachannel is not in the runtime.
+#
+#   flatpak-builder --user --install --force-clean build-dir packaging/flatpak/io.github.francescobianco.PragmaChess.yml
+app-id: io.github.francescobianco.PragmaChess
+runtime: org.kde.Platform
+runtime-version: '6.9'
+sdk: org.kde.Sdk
+command: pragma-chess
+rename-desktop-file: false
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  # lichess.org, chess.com, torneionline.com, the folder sync and online play.
+  - --share=network
+  # Databases, projects and books live in the user's chess folder (~/Chess/Pragma,
+  # localized); ChessBase files and other engines are wherever the user keeps them.
+  - --filesystem=home
+cleanup:
+  - /include
+  - /lib/cmake
+  - /lib/pkgconfig
+  - /share/doc
+  - '*.a'
+modules:
+  - name: yaml-cpp
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DYAML_BUILD_SHARED_LIBS=OFF
+      - -DYAML_CPP_BUILD_TESTS=OFF
+      - -DYAML_CPP_BUILD_TOOLS=OFF
+      - -DYAML_CPP_BUILD_CONTRIB=OFF
+    sources:
+      - type: archive
+        url: https://github.com/jbeder/yaml-cpp/archive/refs/tags/0.8.0.tar.gz
+        sha256: fbe74bbdcee21d656715688706da3c8becfd946d92cd44705cc6098bb23b3a16
+
+  - name: stockfish
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 stockfish/stockfish-linux-x86-64-universal /app/lib/pragma-chess/engines/stockfish
+      - install -Dm644 stockfish/Copying.txt /app/lib/pragma-chess/engines/Copying.txt
+      - install -Dm644 stockfish/AUTHORS /app/lib/pragma-chess/engines/AUTHORS
+    only-arches:
+      - x86_64
+    sources:
+      - type: archive
+        # Pinned with packaging/stockfish.env; the "universal" archive carries a
+        # binary that picks the best code path for the processor.
+        url: https://github.com/official-stockfish/Stockfish/releases/download/sf_19/stockfish-linux-x86-64-universal.tar.gz
+        sha256: 9defc0d4e55d49c65a6d042f3e571a39fcea499ade6dbe741b53b8c65e03611f
+        strip-components: 0
+
+  - name: pragma-chess
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DPRAGMA_PHONE_LINK=OFF
+      - -DFETCHCONTENT_FULLY_DISCONNECTED=ON
+    sources:
+      - type: git
+        url: https://github.com/francescobianco/pragma-chess.git
+        tag: v0.2.0

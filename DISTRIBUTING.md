@@ -34,7 +34,7 @@ the downloads.
 | Web site | <https://yafb.net/pragma-chess/> — EN/IT, screenshots, download, supporters (generated from `site/`, see AGENTS.md) | ✅ live |
 | GitHub repository | Description, topics, homepage pointing at the site, releases with notes, README with the site and the claim | ✅ 2026-10-04 (homepage → site, README) |
 | GitHub social preview | The hero screenshot as the preview image (Settings ▸ Social preview; 1280×640, `site/assets/screenshots/hero.png` cropped) | ☐ needs the web UI |
-| GitHub Discussions | Turn on, with Q&A and Ideas categories, and link it from the site's Support section | ☐ |
+| GitHub Discussions | Turned on; add Q&A and Ideas categories and link it from the site's Support section | ✅ on 2026-10-04 · ☐ categories, site link |
 | Releases | Each `vX.Y.Z` tag publishes installers and the CHANGELOG section as notes (CI) | ✅ since 0.2.0 |
 | lichess.org blog | "Vi presento Pragma Chess…" (IT) — write the English counterpart and a post per notable release | ✅ IT · ☐ EN |
 | Screen recording | 45 s: open a game, press E on 14.Rd1, show the arrows; New Training; Play Online. For every post and the site | ☐ |
@@ -46,9 +46,9 @@ advert, and each needs a maintainer: us, until someone else steps in.
 
 | Channel | How | Status |
 |---|---|---|
-| **Flathub** (Linux) | Flatpak manifest (`io.github.francescobianco.PragmaChess`, Qt 6 KDE runtime), AppStream metainfo is already there (`gui/qt/data`). Submit to <https://github.com/flathub/flathub>. The most visited Linux "store": GNOME Software, KDE Discover, Flathub.org | ☐ |
-| **winget** (Windows) | Manifest for `microsoft/winget-pkgs` pointing at the `-setup.exe` of each release; `wingetcreate` makes it from the URL. Updates are a PR per release (can be automated in `release.yml`) | ☐ |
-| **Homebrew cask** (macOS) | `brew create --cask` on the `.dmg`; PR to `Homebrew/homebrew-cask`. Needs the app notarized (it is signed in CI) | ☐ |
+| **Flathub** (Linux) | Manifest written: `packaging/flatpak/` (KDE 6.9 runtime, yaml-cpp module, Stockfish binary, metainfo with screenshots and releases, validated with `appstreamcli`). To do: build it once with `flatpak-builder` on a machine that has it, then submit to <https://github.com/flathub/flathub> (`new-pr` branch). The most visited Linux "store": GNOME Software, KDE Discover, Flathub.org | ✅ manifest · ☐ build & submit |
+| **winget** (Windows) | `packaging/winget/make-winget.sh <version>` writes the manifests; 0.2.0 submitted as <https://github.com/microsoft/winget-pkgs/pull/446459>. Each release: run the script, PR "New version: FrancescoBianco.PragmaChess version X" (to automate in `release.yml`) | ✅ PR open 2026-10-04 |
+| **Homebrew cask** (macOS) | `Homebrew/homebrew-cask` accepts new casks only from projects with ~75 stars/forks/watchers: wait for that, then `brew create --cask` on the `.dmg` (the app is signed in CI; notarization needed) | ☐ when notable |
 | **AUR** (Arch) | `pragma-chess` PKGBUILD building from the tag, and `pragma-chess-bin` from the `.deb`; publish with an AUR account | ☐ |
 | **Chocolatey / Scoop** (Windows) | Scoop manifest in `extras`; Chocolatey package from the installer. Lower priority than winget | ☐ |
 | **Debian / Fedora repositories** | Later: an OBS (openSUSE Build Service) project gives `.deb`/`.rpm` repositories for many distributions from the same spec | ☐ |
@@ -58,7 +58,8 @@ advert, and each needs a maintainer: us, until someone else steps in.
 
 | Channel | How | Status |
 |---|---|---|
-| **awesome-chess** lists on GitHub | PR adding Pragma Chess under *Desktop GUIs* (and *Databases*) in <https://github.com/atamano/awesome-chess> (has those sections and lists Scid, ChessX, En Croissant); then <https://github.com/hkirat/awesome-chess> (★542, general), <https://github.com/mbiesiad/awesome-chess>, <https://github.com/mersesarvari/awesome-chess>. One line each, in the list's style, PR title "Add Pragma Chess" | ☐ |
+| **awesome-chess** lists on GitHub | <https://github.com/mbiesiad/awesome-chess>: PR [#59](https://github.com/mbiesiad/awesome-chess/pull/59) (Projects). <https://github.com/mersesarvari/awesome-chess>: issue [#2](https://github.com/mersesarvari/awesome-chess/issues/2) (its directory is a wiki). <https://github.com/atamano/awesome-chess> (Desktop GUIs, lists Scid/ChessX/En Croissant) requires ~50 stars and 3 months: submit then. <https://github.com/hkirat/awesome-chess> has no software section: skip | ✅ 2 of 4 · ☐ atamano at 50★ |
+| **awesome-italia-opensource** | PR [#222](https://github.com/italia-opensource/awesome-italia-opensource/pull/222) (`awesome/opensource/data/pragma-chess.json`) | ✅ PR open 2026-10-04 |
 | **AlternativeTo** | Add Pragma Chess as an alternative to ChessBase, Scid vs. PC, ChessX, En Croissant (<https://alternativeto.net/software/new/>) | ☐ |
 | **OpenSourceAlternative.to** | Submit as open source alternative to ChessBase | ☐ |
 | **Flathub / winget / Homebrew pages** | Come with section 2: they are the directories most people use | — |
@@ -116,8 +117,9 @@ to the place. Dates and links go here.
 
 ## 5. Calendar
 
-1. **Week 1 (now)**: site live ✅, repository metadata ✅, README ✅; social
-   preview; recording; English blog post; awesome-list PRs; AlternativeTo.
+1. **Week 1 (now)**: site live ✅, repository metadata ✅, README ✅,
+   awesome-list PRs ✅, winget PR ✅, Flatpak manifest ✅; social preview;
+   recording; English blog post; AlternativeTo; Flathub build and submission.
 2. **Week 2**: Flathub, winget, Homebrew submissions; Show HN; r/chess;
    lichess forum; TalkChess; Mastodon.
 3. **Week 3**: Italian blogs and groups; FSI note; Linux Day; Qt forum.
@@ -211,4 +213,9 @@ books and lichess.org play; Windows, macOS, Linux.`
 |---|---|---|---|
 | 2026-10-02 | lichess.org blog (IT) | https://lichess.org/@/francescobianco/blog/vi-presento-pragma-chess-il-primo-database-di-scacchi-gratuito/rrzlQRZR | first announcement |
 | 2026-10-04 | Web site | https://yafb.net/pragma-chess/ | EN/IT, GitHub Pages from `docs/` |
-| 2026-10-04 | GitHub repository | https://github.com/francescobianco/pragma-chess | homepage → site, topics, README claim |
+| 2026-10-04 | GitHub repository | https://github.com/francescobianco/pragma-chess | homepage → site, topics, README claim, Discussions on |
+| 2026-10-04 | mbiesiad/awesome-chess | https://github.com/mbiesiad/awesome-chess/pull/59 | PR, Projects |
+| 2026-10-04 | mersesarvari/awesome-chess | https://github.com/mersesarvari/awesome-chess/issues/2 | issue with the resource details |
+| 2026-10-04 | awesome-italia-opensource | https://github.com/italia-opensource/awesome-italia-opensource/pull/222 | PR |
+| 2026-10-04 | winget | https://github.com/microsoft/winget-pkgs/pull/446459 | New package 0.2.0 |
+| 2026-10-04 | Flathub | packaging/flatpak/ | manifest ready, not yet built or submitted |

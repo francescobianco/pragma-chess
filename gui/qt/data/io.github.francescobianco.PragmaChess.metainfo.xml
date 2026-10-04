@@ -3,8 +3,8 @@
 <component type="desktop-application">
   <id>io.github.francescobianco.PragmaChess</id>
   <name>Pragma Chess</name>
-  <summary>Browse, search and analyze chess game databases</summary>
-  <summary xml:lang="it">Sfoglia, cerca e analizza database di partite di scacchi</summary>
+  <summary>Chess database for studying, training and playing</summary>
+  <summary xml:lang="it">Database scacchistico per studiare, allenarsi e giocare</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
   <developer id="io.github.francescobianco">
@@ -12,31 +12,72 @@
   </developer>
   <description>
     <p>
-      Pragma Chess is an open source chess database with a native desktop client.
-      Keep your games in databases, replay them on the board, analyze them with
-      any UCI engine and let Explain draw why a move is good or bad.
+      An open source chess database for studying, training and playing: light,
+      simple, with what really matters. Keep your games in databases, replay them
+      on the board, analyze them with Stockfish or any UCI engine, and let Explain
+      show why a move is good or bad.
     </p>
     <p xml:lang="it">
-      Pragma Chess è un database di scacchi open source con un client desktop nativo.
-      Conserva le tue partite in database, rivedile sulla scacchiera, analizzale con
-      qualsiasi motore UCI e lascia che Spiega disegni perché una mossa è buona o cattiva.
+      Un database scacchistico open source per studiare, allenarsi e giocare:
+      leggero, semplice, con ciò che serve davvero. Conserva le partite in database,
+      rivedile sulla scacchiera, analizzale con Stockfish o qualunque motore UCI e
+      lascia che Spiega mostri perché una mossa è buona o cattiva.
     </p>
     <ul>
       <li>Game databases with filters by opening, tournament, year and source</li>
       <li xml:lang="it">Database di partite con filtri per apertura, torneo, anno e fonte</li>
-      <li>Games imported from lichess.org and chess.com</li>
-      <li xml:lang="it">Partite importate da lichess.org e chess.com</li>
-      <li>Engine analysis and training games against the engine</li>
-      <li xml:lang="it">Analisi con il motore e partite di allenamento contro il motore</li>
-      <li>Opening books and named openings</li>
-      <li xml:lang="it">Libri d'aperture e nomi delle aperture</li>
+      <li>Games imported from PGN, lichess.org, chess.com, torneionline.com and ChessBase files</li>
+      <li xml:lang="it">Partite importate da PGN, lichess.org, chess.com, torneionline.com e file ChessBase</li>
+      <li>Explain: arrows on the board for why the last move is good or bad</li>
+      <li xml:lang="it">Spiega: frecce sulla scacchiera sul perché l'ultima mossa è buona o cattiva</li>
+      <li>Variations and annotations, saved with the game and written to PGN</li>
+      <li xml:lang="it">Varianti e annotazioni, salvate con la partita e scritte nel PGN</li>
+      <li>Training against the engine, from a tunable opening book, with a tutor that stops you on mistakes</li>
+      <li xml:lang="it">Allenamento contro il motore, da un libro di aperture regolabile, con un tutor che ferma sugli errori</li>
+      <li>Online play on lichess.org from the same board</li>
+      <li xml:lang="it">Gioco online su lichess.org dalla stessa scacchiera</li>
+      <li>Polyglot opening books with your repertoire, and named openings in English and Italian</li>
+      <li xml:lang="it">Libri di aperture Polyglot con il tuo repertorio e nomi delle aperture in italiano e inglese</li>
       <li>Databases kept in sync across computers through FTP, WebDAV or Git</li>
       <li xml:lang="it">Database sincronizzati tra più computer tramite FTP, WebDAV o Git</li>
     </ul>
   </description>
   <launchable type="desktop-id">io.github.francescobianco.PragmaChess.desktop</launchable>
-  <url type="homepage">https://github.com/francescobianco/pragma-chess</url>
+  <url type="homepage">https://yafb.net/pragma-chess/</url>
   <url type="bugtracker">https://github.com/francescobianco/pragma-chess/issues</url>
+  <url type="help">https://yafb.net/pragma-chess/</url>
+  <url type="vcs-browser">https://github.com/francescobianco/pragma-chess</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Explain: why 14.Rd1 wins the Opera game</caption>
+      <caption xml:lang="it">Spiega: perché 14.Td1 vince la partita dell'Opera</caption>
+      <image>https://yafb.net/pragma-chess/assets/screenshots/explain.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>A game of the database on the board, with the moves and the games list</caption>
+      <caption xml:lang="it">Una partita del database sulla scacchiera, con le mosse e la lista delle partite</caption>
+      <image>https://yafb.net/pragma-chess/assets/screenshots/main.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>The Opening Tree: book moves with their weights</caption>
+      <caption xml:lang="it">L'Albero delle aperture: le mosse del libro con i pesi</caption>
+      <image>https://yafb.net/pragma-chess/assets/screenshots/tree.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Play Online: connect a platform and find an opponent</caption>
+      <caption xml:lang="it">Gioca online: connetti una piattaforma e cerca un avversario</caption>
+      <image>https://yafb.net/pragma-chess/assets/screenshots/online.png</image>
+    </screenshot>
+  </screenshots>
+  <branding>
+    <color type="primary" scheme_preference="light">#f1ebe1</color>
+    <color type="primary" scheme_preference="dark">#5e3a24</color>
+  </branding>
+  <releases>
+    <release version="0.2.0" date="2026-10-02">
+      <url>https://github.com/francescobianco/pragma-chess/releases/tag/v0.2.0</url>
+    </release>
+  </releases>
   <categories>
     <category>Game</category>
     <category>BoardGame</category>

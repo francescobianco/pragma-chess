@@ -10,6 +10,8 @@ scripts; they work the same on a machine of the right kind.
 | macOS disk image (Apple Silicon) | `macos/build.sh` | macOS, Qt 6, `brew install create-dmg` | `PragmaChess-<v>-macos-arm64.dmg` |
 | Debian / Ubuntu | `linux/build-packages.sh deb` | Ubuntu 24.04 (`make deps`) | `pragma-chess_<v>_amd64.deb` |
 | Fedora | `linux/build-packages.sh rpm` | Fedora, `qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel openssl-devel rpm-build` | `pragma-chess-<v>-1.<dist>.x86_64.rpm` |
+| Flathub | `flatpak/` (manifest, see its README) | `flatpak-builder`, KDE 6.9 runtime | Flathub app `io.github.francescobianco.PragmaChess` |
+| winget | `winget/make-winget.sh <v>` (manifests, see its README) | `curl`, `gh` | PR to microsoft/winget-pkgs |
 
 Each script takes the version as its argument (default: `PRAGMA_VERSION` in
 the top-level `CMakeLists.txt`), builds in Release, runs the tests

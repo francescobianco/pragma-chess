@@ -1406,10 +1406,6 @@ Il Nero ha catturato: %2</translation>
         <translation>&amp;Database</translation>
     </message>
     <message>
-        <source>&amp;Databases</source>
-        <translation>&amp;I miei database</translation>
-    </message>
-    <message>
         <source>&amp;Tools</source>
         <translation>&amp;Strumenti</translation>
     </message>
@@ -2255,6 +2251,10 @@ non è su questo computer.</translation>
     <message>
         <source>Set up the server first.</source>
         <translation>Configura prima il server.</translation>
+    </message>
+    <message>
+        <source>S&amp;witch Database</source>
+        <translation>Cam&amp;bia database</translation>
     </message>
 </context>
 <context>

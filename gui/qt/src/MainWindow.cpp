@@ -861,7 +861,7 @@ void MainWindow::createMenus()
     QMenu *database = menuBar()->addMenu(tr("&Database"));
     database->addAction(m_newDatabaseAction);
     database->addAction(m_openDatabaseAction);
-    m_databasesMenu = database->addMenu(themeIcon("folder", QStyle::SP_DirIcon), tr("&Databases"));
+    m_databasesMenu = database->addMenu(themeIcon("folder", QStyle::SP_DirIcon), tr("S&witch Database"));
     connect(m_databasesMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildDatabasesMenu);
     database->addSeparator();
     database->addAction(m_connectSourceAction);

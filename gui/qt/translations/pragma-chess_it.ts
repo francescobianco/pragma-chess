@@ -2253,6 +2253,18 @@ non è su questo computer.</translation>
         <source>S&amp;witch Book</source>
         <translation>Cam&amp;bia libro</translation>
     </message>
+    <message>
+        <source>&amp;Analysis</source>
+        <translation>&amp;Analisi</translation>
+    </message>
+    <message>
+        <source>&amp;Online Play Mode</source>
+        <translation>Modalità gioco o&amp;nline</translation>
+    </message>
+    <message>
+        <source>Play against a person on a platform: the engine and Explain stay off</source>
+        <translation>Gioca contro una persona su una piattaforma: motore e Spiega restano spenti</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>

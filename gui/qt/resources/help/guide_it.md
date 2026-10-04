@@ -107,7 +107,7 @@ Mentre il motore cerca, il bordo della scacchiera pulsa; diventa blu quando la s
 
 # Motori {#engine}
 
-**Motore ▸ Analizza** (Ctrl+E) avvia e ferma l'analisi della posizione sulla scacchiera. Il pannello Motore mostra il punteggio — sempre dal lato del Bianco: positivo è buono per il Bianco —, la profondità e la linea migliore. La barra accanto alla scacchiera mostra lo stesso punteggio.
+**Motore ▸ Analisi** (Ctrl+E) accende e spegne l'analisi della posizione sulla scacchiera. Il pannello Motore mostra il punteggio — sempre dal lato del Bianco: positivo è buono per il Bianco —, la profondità e la linea migliore. La barra accanto alla scacchiera mostra lo stesso punteggio.
 
 Pragma Chess arriva con Stockfish, e funziona con qualunque motore UCI.
 
@@ -142,7 +142,7 @@ Spunta **Ricorda per questa sessione** nella finestra Nuovo allenamento e il bot
 
 La finestra elenca le **piattaforme a cui sei connesso**, ciascuna con l'account con cui giochi. **Connetti piattaforma…** chiede di che tipo è, apre nel browser la sua pagina di accesso e porta qui la connessione; **Disconnetti** ne toglie una. Le connessioni sono tue su questo computer, conservate con le tue impostazioni, mai in un progetto. Scegli la connessione, l'**orologio** (minuti e incremento), il colore e se la partita è **classificata**, poi **Cerca un avversario**.
 
-Mentre Pragma Chess cerca un avversario e mentre giochi, è in **modalità gioco online**: il motore, Spiega, la Modalità allenamento e l'Albero delle aperture sono spenti e non si possono accendere — sei tu contro il tuo avversario. Il pannello Motore mostra i nomi, i punteggi, gli orologi e a chi tocca. Le tue mosse vanno alla piattaforma appena le fai; quelle dell'avversario scivolano sulla scacchiera. Si gioca solo la posizione in corso: puoi riguardare le mosse precedenti, e tornare alla fine per muovere.
+Mentre Pragma Chess cerca un avversario e mentre giochi, è in **modalità gioco online**, spuntata in **Motore ▸ Modalità gioco online** (sceglierla avvia o interrompe il gioco online): il motore, Spiega, la Modalità allenamento e l'Albero delle aperture sono spenti e non si possono accendere — sei tu contro il tuo avversario. Il pannello Motore mostra i nomi, i punteggi, gli orologi e a chi tocca. Le tue mosse vanno alla piattaforma appena le fai; quelle dell'avversario scivolano sulla scacchiera. Si gioca solo la posizione in corso: puoi riguardare le mosse precedenti, e tornare alla fine per muovere.
 
 Spunta **Ricorda per questa sessione** e il bottone Gioca online della barra degli strumenti cerca un avversario con le stesse scelte senza chiedere; il menu chiede sempre.
 

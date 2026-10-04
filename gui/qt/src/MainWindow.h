@@ -489,6 +489,8 @@ private:
     QAction *m_saveGameAction;
     QAction *m_explainAction;
     QAction *m_startEngineAction;
+    QAction *m_analysisAction;   // Engine ▸ Analysis: the same switch, one name, a check mark.
+    QAction *m_onlineModeAction; // Engine ▸ Online Play Mode: checked while playing online.
     QAction *m_aboutAction;
     QAction *m_guideAction;
     HelpDialog *m_guideDialog = nullptr;

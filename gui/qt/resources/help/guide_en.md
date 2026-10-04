@@ -107,7 +107,7 @@ While the engine is searching, the border of the board breathes; it turns blue w
 
 # Engines {#engine}
 
-**Engine ▸ Analyze** (Ctrl+E) starts and stops the analysis of the position on the board. The Engine panel shows the score — always from White's side: positive is good for White —, the depth and the best line. The bar beside the board shows the same score.
+**Engine ▸ Analysis** (Ctrl+E) turns on and off the analysis of the position on the board. The Engine panel shows the score — always from White's side: positive is good for White —, the depth and the best line. The bar beside the board shows the same score.
 
 Pragma Chess comes with Stockfish, and works with any UCI engine.
 
@@ -142,7 +142,7 @@ Tick **Remember for this session** in the New Training window and the toolbar bu
 
 The window lists the **platforms you are connected to**, each with the account you play as. **Connect Platform…** asks which kind of platform, opens its own sign-in page in your browser and brings the connection here; **Disconnect** removes one. Connections are yours on this computer, kept with your settings, never in a project. Choose the connection, the **clock** (minutes and increment), the colour and whether the game is **rated**, then **Find an Opponent**.
 
-While Pragma Chess looks for an opponent and while you play, it is **online play mode**: the engine, Explain, Training Mode and the Opening Tree are off and cannot be turned on — it is you against your opponent. The Engine panel shows the names, the ratings, the clocks and whose move it is. Your moves go to the platform as you make them; your opponent's slide onto the board. Only the live position can be played: you may look back at earlier moves, and come back to the end to move.
+While Pragma Chess looks for an opponent and while you play, it is **online play mode**, checked in **Engine ▸ Online Play Mode** (choosing it starts or stops playing online): the engine, Explain, Training Mode and the Opening Tree are off and cannot be turned on — it is you against your opponent. The Engine panel shows the names, the ratings, the clocks and whose move it is. Your moves go to the platform as you make them; your opponent's slide onto the board. Only the live position can be played: you may look back at earlier moves, and come back to the end to move.
 
 Tick **Remember for this session** and the toolbar's Play Online button looks for an opponent with the same choices without asking; the menu always asks.
 

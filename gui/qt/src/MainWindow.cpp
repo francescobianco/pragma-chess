@@ -742,10 +742,30 @@ void MainWindow::createActions()
 
     m_startEngineAction = new QAction(themeIcon("media-playback-start", QStyle::SP_MediaPlay),
                                       tr("&Analyze"), this);
-    m_startEngineAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_E));
     m_startEngineAction->setCheckable(true);
     m_startEngineAction->setToolTip(tr("Analyze the position with the engine"));
     connect(m_startEngineAction, &QAction::toggled, this, &MainWindow::setAnalysisEnabled);
+    // The menu's entry keeps one name and a check mark; the Engine panel's
+    // button (m_startEngineAction) says Analyze or Stop Analysis.
+    m_analysisAction = new QAction(tr("&Analysis"), this);
+    m_analysisAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_E));
+    m_analysisAction->setCheckable(true);
+    m_analysisAction->setToolTip(m_startEngineAction->toolTip());
+    connect(m_analysisAction, &QAction::toggled, m_startEngineAction, &QAction::setChecked);
+    connect(m_startEngineAction, &QAction::toggled, m_analysisAction, &QAction::setChecked);
+    connect(m_startEngineAction, &QAction::enabledChanged, m_analysisAction, &QAction::setEnabled);
+
+    // Checked while looking for an opponent or playing: chosen, it starts or stops playing online.
+    m_onlineModeAction = new QAction(tr("&Online Play Mode"), this);
+    m_onlineModeAction->setCheckable(true);
+    m_onlineModeAction->setToolTip(tr("Play against a person on a platform: the engine and Explain stay off"));
+    connect(m_onlineModeAction, &QAction::triggered, this, [this] {
+        m_onlineModeAction->setChecked(m_onlinePlay); // The mode follows the play, not the click.
+        if (m_onlinePlay)
+            stopOnline();
+        else
+            playOnline(true);
+    });
 
     m_aboutAction = new QAction(themeIcon("help-about", QStyle::SP_MessageBoxInformation),
                                 tr("&About Pragma Chess"), this);
@@ -852,15 +872,15 @@ void MainWindow::createMenus()
     rebuildBookMenu();
 
     QMenu *engine = menuBar()->addMenu(tr("E&ngine"));
-    engine->addAction(m_startEngineAction);
+    engine->addAction(m_analysisAction);
     engine->addAction(m_explainAction);
+    engine->addAction(m_trainingModeAction);
+    engine->addAction(m_onlineModeAction);
     engine->addSeparator();
     m_engineChoiceMenu = engine->addMenu(tr("S&witch Engine"));
     connect(m_engineChoiceMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildEngineChoiceMenu);
     rebuildEngineChoiceMenu();
     engine->addAction(tr("&Manage Engines…"), this, &MainWindow::manageEngines);
-    engine->addSeparator();
-    engine->addAction(m_trainingModeAction);
 
     QMenu *database = menuBar()->addMenu(tr("&Database"));
     database->addAction(m_newDatabaseAction);
@@ -2871,6 +2891,7 @@ void MainWindow::setOnlinePlay(bool on)
     if (m_onlinePlay == on)
         return;
     m_onlinePlay = on;
+    m_onlineModeAction->setChecked(on);
     // Against cheating: nothing that thinks for the user runs while they play.
     if (on) {
         m_trainingModeAction->setChecked(false);

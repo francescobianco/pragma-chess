@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,6 +50,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.font.FontWeight
 import org.pragmachess.mobile.R
 import org.pragmachess.mobile.chess.GameLine
 import org.pragmachess.mobile.chess.Position
@@ -132,17 +137,23 @@ fun BoardScreen(vm: AppViewModel, snackbar: SnackbarHostState, onMenu: () -> Uni
     ) { padding ->
         val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
         val board: @Composable (Modifier) -> Unit = { modifier ->
-            Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (vm.engineOn && vm.engineReady) {
-                    EvaluationBar(vm.analysis, vm.flipped, Modifier.width(18.dp).fillMaxHeight())
+            val withBar = vm.engineOn && vm.engineReady
+            // The board is square: the bar and the turn column take what is left at its sides.
+            BoxWithConstraints(modifier, contentAlignment = Alignment.TopCenter) {
+                val extras = TURN_WIDTH + BOARD_GAP * 2 + if (withBar) BAR_WIDTH else 0.dp
+                val side = minOf(maxWidth - extras, maxHeight)
+                Row(Modifier.height(side), horizontalArrangement = Arrangement.spacedBy(BOARD_GAP)) {
+                    if (withBar) EvaluationBar(vm.analysis, vm.flipped, Modifier.width(BAR_WIDTH).fillMaxHeight())
+                    else Spacer(Modifier.width(0.dp))
+                    ChessBoard(
+                        position = position,
+                        lastMove = line.moves.getOrNull(ply - 1)?.move,
+                        flipped = vm.flipped,
+                        onMove = vm::play,
+                        modifier = Modifier.size(side),
+                    )
+                    TurnColumn(position.sideToMove, vm.flipped, Modifier.width(TURN_WIDTH).fillMaxHeight())
                 }
-                ChessBoard(
-                    position = position,
-                    lastMove = line.moves.getOrNull(ply - 1)?.move,
-                    flipped = vm.flipped,
-                    onMove = vm::play,
-                    modifier = Modifier.weight(1f),
-                )
             }
         }
         val panel: @Composable (Modifier) -> Unit = { modifier ->
@@ -155,12 +166,12 @@ fun BoardScreen(vm: AppViewModel, snackbar: SnackbarHostState, onMenu: () -> Uni
         }
         if (landscape) {
             Row(Modifier.padding(padding).fillMaxSize().padding(8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                board(Modifier.fillMaxHeight().aspectRatioBoard(vm.engineOn && vm.engineReady))
+                board(Modifier.fillMaxHeight())
                 panel(Modifier.weight(1f).fillMaxHeight())
             }
         } else {
             Column(Modifier.padding(padding).fillMaxSize()) {
-                board(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).aspectRatioBoard(vm.engineOn && vm.engineReady))
+                board(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp))
                 panel(Modifier.weight(1f).fillMaxWidth())
             }
         }
@@ -171,27 +182,40 @@ fun BoardScreen(vm: AppViewModel, snackbar: SnackbarHostState, onMenu: () -> Uni
     }
 }
 
-/** The board is square; with the evaluation bar beside it the row is a little wider. */
-private fun Modifier.aspectRatioBoard(withBar: Boolean): Modifier = aspectRatio(if (withBar) 1.07f else 1f)
+private val BAR_WIDTH = 4.dp
+private val TURN_WIDTH = 10.dp
+private val BOARD_GAP = 6.dp
 
-/** The engine's score, depth and best line in figurines, under the board. */
+/**
+ * The engine's score, depth and best line in figurines, under the board. The
+ * score stands out in a badge: the evaluation bar has no text.
+ */
 @Composable
 private fun EngineLine(analysis: Analysis?, position: Position) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
-        val thinking = stringResource(R.string.engine_thinking)
-        // Replaying the line to write it is work: once per update, not per recomposition.
-        val text = remember(analysis, position) {
-            if (analysis == null) thinking
-            else "${analysis.text}  d${analysis.depth}  ${pvText(position, analysis.pv, 10)}"
+        Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (analysis == null) {
+                Text(stringResource(R.string.engine_thinking), fontSize = 15.sp)
+                return@Row
+            }
+            val ahead = if (analysis.whiteAhead) EvaluationColors.white else EvaluationColors.black
+            val ink = if (analysis.whiteAhead) EvaluationColors.black else EvaluationColors.white
+            Surface(color = ahead, contentColor = ink, shape = RoundedCornerShape(6.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+                Text(analysis.text, fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
+            }
+            // Replaying the line to write it is work: once per update, not per recomposition.
+            val line = remember(analysis, position) { "d${analysis.depth}  ${pvText(position, analysis.pv, 10)}" }
+            Text(
+                line,
+                fontFamily = FigurineFamily,
+                fontSize = 15.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(start = 10.dp),
+            )
         }
-        Text(
-            text,
-            fontFamily = FigurineFamily,
-            fontSize = 15.sp,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-        )
     }
 }
 

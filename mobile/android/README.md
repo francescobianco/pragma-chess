@@ -59,6 +59,11 @@ Kotlin 2.2, Jetpack Compose with Material 3, AGP 8.13. Packages under
 | `engine` | `OexEngines` (engines installed as apps), `UciEngine` (a UCI process), `Analysis` (scores from White's point of view) |
 | `ui` | `AppViewModel`, side menu (`PragmaApp`), `BoardScreen` with `Board`, `EvaluationBar`, `MoveList` (SkakNew figurines), games list, computers, settings, licenses |
 
+A database deleted on the phone is remembered by lineage (`AppStore`,
+table `deleted`): it is never downloaded again, and each computer that lists
+it is told once with `deleted` (docs/phone-link.md), so that computer asks its
+user whether to delete it on every synced device or keep it.
+
 All databases live in one folder of the app's private files,
 `databases/local/`: the phone and every paired computer form one corpus
 (docs/phone-link.md, "One corpus"), and the phone carries what it learnt from

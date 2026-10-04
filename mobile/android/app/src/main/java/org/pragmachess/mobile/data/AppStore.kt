@@ -19,11 +19,11 @@ data class Computer(
  * The app's own state: paired computers, and where each database came from
  * (by lineage: the device that made it or the phone learnt it from).
  */
-class AppStore(context: Context) : SQLiteOpenHelper(context, "pragma-mobile.db", null, 4) {
+class AppStore(context: Context) : SQLiteOpenHelper(context, "pragma-mobile.db", null, 5) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE computers (pubkey TEXT PRIMARY KEY, name TEXT NOT NULL, relays TEXT NOT NULL," +
             " pair_secret TEXT, last_sync INTEGER NOT NULL DEFAULT 0)")
-        onUpgrade(db, 1, 4)
+        onUpgrade(db, 1, 5)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -43,6 +43,13 @@ class AppStore(context: Context) : SQLiteOpenHelper(context, "pragma-mobile.db",
         if (oldVersion < 4) {
             db.execSQL("CREATE TABLE IF NOT EXISTS aliases (lineage TEXT PRIMARY KEY, merged_into TEXT NOT NULL)")
         }
+        if (oldVersion < 5) {
+            // Databases the user deleted here: never downloaded again, and each
+            // computer that has one is told once (notified), so it can ask its user.
+            db.execSQL("CREATE TABLE IF NOT EXISTS deleted (lineage TEXT PRIMARY KEY, name TEXT NOT NULL, deleted_at TEXT NOT NULL)")
+            db.execSQL("CREATE TABLE IF NOT EXISTS deletion_notices (computer TEXT NOT NULL, lineage TEXT NOT NULL," +
+                " PRIMARY KEY (computer, lineage))")
+        }
     }
 
     /** Lineages merged into another one of the corpus (see Corpus.dedupe). */
@@ -54,6 +61,27 @@ class AppStore(context: Context) : SQLiteOpenHelper(context, "pragma-mobile.db",
         writableDatabase.execSQL("INSERT OR REPLACE INTO aliases (lineage, merged_into) VALUES (?, ?)", arrayOf(lineage, into))
         // Anything that was merged into the removed lineage follows it.
         writableDatabase.execSQL("UPDATE aliases SET merged_into = ? WHERE merged_into = ?", arrayOf(into, lineage))
+    }
+
+    /** A database the user deleted on the phone: its file name and when (ISO 8601 UTC). */
+    data class Deleted(val name: String, val deletedAt: String)
+
+    /** The databases deleted here, by lineage. */
+    fun deleted(): Map<String, Deleted> = readableDatabase.rawQuery("SELECT lineage, name, deleted_at FROM deleted", null).use { c ->
+        buildMap { while (c.moveToNext()) put(c.getString(0), Deleted(c.getString(1), c.getString(2))) }
+    }
+
+    fun markDeleted(lineage: String, name: String, deletedAt: String) {
+        writableDatabase.execSQL("INSERT OR REPLACE INTO deleted (lineage, name, deleted_at) VALUES (?, ?, ?)", arrayOf(lineage, name, deletedAt))
+    }
+
+    /** The lineages (as the computer lists them) [computer] was told were deleted here. */
+    fun notified(computer: String): Set<String> = readableDatabase.rawQuery(
+        "SELECT lineage FROM deletion_notices WHERE computer = ?", arrayOf(computer)
+    ).use { c -> buildSet { while (c.moveToNext()) add(c.getString(0)) } }
+
+    fun setNotified(computer: String, lineage: String) {
+        writableDatabase.execSQL("INSERT OR IGNORE INTO deletion_notices (computer, lineage) VALUES (?, ?)", arrayOf(computer, lineage))
     }
 
     /** Remote and local hashes of each lineage at the last reconciliation with [computer]. */
@@ -115,5 +143,6 @@ class AppStore(context: Context) : SQLiteOpenHelper(context, "pragma-mobile.db",
     fun removeComputer(pubkey: String) {
         writableDatabase.delete("computers", "pubkey = ?", arrayOf(pubkey))
         writableDatabase.delete("reconciled", "computer = ?", arrayOf(pubkey))
+        writableDatabase.delete("deletion_notices", "computer = ?", arrayOf(pubkey))
     }
 }

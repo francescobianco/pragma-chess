@@ -260,7 +260,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteDatabase(ref: DatabaseRef) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { library.delete(ref) }
+            withContext(Dispatchers.IO) {
+                // Remembered by lineage, so the computers that have it are told and it is not downloaded again.
+                val lineage = runCatching { PdbDatabase.open(library.file(ref)).use { it.lineage() } }.getOrNull()
+                if (lineage != null) store.markDeleted(lineage, ref.name, java.time.Instant.now().toString())
+                library.delete(ref)
+            }
             if (gameDatabase == ref) gameDatabase = null
             withContext(Dispatchers.IO) { ensureDefault() }
             refresh()

@@ -47,8 +47,9 @@ fun MoveList(line: GameLine, ply: Int, onPly: (Int) -> Unit, modifier: Modifier 
             Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                 Text("", Modifier.width(44.dp))
                 for (title in listOf(R.string.white, R.string.black)) {
-                    Text(stringResource(title), Modifier.weight(1f), style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Start)
+                    // Centred over the cells of the column, which have the same width.
+                    Text(stringResource(title), Modifier.weight(1f).padding(horizontal = 2.dp), style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
                 }
             }
             HorizontalDivider()

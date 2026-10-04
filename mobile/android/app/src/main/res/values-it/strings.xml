@@ -16,6 +16,8 @@
     <string name="promote_to">Promuovi a</string>
     <string name="white">Bianco</string>
     <string name="black">Nero</string>
+    <string name="white_to_move">Muove il Bianco</string>
+    <string name="black_to_move">Muove il Nero</string>
 
     <string name="engine">Motore</string>
     <string name="engine_thinking">Il motore sta pensando…</string>
@@ -31,7 +33,7 @@
     <string name="create">Crea</string>
     <string name="delete">Elimina</string>
     <string name="delete_database">Elimina database</string>
-    <string name="delete_database_text">Eliminare «%1$s» e le sue partite da questo telefono? Le partite già inviate a un computer restano lì.</string>
+    <string name="delete_database_text">Eliminare «%1$s» e le sue partite da questo telefono? Al prossimo sync ogni computer che lo ha chiederà se eliminarlo anche lì o mantenerlo; su questo telefono non tornerà.</string>
     <string name="search_games">Cerca giocatori o evento</string>
     <string name="no_games">Ancora nessuna partita.</string>
     <string name="no_games_found">Nessuna partita corrisponde.</string>

@@ -18,6 +18,8 @@
     <string name="promote_to">Promote to</string>
     <string name="white">White</string>
     <string name="black">Black</string>
+    <string name="white_to_move">White to move</string>
+    <string name="black_to_move">Black to move</string>
 
     <!-- Engine -->
     <string name="engine">Engine</string>
@@ -35,7 +37,7 @@
     <string name="create">Create</string>
     <string name="delete">Delete</string>
     <string name="delete_database">Delete database</string>
-    <string name="delete_database_text">Delete “%1$s” and its games from this phone? Games already sent to a computer stay there.</string>
+    <string name="delete_database_text">Delete “%1$s” and its games from this phone? At the next sync each computer that has it will ask whether to delete it there too or keep it; it will not come back to this phone.</string>
     <string name="search_games">Search players or event</string>
     <string name="no_games">No games yet.</string>
     <string name="no_games_found">No games match.</string>

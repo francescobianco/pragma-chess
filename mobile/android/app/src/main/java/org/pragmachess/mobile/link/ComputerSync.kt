@@ -90,6 +90,7 @@ class ComputerSync(
                 val tally = Tally()
                 val listed = list(peer, progress)
                 adoptLineages(listed, name)
+                notifyDeleted(peer, computer.pubkey, listed)
                 val toSend = pull(peer, computer.pubkey, listed, null, name, tally, progress)
                 val changed = push(peer, toSend, tally, progress)
                 val relisted = if (changed.isNotEmpty()) list(peer, progress) else listed
@@ -174,6 +175,29 @@ class ComputerSync(
         }
     }
 
+    /** Whether [lineage] of a computer's list is a database the user deleted on the phone. */
+    private fun isDeleted(lineage: String, deleted: Set<String>): Boolean = lineage in deleted || corpus.resolve(lineage) in deleted
+
+    /**
+     * Tells the computer, once, which of its databases the user deleted on the
+     * phone (docs/phone-link.md, "A database deleted on the phone"): the
+     * computer asks its own user whether to delete it everywhere or keep it.
+     * A computer that does not know the message answers with an error, and is
+     * told again at the next sync.
+     */
+    private suspend fun notifyDeleted(peer: PeerLink, pubkey: String, remote: List<Remote>) {
+        val deleted = store.deleted()
+        if (deleted.isEmpty()) return
+        val notified = store.notified(pubkey)
+        for (r in remote) {
+            if (r.lineage in notified || !isDeleted(r.lineage, deleted.keys)) continue
+            val what = deleted[r.lineage] ?: deleted.getValue(corpus.resolve(r.lineage))
+            send(peer, JSONObject().put("op", "deleted").put("db", r.lineage).put("name", what.name).put("when", what.deletedAt))
+            val reply = nextText(peer)
+            if (reply.optString("op") == "deleted") store.setNotified(pubkey, r.lineage)
+        }
+    }
+
     /**
      * Gets the computer's databases that differ from the phone's copy (all of
      * them, or those of [only]) and merges them in by lineage. Returns, by
@@ -191,8 +215,11 @@ class ComputerSync(
         val toSend = LinkedHashMap<String, List<GameRecord>>()
         val mine = corpus.byLineage()
         val last = store.reconciled(pubkey)
+        val deleted = store.deleted().keys
         for (r in remote) {
             if (only != null && r.lineage !in only) continue
+            // Deleted on the phone: whatever the computer decides, it does not come back here.
+            if (isDeleted(r.lineage, deleted)) continue
             // A lineage merged into another here (Corpus.dedupe) is merged into that one.
             val key = corpus.resolve(r.lineage)
             val aliased = key != r.lineage

@@ -79,14 +79,15 @@ bool GtkDesktopStyle::eventFilter(QObject *watched, QEvent *event)
             // menu) the shadow would reach past the screen's usable area, and
             // the compositor would push the whole menu right, out of line with
             // its title: there the left shadow is cut short instead, the menu's
-            // contents moving with it.
+            // contents moving with it. The menu keeps its width: QMenu laid its
+            // items out for it, and a narrower window would leave them
+            // reaching past the panel, with the submenus opening as far right.
             const QWidget *parent = menu->parentWidget();
             const QWidget *window = parent ? parent->window() : nullptr;
             const int cut = window ? qBound(0, window->mapToGlobal(QPoint(0, 0)).x() - corner.x(), kMenuShadow) : 0;
             if (cut > 0) {
                 menu->setProperty(kShadowCutProperty, cut);
                 menu->setContentsMargins(-cut, 0, 0, 0);
-                menu->resize(menu->width() - cut, menu->height());
                 corner.rx() += cut;
             }
             menu->move(corner);
@@ -205,8 +206,11 @@ void GtkDesktopStyle::drawPrimitive(PrimitiveElement element, const QStyleOption
         if (!m_menuShadows || !qobject_cast<const QMenu *>(widget))
             break;
         // The menu itself, inside the margin: rounded, with Fusion's colours.
-        const int left = kMenuShadow - widget->property(kShadowCutProperty).toInt();
-        const QRectF panel = QRectF(option->rect).adjusted(left, kMenuShadow, -kMenuShadow, -kMenuShadow);
+        // A menu whose left shadow is cut has everything moved left by the
+        // cut, the right edge of the panel too: it stays with the items.
+        const int cut = widget->property(kShadowCutProperty).toInt();
+        const QRectF panel =
+            QRectF(option->rect).adjusted(kMenuShadow - cut, kMenuShadow, -kMenuShadow - cut, -kMenuShadow);
         painter->save();
         painter->setRenderHint(QPainter::Antialiasing);
         // The shadow: darker near the menu, fading out across the margin and

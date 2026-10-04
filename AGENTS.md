@@ -199,7 +199,10 @@ to open, and `PM_SubMenuOverlap` does the same for submenus. Against the
 left edge of a maximized window (the File menu) the left shadow is cut
 short (`pragmaMenuShadowCut`, a negative left contents margin): the shadow
 would reach past the usable area, and the compositor would push the menu
-right, out of line with its title. On X11 the
+right, out of line with its title. The menu keeps its width (QMenu laid
+its items out for it: a narrower window left the highlight reaching past
+the panel and the submenus opening that much to the right) and the panel
+moves by the cut on both sides, so it stays with the items. On X11 the
 window manager shadows menus, and nothing changes. A widget put in a menu
 (`GlyphMenuAction`) needs nothing: it lives inside the frame.
 
@@ -253,7 +256,10 @@ project — which opens Save Project As — killed the application.
 were half transparent and let the desktop show through.
 
 To see what the client really does, run it in a headless GNOME Shell of its
-own, invisible to the user: `dbus-run-session` → `gnome-shell --headless
+own, invisible to the user (a scratch `HOME` and a short `XDG_RUNTIME_DIR`
+of its own — a long path is too long for the Wayland socket —, with
+`pipewire` and `wireplumber` started inside for the screenshots):
+`dbus-run-session` → `gnome-shell --headless
 --wayland-display <name> --virtual-monitor 1280x800`, the application with
 `WAYLAND_DISPLAY=<name>` (and `WAYLAND_DEBUG=1` for the protocol), and
 pointer and keys through `org.gnome.Mutter.RemoteDesktop` (CreateSession,

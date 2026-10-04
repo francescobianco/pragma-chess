@@ -1411,8 +1411,8 @@ Il Nero ha catturato: %2</translation>
         <translation>Impostazioni &amp;scacchiera…</translation>
     </message>
     <message>
-        <source>&amp;Language</source>
-        <translation>&amp;Lingua</translation>
+        <source>Switch &amp;Language</source>
+        <translation>Cambia &amp;lingua</translation>
     </message>
     <message>
         <source>Language</source>

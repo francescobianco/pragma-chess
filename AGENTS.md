@@ -303,7 +303,7 @@ cargo run -p chessdb-cli -- <args>
 - Includes: own header / project headers first, then Qt, then std.
 - Brief `///` doc comments on public API explaining *why/what*, not restating code.
 - User-visible strings go through `tr()`. Code, comments and identifiers in English.
-  The interface language is chosen in Options ▸ Language (`UiLanguage`, a
+  The interface language is chosen in Options ▸ Switch Language (`UiLanguage`, a
   per-user setting applied at startup); translations are
   `translations/pragma-chess_<code>.ts`, compiled when Qt6 LinguistTools is found.
   After changing texts, refresh them from `gui/qt` with

@@ -226,7 +226,7 @@ When you delete a database on the phone, the computer asks you at its next sync 
 
 # Language {#language}
 
-**Options ▸ Language** chooses the language of the interface. It is applied the next time Pragma Chess starts. This guide and the opening names follow it.
+**Options ▸ Switch Language** chooses the language of the interface. It is applied the next time Pragma Chess starts. This guide and the opening names follow it.
 
 # Keyboard shortcuts {#shortcuts}
 

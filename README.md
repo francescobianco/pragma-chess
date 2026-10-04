@@ -135,7 +135,7 @@ collection; `pragma-book` builds and probes books on the command line.
 
 ### Language
 
-*Options ▸ Language* chooses the language of the interface for your user
+*Options ▸ Switch Language* chooses the language of the interface for your user
 account; it applies the next time Pragma Chess starts.
 
 ### Sync between computers

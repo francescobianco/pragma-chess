@@ -226,7 +226,7 @@ Quando elimini un database sul telefono, il computer ti chiede alla sincronizzaz
 
 # Lingua {#language}
 
-**Opzioni ▸ Lingua** sceglie la lingua dell'interfaccia. Viene applicata al prossimo avvio di Pragma Chess. Questa guida e i nomi delle aperture la seguono.
+**Opzioni ▸ Cambia lingua** sceglie la lingua dell'interfaccia. Viene applicata al prossimo avvio di Pragma Chess. Questa guida e i nomi delle aperture la seguono.
 
 # Scorciatoie da tastiera {#shortcuts}
 

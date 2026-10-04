@@ -885,7 +885,7 @@ void MainWindow::createMenus()
     m_openingNamesMenu->setToolTip(tr("The database whose games name the openings and variations"));
     connect(m_openingNamesMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildOpeningNamesMenu);
     rebuildOpeningNamesMenu();
-    QMenu *language = options->addMenu(tr("&Language"));
+    QMenu *language = options->addMenu(tr("Switch &Language"));
     auto *languages = new QActionGroup(language);
     for (const UiLanguage::Language &entry : UiLanguage::available()) {
         QAction *action = language->addAction(entry.name);

@@ -110,6 +110,24 @@ SyncDialog::SyncDialog(const SyncSettings &settings, FolderSync *sync, QWidget *
     m_note->setEnabled(false);
     form->addRow(QString(), m_note);
 
+    // The forms of the services sit inside the main one: their labels get the
+    // width of the longest label of all, so every field starts on one line
+    // whatever the service ("Repository:" is longer than "User:").
+    const QList<QFormLayout *> forms{form, ftpForm, webdavForm, gitForm};
+    int labelWidth = 0;
+    for (const QFormLayout *each : forms) {
+        for (int row = 0; row < each->rowCount(); ++row) {
+            if (const QLayoutItem *label = each->itemAt(row, QFormLayout::LabelRole); label && label->widget())
+                labelWidth = qMax(labelWidth, label->widget()->sizeHint().width());
+        }
+    }
+    for (const QFormLayout *each : forms) {
+        for (int row = 0; row < each->rowCount(); ++row) {
+            if (const QLayoutItem *label = each->itemAt(row, QFormLayout::LabelRole); label && label->widget())
+                label->widget()->setMinimumWidth(labelWidth);
+        }
+    }
+
     m_status->setWordWrap(true);
     m_status->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
@@ -168,6 +186,13 @@ void SyncDialog::updateFields()
 {
     const auto service = SyncSettings::Service(m_service->currentData().toInt());
     m_pages->setCurrentIndex(m_service->currentIndex());
+    // The stack is as tall as the page shown, not as the tallest one: no gap
+    // under the two rows of Git or the one of WebDAV.
+    for (int index = 0; index < m_pages->count(); ++index) {
+        const QSizePolicy::Policy policy = index == m_pages->currentIndex() ? QSizePolicy::Preferred : QSizePolicy::Ignored;
+        m_pages->widget(index)->setSizePolicy(policy, policy);
+    }
+    m_pages->updateGeometry();
     const bool on = service != SyncSettings::Service::None;
     for (QWidget *widget : {static_cast<QWidget *>(m_user), static_cast<QWidget *>(m_password),
                             static_cast<QWidget *>(m_testButton), static_cast<QWidget *>(m_syncButton),
@@ -182,6 +207,14 @@ void SyncDialog::updateFields()
                         : QString());
     m_note->setVisible(git);
     updateStatus();
+    // The note wraps over several lines: the window grows to hold it rather
+    // than letting the buttons under it cover the text.
+    if (QLayout *layout = this->layout()) {
+        layout->activate();
+        const int needed = layout->hasHeightForWidth() ? layout->totalHeightForWidth(width()) : sizeHint().height();
+        if (height() < needed)
+            resize(width(), needed);
+    }
 }
 
 void SyncDialog::updateStatus()

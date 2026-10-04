@@ -118,4 +118,46 @@
     <string name="database_needs_update">“%1$s” was made by a newer version of Pragma Chess. Update the app to open it.</string>
     <string name="sync_update_app">The databases of %1$s were made by a newer version of Pragma Chess. Update the app to sync with it.</string>
     <string name="game_not_saved">The game could not be saved in “%1$s”.</string>
+
+    <string name="explain">Explain</string>
+    <string name="explain_tooltip">Explain the evaluation: show on the board what the last move allows or wins</string>
+    <string name="explain_analyzing">Analyzing…</string>
+    <string name="explain_failed">The engine stopped: %1$s</string>
+    <!-- Explain: the desktop's MoveExplanation texts, keyed by their English text in ui/ExplainStrings -->
+    <string name="explain_a_pawn">a pawn</string>
+    <string name="explain_two_pawns">two pawns</string>
+    <string name="explain_n_pawns" formatted="false">%1 pawns</string>
+    <string name="explain_a_knight">a knight</string>
+    <string name="explain_n_knights" formatted="false">%1 knights</string>
+    <string name="explain_a_bishop">a bishop</string>
+    <string name="explain_n_bishops" formatted="false">%1 bishops</string>
+    <string name="explain_a_rook">a rook</string>
+    <string name="explain_n_rooks" formatted="false">%1 rooks</string>
+    <string name="explain_the_queen">the queen</string>
+    <string name="explain_n_queens" formatted="false">%1 queens</string>
+    <string name="explain_and" formatted="false">%1 and %2</string>
+    <string name="explain_wins_exchange">wins the exchange</string>
+    <string name="explain_wins_material">wins material</string>
+    <string name="explain_wins" formatted="false">wins %1</string>
+    <string name="explain_wins_for" formatted="false">wins %1 for %2</string>
+    <string name="explain_best">Best move</string>
+    <string name="explain_good">Good move</string>
+    <string name="explain_inaccuracy">Inaccuracy</string>
+    <string name="explain_mistake">Mistake</string>
+    <string name="explain_blunder">Blunder</string>
+    <string name="explain_winning" formatted="false">%1 is winning.</string>
+    <string name="explain_better" formatted="false">%1 is better.</string>
+    <string name="explain_slightly_better" formatted="false">%1 is slightly better.</string>
+    <string name="explain_balanced">The position is balanced.</string>
+    <string name="explain_checkmate">Checkmate.</string>
+    <string name="explain_stalemate">Stalemate.</string>
+    <string name="explain_positional" formatted="false">" No material explains it: the assessment is positional, clear after %1."</string>
+    <string name="explain_error_prefix" formatted="false">"%1 (%2 → %3). "</string>
+    <string name="explain_verdict_prefix" formatted="false">"%1 (%2). "</string>
+    <string name="explain_better_was" formatted="false">" Better was %1."</string>
+    <string name="explain_mates" formatted="false">%1 mates in %2: %3.</string>
+    <string name="explain_side_wins" formatted="false">%1 %2: %3.</string>
+    <string name="explain_missed_mate" formatted="false">Missed mate in %1: %2.</string>
+    <string name="explain_missed" formatted="false">Missed: %1 %2.</string>
+    <string name="explain_main_line" formatted="false">" Main line: %1."</string>
 </resources>

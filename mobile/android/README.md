@@ -45,6 +45,32 @@ protocol (`engine/OexEngines.kt`):
 
 Engines are looked for again whenever the app comes back to the foreground.
 
+## Explain
+
+The bulb between the previous and next move explains the move on the board,
+as Explain does on the desktop (AGENTS.md, "Explain"): arrows that justify the
+evaluation, judged against the position before the move, the pieces that fall
+ringed in red, and the sentence under the engine's line. Moving on turns it
+off; the user asks again at the next move.
+
+- `explain/` is a port of the desktop's pure logic — `MoveExplanation`
+  (`explainPosition`, `classifyMove`), `AdvantageProbe`, `ExplanationAnalysis`
+  and `ExplainSettings` — with the same thresholds, arrow kinds and colours
+  (red only when material falls) and the desktop's texts and Italian
+  translations (`ExplainText`, string resources `explain_*`). Tuning happens on
+  the desktop (`docs/tech/explain-tuning.md`): bring its changes here, and the
+  tests of `MoveExplanationTest` with them.
+- `ExplanationSearch` runs the desktop's searches on an engine process of its
+  own (depth 20 before and after the move, then the depth-2 line probe, one
+  thread, hash cleared before each search), so the phone shows what
+  `pragma-explain` shows. The live analysis is paused meanwhile and resumes
+  after; a mate or a draw it finds deeper guides the explanation, as on the
+  desktop. `ui/ExplainController` keeps finished analyses by move.
+- The board's frame says where Explain is: it breathes towards blue while the
+  engine searches and turns blue with the answer (`BoardBorder`).
+- `ExplanationSearchTest` runs the whole search on a real engine only with
+  `PRAGMA_EXPLAIN_ENGINE=/path/to/stockfish`.
+
 ## Architecture
 
 Kotlin 2.2, Jetpack Compose with Material 3, AGP 8.13. Packages under
@@ -57,6 +83,7 @@ Kotlin 2.2, Jetpack Compose with Material 3, AGP 8.13. Packages under
 | `link` | `PairingLink`, `PhoneIdentity` (the phone's key), `Signaling` (relays over OkHttp WebSockets), `PeerLink` (WebRTC, stream-webrtc-android), `ComputerSync` (list, get and merge by lineage, put what the computer lacks, pull again; skips pairs unchanged since the last sync) |
 | `data` | `PdbDatabase` (the desktop's `.pdb` schema, version 6, android.database.sqlite), `GameIdentity` (UUIDv5 game uids, lineages), `Reconciler` (merge by uid, newest wins), `Corpus` and `Library` (one flat folder of databases), `AppStore` (paired computers, origins, last reconciled hashes) |
 | `engine` | `OexEngines` (engines installed as apps), `UciEngine` (a UCI process), `Analysis` (scores from White's point of view) |
+| `explain` | Explain, ported from the desktop: `MoveExplanation`, `AdvantageProbe`, `ExplanationSearch`, `EngineEvaluation` |
 | `ui` | `AppViewModel`, side menu (`PragmaApp`), `BoardScreen` with `Board`, `EvaluationBar`, `MoveList` (SkakNew figurines), games list, computers, settings, licenses |
 
 A database deleted on the phone is remembered by lineage (`AppStore`,
@@ -73,6 +100,7 @@ moved in on startup.
 ## Not done yet
 
 - The keys are in app-private storage, not in the Android Keystore.
+- Explain does not play a forced mate on the board yet (the desktop's red-framed sequence); the line is in the sentence.
 - No PGN import/export on the phone, no variations or comments in the move list.
 - A release signing key: the release APK is signed with the debug key.
 - `SignalingRelayTest` needs public relays and runs only with `PRAGMA_RELAY_TEST=1`.

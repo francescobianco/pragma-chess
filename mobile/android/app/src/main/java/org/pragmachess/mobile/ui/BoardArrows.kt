@@ -1,0 +1,126 @@
+package org.pragmachess.mobile.ui
+
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
+import org.pragmachess.mobile.explain.BoardArrow
+import kotlin.math.abs
+import kotlin.math.hypot
+import kotlin.math.max
+import kotlin.math.min
+
+/** Where Explain is, said by the colour of the board's frame (the desktop's BoardBorder). */
+enum class BoardBorder {
+    Plain,
+    /** The engine is searching: the frame breathes between plain and blue. */
+    Thinking,
+    /** An explanation is shown: the blue of the reply arrows. */
+    Explained,
+}
+
+/** The desktop's arrow colours: a colour is a claim, red means material is falling. */
+object ArrowColors {
+    val refutation = Color(0xD0D43F32)
+    val idea = Color(0xD02F8F44)
+    val reply = Color(0xC03A6EB5)
+    val alternative = Color(0xA82F8F44)
+    /** The frame of an explained board. */
+    val explainFrame = Color(0xFF3A6EB5)
+
+    fun of(kind: BoardArrow.Kind): Color = when (kind) {
+        BoardArrow.Kind.Refutation -> refutation
+        BoardArrow.Kind.Idea -> idea
+        BoardArrow.Kind.Reply -> reply
+        BoardArrow.Kind.Alternative -> alternative
+    }
+}
+
+/**
+ * Explain on the board, drawn as the desktop's BoardWidget does: a red ring
+ * on each piece lost along the line, then the arrows, knight moves bent along
+ * their long leg, the better move dashed, each step numbered where it starts.
+ */
+fun DrawScope.drawExplanation(
+    arrows: List<BoardArrow>,
+    lostPieces: List<Int>,
+    squareSize: Float,
+    topLeft: (Int) -> Offset,
+    measurer: TextMeasurer,
+) {
+    fun center(square: Int) = topLeft(square) + Offset(squareSize / 2, squareSize / 2)
+    for (square in lostPieces) {
+        val inset = squareSize * 0.07f
+        drawOval(ArrowColors.refutation, topLeft(square) + Offset(inset, inset),
+            Size(squareSize - 2 * inset, squareSize - 2 * inset), style = Stroke(max(2f, squareSize * 0.06f)))
+    }
+    for (arrow in arrows) {
+        if (arrow.from !in 0..63 || arrow.to !in 0..63 || arrow.from == arrow.to) continue
+        val color = ArrowColors.of(arrow.kind)
+        val points = arrayListOf(center(arrow.from))
+        val fileDistance = abs(arrow.to % 8 - arrow.from % 8)
+        val rankDistance = abs(arrow.to / 8 - arrow.from / 8)
+        if (fileDistance + rankDistance == 3 && fileDistance > 0 && rankDistance > 0) {
+            val corner = if (rankDistance == 2) (arrow.to / 8) * 8 + arrow.from % 8 else (arrow.from / 8) * 8 + arrow.to % 8
+            points += center(corner)
+        }
+        points += center(arrow.to)
+
+        fun unit(from: Offset, to: Offset): Offset {
+            val delta = to - from
+            val length = hypot(delta.x, delta.y)
+            return if (length > 0) delta / length else Offset.Zero
+        }
+        val lastFrom = points[points.size - 2]
+        val lastUnit = unit(lastFrom, points.last())
+        val lastLength = (points.last() - lastFrom).getDistance()
+        val tip = points.last() - lastUnit * (squareSize * 0.1f)
+        // Arrows to a neighbouring square get a shorter head, leaving room for the step number.
+        val headBase = tip - lastUnit * min(squareSize * 0.42f, lastLength * 0.3f)
+        val start = points.first() + unit(points[0], points[1]) * (squareSize * 0.2f)
+
+        val shaft = Path().apply {
+            moveTo(start.x, start.y)
+            for (i in 1 until points.size - 1) lineTo(points[i].x, points[i].y)
+            lineTo(headBase.x, headBase.y)
+        }
+        val width = squareSize * 0.15f
+        drawPath(shaft, color, style = Stroke(
+            width = width, cap = StrokeCap.Butt, join = StrokeJoin.Miter,
+            pathEffect = if (arrow.kind == BoardArrow.Kind.Alternative) PathEffect.dashPathEffect(floatArrayOf(0.9f * width, 0.6f * width)) else null,
+        ))
+        val normal = Offset(-lastUnit.y, lastUnit.x)
+        val halfHead = squareSize * 0.22f
+        val head = Path().apply {
+            moveTo(tip.x, tip.y)
+            (headBase + normal * halfHead).let { lineTo(it.x, it.y) }
+            (headBase - normal * halfHead).let { lineTo(it.x, it.y) }
+            close()
+        }
+        drawPath(head, color)
+
+        if (arrow.step <= 0) continue
+        // The step number where the arrow leaves its square, readable when several arrows end on one square.
+        val radius = squareSize * 0.15f
+        val badge = points.first() + unit(points[0], points[1]) * (squareSize * 0.4f)
+        val badgeColor = color.copy(alpha = 1f).let { Color(it.red * 0.87f, it.green * 0.87f, it.blue * 0.87f) }
+        drawCircle(badgeColor, radius, badge)
+        drawCircle(Color(1f, 1f, 1f, 0.86f), radius, badge, style = Stroke(max(1f, squareSize * 0.02f)))
+        val label = measurer.measure(arrow.step.toString(), TextStyle(
+            color = Color.White, fontWeight = FontWeight.Bold,
+            fontSize = TextUnit(max(8f, radius * 1.3f) / density / fontScale, TextUnitType.Sp),
+        ))
+        drawText(label, topLeft = badge - Offset(label.size.width / 2f, label.size.height / 2f))
+    }
+}

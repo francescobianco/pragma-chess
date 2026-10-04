@@ -121,6 +121,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** An engine is installed and can analyse; otherwise the analysis area offers to install one. */
     val engineReady: Boolean get() = engineBinary != null
 
+    /** Explain: arrows on the board justifying the evaluation of the move on it. */
+    val explainer = ExplainController(viewModelScope, ExplainStrings(application)) { busy ->
+        // The explanation's searches get the phone's cores; the live analysis waits.
+        if (busy) engine.stop() else positionChanged()
+    }
+
     /** A short message for the snackbar, consumed by the UI. */
     var message by mutableStateOf<String?>(null)
 
@@ -147,12 +153,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             // An engine prints many lines a second; a few are enough to follow it,
             // and the board stays free for the finger.
-            engine.analysis.sample(200).collect { analysis = it }
+            engine.analysis.sample(200).collect {
+                analysis = it
+                explainer.liveAnalysis(it)
+            }
         }
         refreshEngines()
     }
 
     override fun onCleared() {
+        explainer.close()
         engine.close()
         store.close()
     }
@@ -327,6 +337,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun goTo(target: Int) {
         val clamped = target.coerceIn(0, line.plyCount)
         if (clamped == ply) return
+        // An explanation belongs to one move: moving on turns it off until asked again.
+        explainer.stop()
         ply = clamped
         positionChanged()
     }
@@ -337,6 +349,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             goTo(ply + 1)
             return
         }
+        explainer.stop()
         line = line.play(ply, move)
         ply += 1
         if (!dirty) {
@@ -358,8 +371,26 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun toggleEngine() {
         engineOn = !engineOn
-        if (!engineOn) analysis = null
+        if (!engineOn) {
+            analysis = null
+            explainer.stop() // Explaining needs the engine.
+        }
         positionChanged()
+    }
+
+    /**
+     * Explain on or off for the move on the board. Explaining turns the engine
+     * on; with none installed the analysis area offers one instead.
+     */
+    fun toggleExplain() {
+        if (explainer.enabled) {
+            explainer.stop()
+            return
+        }
+        if (!engineOn) toggleEngine()
+        val binary = engineBinary ?: return
+        explainer.start(binary, if (ply > 0) line.positionAt(ply - 1) else null, line.moves.getOrNull(ply - 1)?.move, position,
+            app.getString(R.string.explain_analyzing)) { app.getString(R.string.explain_failed, it) }
     }
 
     fun chooseEngine(engine: OexEngine) {
@@ -404,7 +435,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** The engine only thinks while the app is on screen. */
     fun setForeground(visible: Boolean) {
         foreground = visible
-        if (visible) refreshEngines()
+        if (visible) refreshEngines() else explainer.stop()
         positionChanged()
     }
 
@@ -412,6 +443,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (!engineOn || !foreground) {
             // In the background the process goes: no memory held for nothing.
             if (foreground) engine.stop() else engine.close()
+            return
+        }
+        if (explainer.thinking) {
+            engine.stop()
             return
         }
         val position = position

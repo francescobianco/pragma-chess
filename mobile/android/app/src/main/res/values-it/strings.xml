@@ -116,4 +116,46 @@
     <string name="database_needs_update">«%1$s» è stato creato con una versione più recente di Pragma Chess. Aggiorna l\'app per aprirlo.</string>
     <string name="sync_update_app">I database di %1$s sono stati creati con una versione più recente di Pragma Chess. Aggiorna l\'app per sincronizzarli.</string>
     <string name="game_not_saved">Non è stato possibile salvare la partita in «%1$s».</string>
+
+    <string name="explain">Spiega</string>
+    <string name="explain_tooltip">Spiega la valutazione: mostra sulla scacchiera cosa concede o vince l\'ultima mossa</string>
+    <string name="explain_analyzing">Analisi in corso…</string>
+    <string name="explain_failed">Il motore si è fermato: %1$s</string>
+    <!-- Explain: the desktop's MoveExplanation texts, keyed by their English text in ui/ExplainStrings -->
+    <string name="explain_a_pawn">un pedone</string>
+    <string name="explain_two_pawns">due pedoni</string>
+    <string name="explain_n_pawns" formatted="false">%1 pedoni</string>
+    <string name="explain_a_knight">un cavallo</string>
+    <string name="explain_n_knights" formatted="false">%1 cavalli</string>
+    <string name="explain_a_bishop">un alfiere</string>
+    <string name="explain_n_bishops" formatted="false">%1 alfieri</string>
+    <string name="explain_a_rook">una torre</string>
+    <string name="explain_n_rooks" formatted="false">%1 torri</string>
+    <string name="explain_the_queen">la donna</string>
+    <string name="explain_n_queens" formatted="false">%1 donne</string>
+    <string name="explain_and" formatted="false">%1 e %2</string>
+    <string name="explain_wins_exchange">vince la qualità</string>
+    <string name="explain_wins_material">guadagna materiale</string>
+    <string name="explain_wins" formatted="false">vince %1</string>
+    <string name="explain_wins_for" formatted="false">vince %1 in cambio di %2</string>
+    <string name="explain_best">Mossa migliore</string>
+    <string name="explain_good">Buona mossa</string>
+    <string name="explain_inaccuracy">Imprecisione</string>
+    <string name="explain_mistake">Errore</string>
+    <string name="explain_blunder">Errore grave</string>
+    <string name="explain_winning" formatted="false">Il %1 sta vincendo.</string>
+    <string name="explain_better" formatted="false">Il %1 sta meglio.</string>
+    <string name="explain_slightly_better" formatted="false">Il %1 sta leggermente meglio.</string>
+    <string name="explain_balanced">La posizione è equilibrata.</string>
+    <string name="explain_checkmate">Scacco matto.</string>
+    <string name="explain_stalemate">Stallo.</string>
+    <string name="explain_positional" formatted="false">" Nessun guadagno di materiale lo spiega: il giudizio è posizionale, chiaro dopo %1."</string>
+    <string name="explain_error_prefix" formatted="false">"%1 (%2 → %3). "</string>
+    <string name="explain_verdict_prefix" formatted="false">"%1 (%2). "</string>
+    <string name="explain_better_was" formatted="false">" Era meglio %1."</string>
+    <string name="explain_mates" formatted="false">Il %1 dà matto in %2: %3.</string>
+    <string name="explain_side_wins" formatted="false">Il %1 %2: %3.</string>
+    <string name="explain_missed_mate" formatted="false">Matto in %1 mancato: %2.</string>
+    <string name="explain_missed" formatted="false">Mancato: %1 %2.</string>
+    <string name="explain_main_line" formatted="false">" Linea principale: %1."</string>
 </resources>

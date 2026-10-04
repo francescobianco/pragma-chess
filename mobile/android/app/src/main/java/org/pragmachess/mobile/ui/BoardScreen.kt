@@ -124,6 +124,7 @@ fun BoardScreen(vm: AppViewModel, snackbar: SnackbarHostState, onMenu: () -> Uni
                     IconButton(onClick = { vm.goTo(ply - 1) }, enabled = ply > 0) {
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, stringResource(R.string.previous_move))
                     }
+                    ExplainButton(vm)
                     IconButton(onClick = { vm.goTo(ply + 1) }, enabled = ply < line.plyCount) {
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.next_move))
                     }
@@ -151,6 +152,9 @@ fun BoardScreen(vm: AppViewModel, snackbar: SnackbarHostState, onMenu: () -> Uni
                         flipped = vm.flipped,
                         onMove = vm::play,
                         modifier = Modifier.size(side),
+                        arrows = vm.explainer.explanation?.arrows.orEmpty(),
+                        lostPieces = vm.explainer.explanation?.lostPieces.orEmpty(),
+                        border = vm.explainer.border,
                     )
                     TurnColumn(position.sideToMove, vm.flipped, Modifier.width(TURN_WIDTH).fillMaxHeight())
                 }
@@ -161,6 +165,7 @@ fun BoardScreen(vm: AppViewModel, snackbar: SnackbarHostState, onMenu: () -> Uni
                 if (vm.engineOn) {
                     if (vm.engineReady) EngineLine(vm.analysis, position) else NoEngine(vm)
                 }
+                vm.explainer.explanation?.let { ExplanationText(it.summary) }
                 MoveList(line, ply, vm::goTo, Modifier.weight(1f).fillMaxWidth())
             }
         }

@@ -1,5 +1,10 @@
 package org.pragmachess.mobile.ui
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -33,6 +38,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
@@ -55,7 +61,13 @@ import org.pragmachess.mobile.chess.Piece
 import org.pragmachess.mobile.chess.Position
 import org.pragmachess.mobile.chess.Side
 import org.pragmachess.mobile.chess.Square
+import org.pragmachess.mobile.explain.BoardArrow
+import kotlin.math.PI
+import kotlin.math.cos
 import kotlin.math.roundToInt
+
+/** One breath of the frame while Explain waits for the engine (the desktop's). */
+private const val PULSE_MS = 1100
 
 /** The Good Companion pieces of the desktop, as bitmaps rendered from its SVGs. */
 @Composable
@@ -89,10 +101,25 @@ fun ChessBoard(
     flipped: Boolean,
     onMove: (Move) -> Unit,
     modifier: Modifier = Modifier,
+    /** Explain's arrows and the pieces lost along its line (ringed in red). */
+    arrows: List<BoardArrow> = emptyList(),
+    lostPieces: List<Int> = emptyList(),
+    border: BoardBorder = BoardBorder.Plain,
 ) {
     val pieces = rememberPieceImages()
     val measurer = rememberTextMeasurer()
-    val frameColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.28f)
+    val plainFrame = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.28f)
+    // Only the colour of the frame changes, never its width.
+    val frameColor = when (border) {
+        BoardBorder.Plain -> plainFrame
+        BoardBorder.Explained -> ArrowColors.explainFrame
+        BoardBorder.Thinking -> {
+            val pulse by rememberInfiniteTransition(label = "explain").animateFloat(
+                0f, 1f, infiniteRepeatable(tween(PULSE_MS, easing = LinearEasing)), label = "breath")
+            // cos() turns the looping 0 → 1 into a breath with no seam.
+            lerp(plainFrame, ArrowColors.explainFrame, 0.5f - 0.5f * cos(2 * PI.toFloat() * pulse))
+        }
+    }
     var selected by remember(position) { mutableStateOf(-1) }
     var dragFrom by remember(position) { mutableStateOf(-1) }
     var dragAt by remember { mutableStateOf(Offset.Zero) }
@@ -228,6 +255,7 @@ fun ChessBoard(
                     }
                 }
             }
+            drawExplanation(arrows, lostPieces, size, ::topLeft, measurer)
         }
         if (dragFrom >= 0) {
             // The dragged piece is a layer of its own that only moves: the

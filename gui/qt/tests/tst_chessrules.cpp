@@ -39,7 +39,9 @@
 #include "app/sync/FolderSync.h"
 #include "app/sync/GitStore.h"
 #include "app/sync/SyncManifest.h"
+#include "app/Chapters.h"
 #include "app/PersonalSettings.h"
+#include "app/Project.h"
 #include "app/PositionSetup.h"
 #include "app/UserFolders.h"
 
@@ -2412,6 +2414,95 @@ private Q_SLOTS:
         QCOMPARE(read->fen(), QStringLiteral("4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 31"));
         QCOMPARE(PositionSetup::fromFen(QStringLiteral("4k3/8/8/8/8/8/8/4K3 b - - 12 40"))->fen(),
                  QStringLiteral("4k3/8/8/8/8/8/8/4K3 b - - 12 40"));
+    }
+
+    void keepsChapters()
+    {
+        ChapterBook book;
+        QCOMPARE(book.chapters.size(), 1);
+        QVERIFY(book.game().isEmpty());
+
+        // Paragraphs go after their move, in the order written; empty ones go.
+        const int first = book.insertParagraph(0, 2);
+        book.setParagraph(0, first, QStringLiteral("After 2"));
+        const int intro = book.insertParagraph(0, 0);
+        book.setParagraph(0, intro, QStringLiteral("Before the moves"));
+        const int second = book.insertParagraph(0, 2);
+        book.setParagraph(0, second, QStringLiteral("Also after 2"));
+        const int between = book.insertParagraph(0, 0, intro); // Right after the intro.
+        book.setParagraph(0, between, QStringLiteral("Then this"));
+        QCOMPARE(book.game().paragraphs,
+                 (QList<Paragraph>{{0, QStringLiteral("Before the moves")}, {0, QStringLiteral("Then this")},
+                                   {2, QStringLiteral("After 2")}, {2, QStringLiteral("Also after 2")}}));
+        book.setParagraph(0, 1, QStringLiteral("  "));
+        QCOMPARE(book.game().paragraphs.size(), 3);
+
+        // A game break: a new game after the one given, which becomes current.
+        book.game().game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4")}};
+        book.game().game.uid = QStringLiteral("stored");
+        QCOMPARE(book.insertGame(0), 1);
+        QCOMPARE(book.chapter().currentGame, 1);
+        QVERIFY(book.game().isEmpty());
+        QCOMPARE(book.findGame(QStringLiteral("stored")), 0);
+
+        // Chapters: added at the end, moved with the open one followed, never none.
+        QCOMPARE(book.addChapter(QString()), 1);
+        QCOMPARE(book.chapter().title, ChapterBook::defaultTitle(2));
+        book.addChapter(QStringLiteral("Endings"));
+        book.current = 0;
+        book.moveChapter(0, 2);
+        QCOMPARE(book.current, 2);
+        QCOMPARE(book.chapters.at(1).title, QStringLiteral("Endings"));
+        QVERIFY(book.removeChapter(0));
+        QVERIFY(book.removeChapter(0));
+        QVERIFY(!book.removeChapter(0));
+        QCOMPARE(book.chapters.size(), 1);
+        QCOMPARE(book.chapter().games.size(), 2); // The first chapter, moved last, is what is left.
+    }
+
+    void savesChaptersInProjects()
+    {
+        Project project;
+        Chapter opening;
+        opening.title = QStringLiteral("The Italian");
+        ChapterGame game;
+        game.game.white = QStringLiteral("Anna");
+        game.game.result = QStringLiteral("1-0");
+        game.game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4"), {1}}, {QStringLiteral("e5"), QStringLiteral("e7e5")}};
+        game.paragraphs = {{0, QStringLiteral("The oldest opening.")}, {2, QStringLiteral("Two lines\nof text: \"quoted\"")}};
+        ChapterGame stored;
+        stored.game.uid = QStringLiteral("u-1");
+        opening.games = {game, stored};
+        opening.currentGame = 1;
+        opening.ply = 3;
+        Chapter endings;
+        endings.title = QStringLiteral("Endings");
+        project.chapters = {opening, endings};
+        project.chapter = 1;
+
+        QString error;
+        const std::optional<Project> read = Project::fromYaml(project.toYaml(), QDir(), &error);
+        QVERIFY2(read, qPrintable(error));
+        QCOMPARE(read->chapter, 1);
+        QCOMPARE(read->chapters.size(), 2);
+        const Chapter &back = read->chapters.first();
+        QCOMPARE(back.title, QStringLiteral("The Italian"));
+        QCOMPARE(back.currentGame, 1);
+        QCOMPARE(back.ply, 3);
+        QCOMPARE(back.games.size(), 2);
+        QCOMPARE(back.games.first().game.white, QStringLiteral("Anna"));
+        QCOMPARE(back.games.first().game.moves.size(), 2);
+        QCOMPARE(back.games.first().game.moves.first().nags, QList<int>{1});
+        QCOMPARE(back.games.first().paragraphs, game.paragraphs);
+        QCOMPARE(back.games.at(1).game.uid, QStringLiteral("u-1"));
+        QCOMPARE(read->chapters.at(1).games.size(), 1);
+
+        // A project from before chapters has none: its one game is in the old fields.
+        const std::optional<Project> old = Project::fromYaml(
+            QStringLiteral("pragma-chess: 1\ngame:\n  moves: e2e4 e7e5\n  ply: 2\n"), QDir(), &error);
+        QVERIFY2(old, qPrintable(error));
+        QVERIFY(old->chapters.isEmpty());
+        QCOMPARE(old->moves.size(), 2);
     }
 
     void choosesShippedOpeningNames()

@@ -119,7 +119,8 @@ AboutDialog::AboutDialog(const QString &version, QWidget *parent)
     built->addWidget(aboutQt, 0, 2, Qt::AlignTop);
     built->addWidget(textLabel(tr("<b>Stockfish</b>, the chess engine that comes with Pragma Chess (GPL version 3, a "
                                   "program of its own) · the <b>Good Companion</b> chess pieces · the <b>SkakNew</b> "
-                                  "figurines of the moves (LPPL) · the opening names of <b>lichess.org</b> (CC0).")),
+                                  "figurines of the moves (LPPL) · the <b>Crimson Pro</b> face of the paragraphs (OFL) · the "
+                                  "opening names of <b>lichess.org</b> (CC0).")),
                      1, 1, 1, 2);
     built->setColumnStretch(1, 1);
     layout->addLayout(built);

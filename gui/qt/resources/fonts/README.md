@@ -17,3 +17,20 @@ To rebuild it, download `skaknew.zip` from CTAN and run:
 ```bash
 scripts/make-figurine-font.py skaknew/SkakNew-Figurine.otf
 ```
+
+# Paragraph font
+
+`crimson-pro.ttf` is **Crimson Pro**, by The Crimson Pro Project Authors
+(designed by Jacques Le Bailly), from
+[google/fonts](https://github.com/google/fonts/tree/main/ofl/crimsonpro),
+under the SIL Open Font License 1.1 (`crimson-pro-OFL.txt`). It sets the
+paragraphs written between the moves of a chapter, as a book would.
+
+It is the ExtraLight instance (weight 200) of the variable font, made static
+so every platform draws it the same:
+
+```bash
+python3 -c 'from fontTools.ttLib import TTFont; from fontTools.varLib import instancer
+instancer.instantiateVariableFont(TTFont("CrimsonPro[wght].ttf"), {"wght": 200},
+    updateFontNames=True).save("crimson-pro.ttf")'
+```

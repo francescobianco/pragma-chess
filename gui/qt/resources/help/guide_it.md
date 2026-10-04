@@ -70,11 +70,11 @@ Muovi un pezzo trascinandolo, oppure cliccandolo e poi cliccando la casa d'arriv
 - **Opzioni ▸ Impostazioni scacchiera…** sceglie dove mostrare i pezzi catturati e se indicare a chi tocca.
 - Quando la posizione sulla scacchiera è **scacco matto**, il bordo della scacchiera diventa rosso.
 
-**Partita ▸ Nuova partita** (Ctrl+Shift+N) comincia una partita da inserire mossa per mossa. **Partita ▸ Salva partita nel database** la mette nel database aperto.
+**Partita ▸ Nuova partita** (Ctrl+Shift+N) comincia una partita da inserire mossa per mossa. **Partita ▸ Salva partita nel database** la mette nel database aperto; **Partita ▸ Salva partita in un altro database…** la mette in un database a tua scelta, che non viene aperto.
 
 Gioca una mossa che non è la successiva della partita e diventa una **variante**: la partita tiene la sua linea, e quella nuova compare nel pannello Mosse sotto la mossa che sostituisce. Una partita salvata nel database viene salvata subito, varianti comprese.
 
-**Partita ▸ Inserisci posizione…** apre una scacchiera su cui disegnare una posizione: scegli un pezzo a destra e fai clic sulle case per posarlo (un clic sullo stesso pezzo lo toglie), trascina un pezzo per spostarlo dove vuoi sulla scacchiera (lasciato fuori, torna al suo posto), fai clic col tasto destro su una casa per svuotarla. Imposta il tratto, gli arrocchi, l'en passant e il numero di mossa, o scrivi un FEN; aiutano **Posizione iniziale**, **Svuota scacchiera** e **Gira scacchiera**. OK si attiva solo per una posizione da cui può cominciare una partita, e il testo sotto la scacchiera dice cosa non va. La posizione sostituisce la partita sulla scacchiera: se quella partita ha mosse non salvate in un database, ti viene chiesto se **Abbandona**rle, salvarle nel database aperto o **Salva in un altro database…** (quello aperto resta aperto). Una partita online in corso viene prima continuata o abbandonata.
+**Partita ▸ Inserisci posizione…** apre una scacchiera su cui disegnare una posizione: scegli un pezzo a destra e fai clic sulle case per posarlo (un clic sullo stesso pezzo lo toglie), trascina un pezzo per spostarlo dove vuoi sulla scacchiera (lasciato fuori, torna al suo posto), fai clic col tasto destro su una casa per svuotarla. Imposta il tratto, gli arrocchi, l'en passant e il numero di mossa, o scrivi un FEN; aiutano **Posizione iniziale**, **Svuota scacchiera** e **Gira scacchiera**. OK si attiva solo per una posizione da cui può cominciare una partita, e il testo sotto la scacchiera dice cosa non va. La posizione comincia una nuova partita in fondo al capitolo, così la partita su cui eri resta com'è. Una partita online in corso viene prima continuata o abbandonata.
 
 **Modifica ▸ Copia** mette negli appunti le mosse, la partita come PGN, la posizione come FEN (Ctrl+Shift+C), la linea del motore o la spiegazione. **Modifica ▸ Incolla** prende quello che c'è negli appunti: **Incolla FEN** (Ctrl+Shift+V) imposta la posizione, **Incolla linea** comincia una nuova partita con le mosse (PGN, mosse con o senza numeri, o UCI), e **Incolla linea dalla posizione attuale** (Ctrl+Alt+V) gioca le mosse dalla posizione sulla scacchiera, come se le giocassi tu: alla fine della partita vengono aggiunte, altrove diventano una variante.
 
@@ -201,7 +201,7 @@ Eliminare non rimpicciolisce ancora il file. **Database ▸ Impostazioni databas
 
 # Progetti {#projects}
 
-Un progetto è quello che stai guardando: il database, la partita e la mossa, il lato da cui vedi la scacchiera, il motore, i pannelli e se ti stai allenando. La barra del titolo ne mostra il nome, con un asterisco quando ha modifiche non salvate.
+Un progetto è quello che stai guardando: il database, la partita e la mossa, il lato da cui vedi la scacchiera, il motore, i pannelli e se ti stai allenando. La barra del titolo ne mostra il nome — quello del file, o quello dato in **File ▸ Impostazioni progetto…** — con un asterisco quando ha modifiche non salvate, e il capitolo aperto quando sono più d'uno: *Aperture* - L'Italiana - Pragma Chess*.
 
 - **File ▸ Nuovo progetto** tiene quello che vedi — database, motore, pannelli — e comincia una partita nuova, vuota, col Bianco in basso.
 - **File ▸ Apri progetto…** e **File ▸ Apri progetto recente** aprono un file `.pch`.
@@ -210,6 +210,19 @@ Un progetto è quello che stai guardando: il database, la partita e la mossa, il
 Non sei obbligato a salvare: Pragma Chess si riapre come l'hai chiuso.
 
 I pannelli si possono ridimensionare e chiudere; il menu **Visualizza** (Mosse, Albero delle aperture, Motore, Lista partite) li mostra di nuovo, e **Visualizza ▸ Ripristina disposizione dei pannelli** li rimette dove stanno all'inizio.
+
+# Capitoli e paragrafi {#chapters}
+
+Un progetto è una raccolta di **capitoli**, come uno studio o un libro di scacchi, e un capitolo contiene partite una dopo l'altra, con del testo tra le loro mosse. La lista delle mosse mostra tutto il capitolo: ogni partita sotto il suo titolo (*Partita 2 · Bianco – Nero*), con la numerazione che riparte; fai clic su una mossa di un'altra partita e la scacchiera va lì.
+
+Fai clic col tasto destro sulla lista delle mosse — su una mossa, su un paragrafo, o dove vuoi, anche senza mosse — per:
+
+- **Inserisci paragrafo**: un paragrafo dopo la mossa (o dove si trova la scacchiera), scritto direttamente nella lista delle mosse. Scrivi come in un libro: ogni a capo comincia un nuovo capoverso, rientrato. **Esc**, **Ctrl+Invio** o un clic altrove per finire; un paragrafo lasciato vuoto sparisce. Fai clic su un paragrafo per riscriverci; **Modifica paragrafo** ed **Elimina paragrafo** sono nel suo menu. I paragrafi vanno sulla linea principale.
+- **Inserisci interruzione partita**: una nuova partita dopo questa, dalla posizione iniziale; la sua numerazione riparte da 1.
+
+Nuova partita, Nuovo allenamento, Inserisci posizione, gli Incolla e le partite online aggiungono la loro partita in fondo al capitolo, e così una partita aperta dalla lista delle partite (una che il capitolo ha già viene semplicemente mostrata). Le partite salvate in un database vengono salvate lì man mano che cambiano; le altre, e tutti i paragrafi, vengono salvati con il progetto.
+
+Il menu **File** ha i capitoli: **Nuovo capitolo…**, **Cambia capitolo** per scegliere quello aperto, e **Gestione capitoli…** per riordinarli (trascinando, o con Sposta su e Sposta giù), rinominarli, aggiungerli ed eliminarli. **Impostazioni progetto…** dà al progetto un nome suo.
 
 # Sincronizzazione {#sync}
 

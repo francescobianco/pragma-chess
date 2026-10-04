@@ -26,6 +26,9 @@ public:
     /// is cut at the first illegal one; missing SAN is filled in. Variations
     /// are resolved the same way (GameVariations::resolve).
     void setGame(const GameRecord &game);
+    /// `game` as setGame() makes it: replayed, cut at its first illegal move,
+    /// SAN filled in, variations resolved. For games shown but not opened.
+    static GameRecord resolved(const GameRecord &game);
     /// Updates players, event, date, … of the open game, keeping moves and ply.
     void setHeader(const GameRecord &header);
     const GameRecord &game() const { return m_game; }

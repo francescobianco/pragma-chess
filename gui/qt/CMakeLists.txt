@@ -159,6 +159,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/PlayerRole.cpp
     src/app/PlayerRole.h
     src/app/PolyglotBook.cpp
+    src/app/Chapters.cpp
+    src/app/Chapters.h
     src/app/PositionSetup.cpp
     src/app/PositionSetup.h
     src/app/PolyglotBook.h
@@ -286,6 +288,8 @@ qt_add_executable(pragma-chess
     src/dialogs/SourceKindDelegate.h
     src/dialogs/GameInfoDialog.cpp
     src/dialogs/GameInfoDialog.h
+    src/dialogs/ManageChaptersDialog.cpp
+    src/dialogs/ManageChaptersDialog.h
     src/dialogs/ManageEnginesDialog.cpp
     src/dialogs/ManageEnginesDialog.h
     src/dialogs/ManageSourcesDialog.cpp
@@ -307,9 +311,11 @@ qt_add_executable(pragma-chess
     src/dialogs/PersonalSettingsDialog.cpp
     src/dialogs/PersonalSettingsDialog.h
     src/dialogs/PlayOnlineDialog.cpp
+    src/dialogs/PlayOnlineDialog.h
+    src/dialogs/ProjectSettingsDialog.cpp
+    src/dialogs/ProjectSettingsDialog.h
     src/dialogs/PositionSetupDialog.cpp
     src/dialogs/PositionSetupDialog.h
-    src/dialogs/PlayOnlineDialog.h
     src/dialogs/SyncDialog.cpp
     src/dialogs/SyncDialog.h
     src/dialogs/ManageSyncFilesDialog.cpp
@@ -347,6 +353,8 @@ qt_add_executable(pragma-chess
     src/widgets/BoardPanel.h
     src/widgets/BookPanel.cpp
     src/widgets/BookPanel.h
+    src/widgets/BookFont.cpp
+    src/widgets/BookFont.h
     src/widgets/BoardWidget.cpp
     src/widgets/BoardSideColumn.cpp
     src/widgets/BoardSideColumn.h
@@ -443,7 +451,8 @@ qt_add_resources(pragma-chess help PREFIX /help BASE resources/help
 qt_add_resources(pragma-chess credits PREFIX /credits BASE resources/credits
     FILES resources/credits/circolo-del-re.png)
 # SkakNew figurines for the move list (scripts/make-figurine-font.py).
-qt_add_resources(pragma-chess fonts PREFIX /fonts BASE resources/fonts FILES resources/fonts/pragma-figurine.otf)
+qt_add_resources(pragma-chess fonts PREFIX /fonts BASE resources/fonts
+    FILES resources/fonts/pragma-figurine.otf resources/fonts/crimson-pro.ttf)
 qt_add_resources(pragma-chess appicon PREFIX /icons BASE data/icons FILES ${APP_ICON_FILES})
 if(WIN32)
     target_sources(pragma-chess PRIVATE data/pragma-chess.rc)
@@ -517,7 +526,9 @@ if(TARGET Qt6::Test)
         src/app/UserFolders.cpp
         src/app/UserFolders.h
         src/app/PersonalSettings.cpp
-        src/app/PersonalSettings.h)
+        src/app/PersonalSettings.h
+        src/app/Project.cpp
+        src/app/Project.h)
     target_link_libraries(tst_chessrules PRIVATE pragma-chess-core Qt6::Sql Qt6::Test yaml-cpp::yaml-cpp)
     target_compile_definitions(tst_chessrules PRIVATE
         PRAGMA_HELP_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/help")

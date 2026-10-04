@@ -57,7 +57,8 @@ gui/qt/
   tools/book/          pragma-book, builds and probes Polyglot opening books
   resources/books/     default opening book (built from lichess chess-openings, CC0)
   resources/openings/  named openings seeded as the Opening Names database
-  resources/fonts/     figurine font of the move list (SkakNew, LPPL)
+  resources/fonts/     figurine font of the move list (SkakNew, LPPL) and the
+                       paragraphs' book face (Crimson Pro ExtraLight, OFL)
   resources/help/      the guide, one Markdown file per language
   resources/credits/   logos of the supporting clubs, shown in About
   translations/        interface translations (.ts), built with Qt Linguist tools
@@ -449,12 +450,56 @@ Game ▸ Set Up Position… (`dialogs/PositionSetupDialog`, the board is
 `widgets/PositionEditorWidget`: a click puts the chosen piece or takes it off, a drag only ever moves one — let go off the board, it goes back) edits a `PositionSetup` (pure,
 unit-tested: pieces, side, castling the placement allows, en passant
 squares, FEN, `problem()` for a position no game can start from) and
-starts a game from its FEN. Before the board is replaced,
-`MainWindow::keepUnsavedGame` asks about moves not in a database: Discard,
-save to the open database, or `saveGameToAnotherDatabase` (opens the file
-on its own, the open database does not change). Use it for anything else
-that replaces the game on the board. An online game goes through
-`leaveOnlineThen` first.
+starts a game from its FEN, at the end of the chapter (`startGame`), so
+nothing on the board is lost. Game ▸ Save Game to Another Database…
+(`saveGameToAnotherDatabase`) saves the game on the board to a file it
+opens on its own; the open database does not change. An online game goes
+through `leaveOnlineThen` first.
+
+## Chapters and paragraphs
+
+A project is a list of chapters (`app/Chapters`, pure, unit-tested:
+`ChapterBook` → `Chapter` → `ChapterGame`, each game with its
+`Paragraph`s, text after a main-line ply, 0 for before the first move);
+there is always one chapter, and a chapter always has a game. In other
+tools this is a study or a chess book.
+
+- **The session is the chapter's current game** (`m_chapters.game()`):
+  `syncChapterGame` copies the session into it on every change, and
+  `loadChapterGame` puts a chapter game on the board — from the database
+  when its uid is there (`m_openGameIndex` follows), else as the chapter
+  keeps it. Everything that works on "the game" (engine, Explain,
+  training, saving, the database's write-back) still works on one game.
+- **Nothing replaces a game any more**: `startGame` (New Game, training,
+  Set Up Position, the pastes, online games) and `openGame` (the games
+  list) add a game at the end of the chapter, or take the place of an
+  empty one (`ChapterGame::isEmpty`); a game the chapter has already
+  (`findGame` by uid) is switched to. Switching database keeps the
+  chapter (`relinkChapterGame`). Insert Game Break (`insertGameBreak`) is
+  a new empty game from the starting position after the given one. While
+  playing online the board cannot leave its game (`canLeaveGame`).
+- `widgets/MoveTreeView` draws the whole chapter in its one table: a title
+  row per game when there are several (its numbering starts again), the
+  chapter's title when the project has several, paragraphs as rows
+  spanning the table in the book face (`widgets/BookFont`: Crimson Pro
+  ExtraLight, line height 125%, the first line of each paragraph indented).
+  Paragraphs are written in place: `editParagraph` lays a `QTextEdit` with
+  the same font, width and block format over the paragraph's row, the row
+  is rebuilt with the text as it is typed, and Esc, Ctrl+Enter or a click
+  elsewhere ends (`paragraphEdited`; empty removes it). A first row of
+  nothing pins the columns' widths, and `rebuild` never runs inside
+  itself (`setHtml` resizes the view, whose header asks for another).
+  Links are `game:path/ply`; another game's moves emit `gameMoveActivated`.
+- File ▸ New Chapter…, Switch Chapter, Manage Chapters…
+  (`dialogs/ManageChaptersDialog`) and Project Settings…
+  (`dialogs/ProjectSettingsDialog`: the project's `name`, shown in the
+  title bar in place of the file's, then the chapter when there are
+  several: "Name* - Chapter - Pragma Chess").
+- In the `.pch` (format 2) `chapters` holds `current` and the `list`:
+  each chapter its `title`, `game`, `ply` and `games`, each game its uid
+  when stored plus its content (header, `fen`, `moves`, `annotations`,
+  `variations`) and `paragraphs`. A format 1 project has no chapters: its
+  one game (`game:` section) becomes the first chapter when it is opened.
 
 ## Trash
 
@@ -691,6 +736,7 @@ while one of them is selected.
   capturing database, open game/ply (or the moves of a game not saved to the
   database), board orientation, engine, window layout.
   It is versioned; newer files are rejected with an error.
+  It holds the chapters (see "Chapters and paragraphs").
   **The project is the workspace**: there is no separate workspace concept.
   The title bar shows only the project's name and the application's,
   "Untitled* - Pragma Chess", with a plain hyphen: the asterisk is there

@@ -32,8 +32,8 @@
         <translation>La nota di Qt, con le sue licenze</translation>
     </message>
     <message>
-        <source>&lt;b&gt;Stockfish&lt;/b&gt;, the chess engine that comes with Pragma Chess (GPL version 3, a program of its own) · the &lt;b&gt;Good Companion&lt;/b&gt; chess pieces · the &lt;b&gt;SkakNew&lt;/b&gt; figurines of the moves (LPPL) · the opening names of &lt;b&gt;lichess.org&lt;/b&gt; (CC0).</source>
-        <translation>&lt;b&gt;Stockfish&lt;/b&gt;, il motore di scacchi fornito con Pragma Chess (GPL versione 3, un programma a sé) · i pezzi &lt;b&gt;Good Companion&lt;/b&gt; · le figurine &lt;b&gt;SkakNew&lt;/b&gt; delle mosse (LPPL) · i nomi delle aperture di &lt;b&gt;lichess.org&lt;/b&gt; (CC0).</translation>
+        <source>&lt;b&gt;Stockfish&lt;/b&gt;, the chess engine that comes with Pragma Chess (GPL version 3, a program of its own) · the &lt;b&gt;Good Companion&lt;/b&gt; chess pieces · the &lt;b&gt;SkakNew&lt;/b&gt; figurines of the moves (LPPL) · the &lt;b&gt;Crimson Pro&lt;/b&gt; face of the paragraphs (OFL) · the opening names of &lt;b&gt;lichess.org&lt;/b&gt; (CC0).</source>
+        <translation>&lt;b&gt;Stockfish&lt;/b&gt;, il motore di scacchi fornito con Pragma Chess (GPL versione 3, un programma a sé) · i pezzi &lt;b&gt;Good Companion&lt;/b&gt; · le figurine &lt;b&gt;SkakNew&lt;/b&gt; delle mosse (LPPL) · il carattere &lt;b&gt;Crimson Pro&lt;/b&gt; dei paragrafi (OFL) · i nomi delle aperture di &lt;b&gt;lichess.org&lt;/b&gt; (CC0).</translation>
     </message>
 </context>
 <context>
@@ -304,6 +304,13 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>Move %1: there is no piece on %2.</source>
         <translation>Mossa %1: non c’è nessun pezzo in %2.</translation>
+    </message>
+</context>
+<context>
+    <name>Chapters</name>
+    <message>
+        <source>Chapter %1</source>
+        <translation>Capitolo %1</translation>
     </message>
 </context>
 <context>
@@ -2389,36 +2396,8 @@ non è su questo computer.</translation>
         <translation>Disegna una posizione su una scacchiera e comincia una partita da lì</translation>
     </message>
     <message>
-        <source>Set Up Position</source>
-        <translation>Inserisci posizione</translation>
-    </message>
-    <message>
         <source>Position set up: enter the moves on the board</source>
         <translation>Posizione inserita: gioca le mosse sulla scacchiera</translation>
-    </message>
-    <message>
-        <source>The game on the board has moves that are not saved in a database.</source>
-        <translation>La partita sulla scacchiera ha mosse non salvate in un database.</translation>
-    </message>
-    <message>
-        <source>Save them before the board changes, or discard them?</source>
-        <translation>Salvarle prima che la scacchiera cambi, o abbandonarle?</translation>
-    </message>
-    <message>
-        <source>Save to “%1”</source>
-        <translation>Salva in “%1”</translation>
-    </message>
-    <message>
-        <source>Save to Another Database…</source>
-        <translation>Salva in un altro database…</translation>
-    </message>
-    <message>
-        <source>The game goes into the database you choose; the open database stays open</source>
-        <translation>La partita va nel database che scegli; il database aperto resta aperto</translation>
-    </message>
-    <message>
-        <source>Discard</source>
-        <translation>Abbandona</translation>
     </message>
     <message>
         <source>Save to Another Database</source>
@@ -2443,6 +2422,115 @@ non è su questo computer.</translation>
     <message>
         <source>Could not save the personal settings in “%1”: %2</source>
         <translation>Impossibile salvare le impostazioni personali in “%1”: %2</translation>
+    </message>
+    <message>
+        <source>Save Game to Another D&amp;atabase…</source>
+        <translation>Salva partita in un altro d&amp;atabase…</translation>
+    </message>
+    <message>
+        <source>Save the game on the board to a database you choose; the open database stays open</source>
+        <translation>Salva la partita sulla scacchiera in un database a tua scelta; il database aperto resta aperto</translation>
+    </message>
+    <message>
+        <source>New C&amp;hapter…</source>
+        <translation>Nuovo &amp;capitolo…</translation>
+    </message>
+    <message>
+        <source>S&amp;witch Chapter</source>
+        <translation>Ca&amp;mbia capitolo</translation>
+    </message>
+    <message>
+        <source>&amp;Manage Chapters…</source>
+        <translation>&amp;Gestione capitoli…</translation>
+    </message>
+    <message>
+        <source>Project Se&amp;ttings…</source>
+        <translation>Impostazioni pro&amp;getto…</translation>
+    </message>
+    <message>
+        <source>Insert &amp;Paragraph</source>
+        <translation>Inserisci &amp;paragrafo</translation>
+    </message>
+    <message>
+        <source>&amp;Edit Paragraph</source>
+        <translation>&amp;Modifica paragrafo</translation>
+    </message>
+    <message>
+        <source>&amp;Delete Paragraph</source>
+        <translation>&amp;Elimina paragrafo</translation>
+    </message>
+    <message>
+        <source>Insert &amp;Game Break</source>
+        <translation>Inserisci &amp;interruzione partita</translation>
+    </message>
+    <message>
+        <source>A new game after this one, from the starting position; the numbering starts again</source>
+        <translation>Una nuova partita dopo questa, dalla posizione iniziale; la numerazione riparte</translation>
+    </message>
+    <message>
+        <source>The board stays on the online game until it ends.</source>
+        <translation>La scacchiera resta sulla partita online finché non finisce.</translation>
+    </message>
+    <message>
+        <source>Game break: a new game, from the starting position</source>
+        <translation>Interruzione partita: una nuova partita, dalla posizione iniziale</translation>
+    </message>
+    <message>
+        <source>New Chapter</source>
+        <translation>Nuovo capitolo</translation>
+    </message>
+    <message>
+        <source>Title of the chapter:</source>
+        <translation>Titolo del capitolo:</translation>
+    </message>
+</context>
+<context>
+    <name>ManageChaptersDialog</name>
+    <message>
+        <source>&amp;Delete…</source>
+        <translation>&amp;Elimina…</translation>
+    </message>
+    <message>
+        <source>Move &amp;Up</source>
+        <translation>Sposta &amp;su</translation>
+    </message>
+    <message>
+        <source>Move D&amp;own</source>
+        <translation>Sposta &amp;giù</translation>
+    </message>
+    <message>
+        <source>Manage Chapters</source>
+        <translation>Gestione capitoli</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n game(s)</source>
+        <translation>
+            <numerusform>%n partita</numerusform>
+            <numerusform>%n partite</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>&amp;New</source>
+        <translation>&amp;Nuovo</translation>
+    </message>
+    <message>
+        <source>&amp;Rename</source>
+        <translation>&amp;Rinomina</translation>
+    </message>
+    <message>
+        <source>Delete Chapter</source>
+        <translation>Elimina capitolo</translation>
+    </message>
+    <message numerus="yes">
+        <source>Delete the chapter “%1”, with its %n game(s) and its paragraphs? Games stored in a database stay there.</source>
+        <translation>
+            <numerusform>Eliminare il capitolo “%1”, con la sua partita e i suoi paragrafi? Le partite salvate in un database restano lì.</numerusform>
+            <numerusform>Eliminare il capitolo “%1”, con le sue %n partite e i suoi paragrafi? Le partite salvate in un database restano lì.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Drag a chapter to move it; double-click it to rename it.</source>
+        <translation>Trascina un capitolo per spostarlo; fai doppio clic per rinominarlo.</translation>
     </message>
 </context>
 <context>
@@ -2980,6 +3068,14 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>Black</source>
         <translation>Nero</translation>
     </message>
+    <message>
+        <source>Write here; Esc or a click elsewhere ends</source>
+        <translation>Scrivi qui; Esc o un clic altrove per finire</translation>
+    </message>
+    <message>
+        <source>Game %1</source>
+        <translation>Partita %1</translation>
+    </message>
 </context>
 <context>
     <name>NewGameChoiceDialog</name>
@@ -3412,6 +3508,21 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>A click takes the piece off the square. A right click does it too.</source>
         <translation>Un clic toglie il pezzo dalla casa. Lo fa anche il tasto destro.</translation>
+    </message>
+</context>
+<context>
+    <name>ProjectSettingsDialog</name>
+    <message>
+        <source>Project Settings</source>
+        <translation>Impostazioni progetto</translation>
+    </message>
+    <message>
+        <source>Project &amp;name:</source>
+        <translation>&amp;Nome del progetto:</translation>
+    </message>
+    <message>
+        <source>Shown in the title bar in place of the file&apos;s name, followed by the chapter when the project has more than one. Empty, the file&apos;s name is shown.</source>
+        <translation>Compare nella barra del titolo al posto del nome del file, seguito dal capitolo quando il progetto ne ha più di uno. Se è vuoto, si vede il nome del file.</translation>
     </message>
 </context>
 <context>

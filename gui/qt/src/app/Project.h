@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BoardState.h"
+#include "Chapters.h"
 #include "WorkspaceLayout.h"
 
 #include <QByteArray>
@@ -16,12 +17,22 @@
 /// Projects are saved as `.pch` files (YAML) from the File menu, and the
 /// same representation is used to restore the last session on startup.
 struct Project {
-    static constexpr int formatVersion = 1;
+    /// 2: the chapters.
+    static constexpr int formatVersion = 2;
     static constexpr char fileSuffix[] = "pch";
 
+    /// The project's own name (File ▸ Project Settings…), shown in the title
+    /// bar in place of the file's; empty for the file's.
+    QString name;
     /// Absolute path of the database file.
     QString databasePath;
-    /// Database id of the open game, or -1 when viewing a position without a game.
+    /// The chapters, their games and paragraphs, and the one open (where in
+    /// it is the chapter's currentGame and ply). Empty for a project written
+    /// before chapters: the fields below say what its one game was.
+    QList<Chapter> chapters;
+    int chapter = 0;
+    /// Before chapters (read, never written): database id of the open game,
+    /// or -1 when viewing a position without a game.
     qint64 gameId = -1;
     int ply = 0;
     /// Starting position when no game is open (empty = standard position).

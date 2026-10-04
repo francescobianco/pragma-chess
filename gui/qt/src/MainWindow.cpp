@@ -16,6 +16,7 @@
 #include "dialogs/ConnectSourceWizard.h"
 #include "dialogs/GameInfoDialog.h"
 #include "dialogs/HelpDialog.h"
+#include "dialogs/ManageChaptersDialog.h"
 #include "dialogs/ManageEnginesDialog.h"
 #include "dialogs/ManageSourcesDialog.h"
 #include "dialogs/NewGameChoiceDialog.h"
@@ -23,6 +24,7 @@
 #include "dialogs/PositionSetupDialog.h"
 #include "dialogs/PersonalSettingsDialog.h"
 #include "dialogs/PlayOnlineDialog.h"
+#include "dialogs/ProjectSettingsDialog.h"
 #include "dialogs/ManageSyncFilesDialog.h"
 #include "dialogs/SyncDialog.h"
 #ifdef PRAGMA_HAS_PHONE_LINK
@@ -199,6 +201,10 @@ MainWindow::MainWindow(QWidget *parent)
     createStatusBar();
     updateSeparatorStyle();
 
+    // The chapter keeps the game on the board as it changes.
+    connect(m_session, &GameSession::gameChanged, this, &MainWindow::syncChapterGame);
+    connect(m_session, &GameSession::headerChanged, this, &MainWindow::syncChapterGame);
+    connect(m_session, &GameSession::annotationsChanged, this, &MainWindow::syncChapterGame);
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateGameHeader);
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateGameActions);
     connect(m_session, &GameSession::headerChanged, this, &MainWindow::updateGameHeader);
@@ -763,6 +769,9 @@ void MainWindow::createActions()
     m_saveGameAction = new QAction(themeIcon("document-save", QStyle::SP_DialogSaveButton),
                                    tr("Save Game to &Database"), this);
     connect(m_saveGameAction, &QAction::triggered, this, &MainWindow::saveGameToDatabase);
+    m_saveGameElsewhereAction = new QAction(tr("Save Game to Another D&atabase…"), this);
+    m_saveGameElsewhereAction->setToolTip(tr("Save the game on the board to a database you choose; the open database stays open"));
+    connect(m_saveGameElsewhereAction, &QAction::triggered, this, &MainWindow::saveGameToAnotherDatabase);
 
     m_explainAction = new QAction(themeIcon("pragma-explain", QStyle::SP_MessageBoxQuestion), tr("E&xplain"), this);
     m_explainAction->setShortcut(Qt::Key_E);
@@ -817,6 +826,13 @@ void MainWindow::createMenus()
     file->addSeparator();
     file->addAction(m_saveProjectAction);
     file->addAction(m_saveProjectAsAction);
+    file->addSeparator();
+    // The project's chapters: its games one after the other, as in a book.
+    file->addAction(tr("New C&hapter…"), this, &MainWindow::newChapter);
+    m_switchChapterMenu = file->addMenu(tr("S&witch Chapter"));
+    connect(m_switchChapterMenu, &QMenu::aboutToShow, this, &MainWindow::fillChapterMenu);
+    file->addAction(tr("&Manage Chapters…"), this, &MainWindow::manageChapters);
+    file->addAction(tr("Project Se&ttings…"), this, &MainWindow::editProjectSettings);
     file->addSeparator();
     // The toolbar's first button; its settings are in Options.
     file->addAction(m_syncNowAction);
@@ -892,6 +908,7 @@ void MainWindow::createMenus()
     game->addAction(m_playOnlineAction);
     game->addAction(m_setUpPositionAction);
     game->addAction(m_saveGameAction);
+    game->addAction(m_saveGameElsewhereAction);
     game->addSeparator();
     game->addAction(m_firstMoveAction);
     game->addAction(m_previousMoveAction);
@@ -1149,6 +1166,13 @@ void MainWindow::createDocks()
 {
     m_moveView = new MoveTreeView(m_session);
     connect(m_moveView, &MoveTreeView::moveActivated, m_session, &GameSession::goToLine);
+    m_moveView->setBook(&m_chapters);
+    connect(m_moveView, &MoveTreeView::gameMoveActivated, this, &MainWindow::switchToChapterGame);
+    connect(m_moveView, &MoveTreeView::paragraphEdited, this, [this](int game, int index, const QString &text) {
+        if (game < m_chapters.chapter().games.size())
+            m_chapters.setParagraph(game, index, text);
+        chapterChanged();
+    });
     m_moveView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_moveView, &QWidget::customContextMenuRequested, this, &MainWindow::showMoveListMenu);
     m_movesDock = addDock(m_sidebar, QStringLiteral("movesDock"), tr("Moves"), m_moveView, Qt::RightDockWidgetArea);
@@ -1322,6 +1346,17 @@ void MainWindow::openGame(const QModelIndex &proxyIndex)
     if (!m_database || !source.isValid())
         return;
     if (std::optional<GameRecord> game = m_database->loadGame(source.row())) {
+        if (!canLeaveGame())
+            return;
+        // A game the chapter has already: the board goes there.
+        const int inChapter = m_chapters.findGame(game->uid);
+        if (inChapter >= 0 && inChapter != m_chapters.chapter().currentGame) {
+            switchToChapterGame(inChapter, {}, 0);
+            return;
+        }
+        // Otherwise it joins the chapter, at its end (or in place of an empty game).
+        if (inChapter < 0 && !m_chapters.game().isEmpty())
+            m_chapters.insertGame(int(m_chapters.chapter().games.size()) - 1);
         // A game from the database is to be studied, not played: training
         // goes off first, or the engine would answer in it.
         m_trainingModeAction->setChecked(false);
@@ -1329,6 +1364,7 @@ void MainWindow::openGame(const QModelIndex &proxyIndex)
         m_openGameIndex = source.row();
         orientBoardForMe(*game);
         m_session->setGame(*game);
+        chapterChanged();
     }
 }
 
@@ -1454,14 +1490,53 @@ QString MainWindow::moveText(int ply) const
 void MainWindow::showMoveListMenu(const QPoint &position)
 {
     const MoveTreeView::Place place = m_moveView->placeAt(position);
-    if (!place.isValid())
+    m_moveView->finishEditing();
+    QMenu menu(this);
+    // Where a paragraph goes: after the main-line move the place belongs to.
+    const auto mainLinePly = [](const GameRecord &game, const QList<int> &path, int ply) {
+        return path.isEmpty() ? ply : game.variations.value(path.first()).atPly;
+    };
+    int game = place.game >= 0 ? place.game : m_chapters.chapter().currentGame;
+    int paragraphPly = 0;
+    if (place.isMove()) {
+        // A move of another game or line is brought on the board first: the menu acts on it.
+        if (place.game != m_chapters.chapter().currentGame) {
+            if (!canLeaveGame())
+                return;
+            switchToChapterGame(place.game, place.path, place.ply);
+        } else if (place.path != m_session->path()) {
+            m_session->goToLine(place.path, place.ply);
+        }
+        game = m_chapters.chapter().currentGame;
+        paragraphPly = mainLinePly(m_session->game(), place.path, place.ply);
+    } else if (place.game < 0) {
+        // Nowhere in particular: where the board is.
+        paragraphPly = mainLinePly(m_session->game(), m_session->path(), m_session->ply());
+    }
+    menu.addAction(tr("Insert &Paragraph"), this, [this, game, paragraphPly, after = place.paragraph] {
+        const int index = m_chapters.insertParagraph(game, paragraphPly, after);
+        chapterChanged();
+        m_moveView->editParagraph(game, index);
+    });
+    if (place.isParagraph()) {
+        menu.addAction(tr("&Edit Paragraph"), this, [this, game, index = place.paragraph] {
+            m_moveView->editParagraph(game, index);
+        });
+        menu.addAction(tr("&Delete Paragraph"), this, [this, game, index = place.paragraph] {
+            m_chapters.setParagraph(game, index, QString());
+            chapterChanged();
+        });
+    }
+    QAction *gameBreak = menu.addAction(tr("Insert &Game Break"), this, [this, game] { insertGameBreak(game); });
+    gameBreak->setToolTip(tr("A new game after this one, from the starting position; the numbering starts again"));
+    gameBreak->setEnabled(!m_onlinePlay);
+    if (!place.isMove()) {
+        menu.exec(m_moveView->viewport()->mapToGlobal(position));
         return;
-    // A move of another line is brought on the board first: the menu acts on the line followed.
-    if (place.path != m_session->path())
-        m_session->goToLine(place.path, place.ply);
+    }
+    menu.addSeparator();
     const int ply = place.ply;
 
-    QMenu menu(this);
     QMenu *copy = menu.addMenu(themeIcon("edit-copy", QStyle::SP_FileIcon), tr("&Copy"));
     copy->addAction(tr("Copy &Move"), this, [this, ply] { copyText(moveText(ply), tr("Move copied")); });
     copy->addAction(tr("Copy &Line up to Here"), this, [this, ply] {
@@ -1820,7 +1895,7 @@ void MainWindow::newDatabase()
         }
         setDatabase(std::move(database));
         if (!keepOnlineGame()) {
-            m_session->setGame(GameRecord());
+            relinkChapterGame(); // The chapter goes on; its games are not in the new database.
             statusBar()->showMessage(tr("Created %1").arg(QDir::toNativeSeparators(path)), 5000);
         }
         return;
@@ -1864,10 +1939,11 @@ bool MainWindow::openDatabaseFile(const QString &path)
     setDatabase(std::move(database));
     if (keepOnlineGame())
         return true;
-    if (m_gameListProxy->rowCount() > 0)
+    // The chapter goes on: its first game is opened only into an empty one.
+    if (m_chapters.game().isEmpty() && m_gameListProxy->rowCount() > 0)
         openGame(m_gameListProxy->index(0, 0));
     else
-        m_session->setGame(GameRecord());
+        relinkChapterGame();
     return true;
 }
 
@@ -2891,7 +2967,7 @@ void MainWindow::setUpPosition()
         return;
     }
     PositionSetupDialog dialog(m_session->position().fen(), m_flipBoardAction->isChecked(), this);
-    if (dialog.exec() != QDialog::Accepted || !keepUnsavedGame(tr("Set Up Position")))
+    if (dialog.exec() != QDialog::Accepted)
         return;
     m_trainingModeAction->setChecked(false); // A position set up is studied, not played against the engine.
     GameRecord game;
@@ -2903,36 +2979,6 @@ void MainWindow::setUpPosition()
     nameMe(game);
     startGame(game);
     statusBar()->showMessage(tr("Position set up: enter the moves on the board"), 5000);
-}
-
-bool MainWindow::keepUnsavedGame(const QString &title)
-{
-    // A stored game is saved already, and a board without moves has nothing to lose.
-    if (m_openGameIndex >= 0 || m_session->plyCount() == 0)
-        return true;
-    QMessageBox box(QMessageBox::Question, title,
-                    tr("The game on the board has moves that are not saved in a database."), QMessageBox::NoButton,
-                    this);
-    box.setInformativeText(tr("Save them before the board changes, or discard them?"));
-    QPushButton *saveHere = nullptr;
-    if (m_database)
-        saveHere = box.addButton(tr("Save to “%1”").arg(m_database->name()), QMessageBox::AcceptRole);
-    QPushButton *saveElsewhere = box.addButton(tr("Save to Another Database…"), QMessageBox::AcceptRole);
-    saveElsewhere->setToolTip(tr("The game goes into the database you choose; the open database stays open"));
-    QPushButton *discard = box.addButton(tr("Discard"), QMessageBox::DestructiveRole);
-    QPushButton *cancel = box.addButton(QMessageBox::Cancel);
-    box.setDefaultButton(saveHere ? saveHere : saveElsewhere);
-    box.setEscapeButton(cancel);
-    box.exec();
-    if (box.clickedButton() == discard)
-        return true;
-    if (saveHere && box.clickedButton() == saveHere) {
-        saveGameToDatabase();
-        return m_openGameIndex >= 0;
-    }
-    if (box.clickedButton() == saveElsewhere)
-        return saveGameToAnotherDatabase();
-    return false;
 }
 
 bool MainWindow::saveGameToAnotherDatabase()
@@ -2958,11 +3004,190 @@ bool MainWindow::saveGameToAnotherDatabase()
     return true;
 }
 
+bool MainWindow::canLeaveGame()
+{
+    // Online, the board belongs to the game being played.
+    if (!m_onlinePlay)
+        return true;
+    statusBar()->showMessage(tr("The board stays on the online game until it ends."), 5000);
+    return false;
+}
+
+void MainWindow::syncChapterGame()
+{
+    m_chapters.game().game = m_session->game();
+}
+
+void MainWindow::loadChapterGame()
+{
+    const ChapterGame &entry = m_chapters.game();
+    const qint64 index = gameIndexOf(entry.game.uid);
+    const std::optional<GameRecord> stored = index >= 0 ? m_database->loadGame(index) : std::nullopt;
+    m_openGameIndex = stored ? index : -1;
+    m_gameView->clearSelection();
+    if (stored) {
+        const QModelIndex proxyIndex = m_gameListProxy->mapFromSource(m_gameListModel->index(int(index), 0));
+        if (proxyIndex.isValid())
+            m_gameView->selectRow(proxyIndex.row());
+        orientBoardForMe(*stored);
+    }
+    m_session->setGame(stored.value_or(entry.game));
+}
+
+void MainWindow::switchToChapterGame(int game, const QList<int> &path, int ply)
+{
+    if (game < 0 || game >= m_chapters.chapter().games.size())
+        return;
+    if (game != m_chapters.chapter().currentGame) {
+        if (!canLeaveGame())
+            return;
+        // Another game is studied, not played: training goes off first.
+        m_trainingModeAction->setChecked(false);
+        m_chapters.chapter().currentGame = game;
+        loadChapterGame();
+        chapterChanged();
+    }
+    m_session->goToLine(path, ply);
+}
+
+void MainWindow::relinkChapterGame()
+{
+    const qint64 index = gameIndexOf(m_chapters.game().game.uid);
+    m_openGameIndex = index;
+    m_gameView->clearSelection();
+    const QModelIndex proxyIndex =
+        index >= 0 ? m_gameListProxy->mapFromSource(m_gameListModel->index(int(index), 0)) : QModelIndex();
+    if (proxyIndex.isValid())
+        m_gameView->selectRow(proxyIndex.row());
+    updateGameActions();
+}
+
+void MainWindow::chapterChanged()
+{
+    m_moveView->refresh();
+    updateWindowTitle(); // The chapter's title may be in it.
+    scheduleSaveSession();
+}
+
+void MainWindow::editProjectSettings()
+{
+    const QString fileName = m_projectPath.isEmpty() ? tr("Untitled") : QFileInfo(m_projectPath).completeBaseName();
+    ProjectSettingsDialog dialog(m_projectName, fileName, this);
+    if (dialog.exec() != QDialog::Accepted || dialog.name() == m_projectName)
+        return;
+    m_projectName = dialog.name();
+    updateWindowTitle();
+    scheduleSaveSession(); // The project has changes: its name is saved with it.
+}
+
+void MainWindow::insertGameBreak(int after)
+{
+    if (!canLeaveGame())
+        return;
+    m_trainingModeAction->setChecked(false);
+    m_chapters.chapter().currentGame = qBound(0, after, int(m_chapters.chapter().games.size()) - 1);
+    m_chapters.insertGame(m_chapters.chapter().currentGame);
+    GameRecord game;
+    game.result = QStringLiteral("*");
+    game.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
+    nameMe(game);
+    m_chapters.game().game = game;
+    loadChapterGame();
+    chapterChanged();
+    statusBar()->showMessage(tr("Game break: a new game, from the starting position"), 4000);
+}
+
+void MainWindow::newChapter()
+{
+    if (!canLeaveGame())
+        return;
+    bool ok = false;
+    const QString title = QInputDialog::getText(this, tr("New Chapter"), tr("Title of the chapter:"), QLineEdit::Normal,
+                                                ChapterBook::defaultTitle(int(m_chapters.chapters.size()) + 1), &ok);
+    if (!ok)
+        return;
+    m_trainingModeAction->setChecked(false);
+    m_chapters.chapter().ply = m_session->ply();
+    m_chapters.addChapter(title);
+    loadChapterGame();
+    chapterChanged();
+}
+
+void MainWindow::switchChapter(int index)
+{
+    if (index == m_chapters.current || index < 0 || index >= m_chapters.chapters.size() || !canLeaveGame())
+        return;
+    m_trainingModeAction->setChecked(false);
+    m_chapters.chapter().ply = m_session->ply();
+    m_chapters.current = index;
+    loadChapterGame();
+    m_session->goToPly(m_chapters.chapter().ply);
+    chapterChanged();
+}
+
+void MainWindow::fillChapterMenu()
+{
+    m_switchChapterMenu->clear();
+    auto *group = new QActionGroup(m_switchChapterMenu);
+    for (int i = 0; i < m_chapters.chapters.size(); ++i) {
+        QAction *action = m_switchChapterMenu->addAction(m_chapters.chapters.at(i).title);
+        action->setCheckable(true);
+        action->setChecked(i == m_chapters.current);
+        action->setActionGroup(group);
+        connect(action, &QAction::triggered, this, [this, i] { switchChapter(i); });
+    }
+}
+
+void MainWindow::manageChapters()
+{
+    QList<ManageChaptersDialog::Entry> entries;
+    for (int i = 0; i < m_chapters.chapters.size(); ++i) {
+        const Chapter &chapter = m_chapters.chapters.at(i);
+        int games = 0;
+        for (const ChapterGame &game : chapter.games)
+            games += game.isEmpty() ? 0 : 1;
+        entries << ManageChaptersDialog::Entry{i, chapter.title, games};
+    }
+    ManageChaptersDialog dialog(entries, m_chapters.current, this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+    const QList<ManageChaptersDialog::Entry> chosen = dialog.entries();
+    m_chapters.chapter().ply = m_session->ply();
+    syncChapterGame();
+    QList<Chapter> chapters;
+    int current = -1;
+    for (const ManageChaptersDialog::Entry &entry : chosen) {
+        Chapter chapter = entry.source >= 0 ? m_chapters.chapters.at(entry.source) : Chapter();
+        chapter.title = entry.title.trimmed().isEmpty() ? ChapterBook::defaultTitle(int(chapters.size()) + 1)
+                                                        : entry.title.trimmed();
+        if (entry.source == m_chapters.current)
+            current = int(chapters.size());
+        chapters << chapter;
+    }
+    if (chapters.isEmpty())
+        return; // The dialog keeps one; never leave the project without.
+    const bool sameChapter = current >= 0;
+    if (!sameChapter && !canLeaveGame())
+        return;
+    m_chapters.chapters = chapters;
+    m_chapters.current = sameChapter ? current : 0;
+    if (!sameChapter) {
+        m_trainingModeAction->setChecked(false);
+        loadChapterGame();
+        m_session->goToPly(m_chapters.chapter().ply);
+    }
+    chapterChanged();
+}
+
 void MainWindow::startGame(const GameRecord &game)
 {
+    // A new game goes at the end of the chapter: the games before it stay.
+    if (!m_chapters.game().isEmpty())
+        m_chapters.insertGame(int(m_chapters.chapter().games.size()) - 1);
     m_gameView->clearSelection();
     m_openGameIndex = -1;
     m_session->setGame(game);
+    chapterChanged();
 }
 
 void MainWindow::newTraining(bool alwaysAsk)
@@ -3617,9 +3842,7 @@ void MainWindow::pasteFen()
     }
     GameRecord game;
     game.startFen = text;
-    m_gameView->clearSelection();
-    m_openGameIndex = -1;
-    m_session->setGame(game);
+    startGame(game);
 }
 
 void MainWindow::pasteLine()
@@ -3637,9 +3860,7 @@ void MainWindow::pasteLine()
     game.startFen = line->startFen;
     game.moves = line->moves;
     game.variations = line->variations;
-    m_gameView->clearSelection();
-    m_openGameIndex = -1;
-    m_session->setGame(game);
+    startGame(game);
     m_session->goToEnd();
 }
 
@@ -3775,22 +3996,15 @@ void MainWindow::saveSession()
 Project MainWindow::captureProject()
 {
     Project project;
-    if (m_database) {
+    project.name = m_projectName;
+    if (m_database)
         project.databasePath = m_database->location();
-        if (m_openGameIndex >= 0 && m_openGameIndex < m_database->gameCount())
-            project.gameId = m_database->header(m_openGameIndex).id;
-    }
-    project.ply = m_session->ply();
-    if (project.gameId < 0) {
-        project.startFen = m_session->game().startFen;
-        for (const MoveRecord &move : m_session->game().moves) {
-            project.moves << move.uci;
-            if (!move.nags.isEmpty())
-                project.annotations << QStringLiteral("%1:%2").arg(project.moves.size())
-                                           .arg(MoveAnnotation::storedSuffix(move.nags));
-        }
-        project.variations = GameVariations::toText(m_session->game().variations);
-    }
+    // The chapters, with the game on the board as it is and where the user is in it.
+    project.chapters = m_chapters.chapters;
+    project.chapter = m_chapters.current;
+    Chapter &open = project.chapters[m_chapters.current];
+    open.games[open.currentGame].game = m_session->game();
+    open.ply = m_session->path().isEmpty() ? m_session->ply() : m_session->branchPly();
     project.boardFlipped = m_flipBoardAction->isChecked();
     project.showCoordinates = m_coordinatesAction->isChecked();
     project.engineId = m_engineId;
@@ -3826,6 +4040,34 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
     // A database moved since the project was saved (migrateOpeningNames) is opened where it is now.
     const QString databasePath = m_movedDatabases.value(project.databasePath, project.databasePath);
     openInitialDatabase(databasePath);
+
+    m_projectName = project.name;
+    if (!project.chapters.isEmpty()) {
+        m_chapters.chapters = project.chapters;
+        m_chapters.current = qBound(0, project.chapter, int(project.chapters.size()) - 1);
+        // Games stored in the database are shown as it has them now; the
+        // others as the project kept them, their moves replayed.
+        for (Chapter &chapter : m_chapters.chapters) {
+            for (ChapterGame &entry : chapter.games) {
+                const qint64 index = gameIndexOf(entry.game.uid);
+                const std::optional<GameRecord> stored = index >= 0 ? m_database->loadGame(index) : std::nullopt;
+                entry.game = GameSession::resolved(stored.value_or(entry.game));
+            }
+        }
+        m_moveView->refresh();
+        loadChapterGame();
+        m_session->goToPly(m_chapters.chapter().ply);
+        m_startEngineAction->setChecked(project.engineAnalyzing);
+        if (project.training) {
+            m_trainingSide = project.trainingSide;
+            m_trainingModeAction->setChecked(true);
+        }
+        m_restoringSession = wasRestoring;
+        return;
+    }
+    // A project from before chapters: its one game becomes the first chapter.
+    m_chapters = ChapterBook();
+    m_moveView->refresh();
 
     bool opened = false;
     // A project without a database path refers to whichever default database was opened.
@@ -3899,6 +4141,8 @@ void MainWindow::newProject()
     // and training is off. Reset Panel Layout is there for the default
     // arrangement.
     Project project = captureProject();
+    project.chapters.clear(); // One chapter, with an empty game.
+    project.name.clear();
     project.gameId = -1;
     project.ply = 0;
     project.startFen.clear();
@@ -4055,8 +4299,15 @@ void MainWindow::updateWindowTitle()
     // application: "Untitled* - Pragma Chess". The database and the game are
     // on show in the window itself. Written in full, with a plain hyphen: Qt
     // would add the name by itself after a long dash.
-    const QString name = m_projectPath.isEmpty() ? tr("Untitled") : QFileInfo(m_projectPath).completeBaseName();
-    setWindowTitle(QStringLiteral("%1[*] - %2").arg(name, QGuiApplication::applicationDisplayName()));
+    // The project's own name wins over the file's; with several chapters, the
+    // one open follows it: "Openings* - The Italian - Pragma Chess".
+    const QString fileName = m_projectPath.isEmpty() ? tr("Untitled") : QFileInfo(m_projectPath).completeBaseName();
+    const QString name = m_projectName.isEmpty() ? fileName : m_projectName;
+    if (m_chapters.chapters.size() > 1)
+        setWindowTitle(QStringLiteral("%1[*] - %2 - %3")
+                           .arg(name, m_chapters.chapter().title, QGuiApplication::applicationDisplayName()));
+    else
+        setWindowTitle(QStringLiteral("%1[*] - %2").arg(name, QGuiApplication::applicationDisplayName()));
 }
 
 void MainWindow::updateProjectModified()

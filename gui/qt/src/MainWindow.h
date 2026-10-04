@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/BoardSettings.h"
+#include "app/Chapters.h"
 #include "app/EngineCatalog.h"
 #include "app/EngineEvaluation.h"
 #include "app/online/LichessBoardClient.h"
@@ -152,19 +153,39 @@ private:
 
     // Entering games move by move.
     void newGame();
-    /// Opens `game` as the game being entered, unlinked from the database.
+    /// Opens `game` as the game being entered, unlinked from the database: a
+    /// new game at the end of the chapter (or in place of an empty one).
     void startGame(const GameRecord &game);
     void saveGameToDatabase();
-    /// Game ▸ Set Up Position…: draws a position and starts a game from it,
-    /// after asking what to do with moves on the board not saved yet.
+    /// Game ▸ Set Up Position…: draws a position and starts a game from it.
     void setUpPosition();
-    /// Before the game on the board is replaced: when it has moves not in a
-    /// database, asks to discard them or save them, here or in another
-    /// database. False when the user cancels.
-    bool keepUnsavedGame(const QString &title);
-    /// Saves the game on the board to a database chosen by the user, without
-    /// opening it. False when nothing was saved.
+    /// Game ▸ Save Game to Another Database…: saves the game on the board to
+    /// a database chosen by the user, without opening it. False when nothing
+    /// was saved.
     bool saveGameToAnotherDatabase();
+
+    // Chapters: the project's games one after the other, with text between
+    // their moves (ChapterBook). The session is the chapter's current game.
+    /// The game on the board goes into the chapter as it is now.
+    void syncChapterGame();
+    /// Puts the chapter's current game on the board: from the database when
+    /// it is stored there, else as the chapter keeps it.
+    void loadChapterGame();
+    /// Goes to another game of the chapter, at `ply` of its line `path`.
+    void switchToChapterGame(int game, const QList<int> &path, int ply);
+    /// The database changed: the game on the board is found in it again, by uid.
+    void relinkChapterGame();
+    /// The chapters changed: the project has changes, the moves show them.
+    void chapterChanged();
+    /// A new game, from the starting position, after the game `after`.
+    void insertGameBreak(int after);
+    void newChapter();
+    void switchChapter(int index);
+    void manageChapters();
+    void editProjectSettings();
+    void fillChapterMenu();
+    /// Whether the board may leave its game for another (not while playing online).
+    bool canLeaveGame();
     /// Plays the move the user made on the board, asking for the promotion piece if needed.
     void playBoardMove(int from, int to, const QPoint &globalPosition);
     void updateGameActions();
@@ -364,6 +385,10 @@ private:
 
     std::unique_ptr<GameDatabase> m_database;
     GameSession *m_session;
+    /// The project's chapters; its current game is the one in m_session.
+    ChapterBook m_chapters;
+    /// The project's name (Project Settings), empty for the file's.
+    QString m_projectName;
     GameListModel *m_gameListModel;
     GameFilterProxyModel *m_gameListProxy;
 
@@ -481,6 +506,7 @@ private:
     QAction *m_openProjectAction;
     QAction *m_saveProjectAction;
     QAction *m_saveProjectAsAction;
+    QMenu *m_switchChapterMenu = nullptr;
     QAction *m_syncAction;
     QAction *m_syncNowAction;
     QMenu *m_recentProjectsMenu;
@@ -526,6 +552,7 @@ private:
     QToolButton *m_databaseButton = nullptr;
     QAction *m_trainingModeAction;
     QAction *m_saveGameAction;
+    QAction *m_saveGameElsewhereAction;
     QAction *m_explainAction;
     QAction *m_startEngineAction;
     QAction *m_analysisAction;   // Engine ▸ Analysis: the same switch, one name, a check mark.

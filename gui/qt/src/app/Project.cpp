@@ -1,5 +1,8 @@
 #include "Project.h"
 
+#include "GameVariations.h"
+#include "MoveAnnotation.h"
+
 #include <QFile>
 #include <QFileInfo>
 #include <QSaveFile>
@@ -32,10 +35,95 @@ T valueOf(const YAML::Node &node, T fallback)
     }
 }
 
+/// A game of a chapter: its uid when it is stored, and its content in any
+/// case, so the chapter can be shown without the database.
+void writeGame(YAML::Emitter &out, const ChapterGame &entry)
+{
+    const GameRecord &game = entry.game;
+    out << YAML::BeginMap;
+    const auto text = [&out](const char *key, const QString &value) {
+        if (!value.isEmpty())
+            out << YAML::Key << key << YAML::Value << toStd(value);
+    };
+    text("uid", game.uid);
+    text("white", game.white);
+    text("black", game.black);
+    if (game.whiteElo > 0)
+        out << YAML::Key << "whiteElo" << YAML::Value << game.whiteElo;
+    if (game.blackElo > 0)
+        out << YAML::Key << "blackElo" << YAML::Value << game.blackElo;
+    text("event", game.event);
+    text("site", game.site);
+    text("date", game.date);
+    text("round", game.round);
+    text("result", game.result);
+    text("eco", game.eco);
+    text("fen", game.startFen);
+    QStringList moves;
+    QStringList annotations;
+    for (const MoveRecord &move : game.moves) {
+        moves << move.uci;
+        if (!move.nags.isEmpty())
+            annotations << QStringLiteral("%1:%2").arg(moves.size()).arg(MoveAnnotation::storedSuffix(move.nags));
+    }
+    text("moves", moves.join(QLatin1Char(' ')));
+    text("annotations", annotations.join(QLatin1Char(' ')));
+    text("variations", GameVariations::toText(game.variations));
+    if (!entry.paragraphs.isEmpty()) {
+        out << YAML::Key << "paragraphs" << YAML::Value << YAML::BeginSeq;
+        for (const Paragraph &paragraph : entry.paragraphs) {
+            out << YAML::BeginMap;
+            out << YAML::Key << "ply" << YAML::Value << paragraph.ply;
+            out << YAML::Key << "text" << YAML::Value << YAML::Literal << toStd(paragraph.text);
+            out << YAML::EndMap;
+        }
+        out << YAML::EndSeq;
+    }
+    out << YAML::EndMap;
+}
+
 void setError(QString *errorMessage, const QString &message)
 {
     if (errorMessage)
         *errorMessage = message;
+}
+
+ChapterGame readGame(YAML::Node node)
+{
+    ChapterGame entry;
+    GameRecord &game = entry.game;
+    game.uid = fromNode(node["uid"]);
+    game.white = fromNode(node["white"]);
+    game.black = fromNode(node["black"]);
+    game.whiteElo = valueOf<int>(node["whiteElo"], 0);
+    game.blackElo = valueOf<int>(node["blackElo"], 0);
+    game.event = fromNode(node["event"]);
+    game.site = fromNode(node["site"]);
+    game.date = fromNode(node["date"]);
+    game.round = fromNode(node["round"]);
+    game.result = fromNode(node["result"]);
+    game.eco = fromNode(node["eco"]);
+    game.startFen = fromNode(node["fen"]);
+    for (const QString &uci : fromNode(node["moves"]).split(QLatin1Char(' '), Qt::SkipEmptyParts))
+        game.moves << MoveRecord{QString(), uci, {}}; // SAN is filled in when the game is resolved.
+    for (const QString &annotation : fromNode(node["annotations"]).split(QLatin1Char(' '), Qt::SkipEmptyParts)) {
+        const int ply = annotation.section(QLatin1Char(':'), 0, 0).toInt();
+        if (ply >= 1 && ply <= game.moves.size())
+            MoveAnnotation::split(annotation.section(QLatin1Char(':'), 1), &game.moves[ply - 1].nags);
+    }
+    game.variations = GameVariations::fromText(fromNode(node["variations"]));
+    game.plyCount = int(game.moves.size());
+    YAML::Node paragraphs = node["paragraphs"];
+    if (paragraphs.IsSequence()) {
+        for (YAML::Node paragraph : paragraphs) {
+            QString text = fromNode(paragraph["text"]);
+            while (text.endsWith(QLatin1Char('\n'))) // The literal block's own line end.
+                text.chop(1);
+            if (!text.trimmed().isEmpty())
+                entry.paragraphs << Paragraph{qMax(0, valueOf<int>(paragraph["ply"], 0)), text};
+        }
+    }
+    return entry;
 }
 
 } // namespace
@@ -54,6 +142,8 @@ QString Project::toYaml(const QDir &baseDir) const
     out << YAML::Comment("Pragma Chess project");
     out << YAML::BeginMap;
     out << YAML::Key << "pragma-chess" << YAML::Value << formatVersion;
+    if (!name.isEmpty())
+        out << YAML::Key << "name" << YAML::Value << toStd(name);
 
     out << YAML::Key << "database" << YAML::Value << YAML::BeginMap;
     out << YAML::Key << "path" << YAML::Value;
@@ -63,18 +153,22 @@ QString Project::toYaml(const QDir &baseDir) const
         out << toStd(database);
     out << YAML::EndMap;
 
-    out << YAML::Key << "game" << YAML::Value << YAML::BeginMap;
-    if (gameId >= 0)
-        out << YAML::Key << "id" << YAML::Value << static_cast<long long>(gameId);
-    else if (!startFen.isEmpty())
-        out << YAML::Key << "fen" << YAML::Value << toStd(startFen);
-    if (gameId < 0 && !moves.isEmpty())
-        out << YAML::Key << "moves" << YAML::Value << toStd(moves.join(QLatin1Char(' ')));
-    if (gameId < 0 && !moves.isEmpty() && !annotations.isEmpty())
-        out << YAML::Key << "annotations" << YAML::Value << toStd(annotations.join(QLatin1Char(' ')));
-    if (gameId < 0 && !variations.isEmpty())
-        out << YAML::Key << "variations" << YAML::Value << toStd(variations);
-    out << YAML::Key << "ply" << YAML::Value << ply;
+    // The chapters: each a list of games with the paragraphs between their moves.
+    out << YAML::Key << "chapters" << YAML::Value << YAML::BeginMap;
+    out << YAML::Key << "current" << YAML::Value << chapter;
+    out << YAML::Key << "list" << YAML::Value << YAML::BeginSeq;
+    for (const Chapter &entry : chapters) {
+        out << YAML::BeginMap;
+        out << YAML::Key << "title" << YAML::Value << toStd(entry.title);
+        out << YAML::Key << "game" << YAML::Value << entry.currentGame;
+        out << YAML::Key << "ply" << YAML::Value << entry.ply;
+        out << YAML::Key << "games" << YAML::Value << YAML::BeginSeq;
+        for (const ChapterGame &game : entry.games)
+            writeGame(out, game);
+        out << YAML::EndSeq;
+        out << YAML::EndMap;
+    }
+    out << YAML::EndSeq;
     out << YAML::EndMap;
 
     out << YAML::Key << "board" << YAML::Value << YAML::BeginMap;
@@ -139,9 +233,29 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     }
 
     Project env;
+    env.name = fromNode(root["name"]).trimmed();
     const QString database = fromNode(root["database"]["path"]);
     if (!database.isEmpty())
         env.databasePath = QDir::cleanPath(baseDir.absoluteFilePath(database));
+
+    YAML::Node chapters = root["chapters"];
+    if (chapters.IsMap() && chapters["list"].IsSequence()) {
+        for (YAML::Node node : chapters["list"]) {
+            Chapter entry;
+            entry.title = fromNode(node["title"]);
+            entry.games.clear();
+            if (node["games"].IsSequence()) {
+                for (YAML::Node game : node["games"])
+                    entry.games << readGame(game);
+            }
+            if (entry.games.isEmpty())
+                entry.games << ChapterGame();
+            entry.currentGame = qBound(0, valueOf<int>(node["game"], 0), int(entry.games.size()) - 1);
+            entry.ply = qMax(0, valueOf<int>(node["ply"], 0));
+            env.chapters << entry;
+        }
+        env.chapter = env.chapters.isEmpty() ? 0 : qBound(0, valueOf<int>(chapters["current"], 0), int(env.chapters.size()) - 1);
+    }
 
     const YAML::Node game = root["game"];
     env.gameId = valueOf<long long>(game["id"], -1);

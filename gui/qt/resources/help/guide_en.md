@@ -70,11 +70,11 @@ Move a piece by dragging it, or by clicking it and then its square. A pawn reach
 - **Options ▸ Board Settings…** chooses where the captured pieces are shown and whether to show whose turn it is.
 - When the position on the board is **checkmate**, the border of the board turns red.
 
-**Game ▸ New Game** (Ctrl+Shift+N) starts a game to enter move by move. **Game ▸ Save Game to Database** stores it in the open database.
+**Game ▸ New Game** (Ctrl+Shift+N) starts a game to enter move by move. **Game ▸ Save Game to Database** stores it in the open database; **Game ▸ Save Game to Another Database…** stores it in a database you choose, which is not opened.
 
 Play a move that is not the next one of the game and it becomes a **variation**: the game keeps its line, and the new one appears in the Moves panel under the move it replaces. A game stored in the database is saved at once, variations included.
 
-**Game ▸ Set Up Position…** opens a board to draw a position on: choose a piece on the right and click the squares to put it down (a click on the same piece takes it off), drag a piece to move it anywhere on the board (let go off the board, it goes back), right-click a square to empty it. Set the side to move, castling, en passant and the move number, or type a FEN; **Starting Position**, **Clear Board** and **Flip Board** help. OK is enabled only for a position a game can start from, and the text below the board says what is wrong. The position replaces the game on the board: if that game has moves not saved in a database, you are asked to **Discard** them, save them to the open database, or **Save to Another Database…** (the open one stays open). An online game in progress is kept or resigned first.
+**Game ▸ Set Up Position…** opens a board to draw a position on: choose a piece on the right and click the squares to put it down (a click on the same piece takes it off), drag a piece to move it anywhere on the board (let go off the board, it goes back), right-click a square to empty it. Set the side to move, castling, en passant and the move number, or type a FEN; **Starting Position**, **Clear Board** and **Flip Board** help. OK is enabled only for a position a game can start from, and the text below the board says what is wrong. The position starts a new game at the end of the chapter, so the game you were on stays as it is. An online game in progress is kept or resigned first.
 
 **Edit ▸ Copy** puts on the clipboard the moves, the game as PGN, the position as FEN (Ctrl+Shift+C), the engine line or the explanation. **Edit ▸ Paste** takes what is on the clipboard: **Paste FEN** (Ctrl+Shift+V) sets up the position, **Paste Line** starts a new game with the moves (PGN, moves with or without numbers, or UCI), and **Paste Line from Current Position** (Ctrl+Alt+V) plays the moves from the position on the board, as if you played them: at the end of the game they are added, elsewhere they become a variation.
 
@@ -201,7 +201,7 @@ Deleting does not shrink the file yet. **Database ▸ Database Settings… ▸ O
 
 # Projects {#projects}
 
-A project is what you are looking at: the database, the game and the move, the side the board is seen from, the engine, the panels and whether you are training. The title bar shows its name, with an asterisk when it has changes not saved.
+A project is what you are looking at: the database, the game and the move, the side the board is seen from, the engine, the panels and whether you are training. The title bar shows its name — the file's, or the one given in **File ▸ Project Settings…** — with an asterisk when it has changes not saved, and the chapter open when there are several: *Openings* - The Italian - Pragma Chess*.
 
 - **File ▸ New Project** keeps what you see — database, engine, panels — and starts a new, empty game, with White below.
 - **File ▸ Open Project…** and **File ▸ Open Recent Project** open a `.pch` file.
@@ -210,6 +210,19 @@ A project is what you are looking at: the database, the game and the move, the s
 You do not have to save: Pragma Chess reopens as you closed it.
 
 Panels can be resized and closed; the **View** menu (Moves, Opening Tree, Engine, Games List) shows them again, and **View ▸ Reset Panel Layout** puts them back where they start.
+
+# Chapters and paragraphs {#chapters}
+
+A project is a collection of **chapters**, as a study or a chess book is, and a chapter holds games one after the other, with text between their moves. The move list shows the whole chapter: each game under its title (*Game 2 · White – Black*), its numbering starting again; click a move of another game and the board goes there.
+
+Right-click the move list — on a move, on a paragraph, or anywhere, even with no moves — for:
+
+- **Insert Paragraph**: a paragraph after the move (or where the board is), written right there in the move list. Write as in a book: each new line starts a new paragraph, indented. **Esc**, **Ctrl+Enter** or a click elsewhere ends; a paragraph left empty goes away. Click a paragraph to write in it again; **Edit Paragraph** and **Delete Paragraph** are on its menu. Paragraphs go on the main line.
+- **Insert Game Break**: a new game after this one, from the starting position; its numbering starts from 1 again.
+
+New Game, New Training, Set Up Position, the pastes and online games all add their game at the end of the chapter, and so does a game opened from the games list (one the chapter has already is simply shown). Games stored in a database are saved there as they change; the others, and every paragraph, are saved with the project.
+
+The **File** menu has the chapters: **New Chapter…**, **Switch Chapter** to choose the one open, and **Manage Chapters…** to reorder (drag, or Move Up and Move Down), rename, add and delete them. **Project Settings…** gives the project a name of its own.
 
 # Sync {#sync}
 

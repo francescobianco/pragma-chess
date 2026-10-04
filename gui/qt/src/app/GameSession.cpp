@@ -11,9 +11,9 @@ GameSession::GameSession(QObject *parent)
     m_positions << ChessPosition::startingPosition();
 }
 
-void GameSession::setGame(const GameRecord &game)
+GameRecord GameSession::resolved(const GameRecord &game)
 {
-    m_game = game;
+    GameRecord result = game;
     const std::optional<ChessPosition> start = game.startFen.isEmpty() ? ChessPosition::startingPosition()
                                                                         : ChessPosition::fromFen(game.startFen);
     const ChessPosition initial = start.value_or(ChessPosition::startingPosition());
@@ -22,7 +22,7 @@ void GameSession::setGame(const GameRecord &game)
     // resolved from the positions it goes through.
     ChessPosition position = initial;
     qsizetype legal = 0;
-    for (MoveRecord &record : m_game.moves) {
+    for (MoveRecord &record : result.moves) {
         std::optional<ChessMove> move = position.moveFromUci(record.uci);
         if (!move && !record.san.isEmpty())
             move = position.moveFromSan(record.san);
@@ -33,10 +33,15 @@ void GameSession::setGame(const GameRecord &game)
         position.play(*move);
         ++legal;
     }
-    m_game.moves.resize(legal);
-    m_game.plyCount = int(legal);
-    GameVariations::resolve(m_game, initial);
+    result.moves.resize(legal);
+    result.plyCount = int(legal);
+    GameVariations::resolve(result, initial);
+    return result;
+}
 
+void GameSession::setGame(const GameRecord &game)
+{
+    m_game = resolved(game);
     followLine({});
     m_ply = 0;
     Q_EMIT gameChanged();

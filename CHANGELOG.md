@@ -8,6 +8,21 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Chapters: a project is now a collection of chapters, as a study or a
+  chess book, and a chapter holds games one after the other. The move list
+  shows the whole chapter, each game under its title with its numbering
+  starting again. File ▸ New Chapter…, Switch Chapter and Manage
+  Chapters… (reorder, rename, add, delete).
+- Paragraphs between the moves: right-click the move list ▸ Insert
+  Paragraph and write right there, set as in a book (its own face, each
+  paragraph indented). Insert Game Break starts a new game in the chapter.
+- New games, set-up positions, pastes, training and online games, and
+  games opened from the list, are added to the chapter instead of
+  replacing the game on the board.
+- File ▸ Project Settings…: a name for the project, shown in the title bar
+  (with the chapter, when there are several).
+- Game ▸ Save Game to Another Database… saves the game without opening
+  that database.
 - Options ▸ Personal Settings…: your name, year of birth and FIDE ID. Your
   name goes on your side of new games, set-up positions and training games
   (a player marked as Me in the open database still wins). They are kept in

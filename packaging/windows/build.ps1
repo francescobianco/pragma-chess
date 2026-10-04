@@ -37,24 +37,11 @@ Invoke-Checked cmake $configure
 Invoke-Checked cmake @("--build", $Build)
 if ($env:SKIP_TESTS -ne "1") {
     $env:QT_QPA_PLATFORM = "offscreen"
-    # Folder Sync with a Git folder fails on Windows ("Access is denied"; see
-    # TODO.md): those tests run apart, their output shown, without stopping
-    # the package, until it is fixed.
-    $gitSyncTests = @("reconcilesGitFoldersWithoutDeleting", "mergesDuplicatesAcrossGitDevices",
-        "deletesDatabasesAcrossGitDevices")
-    $functions = & "$Build\gui\qt\tst_chessrules.exe" -functions |
-        ForEach-Object { $_ -replace '\(\)$', '' } |
-        Where-Object { $_ -and $gitSyncTests -notcontains $_ }
     $log = "$Build\tests.txt"
-    & "$Build\gui\qt\tst_chessrules.exe" -o "$log,txt" @functions
+    & "$Build\gui\qt\tst_chessrules.exe" -o "$log,txt"
     $code = $LASTEXITCODE
     if (Test-Path $log) { Get-Content $log | Out-Host }
     if ($code -ne 0) { throw "tests failed with exit code $code" }
-    $gitLog = "$Build\tests-git.txt"
-    & "$Build\gui\qt\tst_chessrules.exe" -o "$gitLog,txt" @gitSyncTests
-    $gitCode = $LASTEXITCODE
-    if (Test-Path $gitLog) { Get-Content $gitLog | Out-Host }
-    if ($gitCode -ne 0) { Write-Warning "Git folder sync tests failed on Windows (exit code $gitCode): not blocking the package" }
     Remove-Item Env:QT_QPA_PLATFORM
 }
 

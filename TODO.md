@@ -46,20 +46,14 @@ Fatto (vedi `packaging/README.md`, "Bundled engine" e "Packages that start"):
 
 Da fare:
 
-1. ~~Il job Windows si ferma ai test~~ (4 ottobre, sera): i tre test della
-   sync Git (`reconcilesGitFoldersWithoutDeleting`,
-   `mergesDuplicatesAcrossGitDevices`, `deletesDatabasesAcrossGitDevices`)
-   girano a parte in `build.ps1`, con l'output nel log, e **non bloccano** il
-   pacchetto. Run 37216697952: il job `windows` è **passato** (verifica DLL e
-   avvio da pacchetto compresi), i tre test falliscono ancora con
-   `Could not write ".pragma-chess.sync": Access is denied.` — è la
-   scrittura del manifest nel clone (`GitStore::write`), sempre, non a
-   intermittenza: i 2 s di tentativi non bastano. Ora, dopo i tentativi,
-   su Windows il vecchio file viene rimosso e il nuovo scritto al suo posto
-   (`saveReplacing`): verificare nel log del prossimo run. Se passa,
-   rimettere i tre test fra quelli che bloccano; se no, indagare (attributo
-   nascosto o sola lettura sul file nel clone? un handle rimasto aperto?).
-2. Rilanciare il workflow a mano (Actions ▸ Release ▸ Run workflow, o
+1. ~~Il job Windows si ferma ai test~~ — **fatto** (4 ottobre, sera). La
+   sync Git falliva su Windows perché sostituire `.pragma-chess.sync` nel
+   clone con `QSaveFile` era sempre rifiutato ("Access is denied"): ora,
+   dopo qualche tentativo, `GitStore::saveReplacing` rimuove il vecchio file
+   e scrive il nuovo al suo posto. Run 37218265901: tutti i test passano su
+   Windows, Git compresi, e sono di nuovo tutti bloccanti in `build.ps1`; la
+   verifica delle DLL e l'avvio da pacchetto passano.
+2. ~~Rilanciare il workflow a mano~~ (fatto: il job `windows` passa). Rilanciare il workflow a mano (Actions ▸ Release ▸ Run workflow, o
    `gh workflow run release.yml --ref main`) finché il job `windows` passa.
    Il codice PowerShell nuovo di `build.ps1` non è mai girato (non c'è
    `pwsh` sulla macchina di sviluppo): aspettarsi qualche errore da

@@ -18,7 +18,7 @@ NewGameChoiceDialog::NewGameChoiceDialog(Choice preselected, bool remembered, QW
     layout->addWidget(label);
 
     m_online = new QRadioButton(tr("Play a new game &online"), this);
-    m_online->setToolTip(tr("As Play Online in the toolbar"));
+    m_online->setToolTip(tr("As New Online Game in the toolbar"));
     m_analysis = new QRadioButton(tr("&Analyse a new game"), this);
     layout->addWidget(m_online);
     layout->addWidget(m_analysis);

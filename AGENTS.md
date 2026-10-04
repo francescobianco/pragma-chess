@@ -172,7 +172,7 @@ modal, so it stays open while the user tries things.
 
 `MainWindow::createToolBar`: Sync Now on its own, then the saving section
 (Save Project, the floppy; more will come), then New Game, New Training
-and Play Online (the board-sized square with a globe, `pragma-online`;
+and New Online Game (the board-sized square with a globe, `pragma-online`;
 like New Training it skips the dialog once "Remember for this session" was
 ticked, `m_rememberedOnline`, while the menu always asks), then the three
 resources in use — book, engine, database
@@ -828,7 +828,7 @@ while the menu entry and its shortcut always ask. Everything lives in `MainWindo
 
 ## Online play
 
-Game ▸ Play Online… (`dialogs/PlayOnlineDialog`) plays against a person on
+Game ▸ New Online Game… (`dialogs/PlayOnlineDialog`) plays against a person on
 a platform; lichess.org for now, through its Board API, more to come.
 
 - **Connections are the user's, per computer**, never the project's: a
@@ -857,8 +857,8 @@ a platform; lichess.org for now, through its Board API, more to come.
   slide of the engine's, a refused move is taken back by rebuilding the
   game). The end (`onlineGameFinished`) writes the result and saves the game
   to the open database with players, ratings, "lichess.org rated/casual
-  game" and the game's URL as site. Play Online…, New Game and New Training… stay enabled while it is on (New Game first asks, in `NewGameChoiceDialog`: a
-  new online game, as the toolbar's Play Online, or one to analyse; "Remember
+  game" and the game's URL as site. New Online Game…, New Game and New Training… stay enabled while it is on (New Game first asks, in `NewGameChoiceDialog`: a
+  new online game, as the toolbar's New Online Game, or one to analyse; "Remember
   for this session" keeps the choice in `m_rememberedNewGame`, never saved): they go through
   `leaveOnlineThen`, which asks to Keep Playing or Resign the game in
   progress (a search is just cancelled) and starts the new game only once

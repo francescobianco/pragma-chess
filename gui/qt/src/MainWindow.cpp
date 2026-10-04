@@ -726,7 +726,7 @@ void MainWindow::createActions()
     m_quickTrainingAction->setToolTip(m_newTrainingAction->toolTip());
     connect(m_quickTrainingAction, &QAction::triggered, this, [this] { newTraining(false); });
 
-    m_playOnlineAction = new QAction(themeIcon("pragma-online", QStyle::SP_ComputerIcon), tr("Play &Online…"), this);
+    m_playOnlineAction = new QAction(themeIcon("pragma-online", QStyle::SP_ComputerIcon), tr("New &Online Game…"), this);
     m_playOnlineAction->setToolTip(tr("Play a game against a person on lichess.org, with one of your accounts"));
     connect(m_playOnlineAction, &QAction::triggered, this, [this] { playOnline(true); });
     // The toolbar's button skips the question once an answer was remembered.
@@ -2767,7 +2767,7 @@ void MainWindow::updateExplainer()
 void MainWindow::newGame()
 {
     // While playing online "new game" may mean either: a new online game (as
-    // the toolbar's Play Online) or one to analyse. Either way the game in
+    // the toolbar's New Online Game) or one to analyse. Either way the game in
     // progress is kept or resigned first.
     if (m_onlinePlay) {
         using Choice = NewGameChoiceDialog::Choice;

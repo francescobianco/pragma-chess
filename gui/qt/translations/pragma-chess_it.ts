@@ -2087,8 +2087,8 @@ non è su questo computer.</translation>
         <translation>&amp;Lista partite</translation>
     </message>
     <message>
-        <source>Play &amp;Online…</source>
-        <translation>Gioca &amp;online…</translation>
+        <source>New &amp;Online Game…</source>
+        <translation>Nuova partita &amp;online…</translation>
     </message>
     <message>
         <source>Play a game against a person on lichess.org, with one of your accounts</source>
@@ -2841,8 +2841,8 @@ Le %n partite già importate restano nel database.</numerusform>
         <translation>Gioca una nuova partita &amp;online</translation>
     </message>
     <message>
-        <source>As Play Online in the toolbar</source>
-        <translation>Come Gioca online nella barra degli strumenti</translation>
+        <source>As New Online Game in the toolbar</source>
+        <translation>Come Nuova partita online nella barra degli strumenti</translation>
     </message>
     <message>
         <source>&amp;Analyse a new game</source>

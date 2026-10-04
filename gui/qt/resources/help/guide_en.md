@@ -9,7 +9,7 @@ The window has the **board** in the middle and four panels around it:
 - **Opening Tree**: the moves of the opening book for the position on the board.
 - **Engine**: the evaluation, the best line and the opening the game is in.
 
-The **toolbar** has Sync Now, Save Project, New Game, New Training, Play Online and three icons to choose the opening book, the engine and the database in use.
+The **toolbar** has Sync Now, Save Project, New Game, New Training, New Online Game and three icons to choose the opening book, the engine and the database in use.
 
 Everything you see — database, game, move, panels — is a **project**: it comes back as you left it the next time you start Pragma Chess.
 
@@ -138,15 +138,15 @@ Tick **Remember for this session** in the New Training window and the toolbar bu
 
 # Playing online {#online}
 
-**Game ▸ Play Online…** plays a game against a person on lichess.org (more platforms will follow).
+**Game ▸ New Online Game…** plays a game against a person on lichess.org (more platforms will follow).
 
 The window lists the **platforms you are connected to**, each with the account you play as. **Connect Platform…** asks which kind of platform, opens its own sign-in page in your browser and brings the connection here; **Disconnect** removes one. Connections are yours on this computer, kept with your settings, never in a project. Choose the connection, the **clock** (minutes and increment), the colour and whether the game is **rated**, then **Find an Opponent**.
 
 While Pragma Chess looks for an opponent and while you play, it is **online play mode**, checked in **Engine ▸ Online Play Mode** (choosing it starts or stops playing online): the engine, Explain, Training Mode and the Opening Tree are off and cannot be turned on — it is you against your opponent. The Engine panel shows the names, the ratings, the clocks and whose move it is. Your moves go to the platform as you make them; your opponent's slide onto the board. Only the live position can be played: you may look back at earlier moves, and come back to the end to move. If Pragma Chess is closed during a game, it reconnects to it at the next start and the game goes on where it is (the clock kept running on the platform); a game that ended meanwhile is saved with its result. You can switch database while you play: the game stays on the board and, when it ends, is saved to the database open then.
 
-Tick **Remember for this session** and the toolbar's Play Online button looks for an opponent with the same choices without asking; the menu always asks.
+Tick **Remember for this session** and the toolbar's New Online Game button looks for an opponent with the same choices without asking; the menu always asks.
 
-**Game ▸ Play Online…** during a game starts a new online game, **Game ▸ New Game** asks whether you want a new online game (as Play Online in the toolbar) or a new game to analyse — with **Remember for this session** it does not ask again until Pragma Chess is closed —, and **Game ▸ New Training…** a game against the engine; each asks first whether to **keep playing** the current game or **resign** it (while still looking for an opponent, the search just stops). Choosing **Engine ▸ Online Play Mode** while it is on stops the search, or resigns the game after asking. When the game ends — checkmate, resignation, time, draw — the result is written and the game is saved in the open database, with the players, their ratings and a link to the game.
+**Game ▸ New Online Game…** during a game starts a new online game, **Game ▸ New Game** asks whether you want a new online game (as New Online Game in the toolbar) or a new game to analyse — with **Remember for this session** it does not ask again until Pragma Chess is closed —, and **Game ▸ New Training…** a game against the engine; each asks first whether to **keep playing** the current game or **resign** it (while still looking for an opponent, the search just stops). Choosing **Engine ▸ Online Play Mode** while it is on stops the search, or resigns the game after asking. When the game ends — checkmate, resignation, time, draw — the result is written and the game is saved in the open database, with the players, their ratings and a link to the game.
 
 # Opening books {#books}
 

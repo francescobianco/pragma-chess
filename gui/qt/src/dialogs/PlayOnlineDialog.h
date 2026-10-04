@@ -29,7 +29,7 @@ public:
     /// The account chosen, once accepted.
     OnlineAccount account() const;
     LichessBoardClient::Seek seek() const;
-    /// "Remember for this session": the toolbar's Play Online then looks for
+    /// "Remember for this session": the toolbar's New Online Game then looks for
     /// an opponent with these choices without asking, until the application
     /// is closed.
     bool remember() const;

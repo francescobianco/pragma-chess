@@ -1043,6 +1043,22 @@ Il Nero ha catturato: %2</translation>
         <source>Git could not remove %1</source>
         <translation>Git non è riuscito a rimuovere %1</translation>
     </message>
+    <message>
+        <source>Could not read “%1”: %2</source>
+        <translation>Impossibile leggere “%1”: %2</translation>
+    </message>
+    <message>
+        <source>Could not write “%1”: %2</source>
+        <translation>Impossibile scrivere “%1”: %2</translation>
+    </message>
+    <message>
+        <source>Could not receive “%1”: %2</source>
+        <translation>Impossibile ricevere “%1”: %2</translation>
+    </message>
+    <message>
+        <source>Could not send “%1”: %2</source>
+        <translation>Impossibile inviare “%1”: %2</translation>
+    </message>
 </context>
 <context>
     <name>HelpDialog</name>

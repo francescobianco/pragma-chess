@@ -10,6 +10,9 @@
 #include <QProcess>
 #include <QSaveFile>
 #include <QStandardPaths>
+#include <QThread>
+
+#include <functional>
 
 namespace {
 
@@ -25,6 +28,28 @@ QProcessEnvironment quietEnvironment()
     return environment;
 }
 
+/// Writes `to` through a QSaveFile. On Windows a file that was just written
+/// can be held for a moment (an antivirus, the indexer), and replacing it is
+/// then refused: it is tried again for a short while before giving up.
+bool saveReplacing(const QString &to, const std::function<bool(QSaveFile &)> &fill, QString *error)
+{
+    QDir().mkpath(QFileInfo(to).absolutePath());
+#ifdef Q_OS_WIN
+    constexpr int kAttempts = 20;
+#else
+    constexpr int kAttempts = 1;
+#endif
+    for (int attempt = 1;; ++attempt) {
+        QSaveFile target(to);
+        if (target.open(QIODevice::WriteOnly) && fill(target) && target.commit())
+            return true;
+        *error = target.errorString();
+        if (attempt >= kAttempts)
+            return false;
+        QThread::msleep(100);
+    }
+}
+
 bool copyReplacing(const QString &from, const QString &to, QString *error)
 {
     QFile source(from);
@@ -32,19 +57,15 @@ bool copyReplacing(const QString &from, const QString &to, QString *error)
         *error = source.errorString();
         return false;
     }
-    QDir().mkpath(QFileInfo(to).absolutePath());
-    QSaveFile target(to);
-    if (!target.open(QIODevice::WriteOnly)) {
-        *error = target.errorString();
-        return false;
-    }
-    while (!source.atEnd())
-        target.write(source.read(1 << 20));
-    if (!target.commit()) {
-        *error = target.errorString();
-        return false;
-    }
-    return true;
+    return saveReplacing(to, [&source](QSaveFile &target) {
+        source.seek(0);
+        while (!source.atEnd()) {
+            const QByteArray chunk = source.read(1 << 20);
+            if (target.write(chunk) != chunk.size())
+                return false;
+        }
+        return true;
+    }, error);
 }
 
 } // namespace
@@ -286,7 +307,7 @@ void GitStore::read(const QString &path, Callback done)
         return;
     }
     if (!file.open(QIODevice::ReadOnly)) {
-        done(failure(file.errorString()));
+        done(failure(tr("Could not read “%1”: %2").arg(path, file.errorString())));
         return;
     }
     done(success(file.readAll()));
@@ -294,14 +315,9 @@ void GitStore::read(const QString &path, Callback done)
 
 void GitStore::write(const QString &path, const QByteArray &data, Callback done)
 {
-    QDir().mkpath(QFileInfo(filePath(path)).absolutePath());
-    QSaveFile file(filePath(path));
-    if (!file.open(QIODevice::WriteOnly)) {
-        done(failure(file.errorString()));
-        return;
-    }
-    file.write(data);
-    done(file.commit() ? success() : failure(file.errorString()));
+    QString error;
+    const bool written = saveReplacing(filePath(path), [&data](QSaveFile &file) { return file.write(data) == data.size(); }, &error);
+    done(written ? success() : failure(tr("Could not write “%1”: %2").arg(path, error)));
 }
 
 void GitStore::download(const QString &path, const QString &localFile, Callback done)
@@ -313,13 +329,15 @@ void GitStore::download(const QString &path, const QString &localFile, Callback 
         return;
     }
     QString error;
-    done(copyReplacing(filePath(path), localFile, &error) ? success() : failure(error));
+    done(copyReplacing(filePath(path), localFile, &error) ? success()
+                                                          : failure(tr("Could not receive “%1”: %2").arg(path, error)));
 }
 
 void GitStore::upload(const QString &localFile, const QString &path, Callback done)
 {
     QString error;
-    done(copyReplacing(localFile, filePath(path), &error) ? success() : failure(error));
+    done(copyReplacing(localFile, filePath(path), &error) ? success()
+                                                          : failure(tr("Could not send “%1”: %2").arg(path, error)));
 }
 
 QStringList GitStore::listFiles() const

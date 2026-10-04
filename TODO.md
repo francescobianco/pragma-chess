@@ -46,14 +46,17 @@ Fatto (vedi `packaging/README.md`, "Bundled engine" e "Packages that start"):
 
 Da fare:
 
-1. Il job Windows si ferma ancora ai test, prima del packaging, quindi **la
-   verifica delle DLL e l'avvio da pacchetto non sono mai stati eseguiti su
-   Windows**. Fallisce `deletesDatabasesAcrossGitDevices` ("Access is
-   denied", run 37215734260): è lo stesso problema della sync Git su
-   Windows per cui `build.ps1` salta già `reconcilesGitFoldersWithoutDeleting`
-   e `mergesDuplicatesAcrossGitDevices` (`$knownFailures`). Correggere il
-   bug (meglio: probabilmente file del clone ancora aperti o in sola
-   lettura quando git li sostituisce) o aggiungerlo a `$knownFailures`.
+1. ~~Il job Windows si ferma ai test~~ (4 ottobre, sera): i tre test della
+   sync Git (`reconcilesGitFoldersWithoutDeleting`,
+   `mergesDuplicatesAcrossGitDevices`, `deletesDatabasesAcrossGitDevices`)
+   girano a parte in `build.ps1`, con l'output nel log, e **non bloccano** il
+   pacchetto. "Access is denied" veniva da `GitStore` (l'unico che passa un
+   `errorString()` grezzo: la copia clone ↔ cartella locale o la scrittura
+   del manifest, cioè un replace di `QSaveFile`): ora su Windows il replace
+   è ritentato per 2 s (antivirus/indicizzatore che tengono il file appena
+   scritto) e l'errore dice operazione e file. Da fare: guardare nel log del
+   job se i tre test passano; se no, il messaggio dice dove, correggere e
+   rimetterli fra i test che bloccano.
 2. Rilanciare il workflow a mano (Actions ▸ Release ▸ Run workflow, o
    `gh workflow run release.yml --ref main`) finché il job `windows` passa.
    Il codice PowerShell nuovo di `build.ps1` non è mai girato (non c'è

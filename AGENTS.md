@@ -857,7 +857,10 @@ a platform; lichess.org for now, through its Board API, more to come.
   slide of the engine's, a refused move is taken back by rebuilding the
   game). The end (`onlineGameFinished`) writes the result and saves the game
   to the open database with players, ratings, "lichess.org rated/casual
-  game" and the game's URL as site. The flag is not part of the project.
+  game" and the game's URL as site. The flag is not part of the project. Opening another database while it is
+  on (`keepOnlineGame`: Switch Database, New Database, the sync opening the
+  file again) leaves the game on the board; it is saved to the database open
+  when it ends.
 
 ## Web site
 

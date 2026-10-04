@@ -231,6 +231,8 @@ private:
     void newDatabase();
     void openDatabase();
     bool openDatabaseFile(const QString &path);
+    /// While playing online, the game stays on the board after another database is opened.
+    bool keepOnlineGame();
     void openInitialDatabase(const QString &preferredPath);
     void saveDatabase();
     void saveDatabaseAs();

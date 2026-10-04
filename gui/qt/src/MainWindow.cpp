@@ -342,6 +342,11 @@ MainWindow::MainWindow(QWidget *parent)
             openInitialDatabase(QString());
             return;
         }
+        if (m_onlinePlay) {
+            // The online game goes on: only the database is opened again.
+            openDatabaseFile(reopen);
+            return;
+        }
         Project project = captureProject();
         project.databasePath = reopen;
         project.gameId = m_reopenGameId;
@@ -1778,8 +1783,10 @@ void MainWindow::newDatabase()
             return;
         }
         setDatabase(std::move(database));
-        m_session->setGame(GameRecord());
-        statusBar()->showMessage(tr("Created %1").arg(QDir::toNativeSeparators(path)), 5000);
+        if (!keepOnlineGame()) {
+            m_session->setGame(GameRecord());
+            statusBar()->showMessage(tr("Created %1").arg(QDir::toNativeSeparators(path)), 5000);
+        }
         return;
     }
 }
@@ -1792,6 +1799,18 @@ void MainWindow::openDatabase()
         tr("Pragma Chess databases (*.pdb);;All files (*)"));
     if (!path.isEmpty())
         openDatabaseFile(path);
+}
+
+bool MainWindow::keepOnlineGame()
+{
+    // A game being played online stays on the board whatever database is
+    // open: it is saved, when it ends, to the one open then.
+    if (!m_onlinePlay)
+        return false;
+    statusBar()->showMessage(tr("The online game goes on; when it ends it is saved to “%1”.")
+                                 .arg(m_database ? m_database->name() : QString()),
+                             8000);
+    return true;
 }
 
 bool MainWindow::openDatabaseFile(const QString &path)
@@ -1807,6 +1826,8 @@ bool MainWindow::openDatabaseFile(const QString &path)
         return false;
     }
     setDatabase(std::move(database));
+    if (keepOnlineGame())
+        return true;
     if (m_gameListProxy->rowCount() > 0)
         openGame(m_gameListProxy->index(0, 0));
     else

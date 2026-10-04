@@ -2265,6 +2265,10 @@ non è su questo computer.</translation>
         <source>Play against a person on a platform: the engine and Explain stay off</source>
         <translation>Gioca contro una persona su una piattaforma: motore e Spiega restano spenti</translation>
     </message>
+    <message>
+        <source>The online game goes on; when it ends it is saved to “%1”.</source>
+        <translation>La partita online continua; quando finisce viene salvata in “%1”.</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>

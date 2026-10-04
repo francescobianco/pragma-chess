@@ -58,13 +58,13 @@ ConnectMobileDialog::ConnectMobileDialog(PhoneLink *link, QWidget *parent)
     , m_code(new QLabel)
     , m_linkText(new QLineEdit)
     , m_devices(new QTreeWidget)
-    , m_noDevices(new QLabel(tr("No phone is connected yet.")))
+    , m_noDevices(new QLabel(tr("No device is connected yet.")))
     , m_status(new QLabel)
 {
     setWindowTitle(tr("Connect Mobile App"));
 
-    auto *intro = new QLabel(tr("Scan this code with Pragma Chess on your phone. It copies your databases to "
-                                "the phone, and the games you play there come back to this computer."));
+    auto *intro = new QLabel(tr("Scan this code with Pragma Chess on your phone or tablet. It copies your databases "
+                                "to the device, and the games you play there come back to this computer."));
     intro->setWordWrap(true);
 
     m_code->setAlignment(Qt::AlignCenter);
@@ -78,7 +78,7 @@ ConnectMobileDialog::ConnectMobileDialog(PhoneLink *link, QWidget *parent)
     linkRow->addWidget(m_linkText, 1);
     linkRow->addWidget(copy);
 
-    auto *devicesTitle = new QLabel(tr("Connected phones"));
+    auto *devicesTitle = new QLabel(tr("Connected devices"));
     QFont bold = devicesTitle->font();
     bold.setBold(true);
     devicesTitle->setFont(bold);
@@ -149,7 +149,7 @@ void ConnectMobileDialog::updateDevices()
                                                      device.lastSyncAt.isValid() ? when(device.lastSyncAt)
                                                                                  : tr("Never")});
         auto *disconnect = new QPushButton(tr("Disconnect"));
-        disconnect->setToolTip(tr("Forget this phone: it can no longer copy the databases"));
+        disconnect->setToolTip(tr("Forget this device: it can no longer copy the databases"));
         const QString key = device.key;
         connect(disconnect, &QPushButton::clicked, this, [this, key] {
             // After the click has been handled: this removes the button.

@@ -343,16 +343,16 @@ Il Nero ha catturato: %2</translation>
 <context>
     <name>ConnectMobileDialog</name>
     <message>
-        <source>No phone is connected yet.</source>
-        <translation>Nessun telefono è ancora connesso.</translation>
+        <source>No device is connected yet.</source>
+        <translation>Nessun dispositivo è ancora connesso.</translation>
     </message>
     <message>
         <source>Connect Mobile App</source>
         <translation>Collega app mobile</translation>
     </message>
     <message>
-        <source>Scan this code with Pragma Chess on your phone. It copies your databases to the phone, and the games you play there come back to this computer.</source>
-        <translation>Inquadra questo codice con Pragma Chess sul telefono. L&apos;app copia i tuoi database sul telefono e le partite che giochi lì tornano su questo computer.</translation>
+        <source>Scan this code with Pragma Chess on your phone or tablet. It copies your databases to the device, and the games you play there come back to this computer.</source>
+        <translation>Inquadra questo codice con Pragma Chess sul telefono o sul tablet. L&apos;app copia i tuoi database sul dispositivo e le partite che giochi lì tornano su questo computer.</translation>
     </message>
     <message>
         <source>The same link as the code, to paste on the phone</source>
@@ -363,8 +363,8 @@ Il Nero ha catturato: %2</translation>
         <translation>Copia</translation>
     </message>
     <message>
-        <source>Connected phones</source>
-        <translation>Telefoni connessi</translation>
+        <source>Connected devices</source>
+        <translation>Dispositivi connessi</translation>
     </message>
     <message>
         <source>Name</source>
@@ -387,8 +387,8 @@ Il Nero ha catturato: %2</translation>
         <translation>Disconnetti</translation>
     </message>
     <message>
-        <source>Forget this phone: it can no longer copy the databases</source>
-        <translation>Dimentica questo telefono: non potrà più copiare i database</translation>
+        <source>Forget this device: it can no longer copy the databases</source>
+        <translation>Dimentica questo dispositivo: non potrà più copiare i database</translation>
     </message>
     <message>
         <source>%1 is connected.</source>

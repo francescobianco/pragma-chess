@@ -69,6 +69,26 @@ fun BoardScreen(vm: AppViewModel, snackbar: SnackbarHostState, onMenu: () -> Uni
     val ply = vm.ply
     val position = vm.position
 
+    // The buttons that go through the game: under the screen, or under the board in landscape.
+    val navigation: @Composable () -> Unit = {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            IconButton(onClick = { vm.goTo(0) }, enabled = ply > 0) {
+                Icon(Icons.Filled.FirstPage, stringResource(R.string.first_move))
+            }
+            IconButton(onClick = { vm.goTo(ply - 1) }, enabled = ply > 0) {
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, stringResource(R.string.previous_move))
+            }
+            ExplainButton(vm)
+            IconButton(onClick = { vm.goTo(ply + 1) }, enabled = ply < line.plyCount) {
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.next_move))
+            }
+            IconButton(onClick = { vm.goTo(line.plyCount) }, enabled = ply < line.plyCount) {
+                Icon(Icons.AutoMirrored.Filled.LastPage, stringResource(R.string.last_move))
+            }
+        }
+    }
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -116,27 +136,10 @@ fun BoardScreen(vm: AppViewModel, snackbar: SnackbarHostState, onMenu: () -> Uni
             )
         },
         bottomBar = {
-            BottomAppBar {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    IconButton(onClick = { vm.goTo(0) }, enabled = ply > 0) {
-                        Icon(Icons.Filled.FirstPage, stringResource(R.string.first_move))
-                    }
-                    IconButton(onClick = { vm.goTo(ply - 1) }, enabled = ply > 0) {
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, stringResource(R.string.previous_move))
-                    }
-                    ExplainButton(vm)
-                    IconButton(onClick = { vm.goTo(ply + 1) }, enabled = ply < line.plyCount) {
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.next_move))
-                    }
-                    IconButton(onClick = { vm.goTo(line.plyCount) }, enabled = ply < line.plyCount) {
-                        Icon(Icons.AutoMirrored.Filled.LastPage, stringResource(R.string.last_move))
-                    }
-                }
-            }
+            if (!landscape) BottomAppBar { navigation() }
         },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
-        val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
         val board: @Composable (Modifier) -> Unit = { modifier ->
             val withBar = vm.engineOn && vm.engineReady
             // The board is square: the bar and the turn column take what is left at its sides.
@@ -170,9 +173,22 @@ fun BoardScreen(vm: AppViewModel, snackbar: SnackbarHostState, onMenu: () -> Uni
             }
         }
         if (landscape) {
+            // A tablet (or a phone) on its side: the board and its buttons in
+            // the left half, the moves and the engine in the right one.
             Row(Modifier.padding(padding).fillMaxSize().padding(8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                board(Modifier.fillMaxHeight())
-                panel(Modifier.weight(1f).fillMaxHeight())
+                Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    // As tall as the board needs, so the buttons stay right under it.
+                    board(Modifier.weight(1f, fill = false).fillMaxWidth())
+                    navigation()
+                }
+                Column(Modifier.weight(1f).fillMaxHeight()) {
+                    MoveList(line, ply, vm::goTo, Modifier.weight(1f).fillMaxWidth())
+                    if (vm.engineOn) {
+                        if (vm.engineReady) EngineLine(vm.analysis, position) else NoEngine(vm)
+                    }
+                    vm.explainer.explanation?.let { ExplanationText(it.summary) }
+                }
             }
         } else {
             Column(Modifier.padding(padding).fillMaxSize()) {

@@ -274,6 +274,8 @@ qt_add_executable(pragma-chess
     src/MainWindow.h
     src/dialogs/ConnectSourceWizard.cpp
     src/dialogs/ConnectSourceWizard.h
+    src/dialogs/SourceKindDelegate.cpp
+    src/dialogs/SourceKindDelegate.h
     src/dialogs/GameInfoDialog.cpp
     src/dialogs/GameInfoDialog.h
     src/dialogs/ManageEnginesDialog.cpp

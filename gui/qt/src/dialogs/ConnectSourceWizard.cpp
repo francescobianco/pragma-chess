@@ -1,5 +1,7 @@
 #include "ConnectSourceWizard.h"
 
+#include "SourceKindDelegate.h"
+
 #include "SourceSettingsWidget.h"
 #include "app/sources/SourceCatalog.h"
 #include "app/sources/SourceCredentials.h"
@@ -10,6 +12,32 @@
 #include <QVBoxLayout>
 #include <QWizardPage>
 
+namespace {
+
+/// Wide enough for the descriptions of the sources on two lines or three.
+constexpr int kMinimumWidth = 680;
+
+/// A page whose contents start where the wizard's separators and buttons do,
+/// under a title and a description of its own (the wizard's header indents
+/// its subtitle and the page its contents, each by a different amount).
+QVBoxLayout *pageLayout(QWizardPage *page, QLabel *title, QLabel *description)
+{
+    auto *layout = new QVBoxLayout(page);
+    layout->setContentsMargins(0, 0, 0, 0);
+    QFont font = title->font();
+    font.setBold(true);
+    font.setPointSizeF(font.pointSizeF() * 1.15);
+    title->setFont(font);
+    title->setWordWrap(true);
+    description->setWordWrap(true);
+    layout->addWidget(title);
+    layout->addWidget(description);
+    layout->addSpacing(8);
+    return layout;
+}
+
+} // namespace
+
 ConnectSourceWizard::ConnectSourceWizard(const QString &databaseName, QWidget *parent)
     : QWizard(parent)
     , m_databaseName(databaseName)
@@ -18,34 +46,50 @@ ConnectSourceWizard::ConnectSourceWizard(const QString &databaseName, QWidget *p
     , m_settingsLayout(new QVBoxLayout)
     , m_settingsError(new QLabel)
     , m_summary(new QLabel)
+    , m_settingsTitle(new QLabel)
+    , m_settingsDescription(new QLabel)
 {
     setWindowTitle(tr("Connect Source"));
     setModal(true);
     setOption(QWizard::NoBackButtonOnStartPage);
-    setMinimumWidth(560);
+    setMinimumWidth(kMinimumWidth);
 
     auto *choose = new QWizardPage;
-    choose->setTitle(tr("Connect a Source to “%1”").arg(databaseName));
-    choose->setSubTitle(tr("Games from the source are added to this database and kept up to date "
-                           "in the background while it is open."));
-    auto *chooseLayout = new QVBoxLayout(choose);
-    chooseLayout->addWidget(new QLabel(tr("&Source:")));
+    auto *chooseLayout = pageLayout(choose, new QLabel(tr("Connect a Source to “%1”").arg(databaseName)),
+                                    new QLabel(tr("Games from the source are added to this database and kept up "
+                                                  "to date in the background while it is open.")));
+    auto *sourceLabel = new QLabel(tr("&Source:"));
+    chooseLayout->addWidget(sourceLabel);
     m_kinds->setAccessibleName(tr("Source"));
-    m_kinds->setWordWrap(true);
-    m_kinds->setSpacing(2);
+    auto *delegate = new SourceKindDelegate(m_kinds);
+    m_kinds->setItemDelegate(delegate);
+    m_kinds->setResizeMode(QListView::Adjust); // The descriptions wrap again when the list is resized.
+    m_kinds->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     for (const SourceKind &kind : SourceCatalog::kinds()) {
-        auto *item = new QListWidgetItem(QStringLiteral("%1\n%2").arg(kind.name, kind.description), m_kinds);
+        auto *item = new QListWidgetItem(kind.name, m_kinds);
         item->setData(Qt::UserRole, kind.id);
+        item->setData(SourceKindDelegate::kDescriptionRole, kind.description);
         item->setToolTip(kind.description);
     }
+    // Tall enough to show four kinds whole at the window's smallest width.
+    QStyleOptionViewItem option;
+    option.initFrom(m_kinds);
+    option.font = m_kinds->font();
+    // The list is narrower than the window by the frame, the margins and a
+    // scroll bar: measured a little narrow, so a description never wraps
+    // onto a line that was not counted.
+    int listHeight = 2 * m_kinds->frameWidth() + 4;
+    for (int row = 0; row < qMin(4, m_kinds->count()); ++row)
+        listHeight += delegate->heightFor(option, m_kinds->model()->index(row, 0), kMinimumWidth - 120);
+    m_kinds->setMinimumHeight(listHeight);
     m_kinds->setCurrentRow(0);
-    qobject_cast<QLabel *>(chooseLayout->itemAt(0)->widget())->setBuddy(m_kinds);
+    sourceLabel->setBuddy(m_kinds);
     chooseLayout->addWidget(m_kinds);
     connect(m_kinds, &QListWidget::itemDoubleClicked, this, &QWizard::next);
     setPage(ChoosePage, choose);
 
     auto *settings = new QWizardPage;
-    auto *settingsLayout = new QVBoxLayout(settings);
+    auto *settingsLayout = pageLayout(settings, m_settingsTitle, m_settingsDescription);
     settingsLayout->addLayout(m_settingsLayout);
     m_settingsError->setWordWrap(true);
     m_settingsError->hide();
@@ -54,9 +98,8 @@ ConnectSourceWizard::ConnectSourceWizard(const QString &databaseName, QWidget *p
     setPage(SettingsPage, settings);
 
     auto *summary = new QWizardPage;
-    summary->setTitle(tr("Ready to Connect"));
     summary->setFinalPage(true);
-    auto *summaryLayout = new QVBoxLayout(summary);
+    auto *summaryLayout = pageLayout(summary, new QLabel(tr("Ready to Connect")), new QLabel);
     m_summary->setWordWrap(true);
     summaryLayout->addWidget(m_summary);
     summaryLayout->addStretch();
@@ -80,8 +123,8 @@ void ConnectSourceWizard::initializePage(int id)
         m_settings = new SourceSettingsWidget(kind, m_uuid);
         m_settingsLayout->addWidget(m_settings);
         m_settingsKind = kind.id;
-        page(SettingsPage)->setTitle(kind.playerId ? tr("%1 Player").arg(kind.name) : tr("%1 Account").arg(kind.name));
-        page(SettingsPage)->setSubTitle(tr("Which games to import into “%1”.").arg(m_databaseName));
+        m_settingsTitle->setText(kind.playerId ? tr("%1 Player").arg(kind.name) : tr("%1 Account").arg(kind.name));
+        m_settingsDescription->setText(tr("Which games to import into “%1”.").arg(m_databaseName));
         connect(m_settings, &SourceSettingsWidget::changed, m_settingsError, &QWidget::hide);
     }
     if (id == SummaryPage) {

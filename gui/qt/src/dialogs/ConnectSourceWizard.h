@@ -39,4 +39,6 @@ private:
     QString m_settingsKind;
     QLabel *m_settingsError;
     QLabel *m_summary;
+    QLabel *m_settingsTitle;
+    QLabel *m_settingsDescription;
 };

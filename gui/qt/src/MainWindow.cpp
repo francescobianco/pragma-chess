@@ -843,15 +843,19 @@ void MainWindow::createMenus()
     game->addSeparator();
     game->addAction(m_explainAction);
 
+    // As the Database menu: new and open on top, the books to switch to in a submenu.
     m_bookMenu = menuBar()->addMenu(tr("&Book"));
-    connect(m_bookMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildBookMenu);
-    rebuildBookMenu(); // Keeps the menu non-empty, so it shows on every platform.
+    m_bookMenu->addAction(themeIcon("document-new", QStyle::SP_FileIcon), tr("N&ew Book…"), this, &MainWindow::newBook);
+    m_bookMenu->addAction(tr("&Open Book…"), this, &MainWindow::openBookFile);
+    m_switchBookMenu = m_bookMenu->addMenu(themeIcon("folder", QStyle::SP_DirIcon), tr("S&witch Book"));
+    connect(m_switchBookMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildBookMenu);
+    rebuildBookMenu();
 
     QMenu *engine = menuBar()->addMenu(tr("E&ngine"));
     engine->addAction(m_startEngineAction);
     engine->addAction(m_explainAction);
     engine->addSeparator();
-    m_engineChoiceMenu = engine->addMenu(tr("&Use Engine"));
+    m_engineChoiceMenu = engine->addMenu(tr("S&witch Engine"));
     connect(m_engineChoiceMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildEngineChoiceMenu);
     rebuildEngineChoiceMenu();
     engine->addAction(tr("&Manage Engines…"), this, &MainWindow::manageEngines);
@@ -2014,12 +2018,10 @@ void MainWindow::newBook()
 
 void MainWindow::rebuildBookMenu()
 {
-    m_bookMenu->clear();
-    fillBookChoices(m_bookMenu);
-    m_bookMenu->addSeparator();
-    m_bookMenu->addAction(themeIcon("document-new", QStyle::SP_FileIcon), tr("N&ew Book…"), this, &MainWindow::newBook);
-    m_bookMenu->addAction(tr("&Open Book…"), this, &MainWindow::openBookFile);
-    m_bookMenu->addAction(themeIcon("folder-open", QStyle::SP_DirOpenIcon), tr("Show Books &Folder"), this, [] {
+    m_switchBookMenu->clear();
+    fillBookChoices(m_switchBookMenu);
+    m_switchBookMenu->addSeparator();
+    m_switchBookMenu->addAction(themeIcon("folder-open", QStyle::SP_DirOpenIcon), tr("Show Books &Folder"), this, [] {
         UserFolders::ensureBooksDir();
         QDesktopServices::openUrl(QUrl::fromLocalFile(UserFolders::booksDir()));
     });

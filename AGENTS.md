@@ -179,9 +179,10 @@ resources in use — book, engine, database
 (`m_bookButton`, `m_engineButton`, `m_databaseButton`). Each of these is an
 icon only (the user found the names in the toolbar ugly) that drops down the
 choice: the engine and database buttons share the menu bar's menus (Engine ▸
-Use Engine, Database ▸ Switch Database), the book button has a menu of its own
-with only the books and No Book (`fillBookChoices`, shared with the Book
-menu, which adds New Book…, Open Book… and the folder); `updateResourceButtons()` puts the name of
+Switch Engine, Database ▸ Switch Database), the book button has a menu of its own
+with only the books and No Book (`fillBookChoices`, shared with Book ▸
+Switch Book, which adds the folder; the Book menu is laid out as the
+Database one: New Book…, Open Book…, then Switch Book); `updateResourceButtons()` puts the name of
 the one in use in the tooltip whenever one of them changes. Icons are drawn in `platform/SymbolicIcons` (`pragma-book`,
 `pragma-engine`, `pragma-database`).
 
@@ -765,7 +766,7 @@ and the usual install folders, skipping binaries already registered. The
 project stores the engine id; an unknown id falls back to the bundled engine.
 The dialog's list marks the engine in use (bold, "in use"), and selecting
 another one offers Use This Engine, which switches at once through
-`MainWindow::selectEngine`, like Engine ▸ Use Engine: the engine is part of
+`MainWindow::selectEngine`, like Engine ▸ Switch Engine: the engine is part of
 the project, so the change is saved with it.
 
 ## Training

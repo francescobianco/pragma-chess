@@ -508,4 +508,5 @@ private:
     QMenu *m_viewMenu;
     QMenu *m_databasesMenu;
     QMenu *m_bookMenu;
+    QMenu *m_switchBookMenu; // Book ▸ Switch Book: the books, No Book, the folder.
 };

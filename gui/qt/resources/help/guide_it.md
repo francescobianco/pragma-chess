@@ -111,7 +111,7 @@ Mentre il motore cerca, il bordo della scacchiera pulsa; diventa blu quando la s
 
 Pragma Chess arriva con Stockfish, e funziona con qualunque motore UCI.
 
-- **Motore ▸ Usa motore** sceglie tra i motori di questo computer. L'icona del motore nella barra degli strumenti apre lo stesso elenco.
+- **Motore ▸ Cambia motore** sceglie tra i motori di questo computer. L'icona del motore nella barra degli strumenti apre lo stesso elenco.
 - **Motore ▸ Gestisci motori…** aggiunge, modifica e rimuove motori. **Rileva motori** trova quelli installati sul computer; **Usa questo motore** passa a quello selezionato.
 
 Il motore in uso fa parte del progetto.
@@ -150,10 +150,10 @@ Spunta **Ricorda per questa sessione** e il bottone Gioca online della barra deg
 
 # Libri delle aperture {#books}
 
-Un libro delle aperture è un file Polyglot `.bin`: le mosse conosciute in ogni posizione, ciascuna con un peso. Il menu **Libro** elenca i libri della tua cartella dei libri; l'icona del libro nella barra degli strumenti apre lo stesso elenco.
+Un libro delle aperture è un file Polyglot `.bin`: le mosse conosciute in ogni posizione, ciascuna con un peso. L'icona del libro nella barra degli strumenti apre l'elenco dei libri della tua cartella dei libri.
 
 - **Libro ▸ Nuovo libro…** e **Libro ▸ Apri libro…** creano un libro o ne aprono uno da qualunque posizione.
-- **Libro ▸ Nessun libro** lavora senza.
+- **Libro ▸ Cambia libro** elenca i libri della cartella: scegline uno per usarlo, oppure **Nessun libro** per lavorare senza. **Mostra cartella dei libri**, in fondo, apre la cartella nel gestore dei file.
 
 Il pannello **Albero delle aperture** mostra, per la posizione sulla scacchiera, ogni mossa del libro con la sua parte del peso, il nome dell'apertura a cui porta e come sono andate dopo quella mossa le partite del database aperto (partite, poi vittorie del Bianco / patte / vittorie del Nero). Clicca una mossa per giocarla; la prima riga ritira l'ultima mossa.
 

@@ -1387,8 +1387,8 @@ Il Nero ha catturato: %2</translation>
         <translation>Mo&amp;tore</translation>
     </message>
     <message>
-        <source>&amp;Use Engine</source>
-        <translation>&amp;Usa motore</translation>
+        <source>S&amp;witch Engine</source>
+        <translation>Cam&amp;bia motore</translation>
     </message>
     <message>
         <source>&amp;Manage Engines…</source>
@@ -2248,6 +2248,10 @@ non è su questo computer.</translation>
     <message>
         <source>S&amp;witch Database</source>
         <translation>Cam&amp;bia database</translation>
+    </message>
+    <message>
+        <source>S&amp;witch Book</source>
+        <translation>Cam&amp;bia libro</translation>
     </message>
 </context>
 <context>

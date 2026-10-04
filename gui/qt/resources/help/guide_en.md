@@ -111,7 +111,7 @@ While the engine is searching, the border of the board breathes; it turns blue w
 
 Pragma Chess comes with Stockfish, and works with any UCI engine.
 
-- **Engine ▸ Use Engine** chooses among the engines of this computer. The engine icon of the toolbar drops down the same list.
+- **Engine ▸ Switch Engine** chooses among the engines of this computer. The engine icon of the toolbar drops down the same list.
 - **Engine ▸ Manage Engines…** adds, edits and removes engines. **Detect Engines** finds the ones installed on the computer; **Use This Engine** switches to the selected one.
 
 The engine in use is part of the project.
@@ -150,10 +150,10 @@ Tick **Remember for this session** and the toolbar's Play Online button looks fo
 
 # Opening books {#books}
 
-An opening book is a Polyglot `.bin` file: the moves known in each position, each with a weight. The **Book** menu lists the books of your Books folder; the book icon of the toolbar drops down the same list.
+An opening book is a Polyglot `.bin` file: the moves known in each position, each with a weight. The book icon of the toolbar drops down the books of your Books folder.
 
 - **Book ▸ New Book…** and **Book ▸ Open Book…** create a book or open one from anywhere.
-- **Book ▸ No Book** works without one.
+- **Book ▸ Switch Book** lists the books of the folder: choose one to use it, or **No Book** to work without one. **Show Books Folder**, at its end, opens the folder in the file manager.
 
 The **Opening Tree** panel shows, for the position on the board, each move of the book with its share of the weight, the name of the opening it leads to and how the games of the open database went after it (games, then White wins / draws / Black wins). Click a move to play it; the first row takes the last move back.
 

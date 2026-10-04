@@ -45,7 +45,7 @@ macdeployqt "$bundle" -executable="$bundle/Contents/MacOS/pragma-explain" \
     -executable="$bundle/Contents/MacOS/pragma-book"
 # The bundled engine: the executable in Contents/MacOS, where EngineCatalog
 # looks and the signature expects code, its license and README in Resources.
-"$root/scripts/fetch-stockfish.sh" "$build/engines" macos
+"$root/scripts/build-stockfish.sh" "$build/engines" macos
 cp "$build/engines/stockfish" "$bundle/Contents/MacOS/"
 mkdir -p "$bundle/Contents/Resources/engines"
 cp "$build/engines/Copying.txt" "$build/engines/AUTHORS" "$build/engines/README.txt" \
@@ -60,6 +60,20 @@ done
 # Only SQLite is used: the other drivers need client libraries we do not ship.
 find "$bundle/Contents/PlugIns/sqldrivers" -type f ! -name 'libqsqlite*' -delete
 
+# Everything the bundle loads must be inside it or part of macOS: a library
+# left in Homebrew or Qt's folder works here and nowhere else.
+outside=$(find "$bundle/Contents" -type f \( -perm +111 -o -name '*.dylib' \) -print0 |
+    xargs -0 otool -L 2> /dev/null |
+    awk '/^\t/ { print $1 }' |
+    grep -v -E '^(@executable_path|@loader_path|@rpath|/System/|/usr/lib/)' | sort -u || true)
+if [ -n "$outside" ]; then
+    echo "the bundle loads libraries from outside itself:" >&2
+    echo "$outside" >&2
+    exit 1
+fi
+answer=$( (printf 'uci\nisready\ngo depth 10\n'; sleep 3; echo quit) | "$bundle/Contents/MacOS/stockfish")
+grep -q '^bestmove' <<< "$answer" || { echo "the bundled engine does not answer: $answer" >&2; exit 1; }
+
 identity=${MACOS_SIGN_IDENTITY:--}
 sign_args=(--force --sign "$identity" --timestamp=none)
 if [ "$identity" != - ]; then
@@ -73,6 +87,19 @@ codesign "${sign_args[@]}" "$bundle/Contents/MacOS/pragma-book"
 codesign "${sign_args[@]}" "$bundle/Contents/MacOS/stockfish"
 codesign "${sign_args[@]}" "$bundle"
 codesign --verify --deep --strict --verbose=2 "$bundle"
+
+# The application must start from the bundle, with nothing else to find.
+smoke=$(mktemp -d)
+PRAGMA_CHESS_DIR=$smoke DYLD_LIBRARY_PATH= DYLD_FRAMEWORK_PATH= "$bundle/Contents/MacOS/pragma-chess" &
+app=$!
+sleep 15
+if ! kill -0 "$app" 2> /dev/null; then
+    wait "$app" || true
+    echo "the application does not start from the bundle" >&2
+    exit 1
+fi
+kill "$app"; wait "$app" 2> /dev/null || true
+rm -rf "$smoke"
 
 # The disk image: the app on the left, Applications on the right, over a
 # background that says what to do (packaging/assets/make-installer-art.py).

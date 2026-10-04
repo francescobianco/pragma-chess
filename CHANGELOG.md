@@ -121,6 +121,13 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- The packages are about 80 MB smaller: the bundled Stockfish is now
+  Stockfish 18 built by us with its small evaluation network only (about
+  4 MB instead of 100). It is weaker than the official Stockfish and still
+  far stronger than any human player; the official one, or any other UCI
+  engine, can be added in *Engine ▸ Manage Engines…*.
+- The Windows packages no longer carry the DirectX shader compiler nor Qt's
+  separate translation files, which the application does not use.
 - The `.pdb` schema is now version 7 (version 6 added the trash, 7 the
   variations) and is described by migrations: a database of an older
   version is upgraded step by step when it is opened. A database opened by
@@ -145,6 +152,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- On Windows the application did not start, saying that
+  `libssl-3-x64.dll` and `libcrypto-3-x64.dll` were not found: they are now
+  in the package, and every Windows package is started on the build machine
+  with nothing but Windows around it before it is published.
 - On GNOME (Wayland), opening a menu no longer makes the dock slide in over
   the window.
 - Opening another database could crash the application: the games list was

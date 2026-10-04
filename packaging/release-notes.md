@@ -7,8 +7,10 @@
 | **Ubuntu** 24.04+ / **Debian** 13+ | `pragma-chess_@VERSION@_amd64.deb` | `sudo apt install ./pragma-chess_@VERSION@_amd64.deb` |
 | **Fedora** | `pragma-chess-@VERSION@-1.*.x86_64.rpm` | `sudo dnf install ./pragma-chess-@VERSION@-1.*.x86_64.rpm` |
 
-[Stockfish](https://stockfishchess.org/) is bundled as the default engine;
-any other UCI engine can be added in *Engine ▸ Manage Engines…*.
+[Stockfish](https://stockfishchess.org/) is bundled as the default engine, in
+a light build of ours (its small network only, `stockfish-*-pragma-source.tar.gz`
+is its source); the official Stockfish or any other UCI engine can be added in
+*Engine ▸ Manage Engines…*.
 
 **macOS:** the app is not notarized by Apple yet. The first time, macOS says it
 cannot check it: open *System Settings ▸ Privacy & Security* and click

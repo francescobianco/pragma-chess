@@ -43,8 +43,8 @@ install: build ## Install the app, its menu entry and icon (PREFIX, default ~/.l
 desktop-dev: ## Show the app icon for the development build (user menu entry)
 	@BUILD_DIR=$(BUILD_DIR) ./scripts/install-dev-desktop.sh
 
-stockfish: ## Download the bundled engine (packaging/stockfish.env) next to the development build
-	@./scripts/fetch-stockfish.sh $(BUILD_DIR)/gui/qt/engines
+stockfish: ## Build the bundled engine (packaging/stockfish.env) next to the development build
+	@./scripts/build-stockfish.sh $(BUILD_DIR)/gui/qt/engines
 
 site: ## Generate the web site (docs/) from site/
 	@python3 site/build.py

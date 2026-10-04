@@ -44,7 +44,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends build-essential cmake ninja-build \
             qt6-base-dev qt6-svg-dev libqt6sql6-sqlite qt6-tools-dev qt6-tools-dev-tools \
-            qt6-l10n-tools libssl-dev pkg-config git dpkg-dev file
+            qt6-l10n-tools libssl-dev pkg-config git dpkg-dev file make patch
       - name: Build the .deb
         run: packaging/linux/build-packages.sh deb "${{ needs.version.outputs.version }}"
       - uses: actions/upload-artifact@v4
@@ -60,7 +60,7 @@ jobs:
     steps:
       - name: Dependencies
         run: |
-          dnf install -y git cmake ninja-build gcc-c++ rpm-build \
+          dnf install -y git cmake ninja-build gcc-c++ make patch rpm-build \
             qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel openssl-devel curl tar
       - uses: actions/checkout@v4
       - name: Build the .rpm
@@ -71,11 +71,31 @@ jobs:
           path: dist/*.rpm
           if-no-files-found: error
 
+  # Stockfish for Windows, built on Linux with MinGW (the Windows machine has
+  # no make nor g++); the other platforms build theirs in their own job.
+  engine-windows:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: MinGW
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends g++-mingw-w64-x86-64-posix make patch
+      - name: Build Stockfish
+        run: scripts/build-stockfish.sh engine windows-x86-64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: engine-windows
+          path: engine/
+          if-no-files-found: error
+
   windows:
-    needs: version
+    needs: [version, engine-windows]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: engine-windows
+          path: engine-windows
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
@@ -93,7 +113,7 @@ jobs:
           }
       - name: Build the installer
         shell: pwsh
-        run: packaging\windows\build.ps1 -Version "${{ needs.version.outputs.version }}"
+        run: packaging\windows\build.ps1 -Version "${{ needs.version.outputs.version }}" -Engine "$env:GITHUB_WORKSPACE\engine-windows"
       - uses: actions/upload-artifact@v4
         with:
           name: windows
@@ -156,11 +176,11 @@ jobs:
           path: dist
           merge-multiple: true
       - name: Stockfish source, shipped with the installers (GPL v3)
-        run: scripts/fetch-stockfish.sh --source dist
+        run: scripts/build-stockfish.sh --source dist
       - name: Names without the version, for the releases/latest/download links
         run: packaging/latest-names.sh dist
       - name: Checksums
-        run: cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+        run: cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt && ls -lS
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}

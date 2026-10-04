@@ -219,13 +219,13 @@ target_link_libraries(pragma-chess-core PUBLIC Qt6::Core Qt6::Network)
 target_compile_definitions(pragma-chess-core PUBLIC QT_NO_KEYWORDS APP_VERSION="${PROJECT_VERSION}")
 
 # The engine shipped with the app (EngineCatalog): its version is pinned in
-# packaging/stockfish.env, and scripts/fetch-stockfish.sh stages it in
+# packaging/stockfish.env, and scripts/build-stockfish.sh builds and stages it in
 # engines/ next to the executable (`make stockfish` for a development build).
 file(STRINGS ${CMAKE_SOURCE_DIR}/packaging/stockfish.env STOCKFISH_VERSION_LINE REGEX "^STOCKFISH_VERSION=")
 string(REGEX REPLACE "^STOCKFISH_VERSION=" "" STOCKFISH_VERSION "${STOCKFISH_VERSION_LINE}")
 target_compile_definitions(pragma-chess-core PRIVATE PRAGMA_BUNDLED_ENGINE_NAME="Stockfish ${STOCKFISH_VERSION}")
 set(PRAGMA_ENGINES_STAGE ${CMAKE_CURRENT_BINARY_DIR}/engines CACHE PATH
-    "Folder where scripts/fetch-stockfish.sh staged the bundled engine")
+    "Folder where scripts/build-stockfish.sh staged the bundled engine")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(PRAGMA_WARNINGS -Wall -Wextra -Wpedantic)

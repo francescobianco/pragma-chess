@@ -177,7 +177,7 @@ make start   # build, launch, and rebuild + restart on every change under gui/qt
 make run     # build and launch once
 make build   # build only
 make test    # build and run the tests
-make stockfish  # download the bundled Stockfish into the build
+make stockfish  # build the bundled Stockfish into the build
 make install # install for the current user in ~/.local (PREFIX=/usr/local for everyone)
 ```
 

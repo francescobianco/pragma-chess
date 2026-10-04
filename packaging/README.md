@@ -34,18 +34,26 @@ the top-level `CMakeLists.txt`), builds in Release, runs the tests
 ## Bundled engine (Stockfish)
 
 Every package ships Stockfish as the default engine, so a new installation
-analyses right away. The release is pinned in `stockfish.env` (version, tag,
-asset names and SHA-256); `scripts/fetch-stockfish.sh <dir> [platform]`
-downloads the official "universal" build (one binary with runtime CPU
-dispatch), checks the hash and stages the executable with `Copying.txt`,
-`AUTHORS` and `README.txt` (from `stockfish-README.txt`). Every build script
-runs it; `make stockfish` does the same for a development build.
+analyses right away. It is **our own build**, to keep the packages small: the
+official one is about 100 MB, almost all of it the big evaluation network, and
+the packages must stay under 20 MB. `stockfish.env` pins the release (tag,
+SHA-256 of its source archive) and its small network (3.5 MB);
+`scripts/build-stockfish.sh <dir> [platform]` downloads and checks both,
+applies `stockfish/small-net.patch` (embed and use only the small network;
+the big one is never loaded and its unused structures are shrunk, so the
+engine also needs less memory), builds it and stages the executable (about
+4 MB) with `Copying.txt`, `AUTHORS` and `README.txt` (from
+`stockfish/README.txt`). Every build script runs it and checks that the
+engine answers; `make stockfish` does the same for a development build.
 
-| Platform | Where the engine goes |
-|---|---|
-| Windows | `<app>\engines\stockfish.exe` |
-| macOS | `Contents/MacOS/stockfish` (signed with the app), texts in `Contents/Resources/engines/` |
-| Linux | `/usr/lib/pragma-chess/engines/stockfish` |
+| Platform | Built with | Where the engine goes |
+|---|---|---|
+| Windows | MinGW on Linux (job `engine-windows`), `x86-64-sse41-popcnt` | `<app>\engines\stockfish.exe` |
+| macOS | clang, `apple-silicon` | `Contents/MacOS/stockfish` (signed with the app), texts in `Contents/Resources/engines/` |
+| Linux | gcc, `x86-64-sse41-popcnt` | `/usr/lib/pragma-chess/engines/stockfish` |
+
+One binary per platform, for every processor of it: SSE4.1 and POPCNT are in
+every x86-64 processor since 2008, AVX2 is not.
 
 `EngineCatalog::bundledEngineDirs` looks in these places
 (`PRAGMA_ENGINES_DIR` overrides them); a build without the engine falls back
@@ -55,14 +63,40 @@ to a `stockfish` installed on the system.
 separate program spoken to over UCI, which the GPL treats as mere
 aggregation. What the GPL asks, and what we do:
 
-- the GPL text and a notice ship next to the binary (`Copying.txt`, `README.txt`);
-- the binary is the unmodified official build;
-- the complete corresponding source (`stockfish-<tag>-source.tar.gz`, with
-  the network files the binary embeds) is attached to every release by the
-  workflow (`fetch-stockfish.sh --source`), from the same place as the installers.
+- the GPL text and a notice ship next to the binary (`Copying.txt`,
+  `README.txt`), saying that it is modified and how;
+- the complete corresponding source (`stockfish-<tag>-pragma-source.tar.gz`:
+  the release's source with the patch applied, the patch itself as
+  `PRAGMA-CHESS.patch`, and the network the binary embeds) is attached to
+  every release by the workflow (`build-stockfish.sh --source`), from the
+  same place as the installers.
 
-To move to a new Stockfish, update `stockfish.env` (tag, asset names, the
-SHA-256 GitHub publishes for each asset).
+To move to a new Stockfish, update `stockfish.env` (tag, SHA-256 of
+`archive/refs/tags/<tag>.tar.gz`, the small network named in `src/evaluate.h`)
+and the Flatpak manifest, and refresh the patch against the new source. A
+release that has no small network any more (Stockfish 19 has only one, of
+100 MB) cannot be shipped this way.
+
+## Packages that start
+
+A package is checked before it is published, because a DLL that the build
+machine has and a user does not is invisible to the tests: 0.2.0 shipped a
+Windows client that did not start (`libssl-3-x64.dll` missing, needed by
+Phone Link's libdatachannel).
+
+- **Windows** (`build.ps1`): every `.exe` and `.dll` of the folder is read
+  with `dumpbin /dependents`; whatever it imports must be in the folder or in
+  System32, and the Visual C++ runtime and OpenSSL are always copied in from
+  the build machine (never assumed to be in System32). A DLL that cannot be
+  found fails the build. Then the engine must answer `uci` and
+  `pragma-chess.exe` must still be running after 15 seconds, both started
+  with a PATH holding only Windows and the "DLL not found" dialog turned into
+  an exit code.
+- **macOS** (`build.sh`): no executable or library of the bundle may load
+  anything outside it but macOS's own (`otool -L`), the engine must answer,
+  and the signed application must still be running after 15 seconds.
+- **Linux** (`build-packages.sh`): the engine must answer; the libraries are
+  the distribution's, declared by the package.
 
 ## Making a release
 

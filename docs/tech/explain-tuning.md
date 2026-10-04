@@ -190,3 +190,11 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   positional", which is what the probe actually checked: no *lasting* gain,
   not that nothing is ever taken. A side can even end up ahead in material
   and still be losing.
+- 2026-10-04 — The bundled engine is now Stockfish 18 with its small network
+  only (packaging/README.md, "Bundled engine"), to keep the packages small.
+  Compared with an official Stockfish 16 at depth 20, threads 1, the
+  explanations hold: 3.Nxe5 in the Philidor −3.9 → −3.4, 3.Qf5 after 2.Qg4
+  −2.2 → −2.1, 3.a4 in the King's Gambit −2.1 → −1.7 (still an inaccuracy
+  and more), 4.Nxe5 after 3…Nd4 −0.5 → −0.6, the Opera game's 14.Rd1
+  +6.0 → +6.4. The principal variations differ more than the scores. Tune
+  with the bundled engine (`make stockfish`), which is what users have.

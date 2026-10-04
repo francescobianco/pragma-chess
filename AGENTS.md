@@ -268,7 +268,7 @@ make deps     # apt install Qt 6 (base, svg, sqlite driver), cmake, ninja, inoti
 make build    # configure (build/, Debug, Ninja if present) and build
 make run      # build and launch build/gui/qt/pragma-chess
 make test     # build and run the tests (ctest)
-make stockfish  # download the bundled Stockfish into the build (build/gui/qt/engines)
+make stockfish  # build the bundled Stockfish into the build (build/gui/qt/engines)
 ./build/gui/qt/pragma-explain --trace "1.e4 e5 2.Nf3 d6 3.Nxe5"   # Explain on the command line
 make start    # launch, rebuild and restart on every change (interactive, long-running)
 make clean
@@ -710,7 +710,7 @@ Stockfish-specific behaviour. Scores are normalized to White's point of view.
 
 `app/EngineCatalog` (user settings, unit-tested) lists this computer's
 engines; the bundled Stockfish (pinned in `packaging/stockfish.env`, staged by
-`scripts/fetch-stockfish.sh`, `make stockfish` for development) is always
+`scripts/build-stockfish.sh`, `make stockfish` for development) is always
 first and cannot be removed. Engine ▸ Manage Engines… (`ManageEnginesDialog`)
 edits them; Detect Engines (`EngineDetector`) adds UCI engines found in PATH
 and the usual install folders, skipping binaries already registered. The

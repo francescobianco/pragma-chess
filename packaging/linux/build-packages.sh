@@ -26,7 +26,9 @@ args=(-S "$root" -B "$build" -G Ninja
 
 cmake "${args[@]}"
 # The bundled engine, installed by CMake from where it is staged.
-"$root/scripts/fetch-stockfish.sh" "$build/gui/qt/engines"
+"$root/scripts/build-stockfish.sh" "$build/gui/qt/engines"
+answer=$( (printf 'uci\nisready\ngo depth 10\n'; sleep 3; echo quit) | "$build/gui/qt/engines/stockfish")
+grep -q '^bestmove' <<< "$answer" || { echo "the bundled engine does not answer: $answer" >&2; exit 1; }
 cmake --build "$build"
 if [ "${SKIP_TESTS:-0}" != 1 ]; then
     QT_QPA_PLATFORM=offscreen ctest --test-dir "$build" --output-on-failure

@@ -43,20 +43,31 @@ modules:
         sha256: fbe74bbdcee21d656715688706da3c8becfd946d92cd44705cc6098bb23b3a16
 
   - name: stockfish
+    # Built like scripts/build-stockfish.sh does, pinned with packaging/stockfish.env:
+    # the release's source with the small network only (packaging/stockfish/).
     buildsystem: simple
     build-commands:
-      - install -Dm755 stockfish/stockfish-linux-x86-64-universal /app/lib/pragma-chess/engines/stockfish
-      - install -Dm644 stockfish/Copying.txt /app/lib/pragma-chess/engines/Copying.txt
-      - install -Dm644 stockfish/AUTHORS /app/lib/pragma-chess/engines/AUTHORS
+      - make -C src -j $FLATPAK_BUILDER_N_JOBS all ARCH=x86-64-sse41-popcnt COMP=gcc EXTRALDFLAGS=-s
+      - install -Dm755 src/stockfish /app/lib/pragma-chess/engines/stockfish
+      - install -Dm644 Copying.txt /app/lib/pragma-chess/engines/Copying.txt
+      - install -Dm644 AUTHORS /app/lib/pragma-chess/engines/AUTHORS
+      - sed -e s/@VERSION@/18/g -e s/@TAG@/sf_18/g -e s/@NET@/nn-37f18f62d772.nnue/g README.txt.in
+        > README.txt && install -Dm644 README.txt /app/lib/pragma-chess/engines/README.txt
     only-arches:
       - x86_64
     sources:
       - type: archive
-        # Pinned with packaging/stockfish.env; the "universal" archive carries a
-        # binary that picks the best code path for the processor.
-        url: https://github.com/official-stockfish/Stockfish/releases/download/sf_19/stockfish-linux-x86-64-universal.tar.gz
-        sha256: 9defc0d4e55d49c65a6d042f3e571a39fcea499ade6dbe741b53b8c65e03611f
-        strip-components: 0
+        url: https://github.com/official-stockfish/Stockfish/archive/refs/tags/sf_18.tar.gz
+        sha256: 22a195567e3493e7c9ca8bf8fa2339f4ffc876384849ac8a417ff4b919607e7b
+      - type: file
+        url: https://github.com/official-stockfish/networks/raw/master/nn-37f18f62d772.nnue
+        sha256: 37f18f62d772f3107e1d6aaca3898c130c3c86f2ab63e6555fbbca20635a899d
+        dest: src
+      - type: patch
+        path: ../stockfish/small-net.patch
+      - type: file
+        path: ../stockfish/README.txt
+        dest-filename: README.txt.in
 
   - name: pragma-chess
     buildsystem: cmake-ninja

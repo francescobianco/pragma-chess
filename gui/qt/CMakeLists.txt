@@ -290,6 +290,8 @@ qt_add_executable(pragma-chess
     src/dialogs/AboutDialog.h
     src/dialogs/HelpDialog.cpp
     src/dialogs/HelpDialog.h
+    src/dialogs/NewGameChoiceDialog.cpp
+    src/dialogs/NewGameChoiceDialog.h
     src/dialogs/NewTrainingDialog.cpp
     src/dialogs/NewTrainingDialog.h
     src/dialogs/PlayOnlineDialog.cpp

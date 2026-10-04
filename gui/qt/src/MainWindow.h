@@ -8,6 +8,7 @@
 #include "app/WorkspaceLayout.h"
 #include "app/PlayerRole.h"
 #include "app/TrainingTutor.h"
+#include "dialogs/NewGameChoiceDialog.h"
 #include "dialogs/NewTrainingDialog.h"
 #include "widgets/BoardWidget.h"
 #include "widgets/DatabaseTreeWidget.h"
@@ -420,6 +421,8 @@ private:
     /// The colour chosen with "Remember for this session" in New Training:
     /// never saved, a restarted client asks again.
     std::optional<NewTrainingDialog::Choice> m_rememberedTraining;
+    /// New Game in online play mode: the choice remembered for the session (online or analysis).
+    std::optional<NewGameChoiceDialog::Choice> m_rememberedNewGame;
     /// A training move is being searched, so the analysis must not restart.
     bool m_trainingThinking = false;
     /// The evaluation of the position the user is to move from in training

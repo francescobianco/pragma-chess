@@ -2285,22 +2285,6 @@ non è su questo computer.</translation>
         <source>Resign</source>
         <translation>Abbandona</translation>
     </message>
-    <message>
-        <source>New Game</source>
-        <translation>Nuova partita</translation>
-    </message>
-    <message>
-        <source>You are in online play mode. Play a new game online, or analyse a new game?</source>
-        <translation>Sei in modalità gioco online. Vuoi giocare una nuova partita online, o analizzare una nuova partita?</translation>
-    </message>
-    <message>
-        <source>New Online Game</source>
-        <translation>Nuova partita online</translation>
-    </message>
-    <message>
-        <source>New Game to Analyse</source>
-        <translation>Nuova partita da analizzare</translation>
-    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>
@@ -2836,6 +2820,41 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>Black</source>
         <translation>Nero</translation>
+    </message>
+</context>
+<context>
+    <name>NewGameChoiceDialog</name>
+    <message>
+        <source>New Game</source>
+        <translation>Nuova partita</translation>
+    </message>
+    <message>
+        <source>You are in online play mode. What kind of new game do you want?</source>
+        <translation>Sei in modalità gioco online. Che tipo di nuova partita vuoi?</translation>
+    </message>
+    <message>
+        <source>Play a new game &amp;online</source>
+        <translation>Gioca una nuova partita &amp;online</translation>
+    </message>
+    <message>
+        <source>As Play Online in the toolbar</source>
+        <translation>Come Gioca online nella barra degli strumenti</translation>
+    </message>
+    <message>
+        <source>&amp;Analyse a new game</source>
+        <translation>&amp;Analizza una nuova partita</translation>
+    </message>
+    <message>
+        <source>Remember for this &amp;session</source>
+        <translation>Ricorda per questa &amp;sessione</translation>
+    </message>
+    <message>
+        <source>New Game goes on with this choice without asking, until Pragma Chess is closed.</source>
+        <translation>Nuova partita prosegue con questa scelta senza chiedere, finché Pragma Chess non viene chiuso.</translation>
+    </message>
+    <message>
+        <source>Start</source>
+        <translation>Inizia</translation>
     </message>
 </context>
 <context>

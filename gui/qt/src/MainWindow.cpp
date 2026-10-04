@@ -17,6 +17,7 @@
 #include "dialogs/HelpDialog.h"
 #include "dialogs/ManageEnginesDialog.h"
 #include "dialogs/ManageSourcesDialog.h"
+#include "dialogs/NewGameChoiceDialog.h"
 #include "dialogs/NewTrainingDialog.h"
 #include "dialogs/PlayOnlineDialog.h"
 #include "dialogs/ManageSyncFilesDialog.h"
@@ -2764,16 +2765,19 @@ void MainWindow::newGame()
     // the toolbar's Play Online) or one to analyse. Either way the game in
     // progress is kept or resigned first.
     if (m_onlinePlay) {
-        QMessageBox box(QMessageBox::Question, tr("New Game"),
-                        tr("You are in online play mode. Play a new game online, or analyse a new game?"),
-                        QMessageBox::Cancel, this);
-        QPushButton *online = box.addButton(tr("New Online Game"), QMessageBox::AcceptRole);
-        QPushButton *analyse = box.addButton(tr("New Game to Analyse"), QMessageBox::AcceptRole);
-        box.setDefaultButton(online);
-        box.exec();
-        if (box.clickedButton() == online)
+        using Choice = NewGameChoiceDialog::Choice;
+        Choice choice = m_rememberedNewGame.value_or(Choice::Online);
+        if (!m_rememberedNewGame) {
+            NewGameChoiceDialog dialog(choice, false, this);
+            if (dialog.exec() != QDialog::Accepted)
+                return;
+            choice = dialog.choice();
+            if (dialog.remember())
+                m_rememberedNewGame = choice; // For this session only, never saved.
+        }
+        if (choice == Choice::Online)
             playOnline(false);
-        else if (box.clickedButton() == analyse)
+        else
             leaveOnlineThen([this] { newGame(); });
         return;
     }

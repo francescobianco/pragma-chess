@@ -71,6 +71,31 @@ int ChapterBook::insertGame(int after)
     return index;
 }
 
+int ChapterBook::breakGame()
+{
+    Chapter &open = chapter();
+    if (open.games.last().isEmpty()) {
+        open.currentGame = int(open.games.size()) - 1;
+        open.ply = 0;
+    } else {
+        insertGame(int(open.games.size()) - 1);
+    }
+    removeEmptyGames();
+    return open.currentGame;
+}
+
+void ChapterBook::removeEmptyGames()
+{
+    Chapter &open = chapter();
+    for (int i = int(open.games.size()) - 1; i >= 0; --i) {
+        if (i == open.currentGame || !open.games.at(i).isEmpty())
+            continue;
+        open.games.removeAt(i);
+        if (i < open.currentGame)
+            --open.currentGame;
+    }
+}
+
 int ChapterBook::findGame(const QString &uid) const
 {
     if (uid.isEmpty())

@@ -66,7 +66,8 @@ QString paragraphHtml(const QString &text, qreal indent)
     QString html;
     // An empty paragraph (one just inserted) still has a line to write on.
     for (const QString &line : (text.isEmpty() ? QStringList{QString()} : text.split(QLatin1Char('\n')))) {
-        html += QStringLiteral("<p style=\"margin: 0; text-indent: %1px; line-height: %2%; text-align: justify;\">%3</p>")
+        // align="justify": the CSS text-align is not honoured here, the attribute is.
+        html += QStringLiteral("<p align=\"justify\" style=\"margin: 0; text-indent: %1px; line-height: %2%;\">%3</p>")
                     .arg(qRound(indent))
                     .arg(BookFont::lineHeight)
                     .arg(line.isEmpty() ? QStringLiteral("&nbsp;") : line.toHtmlEscaped());

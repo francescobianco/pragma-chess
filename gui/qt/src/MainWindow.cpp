@@ -1356,7 +1356,7 @@ void MainWindow::openGame(const QModelIndex &proxyIndex)
         }
         // Otherwise it joins the chapter, at its end (or in place of an empty game).
         if (inChapter < 0 && !m_chapters.game().isEmpty())
-            m_chapters.insertGame(int(m_chapters.chapter().games.size()) - 1);
+            m_chapters.breakGame();
         // A game from the database is to be studied, not played: training
         // goes off first, or the engine would answer in it.
         m_trainingModeAction->setChecked(false);
@@ -1540,8 +1540,8 @@ void MainWindow::showMoveListMenu(const QPoint &position)
             chapterChanged();
         });
     }
-    QAction *gameBreak = menu.addAction(tr("Insert &Game Break"), this, [this, game] { insertGameBreak(game); });
-    gameBreak->setToolTip(tr("A new game after this one, from the starting position; the numbering starts again"));
+    QAction *gameBreak = menu.addAction(tr("Insert &Game Break"), this, &MainWindow::insertGameBreak);
+    gameBreak->setToolTip(tr("A new game at the end of the chapter, from the starting position; the numbering starts again"));
     gameBreak->setEnabled(!m_onlinePlay);
     if (!place.isMove()) {
         menu.exec(m_moveView->viewport()->mapToGlobal(position));
@@ -3058,6 +3058,7 @@ void MainWindow::switchToChapterGame(int game, const QList<int> &path, int ply)
         m_trainingModeAction->setChecked(false);
         m_chapters.chapter().currentGame = game;
         loadChapterGame();
+        m_chapters.removeEmptyGames(); // The game left, if nothing was entered in it.
         chapterChanged();
     }
     m_session->goToLine(path, ply);
@@ -3093,13 +3094,14 @@ void MainWindow::editProjectSettings()
     scheduleSaveSession(); // The project has changes: its name is saved with it.
 }
 
-void MainWindow::insertGameBreak(int after)
+void MainWindow::insertGameBreak()
 {
     if (!canLeaveGame())
         return;
     m_trainingModeAction->setChecked(false);
-    m_chapters.chapter().currentGame = qBound(0, after, int(m_chapters.chapter().games.size()) - 1);
-    m_chapters.insertGame(m_chapters.chapter().currentGame);
+    // After every game but the last there is a break already: the new game
+    // goes at the end, and breaks with nothing after them go.
+    m_chapters.breakGame();
     GameRecord game;
     game.result = QStringLiteral("*");
     game.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
@@ -3196,7 +3198,7 @@ void MainWindow::startGame(const GameRecord &game)
 {
     // A new game goes at the end of the chapter: the games before it stay.
     if (!m_chapters.game().isEmpty())
-        m_chapters.insertGame(int(m_chapters.chapter().games.size()) - 1);
+        m_chapters.breakGame();
     m_gameView->clearSelection();
     m_openGameIndex = -1;
     m_session->setGame(game);
@@ -4067,6 +4069,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
                 entry.game = GameSession::resolved(stored.value_or(entry.game));
             }
         }
+        m_chapters.removeEmptyGames();
         m_moveView->refresh();
         loadChapterGame();
         m_session->goToPly(m_chapters.chapter().ply);

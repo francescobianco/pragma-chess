@@ -2456,6 +2456,26 @@ private Q_SLOTS:
         QVERIFY(book.game().isEmpty());
         QCOMPARE(book.findGame(QStringLiteral("stored")), 0);
 
+        // Another break goes at the end, where the empty game is already:
+        // after any other game there is a break already.
+        QCOMPARE(book.breakGame(), 1);
+        QCOMPARE(book.chapter().games.size(), 2);
+        book.game().game.moves = {{QStringLiteral("d4"), QStringLiteral("d2d4")}};
+        book.chapter().currentGame = 0;
+        QCOMPARE(book.breakGame(), 2);
+        QCOMPARE(book.chapter().games.size(), 3);
+        // Breaks with nothing after them go, but not the game on the board.
+        book.chapter().games.insert(1, ChapterGame());
+        book.chapter().currentGame = 3;
+        book.removeEmptyGames();
+        QCOMPARE(book.chapter().games.size(), 3);
+        QCOMPARE(book.chapter().currentGame, 2);
+        book.chapter().currentGame = 0;
+        book.removeEmptyGames();
+        QCOMPARE(book.chapter().games.size(), 2);
+        book.insertGame(0); // As before: a new game right after the first, current.
+        QCOMPARE(book.chapter().currentGame, 1);
+
         // Chapters: added at the end, moved with the open one followed, never none.
         QCOMPARE(book.addChapter(QString()), 1);
         QCOMPARE(book.chapter().title, ChapterBook::defaultTitle(2));
@@ -2468,7 +2488,7 @@ private Q_SLOTS:
         QVERIFY(book.removeChapter(0));
         QVERIFY(!book.removeChapter(0));
         QCOMPARE(book.chapters.size(), 1);
-        QCOMPARE(book.chapter().games.size(), 2); // The first chapter, moved last, is what is left.
+        QCOMPARE(book.chapter().games.size(), 3); // The first chapter, moved last, is what is left.
     }
 
     void savesChaptersInProjects()

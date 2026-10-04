@@ -475,8 +475,12 @@ tools this is a study or a chess book.
   list) add a game at the end of the chapter, or take the place of an
   empty one (`ChapterGame::isEmpty`); a game the chapter has already
   (`findGame` by uid) is switched to. Switching database keeps the
-  chapter (`relinkChapterGame`). Insert Game Break (`insertGameBreak`) is
-  a new empty game from the starting position after the given one. While
+  chapter (`relinkChapterGame`). Insert Game Break (`insertGameBreak`,
+  `ChapterBook::breakGame`) is a new empty game at the end of the chapter
+  (every game but the last has a break after it already), or the empty one
+  there; empty games but the current one are removed
+  (`removeEmptyGames`) when the board leaves a game and when a project
+  opens. While
   playing online the board cannot leave its game (`canLeaveGame`).
 - `widgets/MoveTreeView` draws the whole chapter in its one table: a light
   rule (an `<hr>`, drawn with the view's palette Dark, set light) where

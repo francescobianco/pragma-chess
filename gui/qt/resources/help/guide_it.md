@@ -218,7 +218,7 @@ Un progetto è una raccolta di **capitoli**, come uno studio o un libro di scacc
 Fai clic col tasto destro sulla lista delle mosse — su una mossa, su un paragrafo, o dove vuoi, anche senza mosse — per:
 
 - **Inserisci paragrafo**: un paragrafo dopo la mossa (o dove si trova la scacchiera), scritto direttamente nella lista delle mosse. Scrivi come in un libro: il testo è giustificato, e ogni a capo comincia un nuovo capoverso, rientrato. **Esc**, **Ctrl+Invio** o un clic altrove per finire; un paragrafo lasciato vuoto sparisce. Fai clic su un paragrafo per riscriverci; **Modifica paragrafo**, **Sposta paragrafo** ed **Elimina paragrafo** sono nel suo menu: Sposta paragrafo lo porta **In testa** o **In fondo** alla partita, oppure **Su** e **Giù** di una semimossa alla volta — dopo la mossa del Bianco, Giù lo porta dopo quella del Nero, che torna sulla riga del Bianco. I paragrafi vanno sulla linea principale.
-- **Inserisci interruzione partita**: una nuova partita dopo questa, dalla posizione iniziale; la sua numerazione riparte da 1.
+- **Inserisci interruzione partita**: una nuova partita dalla posizione iniziale, con la numerazione che riparte da 1. Dopo ogni partita tranne l'ultima c'è già un'interruzione, quindi la nuova partita va in fondo al capitolo; un'interruzione rimasta senza mosse sparisce quando passi a un'altra partita.
 
 Nuova partita, Nuovo allenamento, Inserisci posizione, gli Incolla e le partite online aggiungono la loro partita in fondo al capitolo, e così una partita aperta dalla lista delle partite (una che il capitolo ha già viene semplicemente mostrata). Le partite salvate in un database vengono salvate lì man mano che cambiano; le altre, e tutti i paragrafi, vengono salvati con il progetto.
 

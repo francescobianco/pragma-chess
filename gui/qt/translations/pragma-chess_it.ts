@@ -2464,10 +2464,6 @@ non è su questo computer.</translation>
         <translation>Inserisci &amp;interruzione partita</translation>
     </message>
     <message>
-        <source>A new game after this one, from the starting position; the numbering starts again</source>
-        <translation>Una nuova partita dopo questa, dalla posizione iniziale; la numerazione riparte</translation>
-    </message>
-    <message>
         <source>The board stays on the online game until it ends.</source>
         <translation>La scacchiera resta sulla partita online finché non finisce.</translation>
     </message>
@@ -2502,6 +2498,10 @@ non è su questo computer.</translation>
     <message>
         <source>To the &amp;Bottom</source>
         <translation>In &amp;fondo</translation>
+    </message>
+    <message>
+        <source>A new game at the end of the chapter, from the starting position; the numbering starts again</source>
+        <translation>Una nuova partita in fondo al capitolo, dalla posizione iniziale; la numerazione riparte</translation>
     </message>
 </context>
 <context>

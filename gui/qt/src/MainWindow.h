@@ -177,8 +177,9 @@ private:
     void relinkChapterGame();
     /// The chapters changed: the project has changes, the moves show them.
     void chapterChanged();
-    /// A new game, from the starting position, after the game `after`.
-    void insertGameBreak(int after);
+    /// Insert Game Break: a new game, from the starting position, at the end
+    /// of the chapter (ChapterBook::breakGame).
+    void insertGameBreak();
     void newChapter();
     void switchChapter(int index);
     void manageChapters();

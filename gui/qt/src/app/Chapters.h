@@ -65,6 +65,13 @@ public:
     /// A new game, from the starting position, after the game `after` of the
     /// open chapter; it becomes the current one. Returns its index.
     int insertGame(int after);
+    /// Insert Game Break: a new game at the end of the open chapter — every
+    /// game but the last has a break after it already —, or the empty one
+    /// already there. It becomes the current one; returns its index.
+    int breakGame();
+    /// Takes away the empty games of the open chapter (breaks with nothing
+    /// after them) but the current one, which keeps its place in the list.
+    void removeEmptyGames();
     /// The game of the open chapter stored under `uid`, or -1.
     int findGame(const QString &uid) const;
 

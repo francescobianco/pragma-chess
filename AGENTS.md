@@ -478,9 +478,10 @@ tools this is a study or a chess book.
   chapter (`relinkChapterGame`). Insert Game Break (`insertGameBreak`) is
   a new empty game from the starting position after the given one. While
   playing online the board cannot leave its game (`canLeaveGame`).
-- `widgets/MoveTreeView` draws the whole chapter in its one table: a title
-  row per game when there are several (its numbering starts again), the
-  chapter's title when the project has several, paragraphs as rows
+- `widgets/MoveTreeView` draws the whole chapter in its one table: a light
+  rule (an `<hr>`, drawn with the view's palette Dark, set light) where
+  each game after the first begins, its numbering starting again — no
+  titles, and not the chapter's —, paragraphs as rows
   spanning the table in the book face (`widgets/BookFont`: Crimson Pro
   ExtraLight, line height 125%, the first line of each paragraph indented).
   Paragraphs are written in place: `editParagraph` lays a `QTextEdit` with

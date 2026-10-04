@@ -10,8 +10,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 - Chapters: a project is now a collection of chapters, as a study or a
   chess book, and a chapter holds games one after the other. The move list
-  shows the whole chapter, each game under its title with its numbering
-  starting again. File ▸ New Chapter…, Switch Chapter and Manage
+  shows the whole chapter, a light rule where each game begins and its
+  numbering starting again. File ▸ New Chapter…, Switch Chapter and Manage
   Chapters… (reorder, rename, add, delete).
 - Paragraphs between the moves: right-click the move list ▸ Insert
   Paragraph and write right there, set as in a book (its own face, each

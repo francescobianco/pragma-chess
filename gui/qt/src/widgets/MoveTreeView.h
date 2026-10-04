@@ -20,8 +20,8 @@ class GameSession;
 /// replaces, a row spanning both columns holds that variation as text, its
 /// own variations inline in parentheses; there every move is a link.
 /// Paragraphs are rows of text between the moves, written in place: a click
-/// on one opens it for writing right there. A chapter of several games shows
-/// a title row before each, and the numbering starts again with it.
+/// on one opens it for writing right there. In a chapter of several games a
+/// light rule marks where each begins, and the numbering starts again.
 /// Pieces are figurines. The header is a real QHeaderView over the text, so
 /// it looks like the other tables', and its sections set the columns' widths.
 class MoveTreeView : public QTextBrowser {
@@ -37,8 +37,8 @@ public:
     void refresh();
 
     /// What is under a point: a move (the game of the chapter, the line —
-    /// GameSession::path — and the ply on it), a paragraph, or a game's title
-    /// row (ply 0). `game` is -1 where there is nothing.
+    /// GameSession::path — and the ply on it) or a paragraph. `game` is -1
+    /// where there is nothing.
     struct Place {
         int game = -1;
         QList<int> path;
@@ -58,7 +58,7 @@ public:
 Q_SIGNALS:
     /// A move of the game on the board was clicked.
     void moveActivated(const QList<int> &path, int ply);
-    /// A move of another game of the chapter was clicked, or a game's title (ply 0).
+    /// A move of another game of the chapter was clicked.
     void gameMoveActivated(int game, const QList<int> &path, int ply);
     /// A paragraph was written: its new text, empty to take it away.
     void paragraphEdited(int game, int index, const QString &text);
@@ -89,7 +89,6 @@ private:
     QStandardItemModel *m_columns; // Its titles.
     QHash<int, QPair<int, int>> m_cellPlaces; // (row << 2 | column) → (game, ply), main lines.
     QHash<int, QPair<int, int>> m_paragraphRows; // row → (game, paragraph).
-    QHash<int, int> m_titleRows;                 // row → game.
     int m_currentCell = -1; // The highlighted cell, same key; -1 if the current move is in a variation.
 
     /// rebuild() is running: setHtml() can resize the view, whose header asks

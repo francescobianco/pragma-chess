@@ -229,8 +229,6 @@ MoveTreeView::Place MoveTreeView::placeAt(const QPoint &position) const
     } else if (const auto paragraph = m_paragraphRows.constFind(row); paragraph != m_paragraphRows.constEnd()) {
         place.game = paragraph->first;
         place.paragraph = paragraph->second;
-    } else if (const auto title = m_titleRows.constFind(row); title != m_titleRows.constEnd()) {
-        place.game = *title;
     }
     return place;
 }
@@ -404,6 +402,19 @@ void MoveTreeView::rebuild()
     }
     const QScopedValueRollback<bool> running(m_rebuilding, true);
     const int scroll = verticalScrollBar()->value();
+    // The rule between games is drawn with the palette's Dark: a light one,
+    // a little of the text over the page.
+    {
+        QPalette rule = palette();
+        const QColor base = rule.color(QPalette::Base);
+        const QColor ink = rule.color(QPalette::Text);
+        const auto mix = [&](int a, int b) { return a + (b - a) * 18 / 100; };
+        const QColor light(mix(base.red(), ink.red()), mix(base.green(), ink.green()), mix(base.blue(), ink.blue()));
+        if (rule.color(QPalette::Dark) != light) {
+            rule.setColor(QPalette::Dark, light);
+            setPalette(rule);
+        }
+    }
     const QPalette pal = palette();
     const QString highlight = pal.color(QPalette::Highlight).name();
     const QString highlighted = pal.color(QPalette::HighlightedText).name();
@@ -427,8 +438,7 @@ void MoveTreeView::rebuild()
                                   "td.cur { color: %4; background-color: %5; }"
                                   "td.var { font-size: 92%; color: %2; padding-left: 14px; }"
                                   "td.par { color: %3; padding: 8px %6px; }"
-                                  "td.title { color: %1; font-weight: bold; padding-top: 10px; }"
-                                  "td.chapter { color: %3; font-weight: bold; font-size: 110%; padding-top: 8px; }"
+                                  "td.break { padding: 10px %6px; }"
                                   "a { text-decoration: none; }"
                                   "a.mv { color: %3; }"
                                   "a.cur { color: %4; background-color: %5; }"
@@ -446,22 +456,14 @@ void MoveTreeView::rebuild()
                                QString::number(m_header->sectionSize(2))};
     html += QStringLiteral("<table width=\"100%\" cellspacing=\"0\">");
     // A row of nothing that holds the columns' widths: rows spanning them
-    // (paragraphs, titles) would otherwise have the table share them out anew.
+    // (paragraphs, game breaks) would otherwise have the table share them out anew.
     html += QStringLiteral("<tr style=\"font-size: 1px;\"><td width=\"%1\" style=\"padding: 0;\"></td>"
                            "<td width=\"%2\" style=\"padding: 0;\"></td><td width=\"%3\" style=\"padding: 0;\"></td></tr>")
                 .arg(widths[0], widths[1], widths[2]);
     m_cellPlaces.clear();
     m_paragraphRows.clear();
-    m_titleRows.clear();
     m_currentCell = -1;
     int row = 0; // Every row written counts, from 0 (the widths' row).
-
-    // The chapter's title, when the project has more than one.
-    if (m_book && m_book->chapters.size() > 1) {
-        html += QStringLiteral("<tr><td colspan=\"3\" class=\"chapter\">%1</td></tr>")
-                    .arg(m_book->chapter().title.toHtmlEscaped());
-        ++row;
-    }
 
     const int gameCount = m_book ? int(m_book->chapter().games.size()) : 1;
     for (int g = 0; g < gameCount; ++g) {
@@ -471,15 +473,10 @@ void MoveTreeView::rebuild()
         if (m_editing.first == g && m_editing.second < paragraphs.size())
             paragraphs[m_editing.second].text = m_editText; // As it is being written.
 
-        if (gameCount > 1) {
-            // A game break: the game's title, and its numbering starts again.
-            QString title = tr("Game %1").arg(g + 1);
-            if (!game.white.isEmpty() || !game.black.isEmpty())
-                title += QStringLiteral(" · %1 – %2").arg(game.white.isEmpty() ? QStringLiteral("?") : game.white,
-                                                         game.black.isEmpty() ? QStringLiteral("?") : game.black);
+        if (g > 0) {
+            // A game break: a light rule across the list, and the numbering starts again.
             ++row;
-            m_titleRows.insert(row, g);
-            html += QStringLiteral("<tr><td colspan=\"3\" class=\"title\">%1</td></tr>").arg(title.toHtmlEscaped());
+            html += QStringLiteral("<tr><td colspan=\"3\" class=\"break\"><hr></td></tr>");
         }
 
         const int currentPly = g == current && owner.isEmpty() ? m_session->ply() : 0;

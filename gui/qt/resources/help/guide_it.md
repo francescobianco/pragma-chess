@@ -213,7 +213,7 @@ I pannelli si possono ridimensionare e chiudere; il menu **Visualizza** (Mosse, 
 
 # Capitoli e paragrafi {#chapters}
 
-Un progetto è una raccolta di **capitoli**, come uno studio o un libro di scacchi, e un capitolo contiene partite una dopo l'altra, con del testo tra le loro mosse. La lista delle mosse mostra tutto il capitolo: ogni partita sotto il suo titolo (*Partita 2 · Bianco – Nero*), con la numerazione che riparte; fai clic su una mossa di un'altra partita e la scacchiera va lì.
+Un progetto è una raccolta di **capitoli**, come uno studio o un libro di scacchi, e un capitolo contiene partite una dopo l'altra, con del testo tra le loro mosse. La lista delle mosse mostra tutto il capitolo: una riga leggera segna dove comincia ogni partita, e la numerazione riparte; fai clic su una mossa di un'altra partita e la scacchiera va lì.
 
 Fai clic col tasto destro sulla lista delle mosse — su una mossa, su un paragrafo, o dove vuoi, anche senza mosse — per:
 

@@ -213,7 +213,7 @@ Panels can be resized and closed; the **View** menu (Moves, Opening Tree, Engine
 
 # Chapters and paragraphs {#chapters}
 
-A project is a collection of **chapters**, as a study or a chess book is, and a chapter holds games one after the other, with text between their moves. The move list shows the whole chapter: each game under its title (*Game 2 · White – Black*), its numbering starting again; click a move of another game and the board goes there.
+A project is a collection of **chapters**, as a study or a chess book is, and a chapter holds games one after the other, with text between their moves. The move list shows the whole chapter: a light rule marks where each game begins, and its numbering starts again; click a move of another game and the board goes there.
 
 Right-click the move list — on a move, on a paragraph, or anywhere, even with no moves — for:
 

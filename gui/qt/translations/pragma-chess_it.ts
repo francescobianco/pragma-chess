@@ -3072,10 +3072,6 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>Write here; Esc or a click elsewhere ends</source>
         <translation>Scrivi qui; Esc o un clic altrove per finire</translation>
     </message>
-    <message>
-        <source>Game %1</source>
-        <translation>Partita %1</translation>
-    </message>
 </context>
 <context>
     <name>NewGameChoiceDialog</name>

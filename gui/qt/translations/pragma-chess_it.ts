@@ -2285,6 +2285,22 @@ non è su questo computer.</translation>
         <source>Resign</source>
         <translation>Abbandona</translation>
     </message>
+    <message>
+        <source>New Game</source>
+        <translation>Nuova partita</translation>
+    </message>
+    <message>
+        <source>You are in online play mode. Play a new game online, or analyse a new game?</source>
+        <translation>Sei in modalità gioco online. Vuoi giocare una nuova partita online, o analizzare una nuova partita?</translation>
+    </message>
+    <message>
+        <source>New Online Game</source>
+        <translation>Nuova partita online</translation>
+    </message>
+    <message>
+        <source>New Game to Analyse</source>
+        <translation>Nuova partita da analizzare</translation>
+    </message>
 </context>
 <context>
     <name>ManageEnginesDialog</name>

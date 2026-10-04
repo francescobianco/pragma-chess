@@ -2760,9 +2760,21 @@ void MainWindow::updateExplainer()
 
 void MainWindow::newGame()
 {
-    // A new game is one to analyse: an online game in progress is left first.
+    // While playing online "new game" may mean either: a new online game (as
+    // the toolbar's Play Online) or one to analyse. Either way the game in
+    // progress is kept or resigned first.
     if (m_onlinePlay) {
-        leaveOnlineThen([this] { newGame(); });
+        QMessageBox box(QMessageBox::Question, tr("New Game"),
+                        tr("You are in online play mode. Play a new game online, or analyse a new game?"),
+                        QMessageBox::Cancel, this);
+        QPushButton *online = box.addButton(tr("New Online Game"), QMessageBox::AcceptRole);
+        QPushButton *analyse = box.addButton(tr("New Game to Analyse"), QMessageBox::AcceptRole);
+        box.setDefaultButton(online);
+        box.exec();
+        if (box.clickedButton() == online)
+            playOnline(false);
+        else if (box.clickedButton() == analyse)
+            leaveOnlineThen([this] { newGame(); });
         return;
     }
     m_trainingModeAction->setChecked(false); // A plain new game is not a training one.

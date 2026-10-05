@@ -97,6 +97,38 @@ tick depth 16 cp 142 pv d1f3 c7c6 c1b2 d7d5 b1c3 h7h5 e1c1 g8f6 c1b1 b6b5 f1d3 b
 tick depth 17 cp 124 pv d1f3 c7c6 c1b2 d7d5 b1c3 f7f5 c3e2 g8f6 e2d4 d8d7 h2h3 f8c5 g2g4 c5d4 b2d4 d7e7 d4b2 e8g8 g4f5 e6f5
 tick depth 18 cp 138 pv d1f3 c7c6 b1c3 d7d5 c1b2 a7a5 e3e4 a5a4 c3a4 b6b5 a4c3 f8a3 b2a3 a8a3 f3g3 g7g6 e4d5 e6d5
 expect verdict inaccuracy
-expect arrows g8f6 alternative, d1f3 reply 1, c7c6 reply 2
+expect arrows g8f6 alternative, d1f3 reply 1
 expect summary Inaccuracy (−0.1 → +1.2). Better was 4…Nf6. 5.Qxf3 attacks the rook on a8: 5…c6 parries it. Main line: 5.Qxf3 c6 6.Bb2 d5.
+end
+
+# 2026-10-06, the same game, 5...Qh4+ (the user plays Black): "arrow 2 is of
+# no use" — 6...Qf6, Black's own queen going back. Where no material
+# explains a mistake, the answers of the side that suffers are not drawn
+# any more (WithoutLoserTail in the error fallback); the text says them.
+explain
+before rn1qkbnr/p1pp1ppp/1p2p3/8/5P2/1P2PQ2/P1PP2PP/RNB1KB1R b KQkq - 0 5
+played d8h4
+before-eval depth 18 cp 133 pv b8c6 c1b2 h7h5 b1c3 d8h4 g2g3 h4g4 f3g2 e8c8 h2h3 g4g6 e1c1 d7d5 a2a3
+after rn2kbnr/p1pp1ppp/1p2p3/8/5P1q/1P2PQ2/P1PP2PP/RNB1KB1R w KQkq - 1 6
+tick depth 1 cp 94 pv g2g3
+tick depth 2 cp 94 pv g2g3
+tick depth 3 cp 120 pv e1d1
+tick depth 4 cp 148 pv e1d1
+tick depth 5 cp 157 pv g2g3
+tick depth 6 cp 358 pv g2g3
+tick depth 7 cp 396 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7
+tick depth 8 cp 412 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7 c1a3 c7c5
+tick depth 9 cp 412 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7 c1a3 c7c5
+tick depth 10 cp 333 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7 c1a3 c7c5 e1e2 a1b1 b8a7 b1a2
+tick depth 11 cp 343 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7 c1a3 c7c5 e1e2 a1b1 b8a7 e7f6
+tick depth 12 cp 369 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7 c1a3 c7c5 e1e2 a1b1 b8a7 b1c2 a7b6
+tick depth 13 cp 343 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7 c1a3 c7c5 e1e2 a1b1 b8a7 e7f6 f1g2 b1c2 a7d7
+tick depth 14 cp 358 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7 c1a3 c7c5 e1e2 a1b1 b8a7 b1c2 f1g2 e7f6 a7d7 c2a2
+tick depth 15 cp 364 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7 e1e2 a1b1 c1a3 c7c5 b8a7 b1c2 a7b6 d7d6 f1g2 e7f6 g3g4 c2a2
+tick depth 16 cp 334 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7 e1e2 a1b1 c1a3 c7c5 b8a7 b1c2 a7b6 e7f6 f1g2 g7g6 b6a7 f8e7 h1c1 c2a2 a3c5
+tick depth 17 cp 357 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7 c1a3 c7c5 e1e2 a1b1 b8a7 b1c2 f1g2 e7f6 a7b8 c2a2 b8f8 a2a3 f8d8 g8e7 d8h8 a3a6 e2e1 a6a1 e1f2 a1a2 h1d1 a2b3
+tick depth 18 cp 407 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7 c1a3 c7c5 e1e2 a1b1 b8a7 b1c2 f1g2 e7f6 a7b8 c2a2 b8f8 a2a3 f8d8 g8e7 d8h8 a3a6 e2f2 a6a2 h1e1
+expect verdict mistake
+expect arrows b8c6 alternative, g2g3 reply 1
+expect summary Mistake (+1.3 → +4.1). Better was 5…Nc6. 6.g3 attacks the queen on h4: 6…Qf6 parries it. Main line: 6.g3 Qf6 7.Qxa8 Qxa1.
 end

@@ -632,7 +632,10 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         ' No material falls: a piece taken back in an even exchange (4...Bxf3
         ' 5.Qxf3) is not ringed.
         ringing = FALSE
-        AddArrows current, 0, fallbackPlies, toMove, "reply", -1, -1
+        ' The answers of the side that suffers are not drawn either (6...Qf6,
+        ' the queen going back): the text says them.
+        drawn = WithoutLoserTail(current, [0, fallbackPlies], toMove)
+        AddArrows current, 0, fallbackPlies, toMove, "reply", drawn[0], drawn[1]
         summary = prefix + TRIM(better) + ThreatText(current)
         IF concreteText <> "" THEN
             summary = summary + concreteText

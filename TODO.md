@@ -165,6 +165,14 @@ app Android. Ultimo commit del lavoro: `d7f16c1`. Resta:
   saranno più difficili da raccontare; servirà guardare più a fondo, forse
   scambi interi (SEE) invece di una ripresa, e disegnarle (una freccia
   della minaccia?). Poi i temi posizionali (coppia degli alfieri, sviluppo).
+- **La minaccia ignorata (5…Qh4+, 6 ottobre).** Dopo 4…Bxf3 5.Qxf3 il
+  Nero gioca 5…Qh4+ invece di parare: la torre a8 resta attaccata (7.Qxa8).
+  Spiega dice "6.g3 attacca la donna in h4: 6…Qf6 la para", vero ma non il
+  punto: il punto è che 5…Qh4+ lascia la torre in presa. Da aggiungere a
+  `ThreatText`: le minacce che c'erano prima della mossa di chi sbaglia
+  (`Threats(before, avversario)`) e ci sono ancora dopo la sua risposta →
+  "5…Qh4+ lascia la torre in a8 attaccata". Fatto intanto: la freccia di
+  6…Qf6 (la risposta di chi subisce) non si disegna più.
 - **3.Qf5** dopo 2.Qg4 a profondità 18 dice "il Nero vince un alfiere e un
   pedone per un cavallo" con una linea di 14 semimosse: debole (c'era già
   prima di SMART). Forse un limite di semimosse per chiamare "materiale" un

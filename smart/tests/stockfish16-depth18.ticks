@@ -106,7 +106,7 @@ tick depth 16 cp -195 pv d8h4 e1e2 h4e7 e2f2 g8f6 f1d3 b8c6 b1c3 g7g5 h2h4 g5g4 
 tick depth 17 cp -211 pv d8h4 e1e2 h4e7 e2f2 g8f6 f1d3 b8c6 b1c3 g7g5 h2h4 g5g4 c3d5 f6d5 e4d5 c6e5 d3e4 f8h6 d2d4 e5c4 e4f5 c4e3 c1e3 f4e3 f2f1
 tick depth 18 cp -200 pv d8h4 e1e2 h4e7 e2f2 g8f6 f1d3 b8c6 b1c3 e7d8 f2f1 f8c5 d3c4 e8g8 g1f3 d7d5 e4d5 c6d4 b2b4 d4f3 b4c5 f3d4 d2d3 c8g4
 expect verdict inaccuracy
-expect arrows b1c3 alternative, d8h4 reply 1, e1e2 reply 2
+expect arrows b1c3 alternative, d8h4 reply 1
 expect summary Inaccuracy (−0.6 → −2.0). Better was 3.Nc3. Main line: 3…Qh4+ 4.Ke2 Qe7 5.Kf2.
 end
 explain

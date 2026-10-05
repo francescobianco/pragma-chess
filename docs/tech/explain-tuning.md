@@ -281,3 +281,12 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   which differs between clients. 4…Bxf3 now says "5.Qxf3 attacks the rook
   on a8: 5…c6 parries it."; no other recorded case changed. The user
   expects harder cases (forced tactics over several moves): TODO.md.
+- 2026-10-06 — 1.f4 e6 2.Nf3 b6 3.e3 Bb7 4.b3 Bxf3 5.Qxf3 Qh4+, the user
+  playing Black: "arrow 2 is of no use". It was 6…Qf6, Black's own queen
+  going back after 6.g3. Decision: in the error branch where no material
+  explains the drop, the answers of the side that suffers (the mover) at
+  the end of the drawn plies are not drawn (`WithoutLoserTail`), the text
+  says them; 3.a4 loses 4.Ke2, 4…Bxf3 loses 5…c6. When a position is
+  explained without a move to judge, both sides' plan stays drawn. Open:
+  the real point of 5…Qh4+ is the threat it ignores (the rook on a8 stays
+  attacked), which Explain does not say yet (TODO.md).

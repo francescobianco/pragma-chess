@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QSaveFile>
+#include <QThread>
 #include <QTimer>
 
 namespace {
@@ -218,10 +219,23 @@ bool PgnFileFetch::writeFile(const PgnFilePlan::ReadPlan &read, const PgnFilePla
         return false;
     }
     current.close();
-    QSaveFile save(file);
-    if (!save.open(QIODevice::WriteOnly) || save.write(bytes) != bytes.size() || !save.commit()) {
-        *errorMessage = tr("Could not write the PGN file: %1").arg(save.errorString());
-        return false;
+    // On Windows a file just read can be held for a moment (an antivirus, the
+    // indexer) and replacing it is refused: try again for a short while. The
+    // file is the user's, so it is only ever replaced whole, never removed first.
+#ifdef Q_OS_WIN
+    constexpr int kAttempts = 20;
+#else
+    constexpr int kAttempts = 1;
+#endif
+    for (int attempt = 1;; ++attempt) {
+        QSaveFile save(file);
+        if (save.open(QIODevice::WriteOnly) && save.write(bytes) == bytes.size() && save.commit())
+            break;
+        if (attempt >= kAttempts) {
+            *errorMessage = tr("Could not write the PGN file: %1").arg(save.errorString());
+            return false;
+        }
+        QThread::msleep(100);
     }
     m_bytes = bytes;
     m_index = PgnFile::Index{PgnFile::fileHash(bytes), PgnFile::scan(bytes)};

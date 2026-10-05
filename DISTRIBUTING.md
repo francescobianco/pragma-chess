@@ -60,7 +60,7 @@ advert, and each needs a maintainer: us, until someone else steps in.
 |---|---|---|
 | **awesome-chess** lists on GitHub | <https://github.com/mbiesiad/awesome-chess>: PR [#59](https://github.com/mbiesiad/awesome-chess/pull/59) (Projects). <https://github.com/mersesarvari/awesome-chess>: issue [#2](https://github.com/mersesarvari/awesome-chess/issues/2) (its directory is a wiki). <https://github.com/atamano/awesome-chess> (Desktop GUIs, lists Scid/ChessX/En Croissant) requires ~50 stars and 3 months: submit then. <https://github.com/hkirat/awesome-chess> has no software section: skip | ✅ 2 of 4 · ☐ atamano at 50★ |
 | **awesome-italia-opensource** | PR [#222](https://github.com/italia-opensource/awesome-italia-opensource/pull/222) (`awesome/opensource/data/pragma-chess.json`) | ✅ PR open 2026-10-04 |
-| **AlternativeTo** | Submitted 2026-10-04 (id `98fe179f-e51c-46b5-8a27-b02160f2b4e2`): description, MIT, Free, Windows/Mac/Linux, tags, icon and 4 screenshots, author Francesco Bianco (Italy); alternatives ChessBase, En Croissant, Scid vs. PC, scidCommunity, ChessX, ChessDB, Chess Assistant. The free queue is long; priority review $5, human content review $15 | ✅ submitted · waiting |
+| **AlternativeTo** | Submitted 2026-10-04 (id `98fe179f-e51c-46b5-8a27-b02160f2b4e2`): description, MIT, Free, Windows/Mac/Linux, tags, icon and 4 screenshots, author Francesco Bianco (Italy); alternatives ChessBase, En Croissant, Scid vs. PC, scidCommunity, ChessX, ChessDB, Chess Assistant. Online: <https://alternativeto.net/software/pragma-chess/about/> | ✅ online 2026-10-05 |
 | **OpenSourceAlternative.to** | Submitted to the free waitlist (6+ months; the 48 h review costs $29) as an alternative to ChessBase: <https://www.opensourcealternative.to/project/pragma-chess> says "under review" | ✅ 2026-10-04 · waiting |
 | **Flathub / winget / Homebrew pages** | Come with section 2: they are the directories most people use | — |
 | **FossHub, Softpedia, Uptodown** | Submit the Windows installer; they mirror and list. Softpedia reviews are read by Windows users | ☐ |
@@ -219,6 +219,7 @@ books and lichess.org play; Windows, macOS, Linux.`
 | 2026-10-04 | awesome-italia-opensource | https://github.com/italia-opensource/awesome-italia-opensource/pull/222 | PR |
 | 2026-10-04 | winget | https://github.com/microsoft/winget-pkgs/pull/446459 | New package 0.2.0 |
 | 2026-10-04 | Flathub | packaging/flatpak/ | manifest ready, not yet built or submitted |
+| 2026-10-05 | AlternativeTo | https://alternativeto.net/software/pragma-chess/about/ | online, listed as alternative to 7 apps |
 | 2026-10-04 | Clip | https://yafb.net/pragma-chess/assets/pragma-chess-explain.webm | 40 s, Explain on the Opera game; the site's hero |
 | 2026-10-04 | OpenSourceAlternative.to | https://www.opensourcealternative.to/project/pragma-chess | waitlist, alternative to ChessBase |
 | 2026-10-04 | AlternativeTo | https://alternativeto.net/ (in the review queue) | 7 alternatives suggested |

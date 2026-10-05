@@ -556,7 +556,10 @@ tools this is a study or a chess book.
 
 ## Trash
 
-Right-clicking a game of the list offers Move Game to Trash; the tree's last
+Right-clicking a game of the list offers Move Game to Trash (the list
+selects several games with Shift/Ctrl, and the trash actions go to every
+selected game in the same state as the one clicked; Who Is This? only for
+one); the tree's last
 node, Trash, lists those games, and only there a game can be restored or
 deleted. Under it, Recent holds the games trashed in the last seven days
 (`GameStates::isRecent`, on `GameRecord::stateModified`) and Old the others. **Deleting is always soft**: nothing leaves the file until Database ▸

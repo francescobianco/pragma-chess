@@ -197,7 +197,7 @@ The **Sources** node of the tree lists the games of each source.
 
 # Trash {#trash}
 
-Right-click a game of the list and choose **Move Game to Trash**. The game leaves every list and is no longer searched.
+Right-click a game of the list and choose **Move Game to Trash**. The game leaves every list and is no longer searched. To work on several games at once, select them with **Shift** and the arrow keys (or a click), or **Ctrl** and a click: the right-click menu then moves, restores or deletes them all; **Who Is This?** is only offered for one game.
 
 The **Trash** node, last in the tree, shows the trashed games: **Recent**, thrown away in the last seven days, and **Old**. There you can **Restore Game** or **Delete Game…**.
 

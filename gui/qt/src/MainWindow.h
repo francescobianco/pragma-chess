@@ -142,10 +142,10 @@ private:
     void setPlayerRole(const QString &player, PlayerRole role);
     /// Index of the game with `uid` in the open database, -1 if it has none.
     qint64 gameIndexOf(const QString &uid) const;
-    /// Moves a game to the trash, back to the lists, or out of the trash.
-    void setGameState(const QString &uid, GameState state);
-    /// Asks, then deletes a game of the trash (GameState::Deleted).
-    void deleteGame(const QString &uid);
+    /// Moves games to the trash, back to the lists, or out of the trash.
+    void setGameState(const QStringList &uids, GameState state);
+    /// Asks, then deletes games of the trash (GameState::Deleted).
+    void deleteGames(const QStringList &uids);
     /// Database Settings ▸ Optimize Database, with `dialog` as the parent of
     /// what it asks and reports.
     void optimizeDatabase(QWidget *dialog);

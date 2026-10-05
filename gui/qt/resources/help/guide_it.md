@@ -196,7 +196,7 @@ Il nodo **Sorgenti** dell'albero elenca le partite di ogni sorgente.
 
 # Cestino {#trash}
 
-Clic destro su una partita della lista e scegli **Cestina partita**. La partita esce da tutte le liste e non viene più cercata.
+Clic destro su una partita della lista e scegli **Cestina partita**. La partita esce da tutte le liste e non viene più cercata. Per agire su più partite insieme, selezionale con **Maiusc** e le frecce (o un clic), oppure **Ctrl** e un clic: il menu del tasto destro allora le cestina, ripristina o elimina tutte; **Chi è?** compare solo per una partita.
 
 Il nodo **Cestino**, ultimo dell'albero, mostra le partite cestinate: **Recenti**, buttate negli ultimi sette giorni, e **Vecchie**. Lì puoi scegliere **Ripristina partita** o **Elimina partita…**.
 

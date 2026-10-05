@@ -1248,7 +1248,8 @@ void MainWindow::createDocks()
     m_gameView->setSortingEnabled(true);
     m_gameView->sortByColumn(GameListModel::Number, Qt::AscendingOrder);
     m_gameView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_gameView->setSelectionMode(QAbstractItemView::SingleSelection);
+    // Shift and Ctrl select several games, for what the menu does to them all.
+    m_gameView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_gameView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_gameView->setAlternatingRowColors(true);
     m_gameView->setShowGrid(false);
@@ -1398,8 +1399,14 @@ void MainWindow::showGameListMenu(const QPoint &position)
     else if (source.column() == GameListModel::Black || source.column() == GameListModel::BlackElo)
         player = header.black;
 
+    // A right click outside the selection selects the game clicked alone.
+    if (!m_gameView->selectionModel()->isRowSelected(index.row(), QModelIndex()))
+        m_gameView->selectRow(index.row());
+    const QModelIndexList selected = m_gameView->selectionModel()->selectedRows();
+
     QMenu menu(this);
-    if (!player.isEmpty()) {
+    // Who a player is concerns one game's player: not offered for several games.
+    if (!player.isEmpty() && selected.size() <= 1) {
         QMenu *who = menu.addMenu(tr("Who Is This?"));
         who->setToolTip(player);
         const PlayerRole current = m_database->playerRoles().value(player);
@@ -1421,13 +1428,25 @@ void MainWindow::showGameListMenu(const QPoint &position)
         menu.addSeparator();
     }
     // A game is only ever deleted from the trash, and even then it stays in
-    // the file until the database is optimized.
-    const QString uid = header.uid;
+    // the file until the database is optimized. The actions go to every
+    // selected game in the same place as the one clicked.
+    QStringList uids;
+    for (const QModelIndex &row : selected) {
+        const GameRecord game = m_database->header(m_gameListProxy->mapToSource(row).row());
+        if (game.state == header.state)
+            uids << game.uid;
+    }
+    if (uids.isEmpty())
+        uids << header.uid;
+    const int count = int(uids.size());
     if (header.state == GameState::Trashed) {
-        menu.addAction(tr("&Restore Game"), this, [this, uid] { setGameState(uid, GameState::Live); });
-        menu.addAction(tr("&Delete Game…"), this, [this, uid] { deleteGame(uid); });
+        menu.addAction(count > 1 ? tr("&Restore %n Games", nullptr, count) : tr("&Restore Game"), this,
+                       [this, uids] { setGameState(uids, GameState::Live); });
+        menu.addAction(count > 1 ? tr("&Delete %n Games…", nullptr, count) : tr("&Delete Game…"), this,
+                       [this, uids] { deleteGames(uids); });
     } else {
-        menu.addAction(tr("Move Game to &Trash"), this, [this, uid] { setGameState(uid, GameState::Trashed); });
+        menu.addAction(count > 1 ? tr("Move %n Games to &Trash", nullptr, count) : tr("Move Game to &Trash"), this,
+                       [this, uids] { setGameState(uids, GameState::Trashed); });
     }
     menu.exec(m_gameView->viewport()->mapToGlobal(position));
 }
@@ -1664,46 +1683,60 @@ qint64 MainWindow::gameIndexOf(const QString &uid) const
     return -1;
 }
 
-void MainWindow::setGameState(const QString &uid, GameState state)
+void MainWindow::setGameState(const QStringList &uids, GameState state)
 {
-    const qint64 index = gameIndexOf(uid);
-    if (index < 0)
-        return;
-    QString error;
-    if (!m_database->setGameState(index, state, &error)) {
-        QMessageBox::warning(this, tr("Trash"), tr("Could not move the game: %1").arg(error));
-        return;
+    int changed = 0;
+    for (const QString &uid : uids) {
+        const qint64 index = gameIndexOf(uid);
+        if (index < 0)
+            continue;
+        QString error;
+        if (!m_database->setGameState(index, state, &error)) {
+            QMessageBox::warning(this, tr("Trash"), tr("Could not move the game: %1").arg(error));
+            break;
+        }
+        ++changed;
     }
-    showCategory(m_category); // The game leaves the list it was in.
+    if (changed == 0)
+        return;
+    showCategory(m_category); // The games leave the list they were in.
     m_databaseTree->refresh();
     m_positionIndexTimer->start(); // Only the games in the lists are searched.
     switch (state) {
     case GameState::Trashed:
-        statusBar()->showMessage(tr("Game moved to the trash"), 3000);
+        statusBar()->showMessage(tr("%n game(s) moved to the trash", nullptr, changed), 3000);
         break;
     case GameState::Live:
-        statusBar()->showMessage(tr("Game restored"), 3000);
+        statusBar()->showMessage(tr("%n game(s) restored", nullptr, changed), 3000);
         break;
     default:
-        statusBar()->showMessage(tr("Game deleted"), 3000);
+        statusBar()->showMessage(tr("%n game(s) deleted", nullptr, changed), 3000);
         break;
     }
 }
 
-void MainWindow::deleteGame(const QString &uid)
+void MainWindow::deleteGames(const QStringList &uids)
 {
-    const qint64 index = gameIndexOf(uid);
-    if (index < 0)
+    if (uids.isEmpty())
         return;
-    const GameRecord header = m_database->header(index);
+    QString what;
+    if (uids.size() == 1) {
+        const qint64 index = gameIndexOf(uids.first());
+        if (index < 0)
+            return;
+        const GameRecord header = m_database->header(index);
+        what = tr("Delete “%1” from the trash?").arg(tr("%1 – %2").arg(header.white, header.black));
+    } else {
+        what = tr("Delete %n game(s) from the trash?", nullptr, int(uids.size()));
+    }
     const auto answer = QMessageBox::question(
-        this, tr("Delete Game"),
-        tr("Delete “%1” from the trash?\n\nIt will not be listed anywhere any more. It stays in the file until "
-           "the database is optimized (Database ▸ Database Settings…).")
-            .arg(tr("%1 – %2").arg(header.white, header.black)),
+        this, uids.size() > 1 ? tr("Delete Games") : tr("Delete Game"),
+        what + QStringLiteral("\n\n")
+            + tr("They will not be listed anywhere any more. They stay in the file until the database is optimized "
+                 "(Database ▸ Database Settings…)."),
         QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
     if (answer == QMessageBox::Yes)
-        setGameState(uid, GameState::Deleted);
+        setGameState(uids, GameState::Deleted);
 }
 
 void MainWindow::optimizeDatabase(QWidget *dialog)

@@ -1987,28 +1987,8 @@ Il Nero ha catturato: %2</translation>
         <translation>Impossibile spostare la partita: %1</translation>
     </message>
     <message>
-        <source>Game moved to the trash</source>
-        <translation>Partita spostata nel cestino</translation>
-    </message>
-    <message>
-        <source>Game restored</source>
-        <translation>Partita ripristinata</translation>
-    </message>
-    <message>
-        <source>Game deleted</source>
-        <translation>Partita eliminata</translation>
-    </message>
-    <message>
         <source>Delete Game</source>
         <translation>Elimina partita</translation>
-    </message>
-    <message>
-        <source>Delete “%1” from the trash?
-
-It will not be listed anywhere any more. It stays in the file until the database is optimized (Database ▸ Database Settings…).</source>
-        <translation>Eliminare “%1” dal cestino?
-
-Non comparirà più in nessun elenco. Resta nel file finché il database non viene ottimizzato (Database ▸ Impostazioni database…).</translation>
     </message>
     <message>
         <source>Optimize Database</source>
@@ -2588,6 +2568,67 @@ non è su questo computer.</translation>
     <message>
         <source>&amp;Move</source>
         <translation>&amp;Sposta</translation>
+    </message>
+    <message numerus="yes">
+        <source>&amp;Restore %n Games</source>
+        <translation>
+            <numerusform>&amp;Ripristina %n partita</numerusform>
+            <numerusform>&amp;Ripristina %n partite</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>&amp;Delete %n Games…</source>
+        <translation>
+            <numerusform>&amp;Elimina %n partita…</numerusform>
+            <numerusform>&amp;Elimina %n partite…</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Move %n Games to &amp;Trash</source>
+        <translation>
+            <numerusform>&amp;Cestina %n partita</numerusform>
+            <numerusform>&amp;Cestina %n partite</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n game(s) moved to the trash</source>
+        <translation>
+            <numerusform>%n partita spostata nel cestino</numerusform>
+            <numerusform>%n partite spostate nel cestino</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n game(s) restored</source>
+        <translation>
+            <numerusform>%n partita ripristinata</numerusform>
+            <numerusform>%n partite ripristinate</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n game(s) deleted</source>
+        <translation>
+            <numerusform>%n partita eliminata</numerusform>
+            <numerusform>%n partite eliminate</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Delete “%1” from the trash?</source>
+        <translation>Eliminare “%1” dal cestino?</translation>
+    </message>
+    <message numerus="yes">
+        <source>Delete %n game(s) from the trash?</source>
+        <translation>
+            <numerusform>Eliminare %n partita dal cestino?</numerusform>
+            <numerusform>Eliminare %n partite dal cestino?</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Delete Games</source>
+        <translation>Elimina partite</translation>
+    </message>
+    <message>
+        <source>They will not be listed anywhere any more. They stay in the file until the database is optimized (Database ▸ Database Settings…).</source>
+        <translation>Non compariranno più in nessun elenco. Restano nel file finché il database non viene ottimizzato (Database ▸ Impostazioni database…).</translation>
     </message>
 </context>
 <context>

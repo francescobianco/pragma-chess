@@ -230,7 +230,7 @@ New Game, New Training, Set Up Position, the pastes and online games all add the
 
 The **File** menu has the chapters: **New Chapter…**, **Switch Chapter** to choose the one open, and **Manage Chapters…** to reorder (drag, or Move Up and Move Down), rename, add and delete them. **Project Settings…** gives the project a name of its own.
 
-A new, empty project has no chapters: **Switch Chapter** shows *(No Chapter)*, greyed out. As soon as something happens — a game on the board, a move, a paragraph, a game break — it becomes the first chapter, with everything that is there; **New Chapter…** does the same. Delete every chapter in **Manage Chapters…** and the project is without chapters again, with an empty board.
+A new, empty project has no chapters: **Switch Chapter** shows *(No Chapter)*, greyed out, and a game opened from the games list takes the place of the one on the board. As soon as you put something in — moves of a new game, a paragraph, a game break — it becomes the first chapter, with everything that is there; **New Chapter…** does the same. Delete every chapter in **Manage Chapters…** and the project is without chapters again, with an empty board.
 
 # Sync {#sync}
 

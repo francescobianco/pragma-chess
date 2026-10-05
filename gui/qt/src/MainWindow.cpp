@@ -1364,8 +1364,9 @@ void MainWindow::openGame(const QModelIndex &proxyIndex)
             switchToChapterGame(inChapter, {}, 0);
             return;
         }
-        // Otherwise it joins the chapter, at its end (or in place of an empty game).
-        if (inChapter < 0 && !m_chapters.game().isEmpty())
+        // Otherwise it joins the chapter, at its end (or in place of an empty
+        // game). Without chapters it takes the place of the game on the board.
+        if (inChapter < 0 && m_chapters.hasChapters() && !m_chapters.game().isEmpty())
             m_chapters.breakGame();
         // A game from the database is to be studied, not played: training
         // goes off first, or the engine would answer in it.
@@ -3295,7 +3296,8 @@ void MainWindow::manageChapters()
 void MainWindow::startGame(const GameRecord &game)
 {
     // A new game goes at the end of the chapter: the games before it stay.
-    if (!m_chapters.game().isEmpty())
+    // Without chapters it takes the place of a game of the database on the board.
+    if (m_chapters.hasChapters() && !m_chapters.game().isEmpty())
         m_chapters.breakGame();
     m_gameView->clearSelection();
     m_openGameIndex = -1;
@@ -4126,11 +4128,7 @@ Project MainWindow::captureProject()
     Chapter &open = project.chapters[m_chapters.current];
     open.games[open.currentGame].game = m_session->game();
     open.ply = m_session->path().isEmpty() ? m_session->ply() : m_session->branchPly();
-    // A project without chapters writes none, as long as nothing is in the one held.
-    if (!m_chapters.hasChapters() && open.games.size() == 1 && open.games.first().isEmpty()) {
-        project.chapters.clear();
-        project.chapter = 0;
-    }
+    project.noChapters = !m_chapters.hasChapters();
     project.boardFlipped = m_flipBoardAction->isChecked();
     project.showCoordinates = m_coordinatesAction->isChecked();
     project.engineId = m_engineId;
@@ -4169,7 +4167,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
 
     m_projectName = project.name;
     if (!project.chapters.isEmpty()) {
-        m_chapters.setChapters(project.chapters, project.chapter);
+        m_chapters.setChapters(project.chapters, project.chapter, project.noChapters);
         // Games stored in the database are shown as it has them now; the
         // others as the project kept them, their moves replayed.
         for (Chapter &chapter : m_chapters.chapters) {

@@ -165,6 +165,8 @@ QString Project::toYaml(const QDir &baseDir) const
     // The chapters: each a list of games with the paragraphs between their moves.
     out << YAML::Key << "chapters" << YAML::Value << YAML::BeginMap;
     out << YAML::Key << "current" << YAML::Value << chapter;
+    if (noChapters)
+        out << YAML::Key << "none" << YAML::Value << true;
     out << YAML::Key << "list" << YAML::Value << YAML::BeginSeq;
     for (const Chapter &entry : chapters) {
         out << YAML::BeginMap;
@@ -263,6 +265,7 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
             entry.ply = qMax(0, valueOf<int>(node["ply"], 0));
             env.chapters << entry;
         }
+        env.noChapters = valueOf<bool>(chapters["none"], false);
         env.chapter = env.chapters.isEmpty() ? 0 : qBound(0, valueOf<int>(chapters["current"], 0), int(env.chapters.size()) - 1);
     }
 

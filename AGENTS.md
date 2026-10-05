@@ -505,11 +505,14 @@ a chapter always has a game. In other tools this is a study or a chess book.
 - **No chapter** is the state of a new, empty project
   (`ChapterBook::hasChapters()` false): `chapters` still holds one, the
   holder, where the board's game lands; File ▸ Switch Chapter shows a grey
-  "(No Chapter)". `settle()` (called by `syncChapterGame` and
-  `chapterChanged`) makes it the first chapter as soon as something is in
-  it; a paragraph or a game break does it by itself, and so does New
-  Chapter. Deleting every chapter in Manage Chapters (`setChapters({})`)
-  goes back to it. The `.pch` writes such a project with an empty `list`.
+  "(No Chapter)". There a game opened from the games list, or a new game,
+  takes the place of the one on the board instead of joining a chapter.
+  `settle()` (called by `syncChapterGame` and `chapterChanged`) makes it
+  the first chapter as soon as something is put in it — moves of a game
+  not stored, a paragraph, a game break, New Chapter —, never for a stored
+  game only looked at. Deleting every chapter in Manage Chapters
+  (`setChapters({})`) goes back to it. The `.pch` writes it as
+  `chapters: none: true`, with the holder in `list`.
 - **The session is the chapter's current game** (`m_chapters.game()`):
   `syncChapterGame` copies the session into it on every change, and
   `loadChapterGame` puts a chapter game on the board — from the database

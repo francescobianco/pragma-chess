@@ -59,7 +59,7 @@ void ChapterBook::clear()
     *this = ChapterBook();
 }
 
-void ChapterBook::setChapters(const QList<Chapter> &list, int open)
+void ChapterBook::setChapters(const QList<Chapter> &list, int open, bool none)
 {
     if (list.isEmpty()) {
         clear();
@@ -67,15 +67,21 @@ void ChapterBook::setChapters(const QList<Chapter> &list, int open)
     }
     chapters = list;
     current = qBound(0, open, int(list.size()) - 1);
-    m_none = false;
+    m_none = none && list.size() == 1;
+    settle();
 }
 
 void ChapterBook::settle()
 {
     if (!m_none)
         return;
+    // A game of the database only looked at is not something put in: the
+    // next one opened takes its place. Moves of a game not stored are.
     const Chapter &held = chapters.first();
-    if (chapters.size() > 1 || held.games.size() > 1 || !held.games.first().isEmpty())
+    const ChapterGame &game = held.games.first();
+    const bool stored = !game.game.uid.isEmpty();
+    if (chapters.size() > 1 || held.games.size() > 1 || !game.paragraphs.isEmpty()
+        || (!stored && !game.isEmpty()))
         m_none = false;
 }
 

@@ -31,6 +31,9 @@ struct Project {
     /// before chapters: the fields below say what its one game was.
     QList<Chapter> chapters;
     int chapter = 0;
+    /// No chapter yet (ChapterBook::hasChapters): `chapters` holds the one
+    /// game on the board.
+    bool noChapters = false;
     /// Before chapters (read, never written): database id of the open game,
     /// or -1 when viewing a position without a game.
     qint64 gameId = -1;

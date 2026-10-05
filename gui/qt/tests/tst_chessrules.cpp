@@ -2593,6 +2593,16 @@ private Q_SLOTS:
         QVERIFY(book.hasChapters());
         QCOMPARE(book.chapter().title, ChapterBook::defaultTitle(1));
         book.clear();
+        // A game of the database only opened is not put in: the next one replaces it.
+        book.game().game.uid = QStringLiteral("stored");
+        book.game().game.moves = {{QStringLiteral("d4"), QStringLiteral("d2d4")}};
+        book.settle();
+        QVERIFY(!book.hasChapters());
+        book.setChapters(book.chapters, 0, true);
+        QVERIFY(!book.hasChapters());
+        book.setChapters(book.chapters, 0);
+        QVERIFY(book.hasChapters());
+        book.clear();
         QCOMPARE(book.addChapter(QStringLiteral("Openings")), 0); // New Chapter: what is there becomes it.
         QCOMPARE(book.chapters.size(), 1);
         QCOMPARE(book.chapter().title, QStringLiteral("Openings"));
@@ -2730,6 +2740,9 @@ private Q_SLOTS:
         QCOMPARE(back.games.first().paragraphs, game.paragraphs);
         QCOMPARE(back.games.at(1).game.uid, QStringLiteral("u-1"));
         QCOMPARE(read->chapters.at(1).games.size(), 1);
+        QVERIFY(!read->noChapters);
+        project.noChapters = true;
+        QVERIFY(Project::fromYaml(project.toYaml(), QDir(), &error)->noChapters);
 
         // A project from before chapters has none: its one game is in the old fields.
         const std::optional<Project> old = Project::fromYaml(

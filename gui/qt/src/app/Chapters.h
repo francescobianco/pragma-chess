@@ -67,11 +67,14 @@ public:
     bool hasChapters() const;
     /// Back to no chapter: everything in the chapters goes.
     void clear();
-    /// The chapters of a project, and the one open; none is no chapter.
-    void setChapters(const QList<Chapter> &list, int open);
+    /// The chapters of a project, and the one open; an empty list, or one
+    /// held with `none`, is no chapter.
+    void setChapters(const QList<Chapter> &list, int open, bool none = false);
     /// Something was done: if the project had no chapter and the one held
-    /// now has something in it, it becomes the first chapter. Inserting a
-    /// game or a paragraph does it by itself.
+    /// now has something in it, it becomes the first chapter: moves of a game
+    /// not stored, a paragraph, a second game — not a game of the database
+    /// only opened, which the next one opened replaces. Inserting a game or a
+    /// paragraph does it by itself.
     void settle();
 
     Chapter &chapter() { return chapters[current]; }

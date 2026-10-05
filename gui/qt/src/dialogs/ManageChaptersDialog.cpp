@@ -14,6 +14,8 @@ namespace {
 
 constexpr int kSourceRole = Qt::UserRole;
 constexpr int kGamesRole = Qt::UserRole + 1;
+/// The grey "(No Chapter)" row of a list without chapters.
+constexpr int kPlaceholderRole = Qt::UserRole + 2;
 
 } // namespace
 
@@ -42,10 +44,11 @@ ManageChaptersDialog::ManageChaptersDialog(const QList<Entry> &chapters, int cur
     auto *add = new QPushButton(tr("&New"), this);
     auto *rename = new QPushButton(tr("&Rename"), this);
     connect(add, &QPushButton::clicked, this, [this] {
-        auto *item = new QListWidgetItem(ChapterBook::defaultTitle(m_list->count() + 1), m_list);
+        auto *item = new QListWidgetItem(ChapterBook::defaultTitle(chapterCount() + 1), m_list);
         item->setFlags(item->flags() | Qt::ItemIsEditable);
         item->setData(kSourceRole, -1);
         item->setData(kGamesRole, 0);
+        updateButtons();
         m_list->setCurrentItem(item);
         m_list->editItem(item);
     });
@@ -55,7 +58,7 @@ ManageChaptersDialog::ManageChaptersDialog(const QList<Entry> &chapters, int cur
     });
     connect(m_delete, &QPushButton::clicked, this, [this] {
         QListWidgetItem *item = m_list->currentItem();
-        if (!item || m_list->count() <= 1)
+        if (!item || item->data(kPlaceholderRole).toBool())
             return;
         const int games = item->data(kGamesRole).toInt();
         if (games > 0
@@ -107,10 +110,28 @@ ManageChaptersDialog::ManageChaptersDialog(const QList<Entry> &chapters, int cur
     updateButtons();
 }
 
+int ManageChaptersDialog::chapterCount() const
+{
+    int count = 0;
+    for (int i = 0; i < m_list->count(); ++i)
+        count += m_list->item(i)->data(kPlaceholderRole).toBool() ? 0 : 1;
+    return count;
+}
+
 void ManageChaptersDialog::updateButtons()
 {
+    // No chapter left: the list says so, in grey, and nothing can be done with it.
+    for (int i = m_list->count() - 1; i >= 0; --i) {
+        if (m_list->item(i)->data(kPlaceholderRole).toBool() && chapterCount() > 0)
+            delete m_list->item(i);
+    }
+    if (m_list->count() == 0) {
+        auto *item = new QListWidgetItem(tr("(No Chapter)"), m_list);
+        item->setFlags(Qt::NoItemFlags);
+        item->setData(kPlaceholderRole, true);
+    }
     const int row = m_list->currentRow();
-    m_delete->setEnabled(row >= 0 && m_list->count() > 1);
+    m_delete->setEnabled(row >= 0 && chapterCount() > 0);
     m_up->setEnabled(row > 0);
     m_down->setEnabled(row >= 0 && row + 1 < m_list->count());
 }
@@ -120,6 +141,8 @@ QList<ManageChaptersDialog::Entry> ManageChaptersDialog::entries() const
     QList<Entry> result;
     for (int i = 0; i < m_list->count(); ++i) {
         const QListWidgetItem *item = m_list->item(i);
+        if (item->data(kPlaceholderRole).toBool())
+            continue;
         result << Entry{item->data(kSourceRole).toInt(), item->text(), item->data(kGamesRole).toInt()};
     }
     return result;

@@ -3122,6 +3122,7 @@ bool MainWindow::canLeaveGame()
 void MainWindow::syncChapterGame()
 {
     m_chapters.game().game = m_session->game();
+    m_chapters.settle(); // Something on the board: a project without chapters has its first.
 }
 
 void MainWindow::loadChapterGame()
@@ -3171,6 +3172,7 @@ void MainWindow::relinkChapterGame()
 
 void MainWindow::chapterChanged()
 {
+    m_chapters.settle();
     m_moveView->refresh();
     updateWindowTitle(); // The chapter's title may be in it.
     scheduleSaveSession();
@@ -3211,7 +3213,8 @@ void MainWindow::newChapter()
         return;
     bool ok = false;
     const QString title = QInputDialog::getText(this, tr("New Chapter"), tr("Title of the chapter:"), QLineEdit::Normal,
-                                                ChapterBook::defaultTitle(int(m_chapters.chapters.size()) + 1), &ok);
+                                                ChapterBook::defaultTitle(m_chapters.hasChapters() ? int(m_chapters.chapters.size()) + 1 : 1),
+                                                &ok);
     if (!ok)
         return;
     m_trainingModeAction->setChecked(false);
@@ -3236,6 +3239,10 @@ void MainWindow::switchChapter(int index)
 void MainWindow::fillChapterMenu()
 {
     m_switchChapterMenu->clear();
+    if (!m_chapters.hasChapters()) {
+        m_switchChapterMenu->addAction(tr("(No Chapter)"))->setEnabled(false);
+        return;
+    }
     auto *group = new QActionGroup(m_switchChapterMenu);
     for (int i = 0; i < m_chapters.chapters.size(); ++i) {
         QAction *action = m_switchChapterMenu->addAction(m_chapters.chapters.at(i).title);
@@ -3249,7 +3256,7 @@ void MainWindow::fillChapterMenu()
 void MainWindow::manageChapters()
 {
     QList<ManageChaptersDialog::Entry> entries;
-    for (int i = 0; i < m_chapters.chapters.size(); ++i) {
+    for (int i = 0; m_chapters.hasChapters() && i < m_chapters.chapters.size(); ++i) {
         const Chapter &chapter = m_chapters.chapters.at(i);
         int games = 0;
         for (const ChapterGame &game : chapter.games)
@@ -3268,17 +3275,15 @@ void MainWindow::manageChapters()
         Chapter chapter = entry.source >= 0 ? m_chapters.chapters.at(entry.source) : Chapter();
         chapter.title = entry.title.trimmed().isEmpty() ? ChapterBook::defaultTitle(int(chapters.size()) + 1)
                                                         : entry.title.trimmed();
-        if (entry.source == m_chapters.current)
+        if (m_chapters.hasChapters() && entry.source == m_chapters.current)
             current = int(chapters.size());
         chapters << chapter;
     }
-    if (chapters.isEmpty())
-        return; // The dialog keeps one; never leave the project without.
+    // Every chapter deleted: the project is without chapters, an empty game on the board.
     const bool sameChapter = current >= 0;
     if (!sameChapter && !canLeaveGame())
         return;
-    m_chapters.chapters = chapters;
-    m_chapters.current = sameChapter ? current : 0;
+    m_chapters.setChapters(chapters, sameChapter ? current : 0);
     if (!sameChapter) {
         m_trainingModeAction->setChecked(false);
         loadChapterGame();
@@ -4121,6 +4126,11 @@ Project MainWindow::captureProject()
     Chapter &open = project.chapters[m_chapters.current];
     open.games[open.currentGame].game = m_session->game();
     open.ply = m_session->path().isEmpty() ? m_session->ply() : m_session->branchPly();
+    // A project without chapters writes none, as long as nothing is in the one held.
+    if (!m_chapters.hasChapters() && open.games.size() == 1 && open.games.first().isEmpty()) {
+        project.chapters.clear();
+        project.chapter = 0;
+    }
     project.boardFlipped = m_flipBoardAction->isChecked();
     project.showCoordinates = m_coordinatesAction->isChecked();
     project.engineId = m_engineId;
@@ -4159,8 +4169,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
 
     m_projectName = project.name;
     if (!project.chapters.isEmpty()) {
-        m_chapters.chapters = project.chapters;
-        m_chapters.current = qBound(0, project.chapter, int(project.chapters.size()) - 1);
+        m_chapters.setChapters(project.chapters, project.chapter);
         // Games stored in the database are shown as it has them now; the
         // others as the project kept them, their moves replayed.
         for (Chapter &chapter : m_chapters.chapters) {
@@ -4182,7 +4191,8 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         m_restoringSession = wasRestoring;
         return;
     }
-    // A project from before chapters: its one game becomes the first chapter.
+    // A project without chapters, or from before them: its one game, if it
+    // has one, becomes the first chapter.
     m_chapters = ChapterBook();
     m_moveView->refresh();
 
@@ -4258,7 +4268,7 @@ void MainWindow::newProject()
     // and training is off. Reset Panel Layout is there for the default
     // arrangement.
     Project project = captureProject();
-    project.chapters.clear(); // One chapter, with an empty game.
+    project.chapters.clear(); // No chapter, an empty game.
     project.name.clear();
     project.gameId = -1;
     project.ply = 0;

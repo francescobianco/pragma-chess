@@ -49,14 +49,30 @@ struct Chapter {
     int ply = 0;
 };
 
-/// The chapters of a project and the one open. Never empty: there is always
-/// a chapter, and a chapter always has a game. Pure, unit-tested.
+/// The chapters of a project and the one open. A new, empty project has no
+/// chapter: `chapters` then holds one all the same, not shown as a chapter,
+/// where whatever the user does lands (the game on the board, paragraphs,
+/// game breaks); as soon as something is in it, it becomes the first
+/// chapter. So `chapters` is never empty, and a chapter always has a game.
+/// Pure, unit-tested.
 class ChapterBook {
 public:
     ChapterBook();
 
     QList<Chapter> chapters;
     int current = 0;
+
+    /// Whether the project has chapters, or is still without (the menus say
+    /// "(No Chapter)").
+    bool hasChapters() const;
+    /// Back to no chapter: everything in the chapters goes.
+    void clear();
+    /// The chapters of a project, and the one open; none is no chapter.
+    void setChapters(const QList<Chapter> &list, int open);
+    /// Something was done: if the project had no chapter and the one held
+    /// now has something in it, it becomes the first chapter. Inserting a
+    /// game or a paragraph does it by itself.
+    void settle();
 
     Chapter &chapter() { return chapters[current]; }
     const Chapter &chapter() const { return chapters.at(current); }
@@ -67,8 +83,9 @@ public:
     static QString defaultTitle(int number);
 
     /// A new chapter at the end, with an empty game; it becomes the one open.
+    /// In a project without chapters, the first chapter is what is there.
     int addChapter(const QString &title);
-    /// False for the last chapter left: a project always has one.
+    /// Removing the last chapter leaves the project without chapters.
     bool removeChapter(int index);
     void moveChapter(int from, int to);
 
@@ -98,4 +115,8 @@ public:
     int moveParagraph(int game, int index, int ply, bool first);
     /// Sets the text of a paragraph; an empty text removes it.
     void setParagraph(int game, int index, const QString &text);
+
+private:
+    /// No chapter yet: the one in `chapters` is a holder.
+    bool m_none = true;
 };

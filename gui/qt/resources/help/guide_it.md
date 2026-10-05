@@ -229,6 +229,8 @@ Nuova partita, Nuovo allenamento, Inserisci posizione, gli Incolla e le partite 
 
 Il menu **File** ha i capitoli: **Nuovo capitolo…**, **Cambia capitolo** per scegliere quello aperto, e **Gestione capitoli…** per riordinarli (trascinando, o con Sposta su e Sposta giù), rinominarli, aggiungerli ed eliminarli. **Impostazioni progetto…** dà al progetto un nome suo.
 
+Un progetto nuovo e vuoto non ha capitoli: **Cambia capitolo** mostra *(Nessun capitolo)*, in grigio. Appena succede qualcosa — una partita sulla scacchiera, una mossa, un paragrafo, un'interruzione di partita — diventa il primo capitolo, con tutto ciò che c'è; **Nuovo capitolo…** fa lo stesso. Elimina tutti i capitoli in **Gestione capitoli…** e il progetto torna senza capitoli, con la scacchiera vuota.
+
 # Sincronizzazione {#sync}
 
 La sincronizzazione tiene uguale la tua cartella Pragma — database e progetti — su più computer, attraverso una cartella su un server.

@@ -9,7 +9,7 @@ class QPushButton;
 
 /// File ▸ Manage Chapters…: the project's chapters in their order, to
 /// reorder (drag, or Move Up and Move Down), rename (double click), add and
-/// delete. A project keeps at least one chapter.
+/// delete. Deleting them all leaves the project without chapters.
 class ManageChaptersDialog : public QDialog {
     Q_OBJECT
 
@@ -29,6 +29,8 @@ public:
 
 private:
     void updateButtons();
+    /// The rows that are chapters, not the "(No Chapter)" one.
+    int chapterCount() const;
 
     QListWidget *m_list;
     QPushButton *m_delete;

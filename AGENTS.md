@@ -500,9 +500,16 @@ through `leaveOnlineThen` first.
 A project is a list of chapters (`app/Chapters`, pure, unit-tested:
 `ChapterBook` → `Chapter` → `ChapterGame`, each game with its
 `Paragraph`s, text after a main-line ply, 0 for before the first move);
-there is always one chapter, and a chapter always has a game. In other
-tools this is a study or a chess book.
+a chapter always has a game. In other tools this is a study or a chess book.
 
+- **No chapter** is the state of a new, empty project
+  (`ChapterBook::hasChapters()` false): `chapters` still holds one, the
+  holder, where the board's game lands; File ▸ Switch Chapter shows a grey
+  "(No Chapter)". `settle()` (called by `syncChapterGame` and
+  `chapterChanged`) makes it the first chapter as soon as something is in
+  it; a paragraph or a game break does it by itself, and so does New
+  Chapter. Deleting every chapter in Manage Chapters (`setChapters({})`)
+  goes back to it. The `.pch` writes such a project with an empty `list`.
 - **The session is the chapter's current game** (`m_chapters.game()`):
   `syncChapterGame` copies the session into it on every change, and
   `loadChapterGame` puts a chapter game on the board — from the database

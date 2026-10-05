@@ -2630,6 +2630,10 @@ non è su questo computer.</translation>
         <source>They will not be listed anywhere any more. They stay in the file until the database is optimized (Database ▸ Database Settings…).</source>
         <translation>Non compariranno più in nessun elenco. Restano nel file finché il database non viene ottimizzato (Database ▸ Impostazioni database…).</translation>
     </message>
+    <message>
+        <source>(No Chapter)</source>
+        <translation>(Nessun capitolo)</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>
@@ -2678,6 +2682,10 @@ non è su questo computer.</translation>
     <message>
         <source>Drag a chapter to move it; double-click it to rename it.</source>
         <translation>Trascina un capitolo per spostarlo; fai doppio clic per rinominarlo.</translation>
+    </message>
+    <message>
+        <source>(No Chapter)</source>
+        <translation>(Nessun capitolo)</translation>
     </message>
 </context>
 <context>

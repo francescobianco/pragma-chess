@@ -2580,6 +2580,24 @@ private Q_SLOTS:
         ChapterBook book;
         QCOMPARE(book.chapters.size(), 1);
         QVERIFY(book.game().isEmpty());
+        // A new project has no chapter: nothing done, nothing changes that.
+        QVERIFY(!book.hasChapters());
+        book.settle();
+        QVERIFY(!book.hasChapters());
+        book.breakGame(); // A game break is something put in it: the first chapter.
+        QVERIFY(book.hasChapters());
+        book.clear();
+        QVERIFY(!book.hasChapters());
+        book.game().game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4")}};
+        book.settle(); // A move on the board, too.
+        QVERIFY(book.hasChapters());
+        QCOMPARE(book.chapter().title, ChapterBook::defaultTitle(1));
+        book.clear();
+        QCOMPARE(book.addChapter(QStringLiteral("Openings")), 0); // New Chapter: what is there becomes it.
+        QCOMPARE(book.chapters.size(), 1);
+        QCOMPARE(book.chapter().title, QStringLiteral("Openings"));
+        book.setChapters({}, 0);
+        QVERIFY(!book.hasChapters());
 
         // Paragraphs go after their move, in the order written; empty ones go.
         const int first = book.insertParagraph(0, 2);
@@ -2655,7 +2673,7 @@ private Q_SLOTS:
         QCOMPARE(book.chapter().games.at(0).game.uid, stored);
         QCOMPARE(book.chapter().currentGame, 2);
 
-        // Chapters: added at the end, moved with the open one followed, never none.
+        // Chapters: added at the end, moved with the open one followed.
         QCOMPARE(book.addChapter(QString()), 1);
         QCOMPARE(book.chapter().title, ChapterBook::defaultTitle(2));
         book.addChapter(QStringLiteral("Endings"));
@@ -2665,9 +2683,13 @@ private Q_SLOTS:
         QCOMPARE(book.chapters.at(1).title, QStringLiteral("Endings"));
         QVERIFY(book.removeChapter(0));
         QVERIFY(book.removeChapter(0));
-        QVERIFY(!book.removeChapter(0));
         QCOMPARE(book.chapters.size(), 1);
         QCOMPARE(book.chapter().games.size(), 3); // The first chapter, moved last, is what is left.
+        // Removing the last one leaves the project without chapters.
+        QVERIFY(book.removeChapter(0));
+        QVERIFY(!book.hasChapters());
+        QVERIFY(book.game().isEmpty());
+        QVERIFY(!book.removeChapter(0));
     }
 
     void savesChaptersInProjects()

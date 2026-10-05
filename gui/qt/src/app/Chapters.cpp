@@ -49,8 +49,46 @@ QString ChapterBook::defaultTitle(int number)
     return Text::tr("Chapter %1").arg(number);
 }
 
+bool ChapterBook::hasChapters() const
+{
+    return !m_none;
+}
+
+void ChapterBook::clear()
+{
+    *this = ChapterBook();
+}
+
+void ChapterBook::setChapters(const QList<Chapter> &list, int open)
+{
+    if (list.isEmpty()) {
+        clear();
+        return;
+    }
+    chapters = list;
+    current = qBound(0, open, int(list.size()) - 1);
+    m_none = false;
+}
+
+void ChapterBook::settle()
+{
+    if (!m_none)
+        return;
+    const Chapter &held = chapters.first();
+    if (chapters.size() > 1 || held.games.size() > 1 || !held.games.first().isEmpty())
+        m_none = false;
+}
+
 int ChapterBook::addChapter(const QString &title)
 {
+    settle();
+    if (m_none) {
+        // What is there, nothing yet, becomes the first chapter.
+        m_none = false;
+        chapters.first().title = title.trimmed().isEmpty() ? defaultTitle(1) : title.trimmed();
+        current = 0;
+        return current;
+    }
     Chapter chapter;
     chapter.title = title.trimmed().isEmpty() ? defaultTitle(int(chapters.size()) + 1) : title.trimmed();
     chapters << chapter;
@@ -60,8 +98,12 @@ int ChapterBook::addChapter(const QString &title)
 
 bool ChapterBook::removeChapter(int index)
 {
-    if (chapters.size() <= 1 || index < 0 || index >= chapters.size())
+    if (index < 0 || index >= chapters.size() || m_none)
         return false;
+    if (chapters.size() == 1) {
+        clear();
+        return true;
+    }
     chapters.removeAt(index);
     if (current > index || current >= chapters.size())
         current = qMax(0, current - 1);
@@ -90,6 +132,7 @@ int ChapterBook::insertGame(int after)
     open.games.insert(index, ChapterGame());
     open.currentGame = index;
     open.ply = 0;
+    m_none = false; // A game break is something put in the chapter.
     return index;
 }
 
@@ -103,6 +146,7 @@ int ChapterBook::breakGame()
         insertGame(int(open.games.size()) - 1);
     }
     removeEmptyGames();
+    m_none = false;
     return open.currentGame;
 }
 
@@ -158,6 +202,7 @@ int ChapterBook::insertParagraph(int game, int ply, int after, Paragraph::Kind k
             ++index;
     }
     paragraphs.insert(index, Paragraph{ply, QString(), kind});
+    m_none = false;
     return index;
 }
 

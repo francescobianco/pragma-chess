@@ -113,7 +113,8 @@ QList<Token> tokenize(const QString &source)
 
 } // namespace
 
-/// Reads the tokens into SmartScript's tree, by recursive descent.
+/// Reads the tokens into SmartScript's tree, by recursive descent with one
+/// token of lookahead.
 class SmartParser {
 public:
     explicit SmartParser(QList<Token> tokens)
@@ -148,15 +149,14 @@ private:
     using StmtPtr = SmartScript::StmtPtr;
     using Block = SmartScript::Block;
 
-    const Token &peek(int ahead = 0) const { return m_tokens.at(qMin(m_pos + ahead, int(m_tokens.size()) - 1)); }
+    // One token of lookahead, never more: the grammar is LL(1), so the
+    // interpreters of every client read it the same way.
+    const Token &peek() const { return m_tokens.at(m_pos); }
     bool at(Token::Type type) const { return peek().type == type; }
-    bool isWord(const QString &word, int ahead = 0) const
+    bool isWord(const QString &word) const { return peek().type == Token::Type::Name && peek().text == word; }
+    bool isSymbol(const QString &symbol) const
     {
-        return peek(ahead).type == Token::Type::Name && peek(ahead).text == word;
-    }
-    bool isSymbol(const QString &symbol, int ahead = 0) const
-    {
-        return peek(ahead).type == Token::Type::Symbol && peek(ahead).text == symbol;
+        return peek().type == Token::Type::Symbol && peek().text == symbol;
     }
     bool isTerminator() const
     {
@@ -257,6 +257,7 @@ private:
         const QString word = peek().text;
         if (word == QLatin1String("LET")) {
             take();
+            stmt->name = name();
             return assignment(stmt);
         }
         if (word == QLatin1String("CONST")) {
@@ -331,22 +332,12 @@ private:
             fail(QStringLiteral("a FUNCTION cannot be inside another statement"));
         if (keywords().contains(word))
             fail(QStringLiteral("%1 cannot start a statement").arg(word));
-        // A name: an assignment, or a call.
-        if (isSymbol(QStringLiteral("="), 1) || isSymbol(QStringLiteral("["), 1))
+        // A name: an assignment if "=" or "[" follows, else a call, its
+        // arguments without parentheses. One token decides, nothing is read twice.
+        stmt->name = take().text;
+        if (isSymbol(QStringLiteral("=")) || isSymbol(QStringLiteral("[")))
             return assignment(stmt);
         stmt->kind = Stmt::Kind::Call;
-        stmt->name = take().text;
-        if (isSymbol(QStringLiteral("("))) {
-            // Parentheses around all the arguments, unless they belong to the first one.
-            const int saved = m_pos;
-            take();
-            std::vector<ExprPtr> args = arguments();
-            if (isTerminator() || isWord(QStringLiteral("ELSE"))) {
-                stmt->exprs = args;
-                return stmt;
-            }
-            m_pos = saved;
-        }
         if (!isTerminator() && !isWord(QStringLiteral("ELSE"))) {
             stmt->exprs.push_back(expression());
             while (isSymbol(QStringLiteral(","))) {
@@ -357,9 +348,9 @@ private:
         return stmt;
     }
 
+    /// The rest of an assignment, its variable already read.
     StmtPtr assignment(const std::shared_ptr<Stmt> &stmt)
     {
-        stmt->name = name();
         stmt->kind = Stmt::Kind::Assign;
         if (isSymbol(QStringLiteral("["))) {
             take();

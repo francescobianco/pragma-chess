@@ -103,9 +103,16 @@ END FUNCTION
 ```
 
 `RETURN` without a value returns `NOTHING`. A function is called in an
-expression, `Gain(line, 3, WHITE)`, or as a statement, with or without
-parentheses: `Draw line, 0, 4` or `Draw(line, 0, 4)` or `CALL Draw(line, 0, 4)`.
-The clients' commands are called the same way: `SAY "Checkmate."`.
+expression with parentheses, `Gain(line, 3, WHITE)`; as a statement its
+arguments go without them, `Draw line, 0, 4`, or with `CALL`:
+`CALL Draw(line, 0, 4)`. The clients' commands are called the same way:
+`SAY "Checkmate."`. (A statement starting `Draw (a + b) * 2, c` passes the
+two arguments `(a + b) * 2` and `c`.)
+
+The grammar needs one token of lookahead and never goes back: a statement
+starting with a name is an assignment if `=` or `[` follows the name, a call
+otherwise. A call statement cannot start with a list literal, `Show [1, 2]`:
+that reads as `Show[1, 2] = …`; write `CALL Show([1, 2])`.
 
 The top-level statements run once, when the program is loaded: they set the
 constants and the memory. Then the client calls the program's entry

@@ -713,7 +713,7 @@ END FUNCTION
 FUNCTION Host()
     REM the client's functions are called like the program's
     Collect "a", 1
-    Collect("b", 2)
+    Collect ("b"), 1 + 1
     CALL Collect("c", 3)
     RETURN Twice(21)
 END FUNCTION

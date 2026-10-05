@@ -26,6 +26,10 @@ struct BoardArrow {
     Kind kind = Kind::Idea;
     /// Position in the line, starting at 1; 0 for arrows outside a sequence.
     int step = 0;
+    /// The piece the arrow moves, drawn small and faint where it goes: given
+    /// for the better move, which starts from the position before the one on
+    /// the board, where that piece may no longer stand.
+    Piece piece = {};
 
     bool operator==(const BoardArrow &) const = default;
 };

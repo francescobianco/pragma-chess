@@ -256,9 +256,11 @@ object SmartChess {
             SmartValue.None
         }
         smart.define("ARROW") { args ->
-            expectArguments("ARROW", args, 4)
+            if (args.size != 6) expectArguments("ARROW", args, 4)
+            val piece = if (args.size == 6)
+                Piece.of(intArgument("ARROW", args, 4).coerceIn(0, 6), sideArgument("ARROW", args, 5)) else Piece.NONE
             output.arrows += BoardArrow(squareArgument("ARROW", args, 0), squareArgument("ARROW", args, 1),
-                arrowKind(textArgument("ARROW", args, 2)), intArgument("ARROW", args, 3))
+                arrowKind(textArgument("ARROW", args, 2)), intArgument("ARROW", args, 3), piece)
             SmartValue.None
         }
         smart.define("LOST") { args ->

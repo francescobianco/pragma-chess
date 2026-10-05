@@ -3,6 +3,7 @@ package org.pragmachess.mobile.ui
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
@@ -14,12 +15,15 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.TextUnitType
 import org.pragmachess.mobile.explain.BoardArrow
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /** Where Explain is, said by the colour of the board's frame (the desktop's BoardBorder). */
 enum class BoardBorder {
@@ -50,7 +54,8 @@ object ArrowColors {
 /**
  * Explain on the board, drawn as the desktop's BoardWidget does: a red ring
  * on each piece lost along the line, then the arrows, knight moves bent along
- * their long leg, the better move dashed, each step numbered where it starts.
+ * their long leg, the better move dashed, each step numbered where it starts,
+ * and the piece the better move moves small and faint where it goes.
  */
 fun DrawScope.drawExplanation(
     arrows: List<BoardArrow>,
@@ -58,6 +63,7 @@ fun DrawScope.drawExplanation(
     squareSize: Float,
     topLeft: (Int) -> Offset,
     measurer: TextMeasurer,
+    pieces: Map<Int, ImageBitmap> = emptyMap(),
 ) {
     fun center(square: Int) = topLeft(square) + Offset(squareSize / 2, squareSize / 2)
     for (square in lostPieces) {
@@ -122,5 +128,16 @@ fun DrawScope.drawExplanation(
             fontSize = TextUnit(max(8f, radius * 1.3f) / density / fontScale, TextUnitType.Sp),
         ))
         drawText(label, topLeft = badge - Offset(label.size.width / 2f, label.size.height / 2f))
+    }
+    // The piece the better move would have moved, small and faint where it
+    // goes: the square the arrow leaves is often empty on this board.
+    for (arrow in arrows) {
+        val image = pieces[arrow.piece] ?: continue
+        if (arrow.to !in 0..63) continue
+        val ghost = squareSize * 0.55f
+        val corner = center(arrow.to) - Offset(ghost / 2, ghost / 2)
+        drawImage(image, srcSize = IntSize(image.width, image.height),
+            dstOffset = IntOffset(corner.x.roundToInt(), corner.y.roundToInt()),
+            dstSize = IntSize(ghost.roundToInt(), ghost.roundToInt()), alpha = 0.6f)
     }
 }

@@ -551,6 +551,18 @@ void BoardWidget::paintEvent(QPaintEvent *)
     }
     for (const BoardArrow &arrow : m_sequenceActive ? QList<BoardArrow>() : m_arrows)
         paintArrow(painter, arrow);
+    // The piece the better move would have moved, small and faint where it
+    // goes: the square the arrow leaves is often empty on this board.
+    for (const BoardArrow &arrow : m_sequenceActive ? QList<BoardArrow>() : m_arrows) {
+        if (arrow.piece.isNull() || arrow.to < 0)
+            continue;
+        QRectF ghost(0, 0, size * 0.55, size * 0.55);
+        ghost.moveCenter(squareRect(arrow.to).center());
+        painter.save();
+        painter.setOpacity(0.6);
+        paintPiece(painter, arrow.piece, ghost);
+        painter.restore();
+    }
 
     if (markKing)
         paintKingBadge(painter);

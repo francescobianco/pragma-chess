@@ -314,10 +314,15 @@ void define(SmartInterpreter &smart, Output &output)
         return SmartValue();
     });
     smart.define(QStringLiteral("ARROW"), [&output](const std::vector<SmartValue> &args) {
-        expect("ARROW", args, 4);
+        if (args.size() != 6)
+            expect("ARROW", args, 4);
+        Piece piece;
+        if (args.size() == 6)
+            piece = {PieceType(qBound(0, SmartInterpreter::intArgument(fn("ARROW"), args, 4), 6)),
+                     sideArgument("ARROW", args, 5)};
         output.explanation.arrows << BoardArrow{squareArgument("ARROW", args, 0), squareArgument("ARROW", args, 1),
                                                 arrowKind(SmartInterpreter::textArgument(fn("ARROW"), args, 2)),
-                                                SmartInterpreter::intArgument(fn("ARROW"), args, 3)};
+                                                SmartInterpreter::intArgument(fn("ARROW"), args, 3), piece};
         return SmartValue();
     });
     smart.define(QStringLiteral("LOST"), [&output](const std::vector<SmartValue> &args) {

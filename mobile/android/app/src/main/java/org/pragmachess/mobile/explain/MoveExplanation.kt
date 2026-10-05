@@ -23,6 +23,12 @@ data class BoardArrow(
     val kind: Kind,
     /** Position in the line, starting at 1; 0 for arrows outside a sequence. */
     val step: Int = 0,
+    /**
+     * The piece the arrow moves ([Piece] code), drawn small and faint where it
+     * goes: given for the better move, which starts from the position before
+     * the one on the board, where that piece may no longer stand.
+     */
+    val piece: Int = Piece.NONE,
 ) {
     enum class Kind {
         /** A move of the side punishing a mistake: material is falling (red). */

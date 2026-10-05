@@ -4276,6 +4276,7 @@ Project MainWindow::captureProject()
     project.engineAnalyzing = m_startEngineAction->isChecked();
     project.training = m_trainingModeAction->isChecked();
     project.trainingSide = m_trainingSide;
+    project.explain = m_explainAction->isChecked();
     project.workspace = captureLayout();
     return project;
 }
@@ -4326,6 +4327,8 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
             m_trainingSide = project.trainingSide;
             m_trainingModeAction->setChecked(true);
         }
+        // Explain comes back on for the move it was explaining (moving to it turned it off).
+        m_explainAction->setChecked(project.explain);
         m_restoringSession = wasRestoring;
         return;
     }
@@ -4392,6 +4395,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
             m_session->setHeader(trainingHeader());
         m_trainingModeAction->setChecked(true);
     }
+    m_explainAction->setChecked(project.explain);
 
     m_restoringSession = wasRestoring;
 }
@@ -4416,6 +4420,7 @@ void MainWindow::newProject()
     project.variations.clear();
     project.boardFlipped = false;
     project.training = false;
+    project.explain = false;
     applyProject(project, false);
 
     m_projectPath.clear();

@@ -255,7 +255,7 @@ fun ChessBoard(
                     }
                 }
             }
-            drawExplanation(arrows, lostPieces, size, ::topLeft, measurer)
+            drawExplanation(arrows, lostPieces, size, ::topLeft, measurer, pieces)
         }
         if (dragFrom >= 0) {
             // The dragged piece is a layer of its own that only moves: the

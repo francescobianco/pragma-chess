@@ -220,6 +220,9 @@ private Q_SLOTS:
         QCOMPARE(explanation.verdict, MoveExplanation::Verdict::Mistake);
         QCOMPARE(explanation.arrows.size(), 2);
         QCOMPARE(explanation.arrows.at(0).kind, BoardArrow::Kind::Alternative);
+        // The better move carries the piece it moves, drawn faint where it goes.
+        QCOMPARE(explanation.arrows.at(0).piece, (Piece{PieceType::Pawn, Side::White}));
+        QVERIFY(explanation.arrows.at(1).piece.isNull());
         QCOMPARE(explanation.arrows.at(1), (BoardArrow{BoardState::squareFromName(u"d6"), BoardState::squareFromName(u"e5"),
                                             BoardArrow::Kind::Refutation, 1}));
         QCOMPARE(explanation.lostPieces, QList<int>{BoardState::squareFromName(u"e5")});
@@ -3140,6 +3143,11 @@ END FUNCTION
         QCOMPARE(back.games.at(1).game.uid, QStringLiteral("u-1"));
         QCOMPARE(read->chapters.at(1).games.size(), 1);
         QVERIFY(!read->noChapters);
+        QVERIFY(!read->explain);
+        QVERIFY(!project.toYaml().contains(QStringLiteral("explain"))); // Written only when on.
+        project.explain = true;
+        QVERIFY(Project::fromYaml(project.toYaml(), QDir(), &error)->explain);
+        project.explain = false;
         project.noChapters = true;
         QVERIFY(Project::fromYaml(project.toYaml(), QDir(), &error)->noChapters);
 

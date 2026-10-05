@@ -62,6 +62,9 @@ struct Project {
     /// while training opens training, with the user on `trainingSide`.
     bool training = false;
     Side trainingSide = Side::White;
+    /// Explain was on for the move on the board: it comes back on with the
+    /// project. Written only when on.
+    bool explain = false;
 
     /// Which panels are shown and how the space is shared (`workspace`).
     WorkspaceLayout workspace;

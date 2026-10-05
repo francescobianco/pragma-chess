@@ -204,6 +204,8 @@ QString Project::toYaml(const QDir &baseDir) const
         out << YAML::Key << "side" << YAML::Value << (trainingSide == Side::Black ? "black" : "white");
         out << YAML::EndMap;
     }
+    if (explain)
+        out << YAML::Key << "explain" << YAML::Value << true;
 
     // The panels: which are shown, and the shares of the usable area, in per cent.
     out << YAML::Key << "workspace" << YAML::Value << YAML::BeginMap;
@@ -289,6 +291,7 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     const YAML::Node training = root["training"];
     env.training = training.IsMap();
     env.trainingSide = fromNode(training["side"]) == QLatin1String("black") ? Side::Black : Side::White;
+    env.explain = valueOf<bool>(root["explain"], false);
 
     // Looked up through non-const nodes, as the rest of the file does: a
     // const lookup of a missing key gives a node that throws when read.

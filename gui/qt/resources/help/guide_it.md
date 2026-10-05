@@ -107,11 +107,12 @@ Fai doppio clic su un commento per scriverci, lì dov'è, come si scrive un para
 Il motore guarda la posizione prima e dopo la mossa e disegna delle frecce:
 
 - frecce **rosse**: sta per cadere del materiale, e i pezzi che si perdono sono cerchiati;
-- frecce **blu**: la risposta che fa la differenza, quando ancora non si perde niente.
+- frecce **blu**: la risposta che fa la differenza, quando ancora non si perde niente;
+- una freccia **verde tratteggiata**: la mossa migliore che avevi al posto della tua, con il pezzo che muove disegnato piccolo e trasparente dove arriva — la casa da cui parte la freccia spesso ora è vuota, perché quel pezzo è andato altrove.
 
 Un matto forzato viene giocato sulla scacchiera, dentro una cornice rossa. Il pannello Motore lo dice a parole, per esempio «Errore grave (+0.3 → −2.9). Il Nero vince un cavallo».
 
-Spiega legge l'analisi in corso nel pannello Motore: la spiegazione compare appena il motore ha cercato abbastanza a fondo, e si affina mentre va più a fondo — le frecce cambiano solo quando una nuova linea regge per un po'. La mossa viene giudicata quando anche la posizione prima di essa è stata analizzata (lo è, se l'analisi girava mentre eri lì). Fino alla prima risposta il bordo della scacchiera pulsa; diventa blu quando la spiegazione è pronta. Spiega riguarda una mossa sola: andando a un'altra mossa si spegne, e la chiedi di nuovo.
+Spiega legge l'analisi in corso nel pannello Motore: la spiegazione compare appena il motore ha cercato abbastanza a fondo, e si affina mentre va più a fondo — le frecce cambiano solo quando una nuova linea regge per un po'. La mossa viene giudicata quando anche la posizione prima di essa è stata analizzata (lo è, se l'analisi girava mentre eri lì). Fino alla prima risposta il bordo della scacchiera pulsa; diventa blu quando la spiegazione è pronta. Spiega riguarda una mossa sola: andando a un'altra mossa si spegne, e la chiedi di nuovo. Se chiudi Pragma Chess con Spiega acceso, si riapre acceso, sulla stessa mossa.
 
 **Modifica ▸ Copia ▸ Spiegazione** copia il testo.
 

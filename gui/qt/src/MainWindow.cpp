@@ -36,6 +36,7 @@
 #include "app/GameSession.h"
 #include "app/GameVariations.h"
 #include "app/MoveAnnotation.h"
+#include "app/MoveComment.h"
 #include "app/Pgn.h"
 #include "app/Project.h"
 #include "app/PersonalSettings.h"
@@ -208,6 +209,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::syncChapterGame);
     connect(m_session, &GameSession::headerChanged, this, &MainWindow::syncChapterGame);
     connect(m_session, &GameSession::annotationsChanged, this, &MainWindow::syncChapterGame);
+    connect(m_session, &GameSession::commentsChanged, this, &MainWindow::syncChapterGame);
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateGameHeader);
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateGameActions);
     connect(m_session, &GameSession::headerChanged, this, &MainWindow::updateGameHeader);
@@ -1182,6 +1184,8 @@ void MainWindow::createDocks()
             m_chapters.setParagraph(game, index, text);
         chapterChanged();
     });
+    connect(m_moveView, &MoveTreeView::commentEdited, this, &MainWindow::writeComment);
+    connect(m_moveView, &MoveTreeView::commentLineActivated, this, &MainWindow::playCommentLine);
     m_moveView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_moveView, &QWidget::customContextMenuRequested, this, &MainWindow::showMoveListMenu);
     m_movesDock = addDock(m_sidebar, QStringLiteral("movesDock"), tr("Moves"), m_moveView, Qt::RightDockWidgetArea);
@@ -1538,6 +1542,16 @@ void MainWindow::showMoveListMenu(const QPoint &position)
         }
         game = m_chapters.chapter().currentGame;
         paragraphPly = mainLinePly(m_session->game(), place.path, place.ply);
+    } else if (place.isComment()) {
+        // A comment is written in the game on the board: another game comes there first.
+        if (place.game != m_chapters.chapter().currentGame) {
+            if (!canLeaveGame())
+                return;
+            switchToChapterGame(place.game, place.path, GameVariations::branchPly(m_chapters.chapter().games.at(place.game).game, place.path));
+            game = m_chapters.chapter().currentGame;
+        }
+        paragraphPly = mainLinePly(m_session->game(), place.path,
+                                   GameVariations::branchPly(m_session->game(), place.path) + place.comment);
     } else if (place.game < 0) {
         // Nowhere in particular: where the board is.
         paragraphPly = mainLinePly(m_session->game(), m_session->path(), m_session->ply());
@@ -1598,12 +1612,27 @@ void MainWindow::showMoveListMenu(const QPoint &position)
         move->addAction(tr("&Down"), this, [gameTo, game] { gameTo(game + 1); })->setEnabled(game < games - 1);
         move->addAction(tr("To the &Bottom"), this, [gameTo, games] { gameTo(games - 1); })->setEnabled(game < games - 1);
     }
+    if (place.isComment()) {
+        menu.addSeparator();
+        menu.addAction(tr("&Edit Comment"), this, [this, path = place.path, index = place.comment] {
+            m_moveView->editComment(path, index);
+        });
+        menu.addAction(tr("&Delete Comment"), this, [this, path = place.path, index = place.comment] {
+            writeComment(path, index, QString());
+        });
+    }
     if (!place.isMove()) {
         menu.exec(m_moveView->viewport()->mapToGlobal(position));
         return;
     }
     menu.addSeparator();
     const int ply = place.ply;
+    // The comment after the move, written under it.
+    const int ownMove = ply - GameVariations::branchPly(m_session->game(), place.path);
+    const bool commented = !MoveComment::displayText(MoveComment::at(m_session->game(), place.path, ownMove)).isEmpty();
+    menu.addAction(commented ? tr("&Edit Comment") : tr("Add &Comment"), this, [this, path = place.path, ownMove] {
+        m_moveView->editComment(path, ownMove);
+    });
 
     QMenu *copy = menu.addMenu(themeIcon("edit-copy", QStyle::SP_FileIcon), tr("&Copy"));
     copy->addAction(tr("Copy &Move"), this, [this, ply] { copyText(moveText(ply), tr("Move copied")); });
@@ -1634,6 +1663,56 @@ void MainWindow::showMoveListMenu(const QPoint &position)
     annotations->addAction(none);
 
     menu.exec(m_moveView->viewport()->mapToGlobal(position));
+}
+
+void MainWindow::writeComment(const QList<int> &path, int index, const QString &text)
+{
+    // What a person reads is replaced; the commands for programs stay.
+    const QString before = MoveComment::at(m_session->game(), path, index);
+    const QString comment = MoveComment::withText(before, text);
+    if (comment == before)
+        return;
+    m_session->setComment(path, index, comment);
+    QString error;
+    if (!storeOpenGame(&error)) {
+        m_session->setComment(path, index, before);
+        QMessageBox::warning(this, tr("Comment"), tr("Could not save the comment: %1").arg(error));
+    }
+}
+
+void MainWindow::playCommentLine(int game, const QList<int> &path, int basePly, const QStringList &uci)
+{
+    // The line written in a comment becomes a variation of the game, or the
+    // one it already is is taken: from there it is followed as any other.
+    if (m_onlinePlay) {
+        statusBar()->showMessage(tr("The board stays on the online game until it ends."), 5000);
+        return;
+    }
+    if (game != m_chapters.chapter().currentGame) {
+        if (!canLeaveGame())
+            return;
+        switchToChapterGame(game, path, basePly);
+        if (game != m_chapters.chapter().currentGame)
+            return;
+    } else {
+        m_session->goToLine(path, basePly);
+    }
+    if (m_session->ply() != basePly)
+        return;
+    // Studied, not played: the engine must not answer in it.
+    m_trainingModeAction->setChecked(false);
+    bool adds = false;
+    for (const QString &move : uci) {
+        const std::optional<ChessMove> legal = m_session->position().moveFromUci(move);
+        if (!legal)
+            break;
+        adds = adds || !m_session->isNextMove(*legal);
+        m_session->playMove(*legal);
+    }
+    playMoveSound();
+    QString error;
+    if (adds && !storeOpenGame(&error))
+        statusBar()->showMessage(tr("The move could not be saved in the database: %1").arg(error), 8000);
 }
 
 void MainWindow::annotateMove(int ply, const QList<int> &nags)

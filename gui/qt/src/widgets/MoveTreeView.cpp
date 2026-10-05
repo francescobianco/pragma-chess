@@ -51,6 +51,37 @@ MoveTreeView::Place placeOf(const QString &link)
     return place;
 }
 
+/// The link of a move written in a comment: "cm:game:path/basePly/uci,uci",
+/// the line from `basePly` of the comment's line up to that move.
+QString commentHref(int game, const QList<int> &path, int basePly, const QStringList &uci)
+{
+    QStringList parts;
+    for (const int index : path)
+        parts << QString::number(index);
+    return QStringLiteral("cm:%1:%2/%3/%4").arg(game).arg(parts.join(QLatin1Char('.'))).arg(basePly).arg(uci.join(QLatin1Char(',')));
+}
+
+/// The comment's text as the view shows it, its moves links: `line` is the
+/// positions of its line from the game's start, up to its ply `at`.
+QString commentHtml(const QString &text, int game, const QList<int> &path, const QList<ChessPosition> &line, int at)
+{
+    QString html;
+    qsizetype done = 0;
+    for (const MoveComment::TextMove &move : MoveComment::movesIn(text, line, at)) {
+        html += text.mid(done, move.start - done).toHtmlEscaped();
+        html += QStringLiteral("<a href=\"%1\" class=\"mv\">%2</a>")
+                    .arg(commentHref(game, path, move.basePly, move.uci), text.mid(move.start, move.length).toHtmlEscaped());
+        done = move.start + move.length;
+    }
+    return html + text.mid(done).toHtmlEscaped();
+}
+
+/// Is a move written in a comment: its link, or nothing.
+bool isCommentLink(const QString &link)
+{
+    return link.startsWith(QLatin1String("cm:"));
+}
+
 /// The text of a move as the view shows it: figurines and annotation symbols.
 QString shown(const MoveRecord &move)
 {
@@ -123,6 +154,10 @@ public:
 
     QString hint;
     Paragraph::Kind kind = Paragraph::Kind::Text;
+    /// A comment: set as the view sets one, plainly, to the left.
+    bool comment = false;
+
+    QTextBlockFormat blockFormat() const { return comment ? QTextBlockFormat() : paragraphFormat(font(), kind); }
 
 protected:
     void paintEvent(QPaintEvent *event) override
@@ -136,7 +171,7 @@ protected:
         shown.setPlainText(hint);
         QTextCursor all(&shown);
         all.select(QTextCursor::Document);
-        all.mergeBlockFormat(paragraphFormat(font(), kind));
+        all.mergeBlockFormat(blockFormat());
         shown.setTextWidth(viewport()->width());
         QPainter painter(viewport());
         QAbstractTextDocumentLayout::PaintContext context;
@@ -150,6 +185,9 @@ struct Writer {
     int game = 0;
     QString currentHref;
     QString html;
+    /// The comment being written, left out here: it has a row of its own.
+    QList<int> editedPath;
+    int editedComment = -1;
 
     QString link(const QList<int> &path, int ply, const QString &text) const
     {
@@ -159,40 +197,43 @@ struct Writer {
     }
 
     /// A variation and, inline in parentheses, its own: "1…c5 2.Nf3 ( 2.Nc3 ) 2…Nc6".
-    /// `before` is the position it starts from and `basePly` the ply of its first move, minus one.
-    void inlineLine(const Variation &variation, const QList<int> &path, ChessPosition before, int basePly)
+    /// `line` is the positions from the game's start to the one it starts
+    /// from, the ply of its first move minus one.
+    void inlineLine(const Variation &variation, const QList<int> &path, QList<ChessPosition> line)
     {
+        const int basePly = int(line.size()) - 1;
         bool numbered = false;
         QStringList parts;
-        // Comments in a line are set in italics between its moves.
-        const auto comment = [&parts, &numbered](const QString &raw) {
+        // Comments in a line are set in italics between its moves, their moves links.
+        const auto comment = [&](const QString &raw, int index) {
             const QString shownText = MoveComment::displayText(raw);
-            if (shownText.isEmpty())
+            if (shownText.isEmpty() || (index == editedComment && path == editedPath))
                 return;
-            parts << QStringLiteral("<i>%1</i>").arg(shownText.toHtmlEscaped());
+            parts << QStringLiteral("<i>%1</i>").arg(commentHtml(shownText, game, path, line, int(line.size()) - 1));
             numbered = false;
         };
-        comment(variation.startComment);
+        comment(variation.startComment, 0);
         for (qsizetype i = 0; i < variation.moves.size(); ++i) {
             const MoveRecord &move = variation.moves.at(i);
             const int ply = basePly + int(i) + 1;
+            const ChessPosition before = line.last();
             QString text = shown(move);
             if (!numbered || before.sideToMove() == Side::White)
                 text = before.moveNumberText().toHtmlEscaped() + text;
             numbered = true;
             parts << link(path, ply, text);
-            comment(move.comment);
-            const ChessPosition at = before;
-            if (const std::optional<ChessMove> played = before.moveFromUci(move.uci))
-                before.play(*played);
-            else
+            const std::optional<ChessMove> played = before.moveFromUci(move.uci);
+            if (!played)
                 break;
+            line << before;
+            line.last().play(*played);
+            comment(move.comment, int(i) + 1);
             for (int v = 0; v < variation.variations.size(); ++v) {
                 const Variation &inner = variation.variations.at(v);
                 if (inner.atPly != i + 1)
                     continue;
-                Writer sub{game, currentHref, {}};
-                sub.inlineLine(inner, path + QList<int>{v}, at, ply - 1);
+                Writer sub{game, currentHref, {}, editedPath, editedComment};
+                sub.inlineLine(inner, path + QList<int>{v}, line.first(ply));
                 parts << QStringLiteral("(") + sub.html + QStringLiteral(")");
                 numbered = false;
             }
@@ -257,6 +298,15 @@ MoveTreeView::MoveTreeView(GameSession *session, QWidget *parent)
         });
     });
     connect(this, &QTextBrowser::anchorClicked, this, [this](const QUrl &url) {
+        if (isCommentLink(url.toString())) {
+            // "cm:game:path/basePly/uci,uci": the line written in the comment.
+            const QStringList parts = url.toString().mid(3).split(QLatin1Char('/'));
+            if (parts.size() != 3)
+                return;
+            const Place line = placeOf(parts.at(0) + QLatin1Char('/') + parts.at(1));
+            Q_EMIT commentLineActivated(line.game, line.path, line.ply, parts.at(2).split(QLatin1Char(','), Qt::SkipEmptyParts));
+            return;
+        }
         const Place place = placeOf(url.toString());
         if (!place.isMove())
             return;
@@ -268,6 +318,7 @@ MoveTreeView::MoveTreeView(GameSession *session, QWidget *parent)
     connect(m_session, &GameSession::gameChanged, this, &MoveTreeView::rebuild);
     connect(m_session, &GameSession::plyChanged, this, &MoveTreeView::rebuild);
     connect(m_session, &GameSession::annotationsChanged, this, &MoveTreeView::rebuild);
+    connect(m_session, &GameSession::commentsChanged, this, &MoveTreeView::rebuild);
 
     // Paragraphs are written where they are: the editor lies over the
     // paragraph's row, in the same font, and the row grows with the text.
@@ -281,7 +332,7 @@ MoveTreeView::MoveTreeView(GameSession *session, QWidget *parent)
     m_editor->hide();
     m_editor->installEventFilter(this);
     connect(m_editor, &QTextEdit::textChanged, this, [this] {
-        if (m_editing.first < 0 || m_formatting)
+        if (!m_editing.active() || m_formatting)
             return;
         formatEditor();
         m_editText = m_editor->toPlainText();
@@ -307,22 +358,85 @@ int MoveTreeView::currentGame() const
     return m_book ? m_book->chapter().currentGame : 0;
 }
 
+const GameRecord &MoveTreeView::gameRecord(int game) const
+{
+    return game == currentGame() || !m_book ? m_session->game() : m_book->chapter().games.at(game).game;
+}
+
 MoveTreeView::Place MoveTreeView::placeAt(const QPoint &position) const
 {
     const QString anchor = anchorAt(position);
-    if (!anchor.isEmpty())
+    if (!anchor.isEmpty() && !isCommentLink(anchor))
         return placeOf(anchor);
     Place place;
     const int cell = cellAt(position);
     if (cell < 0)
         return place;
     const int row = cell >> 2;
+    if (const auto comment = m_commentRows.constFind(row); comment != m_commentRows.constEnd()) {
+        place.game = comment->first;
+        place.comment = comment->second;
+        return place;
+    }
+    if (const Place inline_ = inlineCommentAt(position); inline_.isComment())
+        return inline_;
     if (const auto found = m_cellPlaces.constFind(cell); found != m_cellPlaces.constEnd()) {
         place.game = found->first;
         place.ply = found->second;
     } else if (const auto paragraph = m_paragraphRows.constFind(row); paragraph != m_paragraphRows.constEnd()) {
         place.game = paragraph->first;
         place.paragraph = paragraph->second;
+    }
+    return place;
+}
+
+MoveTreeView::Place MoveTreeView::inlineCommentAt(const QPoint &position) const
+{
+    // The character under the pointer, if it is a comment's (in italics).
+    const QPointF point = QPointF(position) + QPointF(horizontalScrollBar()->value(), verticalScrollBar()->value());
+    const int hit = document()->documentLayout()->hitTest(point, Qt::ExactHit);
+    if (hit < 0)
+        return {};
+    const QTextBlock block = document()->findBlock(hit);
+    // The comment follows its move; one before the first move of a line
+    // comes after an opening parenthesis, or first in the row.
+    QString lastMove;
+    QString nextMove;
+    bool opened = false;
+    bool inComment = false;
+    for (auto it = block.begin(); !it.atEnd(); ++it) {
+        const QTextFragment fragment = it.fragment();
+        const QTextCharFormat format = fragment.charFormat();
+        const QString link = format.anchorHref();
+        const bool comment = format.fontItalic();
+        const bool move = !link.isEmpty() && !isCommentLink(link);
+        if (hit >= fragment.position() && hit < fragment.position() + fragment.length()) {
+            if (!comment)
+                return {};
+            inComment = true;
+        } else if (!inComment && move) {
+            lastMove = link;
+            opened = false;
+        } else if (!inComment && !comment && fragment.text().contains(QLatin1Char('('))) {
+            opened = true;
+        } else if (inComment && move) {
+            nextMove = link;
+            break;
+        }
+    }
+    if (!inComment)
+        return {};
+    Place place;
+    if (!lastMove.isEmpty() && !opened) {
+        const Place moved = placeOf(lastMove);
+        place.game = moved.game;
+        place.path = moved.path;
+        place.comment = moved.ply - GameVariations::branchPly(gameRecord(moved.game), moved.path);
+    } else if (!nextMove.isEmpty()) {
+        const Place first = placeOf(nextMove);
+        place.game = first.game;
+        place.path = first.path;
+        place.comment = 0;
     }
     return place;
 }
@@ -364,14 +478,16 @@ void MoveTreeView::mouseMoveEvent(QMouseEvent *event)
     // alone (a double click writes in them), the arrow.
     if (anchorAt(event->pos()).isEmpty()) {
         const Place place = placeAt(event->pos());
-        viewport()->setCursor(!place.isParagraph() && place.game >= 0 ? Qt::PointingHandCursor : Qt::ArrowCursor);
+        viewport()->setCursor(place.isMove() || (place.game >= 0 && !place.isParagraph() && !place.isComment())
+                                  ? Qt::PointingHandCursor
+                                  : Qt::ArrowCursor);
     }
 }
 
 void MoveTreeView::mousePressEvent(QMouseEvent *event)
 {
     // A click outside the paragraph being written ends the writing first.
-    if (m_editing.first >= 0)
+    if (m_editing.active())
         finishEditing();
     QTextBrowser::mousePressEvent(event);
 }
@@ -384,7 +500,7 @@ void MoveTreeView::mouseReleaseEvent(QMouseEvent *event)
     if (event->button() != Qt::LeftButton || onAnchor)
         return;
     const Place place = placeAt(event->pos());
-    if (place.isParagraph())
+    if (place.isParagraph() || place.isComment())
         return; // Only a double click writes in it.
     if (place.game == currentGame() && place.isMove())
         Q_EMIT moveActivated({}, place.ply);
@@ -399,12 +515,20 @@ void MoveTreeView::mouseDoubleClickEvent(QMouseEvent *event)
         editParagraph(place.game, place.paragraph);
         return;
     }
+    if (event->button() == Qt::LeftButton && place.isComment()) {
+        // A comment is written in the game on the board: another game comes there first.
+        if (place.game != currentGame())
+            Q_EMIT gameMoveActivated(place.game, place.path, GameVariations::branchPly(gameRecord(place.game), place.path));
+        if (place.game == currentGame())
+            editComment(place.path, place.comment);
+        return;
+    }
     QTextBrowser::mouseDoubleClickEvent(event);
 }
 
 bool MoveTreeView::eventFilter(QObject *watched, QEvent *event)
 {
-    if (watched == m_editor && m_editing.first >= 0) {
+    if (watched == m_editor && m_editing.active()) {
         if (event->type() == QEvent::FocusOut) {
             // Not for the editor's own menu, nor for another window coming up front.
             const Qt::FocusReason reason = static_cast<QFocusEvent *>(event)->reason();
@@ -429,14 +553,44 @@ void MoveTreeView::editParagraph(int game, int index)
     if (!m_book || game < 0 || game >= m_book->chapter().games.size()
         || index < 0 || index >= m_book->chapter().games.at(game).paragraphs.size())
         return;
-    if (m_editing.first >= 0)
+    if (m_editing.active())
         finishEditing();
-    m_editing = {game, index};
+    m_editing = Editing{game, index, {}, -1};
     const Paragraph &paragraph = m_book->chapter().games.at(game).paragraphs.at(index);
     m_editText = paragraph.text;
     // The editor takes the face of what it writes: a title, a subtitle, a paragraph.
-    static_cast<ParagraphEditor *>(m_editor)->kind = paragraph.kind;
+    auto *editor = static_cast<ParagraphEditor *>(m_editor);
+    editor->kind = paragraph.kind;
+    editor->comment = false;
     m_editor->setFont(kindFont(BookFont::paragraph(font()), paragraph.kind));
+    {
+        const QSignalBlocker quiet(m_editor);
+        m_editor->setPlainText(m_editText);
+        formatEditor();
+    }
+    m_editor->moveCursor(QTextCursor::End);
+    rebuild();
+    m_editor->show();
+    m_editor->setFocus();
+}
+
+void MoveTreeView::editComment(const QList<int> &path, int index)
+{
+    const GameRecord &game = m_session->game();
+    if (index < 0 || !GameVariations::variationsOf(game, path)
+        || (index > 0 && index > GameVariations::lineMoves(game, path).size() - GameVariations::branchPly(game, path)))
+        return;
+    if (m_editing.active())
+        finishEditing();
+    m_editing = Editing{currentGame(), -1, path, index};
+    m_editText = MoveComment::displayText(MoveComment::at(game, path, index));
+    // In the face the comments are shown in: italics, a little smaller.
+    auto *editor = static_cast<ParagraphEditor *>(m_editor);
+    editor->comment = true;
+    QFont face = font();
+    face.setItalic(true);
+    face.setPointSizeF(face.pointSizeF() * 0.92);
+    m_editor->setFont(face);
     {
         const QSignalBlocker quiet(m_editor);
         m_editor->setPlainText(m_editText);
@@ -455,45 +609,45 @@ void MoveTreeView::formatEditor()
     const QScopedValueRollback<bool> formatting(m_formatting, true);
     QTextCursor all(m_editor->document());
     all.select(QTextCursor::Document);
-    all.mergeBlockFormat(paragraphFormat(m_editor->font(), static_cast<ParagraphEditor *>(m_editor)->kind));
+    all.mergeBlockFormat(static_cast<ParagraphEditor *>(m_editor)->blockFormat());
 }
 
 void MoveTreeView::finishEditing()
 {
-    if (m_editing.first < 0)
+    if (!m_editing.active())
         return;
-    const QPair<int, int> edited = m_editing;
+    const Editing edited = m_editing;
     const QString text = m_editor->toPlainText();
-    m_editing = {-1, -1};
+    m_editing = Editing();
     m_editText.clear();
     m_editor->hide();
-    Q_EMIT paragraphEdited(edited.first, edited.second, text);
+    if (edited.isComment())
+        Q_EMIT commentEdited(edited.path, edited.comment, text);
+    else
+        Q_EMIT paragraphEdited(edited.game, edited.paragraph, text);
     rebuild();
 }
 
 void MoveTreeView::placeEditor()
 {
-    if (m_editing.first < 0)
+    if (!m_editing.active())
         return;
     QTextTable *table = this->table();
-    int row = -1;
-    for (auto it = m_paragraphRows.constBegin(); it != m_paragraphRows.constEnd(); ++it) {
-        if (it.value() == m_editing)
-            row = it.key();
-    }
-    if (!table || row < 0)
+    if (!table || m_editRow < 0)
         return;
-    const QTextTableCell cell = table->cellAt(row, 0); // The paragraph spans the row.
+    // A paragraph spans the row; a comment leaves the number's column to it.
+    const QTextTableCell cell = table->cellAt(m_editRow, m_editing.isComment() ? 1 : 0);
     if (!cell.isValid())
         return;
-    // As wide as the list, less its padding, from the paragraph's first line
-    // to its last, as it is on screen.
+    // As wide as the list, less its padding, from the text's first line to
+    // its last, as it is on screen; a comment from where its text begins.
     const QRect first = cursorRect(cell.firstCursorPosition());
     const QRect last = cursorRect(cell.lastCursorPosition());
-    const int width = viewport()->width() - 2 * kParagraphPadding;
+    const int left = m_editing.isComment() ? first.left() : kParagraphPadding;
+    const int width = viewport()->width() - left - kParagraphPadding;
     m_editor->document()->setTextWidth(width);
     const int height = qMax(last.bottom() - first.top() + 1, int(m_editor->document()->size().height()));
-    m_editor->setGeometry(kParagraphPadding, first.top(), width, height);
+    m_editor->setGeometry(left, first.top(), width, height);
 }
 
 QList<int> MoveTreeView::columnWidths() const
@@ -554,7 +708,7 @@ void MoveTreeView::rebuild()
                                   "td.dots { color: %1; }"
                                   "td.cur { color: %4; background-color: %5; }"
                                   "td.var { font-size: 92%; color: %2; padding-left: 14px; }"
-                                  "td.com { font-size: 92%; font-style: italic; color: %3; padding-left: 14px; }"
+                                  "td.com { font-size: 92%; font-style: italic; color: %3; }"
                                   "td.par { color: %3; padding: 8px %6px; }"
                                   "td.break { padding: 10px %6px; }"
                                   "a { text-decoration: none; }"
@@ -579,6 +733,8 @@ void MoveTreeView::rebuild()
                 .arg(widths[0], widths[1], widths[2]);
     m_cellPlaces.clear();
     m_paragraphRows.clear();
+    m_commentRows.clear();
+    m_editRow = -1;
     m_currentCell = -1;
     int row = 0; // Every row written counts, from 0 (the widths' row).
 
@@ -587,8 +743,12 @@ void MoveTreeView::rebuild()
         // The game on the board as the session has it; the others as the chapter keeps them.
         const GameRecord &game = g == current ? m_session->game() : m_book->chapter().games.at(g).game;
         QList<Paragraph> paragraphs = m_book ? m_book->chapter().games.at(g).paragraphs : QList<Paragraph>();
-        if (m_editing.first == g && m_editing.second < paragraphs.size())
-            paragraphs[m_editing.second].text = m_editText; // As it is being written.
+        if (m_editing.game == g && !m_editing.isComment() && m_editing.paragraph < paragraphs.size())
+            paragraphs[m_editing.paragraph].text = m_editText; // As it is being written.
+        // The comment being written, if it is in this game's main line.
+        const int editedComment = m_editing.game == g && m_editing.isComment() && m_editing.path.isEmpty()
+            ? m_editing.comment
+            : -1;
 
         if (g > 0) {
             // A game break: a light rule across the list, and the numbering starts again.
@@ -600,6 +760,7 @@ void MoveTreeView::rebuild()
         const std::optional<ChessPosition> start = game.startFen.isEmpty() ? ChessPosition::startingPosition()
                                                                             : ChessPosition::fromFen(game.startFen);
         ChessPosition position = start.value_or(ChessPosition::startingPosition());
+        QList<ChessPosition> line{position}; // The main line's positions so far.
         bool rowOpen = false;
         const auto openRow = [&](const QString &number) {
             html += QStringLiteral("<tr><td class=\"n\" width=\"%1\">%2</td>").arg(widths[0], number);
@@ -628,20 +789,37 @@ void MoveTreeView::rebuild()
                     continue;
                 ++row;
                 m_paragraphRows.insert(row, {g, p});
+                if (m_editing.game == g && m_editing.paragraph == p)
+                    m_editRow = row;
                 html += QStringLiteral("<tr><td colspan=\"3\" class=\"par\" style=\"%1\">%2</td></tr>")
                             .arg(bookStyle, paragraphHtml(paragraphs.at(p), book));
             }
         };
-        // A comment of the main line: a row under its move, in italics.
-        const auto commentRow = [&](const QString &raw) {
-            const QString shownText = MoveComment::displayText(raw);
-            if (shownText.isEmpty())
+        // A comment of the main line: a row under its move, in italics,
+        // starting where the move does; the moves written in it are links.
+        const auto commentRow = [&](const QString &raw, int index) {
+            const bool edited = index == editedComment;
+            const QString shownText = edited ? m_editText : MoveComment::displayText(raw);
+            if (shownText.isEmpty() && !edited)
                 return;
             ++row;
-            html += QStringLiteral("<tr><td></td><td colspan=\"2\" class=\"com\">%1</td></tr>")
-                        .arg(shownText.toHtmlEscaped());
+            m_commentRows.insert(row, {g, index});
+            if (edited)
+                m_editRow = row;
+            const QString content = edited ? (shownText.isEmpty() ? QStringLiteral("&nbsp;") : shownText.toHtmlEscaped())
+                                           : commentHtml(shownText, g, {}, line, index);
+            html += QStringLiteral("<tr><td></td><td colspan=\"2\" class=\"com\">%1</td></tr>").arg(content);
         };
-        commentRow(game.startComment);
+        // A comment being written in a variation: a row of its own under the variation's.
+        const auto editedVariationRow = [&](int variation) {
+            if (m_editing.game != g || !m_editing.isComment() || m_editing.path.value(0, -1) != variation)
+                return;
+            ++row;
+            m_editRow = row;
+            html += QStringLiteral("<tr><td></td><td colspan=\"2\" class=\"com\">%1</td></tr>")
+                        .arg(m_editText.isEmpty() ? QStringLiteral("&nbsp;") : m_editText.toHtmlEscaped());
+        };
+        commentRow(game.startComment, 0);
         paragraphRows(0);
 
         for (qsizetype i = 0; i < game.moves.size(); ++i) {
@@ -657,14 +835,14 @@ void MoveTreeView::rebuild()
                 html += QStringLiteral("<td class=\"dots\">…</td>"); // Black moves first here.
             }
             moveCell(ply, white, move);
-            const ChessPosition before = position;
             if (const std::optional<ChessMove> played = position.moveFromUci(move.uci))
                 position.play(*played);
             else
                 break;
+            line << position;
             // What comes right under the move: its comment, its paragraphs,
             // then the variations that replace it.
-            bool hasBlock = !MoveComment::displayText(move.comment).isEmpty();
+            bool hasBlock = !MoveComment::displayText(move.comment).isEmpty() || editedComment == ply;
             for (const Paragraph &paragraph : paragraphs)
                 hasBlock = hasBlock || paragraph.ply == ply;
             for (const Variation &variation : game.variations)
@@ -674,16 +852,21 @@ void MoveTreeView::rebuild()
             if (white)
                 html += QStringLiteral("<td class=\"dots\">…</td>");
             closeRow();
-            commentRow(move.comment);
+            commentRow(move.comment, ply);
             paragraphRows(ply);
             for (int v = 0; v < game.variations.size(); ++v) {
                 const Variation &variation = game.variations.at(v);
                 if (variation.atPly != ply)
                     continue;
-                Writer line{g, currentHref, {}};
-                line.inlineLine(variation, {v}, before, ply - 1);
-                html += QStringLiteral("<tr><td></td><td colspan=\"2\" class=\"var\">%1</td></tr>").arg(line.html);
+                Writer writer{g, currentHref, {}, {}, -1};
+                if (m_editing.game == g && m_editing.isComment()) {
+                    writer.editedPath = m_editing.path;
+                    writer.editedComment = m_editing.comment;
+                }
+                writer.inlineLine(variation, {v}, line.first(ply));
+                html += QStringLiteral("<tr><td></td><td colspan=\"2\" class=\"var\">%1</td></tr>").arg(writer.html);
                 ++row;
+                editedVariationRow(v);
             }
             if (white) { // Black's move goes on in a row of its own.
                 openRow(number);
@@ -704,7 +887,7 @@ void MoveTreeView::rebuild()
     html += QStringLiteral("</table>");
     setHtml(html);
     verticalScrollBar()->setValue(scroll);
-    if (m_editing.first >= 0)
+    if (m_editing.active())
         placeEditor(); // The writer's place, not the move's.
     else
         showCurrent();

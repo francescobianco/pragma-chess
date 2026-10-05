@@ -472,6 +472,17 @@ painted as a menu item, since QMenu draws an item in one font).
   `replaceGame`, which moves `modified`, so the other copies get it); in a
   game not yet saved the annotations travel with the project (`annotations`
   in the `.pch`).
+- Comments (`MoveRecord::comment`, `startComment`, addressed by line path
+  and own move as `MoveComment::at`/`set` and `games.comments` count them)
+  are written in place in the move list like paragraphs (double click, or
+  the move's menu: `MoveTreeView::editComment`, `MainWindow::writeComment`,
+  which keeps the `[%…]` commands through `MoveComment::withText`). A
+  main-line comment is a row starting where the move above it starts; one
+  of a variation is inline, and while written gets a row under the
+  variation's. Moves written in a comment (`MoveComment::movesIn`, pure,
+  unit-tested) are `cm:` links: `MainWindow::playCommentLine` plays the line
+  with the session's `playMove`, so it becomes a variation (or takes the
+  one there) — one system with the variations.
 - The players the user said are "me" (Who Is This?) are in bold in the
   games list (`GameListModel::m_me`, read with the database and on
   `refreshRoles()`).

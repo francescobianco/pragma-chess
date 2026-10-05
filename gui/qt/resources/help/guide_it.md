@@ -98,6 +98,8 @@ Scegli il simbolo che la mossa ha già per toglierlo, oppure **Nessuna annotazio
 
 I **commenti** — il testo tra le mosse di una partita PGN o di uno studio lichess — sono in corsivo: sotto la loro mossa nella linea principale, tra le mosse in una variante. I comandi che i programmi mettono nei commenti (una valutazione `[%eval 0.18]`, un orologio, delle frecce) restano con la partita ma non si vedono. I commenti si salvano nel database con la partita e si riscrivono quando la partita viene scritta in PGN.
 
+Fai doppio clic su un commento per scriverci, lì dov'è, come si scrive un paragrafo (Esc, Ctrl+Invio o un clic altrove finiscono; se lo svuoti, sparisce). Il clic destro su una mossa offre **Aggiungi commento** o **Modifica commento**, su un commento **Modifica commento** ed **Elimina commento**. I comandi che contiene restano com'erano. Le mosse scritte in un commento — "4.d4 cxd4 era meglio", "poi Qg5" — sono link: fai clic su una e la sua linea viene giocata sulla scacchiera come variante della partita (o viene presa la variante che è già), poi la segui con le frecce come le altre. Una mossa con il numero parte da quella mossa della linea; una senza numero continua dal commento, o prende il posto della mossa commentata.
+
 # Spiega {#explain}
 
 **Spiega** mostra sulla scacchiera perché l'ultima mossa è buona o cattiva. Premi il bottone tra le frecce sotto la scacchiera, oppure il tasto **E**.

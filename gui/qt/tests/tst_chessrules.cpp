@@ -649,6 +649,55 @@ private Q_SLOTS:
         QVERIFY(weights.at(0) <= 65535);
     }
 
+    void editsCommentsAndReadsTheirMoves()
+    {
+        QString error;
+        const std::optional<GameRecord> read = PgnFile::read(
+            "1. e4 c5 2. Bc4 e6 3. Nf3 a6 4. Ne5? { [%eval -1.34] Mistake. 4.d4 cxd4 was best. } "
+            "(4. d4 { The main move. } 4... cxd4) 4... Qg5 1-0\n",
+            &error);
+        QVERIFY2(read, qPrintable(error));
+        GameSession session;
+        session.setGame(*read);
+
+        // Every comment by its line and its own move; the commands stay when it is edited.
+        QCOMPARE(MoveComment::at(session.game(), {0}, 1), QStringLiteral("The main move."));
+        QVERIFY(MoveComment::at(session.game(), {}, 7).endsWith(QStringLiteral("was best.")));
+        QCOMPARE(MoveComment::withText(QStringLiteral("[%eval -1.34] Mistake. [%clk 0:05:00]"), QStringLiteral(" Ouch ")),
+                 QStringLiteral("Ouch [%eval -1.34] [%clk 0:05:00]"));
+        QCOMPARE(MoveComment::withText(QStringLiteral("Mistake."), QString()), QString());
+        QSignalSpy changed(&session, &GameSession::commentsChanged);
+        session.setComment({0}, 1, QStringLiteral("The main move!"));
+        session.setComment({0}, 0, QStringLiteral("Instead:"));
+        session.setComment({}, 0, QStringLiteral("A game."));
+        QCOMPARE(changed.count(), 3);
+        QCOMPARE(session.game().variations.at(0).moves.at(0).comment, QStringLiteral("The main move!"));
+        QCOMPARE(session.game().variations.at(0).startComment, QStringLiteral("Instead:"));
+        QCOMPARE(session.game().startComment, QStringLiteral("A game."));
+        session.setComment({3}, 1, QStringLiteral("nowhere"));
+        QCOMPARE(changed.count(), 3);
+
+        // Moves written in a comment are read from the line it is on.
+        QList<ChessPosition> line;
+        for (int ply = 0; ply <= 7; ++ply)
+            line << session.positionAt(ply);
+        const QString text = MoveComment::displayText(session.game().moves.at(6).comment);
+        const QList<MoveComment::TextMove> moves = MoveComment::movesIn(text, line, 7);
+        QCOMPARE(moves.size(), 2);
+        QCOMPARE(text.mid(moves.at(0).start, moves.at(0).length), QStringLiteral("4.d4"));
+        QCOMPARE(moves.at(0).basePly, 6); // In place of 4.Ne5.
+        QCOMPARE(moves.at(1).uci, (QStringList{QStringLiteral("d2d4"), QStringLiteral("c5d4")}));
+        // Unnumbered, a move goes on from the comment, or else replaces the move commented.
+        QCOMPARE(MoveComment::movesIn(QStringLiteral("then Qg5 Nf3"), line, 7).first().basePly, 7);
+        QCOMPARE(MoveComment::movesIn(QStringLiteral("d4 was better"), line, 7).first().basePly, 6);
+        // Numbered, from that move of the line; words that are no move stay text.
+        const QList<MoveComment::TextMove> early = MoveComment::movesIn(QStringLiteral("2...Nc6 3.Nf3 Nf6, Kd5 or 2.Ka8"), line, 7);
+        QCOMPARE(early.size(), 3);
+        QCOMPARE(early.at(0).basePly, 3);
+        QCOMPARE(early.at(2).uci, (QStringList{QStringLiteral("b8c6"), QStringLiteral("g1f3"), QStringLiteral("g8f6")}));
+        QVERIFY(MoveComment::movesIn(QStringLiteral("Be2e4 and h9"), line, 7).isEmpty());
+    }
+
     void keepsCommentsAndTags()
     {
         // A chapter of a lichess study, as its PGN export gives it.

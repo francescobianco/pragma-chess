@@ -99,6 +99,8 @@ Choose the symbol a move already has to take it off, or **No Annotation** to cle
 
 **Comments** — the text between the moves of a PGN game or of a lichess study — are shown in italics: under their move in the main line, between the moves in a variation. The commands programs put in comments (an evaluation `[%eval 0.18]`, a clock, arrows) are kept with the game but not shown. Comments are saved in the database with the game and written back when the game is written as PGN.
 
+Double-click a comment to write in it, right there, as a paragraph is written (Esc, Ctrl+Enter or a click elsewhere ends; emptied, it goes). Right-click a move for **Add Comment** or **Edit Comment**, a comment for **Edit Comment** and **Delete Comment**. The commands in it stay as they were. The moves written in a comment — "4.d4 cxd4 was best", "then Qg5" — are links: click one and its line is played on the board as a variation of the game (or the variation it already is is taken), then followed with the arrows like any other. A numbered move starts from that move of the line; one without a number goes on from the comment, or replaces the move commented.
+
 # Explain {#explain}
 
 **Explain** shows on the board why the last move is good or bad. Press the button between the arrows under the board, or the **E** key.

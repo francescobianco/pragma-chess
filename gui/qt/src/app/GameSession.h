@@ -67,6 +67,10 @@ public:
     /// Annotates the move that leads to `ply` (1 to plyCount()) of the line
     /// with these NAGs (MoveAnnotation), in place of the ones it had.
     void setAnnotations(int ply, const QList<int> &nags);
+    /// Sets the comment of the line `path` after its own move `index`, or
+    /// before its first move for 0 (MoveComment::at); any line of the game,
+    /// not only the one followed.
+    void setComment(const QList<int> &path, int index, const QString &comment);
 
     void goToPly(int ply);
     /// Follows another line of the game and goes to `ply` on it.
@@ -82,6 +86,8 @@ Q_SIGNALS:
     void headerChanged();
     /// The annotations of the move leading to `ply` of the line changed.
     void annotationsChanged(int ply);
+    /// A comment of the game changed.
+    void commentsChanged();
     /// The ply changed; so may the line (path()).
     void plyChanged(int ply);
 

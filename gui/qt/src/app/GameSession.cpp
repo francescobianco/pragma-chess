@@ -2,6 +2,7 @@
 
 #include "GameVariations.h"
 #include "MoveAnnotation.h"
+#include "MoveComment.h"
 
 #include <QtGlobal>
 
@@ -184,6 +185,14 @@ bool GameSession::playMove(const ChessMove &move)
     Q_EMIT gameChanged();
     goToLine(m_path + QList<int>{int(variations.size()) - 1}, ply + 1);
     return true;
+}
+
+void GameSession::setComment(const QList<int> &path, int index, const QString &comment)
+{
+    if (MoveComment::at(m_game, path, index) == comment || !MoveComment::set(m_game, path, index, comment))
+        return;
+    m_line = GameVariations::lineMoves(m_game, m_path); // The line followed may hold it.
+    Q_EMIT commentsChanged();
 }
 
 void GameSession::setAnnotations(int ply, const QList<int> &nags)

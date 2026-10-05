@@ -2634,6 +2634,26 @@ non è su questo computer.</translation>
         <source>(No Chapter)</source>
         <translation>(Nessun capitolo)</translation>
     </message>
+    <message>
+        <source>&amp;Edit Comment</source>
+        <translation>&amp;Modifica commento</translation>
+    </message>
+    <message>
+        <source>&amp;Delete Comment</source>
+        <translation>&amp;Elimina commento</translation>
+    </message>
+    <message>
+        <source>Add &amp;Comment</source>
+        <translation>Aggiungi &amp;commento</translation>
+    </message>
+    <message>
+        <source>Comment</source>
+        <translation>Commento</translation>
+    </message>
+    <message>
+        <source>Could not save the comment: %1</source>
+        <translation>Impossibile salvare il commento: %1</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

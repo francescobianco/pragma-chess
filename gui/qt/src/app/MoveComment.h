@@ -2,7 +2,11 @@
 
 #include "GameRecord.h"
 
+#include <QList>
 #include <QString>
+#include <QStringList>
+
+class ChessPosition;
 
 /// The comments of a game: text between the moves, as PGN writes it in
 /// braces. Lichess studies are mostly made of them, often with commands for
@@ -36,5 +40,37 @@ void fromJson(GameRecord &game, const QString &json);
 
 /// Whether the game has any comment.
 bool hasComments(const GameRecord &game);
+
+/// The comment of the line `path` (GameVariations) after its own move
+/// `index` — 1-based among the moves of that line alone, as toJson() counts
+/// them —, or before its first move for 0. Empty where the game has no such
+/// move.
+QString at(const GameRecord &game, const QList<int> &path, int index);
+/// Sets that comment; false where the game has no such move.
+bool set(GameRecord &game, const QList<int> &path, int index, const QString &comment);
+
+/// `comment` with what a person reads replaced by `text`: its commands stay,
+/// after the text, so a comment edited by hand keeps its evaluation, clock
+/// and arrows.
+QString withText(const QString &comment, const QString &text);
+
+/// A move written in a comment's text ("14.Bxd4 Qxd4", "better is Nf3"),
+/// and the line it ends, as the rules read it.
+struct TextMove {
+    /// Where it is in the text (displayText's), its number included.
+    qsizetype start = 0;
+    qsizetype length = 0;
+    /// The ply of the comment's line the written line starts from, and its
+    /// moves (UCI) up to this one.
+    int basePly = 0;
+    QStringList uci;
+};
+/// The moves written in `text`, a comment of a line whose positions, from
+/// the game's start, are `line`, placed after its ply `at`. A run of moves
+/// is one line. Its first move, when numbered, is played from the position
+/// of the line with that number and side to move; otherwise as the next
+/// move (a continuation), or else in place of the move commented (an
+/// alternative). Words that are no legal move there are left as text.
+QList<TextMove> movesIn(const QString &text, const QList<ChessPosition> &line, int at);
 
 } // namespace MoveComment

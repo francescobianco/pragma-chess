@@ -134,6 +134,12 @@ private:
     /// Annotates the move leading to `ply` ("!", "±"…, as NAGs), in the
     /// database too when the game is stored.
     void annotateMove(int ply, const QList<int> &nags);
+    /// Writes the text of a comment of the game on the board (MoveComment::at)
+    /// and saves the game, keeping the comment's commands.
+    void writeComment(const QList<int> &path, int index, const QString &text);
+    /// Plays a line written in a comment, from the ply `basePly` of the line
+    /// `path`: it becomes a variation of the game, or takes the one it is.
+    void playCommentLine(int game, const QList<int> &path, int basePly, const QStringList &uci);
     /// Writes the game on the board back to the database when it comes from
     /// there (moves, variations, annotations); otherwise the project keeps it.
     bool storeOpenGame(QString *error);

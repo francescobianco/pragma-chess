@@ -78,9 +78,14 @@ void LichessStudyFetch::start()
             Q_EMIT finished(QString());
             return;
         }
-        if (status == 404 || status == 403) {
-            Q_EMIT finished(tr("lichess.org did not find the study, or it is private: sign in with the account "
-                               "that can see it."));
+        if (status == 404) {
+            Q_EMIT finished(tr("lichess.org did not find the study."));
+            return;
+        }
+        if (status == 403) {
+            // Public to look at is not enough: the author chooses who may export it.
+            Q_EMIT finished(tr("lichess.org does not let this study be downloaded: it is private, or its author "
+                               "lets only its members export it (Share & export)."));
             return;
         }
         if (reply->error() != QNetworkReply::NoError) {

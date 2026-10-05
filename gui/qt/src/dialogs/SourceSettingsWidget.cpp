@@ -297,9 +297,17 @@ bool SourceSettingsWidget::validateStudy(QString *errorMessage)
     reply->deleteLater();
     const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if (status == 404 || status == 403) {
-        *errorMessage = SourceCredentials::token(m_uuid).isEmpty()
-            ? tr("lichess.org did not find the study, or it is private: sign in with an account that can see it.")
-            : tr("lichess.org did not find the study, or this account cannot see it.");
+        // A study can be public to look at and still not be exported: its
+        // author chooses who may (Share & export), and lichess answers 403.
+        *errorMessage = status == 404
+            ? tr("lichess.org did not find the study.")
+            : SourceCredentials::token(m_uuid).isEmpty()
+            ? tr("lichess.org does not let this study be downloaded: it is private, or its author lets only "
+                 "its members export it (Share & export). Sign in with an account that is a member, or ask the "
+                 "author to allow export to everyone.")
+            : tr("lichess.org does not let this account download the study: it is private, or its author lets "
+                 "only its members export it (Share & export). Ask the author to add you, or to allow export to "
+                 "everyone.");
         return false;
     }
     if (reply->error() != QNetworkReply::NoError) {

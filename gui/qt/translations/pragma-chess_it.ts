@@ -1202,10 +1202,6 @@ Il Nero ha catturato: %2</translation>
         <translation>L&apos;indirizzo dello studio lichess non è valido.</translation>
     </message>
     <message>
-        <source>lichess.org did not find the study, or it is private: sign in with the account that can see it.</source>
-        <translation>lichess.org non ha trovato lo studio, oppure è privato: accedi con l&apos;account che può vederlo.</translation>
-    </message>
-    <message>
         <source>Could not save the games: %1</source>
         <translation>Impossibile salvare le partite: %1</translation>
     </message>
@@ -1215,6 +1211,14 @@ Il Nero ha catturato: %2</translation>
             <numerusform>%n capitolo dello studio non si è potuto leggere.</numerusform>
             <numerusform>%n capitoli dello studio non si sono potuti leggere.</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>lichess.org did not find the study.</source>
+        <translation>lichess.org non ha trovato lo studio.</translation>
+    </message>
+    <message>
+        <source>lichess.org does not let this study be downloaded: it is private, or its author lets only its members export it (Share &amp; export).</source>
+        <translation>lichess.org non permette di scaricare questo studio: è privato, oppure il suo autore lascia esportarlo solo ai membri (Condividi ed esporta).</translation>
     </message>
 </context>
 <context>
@@ -4040,14 +4044,6 @@ Le %n partite già importate restano nel database.</numerusform>
         <translation>“%1” non è l&apos;indirizzo di uno studio lichess.</translation>
     </message>
     <message>
-        <source>lichess.org did not find the study, or it is private: sign in with an account that can see it.</source>
-        <translation>lichess.org non ha trovato lo studio, oppure è privato: accedi con un account che può vederlo.</translation>
-    </message>
-    <message>
-        <source>lichess.org did not find the study, or this account cannot see it.</source>
-        <translation>lichess.org non ha trovato lo studio, oppure questo account non può vederlo.</translation>
-    </message>
-    <message>
         <source>Could not reach the study on lichess.org: %1</source>
         <translation>Impossibile raggiungere lo studio su lichess.org: %1</translation>
     </message>
@@ -4058,6 +4054,18 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>Not signed in: public studies only</source>
         <translation>Accesso non effettuato: solo studi pubblici</translation>
+    </message>
+    <message>
+        <source>lichess.org did not find the study.</source>
+        <translation>lichess.org non ha trovato lo studio.</translation>
+    </message>
+    <message>
+        <source>lichess.org does not let this study be downloaded: it is private, or its author lets only its members export it (Share &amp; export). Sign in with an account that is a member, or ask the author to allow export to everyone.</source>
+        <translation>lichess.org non permette di scaricare questo studio: è privato, oppure il suo autore lascia esportarlo solo ai membri (Condividi ed esporta). Accedi con un account che ne è membro, o chiedi all'autore di permettere l'esportazione a tutti.</translation>
+    </message>
+    <message>
+        <source>lichess.org does not let this account download the study: it is private, or its author lets only its members export it (Share &amp; export). Ask the author to add you, or to allow export to everyone.</source>
+        <translation>lichess.org non permette a questo account di scaricare lo studio: è privato, oppure il suo autore lascia esportarlo solo ai membri (Condividi ed esporta). Chiedi all'autore di aggiungerti, o di permettere l'esportazione a tutti.</translation>
     </message>
 </context>
 <context>

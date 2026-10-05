@@ -225,6 +225,12 @@ qt_add_library(pragma-chess-core STATIC
     src/app/sources/SourceSync.h
     src/app/sources/TorneiOnlineFetch.cpp
     src/app/sources/TorneiOnlineFetch.h
+    src/app/smart/SmartInterpreter.cpp
+    src/app/smart/SmartInterpreter.h
+    src/app/smart/SmartScript.cpp
+    src/app/smart/SmartScript.h
+    src/app/smart/SmartValue.cpp
+    src/app/smart/SmartValue.h
     src/app/sync/FolderSync.cpp
     src/app/sync/FolderSync.h
     src/app/sync/FtpStore.cpp

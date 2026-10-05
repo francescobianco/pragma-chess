@@ -35,6 +35,8 @@
 #include "app/sources/TorneiOnlineFetch.h"
 #include "app/sources/LichessFetch.h"
 #include "app/sources/LichessStudy.h"
+#include "app/smart/SmartInterpreter.h"
+#include "app/smart/SmartScript.h"
 #include "app/sources/PgnFile.h"
 #include "app/sources/PgnFileFetch.h"
 #include "app/sources/PgnFilePlan.h"
@@ -647,6 +649,152 @@ private Q_SLOTS:
         weights = BookWeights::adjusted({60000, 5000}, 0, 25);
         QCOMPARE(sum(weights), 65000);
         QVERIFY(weights.at(0) <= 65535);
+    }
+
+    void runsSmartPrograms()
+    {
+        // The language of smart/README.md, end to end.
+        const QString source = QStringLiteral(R"(
+' Constants and memory: the top level runs once.
+CONST LIMIT = 3
+LET ticks = 0
+said = []
+
+FUNCTION Tick(depth)
+    SHARED ticks
+    ticks = ticks + 1
+    local = depth * 2           ' a local: gone after the call
+    IF depth >= LIMIT THEN
+        Say "deep " + STR(depth)
+    ELSEIF depth = 2 THEN
+        Say "middle"
+    ELSE
+        Say "shallow"
+    END IF
+    RETURN ticks
+END FUNCTION
+
+FUNCTION Say(text)
+    SHARED said
+    said = said + [text]
+END FUNCTION
+
+FUNCTION Sum(list)
+    total = 0
+    FOR i = 0 TO LEN(list) - 1
+        IF list[i] < 0 THEN EXIT FOR
+        total = total + list[i]
+    NEXT i
+    RETURN total
+END FUNCTION
+
+FUNCTION Countdown(n)
+    steps = []
+    FOR k = n TO 1 STEP -1 : steps = steps + [k] : NEXT
+    WHILE n > 0
+        n = n - 1
+        IF n = 1 THEN EXIT WHILE
+    WEND
+    RETURN [steps, n]
+END FUNCTION
+
+FUNCTION Copies()
+    a = [1, 2, 3]
+    b = a
+    b[0] = 9            ' a list is a value
+    RETURN a[0] * 10 + b[0]
+END FUNCTION
+
+FUNCTION Logic(x)
+    IF x = NOTHING THEN RETURN "none"
+    IF NOT (x > 1 AND x < 5) OR x = 10 THEN RETURN "out" ELSE RETURN "in"
+END FUNCTION
+
+FUNCTION Host()
+    REM the client's functions are called like the program's
+    Collect "a", 1
+    Collect("b", 2)
+    CALL Collect("c", 3)
+    RETURN Twice(21)
+END FUNCTION
+)");
+        QString error;
+        std::optional<SmartScript> script = SmartScript::parse(source, &error);
+        QVERIFY2(script, qPrintable(error));
+        SmartInterpreter smart(*script);
+        QStringList collected;
+        smart.define(QStringLiteral("collect"), [&](const std::vector<SmartValue> &args) {
+            SmartInterpreter::expectArguments(QStringLiteral("COLLECT"), args, 2);
+            collected << args.at(0).text() + args.at(1).toText();
+            return SmartValue();
+        });
+        smart.define(QStringLiteral("Twice"), [](const std::vector<SmartValue> &args) {
+            return SmartValue(2 * SmartInterpreter::numberArgument(QStringLiteral("TWICE"), args, 0));
+        });
+        QVERIFY2(smart.load(&error), qPrintable(error));
+
+        // The globals are the memory between calls; locals are not.
+        QCOMPARE(smart.call(QStringLiteral("tick"), {SmartValue(1)})->number(), 1.0);
+        QCOMPARE(smart.call(QStringLiteral("Tick"), {SmartValue(2)})->number(), 2.0);
+        QCOMPARE(smart.call(QStringLiteral("TICK"), {SmartValue(5)})->number(), 3.0);
+        QCOMPARE(smart.global(QStringLiteral("said")).toText(), QStringLiteral(R"(["shallow", "middle", "deep 5"])"));
+        QVERIFY(smart.global(QStringLiteral("local")).isNothing());
+
+        QCOMPARE(smart.call(QStringLiteral("Sum"), {SmartValue(std::vector<SmartValue>{1, 2, -1, 5})})->number(), 3.0);
+        QCOMPARE(smart.call(QStringLiteral("Countdown"), {SmartValue(3)})->toText(), QStringLiteral("[[3, 2, 1], 1]"));
+        QCOMPARE(smart.call(QStringLiteral("Copies"))->number(), 19.0);
+        QCOMPARE(smart.call(QStringLiteral("Logic"), {SmartValue()})->text(), QStringLiteral("none"));
+        QCOMPARE(smart.call(QStringLiteral("Logic"), {SmartValue(3)})->text(), QStringLiteral("in"));
+        QCOMPARE(smart.call(QStringLiteral("Logic"), {SmartValue(10)})->text(), QStringLiteral("out"));
+        QCOMPARE(smart.call(QStringLiteral("Host"))->number(), 42.0);
+        QCOMPARE(collected, (QStringList{QStringLiteral("a1"), QStringLiteral("b2"), QStringLiteral("c3")}));
+
+        // Numbers as STR writes them, the built-in functions, MOD with the sign of the left side.
+        const auto value = [](const QString &expression) {
+            QString failure;
+            std::optional<SmartScript> parsed =
+                SmartScript::parse(QStringLiteral("FUNCTION F()\nRETURN %1\nEND FUNCTION").arg(expression), &failure);
+            if (!parsed)
+                return QStringLiteral("parse: ") + failure;
+            SmartInterpreter run(*parsed);
+            run.load();
+            const std::optional<SmartValue> result = run.call(QStringLiteral("F"), {}, &failure);
+            return result ? result->toText() : failure;
+        };
+        QCOMPARE(value(QStringLiteral("STR(7 / 2) + \"|\" + STR(1 / 3) + \"|\" + STR(-2.50)")), QStringLiteral("3.5|0.333333|-2.5"));
+        QCOMPARE(value(QStringLiteral("[INT(-2.7), ABS(-3), MIN(4, 2, 8), MAX(4, 2, 8), -7 MOD 3, 7 MOD -3]")),
+                 QStringLiteral("[-2, 3, 2, 8, -1, 1]"));
+        QCOMPARE(value(QStringLiteral("[LEN(\"abc\"), LEN([1, [2, 3]]), CONTAINS([1, 2], 2), INDEXOF([\"a\", \"b\"], \"b\")]")),
+                 QStringLiteral("[3, 2, 1, 1]"));
+        QCOMPARE(value(QStringLiteral("SLICE(REPEAT(0, 3) + [1, 2], 2, 10)")), QStringLiteral("[0, 1, 2]"));
+        QCOMPARE(value(QStringLiteral("\"say \"\"hi\"\"\" + 2")), QStringLiteral("say \"hi\"2"));
+        QCOMPARE(value(QStringLiteral("1 + 2 * 3 - 4 / 2 = 5 AND \"a\" < \"b\"")), QStringLiteral("1"));
+
+        // Mistakes stop the program with the line of the file.
+        QCOMPARE(value(QStringLiteral("missing + 1")), QStringLiteral("line 2: MISSING has no value"));
+        QCOMPARE(value(QStringLiteral("[1, 2][2]")), QStringLiteral("line 2: index 2 is outside a list of 2 element(s)"));
+        QCOMPARE(value(QStringLiteral("1 / 0")), QStringLiteral("line 2: division by zero"));
+        QCOMPARE(value(QStringLiteral("NOT \"text\"")), QStringLiteral("line 2: a condition must be a number, not a text"));
+        QCOMPARE(value(QStringLiteral("Nowhere(1)")), QStringLiteral("line 2: there is no function NOWHERE"));
+        QCOMPARE(value(QStringLiteral("1 < 2 < 3")), QStringLiteral("parse: line 2: comparisons cannot be chained: use AND"));
+        QVERIFY(!SmartScript::parse(QStringLiteral("IF 1 THEN\nx = 1\n"), &error));
+        QCOMPARE(error, QStringLiteral("line 1: IF is never closed"));
+        QVERIFY(!SmartScript::parse(QStringLiteral("x = \"open\n"), &error));
+        QCOMPARE(error, QStringLiteral("line 1: a text is not closed"));
+        QVERIFY(!SmartScript::parse(QStringLiteral("CONST A = 1\nFUNCTION F()\nRETURN 1\nEND FUNCTION\nEXIT FOR"), &error));
+        QCOMPARE(error, QStringLiteral("line 5: EXIT outside a loop"));
+
+        // A constant stays; a loop that never ends is stopped.
+        std::optional<SmartScript> loop = SmartScript::parse(QStringLiteral(
+            "CONST A = 1\nFUNCTION Change()\nSHARED A\nA = 2\nEND FUNCTION\nFUNCTION Spin()\nWHILE TRUE\nWEND\nEND FUNCTION"));
+        QVERIFY(loop);
+        SmartInterpreter spinning(*loop);
+        QVERIFY(spinning.load());
+        QVERIFY(!spinning.call(QStringLiteral("Change"), {}, &error));
+        QCOMPARE(error, QStringLiteral("line 4: A is a constant"));
+        spinning.setStepLimit(1000);
+        QVERIFY(!spinning.call(QStringLiteral("Spin"), {}, &error));
+        QVERIFY2(error.startsWith(QStringLiteral("line 7: stopped after 1000 statements")), qPrintable(error));
     }
 
     void readsStudyChaptersWithoutKings()

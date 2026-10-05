@@ -37,6 +37,8 @@ CMakeLists.txt         top-level CMake, only adds gui/qt
 CHANGELOG.md           what changed in each version, for users (Keep a Changelog)
 DISTRIBUTING.md        how Pragma Chess is made known: channels, messages, log
 TODO.md                handoff: what is left to do, open decisions, formats decoded
+smart/                 SMART programs, the chess judgement every client runs:
+                       EXPLAIN.smart, TUTOR.smart; README.md is the language
 gui/qt/
   src/main.cpp         entry point (signal handling → clean quit, session save)
   src/MainWindow.*     main window, menus, docks, layouts, projects
@@ -171,6 +173,35 @@ playing a move turns it off, and the user asks again at the next move.
   line with a trace. **Tuning happens there**: read
   [docs/explain-tuning.md](docs/tech/explain-tuning.md) first, and log feedback
   and decisions in it. Enrich the explanation, don't replace what works.
+
+## SMART
+
+The chess judgement of Explain and of the tutor is moving out of C++ and
+Kotlin into SMART programs, `smart/EXPLAIN.smart` and `smart/TUTOR.smart`:
+a small BASIC specified in [smart/README.md](smart/README.md), run by an
+interpreter in each client (C++: `app/smart`, core library, Qt Core only;
+Kotlin: in the Android app). Explain is then the same on desktop, command
+line and phone because they run the same files, and a wrong explanation is
+fixed once, in SMART.
+
+- **SMART reacts, it never drives an engine.** The client feeds it every
+  line its engine reports (a *tick*: the desktop's live analysis, the
+  command line's own search) and draws what each tick answers, so the
+  explanation grows with the search. This replaces the separate engine
+  process Explain used to start (`ExplanationSearch`): one engine, driven
+  once. A recorded sequence of ticks replays the same in every client: it is
+  how a wrong explanation becomes a test, and how the interpreters are kept
+  identical.
+- `SmartScript` reads a program into a tree, `SmartInterpreter` runs it:
+  the client `define()`s its functions (chess, and the commands collecting
+  arrows and texts), `load()` runs the top level once (constants, memory),
+  `call()` runs an entry function per tick; globals persist between calls.
+  `SmartValue` is a number, text, list (a value, copied on write), NOTHING
+  or a client `SmartObject`. Errors carry the program's line.
+- **The language is a contract**: any change to it goes into
+  smart/README.md and into both interpreters, with a test
+  (`tst_chessrules::runsSmartPrograms`). Keep it small: the chess belongs
+  in the client's functions, the judgement in the programs.
 
 ## Guide and About
 

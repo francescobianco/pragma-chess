@@ -174,9 +174,10 @@ playing a move turns it off, and the user asks again at the next move.
   shallow searches along the principal variation and searches by depth.
 - The better move's arrow (`Alternative`) carries the piece it moves
   (`BoardArrow::piece`, EXPLAIN.smart's `DrawBetter`: ARROW's optional
-  piece and side), drawn small and faint on the square it goes to: the
-  arrow starts from the position before the move, where that piece may no
-  longer stand. Explain is part of the project (`explain`, written only
+  piece and side) only when it moves the piece the played move moved: that
+  square is empty on the board, so the piece is drawn small and faint where
+  it should have landed (12.Bxe5: the bishop on e3); otherwise the piece
+  still stands where the arrow starts. Explain is part of the project (`explain`, written only
   when on): a client closed with Explain on opens with it on, on that move.
 - The board's two-pixel border says where Explain is: it breathes between the
   plain colour and the blue of the reply arrows while the engine is searching

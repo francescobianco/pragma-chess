@@ -326,3 +326,21 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   pawns) does not, nor 3.Qf5's long line, which now says "4…g6 attacks the
   queen on f5: 5.Qg5 parries it". 5…Qh4+ is now steady on its threats from
   depth 12; 12.Bxe5 ends on the explanation without material (TODO.md).
+- 2026-10-06 — 8…Bc5 again: "the bishop can just retreat, I do not see where
+  the position is lost" and then "it is not only time: replay the whole line
+  after my mistake, it is impossible that White is +2.4 and there is
+  nothing". Right on both. At depths 18–22 the engine's line is quiet (9.b4
+  Bb6 10.Bb2) and the honest text is the tempo: "9.b4 attacks the bishop on
+  c5: 9…Bb6 moves it again, and White gains time. No material is lost: the
+  evaluation is positional." (the last sentence only when the line really
+  keeps the material: `KeepsMaterial`; when the answer takes the attacker,
+  "takes the attacker"). From depth ~26 the engine finds the real reason:
+  9.b4 Bb6 10.b5 Na5 11.Nxb6 axb6 12.Bxf7+ Kxf7 13.Ne5+ Kf8 14.Ng6+ Ke8
+  15.Nxh8, the rook on h8 (…h6 weakened g6, b5 drove the knight from e5).
+  Explain found it but drew one arrow, g6→h8, from a square the knight
+  does not stand on yet. Decision: FocusWindow traces the piece that takes
+  back to the square it stands on now, adds the winning side's capture or
+  check just before (12.Bxf7+), and draws only those moves: c4–f7, f3–e5,
+  e5–g6, g6–h8, rings on f7 and h8. 4.Nxe5 (after 3…Nd4) gains the same
+  way: d8–g5, g5–e5 instead of the lone g5→e5. The Evergreen is unchanged
+  (its rook takes from where it stands). Recorded: user-feedback.ticks.

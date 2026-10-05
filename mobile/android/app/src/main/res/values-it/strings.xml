@@ -164,4 +164,7 @@
     <string name="explain_attacks" formatted="false">%1 attacca %2 in %3</string>
     <string name="explain_parries" formatted="false">%1: %2 la para.</string>
     <string name="explain_leaves_attacked" formatted="false">%1 lascia %2 in %3 sotto attacco: %4.</string>
+    <string name="explain_takes_attacker" formatted="false">%1: %2 cattura l\'attaccante.</string>
+    <string name="explain_gains_time" formatted="false">%1: con %2 si sposta di nuovo, e il %3 guadagna tempo.</string>
+    <string name="explain_no_material" formatted="false">" Non si perde materiale: la valutazione è posizionale."</string>
 </resources>

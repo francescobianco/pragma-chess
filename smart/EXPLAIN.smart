@@ -84,6 +84,10 @@ CONST LONG_SHARE = 0.8
 drawnArrows = []
 lostSquares = []
 ringing = TRUE
+' The plies to draw when not every move of the window is (a tactic traced
+' back along the piece that takes, FocusWindow); [] for all. Reset by each
+' AddArrows.
+drawOnly = []
 
 FUNCTION Draw(source, target, kind, number)
     SHARED drawnArrows
@@ -199,7 +203,7 @@ END FUNCTION
 ' the others are replies. Pieces taken by `ideaSide` in the drawn moves are
 ' traced back to where they stand on the board at ply `first`, and ringed.
 FUNCTION AddArrows(line, first, last, ideaSide, ideaKind, focusFirst, focusLast)
-    SHARED lostSquares, ringing
+    SHARED lostSquares, ringing, drawOnly
     IF focusFirst < 0 THEN
         focusFirst = first
         focusLast = last
@@ -220,6 +224,7 @@ FUNCTION AddArrows(line, first, last, ideaSide, ideaKind, focusFirst, focusLast)
         source = FROMSQ(move)
         target = TOSQ(move)
         drawn = k >= focusFirst AND k < focusLast
+        IF LEN(drawOnly) > 0 THEN drawn = drawn AND CONTAINS(drawOnly, k)
         IF drawn THEN
             kind = "reply"
             IF mover = ideaSide THEN kind = ideaKind
@@ -249,6 +254,7 @@ FUNCTION AddArrows(line, first, last, ideaSide, ideaKind, focusFirst, focusLast)
         origin[target] = origin[source]
         origin[source] = -1
     NEXT
+    drawOnly = []
 END FUNCTION
 
 ' Whether `square` lies strictly between `source` and `target` on a line or diagonal.
@@ -273,6 +279,7 @@ END FUNCTION
 ' capture. Returns [focusFirst, focusLast], without the losing side's last
 ' moves (WithoutLoserTail).
 FUNCTION FocusWindow(line, first, last, beneficiary)
+    SHARED drawOnly
     IF last - first <= FOCUS_ABOVE THEN RETURN WithoutLoserTail(line, [first, last], beneficiary)
     moves = line[0]
     positions = line[1]
@@ -288,6 +295,27 @@ FUNCTION FocusWindow(line, first, last, beneficiary)
         capture = moves[decisive]
         related = CAPTURED(positions[decisive - 1], previous) <> 0 OR INCHECK(positions[decisive]) OR TOSQ(previous) = TOSQ(capture) OR IsBetween(FROMSQ(previous), FROMSQ(capture), TOSQ(capture))
         IF related THEN focusFirst = MAX(first, decisive + 1 - FOCUS_PLIES)
+    END IF
+    ' The piece that takes may have come during the line (14.Ng6+ before
+    ' 15.Nxh8): an arrow from a square it does not stand on yet says nothing.
+    ' Its way there is traced back to the square it stands on now, with the
+    ' capture or check of the winning side that opened it (12.Bxf7+), and
+    ' only those moves are drawn: 12.Bxf7+ 13.Ne5+ 14.Ng6+ 15.Nxh8.
+    source = FROMSQ(moves[decisive])
+    path = [decisive]
+    FOR j = decisive - 1 TO first STEP -1
+        IF TOSQ(moves[j]) = source AND SIDETOMOVE(positions[j]) = beneficiary THEN
+            source = FROMSQ(moves[j])
+            path = [j] + path
+        END IF
+    NEXT
+    IF path[0] < focusFirst THEN
+        k = path[0] - 2
+        IF k >= first THEN
+            IF SIDETOMOVE(positions[k]) = beneficiary AND (CAPTURED(positions[k], moves[k]) <> 0 OR INCHECK(positions[k + 1])) THEN path = [k] + path
+        END IF
+        focusFirst = path[0]
+        drawOnly = path
     END IF
     NOTE "  focus: " + STR(last - first) + " plies are too many arrows; biggest jump +" + STR(biggest) + " at " + MoveText(positions[decisive], moves[decisive]) + ", drawing plies " + STR(focusFirst + 1) + "-" + STR(decisive + 1)
     RETURN WithoutLoserTail(line, [focusFirst, decisive + 1], beneficiary)
@@ -458,8 +486,11 @@ END FUNCTION
 ' attacking a piece it could not win before — drawn (a dashed red arrow
 ' from the attacker to the piece) and said with the answer that parries
 ' it, when the next move does: " 5.Qxf3 attacks the rook on a8: 5…c6
-' parries it." Empty when there is none.
-FUNCTION ThreatText(line)
+' parries it." When the piece attacked is the one `played` (the move
+' explained, or NOTHING) just moved, and the answer moves it again, the
+' time it loses is said instead: " 9.b4 attacks the bishop on c5: 9…Bb6
+' moves it again, and White gains time." Empty when there is none.
+FUNCTION ThreatText(line, played)
     moves = line[0]
     positions = line[1]
     FOR k = 0 TO MIN(THREAT_PLIES, LEN(moves)) - 1
@@ -483,8 +514,17 @@ FUNCTION ThreatText(line)
             Draw FROMSQ(best[0]), target, "threat", 0
             attack = TEXT("%1 attacks %2 on %3", MoveText(positions[k], moves[k]), PieceName(PIECE(positions[k + 1], target)), SquareName(target))
             IF k + 1 < LEN(moves) THEN
+                answer = MoveText(positions[k + 1], moves[k + 1])
+                ' Taking the piece that attacks is no parry (9...Bxb4 takes the pawn).
+                IF TOSQ(moves[k + 1]) = TOSQ(moves[k]) THEN RETURN " " + TEXT("%1: %2 takes the attacker.", attack, answer)
+                ' The piece just moved has to move again: the time is the loss.
+                IF k = 0 AND played <> NOTHING THEN
+                    IF target = TOSQ(played) AND FROMSQ(moves[k + 1]) = target THEN
+                        RETURN " " + TEXT("%1: %2 moves it again, and %3 gains time.", attack, answer, SideName(side))
+                    END IF
+                END IF
                 IF NOT Threatens(Threats(positions[k + 2], side), target) THEN
-                    RETURN " " + TEXT("%1: %2 parries it.", attack, MoveText(positions[k + 1], moves[k + 1]))
+                    RETURN " " + TEXT("%1: %2 parries it.", attack, answer)
                 END IF
             END IF
             RETURN " " + attack + "."
@@ -515,6 +555,17 @@ FUNCTION IgnoredThreatText(before, played, line, side)
         END IF
     NEXT
     RETURN ""
+END FUNCTION
+
+' Whether `side` keeps its material, against `start`, wherever the first
+' plies of `line` are settled (within a pawn's half).
+FUNCTION KeepsMaterial(start, line, side)
+    FOR k = 1 TO MIN(LONG_PLIES, Plies(line))
+        IF IsSettled(line, k) THEN
+            IF (MATERIAL(line[1][k]) - MATERIAL(start)) * side < -50 THEN RETURN FALSE
+        END IF
+    NEXT
+    RETURN TRUE
 END FUNCTION
 
 FUNCTION VerdictName(verdict)
@@ -673,7 +724,10 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         ' the queen going back): the text says them.
         drawn = WithoutLoserTail(current, [0, fallbackPlies], toMove)
         AddArrows current, 0, fallbackPlies, toMove, "reply", drawn[0], drawn[1]
-        summary = prefix + TRIM(better) + IgnoredThreatText(before, played, current, toMove) + ThreatText(current)
+        summary = prefix + TRIM(better) + IgnoredThreatText(before, played, current, toMove) + ThreatText(current, played)
+        ' Arrows and threats may suggest a piece falls: say that none does,
+        ' when the line really keeps the material.
+        IF concreteText = "" AND KeepsMaterial(before, current, mover) THEN summary = summary + TEXT(" No material is lost: the evaluation is positional.")
         IF concreteText <> "" THEN
             summary = summary + concreteText
         ELSEIF Plies(current) > 0 THEN
@@ -749,7 +803,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
     ELSE
         AddArrows current, 0, fallbackPlies, toMove, "idea", -1, -1
     END IF
-    summary = prefix + Assessment(afterEval) + ThreatText(current)
+    summary = prefix + Assessment(afterEval) + ThreatText(current, played)
     IF concreteText <> "" THEN
         summary = summary + concreteText
     ELSEIF Plies(current) > 0 THEN

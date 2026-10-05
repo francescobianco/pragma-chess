@@ -183,6 +183,13 @@ app Android. Ultimo commit del lavoro: `d7f16c1`. Resta:
 - **3.Qf5: fatto.** Le vincite di materiale lontane nella linea (oltre 8
   semimosse) devono coprire l'80% del crollo (`LONG_PLIES`, `LONG_SHARE`):
   3.Qf5 ora dice "4…g6 attacca la donna in f5: 5.Qg5 la para".
+- **Le combinazioni profonde (8…Bc5, 6 ottobre).** Spiega disegna ora il
+  cammino del pezzo che cattura (12.Bxf7+ 13.Ne5+ 14.Ng6+ 15.Nxh8), ma lo
+  trova solo quando il motore è arrivato a vederlo (profondità ~26 qui): a
+  profondità più basse dice "guadagna tempo", vero ma parziale. Sul desktop
+  l'analisi live ci arriva in pochi secondi; vale la pena vedere se la
+  spiegazione cambia davanti all'utente e se va detto ("il motore sta ancora
+  cercando"). Da osservare dal vero.
 - **Stabilità di Spiega (8…Bc5, 6 ottobre).** `Tick` ora mostra altre
   frecce solo quando sono uscite in 3 delle ultime 4 profondità, il giudizio
   subito, e lascia una spiegazione che il motore non dà più da 4 profondità.

@@ -3264,6 +3264,18 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>%1 leaves %2 on %3 attacked: %4.</source>
         <translation>%1 lascia %2 in %3 sotto attacco: %4.</translation>
     </message>
+    <message>
+        <source>%1: %2 takes the attacker.</source>
+        <translation>%1: %2 cattura l&apos;attaccante.</translation>
+    </message>
+    <message>
+        <source> No material is lost: the evaluation is positional.</source>
+        <translation> Non si perde materiale: la valutazione è posizionale.</translation>
+    </message>
+    <message>
+        <source>%1: %2 moves it again, and %3 gains time.</source>
+        <translation>%1: con %2 si sposta di nuovo, e il %3 guadagna tempo.</translation>
+    </message>
 </context>
 <context>
     <name>MoveTreeView</name>

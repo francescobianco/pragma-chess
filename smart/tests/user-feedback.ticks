@@ -97,7 +97,7 @@ tick depth 17 cp 124 pv d1f3 c7c6 c1b2 d7d5 b1c3 f7f5 c3e2 g8f6 e2d4 d8d7 h2h3 f
 tick depth 18 cp 138 pv d1f3 c7c6 b1c3 d7d5 c1b2 a7a5 e3e4 a5a4 c3a4 b6b5 a4c3 f8a3 b2a3 a8a3 f3g3 g7g6 e4d5 e6d5
 expect verdict inaccuracy
 expect arrows g8f6 alternative, d1f3 reply 1, f3a8 threat
-expect summary Inaccuracy (−0.1 → +1.4). Better was 4…Nf6. 5.Qxf3 attacks the rook on a8: 5…c6 parries it. Main line: 5.Qxf3 c6 6.Nc3 d5.
+expect summary Inaccuracy (−0.1 → +1.4). Better was 4…Nf6. 5.Qxf3 attacks the rook on a8: 5…c6 parries it. No material is lost: the evaluation is positional. Main line: 5.Qxf3 c6 6.Nc3 d5.
 end
 
 # 2026-10-06, the same game, 5...Qh4+ (the user plays Black): "arrow 2 is of
@@ -129,7 +129,7 @@ tick depth 17 cp 357 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7 c1a3 c7c5 e1e2 a1b1 b8a7 b
 tick depth 18 cp 407 pv g2g3 h4f6 f3a8 f6a1 a8b8 e8e7 c1a3 c7c5 e1e2 a1b1 b8a7 b1c2 f1g2 e7f6 a7b8 c2a2 b8f8 a2a3 f8d8 g8e7 d8h8 a3a6 e2f2 a6a2 h1e1
 expect verdict mistake
 expect arrows b8c6 alternative, g2g3 reply 1, f3a8 threat, g3h4 threat
-expect summary Mistake (+1.3 → +4.1). Better was 5…Nc6. 5…Qh4+ leaves the rook on a8 attacked: 7.Qxa8. 6.g3 attacks the queen on h4: 6…Qf6 parries it. Main line: 6.g3 Qf6 7.Qxa8 Qxa1.
+expect summary Mistake (+1.3 → +4.1). Better was 5…Nc6. 5…Qh4+ leaves the rook on a8 attacked: 7.Qxa8. 6.g3 attacks the queen on h4: 6…Qf6 moves it again, and White gains time. Main line: 6.g3 Qf6 7.Qxa8 Qxa1.
 end
 
 # 2026-10-06, 5...Qh4+ again: "I expect the pawn's arrow, then the arrow of
@@ -173,5 +173,51 @@ tick depth 17 cp 187 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 f1e1 b6a7 b4b5 c6e5 b5b6 a
 tick depth 18 cp 186 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 a4a5 b6a7 b4b5 a6b5 c4b5 e8g8 d5f6 g7f6 g1h1 c6e5 f3h4 g8h7 h2h3 e5g6 d1h5 g6h4
 expect verdict inaccuracy
 expect arrows a7a5 alternative, b2b4 reply 1, b4c5 threat
-expect summary Inaccuracy (+0.7 → +1.9). Better was 8…a5. 9.b4 attacks the bishop on c5: 9…Bb6 parries it. Main line: 9.b4 Bb6 10.Bb2 Nf6.
+expect summary Inaccuracy (+0.7 → +1.9). Better was 8…a5. 9.b4 attacks the bishop on c5: 9…Bb6 moves it again, and White gains time. No material is lost: the evaluation is positional. Main line: 9.b4 Bb6 10.Bb2 Nf6.
+end
+
+# 2026-10-06, 8...Bc5 again: "replay the whole line after my mistake: it is
+# impossible that White is +2.4 and there is nothing". At depth 29-30 the
+# engine finds 9.b4 Bb6 10.b5 Na5 11.Nxb6 axb6 12.Bxf7+ Kxf7 13.Ne5+ Kf8
+# 14.Ng6+ Ke8 15.Nxh8: the knight's way to h8 is drawn from where it stands
+# (FocusWindow traces the piece that takes back), with 12.Bxf7+.
+explain
+before r1bqk1nr/ppp2pp1/2np3p/3N4/1bB1P3/5N2/PP3PPP/R1BQ1RK1 b kq - 1 8
+played b4c5
+before-eval depth 30 cp 53 pv a7a5 a2a3 b4c5 b2b4 a5b4 c1b2 b4a3 b2g7 h8h7 g7c3 e8f8 d1d3 c8g4 a1b1 a8b8 f1d1 h7g7 c3g7 f8g7 d3c3 g7f8
+after r1bqk1nr/ppp2pp1/2np3p/2bN4/2B1P3/5N2/PP3PPP/R1BQ1RK1 w kq - 2 9
+tick depth 1 cp 39 pv b2b4 c6b4 d5b4 c5b4
+tick depth 2 cp 39 pv b2b4 c6b4
+tick depth 3 cp 92 pv c1e3
+tick depth 4 cp 148 pv c1e3
+tick depth 5 cp 148 pv c1e3 c5e3
+tick depth 6 cp 199 pv b2b4 c5b4 d5b4 c6b4
+tick depth 7 cp 199 pv b2b4 c5b4 d5b4 c6b4 c1b2
+tick depth 8 cp 179 pv b2b4 c5b6 a2a4 c8g4 c1b2 g4f3 d1f3 b6d4
+tick depth 9 cp 179 pv b2b4 c5b6 a2a4 c8g4 c1b2 g4f3 d1f3 b6d4
+tick depth 10 cp 191 pv b2b4 c5b6 c1b2 g8f6 a2a4 c6e5 f3e5 d6e5 b2e5
+tick depth 11 cp 213 pv b2b4 c5b6 c1b2 g8f6 d1b3 c8e6 a2a4
+tick depth 12 cp 209 pv b2b4 c5b6 c1b2 g8f6 d1b3 e8g8 d5f6 g7f6 a2a4 a7a5
+tick depth 13 cp 225 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 d1b3 f6d5 a4a5 b6a7 e4d5 c6e5 f3e5 d6e5 b2e5 e8g8 b3g3
+tick depth 14 cp 232 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 f1e1 c8g4 d1b3 e8g8 d5f6 g7f6
+tick depth 15 cp 218 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 d1b3 e8g8 b2f6 g7f6 d5b6 c7b6 f3h4 a6a5 b3g3 g8h8 g3e3
+tick depth 16 cp 228 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 d1b3 e8g8 b2f6 g7f6 d5b6 c7b6 f3h4 g8g7 c4d5 d8e7
+tick depth 17 cp 201 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 f1e1 c8e6 a4a5 b6a7 b4b5 c6e5 f3e5 d6e5 b2e5 e6d5 c4d5 f6d5 e5g7
+tick depth 18 cp 209 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 b4b5 f6d5 b5c6 d5f4 d1d2 f4h5 d2d5 c8e6 d5h5 e6c4 b2g7 c4f1 g7h8
+tick depth 19 cp 211 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 b2f6 g7f6 a1c1 c8g4 h2h3 g4f3 d1f3 c6e5 f3f5 c7c6 d5f6 e8f8 c4a2 h6h5
+tick depth 20 cp 215 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 a1a3 c8e6 d1a1 f6e4 a1e1 b6f2 f1f2 e4f2 b2g7 h8g8 g7f6 f2h3 g1h1 d8d7 f6h4 e8f8 d5f6 d7c8 c4e6 c8e6 a3e3
+tick depth 21 cp 226 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 a1a3 c8e6 d1a1 f6e4 a1e1 b6f2 f1f2 e4f2 b2g7 f2h3 g1h1 h8g8 g7f6 d8c8 g2h3 e8d7 a3e3 c8f8 b4b5 a6b5 a4b5 c6a5 c4a2 a5c6 e1d2 a8a2 d2a2
+tick depth 22 cp 234 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 b2f6 g7f6 a1c1 e8f8 f3h4 c8d7 c4a2 a8c8 d5b6 c7b6 b4b5 c6b4 d1d6 d8e7 c1c8 d7c8
+tick depth 23 cp 244 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 b2f6 g7f6 a1c1 e8f8 f3h4 h6h5 d1d2 c8d7 d5b6 c7b6 f1d1 d8e7 h2h3 a8d8 b4b5 a6b5 a4b5 c6e5 c4e2
+tick depth 24 cp 307 pv b2b4 c5b6 d5b6 a7b6 b4b5 c6e7 d1b3 f7f6 a2a4 e8f8 f3d4 h6h5 h2h3 c7c5 b5c6 e7c6 d4b5 c6a5 b3c3 a5c4 c3c4
+tick depth 25 cp 325 pv b2b4 c5b6 d5b6 a7b6 b4b5 c6e7 d1b3 f7f6 c1b2 e8f8 f3d4 c7c5 d4e6 c8e6 c4e6 h6h5 a1d1 d8c7 f2f4 f6f5 e4f5 g8f6 f1e1 d6d5 b2e5
+tick depth 26 cp 316 pv b2b4 c5b6 d5b6 a7b6 b4b5 c6a5 c4f7 e8f7 f3e5 f7f8 e5g6 f8e8 g6h8 c8e6 e4e5 a5b3 a1b1 b3c5 e5d6 c7d6 f1e1 g8e7 c1f4 e7f5 e1e6 c5e6 d1h5 e8d7 h5f5 d8f6 f5f6 g7f6
+tick depth 27 cp 322 pv b2b4 c5b4 d5b4 c6b4 d1b3 c7c5 c4f7 e8f8 f7c4 b4c6 c1b2 c6a5 b3c3 g8f6 f3h4 a5c4 h4g6 f8f7 g6h8 d8h8 c3c4 c8e6 c4d3 h8d8 a1d1 d8b6 b2f6 f7f6 d3g3 a8d8
+tick depth 28 cp 337 pv b2b4 c5b6 d5b6 a7b6 b4b5 c6a5 c4f7 e8f7 f3e5 f7f8 e5g6 f8e8 g6h8 c8e6 e4e5 a5b3 a1b1 b3c5 e5d6 c7d6 h8g6 g8f6 g6f4 e6a2 b1a1 a2c4 f1e1 e8d7 c1e3 a8a1 d1a1 c4b5
+tick depth 29 cp 347 pv b2b4 c5b6 b4b5 c6a5 d5b6 a7b6 c4f7 e8f7 f3e5 f7f8 e5g6 f8e8 g6h8 c8e6 e4e5 a5b3 a1b1 b3c5 e5d6 c7d6 h8g6 g8f6 g6f4 e6a2 b1a1 a2c4 f1e1 e8d7 c1b2 a8a1 d1a1 c4b5 a1a2 d7c6 f2f3 d8g8 a2g8 f6g8 b2g7
+tick depth 30 cp 351 pv b2b4 c5b4 d5b4 c6b4 d1b3 c7c5 c4f7 e8f8 f7h5 d6d5 c1b2 g8f6 h5g6 d8b6 f1e1 c8g4 f3e5 g4e6 e4d5 b4d5 b3c2 f8g8 a1b1 a8d8 h2h3 h6h5 b1d1 b6c7
+expect verdict mistake
+expect arrows c4f7 refutation 1, f3e5 refutation 2, e5g6 refutation 3, g6h8 refutation 4
+expect lost f7, h8
+expect summary Mistake (+0.5 → +3.5). White wins a rook and a pawn for a knight: 9.b4 Bb6 10.b5 Na5 11.Nxb6 axb6 12.Bxf7+ Kxf7 13.Ne5+ Kf8 14.Ng6+ Ke8 15.Nxh8. Better was 8…a5.
 end

@@ -26,7 +26,9 @@ fun interface ExplainText {
             "%1 (%2 → %3). ", "%1 (%2). ", " Better was %1.", "%1 mates in %2: %3.", "%1 %2: %3.",
             "Missed mate in %1: %2.", "Missed: %1 %2.", " Main line: %1.",
             "the pawn", "the knight", "the bishop", "the rook", "%1 attacks %2 on %3", "%1: %2 parries it.",
-            "%1 leaves %2 on %3 attacked: %4.",
+            "%1 leaves %2 on %3 attacked: %4.", "%1: %2 takes the attacker.",
+            "%1: %2 moves it again, and %3 gains time.",
+            " No material is lost: the evaluation is positional.",
         )
     }
 }

@@ -344,3 +344,19 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   e5–g6, g6–h8, rings on f7 and h8. 4.Nxe5 (after 3…Nd4) gains the same
   way: d8–g5, g5–e5 instead of the lone g5→e5. The Evergreen is unchanged
   (its rook takes from where it stands). Recorded: user-feedback.ticks.
+
+### 8…Bc5 at depth 40: the double attack (6 October)
+
+The user, Black: three arrows (8…a5, 9.b4, the threat on c5) do not
+justify +0.8 → +3.7 with a pawn up. On their board the line was 9.b4 Bxb4
+10.Nxb4 Nxb4 11.Qb3 a5 12.Bxf7+ Kf8: the point is 11.Qb3, on the knight on
+b4 and on f7 behind the bishop. ThreatText now finds a double attack in the
+first 8 plies (`DOUBLE_PLIES`; single threats stay in 4): a move that is no
+capture and makes two new threats by the piece moved or one behind it on
+the line (`IsBetween`), each ≥ `DOUBLE_GAIN` 100 and together ≥ 300. The
+move is drawn (as a reply, or an idea when the position is explained alone)
+with both threats, and the main line reaches it (`threatReach`). A king's
+threats and those a piece uncovers by blocking a check (6.g3) do not count;
+nor does a capture that forks (7.Qxa8: its material says it). 3.Qf5 gains
+"6…Nd4 attacks the bishop on b5 and the pawn on c2". Recorded:
+user-feedback.ticks. Still missing: what the king's position is worth.

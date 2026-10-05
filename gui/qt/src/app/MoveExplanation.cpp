@@ -60,6 +60,7 @@ const char *const kSentences[] = {
     QT_TRANSLATE_NOOP("MoveExplanation", "%1 leaves %2 on %3 attacked: %4."),
     QT_TRANSLATE_NOOP("MoveExplanation", "%1: %2 takes the attacker."),
     QT_TRANSLATE_NOOP("MoveExplanation", "%1: %2 moves it again, and %3 gains time."),
+    QT_TRANSLATE_NOOP("MoveExplanation", "%1 attacks %2 on %3 and %4 on %5."),
     QT_TRANSLATE_NOOP("MoveExplanation", " No material is lost: the evaluation is positional."),
 };
 

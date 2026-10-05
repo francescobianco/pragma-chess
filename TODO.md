@@ -165,6 +165,18 @@ app Android. Ultimo commit del lavoro: `d7f16c1`. Resta:
   saranno più difficili da raccontare; servirà guardare più a fondo, forse
   scambi interi (SEE) invece di una ripresa, e disegnarle (una freccia
   della minaccia?). Poi i temi posizionali (coppia degli alfieri, sviluppo).
+- **L'attacco doppio (8…Bc5 a profondità 40, 6 ottobre): primo passo
+  fatto.** Linea 9.b4 Bxb4 10.Nxb4 Nxb4 11.Qb3!: Spiega ora dice "11.Qb3
+  attacca il cavallo in b4 e il pedone in f7", con la mossa e le due
+  minacce disegnate e la linea principale allungata fino a lì. Una mossa
+  che non cattura e crea due minacce nuove (del pezzo mosso o di uno che
+  gli sta dietro sulla stessa linea, come l'alfiere in c4 dietro la donna),
+  ciascuna ≥ 100 cp e insieme ≥ 300, nelle prime 8 semimosse; le minacce
+  singole restano nelle prime 4. Resta, come dice l'utente: +3.7 con un
+  pedone in più non si spiega ancora del tutto. Dopo 12.Bxf7+ Kf8 il
+  materiale torna pari e il resto è il re nero che non arrocca più; la
+  frase "non si perde materiale: è posizionale" è vera ma non dice *quale*
+  posizione. Servono i temi del re (arrocco perso, re esposto).
 - **Android: la posizione prima della mossa.** Il desktop, quando Spiega
   non ha la valutazione della posizione prima (si arriva diretti alla mossa,
   o dopo un riavvio), la analizza prima per un momento

@@ -3276,6 +3276,10 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>%1: %2 moves it again, and %3 gains time.</source>
         <translation>%1: con %2 si sposta di nuovo, e il %3 guadagna tempo.</translation>
     </message>
+    <message>
+        <source>%1 attacks %2 on %3 and %4 on %5.</source>
+        <translation>%1 attacca %2 in %3 e %4 in %5.</translation>
+    </message>
 </context>
 <context>
     <name>MoveTreeView</name>

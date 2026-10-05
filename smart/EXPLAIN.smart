@@ -83,6 +83,9 @@ CONST LONG_SHARE = 0.8
 ' explains the evaluation: a ring is red, the colour of material falling).
 drawnArrows = []
 lostSquares = []
+' How many plies of the line the threats said reach: the main line is shown
+' at least that far, so the move of a double attack can be read in it.
+threatReach = 0
 ringing = TRUE
 ' The plies to draw when not every move of the window is (a tactic traced
 ' back along the piece that takes, FocusWindow); [] for all. Reset by each
@@ -416,8 +419,14 @@ END FUNCTION
 ' could take if the other side did nothing (PASS).
 
 ' How many plies of the line to look at, and what a threat must win.
+' Single threats are looked for in the first THREAT_PLIES of the line,
+' double attacks further, in the first DOUBLE_PLIES (11.Qb3, five plies on).
 CONST THREAT_PLIES = 4
+CONST DOUBLE_PLIES = 8
 CONST THREAT_GAIN = 200
+' What each target of a double attack must be worth: a pawn is enough when
+' two things are attacked at once (11.Qb3: the knight on b4 and f7).
+CONST DOUBLE_GAIN = 100
 
 FUNCTION Value(piece)
     IF piece = PAWN THEN RETURN 100
@@ -445,14 +454,14 @@ END FUNCTION
 ' were its move: [[capture, gain], …], each target square once, its best
 ' capture (on equal gains the first in UCI order, so that every client,
 ' whatever the order of its moves, picks the same).
-FUNCTION Threats(position, side)
+FUNCTION Threats(position, side, minimum)
     IF SIDETOMOVE(position) <> side THEN position = PASS(position)
     IF position = NOTHING THEN RETURN []
     moves = MOVES(position)
     found = []
     FOR i = 0 TO LEN(moves) - 1
         gain = CaptureGain(position, moves[i])
-        IF gain >= THREAT_GAIN THEN
+        IF gain >= minimum THEN
             known = -1
             FOR j = 0 TO LEN(found) - 1
                 IF TOSQ(found[j][0]) = TOSQ(moves[i]) THEN known = j
@@ -486,55 +495,108 @@ FUNCTION PieceName(piece)
     RETURN TEXT("the queen")
 END FUNCTION
 
-' The first threat a move of the first THREAT_PLIES of `line` makes —
-' attacking a piece it could not win before — drawn (a dashed red arrow
-' from the attacker to the piece) and said with the answer that parries
-' it, when the next move does: " 5.Qxf3 attacks the rook on a8: 5…c6
-' parries it." When the piece attacked is the one `played` (the move
-' explained, or NOTHING) just moved, and the answer moves it again, the
-' time it loses is said instead: " 9.b4 attacks the bishop on c5: 9…Bb6
-' moves it again, and White gains time." Empty when there is none.
-FUNCTION ThreatText(line, played)
-    moves = line[0]
-    positions = line[1]
-    FOR k = 0 TO MIN(THREAT_PLIES, LEN(moves)) - 1
-        side = SIDETOMOVE(positions[k])
-        before = Threats(positions[k], side)
-        after = Threats(positions[k + 1], side)
-        ' The best new threat: the biggest gain, then the first in UCI order.
-        best = NOTHING
-        FOR i = 0 TO LEN(after) - 1
-            IF NOT Threatens(before, TOSQ(after[i][0])) THEN
-                IF best = NOTHING THEN
-                    best = after[i]
-                ELSEIF after[i][1] > best[1] OR (after[i][1] = best[1] AND after[i][0] < best[0]) THEN
-                    best = after[i]
-                END IF
-            END IF
-        NEXT
-        IF best <> NOTHING THEN
-            target = TOSQ(best[0])
-            NOTE "threat: " + MoveText(positions[k], moves[k]) + " attacks " + SquareName(target) + " (+" + STR(best[1]) + ")"
-            Draw FROMSQ(best[0]), target, "threat", 0
-            attack = TEXT("%1 attacks %2 on %3", MoveText(positions[k], moves[k]), PieceName(PIECE(positions[k + 1], target)), SquareName(target))
-            IF k + 1 < LEN(moves) THEN
-                answer = MoveText(positions[k + 1], moves[k + 1])
-                ' Taking the piece that attacks is no parry (9...Bxb4 takes the pawn).
-                IF TOSQ(moves[k + 1]) = TOSQ(moves[k]) THEN RETURN " " + TEXT("%1: %2 takes the attacker.", attack, answer)
-                ' The piece just moved has to move again: the time is the loss.
-                IF k = 0 AND played <> NOTHING THEN
-                    IF target = TOSQ(played) AND FROMSQ(moves[k + 1]) = target THEN
-                        RETURN " " + TEXT("%1: %2 moves it again, and %3 gains time.", attack, answer, SideName(side))
-                    END IF
-                END IF
-                IF NOT Threatens(Threats(positions[k + 2], side), target) THEN
-                    RETURN " " + TEXT("%1: %2 parries it.", attack, answer)
-                END IF
-            END IF
-            RETURN " " + attack + "."
+' The threats move k of the line makes for `side`, the side that plays it:
+' captures worth `minimum` that it could not make before, by the piece that
+' moved (a king's are no threat) or by a piece it now stands behind on the
+' same line (11.Qb3 behind the bishop on c4: 12.Bxf7+ and the king cannot
+' take back), the biggest first (then UCI order, the same in every client).
+' A piece that only covered a check (6.g3 against 5...Qh4+) makes none of
+' the threats it uncovers.
+FUNCTION NewThreats(positions, k, side, minimum, moves)
+    landed = TOSQ(moves[k])
+    IF PIECE(positions[k + 1], landed) = KING THEN RETURN []
+    before = Threats(positions[k], side, minimum)
+    after = Threats(positions[k + 1], side, minimum)
+    found = []
+    FOR i = 0 TO LEN(after) - 1
+        attacker = FROMSQ(after[i][0])
+        behind = attacker = landed OR IsBetween(attacker, landed, TOSQ(after[i][0]))
+        IF behind AND NOT Threatens(before, TOSQ(after[i][0])) THEN
+            ' In order as they go in.
+            j = LEN(found)
+            WHILE j > 0
+                IF after[i][1] < found[j - 1][1] OR (after[i][1] = found[j - 1][1] AND after[i][0] > found[j - 1][0]) THEN EXIT WHILE
+                j = j - 1
+            WEND
+            found = SLICE(found, 0, j) + [after[i]] + SLICE(found, j, LEN(found) - j)
         END IF
     NEXT
-    RETURN ""
+    RETURN found
+END FUNCTION
+
+FUNCTION IsDrawn(source, target)
+    SHARED drawnArrows
+    FOR i = 0 TO LEN(drawnArrows) - 1
+        IF drawnArrows[i][0] = source AND drawnArrows[i][1] = target THEN RETURN TRUE
+    NEXT
+    RETURN FALSE
+END FUNCTION
+
+' One threat, drawn, said with the answer that parries it when the next move
+' does: " 5.Qxf3 attacks the rook on a8: 5…c6 parries it." When the piece
+' attacked is the one `played` (the move explained) just moved and the
+' answer moves it again, the time it loses is said instead; when the answer
+' takes the attacker, so is that.
+FUNCTION SingleThreatText(positions, moves, k, side, threat, played)
+    target = TOSQ(threat[0])
+    NOTE "threat: " + MoveText(positions[k], moves[k]) + " attacks " + SquareName(target) + " (+" + STR(threat[1]) + ")"
+    Draw FROMSQ(threat[0]), target, "threat", 0
+    attack = TEXT("%1 attacks %2 on %3", MoveText(positions[k], moves[k]), PieceName(PIECE(positions[k + 1], target)), SquareName(target))
+    IF k + 1 < LEN(moves) THEN
+        answer = MoveText(positions[k + 1], moves[k + 1])
+        ' Taking the piece that attacks is no parry (9...Bxb4 takes the pawn).
+        IF TOSQ(moves[k + 1]) = TOSQ(moves[k]) THEN RETURN " " + TEXT("%1: %2 takes the attacker.", attack, answer)
+        ' The piece just moved has to move again: the time is the loss.
+        IF k = 0 AND played <> NOTHING THEN
+            IF target = TOSQ(played) AND FROMSQ(moves[k + 1]) = target THEN
+                RETURN " " + TEXT("%1: %2 moves it again, and %3 gains time.", attack, answer, SideName(side))
+            END IF
+        END IF
+        IF NOT Threatens(Threats(positions[k + 2], side, THREAT_GAIN), target) THEN
+            RETURN " " + TEXT("%1: %2 parries it.", attack, answer)
+        END IF
+    END IF
+    RETURN " " + attack + "."
+END FUNCTION
+
+' The threats of `line`, drawn and said: the first single threat worth
+' THREAT_GAIN in its first THREAT_PLIES (" 9.b4 attacks the bishop on c5:
+' 9…Bxb4 takes the attacker."), and the first double attack — a move that
+' attacks two things at once, each worth DOUBLE_GAIN, in its first
+' DOUBLE_PLIES; not a capture, told by its material — which ends the
+' search (" 11.Qb3 attacks the knight on b4 and the pawn on f7."). The
+' move of a double attack is drawn too (as `moveKind`) when no arrow shows
+' it yet, so its threats do not start from a square nothing stands on.
+' Empty when there is none.
+FUNCTION ThreatText(line, played, moveKind)
+    SHARED threatReach
+    threatReach = 0
+    moves = line[0]
+    positions = line[1]
+    text = ""
+    FOR k = 0 TO MIN(DOUBLE_PLIES, LEN(moves)) - 1
+        side = SIDETOMOVE(positions[k])
+        threats = NewThreats(positions, k, side, DOUBLE_GAIN, moves)
+        ' A double attack wins something worth having: a piece and a pawn at least.
+        double = FALSE
+        ' A capture that also attacks two things is told by the material it wins
+        ' (7.Qxa8), not as a double attack.
+        IF LEN(threats) >= 2 AND PIECE(positions[k], TOSQ(moves[k])) = 0 THEN double = threats[0][1] + threats[1][1] >= THREAT_GAIN + DOUBLE_GAIN
+        IF double THEN
+            first = TOSQ(threats[0][0])
+            second = TOSQ(threats[1][0])
+            NOTE "double attack: " + MoveText(positions[k], moves[k]) + " attacks " + SquareName(first) + " and " + SquareName(second)
+            IF NOT IsDrawn(FROMSQ(moves[k]), TOSQ(moves[k])) THEN Draw FROMSQ(moves[k]), TOSQ(moves[k]), moveKind, 0
+            Draw FROMSQ(threats[0][0]), first, "threat", 0
+            Draw FROMSQ(threats[1][0]), second, "threat", 0
+            threatReach = k + 1
+            RETURN text + " " + TEXT("%1 attacks %2 on %3 and %4 on %5.", MoveText(positions[k], moves[k]), PieceName(PIECE(positions[k + 1], first)), SquareName(first), PieceName(PIECE(positions[k + 1], second)), SquareName(second))
+        END IF
+        IF text = "" AND LEN(threats) >= 1 AND k < THREAT_PLIES THEN
+            IF threats[0][1] >= THREAT_GAIN THEN text = SingleThreatText(positions, moves, k, side, threats[0], played)
+        END IF
+    NEXT
+    RETURN text
 END FUNCTION
 
 ' The threat the mover left standing: a capture the other side (`side`)
@@ -543,7 +605,7 @@ END FUNCTION
 ' Drawn, and said: " 5…Qh4+ leaves the rook on a8 attacked: 7.Qxa8."
 ' Empty when there is none.
 FUNCTION IgnoredThreatText(before, played, line, side)
-    threats = Threats(before, side)
+    threats = Threats(before, side, THREAT_GAIN)
     moves = line[0]
     positions = line[1]
     FOR k = 0 TO MIN(THREAT_PLIES, LEN(moves)) - 1
@@ -728,14 +790,14 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         ' the queen going back): the text says them.
         drawn = WithoutLoserTail(current, [0, fallbackPlies], toMove)
         AddArrows current, 0, fallbackPlies, toMove, "reply", drawn[0], drawn[1]
-        summary = prefix + TRIM(better) + IgnoredThreatText(before, played, current, toMove) + ThreatText(current, played)
+        summary = prefix + TRIM(better) + IgnoredThreatText(before, played, current, toMove) + ThreatText(current, played, "reply")
         ' Arrows and threats may suggest a piece falls: say that none does,
         ' when the line really keeps the material.
         IF concreteText = "" AND KeepsMaterial(before, current, mover) THEN summary = summary + TEXT(" No material is lost: the evaluation is positional.")
         IF concreteText <> "" THEN
             summary = summary + concreteText
         ELSEIF Plies(current) > 0 THEN
-            summary = summary + TEXT(" Main line: %1.", LINETEXT(after, pv, 4))
+            summary = summary + TEXT(" Main line: %1.", LINETEXT(after, pv, MAX(4, threatReach)))
         END IF
         SAY TRIM(summary)
         RETURN
@@ -807,7 +869,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
     ELSE
         AddArrows current, 0, fallbackPlies, toMove, "idea", -1, -1
     END IF
-    summary = prefix + Assessment(afterEval) + ThreatText(current, played)
+    summary = prefix + Assessment(afterEval) + ThreatText(current, played, "idea")
     IF concreteText <> "" THEN
         summary = summary + concreteText
     ELSEIF Plies(current) > 0 THEN

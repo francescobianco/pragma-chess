@@ -221,3 +221,17 @@ expect arrows c4f7 refutation 1, f3e5 refutation 2, e5g6 refutation 3, g6h8 refu
 expect lost f7, h8
 expect summary Mistake (+0.5 → +3.5). White wins a rook and a pawn for a knight: 9.b4 Bb6 10.b5 Na5 11.Nxb6 axb6 12.Bxf7+ Kxf7 13.Ne5+ Kf8 14.Ng6+ Ke8 15.Nxh8. Better was 8…a5.
 end
+
+# 8…Bc5 at depth 40 on the user's board (Stockfish 16): the line goes
+# 9.b4 Bxb4 10.Nxb4 Nxb4 11.Qb3!, a double attack on the knight on b4 and
+# on f7 behind the bishop on c4 — the point of the line, shown and said.
+explain
+before r1bqk1nr/ppp2pp1/2np3p/3N4/1bB1P3/5N2/PP3PPP/R1BQ1RK1 b kq - 1 8
+played b4c5
+before-eval depth 30 cp 80 pv a7a5 a2a3 b4c5
+after r1bqk1nr/ppp2pp1/2np3p/2bN4/2B1P3/5N2/PP3PPP/R1BQ1RK1 w kq - 2 9
+tick depth 40 cp 368 pv b2b4 c5b4 d5b4 c6b4 d1b3 a7a5 c4f7 e8f8 c1b2 d8d7 f7c4 b7b5 c4e2 g8f6 a2a3 b4a6 f3h4 d7f7 b3c2 f8g8 e4e5 f6d5 e2b5 c8e6 a1e1 a6c5 f2f4 d5f4 e5d6 c7d6 c2d2 g7g5 d2d6 a8c8 b5a6 c8a8 b2h8 g8h8 d6c5 a8a6 h4f3 f7g7 g1h1 a6a8
+expect verdict mistake
+expect arrows a7a5 alternative, b2b4 reply 1, b4c5 threat, d1b3 reply, b3b4 threat, c4f7 threat
+expect summary Mistake (+0.8 → +3.7). Better was 8…a5. 9.b4 attacks the bishop on c5: 9…Bxb4 takes the attacker. 11.Qb3 attacks the knight on b4 and the pawn on f7. No material is lost: the evaluation is positional. Main line: 9.b4 Bxb4 10.Nxb4 Nxb4 11.Qb3.
+end

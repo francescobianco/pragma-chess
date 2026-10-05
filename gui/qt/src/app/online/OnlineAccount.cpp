@@ -48,7 +48,7 @@ void OnlineAccounts::remove(const QString &id)
     m_accounts.removeIf([&](const OnlineAccount &account) { return account.id == id; });
 }
 
-const OnlineAccount *OnlineAccounts::find(const QString &id) const
+const OnlineAccount *OnlineAccounts::find(const QString &id) const &
 {
     for (const OnlineAccount &account : m_accounts) {
         if (account.id == id)

@@ -3,6 +3,7 @@
 #include "ChessBaseFetch.h"
 #include "ChessComFetch.h"
 #include "LichessFetch.h"
+#include "LichessStudyFetch.h"
 #include "PgnFileFetch.h"
 #include "TorneiOnlineFetch.h"
 
@@ -28,6 +29,10 @@ QList<SourceKind> kinds()
         {QStringLiteral("lichess"), QStringLiteral("lichess.org"),
          Text::tr("Public games played on lichess.org by an account. Signing in to lichess.org is optional: "
                   "it downloads them faster."),
+         false, false, false, true},
+        {QStringLiteral("lichess-study"), QStringLiteral("Lichess Study"),
+         Text::tr("The chapters of a study on lichess.org, from the address of its page: each chapter a game, with "
+                  "its comments and variations. A public study needs no account; a private one, signing in."),
          false, false, false, true},
         {QStringLiteral("chesscom"), QStringLiteral("chess.com"),
          Text::tr("Games played on chess.com by an account, from its public archives."), false},
@@ -62,6 +67,10 @@ QString displayName(const GameSource &source)
     if (!sourceKind && source.kind == QLatin1String("phone"))
         return Text::tr("Phone · %1").arg(source.account);
     const QString name = sourceKind ? sourceKind->name : source.kind;
+    if (source.kind == QLatin1String("lichess-study")) {
+        const QString study = source.settings.value(QLatin1String(LichessStudySettings::name)).toString();
+        return QStringLiteral("%1 · %2").arg(name, study.isEmpty() ? source.account : study);
+    }
     if (sourceKind && sourceKind->localFile)
         return QStringLiteral("%1 · %2")
             .arg(source.kind == QLatin1String("pgn") ? QStringLiteral("PGN") : QStringLiteral("ChessBase"),
@@ -113,6 +122,8 @@ SourceFetch *createFetch(const GameSource &source, QNetworkAccessManager *networ
 {
     if (source.kind == QLatin1String("lichess"))
         return new LichessFetch(source, network, parent);
+    if (source.kind == QLatin1String("lichess-study"))
+        return database ? new LichessStudyFetch(source, network, database, parent) : nullptr;
     if (source.kind == QLatin1String("chesscom"))
         return new ChessComFetch(source, network, parent);
     if (source.kind == QLatin1String("torneionline"))

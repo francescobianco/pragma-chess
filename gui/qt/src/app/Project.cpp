@@ -1,6 +1,8 @@
 #include "Project.h"
 
 #include "GameVariations.h"
+#include "Pgn.h"
+#include "MoveComment.h"
 #include "MoveAnnotation.h"
 
 #include <QFile>
@@ -69,6 +71,8 @@ void writeGame(YAML::Emitter &out, const ChapterGame &entry)
     text("moves", moves.join(QLatin1Char(' ')));
     text("annotations", annotations.join(QLatin1Char(' ')));
     text("variations", GameVariations::toText(game.variations));
+    text("tags", Pgn::tagsText(game.tags));
+    text("comments", MoveComment::toJson(game));
     if (!entry.paragraphs.isEmpty()) {
         out << YAML::Key << "paragraphs" << YAML::Value << YAML::BeginSeq;
         for (const Paragraph &paragraph : entry.paragraphs) {
@@ -112,6 +116,8 @@ ChapterGame readGame(YAML::Node node)
             MoveAnnotation::split(annotation.section(QLatin1Char(':'), 1), &game.moves[ply - 1].nags);
     }
     game.variations = GameVariations::fromText(fromNode(node["variations"]));
+    game.tags = Pgn::tagsFromText(fromNode(node["tags"]));
+    MoveComment::fromJson(game, fromNode(node["comments"]));
     game.plyCount = int(game.moves.size());
     YAML::Node paragraphs = node["paragraphs"];
     if (paragraphs.IsSequence()) {

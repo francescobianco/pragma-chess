@@ -111,6 +111,13 @@ scripts/install-dev-desktop.sh  user menu entry + icons for the build (Wayland d
   `QStyleHints::setColorScheme` from Qt 6.8 and a palette in Adwaita's
   colours where that is not honoured —, where the captured pieces go and
   the turn dot.
+- The sound of a move (`platform/MoveSound`, `resources/sounds/move.wav`,
+  a CC0 wooden knock from Kenney's Impact Sounds, see its README) is played by each system's own
+  player — PlaySound, AudioToolbox, pw-play/paplay/aplay — so the packages
+  carry no multimedia library. `MainWindow::playMove` plays it for a move
+  made now; a move shown with the slow slide (`m_animateNextBoard`: the
+  engine's, the opponent's) is heard when it lands,
+  `BoardWidget::animatedMoveLanded`. Graphics Settings turns it off.
 - The board style (`widgets/BoardTheme`: square colours and piece set,
   together) is chosen in Personal Settings and synced with them: Pragma
   Classic (default, `resources/pieces/companion`) and Lichess Alpha
@@ -361,7 +368,7 @@ cargo run -p chessdb-cli -- <args>
 ## File formats and user data
 
 - **`.pdb` database**: SQLite with `PRAGMA application_id` = `PRAG` and schema
-  version in `PRAGMA user_version` (currently 7). **The schema is a list of
+  version in `PRAGMA user_version` (currently 8). **The schema is a list of
   migrations**, as in web frameworks (`app/DatabaseMigrations`): each takes a
   file from the version before to its own, a new file runs them all, an older
   file runs the ones it is missing when it is opened (each in a transaction,
@@ -392,7 +399,12 @@ cargo run -p chessdb-cli -- <args>
   game as `GameVariations::toText` writes them; the main line stays in
   `moves_san`/`moves_uci`, so the indexes and the phone read it as before
   (the phone shows the main line and drops the variations of a game it
-  rewrites).
+  rewrites). Version 8 added `games.tags`, the PGN tags with no column of
+  their own as PGN writes them (`[StudyName "…"]` one per line,
+  `Pgn::tagsText`, `GameRecord::tags`), and `games.comments`, every comment
+  of the game as JSON by line path and ply (`MoveComment::toJson`:
+  `MoveRecord::comment`, the `startComment` of the game and of each
+  variation). The phone keeps both columns and ignores them.
 
 ## Moves, variations, annotations and the games list
 
@@ -680,8 +692,8 @@ the toolbar's first button (`m_syncNowAction`, Ctrl+Y).
 
 ## Game sources
 
-Database ▸ Connect Source… adds an external source (lichess.org, chess.com,
-torneionline.com, ChessBase files, a PGN file) to the open database; Database ▸ Manage Sources… syncs,
+Database ▸ Connect Source… adds an external source (lichess.org, a lichess
+study, chess.com, torneionline.com, ChessBase files, a PGN file) to the open database; Database ▸ Manage Sources… syncs,
 edits, signs in again or removes them.
 
 The tree left of the games list (`DatabaseTreeWidget`) shows only the open
@@ -729,6 +741,20 @@ while one of them is selected.
   run: Ignore, or Ignore on This Computer, which is per device
   (`SourceCredentials::isIgnoredHere`, cleared when the source is edited in
   Manage Sources). Only the main line is imported for now (TODO.md).
+- **Lichess Study** (`lichess-study`): a study on lichess.org by the
+  address of its page (`LichessStudySettings::url`; the account is the
+  study id). `LichessStudyFetch` asks `/api/study/{id}.pgn` with
+  `If-Modified-Since` (304: nothing changed) and the token when signed in
+  (scope `study:read`, private studies); `app/sources/LichessStudy` (pure,
+  unit-tested) cuts the export into chapters, each known by the id at the
+  end of its ChapterURL tag (the external id), and plans the read against a
+  base by chapter id (`PgnFilePlan::Base`): new chapters are imported, a
+  chapter changed only on lichess replaces its game, one changed on both
+  sides comes in again as a game of its own. The study's chapters are not
+  a project's chapters: they live in the games' tags. The mode setting
+  (`readwrite`, `read`, `write`) is there, only Read is offered yet; writing
+  will add chapters with `/api/study/{id}/import-pgn` (scope `study:write`)
+  and update their tags — lichess's API cannot change a chapter's moves.
 - **PGN file** (`pgn`, `localFile`): the first source that goes both ways.
   Settings `path` and `mode` (`readwrite`, `read`, `write`). `PgnFile`
   (pure) cuts the file into entries that cover it byte for byte, so a game

@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "app/UiLanguage.h"
+#include "platform/DialogFrame.h"
 #include "platform/GtkDesktopStyle.h"
 
 #include <QApplication>
@@ -79,6 +80,9 @@ int main(int argc, char *argv[])
     if (GtkDesktopStyle::isGtkBasedDesktop() && qEnvironmentVariableIsEmpty("QT_STYLE_OVERRIDE")
         && !app.arguments().contains(QStringLiteral("-style")))
         QApplication::setStyle(new GtkDesktopStyle);
+
+    // Only the main window carries the logo in its title bar (Windows).
+    DialogFrame::install();
 
     MainWindow window;
 #ifdef Q_OS_UNIX

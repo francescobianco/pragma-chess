@@ -109,6 +109,8 @@ Q_SIGNALS:
     /// The user moved a piece from `from` to `to`; `globalPosition` is where
     /// the piece was dropped, e.g. to place a promotion menu.
     void moveRequested(int from, int to, const QPoint &globalPosition);
+    /// A move shown with setBoardAnimated() has landed (castling: the rook too).
+    void animatedMoveLanded();
 
 protected:
     void paintEvent(QPaintEvent *event) override;

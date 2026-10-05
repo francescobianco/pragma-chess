@@ -26,4 +26,5 @@ private:
     QRadioButton *m_belowBoard;
     QCheckBox *m_showTurn;
     QCheckBox *m_showCoordinates;
+    QCheckBox *m_moveSound;
 };

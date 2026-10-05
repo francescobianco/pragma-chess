@@ -51,6 +51,10 @@ ConnectSourceWizard::ConnectSourceWizard(const QString &databaseName, QWidget *p
 {
     setWindowTitle(tr("Connect Source"));
     setModal(true);
+    // The plain wizard everywhere, drawn with the palette like any dialog.
+    // Windows' default (AeroStyle) paints its own white page whatever the
+    // theme: in dark mode the texts, light, vanished on it.
+    setWizardStyle(QWizard::ClassicStyle);
     setOption(QWizard::NoBackButtonOnStartPage);
     setMinimumWidth(kMinimumWidth);
 
@@ -123,15 +127,21 @@ void ConnectSourceWizard::initializePage(int id)
         m_settings = new SourceSettingsWidget(kind, m_uuid);
         m_settingsLayout->addWidget(m_settings);
         m_settingsKind = kind.id;
-        m_settingsTitle->setText(kind.playerId ? tr("%1 Player").arg(kind.name) : tr("%1 Account").arg(kind.name));
-        m_settingsDescription->setText(tr("Which games to import into “%1”.").arg(m_databaseName));
+        const bool study = kind.id == QLatin1String("lichess-study");
+        m_settingsTitle->setText(study            ? kind.name
+                                 : kind.playerId ? tr("%1 Player").arg(kind.name)
+                                                 : tr("%1 Account").arg(kind.name));
+        m_settingsDescription->setText(study ? tr("Which study to keep in “%1”.").arg(m_databaseName)
+                                             : tr("Which games to import into “%1”.").arg(m_databaseName));
         connect(m_settings, &SourceSettingsWidget::changed, m_settingsError, &QWidget::hide);
     }
     if (id == SummaryPage) {
         const GameSource configured = source();
         const QString since = configured.settings.value(QLatin1String(SourceSettings::since)).toString();
         const bool ratedOnly = configured.settings.value(QLatin1String(SourceSettings::ratedOnly)).toBool();
-        QString games = ratedOnly ? tr("rated games") : tr("games");
+        QString games = configured.kind == QLatin1String("lichess-study") ? tr("chapters")
+                        : ratedOnly                                       ? tr("rated games")
+                                                                          : tr("games");
         if (!since.isEmpty())
             games = tr("%1 played since %2").arg(games, QLocale().toString(QDate::fromString(since, Qt::ISODate),
                                                                             QLocale::LongFormat));

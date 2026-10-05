@@ -43,6 +43,11 @@ GraphicsSettingsDialog::GraphicsSettingsDialog(const GraphicsSettings &settings,
     m_showCoordinates->setChecked(showCoordinates);
     layout->addWidget(m_showCoordinates);
 
+    m_moveSound = new QCheckBox(tr("&Sound when a piece is moved"), this);
+    m_moveSound->setToolTip(tr("Your moves, the engine's in training and your opponent's online"));
+    m_moveSound->setChecked(settings.moveSound);
+    layout->addWidget(m_moveSound);
+
     auto *note = new QLabel(tr("These settings are kept on this computer only: each computer can match its own "
                                "desktop. The board style is in Personal Settings, and travels with Sync."),
                             this);
@@ -63,6 +68,7 @@ GraphicsSettings GraphicsSettingsDialog::settings() const
     settings.capturedPieces = m_belowBoard->isChecked() ? CapturedPiecesPlacement::BelowBoard
                                                         : CapturedPiecesPlacement::BesideBoard;
     settings.showTurn = m_showTurn->isChecked();
+    settings.moveSound = m_moveSound->isChecked();
     settings.appearance = AppearanceMode(m_appearance->currentData().toInt());
     return settings;
 }

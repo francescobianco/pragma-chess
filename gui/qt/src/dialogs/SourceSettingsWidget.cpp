@@ -3,6 +3,8 @@
 #include "app/chessbase/ChessBaseDatabase.h"
 #include "app/sources/ChessBaseFetch.h"
 #include "app/sources/LichessSignIn.h"
+#include "app/sources/LichessStudy.h"
+#include "app/sources/LichessStudyFetch.h"
 #include "app/sources/PgnFileFetch.h"
 #include "app/sources/SourceCredentials.h"
 #include "app/sources/TorneiOnlineFetch.h"
@@ -28,6 +30,7 @@
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QSignalBlocker>
+#include <QStandardItemModel>
 #include <QTimer>
 
 SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString &sourceUuid, QWidget *parent)
@@ -63,6 +66,10 @@ SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString
     m_account->setClearButtonEnabled(true);
     if (isPgn()) {
         addPgnFile(form);
+        return;
+    }
+    if (isStudy()) {
+        addStudy(form);
         return;
     }
     if (m_kind.localFile) {
@@ -231,9 +238,93 @@ void SourceSettingsWidget::addPgnFile(QFormLayout *form)
     form->addRow(QString(), note);
 }
 
+void SourceSettingsWidget::addStudy(QFormLayout *form)
+{
+    m_url = new QLineEdit;
+    m_url->setPlaceholderText(tr("https://lichess.org/study/…"));
+    m_url->setClearButtonEnabled(true);
+    m_url->setToolTip(tr("Paste the address of the study's page, or of one of its chapters"));
+    form->addRow(tr("Study &address:"), m_url);
+    connect(m_url, &QLineEdit::textChanged, this, [this] {
+        m_studyName.clear();
+        Q_EMIT changed();
+    });
+
+    m_direction = new QComboBox;
+    m_direction->addItem(tr("Read only"), PgnFilePlan::modeKey(PgnFilePlan::Mode::Read));
+    m_direction->addItem(tr("Read and write (coming soon)"), PgnFilePlan::modeKey(PgnFilePlan::Mode::ReadWrite));
+    m_direction->addItem(tr("Write only (coming soon)"), PgnFilePlan::modeKey(PgnFilePlan::Mode::Write));
+    // Writing to a study is being built: it is shown, not offered yet.
+    if (auto *items = qobject_cast<QStandardItemModel *>(m_direction->model())) {
+        for (int row = 1; row < items->rowCount(); ++row)
+            items->item(row)->setEnabled(false);
+    }
+    form->addRow(tr("&Direction:"), m_direction);
+    connect(m_direction, &QComboBox::currentIndexChanged, this, &SourceSettingsWidget::changed);
+
+    auto *note = new QLabel(tr("Each chapter of the study becomes a game of this database, with its comments and "
+                               "variations; its tags StudyName, ChapterName and ChapterURL say which study and "
+                               "chapter it is. A chapter changed on lichess.org replaces its game, unless the game "
+                               "changed here too: then both are kept. A public study needs no account; for a "
+                               "private one, sign in with an account that can see it."));
+    note->setWordWrap(true);
+    note->setEnabled(false);
+    form->addRow(QString(), note);
+
+    m_account->hide();
+    m_limitSince->hide();
+    m_since->hide();
+    m_ratedOnly->hide();
+}
+
+bool SourceSettingsWidget::validateStudy(QString *errorMessage)
+{
+    const std::optional<QString> id = LichessStudy::studyId(m_url->text());
+    if (!id) {
+        *errorMessage = m_url->text().trimmed().isEmpty()
+            ? tr("Paste the address of the study, e.g. https://lichess.org/study/iob5mNFl.")
+            : tr("“%1” is not the address of a lichess study.").arg(m_url->text().trimmed());
+        return false;
+    }
+    // The export says whether the study can be read, and its name.
+    QNetworkAccessManager network;
+    QApplication::setOverrideCursor(Qt::BusyCursor);
+    QNetworkReply *reply = network.get(LichessStudyFetch::exportRequest(*id, SourceCredentials::token(m_uuid)));
+    QEventLoop loop;
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec(QEventLoop::ExcludeUserInputEvents);
+    QApplication::restoreOverrideCursor();
+    reply->deleteLater();
+    const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (status == 404 || status == 403) {
+        *errorMessage = SourceCredentials::token(m_uuid).isEmpty()
+            ? tr("lichess.org did not find the study, or it is private: sign in with an account that can see it.")
+            : tr("lichess.org did not find the study, or this account cannot see it.");
+        return false;
+    }
+    if (reply->error() != QNetworkReply::NoError) {
+        *errorMessage = tr("Could not reach the study on lichess.org: %1").arg(reply->errorString());
+        return false;
+    }
+    const QList<LichessStudy::Chapter> chapters = LichessStudy::chapters(reply->readAll());
+    if (chapters.isEmpty()) {
+        *errorMessage = tr("The study has no chapter that can be read.");
+        return false;
+    }
+    m_studyName = LichessStudy::studyName(chapters);
+    return true;
+}
+
 void SourceSettingsWidget::setSource(const GameSource &source)
 {
     m_account->setText(source.account);
+    if (m_url) {
+        m_url->setText(source.settings.value(QLatin1String(LichessStudySettings::url)).toString());
+        m_studyName = source.settings.value(QLatin1String(LichessStudySettings::name)).toString();
+        m_direction->setCurrentIndex(
+            qMax(0, m_direction->findData(PgnFilePlan::modeKey(LichessStudyFetch::mode(source)))));
+        return;
+    }
     if (m_path)
         m_path->setText(QDir::toNativeSeparators(SourceCatalog::localPath(source)));
     if (m_direction)
@@ -252,6 +343,16 @@ void SourceSettingsWidget::setSource(const GameSource &source)
 
 void SourceSettingsWidget::applyTo(GameSource &source) const
 {
+    if (m_url) {
+        const std::optional<QString> id = LichessStudy::studyId(m_url->text());
+        source.account = id.value_or(m_url->text().trimmed());
+        source.settings.insert(QLatin1String(LichessStudySettings::url),
+                               id ? LichessStudy::studyUrl(*id) : m_url->text().trimmed());
+        source.settings.insert(QLatin1String(LichessStudySettings::mode), m_direction->currentData().toString());
+        if (!m_studyName.isEmpty())
+            source.settings.insert(QLatin1String(LichessStudySettings::name), m_studyName);
+        return;
+    }
     if (m_path) {
         const QString path = QFileInfo(QDir::fromNativeSeparators(m_path->text().trimmed())).absoluteFilePath();
         source.account = QFileInfo(path).completeBaseName();
@@ -274,6 +375,8 @@ void SourceSettingsWidget::applyTo(GameSource &source) const
 
 bool SourceSettingsWidget::validate(QString *errorMessage)
 {
+    if (m_url)
+        return validateStudy(errorMessage);
     if (m_path && isPgn()) {
         const QFileInfo file(QDir::fromNativeSeparators(m_path->text().trimmed()));
         if (m_path->text().trimmed().isEmpty()) {
@@ -357,7 +460,8 @@ bool SourceSettingsWidget::validate(QString *errorMessage)
 
 std::optional<QString> SourceSettingsWidget::signIn(const SourceKind &kind, const QString &sourceUuid, QWidget *parent)
 {
-    if (kind.id != QLatin1String("lichess"))
+    const bool study = kind.id == QLatin1String("lichess-study");
+    if (kind.id != QLatin1String("lichess") && !study)
         return std::nullopt;
 
     LichessSignIn flow;
@@ -382,7 +486,9 @@ std::optional<QString> SourceSettingsWidget::signIn(const SourceKind &kind, cons
                 loop.quit();
             });
     connect(&progress, &QProgressDialog::canceled, &loop, &QEventLoop::quit);
-    QTimer::singleShot(0, &flow, [&flow] { flow.start(); });
+    // A study asks to read the account's private studies.
+    const QStringList scopes = study ? QStringList{QStringLiteral("study:read")} : QStringList();
+    QTimer::singleShot(0, &flow, [&flow, scopes] { flow.start(scopes); });
     progress.show();
     loop.exec();
     progress.close();
@@ -402,8 +508,11 @@ std::optional<QString> SourceSettingsWidget::signIn(const SourceKind &kind, cons
 void SourceSettingsWidget::updateSignInStatus()
 {
     const bool signedIn = !SourceCredentials::token(m_uuid).isEmpty();
-    m_signInStatus->setText(signedIn             ? tr("Signed in to %1").arg(m_kind.name)
+    // A study is on lichess.org: the site is what one signs in to.
+    const QString site = isStudy() ? QStringLiteral("lichess.org") : m_kind.name;
+    m_signInStatus->setText(signedIn             ? tr("Signed in to %1").arg(site)
                             : m_kind.needsSignIn ? tr("Not signed in")
+                            : isStudy()          ? tr("Not signed in: public studies only")
                                                  : tr("Not signed in: public games only"));
-    m_signInButton->setText(signedIn ? tr("Sign In Again…") : tr("Sign In with %1…").arg(m_kind.name));
+    m_signInButton->setText(signedIn ? tr("Sign In Again…") : tr("Sign In with %1…").arg(site));
 }

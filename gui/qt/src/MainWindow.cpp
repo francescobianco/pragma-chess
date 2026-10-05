@@ -53,6 +53,7 @@
 #include "models/GameFilterProxyModel.h"
 #include "models/GameListModel.h"
 #include "platform/Appearance.h"
+#include "platform/MoveSound.h"
 #include "platform/SymbolicIcons.h"
 #include "platform/WindowChrome.h"
 #include "widgets/BoardPanel.h"
@@ -274,6 +275,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_board, &BoardWidget::navigateRequested, this,
             [this](int steps) { m_session->goToPly(m_session->ply() + steps); });
     connect(m_board, &BoardWidget::moveRequested, this, &MainWindow::playBoardMove);
+    // The engine's and the opponent's moves are heard when they land.
+    connect(m_board, &BoardWidget::animatedMoveLanded, this, &MainWindow::playMoveSound);
     connect(m_sourceSync, &SourceSync::gamesImported, this, &MainWindow::showAddedGames);
     connect(m_sourceSync, &SourceSync::gamesUpdated, this, [this](const QList<qint64> &indexes) {
         for (const qint64 index : indexes)
@@ -2629,9 +2632,16 @@ void MainWindow::editGraphicsSettings()
     m_coordinatesAction->setChecked(dialog.showCoordinates());
 }
 
+void MainWindow::playMoveSound()
+{
+    if (m_moveSound)
+        MoveSound::play();
+}
+
 void MainWindow::applyGraphicsSettings(const GraphicsSettings &settings)
 {
     Appearance::apply(settings.appearance);
+    m_moveSound = settings.moveSound;
     m_boardPanel->setCapturedPiecesBelow(settings.capturedPieces == CapturedPiecesPlacement::BelowBoard);
     m_boardSideColumn->setShowTurn(settings.showTurn);
 }
@@ -3394,7 +3404,9 @@ void MainWindow::resumeOnlineGame()
     const QString accountId = settings.value(QLatin1String(kActiveAccountKey)).toString();
     if (gameId.isEmpty())
         return;
-    const OnlineAccount *account = OnlineAccounts::load(settings).find(accountId);
+    // Kept in a variable: find() points into it.
+    const OnlineAccounts accounts = OnlineAccounts::load(settings);
+    const OnlineAccount *account = accounts.find(accountId);
     if (!account || SourceCredentials::token(account->id).isEmpty()) {
         forgetActiveOnlineGame();
         return;
@@ -3792,7 +3804,12 @@ void MainWindow::playMove(const ChessMove &move)
     // The next move of the line only steps forward; anything else adds to the
     // game — at its end, or as a variation — and a stored game is saved at once.
     const bool adds = !m_session->isNextMove(move);
-    if (!m_session->playMove(move) || !adds)
+    const bool animated = m_animateNextBoard; // Heard when it lands, not now.
+    if (!m_session->playMove(move))
+        return;
+    if (!animated)
+        playMoveSound();
+    if (!adds)
         return;
     QString error;
     if (!storeOpenGame(&error))
@@ -3905,6 +3922,7 @@ void MainWindow::pasteLine()
     game.startFen = line->startFen;
     game.moves = line->moves;
     game.variations = line->variations;
+    game.startComment = line->startComment;
     startGame(game);
     m_session->goToEnd();
 }

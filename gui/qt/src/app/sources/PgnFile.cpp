@@ -124,13 +124,25 @@ std::optional<GameRecord> read(const QByteArray &entry, QString *errorMessage)
         return std::nullopt;
 
     QHash<QString, QString> tags;
+    GameRecord game;
+    // The tags with a field of their own, or that say how to read the game.
+    static const QStringList ownFields{QStringLiteral("Event"), QStringLiteral("Site"), QStringLiteral("Date"),
+                                       QStringLiteral("Round"), QStringLiteral("White"), QStringLiteral("Black"),
+                                       QStringLiteral("Result"), QStringLiteral("WhiteElo"),
+                                       QStringLiteral("BlackElo"), QStringLiteral("ECO"), QStringLiteral("FEN"),
+                                       QStringLiteral("SetUp"), QStringLiteral("PlyCount"),
+                                       QLatin1String(uidTag)};
     static const QRegularExpression tag(QStringLiteral(R"re(^\s*\[(\w+)\s+"((?:[^"\\]|\\.)*)"\s*\])re"),
                                         QRegularExpression::MultilineOption);
     for (auto it = tag.globalMatch(text); it.hasNext();) {
         const QRegularExpressionMatch match = it.next();
-        tags.insert(match.captured(1), unescape(match.captured(2)));
+        const QString name = match.captured(1);
+        const QString value = unescape(match.captured(2));
+        if (ownFields.contains(name))
+            tags.insert(name, value);
+        else if (!value.trimmed().isEmpty())
+            game.tags << PgnTag{name, value.trimmed()};
     }
-    GameRecord game;
     game.event = known(tags.value(QStringLiteral("Event")));
     game.site = known(tags.value(QStringLiteral("Site")));
     game.round = known(tags.value(QStringLiteral("Round")));
@@ -147,6 +159,7 @@ std::optional<GameRecord> read(const QByteArray &entry, QString *errorMessage)
     game.startFen = line->startFen;
     game.moves = line->moves;
     game.variations = line->variations;
+    game.startComment = line->startComment;
     game.plyCount = int(line->moves.size());
     return game;
 }

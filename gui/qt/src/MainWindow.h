@@ -330,6 +330,8 @@ private:
     /// Puts myName() on the side at the bottom of the board.
     void nameMe(GameRecord &game) const;
     void applyGraphicsSettings(const GraphicsSettings &settings);
+    /// The sound of a piece set down, unless Graphics Settings turned it off.
+    void playMoveSound();
     // Options ▸ Sync Settings: the Pragma folder kept the same on several computers.
     void openSyncDialog();
     /// Manage Files of the Sync Settings dialog: the files on the server,
@@ -505,6 +507,7 @@ private:
     int m_tutorPly = -1;
     /// The next board update is the engine's move: show it slowly.
     bool m_animateNextBoard = false;
+    bool m_moveSound = true;
 
     QAction *m_newProjectAction;
     QAction *m_openProjectAction;

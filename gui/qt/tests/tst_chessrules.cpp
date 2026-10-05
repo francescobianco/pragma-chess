@@ -15,6 +15,7 @@
 #include "app/GameVariations.h"
 #include "app/HelpGuide.h"
 #include "app/MoveAnnotation.h"
+#include "app/MoveComment.h"
 #include "app/MoveExplanation.h"
 #include "app/OpeningNames.h"
 #include "app/Pgn.h"
@@ -33,6 +34,7 @@
 #include "app/sources/SourceSync.h"
 #include "app/sources/TorneiOnlineFetch.h"
 #include "app/sources/LichessFetch.h"
+#include "app/sources/LichessStudy.h"
 #include "app/sources/PgnFile.h"
 #include "app/sources/PgnFileFetch.h"
 #include "app/sources/PgnFilePlan.h"
@@ -645,6 +647,134 @@ private Q_SLOTS:
         weights = BookWeights::adjusted({60000, 5000}, 0, 25);
         QCOMPARE(sum(weights), 65000);
         QVERIFY(weights.at(0) <= 65535);
+    }
+
+    void keepsCommentsAndTags()
+    {
+        // A chapter of a lichess study, as its PGN export gives it.
+        const QByteArray chapter =
+            "[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[White \"slobnok\"]\n[Black \"masterc42\"]\n"
+            "[Result \"1-0\"]\n[TimeControl \"1800\"]\n[StudyName \"masterc42's Old Games #4\"]\n"
+            "[ChapterName \"slobnok - masterc42\"]\n[ChapterURL \"https://lichess.org/study/iob5mNFl/nUeONbjs\"]\n"
+            "[Annotator \"https://lichess.org/@/masterc42\"]\n\n"
+            "{ A game from the archive. } 1. e4 { [%eval 0.18] } 1... c5 2. Bc4 e6 3. Nf3 a6 "
+            "4. Ne5? { [%eval -1.34] } { Mistake. d4 was best. } (4. d4 { The main move. } 4... cxd4) "
+            "4... Qg5 1-0\n";
+        QString error;
+        const std::optional<GameRecord> game = PgnFile::read(chapter, &error);
+        QVERIFY2(game, qPrintable(error));
+        QCOMPARE(game->event, QStringLiteral("Live Chess"));
+        QCOMPARE(game->site, QStringLiteral("Chess.com"));
+        const QList<PgnTag> tags{{QStringLiteral("TimeControl"), QStringLiteral("1800")},
+                                 {QStringLiteral("StudyName"), QStringLiteral("masterc42's Old Games #4")},
+                                 {QStringLiteral("ChapterName"), QStringLiteral("slobnok - masterc42")},
+                                 {QStringLiteral("ChapterURL"), QStringLiteral("https://lichess.org/study/iob5mNFl/nUeONbjs")},
+                                 {QStringLiteral("Annotator"), QStringLiteral("https://lichess.org/@/masterc42")}};
+        QCOMPARE(game->tags, tags);
+        QCOMPARE(game->startComment, QStringLiteral("A game from the archive."));
+        QCOMPARE(game->moves.size(), 8);
+        QCOMPARE(game->moves.at(0).comment, QStringLiteral("[%eval 0.18]"));
+        // Two comments in a row are one, and the annotation stays a NAG.
+        QCOMPARE(game->moves.at(6).comment, QStringLiteral("[%eval -1.34] Mistake. d4 was best."));
+        QCOMPARE(game->moves.at(6).nags, QList<int>{2});
+        QCOMPARE(game->variations.size(), 1);
+        QCOMPARE(game->variations.at(0).moves.at(0).comment, QStringLiteral("The main move."));
+
+        // What is shown leaves the commands out.
+        QCOMPARE(MoveComment::displayText(game->moves.at(0).comment), QString());
+        QCOMPARE(MoveComment::displayText(game->moves.at(6).comment), QStringLiteral("Mistake. d4 was best."));
+        QCOMPARE(MoveComment::forPgn(QStringLiteral("a } b")), QStringLiteral("a ) b"));
+
+        // Written and read again, nothing is lost.
+        const QString pgn = Pgn::game(*game);
+        QVERIFY(pgn.contains(QStringLiteral("[ChapterURL \"https://lichess.org/study/iob5mNFl/nUeONbjs\"]")));
+        QVERIFY2(pgn.contains(QStringLiteral("{A game from the archive.} 1.e4 {[%eval 0.18]} 1…c5")), qPrintable(pgn));
+        const std::optional<GameRecord> again = PgnFile::read(pgn.toUtf8(), &error);
+        QVERIFY2(again, qPrintable(error));
+        QCOMPARE(again->tags, game->tags);
+        QCOMPARE(MoveComment::toJson(*again), MoveComment::toJson(*game));
+
+        // The comments as stored, and back on a game with the same moves.
+        GameRecord bare = *game;
+        bare.startComment.clear();
+        for (MoveRecord &move : bare.moves)
+            move.comment.clear();
+        bare.variations[0].moves[0].comment.clear();
+        QVERIFY(!MoveComment::hasComments(bare));
+        MoveComment::fromJson(bare, MoveComment::toJson(*game));
+        QCOMPARE(MoveComment::toJson(bare), MoveComment::toJson(*game));
+        MoveComment::fromJson(bare, QStringLiteral(R"({"5": {"1": "no such line"}, "": {"99": "no such move"}})"));
+        QCOMPARE(MoveComment::toJson(bare), MoveComment::toJson(*game));
+        QCOMPARE(Pgn::tagsFromText(Pgn::tagsText(game->tags)), game->tags);
+        QCOMPARE(Pgn::tagsText({}), QStringLiteral(""));
+
+        // And in a database.
+        QTemporaryDir dir;
+        std::unique_ptr<SqliteGameDatabase> database =
+            SqliteGameDatabase::create(dir.filePath(QStringLiteral("study.pdb")), {}, &error);
+        QVERIFY2(database, qPrintable(error));
+        QVERIFY2(database->addGame(*game, &error) >= 0, qPrintable(error));
+        const std::optional<GameRecord> stored = database->loadGame(0);
+        QVERIFY(stored);
+        QCOMPARE(stored->tags, game->tags);
+        QCOMPARE(MoveComment::toJson(*stored), MoveComment::toJson(*game));
+    }
+
+    void plansLichessStudies()
+    {
+        using LichessStudy::studyId;
+        QCOMPARE(studyId(QStringLiteral("https://lichess.org/study/iob5mNFl/nUeONbjs")), QStringLiteral("iob5mNFl"));
+        QCOMPARE(studyId(QStringLiteral(" https://lichess.org/study/iob5mNFl ")), QStringLiteral("iob5mNFl"));
+        QCOMPARE(studyId(QStringLiteral("lichess.org/study/iob5mNFl#chapter")), QStringLiteral("iob5mNFl"));
+        QCOMPARE(studyId(QStringLiteral("iob5mNFl")), QStringLiteral("iob5mNFl"));
+        QVERIFY(!studyId(QStringLiteral("https://lichess.org/abcdefgh")));
+        QVERIFY(!studyId(QStringLiteral("https://lichess.org/study/short")));
+
+        const auto chapter = [](const char *id, const char *name, const char *moves) {
+            return QByteArray("[Event \"Club\"]\n[White \"A\"]\n[Black \"B\"]\n[Result \"*\"]\n[StudyName \"Openings\"]\n"
+                              "[ChapterName \"") + name + "\"]\n[ChapterURL \"https://lichess.org/study/iob5mNFl/" + id
+                + "\"]\n\n" + moves + " *\n\n";
+        };
+        const QByteArray export1 = chapter("aaaaaaaa", "Italian", "1. e4 e5 2. Nf3 Nc6 3. Bc4")
+            + chapter("bbbbbbbb", "Sicilian", "1. e4 c5 { The fight for d4. }")
+            + QByteArray("[Event \"No chapter\"]\n\n1. d4 *\n\n"); // No ChapterURL: not a chapter.
+        int unreadable = 0;
+        const QList<LichessStudy::Chapter> chapters = LichessStudy::chapters(export1, &unreadable);
+        QCOMPARE(chapters.size(), 2);
+        QCOMPARE(unreadable, 1);
+        QCOMPARE(chapters.at(0).id, QStringLiteral("aaaaaaaa"));
+        QCOMPARE(chapters.at(1).game.moves.at(1).comment, QStringLiteral("The fight for d4."));
+        QCOMPARE(LichessStudy::tag(chapters.at(1).game, QStringLiteral("ChapterName")), QStringLiteral("Sicilian"));
+        QCOMPARE(LichessStudy::studyName(chapters), QStringLiteral("Openings"));
+
+        // The first sync imports every chapter.
+        LichessStudy::ReadPlan plan = LichessStudy::planRead(chapters, {}, {}, {});
+        QCOMPARE(plan.imports, (QList<int>{0, 1}));
+        const QHash<QString, QString> linked{{QStringLiteral("aaaaaaaa"), QStringLiteral("uid-a")},
+                                             {QStringLiteral("bbbbbbbb"), QStringLiteral("uid-b")}};
+        QHash<QString, PgnFilePlan::DatabaseGame> games{{QStringLiteral("uid-a"), {QStringLiteral("t1"), true}},
+                                                        {QStringLiteral("uid-b"), {QStringLiteral("t1"), true}}};
+        const PgnFilePlan::Base base = LichessStudy::nextBase({}, chapters, games, linked);
+        plan = LichessStudy::planRead(chapters, base, games, linked);
+        QVERIFY(plan.imports.isEmpty() && plan.updates.isEmpty() && plan.conflicts.isEmpty());
+
+        // Changed on lichess: the game takes it; changed on both: kept twice.
+        const QList<LichessStudy::Chapter> changed = LichessStudy::chapters(
+            chapter("aaaaaaaa", "Italian", "1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5")
+            + chapter("bbbbbbbb", "Sicilian", "1. e4 c5 2. Nf3")
+            + chapter("cccccccc", "French", "1. e4 e6"));
+        games[QStringLiteral("uid-b")].modified = QStringLiteral("t2");
+        plan = LichessStudy::planRead(changed, base, games, linked);
+        QCOMPARE(plan.updates, (QList<QPair<int, QString>>{{0, QStringLiteral("uid-a")}}));
+        QCOMPARE(plan.conflicts, QList<int>{1});
+        QCOMPARE(plan.imports, QList<int>{2});
+        QVERIFY(LichessStudy::conflictId(changed.at(1)).startsWith(QStringLiteral("bbbbbbbb:")));
+
+        // A chapter whose game was purged here does not come back.
+        QHash<QString, QString> purged = linked;
+        purged[QStringLiteral("aaaaaaaa")] = QString();
+        plan = LichessStudy::planRead(chapters, base, games, purged);
+        QVERIFY(!plan.imports.contains(0));
     }
 
     void keepsVariations()
@@ -1826,7 +1956,7 @@ private Q_SLOTS:
         for (int i = 0; i < migrations.size(); ++i)
             QCOMPARE(migrations.at(i).version, i + 1);
         const int latest = DatabaseMigrations::latestVersion();
-        QCOMPARE(latest, 7);
+        QCOMPARE(latest, 8);
 
         QTemporaryDir dir;
         const QString path = dir.filePath(QStringLiteral("games.pdb"));

@@ -4,6 +4,7 @@
 #include "GameIdentity.h"
 #include "GameVariations.h"
 #include "MoveAnnotation.h"
+#include "MoveComment.h"
 #include "Pgn.h"
 
 #include <QDir>
@@ -116,8 +117,9 @@ public:
     {
         m_insert.prepare(QStringLiteral(
             "INSERT INTO games (white_id, black_id, event_id, site_id, date, round, result,"
-            " white_elo, black_elo, eco, ply_count, start_fen, moves_san, moves_uci, variations, uid, modified)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+            " white_elo, black_elo, eco, ply_count, start_fen, moves_san, moves_uci, variations, tags, comments,"
+            " uid, modified)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
         m_uidTaken.prepare(QStringLiteral("SELECT 1 FROM games WHERE uid = ?"));
         m_revive.prepare(QStringLiteral("UPDATE game_states SET state = 'live', modified = ? WHERE uid = ? AND state = 'purged'"));
     }
@@ -159,6 +161,8 @@ public:
         m_insert.addBindValue(movesText(san));
         m_insert.addBindValue(movesText(uci));
         m_insert.addBindValue(GameVariations::toText(game.variations));
+        m_insert.addBindValue(Pgn::tagsText(game.tags));
+        m_insert.addBindValue(MoveComment::toJson(game));
         m_insert.addBindValue(m_lastUid);
         m_insert.addBindValue(m_lastModified);
         if (!m_insert.exec())
@@ -545,7 +549,7 @@ std::optional<GameRecord> SqliteGameDatabase::loadGame(qint64 index) const
 
     GameRecord game = m_headers.at(index);
     QSqlQuery query(QSqlDatabase::database(m_connectionName));
-    query.prepare(QStringLiteral("SELECT moves_san, moves_uci, variations FROM games WHERE id = ?"));
+    query.prepare(QStringLiteral("SELECT moves_san, moves_uci, variations, tags, comments FROM games WHERE id = ?"));
     query.addBindValue(game.id);
     if (!query.exec() || !query.next())
         return std::nullopt;
@@ -557,8 +561,11 @@ std::optional<GameRecord> SqliteGameDatabase::loadGame(qint64 index) const
         // Annotations travel glued to the SAN ("Nf3!$16"), so they need no column.
         QList<int> nags;
         const QString bare = MoveAnnotation::split(san.at(i), &nags);
-        game.moves << MoveRecord{bare, uci.at(i), nags};
+        game.moves << MoveRecord{bare, uci.at(i), nags, {}};
     }
+    game.tags = Pgn::tagsFromText(query.value(3).toString());
+    // After the moves and the variations: the comments go on them.
+    MoveComment::fromJson(game, query.value(4).toString());
     return game;
 }
 
@@ -700,7 +707,7 @@ bool SqliteGameDatabase::replaceGame(qint64 index, const GameRecord &game, QStri
     update.prepare(QStringLiteral(
         "UPDATE games SET white_id = ?, black_id = ?, event_id = ?, site_id = ?, date = ?, round = ?,"
         " result = ?, white_elo = ?, black_elo = ?, eco = ?, ply_count = ?, start_fen = ?, moves_san = ?,"
-        " moves_uci = ?, variations = ?, modified = ? WHERE id = ?"));
+        " moves_uci = ?, variations = ?, tags = ?, comments = ?, modified = ? WHERE id = ?"));
     update.addBindValue(players.idFor(game.white));
     update.addBindValue(players.idFor(game.black));
     update.addBindValue(events.idFor(game.event));
@@ -716,6 +723,8 @@ bool SqliteGameDatabase::replaceGame(qint64 index, const GameRecord &game, QStri
     update.addBindValue(movesText(san));
     update.addBindValue(movesText(uci));
     update.addBindValue(GameVariations::toText(game.variations));
+    update.addBindValue(Pgn::tagsText(game.tags));
+    update.addBindValue(MoveComment::toJson(game));
     update.addBindValue(modified);
     update.addBindValue(m_headers.at(index).id);
     if (!update.exec() || !db.commit()) {

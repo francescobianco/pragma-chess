@@ -91,6 +91,8 @@ BoardWidget::BoardWidget(QWidget *parent)
         m_slideSteps.clear();
         m_slideCaptures.clear();
         update();
+        if (m_slideEmphasis)
+            Q_EMIT animatedMoveLanded();
     });
 
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

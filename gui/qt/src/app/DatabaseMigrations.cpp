@@ -193,6 +193,25 @@ bool addVariations(QSqlDatabase &db, QString *error)
     return run(db, {"ALTER TABLE games ADD COLUMN variations TEXT NOT NULL DEFAULT ''"}, error);
 }
 
+/// The PGN tags that have no column (`[StudyName "…"]`, one per line,
+/// Pgn::tagsText) and the comments of the game (MoveComment::toJson).
+bool addTagsAndComments(QSqlDatabase &db, QString *error)
+{
+    // Files made by hand (and tests) may have them already.
+    QStringList columns;
+    QSqlQuery query(db);
+    if (query.exec(QStringLiteral("PRAGMA table_info(games)"))) {
+        while (query.next())
+            columns << query.value(1).toString();
+    }
+    query.finish();
+    if (!columns.contains(QLatin1String("tags"))
+        && !run(db, {"ALTER TABLE games ADD COLUMN tags TEXT NOT NULL DEFAULT ''"}, error))
+        return false;
+    return columns.contains(QLatin1String("comments"))
+        || run(db, {"ALTER TABLE games ADD COLUMN comments TEXT NOT NULL DEFAULT ''"}, error);
+}
+
 } // namespace
 
 const QList<Migration> &all()
@@ -205,6 +224,7 @@ const QList<Migration> &all()
         {5, "add_game_identity", &addGameIdentity},
         {6, "create_game_states", &createGameStates},
         {7, "add_variations", &addVariations},
+        {8, "add_tags_and_comments", &addTagsAndComments},
     };
     return migrations;
 }

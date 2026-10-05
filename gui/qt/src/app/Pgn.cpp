@@ -2,6 +2,7 @@
 
 #include "ChessPosition.h"
 #include "MoveAnnotation.h"
+#include "MoveComment.h"
 
 #include <QObject>
 #include <QRegularExpression>
@@ -46,13 +47,24 @@ namespace Pgn {
 
 namespace {
 
+/// A comment between braces, or nothing for an empty one.
+void writeComment(const QString &comment, QStringList &parts)
+{
+    const QString text = MoveComment::forPgn(comment);
+    if (!text.isEmpty())
+        parts << QLatin1Char('{') + text + QLatin1Char('}');
+}
+
 /// Writes `moves` from `position`, numbered, with the variations off them
-/// when `withVariations`: each in parentheses after the move it replaces,
-/// and the move after a variation numbered again.
+/// and the comments when `withVariations` (the whole game): each variation
+/// in parentheses after the move it replaces, and the move after a
+/// variation or a comment numbered again.
 void writeLine(const QList<MoveRecord> &moves, const QList<Variation> &variations, ChessPosition position,
-               int maxPlies, bool withVariations, QStringList &parts)
+               int maxPlies, bool withVariations, QStringList &parts, const QString &startComment = QString())
 {
     bool numbered = false;
+    if (withVariations)
+        writeComment(startComment, parts);
     for (qsizetype i = 0; i < moves.size() && (maxPlies < 0 || i < maxPlies); ++i) {
         const MoveRecord &record = moves.at(i);
         std::optional<ChessMove> move = position.moveFromUci(record.uci);
@@ -67,22 +79,32 @@ void writeLine(const QList<MoveRecord> &moves, const QList<Variation> &variation
         position.play(*move);
         if (!withVariations)
             continue;
+        if (!MoveComment::forPgn(record.comment).isEmpty()) {
+            writeComment(record.comment, parts);
+            numbered = false; // "3…Nc6" after the comment.
+        }
         for (const Variation &variation : variations) {
             if (variation.atPly != i + 1)
                 continue;
             parts << QStringLiteral("(");
-            writeLine(variation.moves, variation.variations, before, -1, true, parts);
+            writeLine(variation.moves, variation.variations, before, -1, true, parts, variation.startComment);
             parts << QStringLiteral(")");
             numbered = false; // "3…Nc6" after the parenthesis.
         }
     }
 }
 
-/// The tokens of a movetext: tags, comments and line comments gone, the
-/// parentheses of variations as tokens of their own.
+/// Marks a token that is a comment's text rather than a move.
+constexpr QChar kCommentMark = QChar(0x1);
+
+/// The tokens of a movetext: tags and line comments gone, each comment in
+/// braces one token (kCommentMark and its text), the parentheses of
+/// variations tokens of their own.
 QStringList tokenize(const QString &text)
 {
     QString movetext;
+    QStringList comments;
+    QString comment;
     bool inComment = false;
     bool inTag = false;
     bool inLineComment = false;
@@ -92,7 +114,16 @@ QStringList tokenize(const QString &text)
             continue;
         }
         if (inComment) {
-            inComment = c != QLatin1Char('}');
+            if (c == QLatin1Char('}')) {
+                inComment = false;
+                // The comment stands in the movetext as a placeholder word,
+                // its text kept aside: the split below must not cut it.
+                movetext += QStringLiteral(" %1%2 ").arg(kCommentMark).arg(comments.size());
+                comments << comment.simplified();
+                comment.clear();
+            } else {
+                comment += c;
+            }
             continue;
         }
         if (inTag) {
@@ -112,7 +143,12 @@ QStringList tokenize(const QString &text)
         }
     }
     static const QRegularExpression separators(QStringLiteral(R"([\s,]+)"));
-    return movetext.split(separators, Qt::SkipEmptyParts);
+    QStringList tokens = movetext.split(separators, Qt::SkipEmptyParts);
+    for (QString &token : tokens) {
+        if (token.startsWith(kCommentMark))
+            token = kCommentMark + comments.value(token.mid(1).toInt());
+    }
+    return tokens;
 }
 
 /// Reads one line of tokens from `i`, to its closing parenthesis or the end,
@@ -120,7 +156,7 @@ QStringList tokenize(const QString &text)
 /// `errorMessage` on an illegal move when `strict`; otherwise the line stops
 /// there and the rest of it is skipped.
 bool readLine(const QStringList &tokens, qsizetype &i, const ChessPosition &start, QList<MoveRecord> &moves,
-              QList<Variation> &variations, bool strict, QString *errorMessage)
+              QList<Variation> &variations, QString &startComment, bool strict, QString *errorMessage)
 {
     static const QRegularExpression moveNumber(QStringLiteral(R"(^\d+\s*(\.+|…)\s*)"));
     static const QRegularExpression result(QStringLiteral(R"(^(1-0|0-1|1/2-1/2|½-½|\*)$)"));
@@ -135,7 +171,8 @@ bool readLine(const QStringList &tokens, qsizetype &i, const ChessPosition &star
             Variation variation;
             variation.atPly = int(moves.size());
             const ChessPosition &before = moves.isEmpty() ? positions.first() : positions.at(moves.size() - 1);
-            if (!readLine(tokens, i, before, variation.moves, variation.variations, false, errorMessage))
+            if (!readLine(tokens, i, before, variation.moves, variation.variations, variation.startComment, false,
+                          errorMessage))
                 return false;
             if (!stopped && variation.atPly >= 1 && !variation.moves.isEmpty())
                 variations << variation;
@@ -143,6 +180,12 @@ bool readLine(const QStringList &tokens, qsizetype &i, const ChessPosition &star
         }
         if (stopped)
             continue; // The rest of a cut variation, up to its parenthesis.
+        if (token.startsWith(kCommentMark)) {
+            // After a move it is that move's; before any, the line's.
+            QString &into = moves.isEmpty() ? startComment : moves.last().comment;
+            into = MoveComment::joined(into, token.mid(1));
+            continue;
+        }
         token.remove(moveNumber);
         if (token.startsWith(QLatin1Char('$')) && !moves.isEmpty())
             MoveAnnotation::split(token, &moves.last().nags); // A NAG belongs to the move before it.
@@ -171,7 +214,7 @@ bool readLine(const QStringList &tokens, qsizetype &i, const ChessPosition &star
                                     .arg(token, moves.isEmpty() ? QObject::tr("the start position") : moveText(sofar));
             return false;
         }
-        moves << MoveRecord{position.san(*move), move->uci(), nags};
+        moves << MoveRecord{position.san(*move), move->uci(), nags, {}};
         ChessPosition next = position;
         next.play(*move);
         positions << next;
@@ -189,7 +232,7 @@ QString moveText(const GameRecord &game, int plies)
     if (!start)
         return {};
     QStringList parts;
-    writeLine(game.moves, game.variations, *start, plies, plies < 0, parts);
+    writeLine(game.moves, game.variations, *start, plies, plies < 0, parts, game.startComment);
     return parts.join(QLatin1Char(' '));
 }
 
@@ -236,9 +279,31 @@ std::optional<ParsedLine> parseLine(const QString &text, const QString &startFen
     const QStringList tokens = tokenize(text);
     qsizetype i = 0;
     QString error;
-    if (!readLine(tokens, i, *position, line.moves, line.variations, true, &error))
+    if (!readLine(tokens, i, *position, line.moves, line.variations, line.startComment, true, &error))
         return fail(error);
     return line;
+}
+
+QString tagsText(const QList<PgnTag> &tags)
+{
+    QStringList lines;
+    for (const PgnTag &extra : tags)
+        lines << QStringLiteral("[%1 \"%2\"]").arg(extra.name, tagValue(extra.value, QString()));
+    return lines.isEmpty() ? QStringLiteral("") : lines.join(QLatin1Char('\n')); // Never null: the column is NOT NULL.
+}
+
+QList<PgnTag> tagsFromText(const QString &text)
+{
+    QList<PgnTag> tags;
+    static const QRegularExpression tag(QStringLiteral(R"re(^\s*\[(\w+)\s+"((?:[^"\\]|\\.)*)"\s*\])re"),
+                                        QRegularExpression::MultilineOption);
+    for (auto it = tag.globalMatch(text); it.hasNext();) {
+        const QRegularExpressionMatch match = it.next();
+        QString value = match.captured(2);
+        value.replace(QLatin1String("\\\""), QLatin1String("\"")).replace(QLatin1String("\\\\"), QLatin1String("\\"));
+        tags << PgnTag{match.captured(1), value};
+    }
+    return tags;
 }
 
 QString game(const GameRecord &game, int plies)
@@ -260,6 +325,8 @@ QString game(const GameRecord &game, int plies)
         pgn += tag("BlackElo", QString::number(game.blackElo));
     if (!game.eco.trimmed().isEmpty())
         pgn += tag("ECO", tagValue(game.eco));
+    if (!game.tags.isEmpty())
+        pgn += tagsText(game.tags) + QLatin1Char('\n');
     if (!game.startFen.isEmpty()) {
         pgn += tag("SetUp", QStringLiteral("1"));
         pgn += tag("FEN", tagValue(game.startFen));

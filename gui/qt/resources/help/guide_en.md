@@ -67,7 +67,7 @@ Move a piece by dragging it, or by clicking it and then its square. A pawn reach
 
 - **Left** and **Right** go one move back and forward, **Home** and **End** to the start and the end. Clicking a move in the Moves panel goes there.
 - **View ▸ Flip Board** (Ctrl+R) turns the board around; **View ▸ Show Coordinates** shows or hides the letters and numbers.
-- **Options ▸ Graphics Settings…** chooses the **Appearance** — Follow the System (the default), or always Light or always Dark, whatever the system says —, where the captured pieces are shown and whether to show whose turn it is. These settings stay on this computer: each one can match its own desktop.
+- **Options ▸ Graphics Settings…** chooses the **Appearance** — Follow the System (the default), or always Light or always Dark, whatever the system says —, where the captured pieces are shown, whether to show whose turn it is, and whether a move is heard: **Sound when a piece is moved** plays the knock of a piece set down on the board for your moves, the engine's in training and your opponent's online (the engine's and the opponent's when they land). These settings stay on this computer: each one can match its own desktop.
 - When the position on the board is **checkmate**, the border of the board turns red.
 
 **Game ▸ New Game** (Ctrl+Shift+N) starts a game to enter move by move. **Game ▸ Save Game to Database** stores it in the open database; **Game ▸ Save Game to Another Database…** stores it in a database you choose, which is not opened.
@@ -95,6 +95,8 @@ A move can carry one judgement of the move and one assessment of the position:
 - `+−` White is winning, `±` White is better, `⩲` White is slightly better, `=` equal, `∞` unclear, `⩱` `∓` `−+` the same for Black.
 
 Choose the symbol a move already has to take it off, or **No Annotation** to clear them all. Annotations are saved with the game at once and are written when you copy the game as PGN.
+
+**Comments** — the text between the moves of a PGN game or of a lichess study — are shown in italics: under their move in the main line, between the moves in a variation. The commands programs put in comments (an evaluation `[%eval 0.18]`, a clock, arrows) are kept with the game but not shown. Comments are saved in the database with the game and written back when the game is written as PGN.
 
 # Explain {#explain}
 
@@ -185,6 +187,7 @@ A source brings your games from a website into the open database and keeps them 
 - **chess.com**: your user name;
 - **torneionline.com**: your FIDE or FSI number, for the games of the tournaments you played.
 - **ChessBase files**: a ChessBase database (`.cbh` and its files) on this computer. Choose the `.cbh` file: its games are copied in, the files stay where they are, and games added to them later arrive at the next sync. On another computer the file is not there: the sync says so and offers to ignore the source on that computer; *Database ▸ Manage Sources… ▸ Edit…* chooses the file again.
+- **Lichess Study**: a study on lichess.org. Paste the address of its page (or of one of its chapters) in **Study address**: each chapter becomes a game of the database, with its comments and variations, and its tags `StudyName`, `ChapterName` and `ChapterURL` say which study and chapter it is (the study's chapters are not the chapters of a project). A chapter changed on lichess.org replaces its game at the next sync, unless the game changed here too: then both are kept. A public study needs no account; for a private one, **Sign In with lichess.org…** with an account that can see it. For now the study is only read: writing to it is coming.
 - **PGN file**: a `.pgn` file on this computer, kept in step with the database. Choose it with **Browse…**, or make an empty one with **New File…**, then the **Direction**: **Read and write** (the file's games come into the database and the database's games go into the file, so a game added or changed on either side reaches the other), **Read only** (the file is never written) or **Write only** (every game of the database goes into the file; the file's other games stay out of the database). A game you save, change or annotate is written to the file a few seconds later. Nothing removed on one side is removed on the other, and a game changed on both sides between two syncs is kept twice. Pragma Chess marks each game it ties to the database with a `PragmaUid` tag, and keeps an index beside the file in a hidden file, so a file that did not change is not read again.
 
 Sources are read when the database is opened and every twenty minutes. A game is never imported twice. **Database ▸ Manage Sources…** syncs a source now, changes it, signs in again or removes it; the games already imported stay.

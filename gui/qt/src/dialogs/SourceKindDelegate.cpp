@@ -25,6 +25,8 @@ Tile tileFor(const QString &kind)
 {
     if (kind == QLatin1String("lichess"))
         return {QColor(0x3a, 0x3a, 0x3a), QStringLiteral("♞")}; // Knight.
+    if (kind == QLatin1String("lichess-study"))
+        return {QColor(0x3a, 0x3a, 0x3a), QStringLiteral("♝")}; // lichess's colour; a bishop: studying.
     if (kind == QLatin1String("chesscom"))
         return {QColor(0x5d, 0x8a, 0x3c), QStringLiteral("♟")}; // Pawn.
     if (kind == QLatin1String("torneionline"))

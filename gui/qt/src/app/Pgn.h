@@ -26,8 +26,9 @@ QString moveText(const GameRecord &game, int plies = -1);
 /// the "…" ends a game of `plyCount` plies that goes on after `sanMoves`.
 QString preview(const QString &startFen, const QStringList &sanMoves, int plyCount);
 
-/// A game read from text people paste: PGN (tags and comments are skipped; a
-/// FEN tag sets the start; "!", "?" and the NAGs that have a symbol are kept
+/// A game read from text people paste: PGN (tags are skipped — PgnFile::read
+/// keeps them —, comments are kept on the move before them; a FEN tag sets
+/// the start; "!", "?" and the NAGs that have a symbol are kept
 /// as annotations; variations in parentheses are kept, each an alternative
 /// to the move before it), plain SAN with or without move numbers, or UCI
 /// moves.
@@ -36,6 +37,8 @@ struct ParsedLine {
     QString startFen;
     QList<MoveRecord> moves;
     QList<Variation> variations;
+    /// The comment before the first move.
+    QString startComment;
 };
 
 /// Parses a game starting from `startFen` (unless the text has a FEN tag).
@@ -43,8 +46,14 @@ struct ParsedLine {
 /// explains why; a variation is cut at its first illegal move.
 std::optional<ParsedLine> parseLine(const QString &text, const QString &startFen, QString *errorMessage);
 
-/// A complete PGN game: the seven tag roster, ratings, ECO, the start
-/// position for games not starting from the initial one, and the movetext
+/// Tags as PGN writes them, one per line: `[StudyName "Endgames"]`. How
+/// `games.tags` stores the tags that have no column.
+QString tagsText(const QList<PgnTag> &tags);
+/// Reads tagsText()'s form (or any PGN tag lines).
+QList<PgnTag> tagsFromText(const QString &text);
+
+/// A complete PGN game: the seven tag roster, ratings, ECO, the game's other
+/// tags (GameRecord::tags), the start position for games not starting from the initial one, and the movetext
 /// wrapped at 80 columns. A game cut before its end gets the result "*".
 QString game(const GameRecord &game, int plies = -1);
 

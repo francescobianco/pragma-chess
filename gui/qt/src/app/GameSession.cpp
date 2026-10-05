@@ -53,10 +53,14 @@ void GameSession::setHeader(const GameRecord &header)
     const QList<MoveRecord> moves = m_game.moves;
     const QList<Variation> variations = m_game.variations;
     const QString startFen = m_game.startFen;
+    const QString startComment = m_game.startComment;
+    const QList<PgnTag> tags = m_game.tags; // The header shows the fields, not these.
     m_game = header;
     m_game.moves = moves;
     m_game.variations = variations;
     m_game.startFen = startFen;
+    m_game.startComment = startComment;
+    m_game.tags = tags;
     m_game.plyCount = int(moves.size());
     Q_EMIT headerChanged();
 }

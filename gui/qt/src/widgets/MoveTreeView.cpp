@@ -9,6 +9,7 @@
 #include "app/GameSession.h"
 #include "app/GameVariations.h"
 #include "app/MoveAnnotation.h"
+#include "app/MoveComment.h"
 
 #include <QAbstractTextDocumentLayout>
 #include <QKeyEvent>
@@ -134,6 +135,15 @@ struct Writer {
     {
         bool numbered = false;
         QStringList parts;
+        // Comments in a line are set in italics between its moves.
+        const auto comment = [&parts, &numbered](const QString &raw) {
+            const QString shownText = MoveComment::displayText(raw);
+            if (shownText.isEmpty())
+                return;
+            parts << QStringLiteral("<i>%1</i>").arg(shownText.toHtmlEscaped());
+            numbered = false;
+        };
+        comment(variation.startComment);
         for (qsizetype i = 0; i < variation.moves.size(); ++i) {
             const MoveRecord &move = variation.moves.at(i);
             const int ply = basePly + int(i) + 1;
@@ -142,6 +152,7 @@ struct Writer {
                 text = before.moveNumberText().toHtmlEscaped() + text;
             numbered = true;
             parts << link(path, ply, text);
+            comment(move.comment);
             const ChessPosition at = before;
             if (const std::optional<ChessMove> played = before.moveFromUci(move.uci))
                 before.play(*played);
@@ -471,6 +482,7 @@ void MoveTreeView::rebuild()
                                   "td.dots { color: %1; }"
                                   "td.cur { color: %4; background-color: %5; }"
                                   "td.var { font-size: 92%; color: %2; padding-left: 14px; }"
+                                  "td.com { font-size: 92%; font-style: italic; color: %3; padding-left: 14px; }"
                                   "td.par { color: %3; padding: 8px %6px; }"
                                   "td.break { padding: 10px %6px; }"
                                   "a { text-decoration: none; }"
@@ -549,6 +561,16 @@ void MoveTreeView::rebuild()
                             .arg(bookStyle, paragraphHtml(paragraphs.at(p).text, indent));
             }
         };
+        // A comment of the main line: a row under its move, in italics.
+        const auto commentRow = [&](const QString &raw) {
+            const QString shownText = MoveComment::displayText(raw);
+            if (shownText.isEmpty())
+                return;
+            ++row;
+            html += QStringLiteral("<tr><td></td><td colspan=\"2\" class=\"com\">%1</td></tr>")
+                        .arg(shownText.toHtmlEscaped());
+        };
+        commentRow(game.startComment);
         paragraphRows(0);
 
         for (qsizetype i = 0; i < game.moves.size(); ++i) {
@@ -569,9 +591,9 @@ void MoveTreeView::rebuild()
                 position.play(*played);
             else
                 break;
-            // What comes right under the move: its paragraphs, then the
-            // variations that replace it.
-            bool hasBlock = false;
+            // What comes right under the move: its comment, its paragraphs,
+            // then the variations that replace it.
+            bool hasBlock = !MoveComment::displayText(move.comment).isEmpty();
             for (const Paragraph &paragraph : paragraphs)
                 hasBlock = hasBlock || paragraph.ply == ply;
             for (const Variation &variation : game.variations)
@@ -581,6 +603,7 @@ void MoveTreeView::rebuild()
             if (white)
                 html += QStringLiteral("<td class=\"dots\">…</td>");
             closeRow();
+            commentRow(move.comment);
             paragraphRows(ply);
             for (int v = 0; v < game.variations.size(); ++v) {
                 const Variation &variation = game.variations.at(v);

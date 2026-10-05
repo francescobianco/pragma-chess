@@ -30,7 +30,9 @@ public:
     /// Adds the account, or replaces the one of the same platform and user name.
     void add(const OnlineAccount &account);
     void remove(const QString &id);
-    const OnlineAccount *find(const QString &id) const;
+    /// Points into this list: never call it on a temporary (that is refused).
+    const OnlineAccount *find(const QString &id) const &;
+    const OnlineAccount *find(const QString &id) const && = delete;
 
     /// The name a platform shows: "lichess.org".
     static QString platformName(const QString &platform);

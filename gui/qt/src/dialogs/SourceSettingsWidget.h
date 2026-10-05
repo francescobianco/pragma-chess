@@ -43,6 +43,10 @@ private:
     /// The file and the direction of a PGN file source.
     void addPgnFile(QFormLayout *form);
     bool isPgn() const { return m_kind.id == QLatin1String("pgn"); }
+    /// The address and the direction of a lichess study.
+    void addStudy(QFormLayout *form);
+    bool isStudy() const { return m_kind.id == QLatin1String("lichess-study"); }
+    bool validateStudy(QString *errorMessage);
 
     SourceKind m_kind;
     QString m_uuid;
@@ -52,6 +56,10 @@ private:
     QLineEdit *m_path = nullptr;
     /// Which way the games go, for a PGN file.
     QComboBox *m_direction = nullptr;
+    /// The address of the study's page, for a lichess study.
+    QLineEdit *m_url = nullptr;
+    /// The study's name, found by validate().
+    QString m_studyName;
     QLineEdit *m_account;
     QCheckBox *m_limitSince;
     QDateEdit *m_since;

@@ -429,6 +429,14 @@ Il Nero ha catturato: %2</translation>
         <source>The %1 of &lt;b&gt;%2&lt;/b&gt; will be imported into &lt;b&gt;%3&lt;/b&gt;.&lt;br&gt;&lt;br&gt;The first import starts when you finish and runs in the background; new games keep arriving while the database is open. Sources can be removed or signed in again from Database ▸ Manage Sources.</source>
         <translation>Le %1 di &lt;b&gt;%2&lt;/b&gt; verranno importate in &lt;b&gt;%3&lt;/b&gt;.&lt;br&gt;&lt;br&gt;La prima importazione inizia quando termini e prosegue in background; le nuove partite continuano ad arrivare finché il database è aperto. Le sorgenti possono essere rimosse o si può accedere di nuovo da Database ▸ Gestisci sorgenti.</translation>
     </message>
+    <message>
+        <source>Which study to keep in “%1”.</source>
+        <translation>Quale studio tenere in “%1”.</translation>
+    </message>
+    <message>
+        <source>chapters</source>
+        <translation>capitoli</translation>
+    </message>
 </context>
 <context>
     <name>DatabaseSettingsDialog</name>
@@ -1133,6 +1141,14 @@ Il Nero ha catturato: %2</translation>
         <source>These settings are kept on this computer only: each computer can match its own desktop. The board style is in Personal Settings, and travels with Sync.</source>
         <translation>Queste impostazioni restano solo su questo computer: ognuno può accordarsi al proprio desktop. Lo stile della scacchiera sta nelle Impostazioni personali e viaggia con la sincronizzazione.</translation>
     </message>
+    <message>
+        <source>&amp;Sound when a piece is moved</source>
+        <translation>&amp;Suono quando si muove un pezzo</translation>
+    </message>
+    <message>
+        <source>Your moves, the engine&apos;s in training and your opponent&apos;s online</source>
+        <translation>Le tue mosse, quelle del motore in allenamento e quelle del tuo avversario online</translation>
+    </message>
 </context>
 <context>
     <name>HelpDialog</name>
@@ -1177,6 +1193,28 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>lichess.org did not grant access.</source>
         <translation>lichess.org non ha concesso l&apos;accesso.</translation>
+    </message>
+</context>
+<context>
+    <name>LichessStudyFetch</name>
+    <message>
+        <source>The address of the lichess study is not valid.</source>
+        <translation>L&apos;indirizzo dello studio lichess non è valido.</translation>
+    </message>
+    <message>
+        <source>lichess.org did not find the study, or it is private: sign in with the account that can see it.</source>
+        <translation>lichess.org non ha trovato lo studio, oppure è privato: accedi con l&apos;account che può vederlo.</translation>
+    </message>
+    <message>
+        <source>Could not save the games: %1</source>
+        <translation>Impossibile salvare le partite: %1</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n chapter(s) of the study could not be read.</source>
+        <translation>
+            <numerusform>%n capitolo dello studio non si è potuto leggere.</numerusform>
+            <numerusform>%n capitoli dello studio non si sono potuti leggere.</numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -3722,6 +3760,10 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>A PGN file on this computer, kept in step with the database: its games come into the database, the database&apos;s games go into the file, or both.</source>
         <translation>Un file PGN su questo computer, tenuto al passo con il database: le sue partite entrano nel database, le partite del database vanno nel file, o entrambe le cose.</translation>
     </message>
+    <message>
+        <source>The chapters of a study on lichess.org, from the address of its page: each chapter a game, with its comments and variations. A public study needs no account; a private one, signing in.</source>
+        <translation>I capitoli di uno studio su lichess.org, dall&apos;indirizzo della sua pagina: ogni capitolo una partita, con i suoi commenti e le sue varianti. Uno studio pubblico non chiede un account; uno privato, l&apos;accesso.</translation>
+    </message>
 </context>
 <context>
     <name>SourceSettingsWidget</name>
@@ -3948,6 +3990,58 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>The file “%1” cannot be written: choose Read only, or another file.</source>
         <translation>Il file “%1” non si può scrivere: scegli Solo lettura, o un altro file.</translation>
+    </message>
+    <message>
+        <source>https://lichess.org/study/…</source>
+        <translation>https://lichess.org/study/…</translation>
+    </message>
+    <message>
+        <source>Paste the address of the study&apos;s page, or of one of its chapters</source>
+        <translation>Incolla l&apos;indirizzo della pagina dello studio, o di uno dei suoi capitoli</translation>
+    </message>
+    <message>
+        <source>Study &amp;address:</source>
+        <translation>&amp;Indirizzo dello studio:</translation>
+    </message>
+    <message>
+        <source>Read and write (coming soon)</source>
+        <translation>Lettura e scrittura (in arrivo)</translation>
+    </message>
+    <message>
+        <source>Write only (coming soon)</source>
+        <translation>Solo scrittura (in arrivo)</translation>
+    </message>
+    <message>
+        <source>Each chapter of the study becomes a game of this database, with its comments and variations; its tags StudyName, ChapterName and ChapterURL say which study and chapter it is. A chapter changed on lichess.org replaces its game, unless the game changed here too: then both are kept. A public study needs no account; for a private one, sign in with an account that can see it.</source>
+        <translation>Ogni capitolo dello studio diventa una partita di questo database, con i suoi commenti e le sue varianti; i suoi tag StudyName, ChapterName e ChapterURL dicono di quale studio e capitolo si tratta. Un capitolo cambiato su lichess.org sostituisce la sua partita, a meno che la partita sia cambiata anche qui: allora si tengono tutte e due. Uno studio pubblico non chiede un account; per uno privato, accedi con un account che può vederlo.</translation>
+    </message>
+    <message>
+        <source>Paste the address of the study, e.g. https://lichess.org/study/iob5mNFl.</source>
+        <translation>Incolla l&apos;indirizzo dello studio, per esempio https://lichess.org/study/iob5mNFl.</translation>
+    </message>
+    <message>
+        <source>“%1” is not the address of a lichess study.</source>
+        <translation>“%1” non è l&apos;indirizzo di uno studio lichess.</translation>
+    </message>
+    <message>
+        <source>lichess.org did not find the study, or it is private: sign in with an account that can see it.</source>
+        <translation>lichess.org non ha trovato lo studio, oppure è privato: accedi con un account che può vederlo.</translation>
+    </message>
+    <message>
+        <source>lichess.org did not find the study, or this account cannot see it.</source>
+        <translation>lichess.org non ha trovato lo studio, oppure questo account non può vederlo.</translation>
+    </message>
+    <message>
+        <source>Could not reach the study on lichess.org: %1</source>
+        <translation>Impossibile raggiungere lo studio su lichess.org: %1</translation>
+    </message>
+    <message>
+        <source>The study has no chapter that can be read.</source>
+        <translation>Lo studio non ha capitoli leggibili.</translation>
+    </message>
+    <message>
+        <source>Not signed in: public studies only</source>
+        <translation>Accesso non effettuato: solo studi pubblici</translation>
     </message>
 </context>
 <context>

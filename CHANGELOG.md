@@ -6,6 +6,43 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- A new source, **Lichess Study**: paste the address of a study on
+  lichess.org and each of its chapters becomes a game of the database, with
+  its comments and variations, the study and the chapter in its PGN tags
+  (StudyName, ChapterName, ChapterURL). Chapters changed on lichess.org
+  replace their game at the next sync. Public studies need no account; a
+  private one needs signing in. Writing to the study is coming.
+- Comments: the text between the moves of a PGN game or a lichess study is
+  kept with the game and shown in italics in the move list; the commands
+  programs put in comments (evaluations, clocks, arrows) are kept, not
+  shown.
+- Games keep the PGN tags that have no field of their own (TimeControl,
+  Opening, Annotator…), and write them back to PGN.
+
+- The sound of a piece set down on the board at every move: yours, the
+  engine's in training and your opponent's online (when their piece
+  lands). Options ▸ Graphics Settings… turns it off.
+
+### Changed
+
+- The `.pdb` schema is now version 8 (the games' other PGN tags and their
+  comments). A database opened by this version can no longer be opened by
+  0.3.0, nor by the Android app before 0.3.1.
+
+### Fixed
+
+- On Windows with a dark theme, Database ▸ Connect Source… showed a white
+  window on which the texts could not be read; with a light theme some of
+  them were white too. It is now drawn with the theme's colours like the
+  other dialogs.
+- On Windows the dialogs no longer show the application's icon in their
+  title bar (the Connect Source one showed it out of place): only the main
+  window does, as on GNOME.
+- The application could crash at startup while it was resuming an online
+  game left in progress.
+
 ## [0.3.0] - 2026-10-05
 
 ### Added

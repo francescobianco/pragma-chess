@@ -24,6 +24,8 @@ struct GraphicsSettings {
     CapturedPiecesPlacement capturedPieces = CapturedPiecesPlacement::BesideBoard;
     /// The dot on the side of the player to move.
     bool showTurn = true;
+    /// The sound of a piece set down, at every move played.
+    bool moveSound = true;
 
     static GraphicsSettings load();
     void save() const;

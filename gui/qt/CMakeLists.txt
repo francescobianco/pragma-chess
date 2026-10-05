@@ -98,6 +98,19 @@ if(PRAGMA_PHONE_LINK)
     endif()
 endif()
 
+# Third-party code fetched and built here (yaml-cpp, libdatachannel and what
+# it brings, secp256k1): its warnings are for its authors, and MSVC prints a
+# dozen of them in every Windows build. Our own code keeps all its warnings.
+foreach(dependency yaml-cpp datachannel-static usrsctp juice-static srtp2 secp256k1)
+    if(TARGET ${dependency})
+        get_target_property(imported ${dependency} IMPORTED)
+        get_target_property(aliased ${dependency} ALIASED_TARGET)
+        if(NOT imported AND NOT aliased)
+            target_compile_options(${dependency} PRIVATE $<IF:$<C_COMPILER_ID:MSVC>,/w,-w>)
+        endif()
+    endif()
+endforeach()
+
 qt_standard_project_setup()
 
 set(APP_ID "io.github.francescobianco.PragmaChess")
@@ -136,6 +149,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/GameState.h
     src/app/MoveExplanation.cpp
     src/app/MoveExplanation.h
+    src/app/MoveComment.cpp
+    src/app/MoveComment.h
     src/app/MoveAnnotation.cpp
     src/app/MoveAnnotation.h
     src/app/OpeningNames.cpp
@@ -186,6 +201,10 @@ qt_add_library(pragma-chess-core STATIC
     src/app/sources/ChessComFetch.cpp
     src/app/sources/ChessComFetch.h
     src/app/sources/GameSource.h
+    src/app/sources/LichessStudy.cpp
+    src/app/sources/LichessStudy.h
+    src/app/sources/LichessStudyFetch.cpp
+    src/app/sources/LichessStudyFetch.h
     src/app/sources/LichessFetch.cpp
     src/app/sources/LichessFetch.h
     src/app/sources/LichessSignIn.cpp
@@ -343,6 +362,10 @@ qt_add_executable(pragma-chess
     src/platform/WindowChrome.h
     src/platform/Appearance.cpp
     src/platform/Appearance.h
+    src/platform/MoveSound.cpp
+    src/platform/MoveSound.h
+    src/platform/DialogFrame.cpp
+    src/platform/DialogFrame.h
     src/platform/GtkDesktopStyle.cpp
     src/platform/GtkDesktopStyle.h
     src/platform/SymbolicIcons.cpp
@@ -458,9 +481,13 @@ qt_add_resources(pragma-chess credits PREFIX /credits BASE resources/credits
 qt_add_resources(pragma-chess fonts PREFIX /fonts BASE resources/fonts
     FILES resources/fonts/pragma-figurine.otf resources/fonts/crimson-pro.ttf)
 qt_add_resources(pragma-chess appicon PREFIX /icons BASE data/icons FILES ${APP_ICON_FILES})
+# The sound of a move (a CC0 wooden knock, resources/sounds/README.md), played by the system's own player.
+qt_add_resources(pragma-chess sounds PREFIX / FILES resources/sounds/move.wav)
 if(WIN32)
     target_sources(pragma-chess PRIVATE data/pragma-chess.rc)
+    target_link_libraries(pragma-chess PRIVATE winmm)
 elseif(APPLE)
+    target_link_libraries(pragma-chess PRIVATE "-framework AudioToolbox" "-framework CoreFoundation")
     set(APP_ICNS data/icons/pragma-chess.icns)
     set_source_files_properties(${APP_ICNS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     target_sources(pragma-chess PRIVATE ${APP_ICNS})

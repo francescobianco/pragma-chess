@@ -241,9 +241,10 @@ END FUNCTION
 ' latest on ties: the piece that finally falls), preceded by the move before
 ' it only when that move is part of the tactic: a capture, a check, a piece
 ' stepping onto the square that is then taken, or a square cleared for the
-' capture. Returns [focusFirst, focusLast].
+' capture. Returns [focusFirst, focusLast], without the losing side's last
+' moves (WithoutLoserTail).
 FUNCTION FocusWindow(line, first, last, beneficiary)
-    IF last - first <= FOCUS_ABOVE THEN RETURN [first, last]
+    IF last - first <= FOCUS_ABOVE THEN RETURN WithoutLoserTail(line, [first, last], beneficiary)
     moves = line[0]
     positions = line[1]
     decisive = first
@@ -260,7 +261,23 @@ FUNCTION FocusWindow(line, first, last, beneficiary)
         IF related THEN focusFirst = MAX(first, decisive + 1 - FOCUS_PLIES)
     END IF
     NOTE "  focus: " + STR(last - first) + " plies are too many arrows; biggest jump +" + STR(biggest) + " at " + MoveText(positions[decisive], moves[decisive]) + ", drawing plies " + STR(focusFirst + 1) + "-" + STR(decisive + 1)
-    RETURN [focusFirst, decisive + 1]
+    RETURN WithoutLoserTail(line, [focusFirst, decisive + 1], beneficiary)
+END FUNCTION
+
+' The moves a sequence ends with that the losing side plays — taking back
+' what it can after the piece fell (9...Nxd4 10.Bxd4) — are not drawn: they
+' only limit the damage, and the arrow that wins is the message. The text
+' still gives the whole line, since the balance counts them. A recapture in
+' the middle of the exchanges (5.Bxf7+ Kxf7, then the winner's move) stays.
+FUNCTION WithoutLoserTail(line, window, beneficiary)
+    first = window[0]
+    last = window[1]
+    WHILE last - 1 > first
+        IF SIDETOMOVE(line[1][last - 1]) = beneficiary THEN EXIT WHILE
+        NOTE "  not drawn: " + MoveText(line[1][last - 1], line[0][last - 1]) + ", the losing side only takes back"
+        last = last - 1
+    WEND
+    RETURN [first, last]
 END FUNCTION
 
 ' The moves of `line` when they end in checkmate, to be played on the board.

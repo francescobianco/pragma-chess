@@ -1,6 +1,8 @@
 # Positions the user asked about, recorded with what Explain showed then.
 # 2026-10-05, 9.Bxf6 (QGD Ragozin-like): "what does arrow 2 mean?" — the
 # blue f6-d4 is White recapturing (10.Bxd4) after 9...Nxd4 wins the queen.
+# Decision: the losing side's last recaptures are not drawn (EXPLAIN.smart,
+# WithoutLoserTail); the text still gives the line.
 explain
 before r1b1k2r/ppq2ppp/2n1pn2/2Pp2B1/3Q4/P1P2N2/2P1PPPP/R3KB1R w KQkq - 3 9
 played g5f6
@@ -25,7 +27,7 @@ tick depth 16 cp -396 pv c6d4 f6d4 e8g8 c3c4 c7a5 e1d1 d5c4 e2e3 f8d8 f1c4 a5c5
 tick depth 17 cp -407 pv c6d4 f6d4 e8g8 e2e4 d5e4 f3g5 e6e5 d4e3 c7a5 g5e4 f7f5 f1c4 g8h8 e4d6 a5c3 e1e2
 tick depth 18 cp -403 pv c6d4 f6d4 e8g8 c3c4 b7b6 c5b6 a7b6 a1b1 c8a6 e2e3 a6c4 d4b6 c7c6 f1d3 f7f6
 expect verdict mistake
-expect arrows d4e3 alternative, c6d4 refutation 1, f6d4 reply 2
+expect arrows d4e3 alternative, c6d4 refutation 1
 expect lost d4
 expect summary Mistake (−0.8 → −4.0). Black wins the queen for 2 knights: 9…Nxd4 10.Bxd4. Better was 9.Qe3.
 end

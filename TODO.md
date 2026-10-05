@@ -141,9 +141,9 @@ app Android. Ultimo commit del lavoro: `d7f16c1`. Resta:
   8.Qd4 Nc6 9.Bxf6: l'utente non capiva la freccia 2. È f6–d4 blu, la
   ripresa del Bianco 10.Bxd4 dopo 9…Nxd4: la sequenza finisce lì perché il
   materiale si conta a scambi finiti. Tre cose da decidere:
-  1. la ripresa di chi perde va disegnata? Toglie poco e confonde; forse
-     va tolta quando è l'ultima mossa e non cambia il verdetto, o detta
-     ("il Bianco riprende, ma…");
+  1. ~~la ripresa di chi perde va disegnata?~~ Deciso: no. Le ultime mosse
+     della parte che perde non si disegnano (`WithoutLoserTail` in
+     EXPLAIN.smart); il testo dà ancora la linea intera;
   2. il verdetto è "Errore" per una donna in presa: da −0.8 a −4.0 sono solo
      22,7 punti di probabilità perché il Bianco stava già peggio. Un pezzo
      lasciato in presa (la donna era già attaccata da 8…Nc6) meriterebbe

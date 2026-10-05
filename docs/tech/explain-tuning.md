@@ -232,3 +232,11 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   queen left hanging (the winning-chances curve saturates when already
   worse), and "for 2 knights" counting the knight 9.Bxf6 itself took. Case
   recorded in `smart/tests/user-feedback.ticks`; nothing changed yet.
+- 2026-10-05 — Same position: "the recapture is of little use to show; the
+  evidence is that the queen was taken. With equal exchanges ending in an
+  advantage it would have helped." Decision: in the material branches the
+  moves a sequence ends with that the losing side plays are not drawn
+  (`WithoutLoserTail`, EXPLAIN.smart); recaptures in the middle of the
+  exchanges stay, mates are drawn whole, and the text keeps the full line
+  since the balance counts them. 9.Bxf6 now shows 9.Qe3 dashed and
+  9…Nxd4 red; no other recorded case or test changed.

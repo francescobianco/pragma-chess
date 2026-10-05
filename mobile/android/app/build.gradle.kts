@@ -4,6 +4,16 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// X.Y.Z from the top-level CMakeLists.txt; versionCode is X·10000 + Y·100 + Z,
+// so every release is greater than the one before.
+val pragmaVersion: String = Regex("""set\(PRAGMA_VERSION\s+(\d+\.\d+\.\d+)""")
+    .find(rootProject.file("../../CMakeLists.txt").readText())
+    ?.groupValues?.get(1)
+    ?: error("PRAGMA_VERSION not found in the top-level CMakeLists.txt")
+val pragmaVersionCode: Int = pragmaVersion.split('.').map(String::toInt).let { (major, minor, patch) ->
+    major * 10000 + minor * 100 + patch
+}
+
 android {
     namespace = "org.pragmachess.mobile"
     compileSdk = 36
@@ -12,8 +22,10 @@ android {
         applicationId = "org.pragmachess.mobile"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        // The same version as the desktop client: PRAGMA_VERSION of the
+        // top-level CMakeLists.txt, the one place a release changes it.
+        versionName = pragmaVersion
+        versionCode = pragmaVersionCode
     }
 
     // Phones only (emulators on x86 are not worth a quarter of the APK), and

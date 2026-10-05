@@ -18,6 +18,7 @@ The latest version, always at these links:
 | macOS 12+ (Apple Silicon) | [Disk image](https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-macos-arm64.dmg) |
 | Ubuntu 24.04+ / Debian 13+ | [.deb](https://github.com/francescobianco/pragma-chess/releases/latest/download/pragma-chess_amd64.deb) |
 | Fedora | [.rpm](https://github.com/francescobianco/pragma-chess/releases/latest/download/pragma-chess.x86_64.rpm) |
+| Android 8+ (beta) | [APK](https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-android.apk) |
 
 Every version, with files named after it, is on the
 [releases page](https://github.com/francescobianco/pragma-chess/releases).
@@ -25,14 +26,15 @@ The packages are built by GitHub Actions from [packaging/](packaging/README.md).
 
 ### Try the Android app
 
-The mobile app is in testing and we'd love your feedback. It reads your
+The mobile app is in beta and we'd love your feedback; it will soon be on
+the official app store. It reads your
 databases offline, records the games you play on the phone and analyses them
 with an engine app such as Stockfish (any Open Exchange engine, as in
 DroidFish; the app offers to install one); pair it with the desktop client in
 *Options ▸ Connect Mobile App…* to keep both in sync.
 
-**[Download the APK](https://github.com/francescobianco/pragma-chess/releases/download/v0.1.0/pragma-chess-0.1.0-android.apk)**
-(Android 8+, about 9 MB). Open the link on
+**[Download the APK](https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-android.apk)**
+(Android 8+, about 14 MB; it has the same version as the desktop client). Open the link on
 the phone and allow installing from that source when Android asks. Tell us
 what works and what doesn't in the
 [issues](https://github.com/francescobianco/pragma-chess/issues): the phone

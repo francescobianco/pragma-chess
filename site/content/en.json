@@ -106,32 +106,45 @@
     "formats_title": "What you get",
     "platforms": [
       {
-        "match": "windows-x64-setup.exe",
+        "system": "windows",
+        "file": "PragmaChess-windows-x64-setup.exe",
         "icon": "⊞",
         "name": "Windows",
         "text": "Installer for Windows 10 and 11, 64-bit. A portable .zip is on the releases page.",
         "label": "Download for Windows"
       },
       {
-        "match": "macos-arm64.dmg",
+        "system": "macos",
+        "file": "PragmaChess-macos-arm64.dmg",
         "icon": "⌘",
         "name": "macOS",
         "text": "Disk image for Apple Silicon Macs. Open it and drag Pragma Chess to Applications.",
         "label": "Download for macOS"
       },
       {
-        "match": "amd64.deb",
+        "system": "linux-deb",
+        "file": "pragma-chess_amd64.deb",
         "icon": "🐧",
         "name": "Linux (Debian, Ubuntu)",
-        "text": ".deb package for Ubuntu 24.04 and later and Debian 12 and later.",
+        "text": ".deb package for Ubuntu 24.04 and later and Debian 13 and later.",
         "label": "Download the .deb"
       },
       {
-        "match": "x86_64.rpm",
+        "system": "linux-rpm",
+        "file": "pragma-chess.x86_64.rpm",
         "icon": "🐧",
         "name": "Linux (Fedora)",
         "text": ".rpm package for Fedora and compatible distributions.",
         "label": "Download the .rpm"
+      },
+      {
+        "system": "android",
+        "file": "PragmaChess-android.apk",
+        "icon": "📱",
+        "name": "Android",
+        "beta": "Beta",
+        "text": "The phone app for Android 8 and later, in beta: pair it with the desktop client to carry your databases and games. Soon on the official app store.",
+        "label": "Download the APK"
       }
     ],
     "formats": [

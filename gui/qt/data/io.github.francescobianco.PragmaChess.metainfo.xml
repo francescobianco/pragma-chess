@@ -74,6 +74,9 @@
     <color type="primary" scheme_preference="dark">#5e3a24</color>
   </branding>
   <releases>
+    <release version="0.3.0" date="2026-10-05">
+      <url>https://github.com/francescobianco/pragma-chess/releases/tag/v0.3.0</url>
+    </release>
     <release version="0.2.0" date="2026-10-02">
       <url>https://github.com/francescobianco/pragma-chess/releases/tag/v0.2.0</url>
     </release>

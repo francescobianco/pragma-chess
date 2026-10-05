@@ -1053,7 +1053,14 @@ set to the `main` branch, folder `/docs`.
   `<release>` in `gui/qt/data/*.metainfo.xml` (validate with
   `appstreamcli validate --no-net`), the `tag` in
   `packaging/flatpak/*.yml`, `packaging/winget/make-winget.sh <version>` and
-  its PR to winget-pkgs; DISTRIBUTING.md has the list and the log. A new
+  its PR to winget-pkgs; DISTRIBUTING.md has the list and the log.
+  The Android app has the same version (its Gradle build reads
+  `PRAGMA_VERSION`): once CI has published the release, build
+  `mobile/android` with `./gradlew assembleRelease` and attach the
+  universal APK twice, as `PragmaChess-X.Y.Z-android.apk` and
+  `PragmaChess-android.apk` (the site's and README's permanent link,
+  `releases/latest/download/…`). It is built here, not in CI, because it
+  is signed with this machine's debug key, which the installed copies have. A new
   runtime file the app needs must reach all three: `install()` for Linux,
   the deploy steps in `packaging/windows/build.ps1` and `packaging/macos/build.sh`.
 - Commit messages: short imperative subject, blank line, then a bullet list of

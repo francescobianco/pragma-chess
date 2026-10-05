@@ -6,6 +6,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-05
+
 ### Added
 
 - Chapters: a project is now a collection of chapters, as a study or a
@@ -31,9 +33,6 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 - Board style, in Options ▸ Personal Settings…: Pragma Classic (the brown
   board and the pieces of chess books) or Lichess Alpha (lichess.org's
   green board and Alpha pieces).
-- Options ▸ Board Settings… is now Graphics Settings…, and chooses the
-  appearance too: follow the system, or always light, or always dark. It is
-  kept on each computer, so each one can match its own desktop.
 - Game ▸ Set Up Position… draws a position on a board — pieces, side to
   move, castling, en passant, move number, or a FEN — and starts a game from
   it. Moves on the board not saved yet can be discarded, saved to the open
@@ -57,56 +56,15 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 - Manage Files…, in the Sync Settings, lists the files on the server and
   deletes the ones you no longer want from every synced device, after a
   confirmation.
-- File ▸ Sync… is now Options ▸ Sync Settings…, and File ▸ Sync Now is the
-  toolbar's first button.
 - With a Git repository, a sync that only receives or finds nothing new no
   longer makes a commit, and each commit is named after the files it
   changes ("Update Databases/Games.pdb; add Projects/Study.pch").
-
 - A database deleted in the mobile app is no longer sent back to it, and
   the computer asks whether to delete it there too or keep it. Delete
   Everywhere… warns first, then moves it to the trash and deletes it from
   the sync folder on the server and from the other computers that sync
   with it.
-- The main window no longer grows at every start (by the height of its
-  title bar and the width of its shadow) until it ran off the screen; a
-  window never opens larger than the screen.
-- A little less space between the board and the Moves panel, the five
-  buttons under the board are exactly under its middle, and the Moves
-  panel's header lines up with the Opening Tree's to the pixel; the
-  separators between panels are a light bar whose ends carry the grey of
-  the panels' frames, so the frames' lines run on across them.
 - In the games list the players you marked as "me" are in bold.
-- The one-pixel edge of the main window is opaque, maximized too: it let
-  the desktop show through, so it brightened over a white window and
-  looked cut where a dark panel sat inside.
-- Saving an untitled project (which opens Save Project As), and every
-  other file dialog, no longer crashes the application on GNOME.
-- The title bar no longer swallows a click now and then: moving the
-  window starts only once the pointer is dragged, so double clicks and
-  drags work every time.
-- Resizing or showing a panel marks the project as changed, so Save
-  Project keeps the new proportions; resizing the window keeps the
-  proportions of the panels, so the project file does not depend on the
-  window's size.
-- File ▸ New Project keeps the database, the engine and the panels as
-  they are and starts a new, empty game seen from White's side, with
-  Training Mode off.
-- Opening a game from the games list turns Training Mode off: a stored
-  game is for studying, and the engine must not play moves in it.
-- Project files store the panels in clear: which are shown and their
-  shares of the window in per cent, with two decimals (`workspace` in
-  the `.pch`), so a
-  project looks the same on another screen and can be read and edited by
-  hand. Older projects are still read.
-- View lists the panels as Moves, Opening Tree, Engine and, last, Games
-  List.
-- The title bar of the main window shows the Pragma Chess logo in its left
-  corner.
-- The title bar drops the asterisk as soon as the project is saved, not
-  at the next click.
-- The toolbar has a Save Project button, the classic floppy, before New
-  Game; the Save icons of the menus are floppies too.
 - **Play online.** Game ▸ Play Online… plays against a person on
   lichess.org: connect the platform from the dialog (it signs you in with
   your browser), choose clock, colour and rated or casual, and find an
@@ -181,9 +139,44 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- File ▸ Sync… is now Options ▸ Sync Settings…, and File ▸ Sync Now is the
+  toolbar's first button.
+- Options ▸ Board Settings… is now Graphics Settings…, and chooses the
+  appearance too: follow the system, or always light, or always dark. It is
+  kept on each computer, so each one can match its own desktop.
+- A little less space between the board and the Moves panel, the five
+  buttons under the board are exactly under its middle, and the Moves
+  panel's header lines up with the Opening Tree's to the pixel; the
+  separators between panels are a light bar whose ends carry the grey of
+  the panels' frames, so the frames' lines run on across them.
+- Resizing or showing a panel marks the project as changed, so Save
+  Project keeps the new proportions; resizing the window keeps the
+  proportions of the panels, so the project file does not depend on the
+  window's size.
+- File ▸ New Project keeps the database, the engine and the panels as
+  they are and starts a new, empty game seen from White's side, with
+  Training Mode off.
+- Opening a game from the games list turns Training Mode off: a stored
+  game is for studying, and the engine must not play moves in it.
+- Project files store the panels in clear: which are shown and their
+  shares of the window in per cent, with two decimals (`workspace` in
+  the `.pch`), so a
+  project looks the same on another screen and can be read and edited by
+  hand. Older projects are still read.
+- View lists the panels as Moves, Opening Tree, Engine and, last, Games
+  List.
+- The title bar of the main window shows the Pragma Chess logo in its left
+  corner.
+- The toolbar has a Save Project button, the classic floppy, before New
+  Game; the Save icons of the menus are floppies too.
 - In online play the Opening Tree no longer disappears: the panel stays
   where you put it and lists no moves until the game ends, its first row
   saying why.
+- **Android app (beta).** The companion app for phones is attached to the
+  release as `PragmaChess-android.apk`: it pairs with the computer
+  (Options ▸ Connect Mobile App…), keeps its databases offline and sends
+  the games entered on the phone back. Signed for testing for now; it will
+  come to the official app stores.
 - The packages are about 80 MB smaller: the bundled Stockfish is now
   Stockfish 18 built by us with its small evaluation network only (about
   4 MB instead of 100). It is weaker than the official Stockfish and still
@@ -215,6 +208,19 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- The main window no longer grows at every start (by the height of its
+  title bar and the width of its shadow) until it ran off the screen; a
+  window never opens larger than the screen.
+- The one-pixel edge of the main window is opaque, maximized too: it let
+  the desktop show through, so it brightened over a white window and
+  looked cut where a dark panel sat inside.
+- Saving an untitled project (which opens Save Project As), and every
+  other file dialog, no longer crashes the application on GNOME.
+- The title bar no longer swallows a click now and then: moving the
+  window starts only once the pointer is dragged, so double clicks and
+  drags work every time.
+- The title bar drops the asterisk as soon as the project is saved, not
+  at the next click.
 - When two copies of a database are merged (a file changed on two devices,
   or the phone link), the sources connected on the other copy and the games
   they already imported come along, so the next sync no longer imports those
@@ -378,6 +384,7 @@ First public release.
   as they happen on a real board.
 - **Language.** *Options ▸ Language* chooses the interface language.
 
-[Unreleased]: https://github.com/francescobianco/pragma-chess/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/francescobianco/pragma-chess/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/francescobianco/pragma-chess/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/francescobianco/pragma-chess/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/francescobianco/pragma-chess/releases/tag/v0.1.0

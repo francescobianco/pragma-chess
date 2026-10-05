@@ -6,6 +6,7 @@
 | **macOS** 12+ on Apple Silicon | `PragmaChess-@VERSION@-macos-arm64.dmg` | Open it and drag Pragma Chess to Applications. |
 | **Ubuntu** 24.04+ / **Debian** 13+ | `pragma-chess_@VERSION@_amd64.deb` | `sudo apt install ./pragma-chess_@VERSION@_amd64.deb` |
 | **Fedora** | `pragma-chess-@VERSION@-1.*.x86_64.rpm` | `sudo dnf install ./pragma-chess-@VERSION@-1.*.x86_64.rpm` |
+| **Android** 8+ (beta) | `PragmaChess-@VERSION@-android.apk` | The companion app for phones, in beta: allow installing from this source when Android asks. It will come to the official app stores. |
 
 [Stockfish](https://stockfishchess.org/) is bundled as the default engine, in
 a light build of ours (its small network only, `stockfish-*-pragma-source.tar.gz`

@@ -96,7 +96,7 @@ public:
     static constexpr int kFrameWidth = 2;
     /// Widget side needed to show squares as large as possible within `available` pixels.
     static int sideForAvailable(int available);
-    /// The colours of the squares, shared with the other boards (the position editor).
+    /// The colours of the squares of the board style, shared with the other boards (the position editor).
     static QColor lightSquareColor();
     static QColor darkSquareColor();
 

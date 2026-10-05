@@ -15,7 +15,7 @@ Everything you see — database, game, move, panels — is a **project**: it com
 
 Your files live in the Pragma folder inside your chess folder (for example `Chess/Pragma` in your home), with `Databases`, `Projects` and `Books`. The first launch puts a database of classic games there.
 
-**Options ▸ Personal Settings…** says who you are: your name, your year of birth and your FIDE ID. Your name goes on your side of a new game, a game from Set Up Position (on the side at the bottom of the board) and a training game (on the colour you chose), unless the open database already knows you — a player marked as Me with **Who Is This?** wins. They are kept in `.pragma-chess.conf`, a YAML file in your Pragma folder, which Sync carries to your other computers although it is hidden; changed on two computers at once, the newer one wins.
+**Options ▸ Personal Settings…** says who you are: your name, your year of birth and your FIDE ID. Your name goes on your side of a new game, a game from Set Up Position (on the side at the bottom of the board) and a training game (on the colour you chose), unless the open database already knows you — a player marked as Me with **Who Is This?** wins. **Board style** chooses the colours of the squares and the pieces together: Pragma Classic (brown squares and the pieces of chess books) or Lichess Alpha (the green board and the Alpha pieces of lichess.org); every board changes as soon as you press OK. These settings are kept in `.pragma-chess.conf`, a YAML file in your Pragma folder, which Sync carries to your other computers although it is hidden; changed on two computers at once, the newer one wins.
 
 **Options ▸ Folder Settings…** puts them somewhere else on this computer: the Pragma folder itself, or just the databases, the projects, the books or the opening names. Leave a folder empty to keep it in its usual place. The files already there are not moved, and the new folders are used the next time you start Pragma Chess. Sync keeps only what is inside the Pragma folder the same on your other computers.
 
@@ -67,7 +67,7 @@ Move a piece by dragging it, or by clicking it and then its square. A pawn reach
 
 - **Left** and **Right** go one move back and forward, **Home** and **End** to the start and the end. Clicking a move in the Moves panel goes there.
 - **View ▸ Flip Board** (Ctrl+R) turns the board around; **View ▸ Show Coordinates** shows or hides the letters and numbers.
-- **Options ▸ Board Settings…** chooses where the captured pieces are shown and whether to show whose turn it is.
+- **Options ▸ Graphics Settings…** chooses the **Appearance** — Follow the System (the default), or always Light or always Dark, whatever the system says —, where the captured pieces are shown and whether to show whose turn it is. These settings stay on this computer: each one can match its own desktop.
 - When the position on the board is **checkmate**, the border of the board turns red.
 
 **Game ▸ New Game** (Ctrl+Shift+N) starts a game to enter move by move. **Game ▸ Save Game to Database** stores it in the open database; **Game ▸ Save Game to Another Database…** stores it in a database you choose, which is not opened.

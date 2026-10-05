@@ -19,7 +19,7 @@ public:
     void setSideToMove(Side side);
     /// With the board flipped Black is at the bottom.
     void setFlipped(bool flipped);
-    /// Board Settings: the captured pieces may be shown under the board instead.
+    /// Graphics Settings: the captured pieces may be shown under the board instead.
     void setShowCaptured(bool show);
     void setShowTurn(bool show);
 

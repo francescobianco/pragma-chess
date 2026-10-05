@@ -6,13 +6,16 @@
 
 class QColor;
 class QPainter;
+class QString;
 
-/// Paints chess pieces: the Good Companion SVG set when Qt SVG is available,
-/// outline font glyphs otherwise. Shared by the board and small piece views.
+/// Paints chess pieces: the SVG set of the board style (BoardTheme) when Qt
+/// SVG is available, outline font glyphs otherwise. Shared by the board and small piece views.
 namespace PieceRenderer {
 
 /// Paints `piece` filling the square `rect`, sharp at `devicePixelRatio`.
 void paint(QPainter &painter, Piece piece, const QRectF &rect, qreal devicePixelRatio);
+/// Same, with the pieces of `pieceSet` whatever the board style (a preview of another style).
+void paint(QPainter &painter, Piece piece, const QRectF &rect, qreal devicePixelRatio, const QString &pieceSet);
 
 /// Paints `piece` greyed out: in a narrow band of greys set off from
 /// `background` (the colour behind it), readable but with little contrast, so

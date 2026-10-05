@@ -14,6 +14,9 @@ struct PersonalSettings {
     /// 0 when not given.
     int birthYear = 0;
     QString fideId;
+    /// The board style (`BoardTheme::id`), the same on every synced computer;
+    /// empty when never chosen, which means the default.
+    QString boardTheme;
 
     bool operator==(const PersonalSettings &) const = default;
 

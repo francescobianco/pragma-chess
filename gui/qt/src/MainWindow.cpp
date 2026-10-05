@@ -7,7 +7,7 @@
 #include "app/DatabaseMerge.h"
 #include "app/ShippedOpeningNames.h"
 #include "dialogs/AboutDialog.h"
-#include "dialogs/BoardSettingsDialog.h"
+#include "dialogs/GraphicsSettingsDialog.h"
 #include "dialogs/FolderSettingsDialog.h"
 #include "dialogs/DatabaseSettingsDialog.h"
 #include "app/PolyglotBook.h"
@@ -52,6 +52,7 @@
 #include "app/sync/SyncTasks.h"
 #include "models/GameFilterProxyModel.h"
 #include "models/GameListModel.h"
+#include "platform/Appearance.h"
 #include "platform/SymbolicIcons.h"
 #include "platform/WindowChrome.h"
 #include "widgets/BoardPanel.h"
@@ -60,6 +61,7 @@
 #include "widgets/PaddedItemDelegate.h"
 #include "widgets/BoardWidget.h"
 #include "widgets/BoardSideColumn.h"
+#include "widgets/BoardTheme.h"
 #include "widgets/CapturedPiecesWidget.h"
 #include "widgets/PaddedStatusBar.h"
 #include "widgets/CentralArea.h"
@@ -183,7 +185,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_boardPanel = new BoardPanel(m_board, m_evaluationBar, m_gameHeader, m_capturedPieces, m_boardSideColumn,
                                   {m_firstMoveAction, m_previousMoveAction, m_explainAction,
                                    m_nextMoveAction, m_lastMoveAction, m_flipBoardAction});
-    applyBoardSettings(BoardSettings::load());
+    applyGraphicsSettings(GraphicsSettings::load());
     setCentralWidget(new CentralArea(m_boardPanel, m_sidebar));
     createDocks();
     createToolBar();
@@ -329,6 +331,9 @@ MainWindow::MainWindow(QWidget *parent)
     });
     connect(m_folderSync, &FolderSync::progress, m_folderSyncLabel, &QLabel::setText);
     connect(m_folderSync, &FolderSync::finished, this, [this](const QString &error, int changes) {
+        // The personal settings may have come from another computer.
+        if (changes > 0)
+            applyBoardTheme(PersonalSettings::read(PersonalSettings::path()));
         if (!error.isEmpty()) {
             m_folderSyncLabel->setText(tr("Sync failed"));
             m_folderSyncLabel->setToolTip(error);
@@ -395,6 +400,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(qApp, &QCoreApplication::aboutToQuit, this, &MainWindow::saveSession);
 
     applyDefaultLayout();
+    applyBoardTheme(PersonalSettings::read(PersonalSettings::path()));
     restoreBook();
     migrateOpeningNames(); // Before the session, which may have the moved database open.
     restoreSession();
@@ -958,7 +964,7 @@ void MainWindow::createMenus()
         options->addAction(m_connectMobileAction);
     options->addAction(m_syncAction);
     options->addSeparator();
-    options->addAction(tr("&Board Settings…"), this, &MainWindow::editBoardSettings);
+    options->addAction(tr("&Graphics Settings…"), this, &MainWindow::editGraphicsSettings);
     options->addAction(tr("&Folder Settings…"), this, &MainWindow::editFolderSettings);
     options->addAction(tr("&Personal Settings…"), this, &MainWindow::editPersonalSettings);
     m_openingNamesMenu = options->addMenu(tr("Switch Opening &Names"));
@@ -2565,12 +2571,23 @@ void MainWindow::editPersonalSettings()
     PersonalSettingsDialog dialog(current, this);
     if (dialog.exec() != QDialog::Accepted || dialog.settings() == current)
         return;
+    applyBoardTheme(dialog.settings());
     QString error;
     QDir().mkpath(QFileInfo(path).absolutePath());
     if (!PersonalSettings::write(path, dialog.settings(), &error))
         QMessageBox::warning(this, tr("Personal Settings"),
                              tr("Could not save the personal settings in “%1”: %2")
                                  .arg(QDir::toNativeSeparators(path), error));
+}
+
+void MainWindow::applyBoardTheme(const PersonalSettings &settings)
+{
+    if (BoardTheme::byId(settings.boardTheme).id == BoardTheme::current().id)
+        return;
+    BoardTheme::setCurrent(settings.boardTheme);
+    // The boards and the piece views read the style when they paint.
+    for (QWidget *widget : QApplication::allWidgets())
+        widget->update();
 }
 
 QString MainWindow::myName() const
@@ -2601,19 +2618,20 @@ void MainWindow::editFolderSettings()
                              tr("The new folders are used the next time Pragma Chess starts."));
 }
 
-void MainWindow::editBoardSettings()
+void MainWindow::editGraphicsSettings()
 {
-    BoardSettingsDialog dialog(BoardSettings::load(), m_coordinatesAction->isChecked(), this);
+    GraphicsSettingsDialog dialog(GraphicsSettings::load(), m_coordinatesAction->isChecked(), this);
     if (dialog.exec() != QDialog::Accepted)
         return;
-    const BoardSettings settings = dialog.settings();
+    const GraphicsSettings settings = dialog.settings();
     settings.save();
-    applyBoardSettings(settings);
+    applyGraphicsSettings(settings);
     m_coordinatesAction->setChecked(dialog.showCoordinates());
 }
 
-void MainWindow::applyBoardSettings(const BoardSettings &settings)
+void MainWindow::applyGraphicsSettings(const GraphicsSettings &settings)
 {
+    Appearance::apply(settings.appearance);
     m_boardPanel->setCapturedPiecesBelow(settings.capturedPieces == CapturedPiecesPlacement::BelowBoard);
     m_boardSideColumn->setShowTurn(settings.showTurn);
 }

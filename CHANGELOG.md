@@ -28,6 +28,12 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   (a player marked as Me in the open database still wins). They are kept in
   `.pragma-chess.conf` in the Pragma folder, which Sync carries to your
   other computers.
+- Board style, in Options ▸ Personal Settings…: Pragma Classic (the brown
+  board and the pieces of chess books) or Lichess Alpha (lichess.org's
+  green board and Alpha pieces).
+- Options ▸ Board Settings… is now Graphics Settings…, and chooses the
+  appearance too: follow the system, or always light, or always dark. It is
+  kept on each computer, so each one can match its own desktop.
 - Game ▸ Set Up Position… draws a position on a board — pieces, side to
   move, castling, en passant, move number, or a FEN — and starts a game from
   it. Moves on the board not saved yet can be discarded, saved to the open

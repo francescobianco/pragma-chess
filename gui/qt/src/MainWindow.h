@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app/BoardSettings.h"
+#include "app/GraphicsSettings.h"
 #include "app/Chapters.h"
 #include "app/EngineCatalog.h"
 #include "app/EngineEvaluation.h"
@@ -23,6 +23,7 @@
 #include <memory>
 
 struct GameSource;
+struct PersonalSettings;
 struct Project;
 
 class BoardWidget;
@@ -318,15 +319,17 @@ private:
     /// A ChessBase source whose file is not on this computer: asks what to do.
     void reportUnavailableSource(const GameSource &source);
     void editDatabaseSettings();
-    void editBoardSettings();
+    void editGraphicsSettings();
     void editFolderSettings();
     void editPersonalSettings();
+    /// Paints every board with the style of the personal settings.
+    void applyBoardTheme(const PersonalSettings &settings);
     /// The user's name for new games: the open database's "me", else the
     /// personal settings'; empty when neither says.
     QString myName() const;
     /// Puts myName() on the side at the bottom of the board.
     void nameMe(GameRecord &game) const;
-    void applyBoardSettings(const BoardSettings &settings);
+    void applyGraphicsSettings(const GraphicsSettings &settings);
     // Options ▸ Sync Settings: the Pragma folder kept the same on several computers.
     void openSyncDialog();
     /// Manage Files of the Sync Settings dialog: the files on the server,

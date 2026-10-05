@@ -1,19 +1,50 @@
 #include "PersonalSettingsDialog.h"
 
+#include "widgets/BoardTheme.h"
+#include "widgets/PieceRenderer.h"
+
+#include <QComboBox>
 #include <QDate>
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPainter>
+#include <QPixmap>
 #include <QRegularExpressionValidator>
 #include <QSpinBox>
 #include <QVBoxLayout>
+
+namespace {
+
+constexpr int kPreviewSquare = 28;
+
+/// Two squares of the style, a white knight on the light one and a black
+/// knight on the dark one: the colours and the pieces at a glance.
+QIcon themePreview(const BoardTheme &theme, qreal devicePixelRatio)
+{
+    QPixmap pixmap(QSize(2 * kPreviewSquare, kPreviewSquare) * devicePixelRatio);
+    pixmap.setDevicePixelRatio(devicePixelRatio);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    const QRectF light(0, 0, kPreviewSquare, kPreviewSquare);
+    const QRectF dark = light.translated(kPreviewSquare, 0);
+    painter.fillRect(light, theme.lightSquare);
+    painter.fillRect(dark, theme.darkSquare);
+    PieceRenderer::paint(painter, Piece{PieceType::Knight, Side::White}, light, devicePixelRatio, theme.pieceSet);
+    PieceRenderer::paint(painter, Piece{PieceType::Knight, Side::Black}, dark, devicePixelRatio, theme.pieceSet);
+    return QIcon(pixmap);
+}
+
+} // namespace
 
 PersonalSettingsDialog::PersonalSettingsDialog(const PersonalSettings &settings, QWidget *parent)
     : QDialog(parent)
     , m_name(new QLineEdit(settings.name, this))
     , m_birthYear(new QSpinBox(this))
     , m_fideId(new QLineEdit(settings.fideId, this))
+    , m_boardTheme(new QComboBox(this))
 {
     setWindowTitle(tr("Personal Settings"));
     setMinimumWidth(460);
@@ -27,10 +58,16 @@ PersonalSettingsDialog::PersonalSettingsDialog(const PersonalSettings &settings,
     m_fideId->setPlaceholderText(tr("Digits only, e.g. 896489"));
     m_fideId->setValidator(new QRegularExpressionValidator(QRegularExpression(QStringLiteral("\\d{0,12}")), m_fideId));
 
+    m_boardTheme->setIconSize(QSize(2 * kPreviewSquare, kPreviewSquare));
+    for (const BoardTheme &theme : BoardTheme::all())
+        m_boardTheme->addItem(themePreview(theme, devicePixelRatioF()), theme.name, theme.id);
+    m_boardTheme->setCurrentIndex(m_boardTheme->findData(BoardTheme::byId(settings.boardTheme).id));
+
     auto *form = new QFormLayout;
     form->addRow(tr("My &name:"), m_name);
     form->addRow(tr("Year of &birth:"), m_birthYear);
     form->addRow(tr("&FIDE ID:"), m_fideId);
+    form->addRow(tr("Board &style:"), m_boardTheme);
 
     auto *note = new QLabel(tr("Your name goes on your side of new games and training games, unless the open "
                                "database already knows you: a player marked as Me with Who Is This? wins. These "
@@ -57,5 +94,7 @@ PersonalSettings PersonalSettingsDialog::settings() const
     settings.name = m_name->text().trimmed();
     settings.birthYear = m_birthYear->value() > m_birthYear->minimum() ? m_birthYear->value() : 0;
     settings.fideId = m_fideId->text().trimmed();
+    // Written even when it is the default: the choice is meant for every synced computer.
+    settings.boardTheme = m_boardTheme->currentData().toString();
     return settings;
 }

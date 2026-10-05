@@ -4,11 +4,12 @@
 
 #include <QDialog>
 
+class QComboBox;
 class QLineEdit;
 class QSpinBox;
 
 /// Options ▸ Personal Settings…: the user's name, year of birth and FIDE ID,
-/// kept in the Pragma folder and synced with it.
+/// and the board style, kept in the Pragma folder and synced with it.
 class PersonalSettingsDialog : public QDialog {
     Q_OBJECT
 
@@ -21,4 +22,5 @@ private:
     QLineEdit *m_name;
     QSpinBox *m_birthYear;
     QLineEdit *m_fideId;
+    QComboBox *m_boardTheme;
 };

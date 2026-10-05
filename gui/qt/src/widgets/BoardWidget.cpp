@@ -1,5 +1,6 @@
 #include "BoardWidget.h"
 
+#include "BoardTheme.h"
 #include "PieceRenderer.h"
 
 #include <QApplication>
@@ -15,13 +16,9 @@
 
 #include <cmath>
 
-#include <cmath>
-
 
 namespace {
 
-const QColor kLightSquare(0xf0, 0xd9, 0xb5);
-const QColor kDarkSquare(0xb5, 0x88, 0x63);
 const QColor kLastMove(0xcd, 0xd2, 0x6a, 0xb0);
 const QColor kSelected(0x64, 0x9f, 0x5a, 0xa0);
 const QColor kMoveHint(0x14, 0x33, 0x0f, 0x48);
@@ -303,12 +300,12 @@ QSize BoardWidget::minimumSizeHint() const
 
 QColor BoardWidget::lightSquareColor()
 {
-    return kLightSquare;
+    return BoardTheme::current().lightSquare;
 }
 
 QColor BoardWidget::darkSquareColor()
 {
-    return kDarkSquare;
+    return BoardTheme::current().darkSquare;
 }
 
 int BoardWidget::sideForAvailable(int available)
@@ -364,10 +361,12 @@ void BoardWidget::paintEvent(QPaintEvent *)
     rounded.addRoundedRect(board, kCornerRadius, kCornerRadius);
     painter.save();
     painter.setClipPath(rounded);
+    const QColor lightSquare = lightSquareColor();
+    const QColor darkSquare = darkSquareColor();
     for (int square = 0; square < 64; ++square) {
         const QRectF rect = squareRect(square);
         const bool light = (square / 8 + square % 8) % 2 == 1;
-        painter.fillRect(rect, light ? kLightSquare : kDarkSquare);
+        painter.fillRect(rect, light ? lightSquare : darkSquare);
         if (square == m_lastMoveFrom || square == m_lastMoveTo)
             painter.fillRect(rect, kLastMove);
     }
@@ -385,11 +384,11 @@ void BoardWidget::paintEvent(QPaintEvent *)
             const bool bottomLight = (bottomSquare / 8 + bottomSquare % 8) % 2 == 1;
             const bool leftLight = (leftSquare / 8 + leftSquare % 8) % 2 == 1;
 
-            painter.setPen(bottomLight ? kDarkSquare : kLightSquare);
+            painter.setPen(bottomLight ? darkSquare : lightSquare);
             painter.drawText(squareRect(bottomSquare).adjusted(pad, pad, -pad, -pad),
                              Qt::AlignRight | Qt::AlignBottom,
                              QString(QChar('a' + bottomSquare % 8)));
-            painter.setPen(leftLight ? kDarkSquare : kLightSquare);
+            painter.setPen(leftLight ? darkSquare : lightSquare);
             painter.drawText(squareRect(leftSquare).adjusted(pad, pad, -pad, -pad),
                              Qt::AlignLeft | Qt::AlignTop,
                              QString(QChar('1' + leftSquare / 8)));

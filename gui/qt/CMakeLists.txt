@@ -109,8 +109,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/AdvantageProbe.h
     src/app/BookWeights.cpp
     src/app/BookWeights.h
-    src/app/BoardSettings.cpp
-    src/app/BoardSettings.h
+    src/app/GraphicsSettings.cpp
+    src/app/GraphicsSettings.h
     src/app/BoardState.cpp
     src/app/BoardState.h
     src/app/ChessPosition.cpp
@@ -294,8 +294,8 @@ qt_add_executable(pragma-chess
     src/dialogs/ManageEnginesDialog.h
     src/dialogs/ManageSourcesDialog.cpp
     src/dialogs/ManageSourcesDialog.h
-    src/dialogs/BoardSettingsDialog.cpp
-    src/dialogs/BoardSettingsDialog.h
+    src/dialogs/GraphicsSettingsDialog.cpp
+    src/dialogs/GraphicsSettingsDialog.h
     src/dialogs/FolderSettingsDialog.cpp
     src/dialogs/FolderSettingsDialog.h
     src/dialogs/DatabaseSettingsDialog.cpp
@@ -341,6 +341,8 @@ qt_add_executable(pragma-chess
     src/app/UserFolders.h
     src/platform/WindowChrome.cpp
     src/platform/WindowChrome.h
+    src/platform/Appearance.cpp
+    src/platform/Appearance.h
     src/platform/GtkDesktopStyle.cpp
     src/platform/GtkDesktopStyle.h
     src/platform/SymbolicIcons.cpp
@@ -366,6 +368,8 @@ qt_add_executable(pragma-chess
     src/widgets/PaddedItemDelegate.h
     src/widgets/PaddedStatusBar.cpp
     src/widgets/PaddedStatusBar.h
+    src/widgets/BoardTheme.cpp
+    src/widgets/BoardTheme.h
     src/widgets/PieceRenderer.cpp
     src/widgets/PositionEditorWidget.cpp
     src/widgets/PositionEditorWidget.h
@@ -465,7 +469,7 @@ endif()
 if(TARGET Qt6::Svg)
     target_link_libraries(pragma-chess PRIVATE Qt6::Svg)
     target_compile_definitions(pragma-chess PRIVATE PRAGMA_HAS_SVG)
-    file(GLOB PIECE_SVGS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} resources/pieces/companion/*.svg)
+    file(GLOB PIECE_SVGS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} resources/pieces/*/*.svg)
     qt_add_resources(pragma-chess pieces PREFIX / FILES ${PIECE_SVGS})
 else()
     message(STATUS "Qt SVG not found: using font glyphs for chess pieces (install qt6-svg-dev)")

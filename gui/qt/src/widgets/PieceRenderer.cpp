@@ -1,5 +1,7 @@
 #include "PieceRenderer.h"
 
+#include "BoardTheme.h"
+
 #include <QFont>
 #include <QHash>
 #include <QImage>
@@ -52,21 +54,22 @@ const QPainterPath &glyphPath(PieceType type)
     return path;
 }
 
-/// Piece rendered from the SVG piece set, or a null pixmap if unavailable.
-QPixmap piecePixmap(Piece piece, int pixelSize, qreal devicePixelRatio)
+/// Piece rendered from the SVG piece set `pieceSet`, or a null pixmap if unavailable.
+QPixmap piecePixmap(Piece piece, int pixelSize, qreal devicePixelRatio, const QString &pieceSet)
 {
 #ifdef PRAGMA_HAS_SVG
     static const char roles[] = " PNBRQK";
-    static QHash<quint32, QPixmap> cache;
+    static QHash<QString, QPixmap> cache;
     if (pixelSize <= 0)
         return {};
-    const quint32 key = quint32(pixelSize) << 8 | quint32(piece.type) << 1 | quint32(piece.side);
+    const QString key = QStringLiteral("%1/%2-%3-%4").arg(pieceSet).arg(pixelSize).arg(int(piece.type)).arg(int(piece.side));
     if (auto it = cache.constFind(key); it != cache.cend())
         return *it;
     if (cache.size() > 128)
-        cache.clear(); // Old sizes after a resize.
+        cache.clear(); // Old sizes after a resize, or another set.
 
-    const QString file = QStringLiteral(":/resources/pieces/companion/%1%2.svg")
+    const QString file = QStringLiteral(":/resources/pieces/%1/%2%3.svg")
+                             .arg(pieceSet)
                              .arg(piece.side == Side::White ? QLatin1Char('w') : QLatin1Char('b'))
                              .arg(QLatin1Char(roles[int(piece.type)]));
     QSvgRenderer renderer(file);
@@ -86,6 +89,7 @@ QPixmap piecePixmap(Piece piece, int pixelSize, qreal devicePixelRatio)
     Q_UNUSED(piece)
     Q_UNUSED(pixelSize)
     Q_UNUSED(devicePixelRatio)
+    Q_UNUSED(pieceSet)
     return {};
 #endif
 }
@@ -96,9 +100,14 @@ namespace PieceRenderer {
 
 void paint(QPainter &painter, Piece piece, const QRectF &rect, qreal devicePixelRatio)
 {
-    // Vector piece set (Good Companion, in the style of classic chess books).
+    paint(painter, piece, rect, devicePixelRatio, BoardTheme::current().pieceSet);
+}
+
+void paint(QPainter &painter, Piece piece, const QRectF &rect, qreal devicePixelRatio, const QString &pieceSet)
+{
+    // The vector piece set of the board style.
     const qreal size = rect.width();
-    const QPixmap pixmap = piecePixmap(piece, qRound(size * devicePixelRatio), devicePixelRatio);
+    const QPixmap pixmap = piecePixmap(piece, qRound(size * devicePixelRatio), devicePixelRatio, pieceSet);
     if (!pixmap.isNull()) {
         painter.drawPixmap(rect.topLeft(), pixmap);
         return;
@@ -135,7 +144,8 @@ void paintMuted(QPainter &painter, Piece piece, const QRectF &rect, qreal device
 
     // Pieces are few and small: cache them per piece, size and background.
     static QHash<QString, QImage> cache;
-    const QString key = QStringLiteral("%1-%2-%3x%4-%5")
+    const QString key = QStringLiteral("%1-%2-%3-%4x%5-%6")
+                            .arg(BoardTheme::current().pieceSet)
                             .arg(int(piece.type))
                             .arg(int(piece.side))
                             .arg(pixels.width())

@@ -15,7 +15,7 @@ Tutto quello che vedi — database, partita, mossa, pannelli — è un **progett
 
 I tuoi file stanno nella cartella Pragma dentro la tua cartella degli scacchi (per esempio `Scacchi/Pragma` nella tua home), con `Databases`, `Projects` e `Books`. Al primo avvio ci trovi un database di partite classiche.
 
-**Opzioni ▸ Impostazioni personali…** dice chi sei: il tuo nome, il tuo anno di nascita e il tuo ID FIDE. Il tuo nome va dalla tua parte in una nuova partita, in una partita da Inserisci posizione (dal lato in basso della scacchiera) e in un allenamento (col colore che hai scelto), a meno che il database aperto ti conosca già — vince il giocatore segnato come Io con **Chi è?**. Stanno in `.pragma-chess.conf`, un file YAML nella tua cartella Pragma, che la sincronizzazione porta sugli altri tuoi computer anche se è nascosto; cambiato su due computer insieme, vince il più recente.
+**Opzioni ▸ Impostazioni personali…** dice chi sei: il tuo nome, il tuo anno di nascita e il tuo ID FIDE. Il tuo nome va dalla tua parte in una nuova partita, in una partita da Inserisci posizione (dal lato in basso della scacchiera) e in un allenamento (col colore che hai scelto), a meno che il database aperto ti conosca già — vince il giocatore segnato come Io con **Chi è?**. **Stile della scacchiera** sceglie insieme i colori delle case e i pezzi: Pragma Classic (case marroni e i pezzi dei libri di scacchi) o Lichess Alpha (la scacchiera verde e i pezzi Alpha di lichess.org); tutte le scacchiere cambiano appena premi OK. Queste impostazioni stanno in `.pragma-chess.conf`, un file YAML nella tua cartella Pragma, che la sincronizzazione porta sugli altri tuoi computer anche se è nascosto; cambiato su due computer insieme, vince il più recente.
 
 **Opzioni ▸ Impostazioni cartelle…** le sposta altrove su questo computer: la cartella Pragma stessa, oppure solo i database, i progetti, i libri o i nomi delle aperture. Lascia vuota una cartella per tenerla al suo posto solito. I file che ci sono già non vengono spostati, e le nuove cartelle si usano dal prossimo avvio di Pragma Chess. La sincronizzazione tiene uguale sugli altri computer solo ciò che sta dentro la cartella Pragma.
 
@@ -67,7 +67,7 @@ Muovi un pezzo trascinandolo, oppure cliccandolo e poi cliccando la casa d'arriv
 
 - **Sinistra** e **Destra** vanno indietro e avanti di una mossa, **Home** e **Fine** all'inizio e alla fine. Cliccando una mossa nel pannello Mosse si va lì.
 - **Visualizza ▸ Gira scacchiera** (Ctrl+R) gira la scacchiera; **Visualizza ▸ Mostra coordinate** mostra o nasconde lettere e numeri.
-- **Opzioni ▸ Impostazioni scacchiera…** sceglie dove mostrare i pezzi catturati e se indicare a chi tocca.
+- **Opzioni ▸ Impostazioni grafiche…** sceglie l'**Aspetto** — Segui il sistema (il predefinito), oppure sempre Chiaro o sempre Scuro, qualunque cosa dica il sistema —, dove mostrare i pezzi catturati e se indicare a chi tocca. Queste impostazioni restano su questo computer: ognuno può accordarsi al proprio desktop.
 - Quando la posizione sulla scacchiera è **scacco matto**, il bordo della scacchiera diventa rosso.
 
 **Partita ▸ Nuova partita** (Ctrl+Shift+N) comincia una partita da inserire mossa per mossa. **Partita ▸ Salva partita nel database** la mette nel database aperto; **Partita ▸ Salva partita in un altro database…** la mette in un database a tua scelta, che non viene aperto.

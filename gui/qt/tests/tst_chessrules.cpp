@@ -1308,11 +1308,14 @@ private Q_SLOTS:
         settings.name = QStringLiteral("Bianco, Francesco");
         settings.birthYear = 1980;
         settings.fideId = QStringLiteral("896489");
+        settings.boardTheme = QStringLiteral("lichess-alpha");
         const QByteArray yaml = settings.toYaml(existing);
         QVERIFY(yaml.contains("future: kept"));
         QCOMPARE(PersonalSettings::fromYaml(yaml), settings);
         settings.birthYear = 0; // Not given: left out.
         QVERIFY(!settings.toYaml(yaml).contains("birthYear"));
+        settings.boardTheme = QStringLiteral("pragma-classic"); // The default is written too.
+        QVERIFY(settings.toYaml(yaml).contains("boardTheme: pragma-classic"));
         QCOMPARE(PersonalSettings::fromYaml("not: [a, map").name, QString());
 
         // The database's "me" wins over the personal name.
@@ -1677,12 +1680,12 @@ private Q_SLOTS:
     {
         const QString endgame = QStringLiteral("4k3/8/8/8/8/8/4P3/4K3 w - - 0 1");
         const QList<GameLine> games{
-            {1, QString(), QStringLiteral("e2e4 e7e5 g1f3 b8c6 f1b5")},
-            {2, QString(), QStringLiteral("g1f3 b8c6 e2e4 e7e5 f1c4")},
-            {3, QString(), QStringLiteral("e2e4 e7e6")},
-            {4, QString(), QStringLiteral("e2e4 e7e5 g1f3 b8c6 f1b5 a7a6")},
-            {5, endgame, QStringLiteral("e2e4 e8e7")},
-            {6, QString(), QStringLiteral("d2d4 xx e7e5")}, // Cut at the illegal move.
+            {1, QString(), QStringLiteral("e2e4 e7e5 g1f3 b8c6 f1b5"), QString()},
+            {2, QString(), QStringLiteral("g1f3 b8c6 e2e4 e7e5 f1c4"), QString()},
+            {3, QString(), QStringLiteral("e2e4 e7e6"), QString()},
+            {4, QString(), QStringLiteral("e2e4 e7e5 g1f3 b8c6 f1b5 a7a6"), QString()},
+            {5, endgame, QStringLiteral("e2e4 e8e7"), QString()},
+            {6, QString(), QStringLiteral("d2d4 xx e7e5"), QString()}, // Cut at the illegal move.
         };
         const PositionIndex index = PositionIndex::build(games);
         QCOMPARE(index.gameCount(), 6);

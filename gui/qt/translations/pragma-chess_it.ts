@@ -44,37 +44,6 @@
     </message>
 </context>
 <context>
-    <name>BoardSettingsDialog</name>
-    <message>
-        <source>Board Settings</source>
-        <translation>Impostazioni scacchiera</translation>
-    </message>
-    <message>
-        <source>Captured pieces</source>
-        <translation>Pezzi catturati</translation>
-    </message>
-    <message>
-        <source>&amp;Right of the board, next to each player</source>
-        <translation>&amp;A destra della scacchiera, accanto a ogni giocatore</translation>
-    </message>
-    <message>
-        <source>&amp;Below the board, on the left</source>
-        <translation>&amp;Sotto la scacchiera, a sinistra</translation>
-    </message>
-    <message>
-        <source>Show whose &amp;turn it is</source>
-        <translation>Mostra di chi è il &amp;tratto</translation>
-    </message>
-    <message>
-        <source>A white or black dot at the right of the board, on the side of the player to move</source>
-        <translation>Un punto bianco o nero a destra della scacchiera, dalla parte del giocatore che ha il tratto</translation>
-    </message>
-    <message>
-        <source>Show &amp;coordinates</source>
-        <translation>Mostra le &amp;coordinate</translation>
-    </message>
-</context>
-<context>
     <name>BoardSideColumn</name>
     <message>
         <source>Turn and captured pieces</source>
@@ -1115,6 +1084,57 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>GraphicsSettingsDialog</name>
+    <message>
+        <source>Graphics Settings</source>
+        <translation>Impostazioni grafiche</translation>
+    </message>
+    <message>
+        <source>Follow the System</source>
+        <translation>Segui il sistema</translation>
+    </message>
+    <message>
+        <source>Light</source>
+        <translation>Chiaro</translation>
+    </message>
+    <message>
+        <source>Dark</source>
+        <translation>Scuro</translation>
+    </message>
+    <message>
+        <source>&amp;Appearance:</source>
+        <translation>As&amp;petto:</translation>
+    </message>
+    <message>
+        <source>Captured pieces</source>
+        <translation>Pezzi catturati</translation>
+    </message>
+    <message>
+        <source>&amp;Right of the board, next to each player</source>
+        <translation>&amp;A destra della scacchiera, accanto a ogni giocatore</translation>
+    </message>
+    <message>
+        <source>&amp;Below the board, on the left</source>
+        <translation>&amp;Sotto la scacchiera, a sinistra</translation>
+    </message>
+    <message>
+        <source>Show whose &amp;turn it is</source>
+        <translation>Mostra di chi è il &amp;tratto</translation>
+    </message>
+    <message>
+        <source>A white or black dot at the right of the board, on the side of the player to move</source>
+        <translation>Un punto bianco o nero a destra della scacchiera, dalla parte del giocatore che ha il tratto</translation>
+    </message>
+    <message>
+        <source>Show &amp;coordinates</source>
+        <translation>Mostra le &amp;coordinate</translation>
+    </message>
+    <message>
+        <source>These settings are kept on this computer only: each computer can match its own desktop. The board style is in Personal Settings, and travels with Sync.</source>
+        <translation>Queste impostazioni restano solo su questo computer: ognuno può accordarsi al proprio desktop. Lo stile della scacchiera sta nelle Impostazioni personali e viaggia con la sincronizzazione.</translation>
+    </message>
+</context>
+<context>
     <name>HelpDialog</name>
     <message>
         <source>Pragma Chess Guide</source>
@@ -1455,10 +1475,6 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>&amp;Options</source>
         <translation>&amp;Opzioni</translation>
-    </message>
-    <message>
-        <source>&amp;Board Settings…</source>
-        <translation>Impostazioni &amp;scacchiera…</translation>
     </message>
     <message>
         <source>Switch &amp;Language</source>
@@ -2507,6 +2523,10 @@ non è su questo computer.</translation>
         <source>Move G&amp;ame</source>
         <translation>Sposta p&amp;artita</translation>
     </message>
+    <message>
+        <source>&amp;Graphics Settings…</source>
+        <translation>Impostazioni &amp;grafiche…</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>
@@ -3247,6 +3267,10 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>Your name goes on your side of new games and training games, unless the open database already knows you: a player marked as Me with Who Is This? wins. These settings are kept in .pragma-chess.conf in your Pragma folder, which Sync carries to your other computers.</source>
         <translation>Il tuo nome va dalla tua parte nelle nuove partite e negli allenamenti, a meno che il database aperto ti conosca già: vince il giocatore segnato come Io con Chi è?. Queste impostazioni stanno in .pragma-chess.conf nella tua cartella Pragma, che la sincronizzazione porta sugli altri tuoi computer.</translation>
+    </message>
+    <message>
+        <source>Board &amp;style:</source>
+        <translation>&amp;Stile della scacchiera:</translation>
     </message>
 </context>
 <context>

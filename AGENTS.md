@@ -103,6 +103,21 @@ scripts/install-dev-desktop.sh  user menu entry + icons for the build (Wayland d
   with the SkakNew figurines of chess books: give it
   `FigurineFont::apply(font)` (`widgets/FigurineFont`, font rebuilt by
   `scripts/make-figurine-font.py`).
+- **Personal or per computer?** What is about the user goes with them to
+  every synced computer (Personal Settings, the board style); what has to
+  match the computer's desktop stays there. Options ▸ Graphics Settings…
+  (`app/GraphicsSettings`, QSettings) holds the appearance —
+  `platform/Appearance`: the system's, Light or Dark, through
+  `QStyleHints::setColorScheme` from Qt 6.8 and a palette in Adwaita's
+  colours where that is not honoured —, where the captured pieces go and
+  the turn dot.
+- The board style (`widgets/BoardTheme`: square colours and piece set,
+  together) is chosen in Personal Settings and synced with them: Pragma
+  Classic (default, `resources/pieces/companion`) and Lichess Alpha
+  (`resources/pieces/alpha`, lichess's green). Every view that paints
+  squares or pieces asks `BoardTheme::current()` (through
+  `BoardWidget::lightSquareColor()` and `PieceRenderer`), never a colour of
+  its own; `MainWindow::applyBoardTheme` switches and repaints.
 
 ## Explain
 
@@ -741,7 +756,8 @@ while one of them is selected.
   at a time, send `SourceFetch::userAgent()`).
 - **Personal settings**: Options ▸ Personal Settings…
   (`dialogs/PersonalSettingsDialog`) edits `PersonalSettings` (name, year
-  of birth, FIDE ID), kept as YAML in `.pragma-chess.conf` at the root of
+  of birth, FIDE ID, board style; `MainWindow::applyBoardTheme` applies it
+  at startup, on OK and after a sync that brought files), kept as YAML in `.pragma-chess.conf` at the root of
   the Pragma folder; writing keeps the keys it does not know. The name goes
   on the user's side of new games, Set Up Position and training
   (`MainWindow::myName`, `nameMe`), unless the open database has a player

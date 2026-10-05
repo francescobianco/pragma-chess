@@ -59,6 +59,7 @@ PersonalSettings PersonalSettings::fromYaml(const QByteArray &yaml)
         settings.name = text(root["name"]);
         settings.birthYear = qMax(0, text(root["birthYear"]).toInt());
         settings.fideId = text(root["fideId"]);
+        settings.boardTheme = text(root["boardTheme"]);
     } catch (const YAML::Exception &) {
     }
     return settings;
@@ -85,6 +86,8 @@ QByteArray PersonalSettings::toYaml(const QByteArray &existing) const
     else
         root.remove("birthYear");
     set("fideId", fideId.trimmed());
+    set("boardTheme", boardTheme.trimmed());
+    root.remove("appearance"); // Kept here by a development version: it is per computer now.
 
     YAML::Emitter out;
     out << YAML::Comment("Pragma Chess: who you are, the same on every synced computer") << YAML::Newline;

@@ -66,3 +66,36 @@ expect arrows d4e3 alternative, f6e5 refutation 1
 expect lost e5
 expect summary Mistake (−4.1 → −5.1). Black wins a bishop for a pawn: 12…fxe5. Better was 12.Be3.
 end
+
+# 2026-10-06, 4...Bxf3 (the user plays Black): "it shows what I should have
+# done, but not what I suffer after the capture". No material falls; 5.Qxf3
+# hits the undefended rook on a8 (hence 5...c6) and White has the bishop pair.
+# Explain cannot say threats yet (TODO.md). It also ringed f3 as if a piece
+# fell: no rings any more where no material explains the evaluation.
+explain
+before rn1qkbnr/pbpp1ppp/1p2p3/8/5P2/1P2PN2/P1PP2PP/RNBQKB1R b KQkq - 0 4
+played b7f3
+before-eval depth 18 cp -12 pv g8f6 c1b2 c7c5 g2g3 g7g6 f1g2 f8g7 b1c3 d7d5 d1e2 b8c6 e1c1 e8g8 c1b1 d5d4 e3d4 c5d4
+after rn1qkbnr/p1pp1ppp/1p2p3/8/5P2/1P2Pb2/P1PP2PP/RNBQKB1R w KQkq - 0 5
+tick depth 1 cp 50 pv d1f3
+tick depth 2 cp 50 pv d1f3
+tick depth 3 cp 50 pv d1f3
+tick depth 4 cp 40 pv d1f3 d7d5
+tick depth 5 cp 40 pv d1f3 d7d5 f1b5 c7c6
+tick depth 6 cp 64 pv d1f3 d7d5 a2a3
+tick depth 7 cp 90 pv d1f3 d7d5 c1b2
+tick depth 8 cp 139 pv d1f3 d7d5 c1b2
+tick depth 9 cp 139 pv d1f3 d7d5 c1b2 d8h4 g2g3
+tick depth 10 cp 125 pv d1f3 d7d5 b1c3 b8d7 c1b2 c7c6 e3e4
+tick depth 11 cp 132 pv d1f3 d7d5 b1c3 b8d7 c1b2 c7c6 e3e4 d5d4 c3e2
+tick depth 12 cp 131 pv d1f3 d7d5 c1b2 c7c6 b1c3 a7a5 e3e4 d5d4 c3e2 f8c5
+tick depth 13 cp 141 pv d1f3 d7d5 c1b2 c7c6 b1c3 a7a5 e3e4 d5d4 c3e2 f8c5 f3g3
+tick depth 14 cp 139 pv d1f3 d7d5 c1b2 c7c6 b1c3 a7a5 e3e4 d5d4 c3e2 f8c5 f3g3 g8f6 e4e5
+tick depth 15 cp 146 pv d1f3 c7c6 c1b2 d7d5 c2c4 b8d7 b1c3 f7f5 c3e2 g8f6 c4d5
+tick depth 16 cp 142 pv d1f3 c7c6 c1b2 d7d5 b1c3 h7h5 e1c1 g8f6 c1b1 b6b5 f1d3 b8d7 e3e4
+tick depth 17 cp 124 pv d1f3 c7c6 c1b2 d7d5 b1c3 f7f5 c3e2 g8f6 e2d4 d8d7 h2h3 f8c5 g2g4 c5d4 b2d4 d7e7 d4b2 e8g8 g4f5 e6f5
+tick depth 18 cp 138 pv d1f3 c7c6 b1c3 d7d5 c1b2 a7a5 e3e4 a5a4 c3a4 b6b5 a4c3 f8a3 b2a3 a8a3 f3g3 g7g6 e4d5 e6d5
+expect verdict inaccuracy
+expect arrows g8f6 alternative, d1f3 reply 1, c7c6 reply 2
+expect summary Inaccuracy (−0.1 → +1.2). Better was 4…Nf6. Main line: 5.Qxf3 c6 6.Bb2 d5.
+end

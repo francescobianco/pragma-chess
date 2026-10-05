@@ -68,9 +68,12 @@ CONST REALIZED_SHARE = 0.4
 ' Swings are capped so that mates and huge scores still ask for sensible material.
 CONST MAX_SWING = 1500
 
-' The arrows drawn and the pieces ringed in this explanation.
+' The arrows drawn and the pieces ringed in this explanation; whether the
+' arrows being drawn ring the pieces they take (not when no material
+' explains the evaluation: a ring is red, the colour of material falling).
 drawnArrows = []
 lostSquares = []
+ringing = TRUE
 
 FUNCTION Draw(source, target, kind, number)
     SHARED drawnArrows
@@ -183,7 +186,7 @@ END FUNCTION
 ' the others are replies. Pieces taken by `ideaSide` in the drawn moves are
 ' traced back to where they stand on the board at ply `first`, and ringed.
 FUNCTION AddArrows(line, first, last, ideaSide, ideaKind, focusFirst, focusLast)
-    SHARED lostSquares
+    SHARED lostSquares, ringing
     IF focusFirst < 0 THEN
         focusFirst = first
         focusLast = last
@@ -214,7 +217,7 @@ FUNCTION AddArrows(line, first, last, ideaSide, ideaKind, focusFirst, focusLast)
             ' En passant takes the pawn beside the target square.
             square = target
             IF PIECE(position, target) = 0 THEN square = RankOf(source) * 8 + FileOf(target)
-            IF drawn AND mover = ideaSide AND origin[square] >= 0 THEN
+            IF ringing AND drawn AND mover = ideaSide AND origin[square] >= 0 THEN
                 IF NOT CONTAINS(lostSquares, origin[square]) THEN
                     lostSquares = lostSquares + [origin[square]]
                     LOST origin[square]
@@ -393,9 +396,10 @@ END FUNCTION
 ' advantage shows on the board); `note` says, for the trace, why `afterEval`
 ' is not the explanation's own search ("" if it is).
 FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note)
-    SHARED lostSquares, drawnArrows
+    SHARED lostSquares, drawnArrows, ringing
     lostSquares = []
     drawnArrows = []
+    ringing = TRUE
 
     IF CHECKMATE(after) THEN
         SAY TEXT("Checkmate.")
@@ -505,6 +509,9 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         IF betterExists THEN DrawBetter before, best[0][0]
         ' Not a refutation: nothing is won here, so the opponent's
         ' continuation is drawn as a reply. Red is the colour of material falling.
+        ' No material falls: a piece taken back in an even exchange (4...Bxf3
+        ' 5.Qxf3) is not ringed.
+        ringing = FALSE
         AddArrows current, 0, fallbackPlies, toMove, "reply", -1, -1
         summary = prefix + TRIM(better)
         IF concreteText <> "" THEN
@@ -573,6 +580,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
     END IF
 
     NOTE "branch: no material or mate, showing " + STR(fallbackPlies) + " plies of the line"
+    ringing = FALSE
     AddArrows current, 0, fallbackPlies, toMove, "idea", -1, -1
     summary = prefix + Assessment(afterEval)
     IF concreteText <> "" THEN

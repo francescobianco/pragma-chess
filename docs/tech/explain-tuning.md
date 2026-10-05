@@ -256,3 +256,14 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   Black wins a bishop for a pawn: 12…fxe5. Better was 12.Be3." and stops a
   training game; 9.Bxf6 became a blunder; no other recorded case or test
   changed.
+- 2026-10-06 — 1.f4 e6 2.Nf3 b6 3.e3 Bb7 4.b3 Bxf3, the user playing Black
+  with the board turned: "it shows what I should have done, but not what I
+  suffer after the capture — should Explain take the observer into
+  account?" The observer is not the issue: the explanation already speaks
+  to the side that moved ("Better was 4…Nf6"), and the score is White's as
+  everywhere. The gap is that without material Explain has nothing to say
+  about why: 5.Qxf3 hits the undefended rook on a8 (5…c6 is forced) and
+  White keeps the bishop pair, while Explain only says "Main line: 5.Qxf3
+  c6 …". Next: threats along the line (TODO.md). Fixed now: f3 was ringed
+  in red as a piece lost, in an even exchange; the branches where no
+  material explains the evaluation no longer ring anything (`ringing`).

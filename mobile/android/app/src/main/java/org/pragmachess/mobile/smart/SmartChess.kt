@@ -98,6 +98,7 @@ object SmartChess {
         "refutation" -> BoardArrow.Kind.Refutation
         "reply" -> BoardArrow.Kind.Reply
         "alternative" -> BoardArrow.Kind.Alternative
+        "threat" -> BoardArrow.Kind.Threat
         "idea" -> BoardArrow.Kind.Idea
         else -> fail("ARROW: \"$kind\" is not a kind of arrow")
     }

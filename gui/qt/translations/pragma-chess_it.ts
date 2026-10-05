@@ -3260,6 +3260,10 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>%1: %2 parries it.</source>
         <translation>%1: %2 la para.</translation>
     </message>
+    <message>
+        <source>%1 leaves %2 on %3 attacked: %4.</source>
+        <translation>%1 lascia %2 in %3 sotto attacco: %4.</translation>
+    </message>
 </context>
 <context>
     <name>MoveTreeView</name>

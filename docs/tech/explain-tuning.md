@@ -298,3 +298,14 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   16, whenever Explain lacks it (one engine, one position after the other);
   and a move not judged yet is still given to EXPLAIN.smart, which then
   draws the answer to it without the mover's answers.
+- 2026-10-06 — 5…Qh4+ once more: "what I expect is the pawn's arrow, then at
+  once an arrow of its threat to the queen, and the queen's arrow at the
+  undefended rook; those +5 are the rook". Decision: a new arrow kind,
+  `threat` (dashed red: a capture threatened, not played — red is still
+  material, dashed says not yet), drawn for the threat ThreatText finds and
+  for the threat the mistake leaves standing (`IgnoredThreatText`: a
+  capture the opponent had before the move and makes within the first
+  plies of the line). 5…Qh4+ now shows Nc6 (better), g2–g3, Qf3→a8 and
+  g3→h4, and says "5…Qh4+ leaves the rook on a8 attacked: 7.Qxa8. 6.g3
+  attacks the queen on h4: 6…Qf6 parries it." Note that the engine's line
+  goes on 7…Qxa1 8.Qxb8+: the rook comes back, the knight is what is won.

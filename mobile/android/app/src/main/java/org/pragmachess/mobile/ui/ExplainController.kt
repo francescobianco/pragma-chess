@@ -41,6 +41,7 @@ class ExplainStrings(private val context: Context) : ExplainText {
         "the pawn" to R.string.explain_the_pawn, "the knight" to R.string.explain_the_knight,
         "the bishop" to R.string.explain_the_bishop, "the rook" to R.string.explain_the_rook,
         "%1 attacks %2 on %3" to R.string.explain_attacks, "%1: %2 parries it." to R.string.explain_parries,
+        "%1 leaves %2 on %3 attacked: %4." to R.string.explain_leaves_attacked,
     )
 
     override fun tr(source: String): String = ids[source]?.let(context::getString) ?: source

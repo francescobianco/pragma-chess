@@ -39,6 +39,8 @@ data class BoardArrow(
         Reply,
         /** The move that should have been played instead, from the previous position (dashed green). */
         Alternative,
+        /** A capture threatened, not played: a piece left attacked (dashed red). */
+        Threat,
     }
 }
 

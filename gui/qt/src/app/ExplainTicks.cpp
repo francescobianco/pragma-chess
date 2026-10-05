@@ -167,7 +167,7 @@ std::optional<MoveExplanation> ExplainTicks::lastShown(const QList<ExplanationTi
 QStringList ExplainTicks::outcome(const MoveExplanation &explanation)
 {
     static const char *const verdicts[] = {"none", "best", "good", "inaccuracy", "mistake", "blunder"};
-    static const char *const kinds[] = {"refutation", "idea", "reply", "alternative"};
+    static const char *const kinds[] = {"refutation", "idea", "reply", "alternative", "threat"};
     QStringList arrows;
     for (const BoardArrow &arrow : explanation.arrows) {
         QString text = BoardState::squareName(arrow.from) + BoardState::squareName(arrow.to) + QLatin1Char(' ')

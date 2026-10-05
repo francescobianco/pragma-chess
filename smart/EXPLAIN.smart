@@ -38,8 +38,8 @@
 '   TEXT(sentence, args…)             the sentence translated, %1, %2… replaced
 '   Commands, what the explanation shows:
 '     ARROW from, to, kind, number [, piece, side]
-'                                     kind "refutation", "idea", "reply" or
-'                                     "alternative"; number its place in the line
+'                                     kind "refutation", "idea", "reply",
+'                                     "alternative" or "threat"; number its place in the line
 '                                     (0: none); the piece it moves, drawn small
 '                                     where it goes, when the board does not show it
 '     LOST square                     a ring on a piece that falls
@@ -445,9 +445,10 @@ FUNCTION PieceName(piece)
 END FUNCTION
 
 ' The first threat a move of the first THREAT_PLIES of `line` makes —
-' attacking a piece it could not win before — said with the answer that
-' parries it, when the next move does: " 5.Qxf3 attacks the rook on a8:
-' 5…c6 parries it." Empty when there is none.
+' attacking a piece it could not win before — drawn (a dashed red arrow
+' from the attacker to the piece) and said with the answer that parries
+' it, when the next move does: " 5.Qxf3 attacks the rook on a8: 5…c6
+' parries it." Empty when there is none.
 FUNCTION ThreatText(line)
     moves = line[0]
     positions = line[1]
@@ -469,6 +470,7 @@ FUNCTION ThreatText(line)
         IF best <> NOTHING THEN
             target = TOSQ(best[0])
             NOTE "threat: " + MoveText(positions[k], moves[k]) + " attacks " + SquareName(target) + " (+" + STR(best[1]) + ")"
+            Draw FROMSQ(best[0]), target, "threat", 0
             attack = TEXT("%1 attacks %2 on %3", MoveText(positions[k], moves[k]), PieceName(PIECE(positions[k + 1], target)), SquareName(target))
             IF k + 1 < LEN(moves) THEN
                 IF NOT Threatens(Threats(positions[k + 2], side), target) THEN
@@ -476,6 +478,30 @@ FUNCTION ThreatText(line)
                 END IF
             END IF
             RETURN " " + attack + "."
+        END IF
+    NEXT
+    RETURN ""
+END FUNCTION
+
+' The threat the mover left standing: a capture the other side (`side`)
+' had before the move, and makes in the first plies of `line` anyway —
+' 5...Qh4+ checks, but the rook on a8 stays attacked and 7.Qxa8 takes it.
+' Drawn, and said: " 5…Qh4+ leaves the rook on a8 attacked: 7.Qxa8."
+' Empty when there is none.
+FUNCTION IgnoredThreatText(before, played, line, side)
+    threats = Threats(before, side)
+    moves = line[0]
+    positions = line[1]
+    FOR k = 0 TO MIN(THREAT_PLIES, LEN(moves)) - 1
+        IF SIDETOMOVE(positions[k]) = side AND CAPTURED(positions[k], moves[k]) <> 0 THEN
+            FOR i = 0 TO LEN(threats) - 1
+                IF TOSQ(threats[i][0]) = TOSQ(moves[k]) THEN
+                    target = TOSQ(moves[k])
+                    NOTE "ignored threat: " + SquareName(target) + ", taken by " + MoveText(positions[k], moves[k])
+                    Draw FROMSQ(threats[i][0]), target, "threat", 0
+                    RETURN " " + TEXT("%1 leaves %2 on %3 attacked: %4.", MoveText(before, played), PieceName(PIECE(before, target)), SquareName(target), MoveText(positions[k], moves[k]))
+                END IF
+            NEXT
         END IF
     NEXT
     RETURN ""
@@ -636,7 +662,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         ' the queen going back): the text says them.
         drawn = WithoutLoserTail(current, [0, fallbackPlies], toMove)
         AddArrows current, 0, fallbackPlies, toMove, "reply", drawn[0], drawn[1]
-        summary = prefix + TRIM(better) + ThreatText(current)
+        summary = prefix + TRIM(better) + IgnoredThreatText(before, played, current, toMove) + ThreatText(current)
         IF concreteText <> "" THEN
             summary = summary + concreteText
         ELSEIF Plies(current) > 0 THEN

@@ -108,6 +108,7 @@ Il motore guarda la posizione prima e dopo la mossa e disegna delle frecce:
 
 - frecce **rosse**: sta per cadere del materiale, e i pezzi che si perdono sono cerchiati;
 - frecce **blu**: la risposta che fa la differenza, quando ancora non si perde niente;
+- frecce **rosse tratteggiate**: una minaccia, un pezzo lasciato sotto attacco — «5.Dxf3 attacca la torre in a8», o quella a cui la tua mossa non ha risposto, «5…Dh4+ lascia la torre in a8 sotto attacco: 7.Dxa8»;
 - una freccia **verde tratteggiata**: la mossa migliore che avevi al posto della tua, con il pezzo che muove disegnato piccolo e trasparente dove arriva — la casa da cui parte la freccia spesso ora è vuota, perché quel pezzo è andato altrove.
 
 Un matto forzato viene giocato sulla scacchiera, dentro una cornice rossa. Il pannello Motore lo dice a parole, per esempio «Errore grave (+0.3 → −2.9). Il Nero vince un cavallo».

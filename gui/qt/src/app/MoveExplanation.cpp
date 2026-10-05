@@ -57,6 +57,7 @@ const char *const kSentences[] = {
     QT_TRANSLATE_NOOP("MoveExplanation", "the rook"),
     QT_TRANSLATE_NOOP("MoveExplanation", "%1 attacks %2 on %3"),
     QT_TRANSLATE_NOOP("MoveExplanation", "%1: %2 parries it."),
+    QT_TRANSLATE_NOOP("MoveExplanation", "%1 leaves %2 on %3 attacked: %4."),
 };
 
 MoveExplanation::Verdict verdictNamed(const QString &name)

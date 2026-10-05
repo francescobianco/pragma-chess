@@ -40,6 +40,7 @@ object ArrowColors {
     val idea = Color(0xD02F8F44)
     val reply = Color(0xC03A6EB5)
     val alternative = Color(0xA82F8F44)
+    val threat = Color(0xA8D43F32)
     /** The frame of an explained board. */
     val explainFrame = Color(0xFF3A6EB5)
 
@@ -48,6 +49,7 @@ object ArrowColors {
         BoardArrow.Kind.Idea -> idea
         BoardArrow.Kind.Reply -> reply
         BoardArrow.Kind.Alternative -> alternative
+        BoardArrow.Kind.Threat -> threat
     }
 }
 
@@ -104,7 +106,8 @@ fun DrawScope.drawExplanation(
         val width = squareSize * 0.15f
         drawPath(shaft, color, style = Stroke(
             width = width, cap = StrokeCap.Butt, join = StrokeJoin.Miter,
-            pathEffect = if (arrow.kind == BoardArrow.Kind.Alternative) PathEffect.dashPathEffect(floatArrayOf(0.9f * width, 0.6f * width)) else null,
+            pathEffect = if (arrow.kind == BoardArrow.Kind.Alternative || arrow.kind == BoardArrow.Kind.Threat)
+                PathEffect.dashPathEffect(floatArrayOf(0.9f * width, 0.6f * width)) else null,
         ))
         val normal = Offset(-lastUnit.y, lastUnit.x)
         val halfHead = squareSize * 0.22f

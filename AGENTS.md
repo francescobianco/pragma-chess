@@ -146,7 +146,8 @@ playing a move turns it off, and the user asks again at the next move.
   collects what its commands say; unit-test every change through
   `explainPosition`. Arrow colours are a claim: `Refutation` (red) means
   material is falling, so a drop with no material behind it is drawn as a
-  `Reply` and said to be positional. It replays the engine's principal variation and finds
+  `Reply` and said to be positional; a `Threat` (dashed red) is a capture
+  threatened and not played, a piece left attacked. It replays the engine's principal variation and finds
   where the evaluation becomes concrete: material won once exchanges, checks
   and recaptures are over (and stays won for a few plies), or a mate.
 - `app/Explainer.*` — desktop controller, **reactive**: it runs no engine.

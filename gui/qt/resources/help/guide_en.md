@@ -109,6 +109,7 @@ The engine looks at the position before and after the move and draws arrows:
 
 - **red** arrows: material is about to fall, and the pieces that are lost are ringed;
 - **blue** arrows: the reply that makes the difference, when nothing is lost yet;
+- **dashed red** arrows: a threat, a piece left attacked — "5.Qxf3 attacks the rook on a8", or the one your move did not answer, "5…Qh4+ leaves the rook on a8 attacked: 7.Qxa8";
 - a **dashed green** arrow: the better move you had instead, with the piece it moves drawn small and faint where it goes — the square the arrow leaves is often empty now, since that piece has moved elsewhere.
 
 A forced mate is played out on the board, inside a red frame. The Engine panel says it in words, for example “Blunder (+0.3 → −2.9). Black wins a knight”.

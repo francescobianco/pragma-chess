@@ -97,6 +97,8 @@ BoardArrow::Kind arrowKind(const QString &kind)
         return BoardArrow::Kind::Reply;
     if (kind == QLatin1String("alternative"))
         return BoardArrow::Kind::Alternative;
+    if (kind == QLatin1String("threat"))
+        return BoardArrow::Kind::Threat;
     if (kind != QLatin1String("idea"))
         SmartInterpreter::fail(QStringLiteral("ARROW: \"%1\" is not a kind of arrow").arg(kind));
     return BoardArrow::Kind::Idea;

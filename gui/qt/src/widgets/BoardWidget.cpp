@@ -53,6 +53,7 @@ QColor arrowColor(BoardArrow::Kind kind)
     case BoardArrow::Kind::Idea: return QColor(0x2f, 0x8f, 0x44, 0xd0);
     case BoardArrow::Kind::Reply: return QColor(0x3a, 0x6e, 0xb5, 0xc0);
     case BoardArrow::Kind::Alternative: return QColor(0x2f, 0x8f, 0x44, 0xa8);
+    case BoardArrow::Kind::Threat: return QColor(0xd4, 0x3f, 0x32, 0xa8);
     }
     return {};
 }
@@ -660,7 +661,7 @@ void BoardWidget::paintArrow(QPainter &painter, const BoardArrow &arrow, const Q
         shaft.lineTo(points.at(i));
     shaft.lineTo(headBase);
     QPen pen(color, size * 0.15, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-    if (arrow.kind == BoardArrow::Kind::Alternative)
+    if (arrow.kind == BoardArrow::Kind::Alternative || arrow.kind == BoardArrow::Kind::Threat)
         pen.setDashPattern({0.9, 0.6});
     painter.strokePath(shaft, pen);
 

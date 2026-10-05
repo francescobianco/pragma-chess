@@ -163,4 +163,5 @@
     <string name="explain_the_rook" formatted="false">la torre</string>
     <string name="explain_attacks" formatted="false">%1 attacca %2 in %3</string>
     <string name="explain_parries" formatted="false">%1: %2 la para.</string>
+    <string name="explain_leaves_attacked" formatted="false">%1 lascia %2 in %3 sotto attacco: %4.</string>
 </resources>

@@ -139,7 +139,9 @@ void BoardTheme::paintSquares(QPainter &painter, const QRectF &board, const QLis
     QImage layer(pixels, QImage::Format_ARGB32_Premultiplied);
     layer.fill(Qt::transparent);
     layer.setDevicePixelRatio(devicePixelRatio);
-    const qreal size = board.width() / 8;
+    // The lines follow the squares, not the board: a preview of two squares
+    // is hatched as the board is.
+    const qreal size = darkSquares.isEmpty() ? board.width() / 8 : darkSquares.first().width();
     {
         QPainter ink(&layer);
         ink.setRenderHint(QPainter::Antialiasing);

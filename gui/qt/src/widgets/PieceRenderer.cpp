@@ -71,11 +71,13 @@ QPixmap piecePixmap(Piece piece, int pixelSize, qreal devicePixelRatio, const Pi
     static QHash<QString, QPixmap> cache;
     if (pixelSize <= 0)
         return {};
-    const QString key = QStringLiteral("%1/%2-%3-%4")
+    // The ratio too: the same pixels are drawn at another size under another ratio.
+    const QString key = QStringLiteral("%1/%2-%3-%4@%5")
                             .arg(styleKey(style))
                             .arg(pixelSize)
                             .arg(int(piece.type))
-                            .arg(int(piece.side));
+                            .arg(int(piece.side))
+                            .arg(devicePixelRatio);
     if (auto it = cache.constFind(key); it != cache.cend())
         return *it;
     if (cache.size() > 128)

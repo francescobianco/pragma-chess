@@ -78,6 +78,8 @@ void writeGame(YAML::Emitter &out, const ChapterGame &entry)
         for (const Paragraph &paragraph : entry.paragraphs) {
             out << YAML::BeginMap;
             out << YAML::Key << "ply" << YAML::Value << paragraph.ply;
+            if (paragraph.kind != Paragraph::Kind::Text)
+                out << YAML::Key << "kind" << YAML::Value << toStd(Paragraph::kindKey(paragraph.kind));
             out << YAML::Key << "text" << YAML::Value << YAML::Literal << toStd(paragraph.text);
             out << YAML::EndMap;
         }
@@ -126,7 +128,8 @@ ChapterGame readGame(YAML::Node node)
             while (text.endsWith(QLatin1Char('\n'))) // The literal block's own line end.
                 text.chop(1);
             if (!text.trimmed().isEmpty())
-                entry.paragraphs << Paragraph{qMax(0, valueOf<int>(paragraph["ply"], 0)), text};
+                entry.paragraphs << Paragraph{qMax(0, valueOf<int>(paragraph["ply"], 0)), text,
+                                              Paragraph::kindFromKey(fromNode(paragraph["kind"]))};
         }
     }
     return entry;

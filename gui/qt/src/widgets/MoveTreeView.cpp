@@ -60,28 +60,56 @@ QString shown(const MoveRecord &move)
 /// Room left and right of a paragraph, in pixels: the editor keeps the same.
 constexpr int kParagraphPadding = 14;
 
-/// A paragraph's text as the view shows it: each line a paragraph of a book,
-/// justified, its first line indented, a quarter of a line apart.
-QString paragraphHtml(const QString &text, qreal indent)
+/// The face of a paragraph of the kind `kind`, from the book's: a title is
+/// bold and half as large again, a subtitle bold and a little larger.
+QFont kindFont(const QFont &book, Paragraph::Kind kind)
 {
+    if (kind == Paragraph::Kind::Text)
+        return book;
+    QFont font = book;
+    const qreal scale = kind == Paragraph::Kind::Title ? 1.5 : 1.2;
+    if (book.pointSizeF() > 0)
+        font.setPointSizeF(book.pointSizeF() * scale);
+    else
+        font.setPixelSize(qRound(book.pixelSize() * scale));
+    font.setWeight(QFont::Bold);
+    return font;
+}
+
+/// A paragraph's text as the view shows it: each line a paragraph of a book,
+/// justified, its first line indented, a quarter of a line apart. A title's
+/// lines are centred, a subtitle's to the left, neither indented.
+QString paragraphHtml(const Paragraph &paragraph, const QFont &book)
+{
+    const QFont font = kindFont(book, paragraph.kind);
+    const bool heading = paragraph.kind != Paragraph::Kind::Text;
+    // align: the CSS text-align is not honoured here, the attribute is.
+    const QString align = paragraph.kind == Paragraph::Kind::Title ? QStringLiteral("center")
+                          : heading                                ? QStringLiteral("left")
+                                                                   : QStringLiteral("justify");
+    const QString face = heading ? QStringLiteral(" font-size: %1pt; font-weight: 700;").arg(font.pointSizeF()) : QString();
     QString html;
     // An empty paragraph (one just inserted) still has a line to write on.
+    const QString &text = paragraph.text;
     for (const QString &line : (text.isEmpty() ? QStringList{QString()} : text.split(QLatin1Char('\n')))) {
-        // align="justify": the CSS text-align is not honoured here, the attribute is.
-        html += QStringLiteral("<p align=\"justify\" style=\"margin: 0; text-indent: %1px; line-height: %2%;\">%3</p>")
-                    .arg(qRound(indent))
+        html += QStringLiteral("<p align=\"%1\" style=\"margin: 0; text-indent: %2px; line-height: %3%;%4\">%5</p>")
+                    .arg(align)
+                    .arg(heading ? 0 : qRound(BookFont::indent(book)))
                     .arg(BookFont::lineHeight)
-                    .arg(line.isEmpty() ? QStringLiteral("&nbsp;") : line.toHtmlEscaped());
+                    .arg(face, line.isEmpty() ? QStringLiteral("&nbsp;") : line.toHtmlEscaped());
     }
     return html;
 }
 
-/// What makes a paragraph look like a book's in the editor too.
-QTextBlockFormat paragraphFormat(qreal indent)
+/// What makes a paragraph look like a book's in the editor too: `font` is
+/// the editor's, already the kind's.
+QTextBlockFormat paragraphFormat(const QFont &font, Paragraph::Kind kind)
 {
     QTextBlockFormat format;
-    format.setTextIndent(indent);
-    format.setAlignment(Qt::AlignJustify);
+    format.setTextIndent(kind == Paragraph::Kind::Text ? BookFont::indent(font) : 0);
+    format.setAlignment(kind == Paragraph::Kind::Title  ? Qt::AlignHCenter
+                        : kind == Paragraph::Kind::Text ? Qt::AlignJustify
+                                                        : Qt::AlignLeft);
     format.setLineHeight(BookFont::lineHeight, QTextBlockFormat::ProportionalHeight);
     return format;
 }
@@ -94,6 +122,7 @@ public:
     using QTextEdit::QTextEdit;
 
     QString hint;
+    Paragraph::Kind kind = Paragraph::Kind::Text;
 
 protected:
     void paintEvent(QPaintEvent *event) override
@@ -107,7 +136,7 @@ protected:
         shown.setPlainText(hint);
         QTextCursor all(&shown);
         all.select(QTextCursor::Document);
-        all.mergeBlockFormat(paragraphFormat(BookFont::indent(font())));
+        all.mergeBlockFormat(paragraphFormat(font(), kind));
         shown.setTextWidth(viewport()->width());
         QPainter painter(viewport());
         QAbstractTextDocumentLayout::PaintContext context;
@@ -394,7 +423,11 @@ void MoveTreeView::editParagraph(int game, int index)
     if (m_editing.first >= 0)
         finishEditing();
     m_editing = {game, index};
-    m_editText = m_book->chapter().games.at(game).paragraphs.at(index).text;
+    const Paragraph &paragraph = m_book->chapter().games.at(game).paragraphs.at(index);
+    m_editText = paragraph.text;
+    // The editor takes the face of what it writes: a title, a subtitle, a paragraph.
+    static_cast<ParagraphEditor *>(m_editor)->kind = paragraph.kind;
+    m_editor->setFont(kindFont(BookFont::paragraph(font()), paragraph.kind));
     {
         const QSignalBlocker quiet(m_editor);
         m_editor->setPlainText(m_editText);
@@ -408,11 +441,12 @@ void MoveTreeView::editParagraph(int game, int index)
 
 void MoveTreeView::formatEditor()
 {
-    // Every line a book's paragraph: justified, indented, a quarter of a line apart.
+    // Every line a book's paragraph: justified, indented, a quarter of a line
+    // apart; or a heading's.
     const QScopedValueRollback<bool> formatting(m_formatting, true);
     QTextCursor all(m_editor->document());
     all.select(QTextCursor::Document);
-    all.mergeBlockFormat(paragraphFormat(BookFont::indent(m_editor->font())));
+    all.mergeBlockFormat(paragraphFormat(m_editor->font(), static_cast<ParagraphEditor *>(m_editor)->kind));
 }
 
 void MoveTreeView::finishEditing()
@@ -522,7 +556,6 @@ void MoveTreeView::rebuild()
                        .arg(kParagraphPadding);
     // Paragraphs are set as a book's, in their own face.
     const QFont book = BookFont::paragraph(font());
-    const qreal indent = BookFont::indent(book);
     const QString bookStyle = QStringLiteral("font-family: '%1'; font-size: %2pt; font-weight: 200;")
                                   .arg(book.families().join(QStringLiteral("', '")))
                                   .arg(book.pointSizeF());
@@ -587,7 +620,7 @@ void MoveTreeView::rebuild()
                 ++row;
                 m_paragraphRows.insert(row, {g, p});
                 html += QStringLiteral("<tr><td colspan=\"3\" class=\"par\" style=\"%1\">%2</td></tr>")
-                            .arg(bookStyle, paragraphHtml(paragraphs.at(p).text, indent));
+                            .arg(bookStyle, paragraphHtml(paragraphs.at(p), book));
             }
         };
         // A comment of the main line: a row under its move, in italics.
@@ -655,7 +688,7 @@ void MoveTreeView::rebuild()
                 ++row;
                 m_paragraphRows.insert(row, {g, p});
                 html += QStringLiteral("<tr><td colspan=\"3\" class=\"par\" style=\"%1\">%2</td></tr>")
-                            .arg(bookStyle, paragraphHtml(paragraphs.at(p).text, indent));
+                            .arg(bookStyle, paragraphHtml(paragraphs.at(p), book));
             }
         }
     }

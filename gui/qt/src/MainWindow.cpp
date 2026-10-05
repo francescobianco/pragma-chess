@@ -1522,11 +1522,24 @@ void MainWindow::showMoveListMenu(const QPoint &position)
         // Nowhere in particular: where the board is.
         paragraphPly = mainLinePly(m_session->game(), m_session->path(), m_session->ply());
     }
-    menu.addAction(tr("Insert &Paragraph"), this, [this, game, paragraphPly, after = place.paragraph] {
-        const int index = m_chapters.insertParagraph(game, paragraphPly, after);
+    // Everything that can be inserted, in one menu: text between the moves,
+    // and a new game.
+    QMenu *insert = menu.addMenu(tr("&Insert"));
+    const auto insertText = [this, game, paragraphPly, after = place.paragraph](Paragraph::Kind kind) {
+        const int index = m_chapters.insertParagraph(game, paragraphPly, after, kind);
         chapterChanged();
         m_moveView->editParagraph(game, index);
-    });
+    };
+    insert->addAction(tr("&Title"), this, [insertText] { insertText(Paragraph::Kind::Title); })
+        ->setToolTip(tr("A heading in bold, centred"));
+    insert->addAction(tr("&Subtitle"), this, [insertText] { insertText(Paragraph::Kind::Subtitle); })
+        ->setToolTip(tr("A smaller heading in bold, on the left"));
+    insert->addAction(tr("&Paragraph"), this, [insertText] { insertText(Paragraph::Kind::Text); });
+    insert->addSeparator();
+    QAction *gameBreak = insert->addAction(tr("&Game Break"), this, &MainWindow::insertGameBreak);
+    gameBreak->setToolTip(tr("A new game at the end of the chapter, from the starting position; the numbering starts again"));
+    gameBreak->setEnabled(!m_onlinePlay);
+    insert->setToolTipsVisible(true);
     if (place.isParagraph()) {
         menu.addAction(tr("&Edit Paragraph"), this, [this, game, index = place.paragraph] {
             m_moveView->editParagraph(game, index);
@@ -1561,9 +1574,6 @@ void MainWindow::showMoveListMenu(const QPoint &position)
     moveGame->addAction(tr("&Up"), this, [gameTo, game] { gameTo(game - 1); })->setEnabled(game > 0);
     moveGame->addAction(tr("&Down"), this, [gameTo, game] { gameTo(game + 1); })->setEnabled(game < games - 1);
     moveGame->addAction(tr("To the &Bottom"), this, [gameTo, games] { gameTo(games - 1); })->setEnabled(game < games - 1);
-    QAction *gameBreak = menu.addAction(tr("Insert &Game Break"), this, &MainWindow::insertGameBreak);
-    gameBreak->setToolTip(tr("A new game at the end of the chapter, from the starting position; the numbering starts again"));
-    gameBreak->setEnabled(!m_onlinePlay);
     if (!place.isMove()) {
         menu.exec(m_moveView->viewport()->mapToGlobal(position));
         return;

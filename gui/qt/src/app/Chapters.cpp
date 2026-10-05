@@ -10,6 +10,28 @@ struct Text {
 
 } // namespace
 
+QString Paragraph::kindKey(Kind kind)
+{
+    switch (kind) {
+    case Kind::Title:
+        return QStringLiteral("title");
+    case Kind::Subtitle:
+        return QStringLiteral("subtitle");
+    case Kind::Text:
+        break;
+    }
+    return QStringLiteral("text");
+}
+
+Paragraph::Kind Paragraph::kindFromKey(const QString &key)
+{
+    if (key == QLatin1String("title"))
+        return Kind::Title;
+    if (key == QLatin1String("subtitle"))
+        return Kind::Subtitle;
+    return Kind::Text;
+}
+
 bool ChapterGame::isEmpty() const
 {
     return game.moves.isEmpty() && game.startFen.isEmpty() && game.uid.isEmpty() && paragraphs.isEmpty();
@@ -123,7 +145,7 @@ int ChapterBook::findGame(const QString &uid) const
     return -1;
 }
 
-int ChapterBook::insertParagraph(int game, int ply, int after)
+int ChapterBook::insertParagraph(int game, int ply, int after, Paragraph::Kind kind)
 {
     QList<Paragraph> &paragraphs = chapter().games[game].paragraphs;
     int index = 0;
@@ -135,7 +157,7 @@ int ChapterBook::insertParagraph(int game, int ply, int after)
         while (index < paragraphs.size() && paragraphs.at(index).ply <= ply)
             ++index;
     }
-    paragraphs.insert(index, Paragraph{ply, QString()});
+    paragraphs.insert(index, Paragraph{ply, QString(), kind});
     return index;
 }
 

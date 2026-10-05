@@ -2581,6 +2581,16 @@ private Q_SLOTS:
                  (QList<Paragraph>{{0, QStringLiteral("Before the moves")}, {0, QStringLiteral("Also after 2")},
                                    {2, QStringLiteral("After 2")}}));
 
+        // Titles and subtitles are paragraphs set as headings.
+        const int title = book.insertParagraph(0, 0, -1, Paragraph::Kind::Title);
+        QCOMPARE(title, 2);
+        QCOMPARE(book.game().paragraphs.at(title).kind, Paragraph::Kind::Title);
+        book.setParagraph(0, title, QStringLiteral("The Opening"));
+        QCOMPARE(book.game().paragraphs.at(title).kind, Paragraph::Kind::Title);
+        book.setParagraph(0, title, QString());
+        QCOMPARE(Paragraph::kindFromKey(Paragraph::kindKey(Paragraph::Kind::Subtitle)), Paragraph::Kind::Subtitle);
+        QCOMPARE(Paragraph::kindFromKey(QStringLiteral("unknown")), Paragraph::Kind::Text);
+
         // A game break: a new game after the one given, which becomes current.
         book.game().game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4")}};
         book.game().game.uid = QStringLiteral("stored");
@@ -2643,7 +2653,9 @@ private Q_SLOTS:
         game.game.white = QStringLiteral("Anna");
         game.game.result = QStringLiteral("1-0");
         game.game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4"), {1}}, {QStringLiteral("e5"), QStringLiteral("e7e5")}};
-        game.paragraphs = {{0, QStringLiteral("The oldest opening.")}, {2, QStringLiteral("Two lines\nof text: \"quoted\"")}};
+        game.paragraphs = {{0, QStringLiteral("King's Pawn"), Paragraph::Kind::Title},
+                           {0, QStringLiteral("Open games"), Paragraph::Kind::Subtitle},
+                           {0, QStringLiteral("The oldest opening.")}, {2, QStringLiteral("Two lines\nof text: \"quoted\"")}};
         ChapterGame stored;
         stored.game.uid = QStringLiteral("u-1");
         opening.games = {game, stored};

@@ -2502,20 +2502,12 @@ non è su questo computer.</translation>
         <translation>Impostazioni pro&amp;getto…</translation>
     </message>
     <message>
-        <source>Insert &amp;Paragraph</source>
-        <translation>Inserisci &amp;paragrafo</translation>
-    </message>
-    <message>
         <source>&amp;Edit Paragraph</source>
         <translation>&amp;Modifica paragrafo</translation>
     </message>
     <message>
         <source>&amp;Delete Paragraph</source>
         <translation>&amp;Elimina paragrafo</translation>
-    </message>
-    <message>
-        <source>Insert &amp;Game Break</source>
-        <translation>Inserisci &amp;interruzione partita</translation>
     </message>
     <message>
         <source>The board stays on the online game until it ends.</source>
@@ -2564,6 +2556,34 @@ non è su questo computer.</translation>
     <message>
         <source>&amp;Graphics Settings…</source>
         <translation>Impostazioni &amp;grafiche…</translation>
+    </message>
+    <message>
+        <source>&amp;Insert</source>
+        <translation>&amp;Inserisci</translation>
+    </message>
+    <message>
+        <source>&amp;Title</source>
+        <translation>&amp;Titolo</translation>
+    </message>
+    <message>
+        <source>A heading in bold, centred</source>
+        <translation>Un'intestazione in grassetto, centrata</translation>
+    </message>
+    <message>
+        <source>&amp;Subtitle</source>
+        <translation>&amp;Sottotitolo</translation>
+    </message>
+    <message>
+        <source>A smaller heading in bold, on the left</source>
+        <translation>Un'intestazione più piccola in grassetto, a sinistra</translation>
+    </message>
+    <message>
+        <source>&amp;Paragraph</source>
+        <translation>&amp;Paragrafo</translation>
+    </message>
+    <message>
+        <source>&amp;Game Break</source>
+        <translation>Interruzione &amp;partita</translation>
     </message>
 </context>
 <context>

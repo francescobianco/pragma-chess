@@ -528,7 +528,10 @@ tools this is a study or a chess book.
   titles, and not the chapter's —, paragraphs as rows
   spanning the table in the book face (`widgets/BookFont`: Crimson Pro
   ExtraLight, justified, line height 125%, the first line of each paragraph
-  indented).
+  indented). A paragraph has a `Paragraph::Kind`: Text, or a heading —
+  Title (bold, centred, half as large again) or Subtitle (bold, a fifth
+  larger, on the left); the move list's right-click menu inserts them all,
+  and the game break, from one Insert ▸ submenu.
   Paragraphs are written in place: `editParagraph` lays a `QTextEdit` with
   the same font, width and block format over the paragraph's row, the row
   is rebuilt with the text as it is typed, and Esc, Ctrl+Enter or a click
@@ -546,7 +549,7 @@ tools this is a study or a chess book.
 - In the `.pch` (format 2) `chapters` holds `current` and the `list`:
   each chapter its `title`, `game`, `ply` and `games`, each game its uid
   when stored plus its content (header, `fen`, `moves`, `annotations`,
-  `variations`) and `paragraphs`. A format 1 project has no chapters: its
+  `variations`) and `paragraphs` (`ply`, `text`, and `kind` for a title or a subtitle). A format 1 project has no chapters: its
   one game (`game:` section) becomes the first chapter when it is opened.
 
 ## Trash

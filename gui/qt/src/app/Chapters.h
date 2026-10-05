@@ -8,8 +8,18 @@
 /// Text between the moves of a chapter: after the main-line move `ply` of
 /// its game (0: before the first move).
 struct Paragraph {
+    /// How the text is set: a paragraph of a book, or a heading — a title,
+    /// bold and centred, or a subtitle, bold, smaller and to the left.
+    enum class Kind { Text, Title, Subtitle };
+
     int ply = 0;
     QString text;
+    Kind kind = Kind::Text;
+
+    /// "title", "subtitle", "text": the kind as the project file writes it.
+    static QString kindKey(Kind kind);
+    /// The kind of a key; anything unknown is Text.
+    static Kind kindFromKey(const QString &key);
 
     bool operator==(const Paragraph &) const = default;
 };
@@ -81,7 +91,7 @@ public:
     /// A new paragraph in the game `game` of the open chapter: after the
     /// main-line move `ply`, below the paragraphs already there (or right
     /// after the paragraph `after` when it is given). Returns its index.
-    int insertParagraph(int game, int ply, int after = -1);
+    int insertParagraph(int game, int ply, int after = -1, Paragraph::Kind kind = Paragraph::Kind::Text);
     /// Moves a paragraph of the game `game` of the open chapter after the
     /// main-line ply `ply` (0: before the first move), first or last among
     /// the paragraphs already there. Returns its new index.

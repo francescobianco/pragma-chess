@@ -224,8 +224,8 @@ private Q_SLOTS:
         QCOMPARE(explanation.verdict, MoveExplanation::Verdict::Mistake);
         QCOMPARE(explanation.arrows.size(), 2);
         QCOMPARE(explanation.arrows.at(0).kind, BoardArrow::Kind::Alternative);
-        // The better move carries the piece it moves, drawn faint where it goes.
-        QCOMPARE(explanation.arrows.at(0).piece, (Piece{PieceType::Pawn, Side::White}));
+        // 3.d4 moves another piece than 3.Nxe5: the pawn still stands on d2, no faint piece.
+        QVERIFY(explanation.arrows.at(0).piece.isNull());
         QVERIFY(explanation.arrows.at(1).piece.isNull());
         QCOMPARE(explanation.arrows.at(1), (BoardArrow{BoardState::squareFromName(u"d6"), BoardState::squareFromName(u"e5"),
                                             BoardArrow::Kind::Refutation, 1}));
@@ -747,6 +747,19 @@ private Q_SLOTS:
         worse.pv = QString::fromLatin1("f6e5 f1b5 e8e7 e4d5 c7c5").split(QLatin1Char(' '));
         QCOMPARE(TrainingTutor::judge(lost, worse, Side::White, bishopTakes), Alert::None); // The numbers alone.
         QCOMPARE(TrainingTutor::judge(lost, worse, Side::White, bishopTakes, start), Alert::Mistake);
+        // 12.Be3 moves the bishop 12.Bxe5 moved: d4 is empty on the board, so
+        // the bishop is drawn faint on e3, where it should have gone.
+        ExplanationInput input;
+        input.before = start;
+        input.played = bishopTakes;
+        input.beforeEvaluation = lost;
+        input.after = start;
+        input.after.play(bishopTakes);
+        input.afterEvaluation = worse;
+        const MoveExplanation explained = explainPosition(input);
+        QCOMPARE(explained.arrows.first().kind, BoardArrow::Kind::Alternative);
+        QCOMPARE(explained.arrows.first().to, BoardState::squareFromName(u"e3"));
+        QCOMPARE(explained.arrows.first().piece, (Piece{PieceType::Bishop, Side::White}));
         // A sacrifice the engine approves of is no error, material or not.
         EngineEvaluation sound = worse;
         sound.centipawns = -480;

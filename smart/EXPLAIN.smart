@@ -95,14 +95,18 @@ FUNCTION Draw(source, target, kind, number)
     ARROW source, target, kind, number
 END FUNCTION
 
-' The better move `move` of `position`, dashed, with the piece it moves
-' drawn small where it goes: the board shows the position after the move
-' played, where that piece may no longer stand on the square the arrow
-' leaves.
-FUNCTION DrawBetter(position, move)
+' The better move `move` of `position`, dashed. When it moves the piece
+' `played` moved — so the square it leaves is empty on the board, that
+' piece having gone elsewhere — the piece is drawn small where it should
+' have landed; otherwise it still stands where the arrow starts.
+FUNCTION DrawBetter(position, move, played)
     SHARED drawnArrows
     drawnArrows = drawnArrows + [[FROMSQ(move), TOSQ(move), "alternative"]]
-    ARROW FROMSQ(move), TOSQ(move), "alternative", 0, PIECE(position, FROMSQ(move)), SIDETOMOVE(position)
+    IF FROMSQ(move) = FROMSQ(played) THEN
+        ARROW FROMSQ(move), TOSQ(move), "alternative", 0, PIECE(position, FROMSQ(move)), SIDETOMOVE(position)
+    ELSE
+        ARROW FROMSQ(move), TOSQ(move), "alternative", 0
+    END IF
 END FUNCTION
 
 FUNCTION SideName(side)
@@ -666,7 +670,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         ' The move allows a mate.
         IF ISMATE(afterEval) AND MATING(afterEval) = toMove AND MATEIN(afterEval) > 0 THEN
             NOTE "branch: the move allows mate"
-            IF betterExists THEN DrawBetter before, best[0][0]
+            IF betterExists THEN DrawBetter before, best[0][0], played
             AddArrows current, 0, Plies(current), toMove, "refutation", -1, -1
             PLAYBACK MateToPlay(Replay(after, pv, MAX_MATE_PLIES))
             SAY prefix + TEXT("%1 mates in %2: %3.", SideName(toMove), MATEIN(afterEval), LINETEXT(after, pv, MAX_ARROWS)) + better
@@ -685,7 +689,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
                 NOTE "branch: the move loses material"
                 focus = FocusWindow(line, 1, ply, toMove)
                 ' A focused refutation is clearer without the better move on top.
-                IF focus[0] = 1 AND betterExists THEN DrawBetter before, best[0][0]
+                IF focus[0] = 1 AND betterExists THEN DrawBetter before, best[0][0], played
                 AddArrows line, 1, ply, toMove, "refutation", focus[0], focus[1]
                 SAY prefix + TEXT("%1 %2: %3.", SideName(toMove), MaterialPhrase(before, line[1][ply], toMove), LINETEXT(after, pv, ply - 1)) + better
                 RETURN
@@ -695,7 +699,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         ' The move misses a mate or a win of material.
         IF betterExists AND ISMATE(beforeEval) AND MATING(beforeEval) = mover THEN
             NOTE "branch: the move misses a mate"
-            DrawBetter before, best[0][0]
+            DrawBetter before, best[0][0], played
             SAY prefix + TEXT("Missed mate in %1: %2.", MATEIN(beforeEval), LINETEXT(before, PV(beforeEval), MAX_ARROWS))
             RETURN
         END IF
@@ -706,7 +710,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
             ply = FindRealization(best, 1, mover, MATERIAL(before), needed, missed)
             IF ply >= 0 THEN
                 NOTE "branch: the move misses a win of material"
-                DrawBetter before, best[0][0]
+                DrawBetter before, best[0][0], played
                 SAY prefix + TEXT("Missed: %1 %2.", LINETEXT(before, PV(beforeEval), ply), MaterialPhrase(before, best[1][ply], mover))
                 RETURN
             END IF
@@ -714,7 +718,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
 
         ' Nothing concrete within reach: show how the opponent takes over.
         NOTE "branch: no material or mate, showing " + STR(fallbackPlies) + " plies of the line"
-        IF betterExists THEN DrawBetter before, best[0][0]
+        IF betterExists THEN DrawBetter before, best[0][0], played
         ' Not a refutation: nothing is won here, so the opponent's
         ' continuation is drawn as a reply. Red is the colour of material falling.
         ' No material falls: a piece taken back in an even exchange (4...Bxf3

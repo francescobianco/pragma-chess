@@ -737,7 +737,10 @@ database, and under it Board (Position, Variant), Me/Friends/Opponents, ECO
 (letter → code), Tournaments, Years, Studies (study → chapters, from the
 StudyName/ChapterName/ChapterURL tags, which the headers load for it), Sources and, always last, Trash, listing
 only values some game has (`DatabaseOutline`, unit-tested); selecting a node
-filters the list through `GameFilterProxyModel`.
+filters the list through `GameFilterProxyModel`. Which nodes are open and which is
+selected is per database and per computer (QSettings `databaseTree/<sha1 of
+the path>`, `MainWindow::saveTreeState`/`restoreTreeState`), not the
+project's: it changes at every click and must not mark the project modified.
 
 Board ▸ Position and Board ▸ Variant follow the board: Position lists the
 games in which the position on the board occurs at any ply, whatever the move

@@ -49,7 +49,7 @@ To change players, event, date or result of the game on the board, click the hea
 
 # The database tree {#database-tree}
 
-Left of the games list, the tree shows what the open database contains. Select a node and the list shows only those games; select the database itself to see them all.
+Left of the games list, the tree shows what the open database contains. Select a node and the list shows only those games; select the database itself to see them all. The tree stays as you leave it: the next time the database is opened, here or after closing Pragma Chess, the same nodes are open and the same one is selected.
 
 - **Board ▸ Position**: the games in which the position on the board occurs, whatever the order of the moves.
 - **Board ▸ Variant**: the games that begin with exactly the moves played on the board.

@@ -115,6 +115,11 @@ private:
     void showCategory(const GameCategory &category);
     /// Indexes the positions of the open database again, in the background.
     void rebuildPositionIndex();
+    /// The database tree's open nodes and selected filter, per database and
+    /// per computer (QSettings): not the project's, they change at every click.
+    QString treeStateKey() const;
+    void saveTreeState();
+    void restoreTreeState();
     /// The Database column of the Opening Tree: how the open database's games went after each book move.
     void updateBookDatabaseStats();
     /// Counts the games matching the board for Position and Variant and, when

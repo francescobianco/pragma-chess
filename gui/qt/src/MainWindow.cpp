@@ -79,6 +79,7 @@
 #include <QApplication>
 #include <QCheckBox>
 #include <QClipboard>
+#include <QCryptographicHash>
 #include <QDataStream>
 #include <QActionGroup>
 #include <QDesktopServices>
@@ -1270,6 +1271,7 @@ void MainWindow::createDocks()
 
     m_databaseTree = new DatabaseTreeWidget;
     connect(m_databaseTree, &DatabaseTreeWidget::categorySelected, this, &MainWindow::showCategory);
+    connect(m_databaseTree, &DatabaseTreeWidget::stateChanged, this, &MainWindow::saveTreeState);
     connect(m_databaseTree, &DatabaseTreeWidget::connectSourceRequested, this, &MainWindow::connectSource);
     connect(m_databaseTree, &DatabaseTreeWidget::manageSourcesRequested, this, &MainWindow::manageSources);
     connect(m_databaseTree, &DatabaseTreeWidget::syncSourceRequested, this,
@@ -1325,9 +1327,39 @@ void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
     m_category = {};
     m_gameListProxy->setDatabase(m_database.get());
     m_databaseTree->setDatabase(m_database.get());
+    restoreTreeState();
     m_sourceSync->setDatabase(m_database.get());
     m_positionIndex->clear(); // Its games are another database's.
     rebuildPositionIndex();
+}
+
+QString MainWindow::treeStateKey() const
+{
+    // Per database, by its file: the tree of each comes back as it was left.
+    const QByteArray location = m_database ? m_database->location().toUtf8() : QByteArray();
+    return QStringLiteral("databaseTree/")
+        + QString::fromLatin1(QCryptographicHash::hash(location, QCryptographicHash::Sha1).toHex());
+}
+
+void MainWindow::saveTreeState()
+{
+    if (!m_database)
+        return;
+    QSettings settings;
+    settings.setValue(treeStateKey() + QStringLiteral("/expanded"), m_databaseTree->expandedKeys());
+    settings.setValue(treeStateKey() + QStringLiteral("/selected"), m_databaseTree->selectedKey());
+}
+
+void MainWindow::restoreTreeState()
+{
+    if (!m_database)
+        return;
+    const QSettings settings;
+    const QString key = treeStateKey();
+    if (!settings.contains(key + QStringLiteral("/expanded")))
+        return; // Never left: as the tree opens by itself.
+    m_databaseTree->restoreState(settings.value(key + QStringLiteral("/expanded")).toStringList(),
+                                 settings.value(key + QStringLiteral("/selected")).toString());
 }
 
 void MainWindow::rebuildPositionIndex()

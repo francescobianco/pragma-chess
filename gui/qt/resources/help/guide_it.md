@@ -49,7 +49,7 @@ Per cambiare giocatori, evento, data o risultato della partita sulla scacchiera,
 
 # L'albero del database {#database-tree}
 
-A sinistra della lista delle partite, l'albero mostra che cosa contiene il database aperto. Seleziona un nodo e la lista mostra solo quelle partite; seleziona il database per vederle tutte.
+A sinistra della lista delle partite, l'albero mostra che cosa contiene il database aperto. Seleziona un nodo e la lista mostra solo quelle partite; seleziona il database per vederle tutte. L'albero resta come lo lasci: la prossima volta che il database si apre, anche dopo aver chiuso Pragma Chess, sono aperti gli stessi nodi ed è selezionato lo stesso.
 
 - **Scacchiera ▸ Posizione**: le partite in cui compare la posizione sulla scacchiera, qualunque sia l'ordine delle mosse.
 - **Scacchiera ▸ Variante**: le partite che cominciano esattamente con le mosse giocate sulla scacchiera.

@@ -40,6 +40,47 @@ DatabaseTreeWidget::DatabaseTreeWidget(QWidget *parent)
     connect(m_refreshTimer, &QTimer::timeout, this, &DatabaseTreeWidget::refresh);
     connect(this, &QTreeWidget::currentItemChanged, this,
             [this](QTreeWidgetItem *current) { onCurrentItemChanged(current); });
+    const auto changed = [this] {
+        if (!m_refreshing)
+            Q_EMIT stateChanged();
+    };
+    connect(this, &QTreeWidget::itemExpanded, this, changed);
+    connect(this, &QTreeWidget::itemCollapsed, this, changed);
+    connect(this, &QTreeWidget::currentItemChanged, this, changed);
+}
+
+QStringList DatabaseTreeWidget::expandedKeys() const
+{
+    QStringList keys;
+    for (QTreeWidgetItemIterator it(const_cast<DatabaseTreeWidget *>(this)); *it; ++it) {
+        if ((*it)->isExpanded())
+            keys << keyOf(*it);
+    }
+    return keys;
+}
+
+QString DatabaseTreeWidget::selectedKey() const
+{
+    return currentItem() ? keyOf(currentItem()) : QString();
+}
+
+void DatabaseTreeWidget::restoreState(const QStringList &expanded, const QString &selected)
+{
+    QTreeWidgetItem *chosen = nullptr;
+    {
+        const bool wasRefreshing = m_refreshing;
+        m_refreshing = true; // Nothing to tell yet: this is how it was.
+        const QSet<QString> open(expanded.cbegin(), expanded.cend());
+        for (QTreeWidgetItemIterator it(this); *it; ++it) {
+            const QString key = keyOf(*it);
+            (*it)->setExpanded(open.contains(key));
+            if (key == selected)
+                chosen = *it;
+        }
+        m_refreshing = wasRefreshing;
+    }
+    if (chosen && chosen != currentItem())
+        setCurrentItem(chosen); // Filters the list, as a click does.
 }
 
 DatabaseTreeWidget::Node DatabaseTreeWidget::nodeOf(const QTreeWidgetItem *item)

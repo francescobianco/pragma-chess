@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QSet>
+#include <QStringList>
 #include <QTreeWidget>
 
 class GameDatabase;
@@ -47,7 +48,17 @@ public:
     /// still being counted.
     void setBoardCounts(int position, int variant);
 
+    /// The nodes opened and the one selected, by keys that hold from one run
+    /// to the next, so the tree can be left as it was.
+    QStringList expandedKeys() const;
+    QString selectedKey() const;
+    /// Opens those nodes (and closes the others) and selects that one, which
+    /// filters the list as a click would; a node no longer there is skipped.
+    void restoreState(const QStringList &expanded, const QString &selected);
+
 Q_SIGNALS:
+    /// A node was opened, closed or selected by the user.
+    void stateChanged();
     void categorySelected(const GameCategory &category);
     void connectSourceRequested();
     void manageSourcesRequested();

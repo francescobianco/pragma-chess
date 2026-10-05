@@ -1,6 +1,6 @@
 # TODO — handoff
 
-Stato del lavoro e conoscenza acquisita nelle sessioni del 2 e 3 ottobre 2026,
+Stato del lavoro e conoscenza acquisita nelle sessioni del 2, 3 e 5 ottobre 2026,
 per chi riprende (persona o agente). AGENTS.md descrive com'è fatto il codice;
 qui c'è quello che AGENTS.md non dice: cosa resta da fare, le decisioni aperte,
 i formati decifrati e i trucchi di verifica. Tutto è su `main`, pushato;
@@ -108,16 +108,75 @@ salvataggio immediato nelle partite del database). Restano:
 
 ### 2. Taratura dello Spiega (decisione dell'utente aperta)
 
-`classifyMove` in `MoveExplanation.cpp` dice di usare la scala di lichess ma
-usa soglie doppie: imprecisione ≥10, errore ≥20, errore grave ≥30 punti di
+Il giudizio ora sta in `smart/TUTOR.smart` (`Classify`, costanti
+`BLUNDER_DROP`, `MISTAKE_DROP`, `INACCURACY_DROP`): dice di usare la scala
+di lichess ma usa soglie doppie: imprecisione ≥10, errore ≥20, errore grave ≥30 punti di
 probabilità di vittoria su scala 0–100. Lichess (0.1/0.2/0.3 su scala −1..1)
 corrisponde a 5/10/15. Esempio: 1.e4 e5 2.f4 exf4 3.a4 passa da −0.5 a −2.1,
 13,7 punti: per noi "imprecisione", per lichess "errore". L'utente si
 aspettava "errore". Non è stato cambiato perché tocca tutti i verdetti dello
-Spiega, tarato in `docs/explain-tuning.md` (test con verdetti attesi alle
-righe ~193, 235, 255, 546 di `tst_chessrules.cpp`). Il tutor intanto si ferma
+Spiega, tarato in `docs/tech/explain-tuning.md` (test con verdetti attesi in
+`tst_chessrules.cpp` e nei casi di `smart/tests/`). Il tutor intanto si ferma
 anche sulle imprecisioni. Se l'utente dice di allineare a lichess: cambiare le
 tre soglie, rifare la taratura sui casi del documento, aggiornare la guida.
+
+### 2b. SMART e Spiega reattivo: quel che resta
+
+SMART (smart/README.md, AGENTS.md "SMART") è fatto nei quattro passi
+concordati: linguaggio e interprete C++, TUTOR.smart, EXPLAIN.smart reattivo
+sull'analisi live del desktop con tick registrabili, interprete Kotlin e
+app Android. Ultimo commit del lavoro: `d7f16c1`. Resta:
+
+- **La frase posizionale persa.** Spiega reattivo non ha più la sonda lungo
+  la variante (ricerche brevi su ogni posizione della linea, `concretePly`):
+  "nessun materiale lo spiega: la valutazione è posizionale, chiara dopo …"
+  non compare più, al suo posto "Linea principale: …" (es. 3.a4 nel Gambetto
+  di re). Va ricavata dai tick, in EXPLAIN.smart: la memoria tra un tick e
+  l'altro ha le valutazioni per profondità (`settledDepth` del desktop è
+  l'idea: da che profondità la valutazione regge). Decidere cosa dire con
+  quel dato, poi togliere `concretePly` da `Explain` e la sonda da
+  `ExplanationSearch` (oggi solo `pragma-explain` la usa, con probe 0).
+- **9.Bxf6 (feedback del 5 ottobre, caso in `smart/tests/user-feedback.ticks`).**
+  1.d4 d5 2.Nf3 Nf6 3.Nc3 e6 4.Bg5 Bb4 5.a3 Bxc3+ 6.bxc3 c5 7.dxc5 Qc7
+  8.Qd4 Nc6 9.Bxf6: l'utente non capiva la freccia 2. È f6–d4 blu, la
+  ripresa del Bianco 10.Bxd4 dopo 9…Nxd4: la sequenza finisce lì perché il
+  materiale si conta a scambi finiti. Tre cose da decidere:
+  1. la ripresa di chi perde va disegnata? Toglie poco e confonde; forse
+     va tolta quando è l'ultima mossa e non cambia il verdetto, o detta
+     ("il Bianco riprende, ma…");
+  2. il verdetto è "Errore" per una donna in presa: da −0.8 a −4.0 sono solo
+     22,7 punti di probabilità perché il Bianco stava già peggio. Un pezzo
+     lasciato in presa (la donna era già attaccata da 8…Nc6) meriterebbe
+     "Errore grave" anche quando la curva satura: regola da aggiungere in
+     TUTOR.smart (materiale perso ≥ 3 pedoni → almeno errore grave?);
+  3. la frase "vince la donna per 2 cavalli" conta anche il cavallo che la
+     mossa stessa ha preso (9.Bxf6): giusto in bilancio, strano da leggere.
+     Meglio "la donna era attaccata: 9.Qe3 la salvava".
+- **3.Qf5** dopo 2.Qg4 a profondità 18 dice "il Nero vince un alfiere e un
+  pedone per un cavallo" con una linea di 14 semimosse: debole (c'era già
+  prima di SMART). Forse un limite di semimosse per chiamare "materiale" un
+  guadagno così lontano.
+- **Il tutor reattivo.** `TrainingTutor::judge` chiama ancora `Judge` una
+  volta, a fine ricerca della risposta del motore. Con `Tick` anche lì
+  l'avviso arriverebbe appena la ricerca mostra il crollo.
+- **Ricarica a caldo.** Con `PRAGMA_SMART_DIR` i programmi si rileggono solo
+  al riavvio: rileggerli quando il file cambia (QFileSystemWatcher) renderebbe
+  il tuning sul desktop immediato.
+- **Salvare i tick dall'interfaccia.** Oggi si registrano solo con la
+  variabile `PRAGMA_EXPLAIN_RECORD`; un comando (es. nel menu del pannello
+  Motore: "Copia i tick di Spiega") porterebbe un caso sbagliato a
+  `pragma-explain --replay` senza riavviare.
+- **Android: frasi nuove.** `ExplainStrings` mappa a mano le frasi di
+  EXPLAIN.smart sulle risorse `explain_*`; una frase nuova resta in inglese
+  sul telefono finché non si aggiunge. Serve un test come
+  `tst_chessrules` (ogni `TEXT("…")` di EXPLAIN.smart è nella mappa).
+- **Android: posizioni senza re.** Il desktop ora accetta come posizione di
+  partenza un diagramma senza re (i capitoli di testo degli studi lichess,
+  `ChessPosition::Kings::Optional`); la `Position` Kotlin no, quindi quei
+  capitoli sul telefono non si aprono. Portare la stessa regola.
+- **Non provato a mano:** Spiega reattivo sul desktop vero (visto solo nei
+  test e nella CLI: frecce che cambiano solo quando reggono, matto che non
+  riparte) e sul telefono vero (solo test JVM e APK compilate).
 
 ### 3. Verifiche mancate sull'app vera
 

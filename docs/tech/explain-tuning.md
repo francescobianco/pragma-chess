@@ -211,3 +211,24 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   and more), 4.Nxe5 after 3…Nd4 −0.5 → −0.6, the Opera game's 14.Rd1
   +6.0 → +6.4. The principal variations differ more than the scores. Tune
   with the bundled engine (`make stockfish`), which is what users have.
+- 2026-10-05 — **SMART.** The logic is now `smart/EXPLAIN.smart` (and the
+  verdict `smart/TUTOR.smart`), run by every client; the port was checked
+  byte for byte against the old `pragma-explain` on five lines. The
+  decision of 2026-09-16 (one fixed-depth `ExplanationSearch` for both) is
+  reversed at the user's request: the separate search made Explain slow and
+  drove the engine twice. Explain now reacts to the live analysis, tick by
+  tick; stability comes from EXPLAIN.smart's memory instead (no answer
+  under depth 8, the verdict only from depth 12 or as deep as the search
+  before the move, other arrows only once they held for two depths), and
+  reproducibility from recorded ticks (`--record`/`--replay`,
+  `PRAGMA_EXPLAIN_RECORD`, `smart/tests`). Lost on the way: the line probe,
+  so the positional sentence (TODO.md, "SMART e Spiega reattivo").
+- 2026-10-05 — 1.d4 d5 2.Nf3 Nf6 3.Nc3 e6 4.Bg5 Bb4 5.a3 Bxc3+ 6.bxc3 c5
+  7.dxc5 Qc7 8.Qd4 Nc6 9.Bxf6: "I don't understand what arrow 2 shows." It
+  is White's recapture 10.Bxd4 (blue, a reply), where the sequence ends
+  because material is counted once the exchanges are over: "Mistake (−0.8 →
+  −4.0). Black wins the queen for 2 knights: 9…Nxd4 10.Bxd4. Better was
+  9.Qe3." Open: whether to draw the loser's last recapture, "Mistake" for a
+  queen left hanging (the winning-chances curve saturates when already
+  worse), and "for 2 knights" counting the knight 9.Bxf6 itself took. Case
+  recorded in `smart/tests/user-feedback.ticks`; nothing changed yet.

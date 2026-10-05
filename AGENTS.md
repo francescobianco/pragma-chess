@@ -141,8 +141,10 @@ draws arrows justifying the evaluation, judged against the position before
 the last move. It applies to the move on the board only: navigating or
 playing a move turns it off, and the user asks again at the next move.
 
-- `app/MoveExplanation.*` — pure logic, no Qt widgets or processes; unit-test
-  every change here. Arrow colours are a claim: `Refutation` (red) means
+- **The logic is `smart/EXPLAIN.smart`** (see SMART below):
+  `app/MoveExplanation.*` only calls its `Explain` with the input and
+  collects what its commands say; unit-test every change through
+  `explainPosition`. Arrow colours are a claim: `Refutation` (red) means
   material is falling, so a drop with no material behind it is drawn as a
   `Reply` and said to be positional. It replays the engine's principal variation and finds
   where the evaluation becomes concrete: material won once exchanges, checks
@@ -204,9 +206,12 @@ fixed once, in SMART.
   built into the core library (`:/smart`); **`PRAGMA_SMART_DIR=<checkout>/smart`
   reads them from disk**, so a fix is tried without building.
 - Done so far: `TUTOR.smart` judges the moves — `classifyMove` (Explain's
-  verdict) and `TrainingTutor::judge` only call its `Classify` and `Judge`.
-  `EXPLAIN.smart`, the reactive Explain on the live analysis, the command
-  line's recorded ticks and the Kotlin interpreter are next.
+  verdict) and `TrainingTutor::judge` only call its `Classify` and `Judge`
+  —, and `EXPLAIN.smart`'s `Explain` is the whole explanation
+  (`explainPosition` calls it; its sentences are listed in
+  `MoveExplanation.cpp` for lupdate, and a test checks the list). The
+  reactive Explain on the live analysis, the command line's recorded ticks
+  and the Kotlin interpreter are next.
 - **The language is a contract**: any change to it goes into
   smart/README.md and into both interpreters, with a test
   (`tst_chessrules::runsSmartPrograms`). Keep it small: the chess belongs

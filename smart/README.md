@@ -144,6 +144,8 @@ Comparisons and logic give 1 or 0.
 | `ABS(x)` | |
 | `MIN(a, b, …)`, `MAX(a, b, …)` | |
 | `STR(x)` | a number as text: whole numbers without decimals, others with at most 6 decimals, trailing zeros dropped |
+| `FIXED(x, n)` | a number as text with exactly `n` decimals (`FIXED(2.5, 1)` is `"2.5"`, `FIXED(7, 2)` is `"7.00"`) |
+| `TRIM(text)` | the text without the spaces at its ends |
 | `REPEAT(value, n)` | a list of `n` copies |
 | `SLICE(list, from, count)` | `count` elements from `from` (fewer at the end) |
 | `CONTAINS(list, value)` | 1 or 0 |

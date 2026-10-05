@@ -442,6 +442,15 @@ void SmartInterpreter::defineCore()
         expectArguments(QStringLiteral("STR"), args, 1);
         return SmartValue(args.at(0).toText());
     });
+    define(QStringLiteral("FIXED"), [](const std::vector<SmartValue> &args) {
+        expectArguments(QStringLiteral("FIXED"), args, 2);
+        const int decimals = qBound(0, intArgument(QStringLiteral("FIXED"), args, 1), 12);
+        return SmartValue(QString::number(numberArgument(QStringLiteral("FIXED"), args, 0), 'f', decimals));
+    });
+    define(QStringLiteral("TRIM"), [](const std::vector<SmartValue> &args) {
+        expectArguments(QStringLiteral("TRIM"), args, 1);
+        return SmartValue(textArgument(QStringLiteral("TRIM"), args, 0).trimmed());
+    });
     define(QStringLiteral("REPEAT"), [](const std::vector<SmartValue> &args) {
         expectArguments(QStringLiteral("REPEAT"), args, 2);
         const int count = intArgument(QStringLiteral("REPEAT"), args, 1);

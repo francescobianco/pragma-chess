@@ -1,0 +1,545 @@
+' EXPLAIN.smart — Explain: what justifies the evaluation of the position on
+' the board, judged against the position before the last move. Arrows for
+' the moves that matter, rings on the pieces that fall, a summary.
+'
+' The engine's principal variation is replayed until the evaluation turns
+' into something concrete on the board — material won once the exchanges
+' are over (checks and recaptures included) and kept for a few plies, or a
+' mate — and the moves up to that point become the arrows. When the last
+' move threw an advantage away without losing material, the better move's
+' line is shown. Arrow colours are a claim: a "refutation" (red) means
+' material is falling, so a drop with nothing behind it is drawn as a
+' "reply" and called positional.
+'
+' The client provides:
+'   WHITE, BLACK                      the sides: 1 and -1
+'   PAWN, KNIGHT, BISHOP, ROOK,       the pieces: 1 to 6 (0 is no piece)
+'   QUEEN, KING
+'   Positions:
+'     PLAY(p, move)                   the position after a move (UCI), NOTHING if illegal
+'     SIDETOMOVE(p)                   WHITE or BLACK
+'     MATERIAL(p)                     material in centipawns, White's point of view
+'     INCHECK(p), CHECKMATE(p), STALEMATE(p)
+'     CAPTURED(p, move)               the piece the move takes (en passant too), or 0
+'     PIECE(p, square)                the piece on a square (0 to 63, a1 to h8), or 0
+'     COUNT(p, side, piece)           how many of that piece the side has
+'     LINETEXT(p, moves, plies)       "14…Bxf2+ 15.Kxf2 Ng4+": at most `plies` moves
+'   Moves (UCI): FROMSQ(move), TOSQ(move), PROMOTION(move) (the piece, or 0)
+'   Evaluations:
+'     ISMATE(e), MATEIN(e), MATING(e) a mate: in how many moves, by which side
+'     CP(e)                           centipawns, White's point of view
+'     CPFOR(e, side)                  centipawns for a side, mates as a big bounded score
+'     PV(e)                           the engine's line, a list of moves
+'     EVALTEXT(e)                     "+1.3", "M3"
+'   CLASSIFY(before, after, mover, move)   TUTOR.smart's Classify
+'   TEXT(sentence, args…)             the sentence translated, %1, %2… replaced
+'   Commands, what the explanation shows:
+'     ARROW from, to, kind, number    kind "refutation", "idea", "reply" or
+'                                     "alternative"; number its place in the line (0: none)
+'     LOST square                     a ring on a piece that falls
+'     SAY text                        text added to the summary
+'     VERDICT name                    the move's verdict (TUTOR.smart's names)
+'     PLAYBACK moves                  moves to play on the board: a forced mate
+'     NOTE text                       how the explanation was reached (--trace)
+'
+' Entry function: Explain.
+
+' How far into a principal variation to look for the advantage to become concrete.
+CONST MAX_SEARCH_PLIES = 16
+' Plies after the realization during which the material must not come back.
+CONST HOLD_PLIES = 4
+CONST MAX_ARROWS = 8
+' Mates are replayed to the end, so that they can be played on the board.
+CONST MAX_MATE_PLIES = 100
+' Realizations longer than this are drawn focused on their decisive moves:
+' a long sequence of arrows says nothing at a glance.
+CONST FOCUS_ABOVE = 3
+' The biggest material jump and the move right before it.
+CONST FOCUS_PLIES = 2
+' Advantages smaller than this (centipawns) are not explained with material.
+CONST MINIMUM_MATERIAL = 80
+' Share of an evaluation swing that material must account for. Engine scores
+' value pieces above the classic 1/3/3/5/9, so this is well below one.
+CONST REALIZED_SHARE = 0.4
+' Swings are capped so that mates and huge scores still ask for sensible material.
+CONST MAX_SWING = 1500
+
+' The pieces already ringed in this explanation.
+lostSquares = []
+
+FUNCTION SideName(side)
+    IF side = WHITE THEN RETURN TEXT("White")
+    RETURN TEXT("Black")
+END FUNCTION
+
+FUNCTION Sign(x)
+    IF x > 0 THEN RETURN 1
+    IF x < 0 THEN RETURN -1
+    RETURN 0
+END FUNCTION
+
+FUNCTION FileOf(square)
+    RETURN square MOD 8
+END FUNCTION
+
+FUNCTION RankOf(square)
+    RETURN INT(square / 8)
+END FUNCTION
+
+' A principal variation replayed on the board: [moves, positions], where
+' positions[k] is the position before moves[k] and the last position follows
+' the last move.
+FUNCTION Replay(start, moves, maxPlies)
+    played = []
+    positions = [start]
+    FOR i = 0 TO LEN(moves) - 1
+        IF LEN(played) >= maxPlies THEN EXIT FOR
+        after = PLAY(positions[LEN(positions) - 1], moves[i])
+        IF after = NOTHING THEN EXIT FOR
+        played = played + [moves[i]]
+        positions = positions + [after]
+    NEXT
+    RETURN [played, positions]
+END FUNCTION
+
+FUNCTION Plies(line)
+    RETURN LEN(line[0])
+END FUNCTION
+
+' Whether the exchanges are over at ply k: no check to answer and no capture
+' or promotion coming next.
+FUNCTION IsSettled(line, k)
+    position = line[1][k]
+    IF INCHECK(position) THEN RETURN CHECKMATE(position)
+    IF k < Plies(line) THEN
+        coming = line[0][k]
+        IF CAPTURED(position, coming) <> 0 OR PROMOTION(coming) <> 0 THEN RETURN FALSE
+    END IF
+    RETURN TRUE
+END FUNCTION
+
+FUNCTION Gain(line, k, beneficiary, baseline)
+    RETURN (MATERIAL(line[1][k]) - baseline) * beneficiary
+END FUNCTION
+
+FUNCTION MoveText(position, move)
+    RETURN LINETEXT(position, [move], 1)
+END FUNCTION
+
+' First ply from `firstPly` at which `beneficiary` is up at least `needed`
+' centipawns of material compared with `baseline`, the exchanges are over,
+' and the gain holds for the next few plies of the line; -1 if none.
+' Intermediate checks, recaptures and quiet in-between moves are skipped
+' this way.
+FUNCTION FindRealization(line, firstPly, beneficiary, baseline, needed)
+    NOTE "  material for " + SideName(beneficiary) + ", needs +" + STR(needed) + " cp from ply " + STR(firstPly) + " (settled and held " + STR(HOLD_PLIES) + " plies):"
+    FOR k = firstPly TO Plies(line)
+        settled = IsSettled(line, k)
+        holds = Gain(line, k, beneficiary, baseline) >= needed AND settled
+        later = k + 1
+        WHILE holds AND later <= MIN(Plies(line), k + HOLD_PLIES)
+            holds = Gain(line, later, beneficiary, baseline) >= needed
+            later = later + 1
+        WEND
+        mark = ""
+        IF holds THEN
+            mark = "  <- realized"
+        ELSEIF NOT settled THEN
+            mark = "  (not settled)"
+        END IF
+        gained = Gain(line, k, beneficiary, baseline)
+        plus = ""
+        IF gained >= 0 THEN plus = "+"
+        NOTE "    ply " + STR(k) + " " + MoveText(line[1][k - 1], line[0][k - 1]) + " gain " + plus + STR(gained) + mark
+        IF holds THEN RETURN k
+    NEXT
+    NOTE "    not realized within " + STR(Plies(line)) + " plies"
+    RETURN -1
+END FUNCTION
+
+' Arrows for moves [first, last) of `line`, or only for [focusFirst,
+' focusLast) when focusFirst is not -1. Moves of `ideaSide` get `ideaKind`,
+' the others are replies. Pieces taken by `ideaSide` in the drawn moves are
+' traced back to where they stand on the board at ply `first`, and ringed.
+FUNCTION AddArrows(line, first, last, ideaSide, ideaKind, focusFirst, focusLast)
+    SHARED lostSquares
+    IF focusFirst < 0 THEN
+        focusFirst = first
+        focusLast = last
+    END IF
+    moves = line[0]
+    positions = line[1]
+    ' Where each piece stood at ply `first`.
+    origin = REPEAT(-1, 64)
+    FOR square = 0 TO 63
+        IF PIECE(positions[first], square) <> 0 THEN origin[square] = square
+    NEXT
+    number = 1
+    FOR k = first TO MIN(last, LEN(moves)) - 1
+        IF number > MAX_ARROWS THEN EXIT FOR
+        position = positions[k]
+        move = moves[k]
+        mover = SIDETOMOVE(position)
+        source = FROMSQ(move)
+        target = TOSQ(move)
+        drawn = k >= focusFirst AND k < focusLast
+        IF drawn THEN
+            kind = "reply"
+            IF mover = ideaSide THEN kind = ideaKind
+            ARROW source, target, kind, number
+            number = number + 1
+        END IF
+        IF CAPTURED(position, move) <> 0 THEN
+            ' En passant takes the pawn beside the target square.
+            square = target
+            IF PIECE(position, target) = 0 THEN square = RankOf(source) * 8 + FileOf(target)
+            IF drawn AND mover = ideaSide AND origin[square] >= 0 THEN
+                IF NOT CONTAINS(lostSquares, origin[square]) THEN
+                    lostSquares = lostSquares + [origin[square]]
+                    LOST origin[square]
+                END IF
+            END IF
+            origin[square] = -1
+        END IF
+        fileDelta = FileOf(target) - FileOf(source)
+        IF PIECE(position, source) = KING AND ABS(fileDelta) = 2 THEN
+            ' Castling moves the rook too.
+            rank = RankOf(source)
+            IF fileDelta > 0 THEN rookFrom = rank * 8 + 7 : rookTo = rank * 8 + 5 ELSE rookFrom = rank * 8 : rookTo = rank * 8 + 3
+            origin[rookTo] = origin[rookFrom]
+            origin[rookFrom] = -1
+        END IF
+        origin[target] = origin[source]
+        origin[source] = -1
+    NEXT
+END FUNCTION
+
+' Whether `square` lies strictly between `source` and `target` on a line or diagonal.
+FUNCTION IsBetween(square, source, target)
+    fileStep = Sign(FileOf(target) - FileOf(source))
+    rankStep = Sign(RankOf(target) - RankOf(source))
+    aligned = FileOf(source) = FileOf(target) OR RankOf(source) = RankOf(target) OR ABS(FileOf(target) - FileOf(source)) = ABS(RankOf(target) - RankOf(source))
+    IF NOT aligned OR source = target THEN RETURN FALSE
+    s = source + fileStep + 8 * rankStep
+    WHILE s <> target
+        IF s = square THEN RETURN TRUE
+        s = s + fileStep + 8 * rankStep
+    WEND
+    RETURN FALSE
+END FUNCTION
+
+' The moves to draw for a realization [first, last): all of them when short,
+' otherwise the move with the biggest material jump for `beneficiary` (the
+' latest on ties: the piece that finally falls), preceded by the move before
+' it only when that move is part of the tactic: a capture, a check, a piece
+' stepping onto the square that is then taken, or a square cleared for the
+' capture. Returns [focusFirst, focusLast].
+FUNCTION FocusWindow(line, first, last, beneficiary)
+    IF last - first <= FOCUS_ABOVE THEN RETURN [first, last]
+    moves = line[0]
+    positions = line[1]
+    decisive = first
+    biggest = -2147483648
+    FOR k = first TO last - 1
+        jump = (MATERIAL(positions[k + 1]) - MATERIAL(positions[k])) * beneficiary
+        IF jump >= biggest THEN biggest = jump : decisive = k
+    NEXT
+    focusFirst = decisive
+    IF decisive > first THEN
+        previous = moves[decisive - 1]
+        capture = moves[decisive]
+        related = CAPTURED(positions[decisive - 1], previous) <> 0 OR INCHECK(positions[decisive]) OR TOSQ(previous) = TOSQ(capture) OR IsBetween(FROMSQ(previous), FROMSQ(capture), TOSQ(capture))
+        IF related THEN focusFirst = MAX(first, decisive + 1 - FOCUS_PLIES)
+    END IF
+    NOTE "  focus: " + STR(last - first) + " plies are too many arrows; biggest jump +" + STR(biggest) + " at " + MoveText(positions[decisive], moves[decisive]) + ", drawing plies " + STR(focusFirst + 1) + "-" + STR(decisive + 1)
+    RETURN [focusFirst, decisive + 1]
+END FUNCTION
+
+' The moves of `line` when they end in checkmate, to be played on the board.
+FUNCTION MateToPlay(line)
+    IF Plies(line) = 0 THEN RETURN []
+    IF NOT CHECKMATE(line[1][Plies(line)]) THEN RETURN []
+    RETURN line[0]
+END FUNCTION
+
+FUNCTION CountedPiece(piece, howMany)
+    ' Spelled out per case so translators get whole phrases.
+    IF piece = PAWN THEN
+        IF howMany = 1 THEN RETURN TEXT("a pawn")
+        IF howMany = 2 THEN RETURN TEXT("two pawns")
+        RETURN TEXT("%1 pawns", howMany)
+    ELSEIF piece = KNIGHT THEN
+        IF howMany = 1 THEN RETURN TEXT("a knight")
+        RETURN TEXT("%1 knights", howMany)
+    ELSEIF piece = BISHOP THEN
+        IF howMany = 1 THEN RETURN TEXT("a bishop")
+        RETURN TEXT("%1 bishops", howMany)
+    ELSEIF piece = ROOK THEN
+        IF howMany = 1 THEN RETURN TEXT("a rook")
+        RETURN TEXT("%1 rooks", howMany)
+    ELSEIF piece = QUEEN THEN
+        IF howMany = 1 THEN RETURN TEXT("the queen")
+        RETURN TEXT("%1 queens", howMany)
+    END IF
+    RETURN ""
+END FUNCTION
+
+' "the queen, a rook and two pawns": counts indexed by piece.
+FUNCTION JoinPieces(counts)
+    order = [QUEEN, ROOK, BISHOP, KNIGHT, PAWN]
+    parts = []
+    FOR i = 0 TO LEN(order) - 1
+        IF counts[order[i]] > 0 THEN parts = parts + [CountedPiece(order[i], counts[order[i]])]
+    NEXT
+    IF LEN(parts) = 0 THEN RETURN ""
+    IF LEN(parts) = 1 THEN RETURN parts[0]
+    joined = parts[0]
+    FOR i = 1 TO LEN(parts) - 2
+        joined = joined + ", " + parts[i]
+    NEXT
+    RETURN TEXT("%1 and %2", joined, parts[LEN(parts) - 1])
+END FUNCTION
+
+' "wins a knight", "wins the exchange", "wins a rook for a pawn".
+FUNCTION MaterialPhrase(start, finish, beneficiary)
+    won = REPEAT(0, 7)
+    given = REPEAT(0, 7)
+    loser = -beneficiary
+    FOR kind = PAWN TO QUEEN
+        lostByLoser = COUNT(start, loser, kind) - COUNT(finish, loser, kind)
+        lostByBeneficiary = COUNT(start, beneficiary, kind) - COUNT(finish, beneficiary, kind)
+        net = lostByLoser - lostByBeneficiary
+        IF net > 0 THEN won[kind] = net ELSE given[kind] = ABS(net)
+    NEXT
+    minorsGiven = given[KNIGHT] + given[BISHOP]
+    IF won = [0, 0, 0, 0, 1, 0, 0] AND minorsGiven = 1 AND given[PAWN] = 0 AND given[ROOK] = 0 AND given[QUEEN] = 0 THEN RETURN TEXT("wins the exchange")
+    gains = JoinPieces(won)
+    IF gains = "" THEN RETURN TEXT("wins material")
+    losses = JoinPieces(given)
+    IF losses = "" THEN RETURN TEXT("wins %1", gains)
+    RETURN TEXT("wins %1 for %2", gains, losses)
+END FUNCTION
+
+FUNCTION VerdictName(verdict)
+    IF verdict = "best" THEN RETURN TEXT("Best move")
+    IF verdict = "good" THEN RETURN TEXT("Good move")
+    IF verdict = "inaccuracy" THEN RETURN TEXT("Inaccuracy")
+    IF verdict = "mistake" THEN RETURN TEXT("Mistake")
+    IF verdict = "blunder" THEN RETURN TEXT("Blunder")
+    RETURN ""
+END FUNCTION
+
+FUNCTION IsError(verdict)
+    RETURN verdict = "inaccuracy" OR verdict = "mistake" OR verdict = "blunder"
+END FUNCTION
+
+FUNCTION Assessment(evaluation)
+    score = ABS(CP(evaluation))
+    side = WHITE
+    IF CP(evaluation) < 0 THEN side = BLACK
+    IF score >= 300 THEN RETURN TEXT("%1 is winning.", SideName(side))
+    IF score >= 150 THEN RETURN TEXT("%1 is better.", SideName(side))
+    IF score >= 50 THEN RETURN TEXT("%1 is slightly better.", SideName(side))
+    RETURN TEXT("The position is balanced.")
+END FUNCTION
+
+FUNCTION Percent(share)
+    RETURN FIXED(100 * share, 1)
+END FUNCTION
+
+' Explains the evaluation `afterEval` of the position `after`. `before` (the
+' position before the last move), `played` (that move) and `beforeEval` are
+' NOTHING at the start of a game or when not known: the position is then
+' explained alone, without a verdict. `concretePly` is NOTHING, or the ply of
+' the line from which a shallow search agrees with the deep one (where the
+' advantage shows on the board); `note` says, for the trace, why `afterEval`
+' is not the explanation's own search ("" if it is).
+FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note)
+    SHARED lostSquares
+    lostSquares = []
+
+    IF CHECKMATE(after) THEN
+        SAY TEXT("Checkmate.")
+        RETURN
+    END IF
+    IF STALEMATE(after) THEN
+        SAY TEXT("Stalemate.")
+        RETURN
+    END IF
+
+    comparable = before <> NOTHING AND played <> NOTHING AND beforeEval <> NOTHING
+    toMove = SIDETOMOVE(after)
+    mover = -toMove
+    pv = PV(afterEval)
+    IF note <> "" THEN NOTE note
+    verdict = "none"
+    IF comparable THEN
+        verdict = CLASSIFY(beforeEval, afterEval, mover, played)
+        VERDICT verdict
+        NOTE "verdict " + VerdictName(verdict) + ": " + SideName(mover) + "'s winning chances " + Percent(SHARE(beforeEval, mover)) + " -> " + Percent(SHARE(afterEval, mover)) + " (drop " + Percent(SHARE(beforeEval, mover) - SHARE(afterEval, mover)) + ")"
+    ELSE
+        NOTE "no previous evaluation: explaining the position alone"
+    END IF
+
+    ' Moves of the principal variation to show when nothing more concrete is found.
+    concrete = 0
+    IF concretePly <> NOTHING THEN concrete = concretePly
+    fallbackPlies = 2
+    IF concrete > 0 THEN fallbackPlies = MIN(concrete, MAX_ARROWS)
+    ' Only the branches that found neither material nor a mate ever say this,
+    ' so it must not promise a win that never comes: the line probe says the
+    ' evaluation is already on the board, not that something is about to
+    ' fall. Pieces may well be captured in the line — what the probe found is
+    ' that no lasting gain explains the score, not that nothing is ever taken.
+    concreteText = ""
+    IF concrete > 0 THEN concreteText = TEXT(" No material explains it: the assessment is positional, clear after %1.", LINETEXT(after, pv, concrete))
+    IF concretePly <> NOTHING THEN NOTE "line probe: concrete at ply " + STR(concretePly)
+
+    IF IsError(verdict) THEN
+        prefix = TEXT("%1 (%2 → %3). ", VerdictName(verdict), EVALTEXT(beforeEval), EVALTEXT(afterEval))
+    ELSEIF verdict <> "none" THEN
+        prefix = TEXT("%1 (%2). ", VerdictName(verdict), EVALTEXT(afterEval))
+    ELSE
+        prefix = EVALTEXT(afterEval) + ". "
+    END IF
+
+    current = Replay(after, pv, MAX_SEARCH_PLIES)
+
+    IF IsError(verdict) THEN
+        best = Replay(before, PV(beforeEval), MAX_SEARCH_PLIES)
+        betterExists = FALSE
+        IF Plies(best) > 0 THEN betterExists = best[0][0] <> played
+        better = ""
+        IF betterExists THEN better = TEXT(" Better was %1.", LINETEXT(before, PV(beforeEval), 1))
+
+        ' The move allows a mate.
+        IF ISMATE(afterEval) AND MATING(afterEval) = toMove AND MATEIN(afterEval) > 0 THEN
+            NOTE "branch: the move allows mate"
+            IF betterExists THEN ARROW FROMSQ(best[0][0]), TOSQ(best[0][0]), "alternative", 0
+            AddArrows current, 0, Plies(current), toMove, "refutation", -1, -1
+            PLAYBACK MateToPlay(Replay(after, pv, MAX_MATE_PLIES))
+            SAY prefix + TEXT("%1 mates in %2: %3.", SideName(toMove), MATEIN(afterEval), LINETEXT(after, pv, MAX_ARROWS)) + better
+            RETURN
+        END IF
+
+        ' The move loses material: replay it together with the refutation, so
+        ' that a capture made by the move itself counts against what follows.
+        drop = MIN(CPFOR(beforeEval, mover) - CPFOR(afterEval, mover), MAX_SWING)
+        NOTE "refutation: evaluation drop " + STR(drop) + " cp (minimum " + STR(MINIMUM_MATERIAL) + ")"
+        IF drop >= MINIMUM_MATERIAL THEN
+            line = Replay(before, [played] + pv, MAX_SEARCH_PLIES + 1)
+            needed = MAX(MINIMUM_MATERIAL, INT(drop * REALIZED_SHARE))
+            ply = FindRealization(line, 2, toMove, MATERIAL(before), needed)
+            IF ply >= 0 THEN
+                NOTE "branch: the move loses material"
+                focus = FocusWindow(line, 1, ply, toMove)
+                ' A focused refutation is clearer without the better move on top.
+                IF focus[0] = 1 AND betterExists THEN ARROW FROMSQ(best[0][0]), TOSQ(best[0][0]), "alternative", 0
+                AddArrows line, 1, ply, toMove, "refutation", focus[0], focus[1]
+                SAY prefix + TEXT("%1 %2: %3.", SideName(toMove), MaterialPhrase(before, line[1][ply], toMove), LINETEXT(after, pv, ply - 1)) + better
+                RETURN
+            END IF
+        END IF
+
+        ' The move misses a mate or a win of material.
+        IF betterExists AND ISMATE(beforeEval) AND MATING(beforeEval) = mover THEN
+            NOTE "branch: the move misses a mate"
+            ARROW FROMSQ(best[0][0]), TOSQ(best[0][0]), "alternative", 0
+            SAY prefix + TEXT("Missed mate in %1: %2.", MATEIN(beforeEval), LINETEXT(before, PV(beforeEval), MAX_ARROWS))
+            RETURN
+        END IF
+        missed = MIN(CPFOR(beforeEval, mover) - MATERIAL(before) * mover, MAX_SWING)
+        NOTE "missed win: " + STR(missed) + " cp above the material before the move"
+        IF betterExists AND missed >= MINIMUM_MATERIAL THEN
+            needed = MAX(MINIMUM_MATERIAL, INT(missed * REALIZED_SHARE))
+            ply = FindRealization(best, 1, mover, MATERIAL(before), needed)
+            IF ply >= 0 THEN
+                NOTE "branch: the move misses a win of material"
+                ARROW FROMSQ(best[0][0]), TOSQ(best[0][0]), "alternative", 0
+                SAY prefix + TEXT("Missed: %1 %2.", LINETEXT(before, PV(beforeEval), ply), MaterialPhrase(before, best[1][ply], mover))
+                RETURN
+            END IF
+        END IF
+
+        ' Nothing concrete within reach: show how the opponent takes over.
+        NOTE "branch: no material or mate, showing " + STR(fallbackPlies) + " plies of the line"
+        IF betterExists THEN ARROW FROMSQ(best[0][0]), TOSQ(best[0][0]), "alternative", 0
+        ' Not a refutation: nothing is won here, so the opponent's
+        ' continuation is drawn as a reply. Red is the colour of material falling.
+        AddArrows current, 0, fallbackPlies, toMove, "reply", -1, -1
+        summary = prefix + TRIM(better)
+        IF concreteText <> "" THEN
+            summary = summary + concreteText
+        ELSEIF Plies(current) > 0 THEN
+            summary = summary + TEXT(" Main line: %1.", LINETEXT(after, pv, 4))
+        END IF
+        SAY TRIM(summary)
+        RETURN
+    END IF
+
+    ' Not a mistake: explain why the evaluation is what it is.
+    IF ISMATE(afterEval) THEN
+        favored = MATING(afterEval)
+    ELSEIF CP(afterEval) >= 0 THEN
+        favored = WHITE
+    ELSE
+        favored = BLACK
+    END IF
+    ' A line won by the opponent of the side that just moved reads as a threat.
+    favoredKind = "idea"
+    IF comparable AND favored <> mover THEN favoredKind = "refutation"
+
+    IF ISMATE(afterEval) AND MATEIN(afterEval) > 0 THEN
+        NOTE "branch: mate on the board"
+        AddArrows current, 0, Plies(current), favored, favoredKind, -1, -1
+        PLAYBACK MateToPlay(Replay(after, pv, MAX_MATE_PLIES))
+        SAY prefix + TEXT("%1 mates in %2: %3.", SideName(favored), MATEIN(afterEval), LINETEXT(after, pv, MAX_ARROWS))
+        RETURN
+    END IF
+
+    score = MIN(CPFOR(afterEval, favored), MAX_SWING)
+
+    ' The last move itself won (or starts winning) material.
+    IF comparable AND favored = mover THEN
+        extra = score - MATERIAL(before) * favored
+        NOTE "won by the move: " + STR(extra) + " cp above the material before the move"
+        IF extra >= MINIMUM_MATERIAL THEN
+            moves = [played] + pv
+            line = Replay(before, moves, MAX_SEARCH_PLIES + 1)
+            needed = MAX(MINIMUM_MATERIAL, INT(extra * REALIZED_SHARE))
+            ply = FindRealization(line, 1, favored, MATERIAL(before), needed)
+            IF ply >= 0 THEN
+                NOTE "branch: the move wins material"
+                focus = FocusWindow(line, 1, ply, favored)
+                AddArrows line, 1, ply, favored, "idea", focus[0], focus[1]
+                SAY prefix + TEXT("%1 %2: %3.", SideName(favored), MaterialPhrase(before, line[1][ply], favored), LINETEXT(before, moves, ply))
+                RETURN
+            END IF
+        END IF
+    END IF
+
+    ' Material still to be won in the principal variation.
+    extra = score - MATERIAL(after) * favored
+    NOTE "still to win: " + STR(extra) + " cp above the material on the board"
+    IF extra >= MINIMUM_MATERIAL THEN
+        needed = MAX(MINIMUM_MATERIAL, INT(extra * REALIZED_SHARE))
+        ply = FindRealization(current, 1, favored, MATERIAL(after), needed)
+        IF ply >= 0 THEN
+            NOTE "branch: material won in the line"
+            focus = FocusWindow(current, 0, ply, favored)
+            AddArrows current, 0, ply, favored, favoredKind, focus[0], focus[1]
+            SAY prefix + TEXT("%1 %2: %3.", SideName(favored), MaterialPhrase(after, current[1][ply], favored), LINETEXT(after, pv, ply))
+            RETURN
+        END IF
+    END IF
+
+    NOTE "branch: no material or mate, showing " + STR(fallbackPlies) + " plies of the line"
+    AddArrows current, 0, fallbackPlies, toMove, "idea", -1, -1
+    summary = prefix + Assessment(afterEval)
+    IF concreteText <> "" THEN
+        summary = summary + concreteText
+    ELSEIF Plies(current) > 0 THEN
+        summary = summary + TEXT(" Main line: %1.", LINETEXT(after, pv, 4))
+    END IF
+    SAY summary
+END FUNCTION

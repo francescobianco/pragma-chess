@@ -78,14 +78,12 @@ struct ExplanationInput {
 };
 
 /// Explains the evaluation of a position by comparing it with the position
-/// before the last move.
-///
-/// The engine's principal variation is replayed until the evaluation turns
-/// into something concrete on the board — material won after the exchanges
-/// settle (intermediate checks and recaptures included) or a mate — and the
-/// moves up to that point become the arrows. When the last move threw away
-/// the advantage without losing material, the better move's line is shown.
+/// before the last move: smart/EXPLAIN.smart's Explain, whose comments say
+/// how, run by every client.
 MoveExplanation explainPosition(const ExplanationInput &input);
+
+/// The sentences EXPLAIN.smart says, kept here for their translations.
+QStringList explanationSentences();
 
 /// Classifies `played` by how much of its side's expected share of the game
 /// it gave away: smart/TUTOR.smart's Classify, shared with the tutor. None if

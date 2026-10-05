@@ -2652,7 +2652,7 @@ non è su questo computer.</translation>
     </message>
     <message>
         <source>A smaller heading in bold, centred</source>
-        <translation>Un'intestazione più piccola in grassetto, centrata</translation>
+        <translation>Un&apos;intestazione più piccola in grassetto, centrata</translation>
     </message>
 </context>
 <context>
@@ -3231,6 +3231,14 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source> Main line: %1.</source>
         <translation> Linea principale: %1.</translation>
+    </message>
+    <message>
+        <source>Explain cannot run: its program has a mistake (see the log).</source>
+        <translation>Spiega non può funzionare: il suo programma contiene un errore (vedi il log).</translation>
+    </message>
+    <message>
+        <source>Explain stopped on a mistake of its program: %1</source>
+        <translation>Spiega si è fermato su un errore del suo programma: %1</translation>
     </message>
 </context>
 <context>

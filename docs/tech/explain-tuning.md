@@ -5,6 +5,12 @@ lines together with the author. This file holds how it works today, the
 parameters, the ideas still to try and the feedback received, so that each
 iteration builds on the previous ones.
 
+**The logic lives in [smart/EXPLAIN.smart](../../smart/EXPLAIN.smart)**
+(and the verdict in `smart/TUTOR.smart`), a SMART program every client runs:
+a fix goes there, once. `PRAGMA_SMART_DIR=smart` makes `pragma-explain` and
+the desktop client read the files of the checkout, so a change is tried
+without building.
+
 Rule for every change: **enrich, don't replace.** The material/mate
 explanation works; new techniques are added alongside it and must keep the
 existing tests green.

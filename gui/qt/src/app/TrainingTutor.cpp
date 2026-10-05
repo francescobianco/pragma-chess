@@ -1,7 +1,5 @@
 #include "TrainingTutor.h"
 
-#include "smart/SmartChess.h"
-#include "smart/SmartInterpreter.h"
 #include "smart/SmartPrograms.h"
 
 namespace TrainingTutor {
@@ -9,10 +7,10 @@ namespace TrainingTutor {
 Alert judge(const EngineEvaluation &before, const EngineEvaluation &after, Side user, const ChessMove &played)
 {
     // The judgement is smart/TUTOR.smart's: the same in every client.
-    SmartInterpreter *tutor = SmartPrograms::program(QStringLiteral("TUTOR.smart"));
+    SmartProgram *tutor = SmartPrograms::program(QStringLiteral("TUTOR.smart"));
     QString error;
     const std::optional<SmartValue> alert =
-        tutor ? tutor->call(QStringLiteral("Judge"), {SmartChess::evaluation(before), SmartChess::evaluation(after),
+        tutor ? tutor->interpreter.call(QStringLiteral("Judge"), {SmartChess::evaluation(before), SmartChess::evaluation(after),
                                                      SmartChess::side(user), SmartValue(played.uci())}, &error)
               : std::nullopt;
     if (!alert) {

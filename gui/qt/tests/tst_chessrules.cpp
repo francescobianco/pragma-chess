@@ -768,6 +768,7 @@ END FUNCTION
         QCOMPARE(value(QStringLiteral("[LEN(\"abc\"), LEN([1, [2, 3]]), CONTAINS([1, 2], 2), INDEXOF([\"a\", \"b\"], \"b\")]")),
                  QStringLiteral("[3, 2, 1, 1]"));
         QCOMPARE(value(QStringLiteral("SLICE(REPEAT(0, 3) + [1, 2], 2, 10)")), QStringLiteral("[0, 1, 2]"));
+        QCOMPARE(value(QStringLiteral("[FIXED(2.5, 1), FIXED(7, 2), TRIM(\"  a b \")]")), QStringLiteral(R"(["2.5", "7.00", "a b"])"));
         QCOMPARE(value(QStringLiteral("\"say \"\"hi\"\"\" + 2")), QStringLiteral("say \"hi\"2"));
         QCOMPARE(value(QStringLiteral("1 + 2 * 3 - 4 / 2 = 5 AND \"a\" < \"b\"")), QStringLiteral("1"));
 
@@ -807,7 +808,17 @@ END FUNCTION
         qputenv("PRAGMA_SMART_DIR", folder.path().toUtf8());
         QCOMPARE(SmartPrograms::source(QStringLiteral("TUTOR.smart")), QStringLiteral("' tuned\n"));
         qunsetenv("PRAGMA_SMART_DIR");
-        QVERIFY(SmartPrograms::program(QStringLiteral("TUTOR.smart"))->hasFunction(QStringLiteral("Classify")));
+        QVERIFY(SmartPrograms::program(QStringLiteral("TUTOR.smart"))->interpreter.hasFunction(QStringLiteral("Classify")));
+
+        // Every sentence EXPLAIN.smart says is kept for the translators.
+        static const QRegularExpression sentence(QStringLiteral("TEXT\\(\"((?:[^\"]|\"\")*)\""));
+        const QStringList known = explanationSentences();
+        int sentences = 0;
+        for (const QRegularExpressionMatch &match : sentence.globalMatch(SmartPrograms::source(QStringLiteral("EXPLAIN.smart")))) {
+            ++sentences;
+            QVERIFY2(known.contains(match.captured(1)), qPrintable(match.captured(1)));
+        }
+        QVERIFY(sentences > 30);
     }
 
     void readsStudyChaptersWithoutKings()

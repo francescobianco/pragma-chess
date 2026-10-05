@@ -1,8 +1,5 @@
 #include "SmartPrograms.h"
 
-#include "SmartChess.h"
-#include "SmartInterpreter.h"
-
 #include <QDir>
 #include <QFile>
 #include <QHash>
@@ -25,20 +22,20 @@ QString source(const QString &fileName, QString *error)
     return QString::fromUtf8(file.readAll());
 }
 
-SmartInterpreter *program(const QString &fileName)
+SmartProgram *program(const QString &fileName)
 {
     // Interpreters keep their memory and are not shared between threads.
-    thread_local QHash<QString, std::shared_ptr<SmartInterpreter>> loaded;
+    thread_local QHash<QString, std::shared_ptr<SmartProgram>> loaded;
     if (const auto found = loaded.constFind(fileName); found != loaded.constEnd())
         return found->get();
     QString error;
-    std::shared_ptr<SmartInterpreter> smart;
+    std::shared_ptr<SmartProgram> smart;
     const QString text = source(fileName, &error);
     if (!text.isEmpty()) {
         if (std::optional<SmartScript> script = SmartScript::parse(text, &error)) {
-            smart = std::make_shared<SmartInterpreter>(*script);
-            SmartChess::define(*smart);
-            if (!smart->load(&error))
+            smart = std::make_shared<SmartProgram>(*script);
+            SmartChess::define(smart->interpreter, smart->output);
+            if (!smart->interpreter.load(&error))
                 smart.reset();
         }
     }

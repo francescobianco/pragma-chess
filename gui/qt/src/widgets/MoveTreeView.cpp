@@ -360,12 +360,11 @@ void MoveTreeView::resizeEvent(QResizeEvent *event)
 void MoveTreeView::mouseMoveEvent(QMouseEvent *event)
 {
     QTextBrowser::mouseMoveEvent(event);
-    // Cells show the hand as links do; paragraphs the text cursor.
+    // Cells show the hand as links do; paragraphs, which a click leaves
+    // alone (a double click writes in them), the arrow.
     if (anchorAt(event->pos()).isEmpty()) {
         const Place place = placeAt(event->pos());
-        viewport()->setCursor(place.isParagraph() ? Qt::IBeamCursor
-                              : place.game >= 0  ? Qt::PointingHandCursor
-                                                 : Qt::ArrowCursor);
+        viewport()->setCursor(!place.isParagraph() && place.game >= 0 ? Qt::PointingHandCursor : Qt::ArrowCursor);
     }
 }
 
@@ -386,11 +385,21 @@ void MoveTreeView::mouseReleaseEvent(QMouseEvent *event)
         return;
     const Place place = placeAt(event->pos());
     if (place.isParagraph())
-        editParagraph(place.game, place.paragraph);
-    else if (place.game == currentGame() && place.isMove())
+        return; // Only a double click writes in it.
+    if (place.game == currentGame() && place.isMove())
         Q_EMIT moveActivated({}, place.ply);
     else if (place.game >= 0 && place.game != currentGame())
         Q_EMIT gameMoveActivated(place.game, {}, place.ply);
+}
+
+void MoveTreeView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    const Place place = placeAt(event->pos());
+    if (event->button() == Qt::LeftButton && place.isParagraph()) {
+        editParagraph(place.game, place.paragraph);
+        return;
+    }
+    QTextBrowser::mouseDoubleClickEvent(event);
 }
 
 bool MoveTreeView::eventFilter(QObject *watched, QEvent *event)

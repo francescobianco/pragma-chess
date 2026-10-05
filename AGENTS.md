@@ -534,7 +534,8 @@ tools this is a study or a chess book.
   Title (bold, centred, half as large again) or Subtitle (bold, a fifth
   larger, on the left); the move list's right-click menu inserts them all,
   and the game break, from one Insert ▸ submenu.
-  Paragraphs are written in place: `editParagraph` lays a `QTextEdit` with
+  Paragraphs are written in place, on a double click (a single click on
+  one does nothing): `editParagraph` lays a `QTextEdit` with
   the same font, width and block format over the paragraph's row, the row
   is rebuilt with the text as it is typed, and Esc, Ctrl+Enter or a click
   elsewhere ends (`paragraphEdited`; empty removes it). Moving a paragraph

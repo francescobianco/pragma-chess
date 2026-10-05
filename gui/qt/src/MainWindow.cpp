@@ -1544,11 +1544,20 @@ void MainWindow::showMoveListMenu(const QPoint &position)
         menu.addAction(tr("&Edit Paragraph"), this, [this, game, index = place.paragraph] {
             m_moveView->editParagraph(game, index);
         });
+        menu.addAction(tr("&Delete Paragraph"), this, [this, game, index = place.paragraph] {
+            m_chapters.setParagraph(game, index, QString());
+            chapterChanged();
+        });
+    }
+    // One Move for what was clicked: a title, a subtitle or a paragraph moves
+    // along its game, anything else moves the whole game past the one above
+    // or below it (the breaks between games stay where games meet).
+    QMenu *move = menu.addMenu(tr("&Move"));
+    if (place.isParagraph()) {
         // Along the game, a half-move at a time: after White's move, Down
         // takes it after Black's, which comes back on White's row.
         const int at = m_chapters.chapter().games.at(game).paragraphs.at(place.paragraph).ply;
         const int last = int(m_chapters.chapter().games.at(game).game.moves.size());
-        QMenu *move = menu.addMenu(tr("&Move Paragraph"));
         const auto moveTo = [this, game, index = place.paragraph](int ply, bool first) {
             m_chapters.moveParagraph(game, index, ply, first);
             chapterChanged();
@@ -1557,23 +1566,18 @@ void MainWindow::showMoveListMenu(const QPoint &position)
         move->addAction(tr("&Up"), this, [moveTo, at] { moveTo(at - 1, false); })->setEnabled(at > 0);
         move->addAction(tr("&Down"), this, [moveTo, at] { moveTo(at + 1, true); })->setEnabled(at < last);
         move->addAction(tr("To the &Bottom"), this, [moveTo, last] { moveTo(last, false); })->setEnabled(at < last);
-        menu.addAction(tr("&Delete Paragraph"), this, [this, game, index = place.paragraph] {
-            m_chapters.setParagraph(game, index, QString());
+    } else {
+        const int games = int(m_chapters.chapter().games.size());
+        move->setEnabled(games > 1);
+        const auto gameTo = [this, game](int to) {
+            m_chapters.moveGame(game, to);
             chapterChanged();
-        });
+        };
+        move->addAction(tr("To the &Top"), this, [gameTo] { gameTo(0); })->setEnabled(game > 0);
+        move->addAction(tr("&Up"), this, [gameTo, game] { gameTo(game - 1); })->setEnabled(game > 0);
+        move->addAction(tr("&Down"), this, [gameTo, game] { gameTo(game + 1); })->setEnabled(game < games - 1);
+        move->addAction(tr("To the &Bottom"), this, [gameTo, games] { gameTo(games - 1); })->setEnabled(game < games - 1);
     }
-    // The game the place belongs to, moved in the chapter.
-    const int games = int(m_chapters.chapter().games.size());
-    QMenu *moveGame = menu.addMenu(tr("Move G&ame"));
-    moveGame->setEnabled(games > 1);
-    const auto gameTo = [this, game](int to) {
-        m_chapters.moveGame(game, to);
-        chapterChanged();
-    };
-    moveGame->addAction(tr("To the &Top"), this, [gameTo] { gameTo(0); })->setEnabled(game > 0);
-    moveGame->addAction(tr("&Up"), this, [gameTo, game] { gameTo(game - 1); })->setEnabled(game > 0);
-    moveGame->addAction(tr("&Down"), this, [gameTo, game] { gameTo(game + 1); })->setEnabled(game < games - 1);
-    moveGame->addAction(tr("To the &Bottom"), this, [gameTo, games] { gameTo(games - 1); })->setEnabled(game < games - 1);
     if (!place.isMove()) {
         menu.exec(m_moveView->viewport()->mapToGlobal(position));
         return;

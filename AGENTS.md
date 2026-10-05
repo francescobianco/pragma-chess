@@ -517,7 +517,9 @@ tools this is a study or a chess book.
   chapter (`relinkChapterGame`). Insert Game Break (`insertGameBreak`,
   `ChapterBook::breakGame`) is a new empty game at the end of the chapter
   (every game but the last has a break after it already), or the empty one
-  there; Move Game reorders them (`moveGame`, the current game followed);
+  there; Move reorders them (`moveGame`, the current game followed) —
+  one Move submenu acts on what was right-clicked: a paragraph, title or
+  subtitle along its game, otherwise the whole game;
   empty games but the current one are removed
   (`removeEmptyGames`) when the board leaves a game and when a project
   opens. While
@@ -535,7 +537,7 @@ tools this is a study or a chess book.
   Paragraphs are written in place: `editParagraph` lays a `QTextEdit` with
   the same font, width and block format over the paragraph's row, the row
   is rebuilt with the text as it is typed, and Esc, Ctrl+Enter or a click
-  elsewhere ends (`paragraphEdited`; empty removes it). Move Paragraph
+  elsewhere ends (`paragraphEdited`; empty removes it). Moving a paragraph
   (`ChapterBook::moveParagraph`) goes by half-moves: arriving from above a
   paragraph goes first among those of its move, from below last. A first row of
   nothing pins the columns' widths, and `rebuild` never runs inside

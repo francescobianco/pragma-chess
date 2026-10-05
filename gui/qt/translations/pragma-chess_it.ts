@@ -2526,10 +2526,6 @@ non è su questo computer.</translation>
         <translation>Titolo del capitolo:</translation>
     </message>
     <message>
-        <source>&amp;Move Paragraph</source>
-        <translation>&amp;Sposta paragrafo</translation>
-    </message>
-    <message>
         <source>To the &amp;Top</source>
         <translation>In &amp;testa</translation>
     </message>
@@ -2550,10 +2546,6 @@ non è su questo computer.</translation>
         <translation>Una nuova partita in fondo al capitolo, dalla posizione iniziale; la numerazione riparte</translation>
     </message>
     <message>
-        <source>Move G&amp;ame</source>
-        <translation>Sposta p&amp;artita</translation>
-    </message>
-    <message>
         <source>&amp;Graphics Settings…</source>
         <translation>Impostazioni &amp;grafiche…</translation>
     </message>
@@ -2567,7 +2559,7 @@ non è su questo computer.</translation>
     </message>
     <message>
         <source>A heading in bold, centred</source>
-        <translation>Un'intestazione in grassetto, centrata</translation>
+        <translation>Un&apos;intestazione in grassetto, centrata</translation>
     </message>
     <message>
         <source>&amp;Subtitle</source>
@@ -2575,7 +2567,7 @@ non è su questo computer.</translation>
     </message>
     <message>
         <source>A smaller heading in bold, on the left</source>
-        <translation>Un'intestazione più piccola in grassetto, a sinistra</translation>
+        <translation>Un&apos;intestazione più piccola in grassetto, a sinistra</translation>
     </message>
     <message>
         <source>&amp;Paragraph</source>
@@ -2584,6 +2576,10 @@ non è su questo computer.</translation>
     <message>
         <source>&amp;Game Break</source>
         <translation>Interruzione &amp;partita</translation>
+    </message>
+    <message>
+        <source>&amp;Move</source>
+        <translation>&amp;Sposta</translation>
     </message>
 </context>
 <context>

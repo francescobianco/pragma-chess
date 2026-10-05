@@ -174,6 +174,8 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: dist
+          # The packages only: engine-windows is already inside the Windows ones.
+          pattern: "{linux-deb,linux-rpm,windows,macos}"
           merge-multiple: true
       - name: Stockfish source, shipped with the installers (GPL v3)
         run: scripts/build-stockfish.sh --source dist

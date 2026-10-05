@@ -47,7 +47,7 @@ advert, and each needs a maintainer: us, until someone else steps in.
 | Channel | How | Status |
 |---|---|---|
 | **Flathub** (Linux) | Manifest written: `packaging/flatpak/` (KDE 6.9 runtime, yaml-cpp module, Stockfish binary, metainfo with screenshots and releases, validated with `appstreamcli`). To do: build it once with `flatpak-builder` on a machine that has it, then submit to <https://github.com/flathub/flathub> (`new-pr` branch). The most visited Linux "store": GNOME Software, KDE Discover, Flathub.org | ✅ manifest · ☐ build & submit |
-| **winget** (Windows) | `packaging/winget/make-winget.sh <version>` writes the manifests; 0.2.0 submitted as <https://github.com/microsoft/winget-pkgs/pull/446459>. Each release: run the script, PR "New version: FrancescoBianco.PragmaChess version X" (to automate in `release.yml`) | ✅ PR open 2026-10-04 |
+| **winget** (Windows) | `packaging/winget/make-winget.sh <version>` writes the manifests; 0.3.0 submitted as <https://github.com/microsoft/winget-pkgs/pull/446459> (CLA signed). Each release: run the script, PR "New version: FrancescoBianco.PragmaChess version X" (to automate in `release.yml`) | ✅ PR open 2026-10-04 |
 | **Homebrew cask** (macOS) | `Homebrew/homebrew-cask` accepts new casks only from projects with ~75 stars/forks/watchers: wait for that, then `brew create --cask` on the `.dmg` (the app is signed in CI; notarization needed) | ☐ when notable |
 | **AUR** (Arch) | `pragma-chess` PKGBUILD building from the tag, and `pragma-chess-bin` from the `.deb`; publish with an AUR account | ☐ |
 | **Chocolatey / Scoop** (Windows) | Scoop manifest in `extras`; Chocolatey package from the installer. Lower priority than winget | ☐ |
@@ -220,6 +220,8 @@ books and lichess.org play; Windows, macOS, Linux.`
 | 2026-10-04 | winget | https://github.com/microsoft/winget-pkgs/pull/446459 | New package 0.2.0 |
 | 2026-10-04 | Flathub | packaging/flatpak/ | manifest ready, not yet built or submitted |
 | 2026-10-05 | AlternativeTo | https://alternativeto.net/software/pragma-chess/about/ | online, listed as alternative to 7 apps |
+| 2026-10-05 | Release | https://github.com/francescobianco/pragma-chess/releases/tag/v0.3.0 | 0.3.0, with the Android APK (beta); site links to releases/latest |
+| 2026-10-05 | winget | https://github.com/microsoft/winget-pkgs/pull/446459 | CLA signed; PR moved to 0.3.0 (0.2.0 did not start on Windows) |
 | 2026-10-04 | Clip | https://yafb.net/pragma-chess/assets/pragma-chess-explain.webm | 40 s, Explain on the Opera game; the site's hero |
 | 2026-10-04 | OpenSourceAlternative.to | https://www.opensourcealternative.to/project/pragma-chess | waitlist, alternative to ChessBase |
 | 2026-10-04 | AlternativeTo | https://alternativeto.net/ (in the review queue) | 7 alternatives suggested |

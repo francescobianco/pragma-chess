@@ -8,7 +8,12 @@ l'ultimo commit è `48eb8cc` (sorgente ChessBase).
 
 ## Da fare, in ordine di priorità
 
-### 0. Release Windows: sbloccare la verifica dei pacchetti (blocca la 0.3.0)
+### 0. Release Windows: sbloccare la verifica dei pacchetti — fatto, 0.3.0 uscita il 5 ottobre
+
+La 0.3.0 è pubblicata (setup Windows 18 MB, zip 23 MB, dmg 33 MB, deb/rpm
+7 MB), con l'APK Android allegato a mano e la PR winget passata alla 0.3.0.
+Resta: Flathub (build con `flatpak-builder`, mai provato) e avvisare
+l'utente che aveva la 0.2.0 rotta su Windows. Quello che segue è la storia.
 
 Contesto (4 ottobre 2026, commit `6644142` e `22ef96c`). Un utente ha
 segnalato che la 0.2.0 su Windows non parte: "libssl-3-x64.dll non è stato

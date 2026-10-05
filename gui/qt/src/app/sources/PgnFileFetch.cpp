@@ -18,6 +18,50 @@ QByteArray entryBytes(const QByteArray &bytes, const PgnFile::Entry &entry)
     return bytes.mid(entry.offset, entry.length);
 }
 
+/// Writes `bytes` over the user's file `path`. A whole replacement first;
+/// on Windows replacing a file that was just read is refused, sometimes for
+/// good ("Access is denied", like the Git sync's manifest, TODO.md), so after
+/// a few tries the file is written in place, with a copy of the old one
+/// beside it until the new one is complete: it is never lost.
+bool replaceFile(const QString &path, const QByteArray &bytes, QString *errorMessage)
+{
+#ifdef Q_OS_WIN
+    constexpr int kAttempts = 20;
+#else
+    constexpr int kAttempts = 1;
+#endif
+    QString error;
+    for (int attempt = 1;; ++attempt) {
+        QSaveFile save(path);
+        if (save.open(QIODevice::WriteOnly) && save.write(bytes) == bytes.size() && save.commit())
+            return true;
+        error = save.errorString();
+        if (attempt >= kAttempts)
+            break;
+        QThread::msleep(100);
+    }
+#ifdef Q_OS_WIN
+    const QString backup = path + QStringLiteral(".pragma-backup");
+    QFile::remove(backup);
+    if (QFile::copy(path, backup)) {
+        QFile direct(path);
+        if (direct.open(QIODevice::WriteOnly | QIODevice::Truncate) && direct.write(bytes) == bytes.size()
+            && direct.flush()) {
+            direct.close();
+            QFile::remove(backup);
+            return true;
+        }
+        error += QStringLiteral(" / ") + direct.errorString();
+        // The old file is still whole in the copy: put it back.
+        direct.close();
+        if (QFile::remove(path))
+            QFile::rename(backup, path);
+    }
+#endif
+    *errorMessage = PgnFileFetch::tr("Could not write the PGN file: %1").arg(error);
+    return false;
+}
+
 } // namespace
 
 PgnFileFetch::PgnFileFetch(const GameSource &source, GameDatabase *database, QObject *parent)
@@ -219,24 +263,8 @@ bool PgnFileFetch::writeFile(const PgnFilePlan::ReadPlan &read, const PgnFilePla
         return false;
     }
     current.close();
-    // On Windows a file just read can be held for a moment (an antivirus, the
-    // indexer) and replacing it is refused: try again for a short while. The
-    // file is the user's, so it is only ever replaced whole, never removed first.
-#ifdef Q_OS_WIN
-    constexpr int kAttempts = 20;
-#else
-    constexpr int kAttempts = 1;
-#endif
-    for (int attempt = 1;; ++attempt) {
-        QSaveFile save(file);
-        if (save.open(QIODevice::WriteOnly) && save.write(bytes) == bytes.size() && save.commit())
-            break;
-        if (attempt >= kAttempts) {
-            *errorMessage = tr("Could not write the PGN file: %1").arg(save.errorString());
-            return false;
-        }
-        QThread::msleep(100);
-    }
+    if (!replaceFile(file, bytes, errorMessage))
+        return false;
     m_bytes = bytes;
     m_index = PgnFile::Index{PgnFile::fileHash(bytes), PgnFile::scan(bytes)};
     return true;

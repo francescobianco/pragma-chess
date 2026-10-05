@@ -82,6 +82,24 @@ struct ExplanationInput {
 /// how, run by every client.
 MoveExplanation explainPosition(const ExplanationInput &input);
 
+/// What one tick of the engine made of the explanation (explainTick).
+struct ExplanationTick {
+    /// Whether `explanation` is to be shown; otherwise what was shown stays.
+    bool shown = false;
+    MoveExplanation explanation;
+    /// The program's mistake, if it stopped on one.
+    QString error;
+};
+
+/// Explaining reacts to the engine: startExplanation() when Explain turns to
+/// a move, then explainTick() for every line the engine reports on
+/// `input.after` (in `input.afterEvaluation`), with the deepest evaluation
+/// known of the position before (`input.beforeEvaluation`, if any).
+/// EXPLAIN.smart's Start and Tick: every client, and the tests, go through
+/// these two, so they explain alike.
+void startExplanation();
+ExplanationTick explainTick(const ExplanationInput &input);
+
 /// The sentences EXPLAIN.smart says, kept here for their translations.
 QStringList explanationSentences();
 

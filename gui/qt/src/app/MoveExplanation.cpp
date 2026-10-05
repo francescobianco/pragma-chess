@@ -96,6 +96,44 @@ MoveExplanation::Verdict classifyMove(const EngineEvaluation &before, const Engi
     return verdictNamed(verdict->toText());
 }
 
+void startExplanation()
+{
+    if (SmartProgram *explain = SmartPrograms::program(QStringLiteral("EXPLAIN.smart")))
+        explain->interpreter.call(QStringLiteral("Start"));
+}
+
+ExplanationTick explainTick(const ExplanationInput &input)
+{
+    ExplanationTick tick;
+    SmartProgram *explain = SmartPrograms::program(QStringLiteral("EXPLAIN.smart"));
+    if (!explain) {
+        tick.error = QStringLiteral("EXPLAIN.smart cannot be loaded");
+        tick.explanation.summary = Text::tr("Explain cannot run: its program has a mistake (see the log).");
+        tick.shown = true;
+        return tick;
+    }
+    explain->output.clear();
+    explain->output.sanStyle = input.sanStyle;
+    explain->output.trace = input.trace;
+    const bool comparable = input.before && input.played && input.beforeEvaluation;
+    const std::optional<SmartValue> shown = explain->interpreter.call(
+        QStringLiteral("Tick"),
+        {comparable ? SmartChess::position(*input.before) : SmartValue(),
+         comparable ? SmartValue(input.played->uci()) : SmartValue(),
+         comparable ? SmartChess::evaluation(*input.beforeEvaluation) : SmartValue(),
+         SmartChess::position(input.after), SmartChess::evaluation(input.afterEvaluation)},
+        &tick.error);
+    if (!shown) {
+        qWarning("SMART EXPLAIN.smart Tick: %s", qPrintable(tick.error));
+        tick.explanation.summary = Text::tr("Explain stopped on a mistake of its program: %1").arg(tick.error);
+        tick.shown = true;
+        return tick;
+    }
+    tick.shown = shown->isNumber() && shown->number() != 0;
+    tick.explanation = explain->output.explanation;
+    return tick;
+}
+
 MoveExplanation explainPosition(const ExplanationInput &input)
 {
     // The explanation is smart/EXPLAIN.smart's: the same in every client.

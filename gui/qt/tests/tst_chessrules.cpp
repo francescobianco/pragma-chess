@@ -10,6 +10,7 @@
 #include "app/EngineDetector.h"
 #include "app/ExplanationSearch.h"
 #include "app/GameIdentity.h"
+#include "app/ExplainTicks.h"
 #include "app/Explainer.h"
 #include "app/GameSession.h"
 #include "app/GameState.h"
@@ -295,6 +296,9 @@ private Q_SLOTS:
             evaluation.depth = depth;
             return evaluation;
         };
+        // PRAGMA_EXPLAIN_RECORD keeps the ticks of every move explained.
+        QTemporaryDir recordings;
+        qputenv("PRAGMA_EXPLAIN_RECORD", recordings.path().toUtf8());
         Explainer explainer;
         QList<MoveExplanation> shown;
         connect(&explainer, &Explainer::explanationChanged, this,
@@ -340,6 +344,68 @@ private Q_SLOTS:
         explainer.setPosition(*input.before, std::nullopt, std::nullopt);
         explainer.setPosition(input.after, input.before, input.played);
         QCOMPARE(shown.last().verdict, MoveExplanation::Verdict::Mistake);
+
+        qunsetenv("PRAGMA_EXPLAIN_RECORD");
+        const QStringList files = QDir(recordings.path()).entryList({QStringLiteral("*.ticks")}, QDir::Files);
+        QCOMPARE(files.size(), 2); // The move, and the position before it explained alone.
+        bool found = false;
+        for (const QString &name : files) {
+            QFile file(QDir(recordings.path()).filePath(name));
+            QVERIFY(file.open(QIODevice::ReadOnly));
+            const std::optional<QList<ExplainTicks>> read = ExplainTicks::fromText(QString::fromUtf8(file.readAll()));
+            QVERIFY(read && read->size() == 1);
+            if (read->first().played) {
+                found = true;
+                QVERIFY(read->first().ticks.size() >= 5);
+                QCOMPARE(ExplainTicks::lastShown(read->first().replay())->verdict, MoveExplanation::Verdict::Mistake);
+            }
+        }
+        QVERIFY(found);
+    }
+
+    void replaysRecordedTicks()
+    {
+        // The records of smart/tests: ticks of real searches and what the
+        // explanation must end up showing. The Android app replays the same files.
+        ExplainTicks record;
+        record.before = afterMoves(QString(), {"e2e4", "e7e5", "g1f3", "d7d6"});
+        record.played = record.before->moveFromUci(u"f3e5");
+        record.beforeEvaluation = centipawns(40, {"d2d4"});
+        record.after = afterMoves(QString(), {"e2e4", "e7e5", "g1f3", "d7d6", "f3e5"});
+        EngineEvaluation mate;
+        mate.isMate = true;
+        mate.mateIn = 3;
+        mate.mating = Side::Black;
+        mate.depth = 12;
+        mate.pv = QStringList{"d6e5"};
+        record.ticks = {centipawns(-190, {"d6e5", "b1c3"}), mate};
+        record.expected = {QStringLiteral("verdict mistake")};
+        QString error;
+        const std::optional<QList<ExplainTicks>> again = ExplainTicks::fromText(
+            QStringLiteral("# a comment\n") + record.toText(), &error);
+        QVERIFY2(again && again->size() == 1, qPrintable(error));
+        QCOMPARE(again->first().toText(), record.toText());
+        QCOMPARE(ExplainTicks::evaluationText(again->first().ticks.last()), QStringLiteral("depth 12 mate -3 pv d6e5"));
+        QVERIFY(!ExplainTicks::fromText(QStringLiteral("explain\nafter nonsense\nend\n"), &error));
+        QCOMPARE(error, QStringLiteral("line 2: not a FEN: nonsense"));
+
+        const QDir folder(QStringLiteral(PRAGMA_SMART_TESTS_DIR));
+        const QStringList files = folder.entryList({QStringLiteral("*.ticks")}, QDir::Files);
+        QVERIFY(!files.isEmpty());
+        int records = 0;
+        for (const QString &name : files) {
+            QFile file(folder.filePath(name));
+            QVERIFY(file.open(QIODevice::ReadOnly));
+            const std::optional<QList<ExplainTicks>> read = ExplainTicks::fromText(QString::fromUtf8(file.readAll()), &error);
+            QVERIFY2(read, qPrintable(name + QStringLiteral(", ") + error));
+            for (const ExplainTicks &recorded : *read) {
+                ++records;
+                const std::optional<MoveExplanation> shown = ExplainTicks::lastShown(recorded.replay());
+                QVERIFY2(shown, qPrintable(name));
+                QCOMPARE(ExplainTicks::outcome(*shown), recorded.expected);
+            }
+        }
+        QVERIFY(records >= 6);
     }
 
     void explainsWinningCapture()

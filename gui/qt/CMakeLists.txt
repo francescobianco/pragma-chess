@@ -139,6 +139,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/EngineDetector.h
     src/app/EngineEvaluation.cpp
     src/app/EngineEvaluation.h
+    src/app/ExplainTicks.cpp
+    src/app/ExplainTicks.h
     src/app/Explainer.cpp
     src/app/Explainer.h
     src/app/ExplanationSearch.cpp
@@ -575,6 +577,7 @@ if(TARGET Qt6::Test)
         src/app/Project.h)
     target_link_libraries(tst_chessrules PRIVATE pragma-chess-core Qt6::Sql Qt6::Test yaml-cpp::yaml-cpp)
     target_compile_definitions(tst_chessrules PRIVATE
+        PRAGMA_SMART_TESTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../../smart/tests"
         PRAGMA_HELP_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/help")
     target_compile_options(tst_chessrules PRIVATE ${PRAGMA_WARNINGS})
     set_target_properties(tst_chessrules PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)

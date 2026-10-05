@@ -214,9 +214,15 @@ fixed once, in SMART.
   verdict) and `TrainingTutor::judge` only call its `Classify` and `Judge`
   —, and `EXPLAIN.smart`'s `Explain` is the whole explanation
   (`explainPosition` calls it; its sentences are listed in
-  `MoveExplanation.cpp` for lupdate, and a test checks the list). The
-  reactive Explain on the live analysis, the command line's recorded ticks
-  and the Kotlin interpreter are next.
+  `MoveExplanation.cpp` for lupdate, and a test checks the list), reacting
+  to ticks through `startExplanation`/`explainTick` (EXPLAIN.smart's `Start`
+  and `Tick`), the one way every client and test feeds it.
+- **Ticks are recorded and replayed** (`app/ExplainTicks`, pure: one record
+  per move, text, with `expect` lines for what must be shown):
+  `pragma-explain --record`/`--replay`/`--ticks`, the desktop client with
+  `PRAGMA_EXPLAIN_RECORD=<folder>`. `smart/tests/*.ticks` are cases every
+  client replays (`tst_chessrules::replaysRecordedTicks`; the Android suite
+  next, with the Kotlin interpreter).
 - **The language is a contract**: any change to it goes into
   smart/README.md and into both interpreters, with a test
   (`tst_chessrules::runsSmartPrograms`). Keep it small: the chess belongs

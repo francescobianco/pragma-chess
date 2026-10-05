@@ -1,6 +1,10 @@
 #include "Explainer.h"
 
-#include "smart/SmartPrograms.h"
+#include "ExplainTicks.h"
+
+#include <QCryptographicHash>
+#include <QDir>
+#include <QFile>
 
 namespace {
 
@@ -58,8 +62,7 @@ std::optional<EngineEvaluation> Explainer::known(const ChessPosition &position) 
 
 void Explainer::start()
 {
-    if (SmartProgram *explain = SmartPrograms::program(QStringLiteral("EXPLAIN.smart")))
-        explain->interpreter.call(QStringLiteral("Start"));
+    startExplanation();
     MoveExplanation waiting;
     waiting.summary = tr("Analyzing…");
     show(waiting);
@@ -71,34 +74,47 @@ void Explainer::tick()
     const std::optional<EngineEvaluation> evaluation = known(m_position);
     if (!evaluation)
         return;
-    SmartProgram *explain = SmartPrograms::program(QStringLiteral("EXPLAIN.smart"));
-    if (!explain) {
-        MoveExplanation failed;
-        failed.summary = tr("Explain cannot run: its program has a mistake (see the log).");
-        show(failed);
+    ExplanationInput input;
+    input.before = m_before;
+    input.played = m_played;
+    input.beforeEvaluation = m_before ? known(*m_before) : std::nullopt;
+    input.after = m_position;
+    input.afterEvaluation = *evaluation;
+    input.sanStyle = SanStyle::Figurines;
+    record(input);
+    const ExplanationTick tick = explainTick(input);
+    if (tick.shown)
+        show(tick.explanation);
+}
+
+void Explainer::record(const ExplanationInput &input)
+{
+    // PRAGMA_EXPLAIN_RECORD=<folder>: every move explained leaves its ticks
+    // there, to replay with pragma-explain --replay (docs/tech/explain-tuning.md).
+    const QString folder = qEnvironmentVariable("PRAGMA_EXPLAIN_RECORD");
+    if (folder.isEmpty())
         return;
-    }
-    const std::optional<EngineEvaluation> beforeEvaluation = m_before ? known(*m_before) : std::nullopt;
-    const bool comparable = m_before && m_played && beforeEvaluation;
-    explain->output.clear();
-    explain->output.sanStyle = SanStyle::Figurines;
-    QString error;
-    const std::optional<SmartValue> shown = explain->interpreter.call(
-        QStringLiteral("Tick"),
-        {comparable ? SmartChess::position(*m_before) : SmartValue(),
-         comparable ? SmartValue(m_played->uci()) : SmartValue(),
-         comparable ? SmartChess::evaluation(*beforeEvaluation) : SmartValue(), SmartChess::position(m_position),
-         SmartChess::evaluation(*evaluation)},
-        &error);
-    if (!shown) {
-        qWarning("SMART EXPLAIN.smart Tick: %s", qPrintable(error));
-        MoveExplanation failed;
-        failed.summary = tr("Explain stopped on a mistake of its program: %1").arg(error);
-        show(failed);
-        return;
-    }
-    if (shown->isNumber() && shown->number() != 0)
-        show(explain->output.explanation);
+    const QString key = (input.before ? input.before->positionKey() : QString()) + QLatin1Char('|')
+        + input.after.positionKey();
+    // One record per move, kept when the board leaves it and comes back.
+    if (m_recordings.size() >= kMaxRememberedEvaluations && !m_recordings.contains(key))
+        m_recordings.clear();
+    ExplainTicks &recording = m_recordings[key];
+    recording.before = input.before;
+    recording.played = input.played;
+    recording.beforeEvaluation = input.beforeEvaluation;
+    recording.after = input.after;
+    const auto same = [](const EngineEvaluation &a, const EngineEvaluation &b) {
+        return a.depth == b.depth && a.isMate == b.isMate && a.centipawns == b.centipawns && a.mateIn == b.mateIn
+            && a.mating == b.mating && a.pv == b.pv;
+    };
+    if (recording.ticks.isEmpty() || !same(recording.ticks.last(), input.afterEvaluation))
+        recording.ticks << input.afterEvaluation;
+    const QString name = QString::fromLatin1(QCryptographicHash::hash(key.toUtf8(), QCryptographicHash::Sha1).toHex().left(12));
+    QDir().mkpath(folder);
+    QFile file(QDir(folder).filePath(name + QStringLiteral(".ticks")));
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+        file.write(recording.toText().toUtf8());
 }
 
 void Explainer::show(const MoveExplanation &explanation)

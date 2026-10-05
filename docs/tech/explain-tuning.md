@@ -28,18 +28,25 @@ existing tests green.
    ```
 
    Searches are fixed-depth, single thread, with the hash cleared before each
-   one, so the output is reproducible. `--depth`, `--probe-depth`,
-   `--probe-plies`, `--threads`, `--hash` change the searches; `--engine`
-   picks the UCI engine (command or path, like the engine set in the desktop
-   client), whose name is printed first.
+   one, so the output is reproducible. `--depth`, `--threads`, `--hash`
+   change the searches; `--engine` picks the UCI engine (command or path,
+   like the engine set in the desktop client), whose name is printed first.
 
-   **The desktop client runs exactly the same searches** (`ExplanationSearch`
-   with the default `ExplainSettings`, on the configured engine), so what the
-   tool prints with default options is what "Explain" shows. Changing a
-   default in `ExplainSettings` changes both.
-3. Change `gui/qt/src/app/MoveExplanation.cpp` / `AdvantageProbe.cpp`, add the
-   line as a test in `gui/qt/tests/tst_chessrules.cpp` (with the engine lines
-   written out, so tests don't need an engine), run `make test`.
+   **Explain reacts to ticks**: the desktop client feeds EXPLAIN.smart every
+   line of its live analysis, the tool every depth of its search after the
+   move, through the same `explainTick`. `--ticks` shows what each tick made
+   (shown, or held back because new arrows had not held yet).
+   `--record <file>` appends the ticks of each move, with what was shown as
+   `expect` lines; `--replay <file>` explains them again with no engine and
+   says whether the expectations hold (exit status 4 if not). The desktop
+   client records every move it explains with
+   `PRAGMA_EXPLAIN_RECORD=<folder>` — the way to bring a wrong explanation
+   from the board here, tick for tick.
+3. Change `smart/EXPLAIN.smart` (or TUTOR.smart), with
+   `PRAGMA_SMART_DIR=smart` to try it without building; keep the case as a
+   record in `smart/tests/` (its `expect` lines say what must be shown; every
+   client replays them) or as a test in `gui/qt/tests/tst_chessrules.cpp`
+   with the engine lines written out; run `make test`.
 4. Record the feedback and the decision in the log below.
 
 ## How it works today

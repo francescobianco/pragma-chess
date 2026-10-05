@@ -2,6 +2,7 @@
 
 #include "ChessPosition.h"
 #include "EngineEvaluation.h"
+#include "ExplainTicks.h"
 #include "MoveExplanation.h"
 
 #include <QHash>
@@ -46,6 +47,8 @@ private:
     void start();
     void tick();
     void show(const MoveExplanation &explanation);
+    /// Writes the ticks of the move explained into PRAGMA_EXPLAIN_RECORD, if set.
+    void record(const ExplanationInput &input);
 
     bool m_enabled = false;
     ChessPosition m_position = ChessPosition::startingPosition();
@@ -54,4 +57,6 @@ private:
 
     QHash<QString, EngineEvaluation> m_evaluations;
     std::optional<MoveExplanation> m_shown;
+    /// The ticks of each move explained, by move (PRAGMA_EXPLAIN_RECORD).
+    QHash<QString, ExplainTicks> m_recordings;
 };

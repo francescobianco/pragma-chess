@@ -1,12 +1,15 @@
 // pragma-explain: the "Explain" command on the command line.
 //
 // Runs the same explanation as the desktop client on lines pasted as PGN,
-// SAN or UCI, with fixed-depth, single-thread searches so that results are
-// reproducible while the explanation is being tuned. It also runs the
-// AdvantageProbe searches and prints how the explanation was reached.
+// SAN or UCI: smart/EXPLAIN.smart, fed with the ticks of a fixed-depth,
+// single-thread search (reproducible while the explanation is being tuned),
+// depth after depth as the live analysis feeds the desktop client. Ticks can
+// be recorded (--record) and replayed without an engine (--replay), also
+// those the desktop client records (PRAGMA_EXPLAIN_RECORD).
 
 #include "app/AdvantageProbe.h"
 #include "app/ChessPosition.h"
+#include "app/ExplainTicks.h"
 #include "app/ExplanationSearch.h"
 #include "app/MoveExplanation.h"
 #include "app/Pgn.h"
@@ -56,30 +59,6 @@ std::optional<ExplanationAnalysis> analyze(ExplanationSearch &search, const std:
     return result;
 }
 
-QString arrowKindName(BoardArrow::Kind kind)
-{
-    switch (kind) {
-    case BoardArrow::Kind::Refutation: return QStringLiteral("refutation");
-    case BoardArrow::Kind::Idea: return QStringLiteral("idea");
-    case BoardArrow::Kind::Reply: return QStringLiteral("reply");
-    case BoardArrow::Kind::Alternative: return QStringLiteral("better");
-    }
-    return {};
-}
-
-QString verdictName(MoveExplanation::Verdict verdict)
-{
-    switch (verdict) {
-    case MoveExplanation::Verdict::None: return QStringLiteral("-");
-    case MoveExplanation::Verdict::Best: return QStringLiteral("best");
-    case MoveExplanation::Verdict::Good: return QStringLiteral("good");
-    case MoveExplanation::Verdict::Inaccuracy: return QStringLiteral("inaccuracy");
-    case MoveExplanation::Verdict::Mistake: return QStringLiteral("mistake");
-    case MoveExplanation::Verdict::Blunder: return QStringLiteral("blunder");
-    }
-    return {};
-}
-
 void printBoard(const ChessPosition &position)
 {
     for (int rank = 7; rank >= 0; --rank) {
@@ -121,7 +100,11 @@ void printSearch(const char *label, const ChessPosition &position, const QList<E
 struct Options {
     bool trace = false;
     bool board = false;
-    /// Hint as the desktop client's live analysis would give it.
+    /// Print what every tick made of the explanation.
+    bool ticks = false;
+    /// Where to append the ticks of each move explained.
+    QString record;
+    /// A last tick as the desktop client's live analysis would give it.
     std::optional<int> hintMate;
     bool hintDraw = false;
     QString hintLine;
@@ -151,10 +134,82 @@ std::optional<EngineEvaluation> hintFor(const Options &options, const ChessPosit
     return hint;
 }
 
+QString arrowsText(const MoveExplanation &explanation)
+{
+    return ExplainTicks::outcome(explanation).value(1).section(QLatin1Char(' '), 1);
+}
+
+/// Feeds the ticks to EXPLAIN.smart, as the desktop client does, and prints
+/// the explanation it ends up showing. False if it differs from the
+/// record's expectations.
+bool explainTicks(ExplainTicks record, const Options &options)
+{
+    if (options.board)
+        printBoard(record.after);
+
+    const QList<ExplanationTick> results = record.replay(SanStyle::Letters, options.trace);
+    for (qsizetype i = 0; options.ticks && i < results.size(); ++i) {
+        const ExplanationTick &tick = results.at(i);
+        out() << QStringLiteral("tick     depth %1 %2  %3  %4\n")
+                     .arg(record.ticks.at(i).depth, 2).arg(record.ticks.at(i).text(), 6)
+                     .arg(tick.shown ? QStringLiteral("shown") : QStringLiteral("held "), arrowsText(tick.explanation));
+    }
+    const std::optional<MoveExplanation> shown = ExplainTicks::lastShown(results);
+    const QStringList outcome = shown ? ExplainTicks::outcome(*shown) : QStringList();
+    if (!shown)
+        out() << "summary  (nothing shown: the search is not deep enough)\n";
+    for (const QString &line : outcome)
+        out() << line.section(QLatin1Char(' '), 0, 0).leftJustified(8) << ' ' << line.section(QLatin1Char(' '), 1) << '\n';
+    if (shown && options.trace) {
+        // How the last tick shown was reached, and what the ticks after it held back.
+        out() << "trace\n";
+        for (const QString &text : shown->trace)
+            out() << "  " << text << '\n';
+        for (qsizetype i = results.size() - 1; i >= 0 && !results.at(i).shown; --i) {
+            for (const QString &text : results.at(i).explanation.trace) {
+                if (text.startsWith(QLatin1String("other arrows")))
+                    out() << "  " << text << '\n';
+            }
+        }
+    }
+
+    bool same = true;
+    if (!record.expected.isEmpty()) {
+        same = record.expected == outcome;
+        out() << (same ? "expected: yes\n" : "expected: NO — the record expects\n");
+        for (const QString &line : same ? QStringList() : record.expected)
+            out() << "  " << line << '\n';
+    }
+    if (!options.record.isEmpty()) {
+        // Recorded with what was shown: replayed later, it is a test.
+        record.expected = outcome;
+        QFile file(options.record);
+        if (file.open(QIODevice::Append | QIODevice::Text))
+            file.write(record.toText().toUtf8());
+        else
+            err() << "Cannot write " << options.record << ": " << file.errorString() << '\n';
+    }
+    out() << '\n';
+    out().flush();
+    return same;
+}
+
+void printHeader(const std::optional<ChessPosition> &before, const std::optional<ChessMove> &played, int ply)
+{
+    out() << "━━ ";
+    if (!before || !played)
+        out() << "position\n";
+    else if (ply > 0)
+        out() << before->moveNumberText() << before->san(*played) << "  (ply " << ply << ")\n";
+    else
+        out() << before->moveNumberText() << before->san(*played) << '\n';
+    out().flush();
+}
+
 bool explainPly(ExplanationSearch &search, const Pgn::ParsedLine &line, int ply, const Options &options)
 {
     ChessPosition start = line.startFen.isEmpty() ? ChessPosition::startingPosition()
-                                                  : *ChessPosition::fromFen(line.startFen);
+                                                  : *ChessPosition::fromFen(line.startFen, ChessPosition::Kings::Optional);
     QList<ChessPosition> positions{start};
     for (const MoveRecord &move : line.moves) {
         ChessPosition next = positions.last();
@@ -164,15 +219,11 @@ bool explainPly(ExplanationSearch &search, const Pgn::ParsedLine &line, int ply,
 
     std::optional<ChessPosition> before;
     std::optional<ChessMove> played;
-    out() << "━━ ";
-    if (ply == 0) {
-        out() << "start position\n";
-    } else {
+    if (ply > 0) {
         before = positions.at(ply - 1);
         played = before->moveFromUci(line.moves.at(ply - 1).uci);
-        out() << before->moveNumberText() << line.moves.at(ply - 1).san << "  (ply " << ply << ")\n";
     }
-    out().flush();
+    printHeader(before, played, ply);
 
     const std::optional<ExplanationAnalysis> analysis = analyze(search, before, played, positions.at(ply));
     if (!analysis || !analysis->afterEvaluation()) {
@@ -182,67 +233,58 @@ bool explainPly(ExplanationSearch &search, const Pgn::ParsedLine &line, int ply,
     static bool engineShown = false;
     if (!engineShown) {
         const ExplainSettings &settings = search.settings();
-        out() << "engine  " << search.engineName() << "  (depth " << settings.depth << ", probe depth "
-              << settings.probeDepth << " × " << settings.probePlies << " plies, threads " << settings.threads
-              << ", hash " << settings.hashMb << " MB)\n";
+        out() << "engine  " << search.engineName() << "  (depth " << settings.depth << ", threads "
+              << settings.threads << ", hash " << settings.hashMb << " MB)\n";
         engineShown = true;
     }
     if (before)
         printSearch("before", *before, analysis->beforeByDepth, options.trace);
     printSearch("after ", analysis->after, analysis->afterByDepth, options.trace);
-    if (options.board)
-        printBoard(analysis->after);
 
-    const std::optional<EngineEvaluation> hint = hintFor(options, analysis->after);
-    if (hint)
-        out() << "hint    " << hint->text() << " at depth " << hint->depth << "  " << analysis->after.lineText(hint->pv, 10)
-              << (analysis->acceptsHint(*hint) ? "   (used)" : "   (ignored)") << '\n';
-    const ExplanationInput input = analysis->input(SanStyle::Letters, options.trace, hint);
-    if (!analysis->probe.isEmpty()) {
-        out() << "line probe  depth " << search.settings().probeDepth << ", agreeing within "
-              << AdvantageProbe::kAgreement << " points with " << input.afterEvaluation.text() << '\n';
-        ChessPosition position = analysis->after;
-        for (qsizetype k = 0; k < analysis->probe.size(); ++k) {
-            QString label = QStringLiteral("(on the board)");
-            if (k > 0) {
-                const std::optional<ChessMove> move = position.moveFromUci(input.afterEvaluation.pv.at(k - 1));
-                label = position.moveNumberText() + position.san(*move);
-                position.play(*move);
-            }
-            out() << QStringLiteral("  %1  %2 %3").arg(k, 2).arg(label, -16).arg(analysis->probe.at(k).text(), 6);
-            if (input.concretePly && k == *input.concretePly)
-                out() << "   <- concrete";
-            out() << '\n';
-        }
+    // The search after the move, depth by depth, is what the live analysis
+    // gives the desktop client: the ticks.
+    ExplainTicks record;
+    record.before = before;
+    record.played = played;
+    record.beforeEvaluation = analysis->beforeEvaluation();
+    record.after = analysis->after;
+    record.ticks = analysis->afterByDepth;
+    if (const std::optional<EngineEvaluation> hint = hintFor(options, analysis->after)) {
+        out() << "hint    " << hint->text() << " at depth " << hint->depth << "  "
+              << analysis->after.lineText(hint->pv, 10) << "   (a last tick)\n";
+        record.ticks << *hint;
     }
-
-    const MoveExplanation explanation = explainPosition(input);
-    out() << "verdict  " << verdictName(explanation.verdict) << '\n';
-    QStringList arrows;
-    for (const BoardArrow &arrow : explanation.arrows) {
-        QString text = BoardState::squareName(arrow.from) + BoardState::squareName(arrow.to) + QLatin1Char(' ')
-            + arrowKindName(arrow.kind);
-        if (arrow.step > 0)
-            text += QStringLiteral(" #%1").arg(arrow.step);
-        arrows << text;
-    }
-    out() << "arrows   " << (arrows.isEmpty() ? QStringLiteral("-") : arrows.join(QStringLiteral(", "))) << '\n';
-    QStringList lost;
-    for (int square : explanation.lostPieces)
-        lost << BoardState::squareName(square);
-    if (!lost.isEmpty())
-        out() << "lost     " << lost.join(QStringLiteral(", ")) << '\n';
-    out() << "summary  " << explanation.summary << '\n';
-    if (!explanation.playback.isEmpty())
-        out() << "playback " << analysis->after.lineText(explanation.playback) << '\n';
-    if (options.trace) {
-        out() << "trace\n";
-        for (const QString &text : explanation.trace)
-            out() << "  " << text << '\n';
-    }
-    out() << '\n';
-    out().flush();
+    explainTicks(record, options);
     return true;
+}
+
+/// --replay: the ticks of a file, no engine; exit status 4 if a record's
+/// expectations are not met.
+int replay(const QString &path, const Options &options)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        err() << "Cannot read " << path << ": " << file.errorString() << '\n';
+        return 1;
+    }
+    QString error;
+    const std::optional<QList<ExplainTicks>> records = ExplainTicks::fromText(QString::fromUtf8(file.readAll()), &error);
+    if (!records) {
+        err() << path << ", " << error << '\n';
+        return 1;
+    }
+    int differing = 0;
+    for (const ExplainTicks &record : *records) {
+        printHeader(record.before, record.played, 0);
+        if (record.beforeEvaluation && record.before)
+            out() << "before  " << record.beforeEvaluation->text() << " at depth " << record.beforeEvaluation->depth
+                  << "  " << record.before->lineText(record.beforeEvaluation->pv, 10) << '\n';
+        out() << "after   " << record.after.fen() << "  (" << record.ticks.size() << " ticks)\n";
+        differing += explainTicks(record, options) ? 0 : 1;
+    }
+    if (differing > 0)
+        err() << differing << " of " << records->size() << " record(s) explained otherwise than expected.\n";
+    return differing > 0 ? 4 : 0;
 }
 
 } // namespace
@@ -269,12 +311,15 @@ int main(int argc, char *argv[])
     const QCommandLineOption allOption(QStringLiteral("all"), QStringLiteral("Explain every move."));
     const QCommandLineOption depthOption(QStringLiteral("depth"), QStringLiteral("Depth of the searches."),
                                          QStringLiteral("d"), QString::number(ExplainSettings().depth));
-    const QCommandLineOption probeDepthOption(QStringLiteral("probe-depth"),
-                                              QStringLiteral("Depth of the line probe, 0 to skip it."),
-                                              QStringLiteral("d"), QString::number(ExplainSettings().probeDepth));
-    const QCommandLineOption probePliesOption(QStringLiteral("probe-plies"),
-                                              QStringLiteral("Plies of the line probe."),
-                                              QStringLiteral("n"), QString::number(ExplainSettings().probePlies));
+    const QCommandLineOption recordOption(QStringLiteral("record"),
+                                          QStringLiteral("Append the ticks of each move explained to a file."),
+                                          QStringLiteral("path"));
+    const QCommandLineOption replayOption(QStringLiteral("replay"),
+                                          QStringLiteral("Explain the ticks of a file (from --record, or from the "
+                                                         "desktop client's PRAGMA_EXPLAIN_RECORD), with no engine."),
+                                          QStringLiteral("path"));
+    const QCommandLineOption ticksOption(QStringLiteral("ticks"),
+                                         QStringLiteral("Show what each tick made of the explanation."));
     const QCommandLineOption threadsOption(QStringLiteral("threads"),
                                            QStringLiteral("Engine threads; 1 keeps results reproducible."),
                                            QStringLiteral("n"), QString::number(ExplainSettings().threads));
@@ -298,10 +343,23 @@ int main(int argc, char *argv[])
                                              QStringLiteral("99"));
     const QCommandLineOption boardOption({QStringLiteral("b"), QStringLiteral("board")},
                                          QStringLiteral("Draw the position after the move."));
-    parser.addOptions({fenOption, fileOption, plyOption, allOption, depthOption, probeDepthOption, probePliesOption,
+    parser.addOptions({fenOption, fileOption, plyOption, allOption, depthOption, recordOption, replayOption, ticksOption,
                        threadsOption, hashOption, engineOption, traceOption, boardOption, hintMateOption,
                        hintDrawOption, hintLineOption, hintDepthOption});
     parser.process(app);
+
+    Options options;
+    options.trace = parser.isSet(traceOption);
+    options.board = parser.isSet(boardOption);
+    options.ticks = parser.isSet(ticksOption);
+    options.record = parser.value(recordOption);
+    if (parser.isSet(hintMateOption))
+        options.hintMate = parser.value(hintMateOption).toInt();
+    options.hintDraw = parser.isSet(hintDrawOption);
+    options.hintLine = parser.value(hintLineOption);
+    options.hintDepth = parser.value(hintDepthOption).toInt();
+    if (parser.isSet(replayOption))
+        return replay(parser.value(replayOption), options);
 
     QString text = parser.positionalArguments().join(QLatin1Char(' '));
     if (parser.isSet(fileOption)) {
@@ -332,19 +390,9 @@ int main(int argc, char *argv[])
 
     ExplainSettings settings;
     settings.depth = qMax(1, parser.value(depthOption).toInt());
-    settings.probeDepth = qMax(0, parser.value(probeDepthOption).toInt());
-    settings.probePlies = qMax(0, parser.value(probePliesOption).toInt());
+    settings.probeDepth = 0; // The explanation reacts to the ticks; the line probe is not used.
     settings.threads = qMax(1, parser.value(threadsOption).toInt());
     settings.hashMb = qMax(1, parser.value(hashOption).toInt());
-
-    Options options;
-    options.trace = parser.isSet(traceOption);
-    options.board = parser.isSet(boardOption);
-    if (parser.isSet(hintMateOption))
-        options.hintMate = parser.value(hintMateOption).toInt();
-    options.hintDraw = parser.isSet(hintDrawOption);
-    options.hintLine = parser.value(hintLineOption);
-    options.hintDepth = parser.value(hintDepthOption).toInt();
 
     ExplanationSearch search(settings);
     if (!search.start(executable)) {

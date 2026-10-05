@@ -240,3 +240,19 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   exchanges stay, mates are drawn whole, and the text keeps the full line
   since the balance counts them. 9.Bxf6 now shows 9.Qe3 dashed and
   9…Nxd4 red; no other recorded case or test changed.
+- 2026-10-05 — Same game, 12.Bxe5 (…10.Bxd4 f6 11.e4 e5): "the tutor does
+  not notice the move is an error, from −4.6 to −5.4". It gives a bishop for
+  a pawn, but in a lost position the winning chances barely move (18.6 →
+  12.9, under the 10 points of an inaccuracy) and Explain said "Good move …
+  Black wins a bishop". Even in centipawns the engine sees only 0.8 pawns of
+  loss (13.Bb5+ and play). Decision, in TUTOR.smart's Classify, the most
+  severe of three measures: the winning chances as before; the centipawns
+  lost (100/200/300 for inaccuracy/mistake/blunder) while the mover is not
+  clearly winning after the move (+9 to +6 still passes); and the material
+  the move hands over where the exchanges end (`Handed`: a piece for a pawn
+  is a mistake, a rook or more a blunder), unless the evaluation lost under
+  50 cp — a sacrifice the engine approves of. Classify and Judge take the
+  position before the move for it. 12.Bxe5 is now "Mistake (−4.1 → −5.1).
+  Black wins a bishop for a pawn: 12…fxe5. Better was 12.Be3." and stops a
+  training game; 9.Bxf6 became a blunder; no other recorded case or test
+  changed.

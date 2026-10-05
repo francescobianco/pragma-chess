@@ -131,11 +131,15 @@ private fun verdictNamed(name: String) = when (name) {
     else -> MoveExplanation.Verdict.None
 }
 
-/** Classifies [played] by how much of its side's expected share of the game it gave away: TUTOR.smart's Classify. */
-fun classifyMove(before: EngineEvaluation, after: EngineEvaluation, mover: Side, played: Move): MoveExplanation.Verdict {
+/**
+ * Classifies [played] by how much of its side's expected share of the game it
+ * gave away, or by the material it hands over from [start]: TUTOR.smart's Classify.
+ */
+fun classifyMove(before: EngineEvaluation, after: EngineEvaluation, mover: Side, played: Move,
+                 start: Position? = null): MoveExplanation.Verdict {
     val tutor = SmartPrograms.program("TUTOR.smart") ?: return MoveExplanation.Verdict.None
     val verdict = tutor.interpreter.call("Classify", listOf(SmartChess.evaluation(before), SmartChess.evaluation(after),
-        SmartChess.side(mover), SmartValue.Text(played.uci)))
+        SmartChess.side(mover), SmartValue.Text(played.uci), start?.let { SmartChess.position(it) } ?: SmartValue.None))
     return verdict.fold({ verdictNamed(it.toText()).takeIf { v -> v != MoveExplanation.Verdict.None } ?: MoveExplanation.Verdict.Good },
         { System.err.println("SMART TUTOR.smart Classify: ${it.message}"); MoveExplanation.Verdict.None })
 }

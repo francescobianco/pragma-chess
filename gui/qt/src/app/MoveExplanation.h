@@ -104,7 +104,9 @@ ExplanationTick explainTick(const ExplanationInput &input);
 QStringList explanationSentences();
 
 /// Classifies `played` by how much of its side's expected share of the game
-/// it gave away: smart/TUTOR.smart's Classify, shared with the tutor. None if
-/// the program cannot run (logged).
+/// it gave away, or by the material `played` hands over from `start` (when
+/// given): smart/TUTOR.smart's Classify, shared with the tutor. None if the
+/// program cannot run (logged).
 MoveExplanation::Verdict classifyMove(const EngineEvaluation &before, const EngineEvaluation &after,
-                                      Side mover, const ChessMove &played);
+                                      Side mover, const ChessMove &played,
+                                      const std::optional<ChessPosition> &start = std::nullopt);

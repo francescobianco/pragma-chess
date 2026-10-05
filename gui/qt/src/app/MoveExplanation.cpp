@@ -77,7 +77,7 @@ QStringList explanationSentences()
 }
 
 MoveExplanation::Verdict classifyMove(const EngineEvaluation &before, const EngineEvaluation &after,
-                                      Side mover, const ChessMove &played)
+                                      Side mover, const ChessMove &played, const std::optional<ChessPosition> &start)
 {
     // The judgement is smart/TUTOR.smart's, shared with the tutor and the other clients.
     SmartProgram *tutor = SmartPrograms::program(QStringLiteral("TUTOR.smart"));
@@ -85,7 +85,8 @@ MoveExplanation::Verdict classifyMove(const EngineEvaluation &before, const Engi
     const std::optional<SmartValue> verdict =
         tutor ? tutor->interpreter.call(QStringLiteral("Classify"),
                                         {SmartChess::evaluation(before), SmartChess::evaluation(after),
-                                         SmartChess::side(mover), SmartValue(played.uci())},
+                                         SmartChess::side(mover), SmartValue(played.uci()),
+                                         start ? SmartChess::position(*start) : SmartValue()},
                                         &error)
               : std::nullopt;
     if (!verdict) {

@@ -693,6 +693,29 @@ private Q_SLOTS:
         EngineEvaluation expected = eval(50);
         expected.pv = {QStringLiteral("e2e4")};
         QCOMPARE(TrainingTutor::judge(expected, eval(-300), Side::White, played), Alert::None);
+
+        // In a lost position the numbers barely move, the material does.
+        // 12.Bxe5 fxe5 gives a bishop for a pawn: −4.6 to −5.4 as the user saw it.
+        QString error;
+        const std::optional<Pgn::ParsedLine> game = Pgn::parseLine(
+            QStringLiteral("1.d4 d5 2.Nf3 Nf6 3.Nc3 e6 4.Bg5 Bb4 5.a3 Bxc3+ 6.bxc3 c5 7.dxc5 Qc7 8.Qd4 Nc6 9.Bxf6 "
+                           "Nxd4 10.Bxd4 f6 11.e4 e5"),
+            QString(), &error);
+        QVERIFY2(game, qPrintable(error));
+        ChessPosition start = ChessPosition::startingPosition();
+        for (const MoveRecord &move : game->moves)
+            start.play(*start.moveFromUci(move.uci));
+        const ChessMove bishopTakes = *start.moveFromUci(u"d4e5");
+        EngineEvaluation lost = eval(-460);
+        lost.pv = {QStringLiteral("d4e3"), QStringLiteral("c7a5")};
+        EngineEvaluation worse = eval(-540);
+        worse.pv = QString::fromLatin1("f6e5 f1b5 e8e7 e4d5 c7c5").split(QLatin1Char(' '));
+        QCOMPARE(TrainingTutor::judge(lost, worse, Side::White, bishopTakes), Alert::None); // The numbers alone.
+        QCOMPARE(TrainingTutor::judge(lost, worse, Side::White, bishopTakes, start), Alert::Mistake);
+        // A sacrifice the engine approves of is no error, material or not.
+        EngineEvaluation sound = worse;
+        sound.centipawns = -480;
+        QCOMPARE(TrainingTutor::judge(lost, sound, Side::White, bishopTakes, start), Alert::None);
     }
 
     void followsLichessGameStreams()

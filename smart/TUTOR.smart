@@ -4,7 +4,10 @@
 ' The client provides:
 '   WHITE, BLACK          the sides: 1 and -1
 '   SHARE(eval, side)     the side's expected share of the game, 0 to 1
+'   CPFOR(eval, side)     centipawns for the side, mates as a big bounded score
 '   BESTMOVE(eval)        the first move of the engine's line, in UCI ("" if none)
+'   PV(eval)              the engine's line, a list of moves
+'   PLAY(p, move), MATERIAL(p), INCHECK(p), CAPTURED(p, move)   as EXPLAIN.smart has them
 '
 ' Entry functions: Classify and Judge.
 
@@ -17,24 +20,76 @@ CONST INACCURACY_DROP = 10
 CONST BETTER = 0.63
 CONST NOT_WORSE = 0.45
 
+' Centipawns a move gives away. Winning chances flatten once a game is
+' decided: from -4.0, a bishop given for a pawn (12.Bxe5 fxe5, -4.0 to
+' -5.2) costs under 6 points of them, which would be a "good move". So the
+' loss in pawns counts too, as long as the mover is not clearly winning
+' after the move: from +9 to +6 nothing has gone wrong worth stopping for.
+CONST BLUNDER_LOSS = 300
+CONST MISTAKE_LOSS = 200
+CONST INACCURACY_LOSS = 100
+
+' A move that hands material over is an error whatever the numbers say:
+' 12.Bxe5 fxe5 gives a bishop for a pawn, yet from -4.6 the engine sees
+' compensation and only -5.4. Counted where the exchanges the move starts
+' are over (HANDED_PLIES at most): a piece for a pawn is a mistake, a rook
+' or more a blunder — unless the evaluation lost less than SOUND_LOSS, a
+' sacrifice that pays.
+CONST HANDED_MISTAKE = 200
+CONST HANDED_BLUNDER = 500
+CONST SOUND_LOSS = 50
+CONST HANDED_PLIES = 8
+
+' The material (centipawns) `mover` gives away by playing `played` from
+' `start`, the engine's answer `after` played out until the exchanges are
+' over; 0 or less when nothing is handed over.
+FUNCTION Handed(start, played, after, mover)
+    moves = [played] + PV(after)
+    position = start
+    FOR k = 0 TO MIN(LEN(moves), HANDED_PLIES) - 1
+        position = PLAY(position, moves[k])
+        IF position = NOTHING THEN RETURN 0
+        ' Quiet once the opponent answered: no check, no capture coming.
+        quiet = k >= 1 AND NOT INCHECK(position)
+        IF quiet AND k + 1 < LEN(moves) THEN quiet = CAPTURED(position, moves[k + 1]) = 0
+        IF quiet THEN RETURN (MATERIAL(start) - MATERIAL(position)) * mover
+    NEXT
+    RETURN 0
+END FUNCTION
+
 ' The move `played` (UCI) of `mover`, judged by how much of its side's
 ' expected share of the game it gave away, from the evaluation `before` it
-' to the evaluation `after` it: "best", "good", "inaccuracy", "mistake" or
-' "blunder".
-FUNCTION Classify(before, after, mover, played)
+' to the evaluation `after` it, or by the pawns or the material it gave away
+' when that says more: "best", "good", "inaccuracy", "mistake" or
+' "blunder". `start`, the position before the move, may be NOTHING: the
+' material is then not counted.
+FUNCTION Classify(before, after, mover, played, start)
     IF BESTMOVE(before) = played THEN RETURN "best"
     drop = 100 * (SHARE(before, mover) - SHARE(after, mover))
-    IF drop >= BLUNDER_DROP THEN RETURN "blunder"
-    IF drop >= MISTAKE_DROP THEN RETURN "mistake"
-    IF drop >= INACCURACY_DROP THEN RETURN "inaccuracy"
-    RETURN "good"
+    severity = 0
+    IF drop >= INACCURACY_DROP THEN severity = 1
+    IF drop >= MISTAKE_DROP THEN severity = 2
+    IF drop >= BLUNDER_DROP THEN severity = 3
+    IF SHARE(after, mover) < BETTER THEN
+        loss = CPFOR(before, mover) - CPFOR(after, mover)
+        IF loss >= INACCURACY_LOSS THEN severity = MAX(severity, 1)
+        IF loss >= MISTAKE_LOSS THEN severity = MAX(severity, 2)
+        IF loss >= BLUNDER_LOSS THEN severity = MAX(severity, 3)
+        IF start <> NOTHING AND loss >= SOUND_LOSS THEN
+            handed = Handed(start, played, after, mover)
+            IF handed >= HANDED_MISTAKE THEN severity = MAX(severity, 2)
+            IF handed >= HANDED_BLUNDER THEN severity = MAX(severity, 3)
+        END IF
+    END IF
+    RETURN ["good", "inaccuracy", "mistake", "blunder"][severity]
 END FUNCTION
 
 FUNCTION IsError(verdict)
     RETURN verdict = "inaccuracy" OR verdict = "mistake" OR verdict = "blunder"
 END FUNCTION
 
-' Whether the training game stops on the move the user just played:
+' Whether the training game stops on the move the user just played (from
+' the position `start`, or NOTHING):
 ' "none", "missed-chance", "inaccuracy", "mistake" or "blunder".
 '
 ' `before` is the evaluation of the position the user moved from (the
@@ -43,8 +98,8 @@ END FUNCTION
 ' Anything Explain calls an error stops the game, from an inaccuracy up:
 ' an inaccuracy is already a jump of a pawn or more near equality (1.e4 e5
 ' 2.f4 exf4 3.a4, from -0.5 to -2.1, is one).
-FUNCTION Judge(before, after, user, played)
-    verdict = Classify(before, after, user, played)
+FUNCTION Judge(before, after, user, played, start)
+    verdict = Classify(before, after, user, played, start)
     IF NOT IsError(verdict) THEN RETURN "none"
     ' Nothing was lost that the user had on the board: the advantage was
     ' there to take, and the position is still playable.

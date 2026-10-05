@@ -31,7 +31,7 @@
 '     CPFOR(e, side)                  centipawns for a side, mates as a big bounded score
 '     PV(e)                           the engine's line, a list of moves
 '     EVALTEXT(e)                     "+1.3", "M3"
-'   CLASSIFY(before, after, mover, move)   TUTOR.smart's Classify
+'   CLASSIFY(before, after, mover, move, start)   TUTOR.smart's Classify
 '   TEXT(sentence, args…)             the sentence translated, %1, %2… replaced
 '   Commands, what the explanation shows:
 '     ARROW from, to, kind, number    kind "refutation", "idea", "reply" or
@@ -400,7 +400,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
     IF note <> "" THEN NOTE note
     verdict = "none"
     IF comparable THEN
-        verdict = CLASSIFY(beforeEval, afterEval, mover, played)
+        verdict = CLASSIFY(beforeEval, afterEval, mover, played, before)
         VERDICT verdict
         NOTE "verdict " + VerdictName(verdict) + ": " + SideName(mover) + "'s winning chances " + Percent(SHARE(beforeEval, mover)) + " -> " + Percent(SHARE(afterEval, mover)) + " (drop " + Percent(SHARE(beforeEval, mover) - SHARE(afterEval, mover)) + ")"
     ELSE

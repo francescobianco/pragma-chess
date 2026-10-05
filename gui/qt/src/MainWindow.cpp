@@ -3860,7 +3860,8 @@ void MainWindow::finishEngineMove()
     const std::optional<ChessMove> played = m_session->lastMove();
     if (played && m_trainingBaseline.depth >= kTutorMinDepth
         && m_trainingBaselineFen == m_session->positionAt(m_session->ply() - 1).fen()) {
-        const TrainingTutor::Alert alert = TrainingTutor::judge(m_trainingBaseline, evaluation, m_trainingSide, *played);
+        const TrainingTutor::Alert alert = TrainingTutor::judge(m_trainingBaseline, evaluation, m_trainingSide, *played,
+                                                                m_session->positionAt(m_session->ply() - 1));
         if (alert != TrainingTutor::Alert::None) {
             holdEngineReply(*move, evaluation, alert);
             return;

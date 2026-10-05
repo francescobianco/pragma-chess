@@ -230,7 +230,7 @@ object SmartChess {
 
         // TUTOR.smart's judgement, so that Explain's verdict is the tutor's.
         smart.define("CLASSIFY") { args ->
-            expectArguments("CLASSIFY", args, 4)
+            expectArguments("CLASSIFY", args, 5)
             val tutor = SmartPrograms.program("TUTOR.smart") ?: fail("CLASSIFY: TUTOR.smart cannot run")
             tutor.interpreter.call("Classify", args).getOrElse { fail("CLASSIFY: TUTOR.smart ${it.message}") }
         }

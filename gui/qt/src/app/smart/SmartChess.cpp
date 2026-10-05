@@ -278,7 +278,7 @@ void define(SmartInterpreter &smart, Output &output)
 
     // TUTOR.smart's judgement, so that Explain's verdict is the tutor's.
     smart.define(QStringLiteral("CLASSIFY"), [](const std::vector<SmartValue> &args) {
-        expect("CLASSIFY", args, 4);
+        expect("CLASSIFY", args, 5);
         SmartProgram *tutor = SmartPrograms::program(QStringLiteral("TUTOR.smart"));
         if (!tutor)
             SmartInterpreter::fail(QStringLiteral("CLASSIFY: TUTOR.smart cannot run"));

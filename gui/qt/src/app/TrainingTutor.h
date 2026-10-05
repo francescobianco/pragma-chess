@@ -19,8 +19,10 @@ enum class Alert {
 
 /// Judges `played` by the jump between `before`, the evaluation of the
 /// position the user moved from, and `after`, what the engine found looking
-/// for its answer: smart/TUTOR.smart's Judge, whose comments say why. None
-/// if the program cannot run (logged).
-Alert judge(const EngineEvaluation &before, const EngineEvaluation &after, Side user, const ChessMove &played);
+/// for its answer, and by the material the move hands over from `start`, the
+/// position it was played in: smart/TUTOR.smart's Judge, whose comments say
+/// why. None if the program cannot run (logged).
+Alert judge(const EngineEvaluation &before, const EngineEvaluation &after, Side user, const ChessMove &played,
+            const std::optional<ChessPosition> &start = std::nullopt);
 
 } // namespace TrainingTutor

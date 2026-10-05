@@ -4,14 +4,17 @@
 
 namespace TrainingTutor {
 
-Alert judge(const EngineEvaluation &before, const EngineEvaluation &after, Side user, const ChessMove &played)
+Alert judge(const EngineEvaluation &before, const EngineEvaluation &after, Side user, const ChessMove &played,
+            const std::optional<ChessPosition> &start)
 {
     // The judgement is smart/TUTOR.smart's: the same in every client.
     SmartProgram *tutor = SmartPrograms::program(QStringLiteral("TUTOR.smart"));
     QString error;
     const std::optional<SmartValue> alert =
         tutor ? tutor->interpreter.call(QStringLiteral("Judge"), {SmartChess::evaluation(before), SmartChess::evaluation(after),
-                                                     SmartChess::side(user), SmartValue(played.uci())}, &error)
+                                                     SmartChess::side(user), SmartValue(played.uci()),
+                                                     start ? SmartChess::position(*start) : SmartValue()},
+                                          &error)
               : std::nullopt;
     if (!alert) {
         if (tutor)

@@ -144,11 +144,12 @@ app Android. Ultimo commit del lavoro: `d7f16c1`. Resta:
   1. ~~la ripresa di chi perde va disegnata?~~ Deciso: no. Le ultime mosse
      della parte che perde non si disegnano (`WithoutLoserTail` in
      EXPLAIN.smart); il testo dà ancora la linea intera;
-  2. il verdetto è "Errore" per una donna in presa: da −0.8 a −4.0 sono solo
-     22,7 punti di probabilità perché il Bianco stava già peggio. Un pezzo
-     lasciato in presa (la donna era già attaccata da 8…Nc6) meriterebbe
-     "Errore grave" anche quando la curva satura: regola da aggiungere in
-     TUTOR.smart (materiale perso ≥ 3 pedoni → almeno errore grave?);
+  2. ~~il verdetto è "Errore" per una donna in presa~~ Fatto: TUTOR.smart
+     conta anche i centipawn persi (≥100/200/300, se dopo la mossa non si
+     vince chiaramente) e il materiale che la mossa regala (`Handed`: un
+     pezzo per un pedone è un errore, una torre o più un errore grave, se
+     la valutazione perde almeno 50 cp). 9.Bxf6 è "Errore grave"; 12.Bxe5
+     (alfiere per pedone da −4.6, che il tutor non vedeva) è "Errore";
   3. la frase "vince la donna per 2 cavalli" conta anche il cavallo che la
      mossa stessa ha preso (9.Bxf6): giusto in bilancio, strano da leggere.
      Meglio "la donna era attaccata: 9.Qe3 la salvava".

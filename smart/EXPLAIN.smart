@@ -70,6 +70,13 @@ CONST MINIMUM_MATERIAL = 80
 CONST REALIZED_SHARE = 0.4
 ' Swings are capped so that mates and huge scores still ask for sensible material.
 CONST MAX_SWING = 1500
+' Material won far down the line (past LONG_PLIES from where the search
+' starts) explains a swing only if it accounts for most of it (LONG_SHARE):
+' a pawn won twelve moves later does not explain the loss of three
+' (5...Qh4+), a knight that falls eleven plies later in a forced line does
+' (the Evergreen's 15...Qf5).
+CONST LONG_PLIES = 8
+CONST LONG_SHARE = 0.8
 
 ' The arrows drawn and the pieces ringed in this explanation; whether the
 ' arrows being drawn ring the pieces they take (not when no material
@@ -154,13 +161,16 @@ FUNCTION MoveText(position, move)
 END FUNCTION
 
 ' First ply from `firstPly` at which `beneficiary` is up at least `needed`
-' centipawns of material compared with `baseline`, the exchanges are over,
-' and the gain holds for the next few plies of the line; -1 if none.
-' Intermediate checks, recaptures and quiet in-between moves are skipped
-' this way.
-FUNCTION FindRealization(line, firstPly, beneficiary, baseline, needed)
-    NOTE "  material for " + SideName(beneficiary) + ", needs +" + STR(needed) + " cp from ply " + STR(firstPly) + " (settled and held " + STR(HOLD_PLIES) + " plies):"
+' centipawns of material compared with `baseline` — past LONG_PLIES, at
+' least LONG_SHARE of `swing` —, the exchanges are over, and the gain holds
+' for the next few plies of the line; -1 if none. Intermediate checks,
+' recaptures and quiet in-between moves are skipped this way.
+FUNCTION FindRealization(line, firstPly, beneficiary, baseline, needed, swing)
+    NOTE "  material for " + SideName(beneficiary) + ", needs +" + STR(needed) + " cp from ply " + STR(firstPly) + ", +" + STR(MAX(needed, INT(swing * LONG_SHARE))) + " past " + STR(LONG_PLIES) + " plies (settled and held " + STR(HOLD_PLIES) + " plies):"
+    shortNeeded = needed
     FOR k = firstPly TO Plies(line)
+        needed = shortNeeded
+        IF k - firstPly >= LONG_PLIES THEN needed = MAX(shortNeeded, INT(swing * LONG_SHARE))
         settled = IsSettled(line, k)
         holds = Gain(line, k, beneficiary, baseline) >= needed AND settled
         later = k + 1
@@ -542,7 +552,7 @@ END FUNCTION
 ' advantage shows on the board); `note` says, for the trace, why `afterEval`
 ' is not the explanation's own search ("" if it is).
 FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note)
-    SHARED lostSquares, drawnArrows, ringing
+    SHARED lostSquares, drawnArrows, ringing, judged
     lostSquares = []
     drawnArrows = []
     ringing = TRUE
@@ -557,6 +567,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
     END IF
 
     comparable = before <> NOTHING AND played <> NOTHING AND beforeEval <> NOTHING
+    judged = comparable
     toMove = SIDETOMOVE(after)
     mover = -toMove
     pv = PV(afterEval)
@@ -618,7 +629,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         IF drop >= MINIMUM_MATERIAL THEN
             line = Replay(before, [played] + pv, MAX_SEARCH_PLIES + 1)
             needed = MAX(MINIMUM_MATERIAL, INT(drop * REALIZED_SHARE))
-            ply = FindRealization(line, 2, toMove, MATERIAL(before), needed)
+            ply = FindRealization(line, 2, toMove, MATERIAL(before), needed, drop)
             IF ply >= 0 THEN
                 NOTE "branch: the move loses material"
                 focus = FocusWindow(line, 1, ply, toMove)
@@ -641,7 +652,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         NOTE "missed win: " + STR(missed) + " cp above the material before the move"
         IF betterExists AND missed >= MINIMUM_MATERIAL THEN
             needed = MAX(MINIMUM_MATERIAL, INT(missed * REALIZED_SHARE))
-            ply = FindRealization(best, 1, mover, MATERIAL(before), needed)
+            ply = FindRealization(best, 1, mover, MATERIAL(before), needed, missed)
             IF ply >= 0 THEN
                 NOTE "branch: the move misses a win of material"
                 DrawBetter before, best[0][0]
@@ -702,7 +713,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
             moves = [played] + pv
             line = Replay(before, moves, MAX_SEARCH_PLIES + 1)
             needed = MAX(MINIMUM_MATERIAL, INT(extra * REALIZED_SHARE))
-            ply = FindRealization(line, 1, favored, MATERIAL(before), needed)
+            ply = FindRealization(line, 1, favored, MATERIAL(before), needed, extra)
             IF ply >= 0 THEN
                 NOTE "branch: the move wins material"
                 focus = FocusWindow(line, 1, ply, favored)
@@ -718,7 +729,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
     NOTE "still to win: " + STR(extra) + " cp above the material on the board"
     IF extra >= MINIMUM_MATERIAL THEN
         needed = MAX(MINIMUM_MATERIAL, INT(extra * REALIZED_SHARE))
-        ply = FindRealization(current, 1, favored, MATERIAL(after), needed)
+        ply = FindRealization(current, 1, favored, MATERIAL(after), needed, extra)
         IF ply >= 0 THEN
             NOTE "branch: material won in the line"
             focus = FocusWindow(current, 0, ply, favored)
@@ -759,28 +770,34 @@ CONST MIN_DEPTH = 8
 ' The verdict compares two searches: the one after the move must be at least
 ' this deep, or as deep as the one before it, or the jump is the depth's.
 CONST VERDICT_DEPTH = 12
-' Other arrows replace the ones shown only once they held for this many
-' depths: a line that changes at every depth would make them flicker.
-CONST STEADY_DEPTHS = 2
+' Other arrows replace the ones shown only once they came in STEADY_OF of
+' the last STEADY_WINDOW depths. The engine's line changes from depth to
+' depth, and with it the explanation: a majority keeps one that comes and
+' goes for a depth or two (8...Bc5: arrows from ten plies down the line at
+' depths 20 and 21, then the steady explanation again) off the board.
+CONST STEADY_WINDOW = 4
+CONST STEADY_OF = 3
 
-' What is shown (its arrows and rings), the explanation waiting to replace
-' it, and the depth at which that one first came.
+' What is shown (its arrows and rings) and whether it judged the move, and
+' the explanation of each of the last depths: [[depth, key], …].
 shown = NOTHING
-candidate = NOTHING
-candidateSince = 0
+shownJudged = FALSE
+recent = []
+' Whether the last Explain judged the move.
+judged = FALSE
 
 FUNCTION Start()
-    SHARED shown, candidate, candidateSince
+    SHARED shown, shownJudged, recent
     shown = NOTHING
-    candidate = NOTHING
-    candidateSince = 0
+    shownJudged = FALSE
+    recent = []
 END FUNCTION
 
 ' One line of the engine on `after`, the position on the board. `before`,
 ' `played` and `beforeEval` as Explain has them; `beforeEval` is the deepest
 ' search the client has of `before`, or NOTHING.
 FUNCTION Tick(before, played, beforeEval, after, afterEval)
-    SHARED shown, candidate, candidateSince, drawnArrows, lostSquares
+    SHARED shown, shownJudged, recent, drawnArrows, lostSquares, judged
     depth = DEPTH(afterEval)
     over = CHECKMATE(after) OR STALEMATE(after)
     IF depth < MIN_DEPTH AND NOT over THEN RETURN FALSE
@@ -789,21 +806,28 @@ FUNCTION Tick(before, played, beforeEval, after, afterEval)
     END IF
     Explain before, played, beforeEval, after, afterEval, NOTHING, ""
     key = [drawnArrows, lostSquares]
-    ' The first answer, or the same arrows with fresher numbers: shown at once.
-    IF shown = NOTHING OR key = shown THEN
+    ' One explanation per depth, the last line of it; the last few depths.
+    IF LEN(recent) > 0 THEN
+        IF recent[LEN(recent) - 1][0] = depth THEN recent = SLICE(recent, 0, LEN(recent) - 1)
+    END IF
+    recent = recent + [[depth, key]]
+    IF LEN(recent) > STEADY_WINDOW THEN recent = SLICE(recent, LEN(recent) - STEADY_WINDOW, STEADY_WINDOW)
+    count = 0
+    shownCount = 0
+    FOR i = 0 TO LEN(recent) - 1
+        IF recent[i][1] = key THEN count = count + 1
+        IF recent[i][1] = shown THEN shownCount = shownCount + 1
+    NEXT
+    ' Shown at once: the first answer, the same arrows with fresher numbers,
+    ' and the verdict when it comes (news, not flicker). Other arrows once
+    ' they came in most of the last depths, or when what is shown came in
+    ' none of them (the engine has left it behind).
+    IF shown = NOTHING OR key = shown OR (judged AND NOT shownJudged) OR count >= STEADY_OF OR shownCount = 0 THEN
+        IF shown <> NOTHING AND key <> shown THEN NOTE "other arrows shown at depth " + STR(depth) + " (" + STR(count) + " of the last " + STR(LEN(recent)) + " depths)"
         shown = key
-        candidate = NOTHING
+        shownJudged = judged
         RETURN TRUE
     END IF
-    IF key <> candidate THEN
-        candidate = key
-        candidateSince = depth
-        NOTE "other arrows at depth " + STR(depth) + ": waiting for them to hold"
-        RETURN FALSE
-    END IF
-    IF depth < candidateSince + STEADY_DEPTHS - 1 THEN RETURN FALSE
-    NOTE "the other arrows held from depth " + STR(candidateSince) + " to " + STR(depth)
-    shown = key
-    candidate = NOTHING
-    RETURN TRUE
+    NOTE "other arrows at depth " + STR(depth) + ": " + STR(count) + " of the last " + STR(LEN(recent)) + " depths, waiting for " + STR(STEADY_OF)
+    RETURN FALSE
 END FUNCTION

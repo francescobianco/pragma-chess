@@ -325,13 +325,13 @@ private Q_SLOTS:
         QCOMPARE(shown.last().arrows.size(), 1);
 
         // From depth 12 the verdict comes, and the better move's arrow with
-        // it: other arrows, shown once they held for two depths.
+        // it: news, shown at once.
         explainer.setLiveEvaluation(at(input.afterEvaluation, 12));
-        QCOMPARE(shown.size(), 2);
-        explainer.setLiveEvaluation(at(input.afterEvaluation, 13));
         QCOMPARE(shown.size(), 3);
         QCOMPARE(shown.last().verdict, MoveExplanation::Verdict::Mistake);
         QCOMPARE(shown.last().arrows.size(), 2);
+        explainer.setLiveEvaluation(at(input.afterEvaluation, 13));
+        QCOMPARE(shown.size(), 3); // The same, nothing new to show.
 
         // A shallower line changes nothing; the same arrows with a new score update the text only.
         explainer.setLiveEvaluation(at(input.afterEvaluation, 11));
@@ -342,6 +342,18 @@ private Q_SLOTS:
         QCOMPARE(shown.size(), 4);
         QCOMPARE(shown.last().arrows, shown.at(2).arrows);
         QVERIFY2(shown.last().summary.contains(QStringLiteral("−2.1")), qPrintable(shown.last().summary));
+
+        // Another explanation for a depth or two does not replace the one
+        // shown; one that comes in three of the last four depths does.
+        const QList<BoardArrow> steady = shown.last().arrows;
+        EngineEvaluation other = at(centipawns(-210, {"b8c6", "d2d4"}), 15);
+        explainer.setLiveEvaluation(other);
+        other.depth = 16;
+        explainer.setLiveEvaluation(other);
+        QCOMPARE(shown.last().arrows, steady);
+        other.depth = 17;
+        explainer.setLiveEvaluation(other);
+        QVERIFY(shown.last().arrows != steady);
 
         // Coming back to a position searched before explains it at once.
         explainer.setPosition(*input.before, std::nullopt, std::nullopt);

@@ -62,9 +62,8 @@ tick depth 16 cp -489 pv f6e5 f1b5 e8e7 e4d5 c7c5 e1g1 c5b5 f1e1 b5d5 f3e5 h8d8 
 tick depth 17 cp -493 pv f6e5 f1b5 e8e7 e4d5 c7c5 e1g1 c5b5 f1e1 b5d5 c3c4 d5c5 f3e5 c8e6 a1b1 b7b6 b1b4 a8d8 e5d3
 tick depth 18 cp -514 pv f6e5 f1b5 e8e7 e4d5 c7c5 e1g1 c5b5 a1d1 e7f6 f1e1 h8e8 d5d6 c8f5 c3c4 b5b2 d6d7 f5d7
 expect verdict mistake
-expect arrows d4e3 alternative, f6e5 refutation 1
-expect lost e5
-expect summary Mistake (−4.1 → −5.1). Black wins a bishop for a pawn: 12…fxe5. Better was 12.Be3.
+expect arrows d4e3 alternative, f6e5 reply 1
+expect summary Mistake (−4.1 → −4.9). Better was 12.Be3. Main line: 12…fxe5 13.Bb5+ Ke7 14.exd5.
 end
 
 # 2026-10-06, 4...Bxf3 (the user plays Black): "it shows what I should have
@@ -98,7 +97,7 @@ tick depth 17 cp 124 pv d1f3 c7c6 c1b2 d7d5 b1c3 f7f5 c3e2 g8f6 e2d4 d8d7 h2h3 f
 tick depth 18 cp 138 pv d1f3 c7c6 b1c3 d7d5 c1b2 a7a5 e3e4 a5a4 c3a4 b6b5 a4c3 f8a3 b2a3 a8a3 f3g3 g7g6 e4d5 e6d5
 expect verdict inaccuracy
 expect arrows g8f6 alternative, d1f3 reply 1, f3a8 threat
-expect summary Inaccuracy (−0.1 → +1.2). Better was 4…Nf6. 5.Qxf3 attacks the rook on a8: 5…c6 parries it. Main line: 5.Qxf3 c6 6.Bb2 d5.
+expect summary Inaccuracy (−0.1 → +1.4). Better was 4…Nf6. 5.Qxf3 attacks the rook on a8: 5…c6 parries it. Main line: 5.Qxf3 c6 6.Nc3 d5.
 end
 
 # 2026-10-06, the same game, 5...Qh4+ (the user plays Black): "arrow 2 is of
@@ -137,3 +136,42 @@ end
 # its threat to the queen, and the queen's arrow at the undefended rook".
 # Threats are drawn now (dashed red, kind "threat"), and the threat the
 # mistake left standing is found and said (IgnoredThreatText).
+
+# 2026-10-06: the stability of Tick became a majority (3 of the last 4
+# depths, the verdict at once, a stale explanation dropped) and material won
+# far down the line must cover most of the swing (LONG_PLIES, LONG_SHARE).
+# 12.Bxe5 now ends on the explanation without material: at depth 18 the
+# engine sees White win a pawn back (13.Bb5+ ... 14.exd5), and the gain no
+# longer holds four plies at most depths.
+
+# 2026-10-06, 8...Bc5 (the user plays Black): "it is not clear what is
+# explained". At depths 20-21 of the live analysis the explanation switched
+# for a moment to arrows ten plies down the line; the majority rule of Tick
+# keeps the steady one: 8...a5 better, 9.b4 attacks the bishop on c5.
+explain
+before r1bqk1nr/ppp2pp1/2np3p/3N4/1bB1P3/5N2/PP3PPP/R1BQ1RK1 b kq - 1 8
+played b4c5
+before-eval depth 18 cp 70 pv a7a5 a2a3 b4c5 b2b4 a5b4 c1b2 b4a3 b2g7 h8h7 g7c3 e8f8 h2h3 c8e6 d1c2 h7g7 g1h1 e6d5 e4d5 c6e5 f3e5 d6e5 c3e5 c5d6 f2f4 g7g3
+after r1bqk1nr/ppp2pp1/2np3p/2bN4/2B1P3/5N2/PP3PPP/R1BQ1RK1 w kq - 2 9
+tick depth 1 cp 39 pv b2b4 c6b4 d5b4 c5b4
+tick depth 2 cp 39 pv b2b4 c6b4 d5b4 c5b4
+tick depth 3 cp 92 pv c1e3
+tick depth 4 cp 148 pv c1e3
+tick depth 5 cp 148 pv c1e3 c5e3
+tick depth 6 cp 199 pv b2b4 c5b4 d5b4 c6b4
+tick depth 7 cp 199 pv b2b4 c5b4 d5b4 c6b4 c1b2
+tick depth 8 cp 179 pv b2b4 c5b4 c1b2 g8f6
+tick depth 9 cp 185 pv b2b4 c5b6 a2a4 c8g4 a4a5 g4f3 d1f3 b6d4
+tick depth 10 cp 186 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a5 d1b3
+tick depth 11 cp 198 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 d5b6 c7b6 b4b5
+tick depth 12 cp 189 pv b2b4 c5b6 c1b2 g8f6 a2a4 c6e5 f3e5 d6e5 b2e5 f6d5 a4a5 e8g8 c4d5
+tick depth 13 cp 197 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 f1e1 b6a7 e4e5 f6d5 e5d6 c8e6 c4d5 d8d6 d5e6 f7e6
+tick depth 14 cp 192 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 f1e1 b6a7 a1c1 c8g4 b2f6 g7f6
+tick depth 15 cp 188 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 f1e1 c8e6 h2h3 b6a7 b4b5 c6e5 f3e5 d6e5 b2e5 e6d5 c4d5
+tick depth 16 cp 185 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 d1b3 e8g8 d5f6 g7f6 f3h4 c6e5 g1h1 e5c4 b3c4
+tick depth 17 cp 187 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 f1e1 b6a7 b4b5 c6e5 b5b6 a7b6 d5b6 c7b6 f3e5 d6e5 d1d8 e8d8 c4f7
+tick depth 18 cp 186 pv b2b4 c5b6 c1b2 g8f6 a2a4 a7a6 a4a5 b6a7 b4b5 a6b5 c4b5 e8g8 d5f6 g7f6 g1h1 c6e5 f3h4 g8h7 h2h3 e5g6 d1h5 g6h4
+expect verdict inaccuracy
+expect arrows a7a5 alternative, b2b4 reply 1, b4c5 threat
+expect summary Inaccuracy (+0.7 → +1.9). Better was 8…a5. 9.b4 attacks the bishop on c5: 9…Bb6 parries it. Main line: 9.b4 Bb6 10.Bb2 Nf6.
+end

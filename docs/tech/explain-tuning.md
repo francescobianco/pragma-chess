@@ -309,3 +309,20 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   g3→h4, and says "5…Qh4+ leaves the rook on a8 attacked: 7.Qxa8. 6.g3
   attacks the queen on h4: 6…Qf6 parries it." Note that the engine's line
   goes on 7…Qxa1 8.Qxb8+: the rook comes back, the knight is what is won.
+- 2026-10-06 — 1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4 h6 5.c3 dxc3 6.Nxc3 Bb4
+  7.O-O d6 8.Nd5 Bc5, the user playing Black: "it is not clear what is
+  explained". Replaying the live search tick by tick (depth 28, 4 threads):
+  the steady explanation ("Better was 8…a5. 9.b4 attacks the bishop on c5")
+  was replaced at depths 20–21 by arrows taken ten plies down the line
+  (f4–e6, c4–e6), pieces not on the board, then came back. Two decisions:
+  (1) Tick's stability is a majority, not two depths in a row: other arrows
+  only once they came in 3 of the last 4 depths; the verdict is shown at
+  once (news, not flicker); an explanation the engine has not given for 4
+  depths is dropped. Three depths in a row was tried and was worse (the
+  engine oscillates, the good explanation came only at depth 24). (2) The
+  noise came from material "won" far down the line: past 8 plies a gain
+  must cover 80% of the swing (LONG_PLIES, LONG_SHARE); the Evergreen's
+  knight eleven plies on covers it, 5…Qh4+'s pawn twelve moves on (−3
+  pawns) does not, nor 3.Qf5's long line, which now says "4…g6 attacks the
+  queen on f5: 5.Qg5 parries it". 5…Qh4+ is now steady on its threats from
+  depth 12; 12.Bxe5 ends on the explanation without material (TODO.md).

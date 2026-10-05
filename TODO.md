@@ -180,10 +180,18 @@ app Android. Ultimo commit del lavoro: `d7f16c1`. Resta:
   riprende la torre (7…Qxa1) e il vantaggio viene da 8.Qxb8+; la frase non
   lo dice. E solo nel ramo dell'errore senza materiale: se il materiale
   cade, il ramo del materiale non cerca minacce.
-- **3.Qf5** dopo 2.Qg4 a profondità 18 dice "il Nero vince un alfiere e un
-  pedone per un cavallo" con una linea di 14 semimosse: debole (c'era già
-  prima di SMART). Forse un limite di semimosse per chiamare "materiale" un
-  guadagno così lontano.
+- **3.Qf5: fatto.** Le vincite di materiale lontane nella linea (oltre 8
+  semimosse) devono coprire l'80% del crollo (`LONG_PLIES`, `LONG_SHARE`):
+  3.Qf5 ora dice "4…g6 attacca la donna in f5: 5.Qg5 la para".
+- **Stabilità di Spiega (8…Bc5, 6 ottobre).** `Tick` ora mostra altre
+  frecce solo quando sono uscite in 3 delle ultime 4 profondità, il giudizio
+  subito, e lascia una spiegazione che il motore non dà più da 4 profondità.
+  Da osservare sul desktop vero: se capita ancora di vedere spiegazioni che
+  cambiano, registrare i tick (`PRAGMA_EXPLAIN_RECORD`) e rigiocarli. Resta
+  12.Bxe5, che a profondità 18 oscilla tra "vince un alfiere per un pedone"
+  e la spiegazione senza materiale (il Bianco riprende un pedone dopo
+  13.Bb5+): forse il "tiene 4 semimosse" va rivisto per i guadagni netti
+  che restano positivi.
 - **Il tutor reattivo.** `TrainingTutor::judge` chiama ancora `Judge` una
   volta, a fine ricerca della risposta del motore. Con `Tick` anche lì
   l'avviso arriverebbe appena la ricerca mostra il crollo.

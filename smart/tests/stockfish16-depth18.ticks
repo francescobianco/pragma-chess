@@ -50,9 +50,8 @@ tick depth 16 cp -209 pv b8c6 f1b5 g7g6 f5g5 h7h6 g5e3 c6d4 b5a4 b7b5 c2c3 f8c5 
 tick depth 17 cp -218 pv b8c6 f5f3 d7d5 e4d5 c8g4 f3g3 d8d5 b1c3 d5e6 f1b5 e8c8 b5c6 e6c6 g1f3
 tick depth 18 cp -208 pv b8c6 f5f3 c6d4 f3d1 f6e4 d2d3 e4f6 f1e2 d7d5 g1f3 d4f3 e2f3 h7h6
 expect verdict inaccuracy
-expect arrows b5a4 refutation 1
-expect lost f1
-expect summary Inaccuracy (−0.8 → −2.1). Black wins a bishop and a pawn for a knight: 3…Nc6 4.Bb5 g6 5.Qg5 h6 6.Qe3 Nd4 7.Ba4 b5 8.c3 Bc5 9.cxd4 Bxd4 10.Qa3 bxa4. Better was 3.Qg3.
+expect arrows g4g3 alternative, b8c6 reply 1, g6f5 threat
+expect summary Inaccuracy (−0.8 → −2.1). Better was 3.Qg3. 4…g6 attacks the queen on f5: 5.Qg5 parries it. Main line: 3…Nc6 4.Bb5 g6 5.Qg5.
 end
 explain
 before rnbqkbnr/pppp1ppp/8/4p3/8/5P2/PPPPP1PP/RNBQKBNR w KQkq - 0 2

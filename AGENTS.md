@@ -154,8 +154,10 @@ playing a move turns it off, and the user asks again at the next move.
   Every line of the live analysis of the position on the board is a tick
   for EXPLAIN.smart's `Tick` (`Start` when Explain turns to a move), which
   says when its answer is to be shown: from a minimum depth, the verdict
-  only once the search after the move can be compared with the one before,
-  other arrows only once they held for two depths. The deepest evaluation
+  only once the search after the move can be compared with the one before
+  (and then at once), other arrows only once they came in 3 of the last 4
+  depths (a majority: the engine's line oscillates), an explanation the
+  engine stopped giving dropped. The deepest evaluation
   of each position seen is kept: the position before the move is judged
   with it, and a position searched before is explained at once. When the
   position before has no evaluation deep enough

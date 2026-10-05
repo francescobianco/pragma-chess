@@ -237,17 +237,15 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         break;
     }
     case Shape::NewGame: {
-        // A board of four squares, two light and two dark (a1 is dark).
-        // A thinner edge than the other icons, or the light squares would
-        // look smaller than the dark ones; the outer size stays the same.
-        const QRectF square = kBoardIcon.adjusted(-0.25, -0.25, 0.25, 0.25);
+        // A board of four squares, two light and two dark (a1 is dark),
+        // drawn with the same edge as New Training and New Online Game.
+        const QRectF square = kBoardIcon;
         QPainterPath board;
         board.addRoundedRect(square, 1.25, 1.25);
         QPainterPath dark;
         dark.addRect(QRectF(square.center().x(), square.top(), square.width() / 2, square.height() / 2));
         dark.addRect(QRectF(square.left(), square.center().y(), square.width() / 2, square.height() / 2));
         painter->fillPath(board.intersected(dark), color);
-        painter->setPen(QPen(color, 1.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         painter->drawPath(board);
         break;
     }

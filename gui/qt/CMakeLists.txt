@@ -118,6 +118,8 @@ set(APP_ID "io.github.francescobianco.PragmaChess")
 # Chess rules, engine driver and "Explain" logic: Qt Core only, shared by the
 # desktop client, the command line tools and the tests.
 qt_add_library(pragma-chess-core STATIC
+    src/app/api/LocalHttpServer.cpp
+    src/app/api/LocalHttpServer.h
     src/app/AdvantageProbe.cpp
     src/app/AdvantageProbe.h
     src/app/BookWeights.cpp
@@ -314,6 +316,8 @@ endif()
 
 qt_add_executable(pragma-chess
     src/main.cpp
+    src/DesktopApi.cpp
+    src/DesktopApi.h
     src/MainWindow.cpp
     src/MainWindow.h
     src/dialogs/ConnectSourceWizard.cpp

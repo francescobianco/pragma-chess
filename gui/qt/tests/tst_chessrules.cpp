@@ -37,6 +37,7 @@
 #include "app/sources/TorneiOnlineFetch.h"
 #include "app/sources/LichessFetch.h"
 #include "app/sources/LichessStudy.h"
+#include "app/api/LocalHttpServer.h"
 #include "app/smart/SmartInterpreter.h"
 #include "app/smart/SmartPrograms.h"
 #include "app/smart/SmartScript.h"
@@ -59,6 +60,9 @@
 #include <QProcess>
 #include <QSettings>
 #include <QSignalSpy>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QNetworkAccessManager>
 #include <QStandardPaths>
 #include <QJsonDocument>
 #include <QSqlDatabase>
@@ -828,6 +832,44 @@ private Q_SLOTS:
         weights = BookWeights::adjusted({60000, 5000}, 0, 25);
         QCOMPARE(sum(weights), 65000);
         QVERIFY(weights.at(0) <= 65535);
+    }
+
+    void servesTheLocalApi()
+    {
+        // 127.0.0.1 only, a token for every request, routes as callbacks.
+        LocalHttpServer server;
+        server.route(QStringLiteral("GET"), QStringLiteral("/api/echo"), [](const LocalHttpServer::Request &request) {
+            return LocalHttpServer::Response{200, "text/plain", request.query.value(QStringLiteral("say")).toUtf8()};
+        });
+        server.route(QStringLiteral("POST"), QStringLiteral("/api/echo"), [](const LocalHttpServer::Request &request) {
+            return LocalHttpServer::Response{200, "application/json", request.body};
+        });
+        QVERIFY(server.start(0, "secret"));
+        QNetworkAccessManager network;
+        const auto ask = [&](const QString &method, const QString &path, const QByteArray &token,
+                             const QByteArray &body = {}) {
+            QNetworkRequest request(QUrl(QStringLiteral("http://127.0.0.1:%1%2").arg(server.port()).arg(path)));
+            if (!token.isEmpty())
+                request.setRawHeader("Authorization", "Bearer " + token);
+            request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+            QNetworkReply *reply = network.sendCustomRequest(request, method.toUtf8(), body);
+            QSignalSpy finished(reply, &QNetworkReply::finished);
+            if (!reply->isFinished())
+                finished.wait(5000);
+            const QPair<int, QByteArray> answer{reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+                                                reply->readAll()};
+            reply->deleteLater();
+            return answer;
+        };
+        QCOMPARE(ask(QStringLiteral("GET"), QStringLiteral("/api/echo?say=hi"), "secret"), (QPair<int, QByteArray>{200, "hi"}));
+        QCOMPARE(ask(QStringLiteral("GET"), QStringLiteral("/api/echo?say=hi"), {}).first, 401);
+        QCOMPARE(ask(QStringLiteral("GET"), QStringLiteral("/api/echo?say=hi"), "wrong").first, 401);
+        QCOMPARE(ask(QStringLiteral("GET"), QStringLiteral("/api/echo?say=hi&token=secret"), {}).first, 200);
+        QCOMPARE(ask(QStringLiteral("POST"), QStringLiteral("/api/echo"), "secret", "{\"ply\": 3}"),
+                 (QPair<int, QByteArray>{200, "{\"ply\": 3}"}));
+        QCOMPARE(ask(QStringLiteral("DELETE"), QStringLiteral("/api/echo"), "secret").first, 405);
+        QCOMPARE(ask(QStringLiteral("GET"), QStringLiteral("/api/nowhere"), "secret").first, 404);
+        QCOMPARE(server.routes(), (QStringList{QStringLiteral("GET /api/echo"), QStringLiteral("POST /api/echo")}));
     }
 
     void runsSmartPrograms()

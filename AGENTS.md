@@ -79,6 +79,7 @@ scripts/dev-watch.sh   rebuild + restart loop used by `make start`
 scripts/make-icons.py  regenerates every platform icon from data/icons/pragma-chess.png
 scripts/make-figurine-font.py  builds resources/fonts/pragma-figurine.otf from SkakNew
 scripts/install-dev-desktop.sh  user menu entry + icons for the build (Wayland dock icon)
+scripts/pragma-api.sh  calls the local API of a running client (port and token from api.json)
 ```
 
 ## Current state (keep in mind)
@@ -257,6 +258,36 @@ fixed once, in SMART.
   smart/README.md and into both interpreters, with a test
   (`tst_chessrules::runsSmartPrograms`). Keep it small: the chess belongs
   in the client's functions, the judgement in the programs.
+
+## Local API
+
+Options ▸ Local API (`m_apiAction`, QSettings `api/enabled`; `PRAGMA_API=1`
+turns it on for one run, `PRAGMA_API_PORT` changes the port, 7457 by
+default) makes the desktop client a service: `app/api/LocalHttpServer`
+(core, unit-tested: HTTP/1.1 on 127.0.0.1 only, one request per connection,
+a token on every request — `Authorization: Bearer`, or `?token=`) and
+`DesktopApi` (app; a friend of MainWindow) with the routes. While on,
+`api.json` in AppLocalData (`~/.local/share/Pragma/pragma-chess/`, owner
+only) holds `url`, `port` and a token new at every start;
+`scripts/pragma-api.sh METHOD PATH [JSON]` reads it and calls curl
+(`PRAGMA_API_INFO` for another instance).
+
+- `GET /api` the routes; `GET /api/state` position (FEN, ply, the line,
+  path), training, the engine (name, evaluation with depth, score, PV and
+  the line in SAN), Explain (on, verdict, arrows with from/to/kind/number/
+  piece, lost pieces, summary, playback), the game's players, the database;
+  `GET /api/explanation`; `GET /api/screenshot` the window as a PNG, taken
+  from inside (`QWidget::grab`: no compositor permission needed — GNOME
+  refuses screenshots to other programs).
+- `POST /api/ply {"ply": n}`, `/api/move {"uci": "e2e4"}` (as a move on
+  the board), `/api/line {"moves": "1.e4 …", "fen", "ply"}` (a new game at
+  the end of the chapter), `/api/explain`, `/api/analysis`, `/api/flip`
+  `{"on": bool}`; each answers with the state.
+- To see what the user sees, ask them to turn it on, then read the state or
+  take a screenshot; a test instance: `PRAGMA_API=1 PRAGMA_API_PORT=…` with
+  a scratch `HOME`/`XDG_DATA_HOME` and `QT_QPA_PLATFORM=offscreen`.
+- New routes go in `DesktopApi::addRoutes`, return JSON, and get a line
+  here; the window's logic stays in MainWindow.
 
 ## Guide and About
 

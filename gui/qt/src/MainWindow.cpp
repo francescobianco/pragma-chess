@@ -6,6 +6,7 @@
 #include "app/OpeningNames.h"
 #include "app/DatabaseMerge.h"
 #include "app/ShippedOpeningNames.h"
+#include "DesktopApi.h"
 #include "dialogs/AboutDialog.h"
 #include "dialogs/GraphicsSettingsDialog.h"
 #include "dialogs/FolderSettingsDialog.h"
@@ -266,6 +267,7 @@ MainWindow::MainWindow(QWidget *parent)
         m_enginePanel->setEvaluation(evaluation, m_session->position().lineText(evaluation.pv, 12, SanStyle::Figurines));
     });
     connect(m_explainer, &Explainer::explanationChanged, this, [this](const MoveExplanation &explanation) {
+        m_explanation = explanation;
         m_board->setExplanation(explanation.arrows, explanation.lostPieces);
         // A forced mate is shown by playing it; the board returns when Explain is turned off.
         // The same mate found again at a deeper search keeps playing, it does not start over.
@@ -999,6 +1001,11 @@ void MainWindow::createMenus()
     options->addAction(tr("&Graphics Settings…"), this, &MainWindow::editGraphicsSettings);
     options->addAction(tr("&Folder Settings…"), this, &MainWindow::editFolderSettings);
     options->addAction(tr("&Personal Settings…"), this, &MainWindow::editPersonalSettings);
+    // The window as a service for scripts and assistants on this computer.
+    m_apiAction = options->addAction(tr("Local &API"));
+    m_apiAction->setCheckable(true);
+    m_apiAction->setToolTip(tr("Let programs on this computer read and drive Pragma Chess (127.0.0.1, with a token)"));
+    connect(m_apiAction, &QAction::toggled, this, &MainWindow::setApiEnabled);
     m_openingNamesMenu = options->addMenu(tr("Switch Opening &Names"));
     m_openingNamesMenu->setToolTip(tr("The database whose games name the openings and variations"));
     connect(m_openingNamesMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildOpeningNamesMenu);
@@ -3167,6 +3174,7 @@ void MainWindow::setExplainEnabled(bool enabled)
     }
     m_explainer->setEnabled(false);
     m_explanationPlayback.clear();
+    m_explanation = MoveExplanation();
     m_explainBorder = BoardBorder::Plain;
     updateBoardBorder();
     m_board->stopSequence();
@@ -4257,6 +4265,9 @@ void MainWindow::restoreSession()
     }
 
     m_restoringSession = false;
+    // The local API, as the user left it, or for this run with PRAGMA_API=1.
+    if (qEnvironmentVariable("PRAGMA_API") == QLatin1String("1") || settings.value(QStringLiteral("api/enabled")).toBool())
+        m_apiAction->setChecked(true);
     updateWindowTitle();
     updateProjectModified();
 }
@@ -4759,4 +4770,24 @@ void MainWindow::closeEvent(QCloseEvent *event)
             close();
     });
     syncNow([this] { close(); });
+}
+
+void MainWindow::setApiEnabled(bool enabled)
+{
+    if (!m_api)
+        m_api = new DesktopApi(this);
+    QString error;
+    if (!m_api->setEnabled(enabled, &error)) {
+        const QSignalBlocker quiet(m_apiAction);
+        m_apiAction->setChecked(false);
+        statusBar()->showMessage(tr("Local API: %1").arg(error), 8000);
+        return;
+    }
+    // Remembered on this computer; PRAGMA_API=1 turns it on for one run.
+    if (qEnvironmentVariable("PRAGMA_API") != QLatin1String("1"))
+        QSettings().setValue(QStringLiteral("api/enabled"), enabled);
+    if (enabled)
+        statusBar()->showMessage(tr("Local API on 127.0.0.1:%1; port and token in %2")
+                                     .arg(m_api->port()).arg(DesktopApi::infoPath()),
+                                 8000);
 }

@@ -62,8 +62,11 @@ class SyncPipeline;
 class PhoneLink;
 class DatabaseFolderStore;
 
+class DesktopApi;
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
+    friend class DesktopApi; // The local API reads and drives the window.
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
@@ -486,6 +489,12 @@ private:
     /// Latest engine line (SAN) and explanation, for Edit ▸ Copy.
     QString m_engineLine;
     QString m_explanationText;
+    /// The explanation on the board, as the local API reports it.
+    MoveExplanation m_explanation;
+    /// The window as a service (Options ▸ Local API).
+    DesktopApi *m_api = nullptr;
+    QAction *m_apiAction = nullptr;
+    void setApiEnabled(bool enabled);
     /// The mate the explanation is playing on the board, if any.
     QStringList m_explanationPlayback;
     /// Latest evaluation reported by the engine; its first move is the one it plays.

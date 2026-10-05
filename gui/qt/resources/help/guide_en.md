@@ -258,6 +258,10 @@ With a Git repository each sync that changes files makes one commit, named after
 
 When you delete a database on the phone, the computer asks you at its next sync with the phone whether to delete it here too or keep it: **Keep It** leaves it on the computer, **Ask Me Later** asks again the next time you start Pragma Chess, and **Delete Everywhere…** warns you first that the database will be deleted from every synced device — it goes to the trash on this computer, it is removed from the sync folder on the server, and the other computers that sync with it delete their copy. Either way the phone does not receive it again.
 
+# Local API {#local-api}
+
+**Options ▸ Local API** turns Pragma Chess into a service for programs on this computer — a script, an assistant helping you: through a small web API they can read what the window shows (the position, the moves, the engine's evaluation, Explain's verdict, arrows and text, even a picture of the window) and drive it (go to a move, play one, load a line of moves, turn Explain or the analysis on and off). It listens on 127.0.0.1 only, so no other computer can reach it, and every request needs a token that changes at every start; the port and the token are written in `api.json`, in Pragma Chess's data folder, readable by you only. It stays off until you turn it on, and remembers your choice.
+
 # Language {#language}
 
 **Options ▸ Switch Language** chooses the language of the interface. It is applied the next time Pragma Chess starts. This guide and the opening names follow it.

@@ -15,6 +15,15 @@ La 0.3.0 è pubblicata (setup Windows 18 MB, zip 23 MB, dmg 33 MB, deb/rpm
 Resta: Flathub (build con `flatpak-builder`, mai provato) e avvisare
 l'utente che aveva la 0.2.0 rotta su Windows. Quello che segue è la storia.
 
+**Al prossimo rilascio (0.3.1 o 0.4.0), pulizia:** la release 0.3.0 ha
+quattro file estranei, `AUTHORS`, `Copying.txt`, `README.txt` e uno
+`stockfish.exe` sciolto, arrivati dall'artifact `engine-windows` (il job
+`release` scaricava tutti gli artifact). Il workflow è già corretto
+(`pattern:` nel download degli artifact, commit `9a27ed0`): alla prossima
+release controllare che non ci siano più. Poi togliere i quattro file
+dalla 0.3.0 (`gh release delete-asset v0.3.0 <nome>`) e rigenerare il suo
+`SHA256SUMS.txt` senza di loro, così non elenca file che non ci sono.
+
 Contesto (4 ottobre 2026, commit `6644142` e `22ef96c`). Un utente ha
 segnalato che la 0.2.0 su Windows non parte: "libssl-3-x64.dll non è stato
 trovato" (e `libcrypto-3-x64.dll`). Causa: Phone Link → libdatachannel →

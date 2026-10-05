@@ -132,8 +132,8 @@ LocalHttpServer::Response LocalHttpServer::answer(const Request &request) const
     const QString given = authorization.startsWith(QLatin1String("Bearer "))
         ? authorization.mid(7).trimmed()
         : request.query.value(QStringLiteral("token"));
-    if (m_token.isEmpty() || given.toUtf8() != m_token)
-        return error(401, QStringLiteral("a token is needed: the one in api.json"));
+    if (!m_token.isEmpty() && given.toUtf8() != m_token)
+        return error(401, QStringLiteral("a token is needed"));
     const auto handler = m_routes.constFind(request.method + QLatin1Char(' ') + request.path);
     if (handler != m_routes.cend())
         return (*handler)(request);

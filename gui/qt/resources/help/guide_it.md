@@ -257,10 +257,6 @@ Con un repository Git ogni sincronizzazione che cambia dei file fa un commit, ch
 
 Quando elimini un database sul telefono, il computer ti chiede alla sincronizzazione successiva con il telefono se eliminarlo anche qui o tenerlo: **Tienilo** lo lascia sul computer, **Chiedimelo più tardi** te lo chiede di nuovo al prossimo avvio di Pragma Chess, ed **Elimina ovunque…** ti avvisa prima che il database sarà eliminato da tutti i dispositivi sincronizzati — finisce nel cestino di questo computer, viene tolto dalla cartella di sincronizzazione sul server e gli altri computer che si sincronizzano con essa eliminano la loro copia. In ogni caso il telefono non lo riceve più.
 
-# API locale {#local-api}
-
-**Opzioni ▸ API locale** trasforma Pragma Chess in un servizio per i programmi di questo computer — uno script, un assistente che ti aiuta: attraverso una piccola API web possono leggere ciò che la finestra mostra (la posizione, le mosse, la valutazione del motore, il giudizio, le frecce e il testo di Spiega, perfino un'immagine della finestra) e guidarla (andare a una mossa, giocarne una, caricare una linea di mosse, accendere e spegnere Spiega o l'analisi). Ascolta solo su 127.0.0.1, quindi nessun altro computer può raggiungerla, e ogni richiesta deve presentare un token che cambia a ogni avvio; porta e token sono scritti in `api.json`, nella cartella dei dati di Pragma Chess, leggibile solo da te. Resta spenta finché non la accendi, e ricorda la tua scelta.
-
 # Lingua {#language}
 
 **Opzioni ▸ Cambia lingua** sceglie la lingua dell'interfaccia. Viene applicata al prossimo avvio di Pragma Chess. Questa guida e i nomi delle aperture la seguono.

@@ -603,13 +603,6 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
-    <name>DesktopApi</name>
-    <message>
-        <source>Port %1 is in use (PRAGMA_API_PORT chooses another).</source>
-        <translation>La porta %1 è occupata (PRAGMA_API_PORT ne sceglie un&apos;altra).</translation>
-    </message>
-</context>
-<context>
     <name>EnginePanel</name>
     <message>
         <source>Explanation</source>
@@ -2656,22 +2649,6 @@ non è su questo computer.</translation>
     <message>
         <source>Explain: looking at the position before the move…</source>
         <translation>Spiega: guardo la posizione prima della mossa…</translation>
-    </message>
-    <message>
-        <source>Local &amp;API</source>
-        <translation>&amp;API locale</translation>
-    </message>
-    <message>
-        <source>Let programs on this computer read and drive Pragma Chess (127.0.0.1, with a token)</source>
-        <translation>Permette ai programmi di questo computer di leggere e guidare Pragma Chess (127.0.0.1, con un token)</translation>
-    </message>
-    <message>
-        <source>Local API: %1</source>
-        <translation>API locale: %1</translation>
-    </message>
-    <message>
-        <source>Local API on 127.0.0.1:%1; port and token in %2</source>
-        <translation>API locale su 127.0.0.1:%1; porta e token in %2</translation>
     </message>
 </context>
 <context>

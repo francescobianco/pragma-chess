@@ -849,7 +849,7 @@ private Q_SLOTS:
 
     void servesTheLocalApi()
     {
-        // 127.0.0.1 only, a token for every request, routes as callbacks.
+        // 127.0.0.1 only, routes as callbacks; given a token, every request needs it.
         LocalHttpServer server;
         server.route(QStringLiteral("GET"), QStringLiteral("/api/echo"), [](const LocalHttpServer::Request &request) {
             return LocalHttpServer::Response{200, "text/plain", request.query.value(QStringLiteral("say")).toUtf8()};
@@ -883,6 +883,9 @@ private Q_SLOTS:
         QCOMPARE(ask(QStringLiteral("DELETE"), QStringLiteral("/api/echo"), "secret").first, 405);
         QCOMPARE(ask(QStringLiteral("GET"), QStringLiteral("/api/nowhere"), "secret").first, 404);
         QCOMPARE(server.routes(), (QStringList{QStringLiteral("GET /api/echo"), QStringLiteral("POST /api/echo")}));
+        // Without a token (the development API) anything on this computer may call it.
+        QVERIFY(server.start(0));
+        QCOMPARE(ask(QStringLiteral("GET"), QStringLiteral("/api/echo?say=open"), {}), (QPair<int, QByteArray>{200, "open"}));
     }
 
     void runsSmartPrograms()

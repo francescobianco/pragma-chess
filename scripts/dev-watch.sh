@@ -26,8 +26,8 @@ start_app() {
     # launching it then fails with "Text file busy" (exit 126), so wait and retry.
     local attempt status
     for attempt in $(seq 1 40); do
-        log "starting $APP"
-        "$APP" "$@" &
+        log "starting $APP (development API on 127.0.0.1:${PRAGMA_DEV_API_PORT:-7457})"
+        PRAGMA_DEV_API=1 "$APP" "$@" &
         app_pid=$!
         sleep 0.3
         if kill -0 "$app_pid" 2>/dev/null; then

@@ -10,11 +10,11 @@
 class QTcpServer;
 class QTcpSocket;
 
-/// A small HTTP/1.1 server for this computer only: it listens on 127.0.0.1,
-/// answers each request once (Connection: close) and asks every request for
-/// a token (`Authorization: Bearer <token>`, or `?token=`), so only a
-/// program that can read the token — the user's own — can use it. The
-/// routes are callbacks; what they do belongs to the caller (DesktopApi).
+/// A small HTTP/1.1 server for this computer only: it listens on 127.0.0.1
+/// and answers each request once (Connection: close). Given a token, it asks
+/// every request for it (`Authorization: Bearer <token>`, or `?token=`);
+/// without, anything on this computer may call it (the development API).
+/// The routes are callbacks; what they do belongs to the caller (DesktopApi).
 class LocalHttpServer : public QObject {
     Q_OBJECT
 
@@ -39,8 +39,9 @@ public:
 
     /// Answers `method` on `path` with `handler`.
     void route(const QString &method, const QString &path, Handler handler);
-    /// Listens on 127.0.0.1:`port` (0: any free port). False if it cannot.
-    bool start(quint16 port, const QByteArray &token);
+    /// Listens on 127.0.0.1:`port` (0: any free port), asking for `token`
+    /// when there is one. False if it cannot.
+    bool start(quint16 port, const QByteArray &token = {});
     void stop();
     bool isListening() const;
     quint16 port() const;

@@ -79,7 +79,7 @@ scripts/dev-watch.sh   rebuild + restart loop used by `make start`
 scripts/make-icons.py  regenerates every platform icon from data/icons/pragma-chess.png
 scripts/make-figurine-font.py  builds resources/fonts/pragma-figurine.otf from SkakNew
 scripts/install-dev-desktop.sh  user menu entry + icons for the build (Wayland dock icon)
-scripts/pragma-api.sh  calls the local API of a running client (port and token from api.json)
+scripts/pragma-api.sh  calls the development API of a client started by make start
 ```
 
 ## Current state (keep in mind)
@@ -260,18 +260,16 @@ fixed once, in SMART.
   (`tst_chessrules::runsSmartPrograms`). Keep it small: the chess belongs
   in the client's functions, the judgement in the programs.
 
-## Local API
+## Development API
 
-Options ▸ Local API (`m_apiAction`, QSettings `api/enabled`; `PRAGMA_API=1`
-turns it on for one run, `PRAGMA_API_PORT` changes the port, 7457 by
-default) makes the desktop client a service: `app/api/LocalHttpServer`
+While it is developed, the desktop client is also a service: `make start`
+launches it with `PRAGMA_DEV_API=1`, and it answers a local HTTP API on
+`127.0.0.1:7457` (`PRAGMA_DEV_API_PORT` for another port) — no token, no
+menu entry, off outside `make start` for now. `app/api/LocalHttpServer`
 (core, unit-tested: HTTP/1.1 on 127.0.0.1 only, one request per connection,
-a token on every request — `Authorization: Bearer`, or `?token=`) and
-`DesktopApi` (app; a friend of MainWindow) with the routes. While on,
-`api.json` in AppLocalData (`~/.local/share/Pragma/pragma-chess/`, owner
-only) holds `url`, `port` and a token new at every start;
-`scripts/pragma-api.sh METHOD PATH [JSON]` reads it and calls curl
-(`PRAGMA_API_INFO` for another instance).
+an optional token) and `DesktopApi` (app; a friend of MainWindow) with the
+routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
+(`PRAGMA_DEV_API_URL` for another address).
 
 - `GET /api` the routes; `GET /api/state` position (FEN, ply, the line,
   path), training, the engine (name, evaluation with depth, score, PV and
@@ -284,11 +282,14 @@ only) holds `url`, `port` and a token new at every start;
   the board), `/api/line {"moves": "1.e4 …", "fen", "ply"}` (a new game at
   the end of the chapter), `/api/explain`, `/api/analysis`, `/api/flip`
   `{"on": bool}`; each answers with the state.
-- To see what the user sees, ask them to turn it on, then read the state or
-  take a screenshot; a test instance: `PRAGMA_API=1 PRAGMA_API_PORT=…` with
-  a scratch `HOME`/`XDG_DATA_HOME` and `QT_QPA_PLATFORM=offscreen`.
+- **To see what the user sees**, call it on their `make start` instance
+  (state, screenshot) instead of guessing. A test instance of your own:
+  `PRAGMA_DEV_API=1 PRAGMA_DEV_API_PORT=…` with a scratch
+  `HOME`/`XDG_CONFIG_HOME`/`PRAGMA_CHESS_DIR` and
+  `QT_QPA_PLATFORM=offscreen`.
 - New routes go in `DesktopApi::addRoutes`, return JSON, and get a line
-  here; the window's logic stays in MainWindow.
+  here; the window's logic stays in MainWindow. A user-facing setting
+  (and a token) will come if it becomes a feature.
 
 ## Guide and About
 

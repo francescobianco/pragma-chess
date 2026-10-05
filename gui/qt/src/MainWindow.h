@@ -66,7 +66,7 @@ class DesktopApi;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
-    friend class DesktopApi; // The local API reads and drives the window.
+    friend class DesktopApi; // The development API reads and drives the window.
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
@@ -491,10 +491,8 @@ private:
     QString m_explanationText;
     /// The explanation on the board, as the local API reports it.
     MoveExplanation m_explanation;
-    /// The window as a service (Options ▸ Local API).
+    /// The development API (PRAGMA_DEV_API=1, set by make start).
     DesktopApi *m_api = nullptr;
-    QAction *m_apiAction = nullptr;
-    void setApiEnabled(bool enabled);
     /// The mate the explanation is playing on the board, if any.
     QStringList m_explanationPlayback;
     /// Latest evaluation reported by the engine; its first move is the one it plays.

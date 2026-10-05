@@ -9,14 +9,10 @@
 
 #include <QAction>
 #include <QBuffer>
-#include <QDir>
-#include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QPixmap>
-#include <QRandomGenerator>
-#include <QStandardPaths>
 
 namespace {
 
@@ -117,12 +113,7 @@ DesktopApi::DesktopApi(MainWindow *window)
     addRoutes();
 }
 
-QString DesktopApi::infoPath()
-{
-    return QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)).filePath(QStringLiteral("api.json"));
-}
-
-bool DesktopApi::isEnabled() const
+bool DesktopApi::isListening() const
 {
     return m_server->isListening();
 }
@@ -132,35 +123,17 @@ quint16 DesktopApi::port() const
     return m_server->port();
 }
 
-bool DesktopApi::setEnabled(bool enabled, QString *error)
+bool DesktopApi::startIfAsked(QString *error)
 {
-    if (!enabled) {
-        m_server->stop();
-        QFile::remove(infoPath());
-        return true;
-    }
-    if (isEnabled())
+    if (qEnvironmentVariable("PRAGMA_DEV_API") != QLatin1String("1"))
         return true;
     bool ok = false;
-    const int asked = qEnvironmentVariableIntValue("PRAGMA_API_PORT", &ok);
+    const int asked = qEnvironmentVariableIntValue("PRAGMA_DEV_API_PORT", &ok);
     const quint16 port = ok && asked > 0 && asked < 65536 ? quint16(asked) : kDefaultPort;
-    // A new token at every start: only who can read api.json now gets in.
-    QByteArray token;
-    for (int i = 0; i < 4; ++i)
-        token += QByteArray::number(QRandomGenerator::system()->generate64(), 16).rightJustified(16, '0');
-    if (!m_server->start(port, token)) {
+    if (!m_server->start(port)) {
         if (error)
-            *error = tr("Port %1 is in use (PRAGMA_API_PORT chooses another).").arg(port);
+            *error = QStringLiteral("port %1 is in use (PRAGMA_DEV_API_PORT chooses another)").arg(port);
         return false;
-    }
-    QDir().mkpath(QFileInfo(infoPath()).absolutePath());
-    QFile file(infoPath());
-    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        file.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
-        file.write(QJsonDocument(QJsonObject{{QStringLiteral("url"), QStringLiteral("http://127.0.0.1:%1").arg(port)},
-                                             {QStringLiteral("port"), port},
-                                             {QStringLiteral("token"), QString::fromLatin1(token)}})
-                       .toJson());
     }
     return true;
 }

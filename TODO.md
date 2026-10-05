@@ -165,6 +165,12 @@ app Android. Ultimo commit del lavoro: `d7f16c1`. Resta:
   saranno più difficili da raccontare; servirà guardare più a fondo, forse
   scambi interi (SEE) invece di una ripresa, e disegnarle (una freccia
   della minaccia?). Poi i temi posizionali (coppia degli alfieri, sviluppo).
+- **Android: la posizione prima della mossa.** Il desktop, quando Spiega
+  non ha la valutazione della posizione prima (si arriva diretti alla mossa,
+  o dopo un riavvio), la analizza prima per un momento
+  (`unjudgedBefore`, `kExplainBeforeDepth`); il telefono no: lì la mossa
+  resta senza giudizio finché l'utente non è passato dalla posizione prima.
+  Portare lo stesso giro in `AppViewModel.positionChanged`.
 - **La minaccia ignorata (5…Qh4+, 6 ottobre).** Dopo 4…Bxf3 5.Qxf3 il
   Nero gioca 5…Qh4+ invece di parare: la torre a8 resta attaccata (7.Qxa8).
   Spiega dice "6.g3 attacca la donna in h4: 6…Qf6 la para", vero ma non il

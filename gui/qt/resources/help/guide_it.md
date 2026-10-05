@@ -112,7 +112,7 @@ Il motore guarda la posizione prima e dopo la mossa e disegna delle frecce:
 
 Un matto forzato viene giocato sulla scacchiera, dentro una cornice rossa. Il pannello Motore lo dice a parole, per esempio «Errore grave (+0.3 → −2.9). Il Nero vince un cavallo».
 
-Spiega legge l'analisi in corso nel pannello Motore: la spiegazione compare appena il motore ha cercato abbastanza a fondo, e si affina mentre va più a fondo — le frecce cambiano solo quando una nuova linea regge per un po'. La mossa viene giudicata quando anche la posizione prima di essa è stata analizzata (lo è, se l'analisi girava mentre eri lì). Fino alla prima risposta il bordo della scacchiera pulsa; diventa blu quando la spiegazione è pronta. Spiega riguarda una mossa sola: andando a un'altra mossa si spegne, e la chiedi di nuovo. Se chiudi Pragma Chess con Spiega acceso, si riapre acceso, sulla stessa mossa.
+Spiega legge l'analisi in corso nel pannello Motore: la spiegazione compare appena il motore ha cercato abbastanza a fondo, e si affina mentre va più a fondo — le frecce cambiano solo quando una nuova linea regge per un po'. La mossa viene giudicata rispetto alla posizione prima: se quella non è mai stata analizzata (sei arrivato direttamente alla mossa, o hai riaperto Pragma Chess lì), il motore la guarda prima, per un momento, e poi continua con la posizione sulla scacchiera. Fino alla prima risposta il bordo della scacchiera pulsa; diventa blu quando la spiegazione è pronta. Spiega riguarda una mossa sola: andando a un'altra mossa si spegne, e la chiedi di nuovo. Se chiudi Pragma Chess con Spiega acceso, si riapre acceso, sulla stessa mossa.
 
 **Modifica ▸ Copia ▸ Spiegazione** copia il testo.
 

@@ -35,6 +35,13 @@ public:
 
     /// A line of the live analysis of the position on the board.
     void setLiveEvaluation(const EngineEvaluation &evaluation);
+    /// A line of an analysis of `position`, which need not be on the board:
+    /// the position before the move, searched so that the move can be judged.
+    void setEvaluation(const ChessPosition &position, const EngineEvaluation &evaluation);
+    /// The position before the move explained, when it has no evaluation as
+    /// deep as `depth` yet: the client searches it first (one engine, one
+    /// position after the other), or the move cannot be judged.
+    std::optional<ChessPosition> unjudgedBefore(int depth) const;
 
 Q_SIGNALS:
     /// The explanation for the current position; a waiting summary until the

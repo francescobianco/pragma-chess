@@ -290,3 +290,11 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   explained without a move to judge, both sides' plan stays drawn. Open:
   the real point of 5…Qh4+ is the threat it ignores (the rook on a8 stays
   attacked), which Explain does not say yet (TODO.md).
+- 2026-10-06 — Same position on the desktop: "I still see arrow 2". The
+  app had been reopened on 5…Qh4+ with Explain on, so the position before
+  the move had never been searched: no verdict ("+4.1. White is winning."),
+  and the position-alone branch drew both sides' plan, 6…Qf6 included. Two
+  fixes: the desktop searches the position before the move first, to depth
+  16, whenever Explain lacks it (one engine, one position after the other);
+  and a move not judged yet is still given to EXPLAIN.smart, which then
+  draws the answer to it without the mover's answers.

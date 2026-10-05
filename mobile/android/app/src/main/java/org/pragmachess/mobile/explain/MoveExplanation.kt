@@ -151,11 +151,13 @@ fun classifyMove(before: EngineEvaluation, after: EngineEvaluation, mover: Side,
 }
 
 private fun explainArguments(input: ExplanationInput): List<SmartValue> {
-    val comparable = input.before != null && input.played != null && input.beforeEvaluation != null
+    // The move is given even when its position before has no evaluation:
+    // it cannot be judged, but the explanation is still about it.
+    val moved = input.before != null && input.played != null
     return listOf(
-        if (comparable) SmartChess.position(input.before!!) else SmartValue.None,
-        if (comparable) SmartValue.Text(input.played!!.uci) else SmartValue.None,
-        if (comparable) SmartChess.evaluation(input.beforeEvaluation!!) else SmartValue.None,
+        if (moved) SmartChess.position(input.before!!) else SmartValue.None,
+        if (moved) SmartValue.Text(input.played!!.uci) else SmartValue.None,
+        if (moved && input.beforeEvaluation != null) SmartChess.evaluation(input.beforeEvaluation) else SmartValue.None,
         SmartChess.position(input.after), SmartChess.evaluation(input.afterEvaluation),
     )
 }

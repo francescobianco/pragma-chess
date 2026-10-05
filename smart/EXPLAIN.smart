@@ -704,7 +704,14 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
 
     NOTE "branch: no material or mate, showing " + STR(fallbackPlies) + " plies of the line"
     ringing = FALSE
-    AddArrows current, 0, fallbackPlies, toMove, "idea", -1, -1
+    IF played <> NOTHING THEN
+        ' A move not judged yet (its position before has no evaluation): the
+        ' line is still the answer to it, without the mover's answers.
+        drawn = WithoutLoserTail(current, [0, fallbackPlies], toMove)
+        AddArrows current, 0, fallbackPlies, toMove, "idea", drawn[0], drawn[1]
+    ELSE
+        AddArrows current, 0, fallbackPlies, toMove, "idea", -1, -1
+    END IF
     summary = prefix + Assessment(afterEval) + ThreatText(current)
     IF concreteText <> "" THEN
         summary = summary + concreteText

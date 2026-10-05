@@ -113,7 +113,7 @@ The engine looks at the position before and after the move and draws arrows:
 
 A forced mate is played out on the board, inside a red frame. The Engine panel says it in words, for example “Blunder (+0.3 → −2.9). Black wins a knight”.
 
-Explain reads the analysis running in the Engine panel: the explanation appears as soon as the engine has searched deep enough, and gets sharper as it goes deeper — the arrows change only when a new line holds for a while. The move is judged once the position before it has been analysed too (it was, if the analysis ran while you were there). Until the first answer the border of the board breathes; it turns blue when the explanation is there. Explain is about one move: going to another move turns it off, and you ask again. Closed with Explain on, Pragma Chess opens with it on, on the same move.
+Explain reads the analysis running in the Engine panel: the explanation appears as soon as the engine has searched deep enough, and gets sharper as it goes deeper — the arrows change only when a new line holds for a while. The move is judged against the position before it: if that was never analysed (you came straight to the move, or reopened Pragma Chess on it), the engine looks at it first, for a moment, and then goes on with the position on the board. Until the first answer the border of the board breathes; it turns blue when the explanation is there. Explain is about one move: going to another move turns it off, and you ask again. Closed with Explain on, Pragma Chess opens with it on, on the same move.
 
 **Edit ▸ Copy ▸ Explanation** copies the text.
 

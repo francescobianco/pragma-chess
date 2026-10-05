@@ -42,15 +42,31 @@ void Explainer::setPosition(const ChessPosition &position, const std::optional<C
 
 void Explainer::setLiveEvaluation(const EngineEvaluation &evaluation)
 {
+    setEvaluation(m_position, evaluation);
+}
+
+std::optional<ChessPosition> Explainer::unjudgedBefore(int depth) const
+{
+    if (!m_enabled || !m_before || !m_played)
+        return std::nullopt;
+    const std::optional<EngineEvaluation> evaluation = known(*m_before);
+    if (evaluation && evaluation->depth >= depth)
+        return std::nullopt;
+    return m_before;
+}
+
+void Explainer::setEvaluation(const ChessPosition &position, const EngineEvaluation &evaluation)
+{
     // Only a search at least as deep as the one known adds anything.
-    const QString key = m_position.positionKey();
+    const QString key = position.positionKey();
     const auto known = m_evaluations.constFind(key);
     if (known != m_evaluations.cend() && known->depth > evaluation.depth)
         return;
     if (m_evaluations.size() >= kMaxRememberedEvaluations)
         m_evaluations.clear();
     m_evaluations.insert(key, evaluation);
-    if (m_enabled)
+    // The position before the move: the next tick of the board judges with it.
+    if (m_enabled && key == m_position.positionKey())
         tick();
 }
 

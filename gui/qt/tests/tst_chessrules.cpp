@@ -348,6 +348,22 @@ private Q_SLOTS:
         explainer.setPosition(input.after, input.before, input.played);
         QCOMPARE(shown.last().verdict, MoveExplanation::Verdict::Mistake);
 
+        // Straight to a move whose position before was never searched (a game
+        // opened at a move, a restart): the client is told to search it first.
+        qunsetenv("PRAGMA_EXPLAIN_RECORD"); // The recordings above are checked below.
+        Explainer fresh;
+        QList<MoveExplanation> freshShown;
+        connect(&fresh, &Explainer::explanationChanged, this,
+                [&freshShown](const MoveExplanation &explanation) { freshShown << explanation; });
+        fresh.setPosition(input.after, input.before, input.played);
+        QVERIFY(!fresh.unjudgedBefore(16)); // Not explaining: nothing to ask.
+        fresh.setEnabled(true);
+        QCOMPARE(fresh.unjudgedBefore(16)->fen(), input.before->fen());
+        fresh.setEvaluation(*input.before, at(*input.beforeEvaluation, 16));
+        QVERIFY(!fresh.unjudgedBefore(16));
+        fresh.setLiveEvaluation(at(input.afterEvaluation, 16));
+        QCOMPARE(freshShown.last().verdict, MoveExplanation::Verdict::Mistake);
+
         qunsetenv("PRAGMA_EXPLAIN_RECORD");
         const QStringList files = QDir(recordings.path()).entryList({QStringLiteral("*.ticks")}, QDir::Files);
         QCOMPARE(files.size(), 2); // The move, and the position before it explained alone.

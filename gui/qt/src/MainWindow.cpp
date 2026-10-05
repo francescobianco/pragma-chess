@@ -131,6 +131,9 @@ constexpr int kRestoreWindowStateDelayMs = 250;
 constexpr int kTrainingDepth = 12;
 /// The tutor only judges a move against an evaluation at least this deep.
 constexpr int kTutorMinDepth = 8;
+/// How deep the position before a move is searched when Explain has no
+/// evaluation of it: enough for EXPLAIN.smart to judge the move.
+constexpr int kExplainBeforeDepth = 16;
 
 /// How long the engine's move takes to cross the board, so that the user
 /// cannot miss what just happened.
@@ -231,8 +234,22 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_positionIndex, &PositionIndexBuilder::indexChanged, this, &MainWindow::updateBookDatabaseStats);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::updateBoardFilters);
     connect(m_engine, &UciEngine::searchFinished, this, &MainWindow::finishEngineMove);
+    connect(m_engine, &UciEngine::searchFinished, this, [this] {
+        // The position before the move is searched: on to the one on the board.
+        if (m_explainingBefore) {
+            m_enginePanel->setStatus(QString());
+            analyzeCurrentPosition();
+        }
+    });
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::clearTutor);
     connect(m_engine, &UciEngine::evaluationChanged, this, [this](const EngineEvaluation &evaluation) {
+        if (m_explainingBefore) {
+            // The position before the move, for Explain only: the panel and the
+            // bar stay with the position on the board.
+            if (m_session->ply() > 0)
+                m_explainer->setEvaluation(m_session->positionAt(m_session->ply() - 1), evaluation);
+            return;
+        }
         m_lastEvaluation = evaluation;
         // While the user thinks in training, the analysis of their position
         // is what the tutor will judge their move against.
@@ -3107,10 +3124,22 @@ void MainWindow::rebuildEngineChoiceMenu()
 
 void MainWindow::analyzeCurrentPosition()
 {
+    m_explainingBefore = false;
     if (!m_startEngineAction->isChecked() || !m_engine->isRunning())
         return;
     if (m_trainingThinking) // The engine is searching the move it will play.
         return;
+    // Explain judges the move against the position before it: never searched
+    // (the board came straight here), it is searched first, for a moment,
+    // then the analysis goes on with the position on the board.
+    if (const std::optional<ChessPosition> before = m_explainer->unjudgedBefore(kExplainBeforeDepth)) {
+        m_explainingBefore = true;
+        m_enginePanel->setStatus(tr("Explain: looking at the position before the move…"));
+        SearchLimit limit;
+        limit.depth = kExplainBeforeDepth;
+        m_engine->analyze(before->fen(), {}, before->sideToMove(), limit);
+        return;
+    }
     const GameRecord &game = m_session->game();
     QStringList moves;
     moves.reserve(m_session->ply());
@@ -3133,6 +3162,7 @@ void MainWindow::setExplainEnabled(bool enabled)
         m_explainBorder = BoardBorder::Thinking; // Until the engine answers.
         updateBoardBorder();
         m_explainer->setEnabled(true);
+        analyzeCurrentPosition(); // The position before the move first, if it was never searched.
         return;
     }
     m_explainer->setEnabled(false);

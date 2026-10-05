@@ -122,12 +122,14 @@ ExplanationTick explainTick(const ExplanationInput &input)
     explain->output.clear();
     explain->output.sanStyle = input.sanStyle;
     explain->output.trace = input.trace;
-    const bool comparable = input.before && input.played && input.beforeEvaluation;
+    // The move is given even when its position before has no evaluation:
+    // it cannot be judged, but the explanation is still about it.
+    const bool moved = input.before && input.played;
     const std::optional<SmartValue> shown = explain->interpreter.call(
         QStringLiteral("Tick"),
-        {comparable ? SmartChess::position(*input.before) : SmartValue(),
-         comparable ? SmartValue(input.played->uci()) : SmartValue(),
-         comparable ? SmartChess::evaluation(*input.beforeEvaluation) : SmartValue(),
+        {moved ? SmartChess::position(*input.before) : SmartValue(),
+         moved ? SmartValue(input.played->uci()) : SmartValue(),
+         moved && input.beforeEvaluation ? SmartChess::evaluation(*input.beforeEvaluation) : SmartValue(),
          SmartChess::position(input.after), SmartChess::evaluation(input.afterEvaluation)},
         &tick.error);
     if (!shown) {
@@ -153,13 +155,13 @@ MoveExplanation explainPosition(const ExplanationInput &input)
     explain->output.clear();
     explain->output.sanStyle = input.sanStyle;
     explain->output.trace = input.trace;
-    const bool comparable = input.before && input.played && input.beforeEvaluation;
+    const bool moved = input.before && input.played;
     QString error;
     const std::optional<SmartValue> done = explain->interpreter.call(
         QStringLiteral("Explain"),
-        {comparable ? SmartChess::position(*input.before) : SmartValue(),
-         comparable ? SmartValue(input.played->uci()) : SmartValue(),
-         comparable ? SmartChess::evaluation(*input.beforeEvaluation) : SmartValue(),
+        {moved ? SmartChess::position(*input.before) : SmartValue(),
+         moved ? SmartValue(input.played->uci()) : SmartValue(),
+         moved && input.beforeEvaluation ? SmartChess::evaluation(*input.beforeEvaluation) : SmartValue(),
          SmartChess::position(input.after), SmartChess::evaluation(input.afterEvaluation),
          input.concretePly ? SmartValue(*input.concretePly) : SmartValue(), SmartValue(input.evaluationNote)},
         &error);

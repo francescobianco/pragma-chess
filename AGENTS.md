@@ -156,8 +156,14 @@ playing a move turns it off, and the user asks again at the next move.
   only once the search after the move can be compared with the one before,
   other arrows only once they held for two depths. The deepest evaluation
   of each position seen is kept: the position before the move is judged
-  with it, and a position searched before is explained at once. Without an
-  evaluation of the position before, the position is explained alone.
+  with it, and a position searched before is explained at once. When the
+  position before has no evaluation deep enough
+  (`Explainer::unjudgedBefore`: the board came straight to the move, or a
+  restart), `MainWindow::analyzeCurrentPosition` searches it first to
+  `kExplainBeforeDepth` (`m_explainingBefore`: its lines go to the
+  Explainer only, not to the panel or the bar), then the position on the
+  board. Until then the move is given unjudged and the mover's answers are
+  not drawn.
 - `app/ExplanationSearch.*` — fixed-depth searches (before, after, line
   probe) with `ExplainSettings`; only `pragma-explain` uses them now.
 - `app/AdvantageProbe.*` — pure: where an advantage becomes concrete, from

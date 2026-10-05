@@ -2646,6 +2646,10 @@ non è su questo computer.</translation>
         <source>A smaller heading in bold, centred</source>
         <translation>Un&apos;intestazione più piccola in grassetto, centrata</translation>
     </message>
+    <message>
+        <source>Explain: looking at the position before the move…</source>
+        <translation>Spiega: guardo la posizione prima della mossa…</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

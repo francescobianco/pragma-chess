@@ -99,16 +99,6 @@ class MoveExplanationTest {
     }
 
     @Test
-    fun probesFindWhereTheAdvantageShows() {
-        fun score(cp: Int, depth: Int = 0) = EngineEvaluation(centipawns = cp, depth = depth)
-        // The engine needs depth 7 to see the +3.
-        assertEquals(7, AdvantageProbe.settledDepth(listOf(score(20, 1), score(40, 5), score(290, 7), score(310, 8), score(300, 9))))
-        // Shallow searches along the line only agree after two forced moves.
-        assertEquals(2, AdvantageProbe.concretePly(listOf(score(10), score(30), score(280), score(320)), score(300)))
-        assertNull(AdvantageProbe.concretePly(listOf(score(10), score(30)), score(300)))
-    }
-
-    @Test
     fun concretePlyGuidesQuietExplanations() {
         val input = ExplanationInput(after = Position.starting(), afterEvaluation = centipawns(20, listOf("e2e4", "e7e5", "g1f3", "b8c6")))
         assertEquals(2, explainPosition(input).arrows.size)
@@ -136,25 +126,16 @@ class MoveExplanationTest {
     }
 
     @Test
-    fun usesLiveAnalysisHints() {
-        // 14…Bxc3: depth 20 sees +13, the live analysis found a mate in 14 at depth 32.
+    fun playsTheWholeMate() {
+        // 14…Bxc3: a mate in 14 for White, played on the board to the end.
         val after = afterMoves(uciOf("1.e4 e5 2.f4 exf4 3.Nf3 Nc6 4.Bc4 Nf6 5.Nc3 Bc5 6.d4 Bb6 7.Bxf4 O-O 8.O-O Re8 9.e5 Ng4 " +
             "10.Kh1 Kh8 11.Ng5 Nh6 12.Qd3 g6 13.Nge4 Bxd4 14.Bxh6 Bxc3"))
-        val analysis = ExplanationAnalysis(null, null, after, afterByDepth = listOf(centipawns(1315, listOf("d3c3", "e8e5"))))
         val mate = EngineEvaluation(isMate = true, mateIn = 14, mating = Side.White, depth = 32,
             pv = ("d3c3 d7d5 e5d6 f7f6 f1f6 e8e5 f6f7 c8e6 c4e6 d8g8 d6c7 a8c8 e4g5 c8e8 a1f1 b7b5 " +
                 "f7f8 e8f8 f1f8 g8f8 g5f7 f8f7 c7c8q c6d8 c3e5 h8g8 c8d8").split(' '))
-        assertTrue(analysis.acceptsHint(mate))
-
-        val explanation = explainPosition(analysis.input(trace = true, hint = mate))
+        val explanation = explainPosition(ExplanationInput(after = after, afterEvaluation = mate))
         assertEquals(27, explanation.playback.size) // The whole mate, not only the first plies.
         assertTrue(explanation.summary.contains("White mates in 14"))
-        assertTrue(explanation.trace.first().startsWith("hint from the live analysis"))
-
-        assertFalse(analysis.acceptsHint(mate.copy(depth = 12))) // Not deeper than the search.
-        assertFalse(analysis.acceptsHint(centipawns(200, mate.pv).copy(depth = 40))) // Only mates and draws guide it.
-        assertTrue(analysis.acceptsHint(centipawns(0, listOf("d3c3")).copy(depth = 40)))
-        assertFalse(analysis.acceptsHint(mate.copy(pv = listOf("e2e4"))))
     }
 
     @Test

@@ -4,21 +4,17 @@ import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import org.pragmachess.mobile.R
 import org.pragmachess.mobile.chess.Move
 import org.pragmachess.mobile.chess.Position
+import org.pragmachess.mobile.chess.Side
 import org.pragmachess.mobile.engine.Analysis
 import org.pragmachess.mobile.explain.EngineEvaluation
 import org.pragmachess.mobile.explain.ExplainText
-import org.pragmachess.mobile.explain.ExplanationAnalysis
-import org.pragmachess.mobile.explain.ExplanationSearch
+import org.pragmachess.mobile.explain.ExplanationInput
 import org.pragmachess.mobile.explain.MoveExplanation
-import org.pragmachess.mobile.explain.explainPosition
-import java.io.File
+import org.pragmachess.mobile.explain.explainTick
+import org.pragmachess.mobile.explain.startExplanation
 
 /** The texts of an explanation in the app's language: the desktop's, as string resources. */
 class ExplainStrings(private val context: Context) : ExplainText {
@@ -48,24 +44,21 @@ class ExplainStrings(private val context: Context) : ExplainText {
 }
 
 /**
- * Explain on the phone, as the desktop's Explainer: the engine searches the
- * move on the board on a process of its own (positions before and after it at
- * fixed depth, then the line probe), finished analyses are kept by move, and
- * the explanation is drawn on the board. It applies to one move: the app turns
- * it off when the board moves on. While it searches, [onBusy] pauses the live
- * analysis, which would otherwise take the phone's cores from it.
+ * Explain on the phone, as the desktop's Explainer: it runs no engine of its
+ * own. Every line of the live analysis is a tick for smart/EXPLAIN.smart,
+ * which answers with the explanation, so it grows and settles as the engine
+ * goes deeper. The deepest evaluation seen of each position is kept: the
+ * position before the move is judged with it, and a position analysed
+ * before is explained at once. It applies to one move: the app turns it off
+ * when the board moves on.
  */
-class ExplainController(
-    private val scope: CoroutineScope,
-    private val text: ExplainText,
-    private val onBusy: (Boolean) -> Unit,
-) {
+class ExplainController(private val text: ExplainText) {
     var enabled by mutableStateOf(false)
         private set
-    /** The engine is searching for the explanation. */
-    var thinking by mutableStateOf(false)
-        private set
     var explanation by mutableStateOf<MoveExplanation?>(null)
+        private set
+    /** Waiting for the engine to be deep enough for a first answer. */
+    var thinking by mutableStateOf(false)
         private set
 
     val border: BoardBorder
@@ -76,97 +69,61 @@ class ExplainController(
             else -> BoardBorder.Plain
         }
 
-    private val search = ExplanationSearch()
-    private val analyses = LinkedHashMap<String, ExplanationAnalysis>()
-    private var job: Job? = null
+    private val evaluations = HashMap<String, EngineEvaluation>()
     private var before: Position? = null
     private var played: Move? = null
     private var after: Position? = null
-    private var hint: EngineEvaluation? = null
-    private var usedHint: String = ""
 
     /** Explains [after], reached from [before] by [played] (both null at the start of a game). */
-    fun start(executable: File, before: Position?, played: Move?, after: Position, analyzing: String, failed: (String) -> String) {
+    fun start(before: Position?, played: Move?, after: Position, analyzing: String) {
         this.before = before
         this.played = played
         this.after = after
-        hint = null
-        usedHint = ""
         enabled = true
-        val known = analyses[key(before, played, after)]
-        if (known != null) {
-            show(known)
-            return
-        }
+        startExplanation()
         explanation = MoveExplanation(summary = analyzing)
         thinking = true
-        onBusy(true)
-        job?.cancel()
-        job = scope.launch {
-            try {
-                val analysis = search.analyze(executable, before, played, after)
-                if (analyses.size >= MAX_REMEMBERED) analyses.clear()
-                analyses[key(analysis.before, analysis.played, analysis.after)] = analysis
-                val shown = this@ExplainController.after
-                if (enabled && shown != null && key(analysis.before, analysis.played, analysis.after) ==
-                    key(this@ExplainController.before, this@ExplainController.played, shown)) show(analysis)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                if (enabled) explanation = MoveExplanation(summary = failed(e.message.orEmpty()))
-            } finally {
-                if (job == coroutineContext[Job]) {
-                    thinking = false
-                    onBusy(false)
-                }
-            }
-        }
+        tick() // A position analysed before is explained at once.
     }
 
     /** Off: the board moved on, or the user asked. */
     fun stop() {
-        if (!enabled && job == null) return
         enabled = false
         explanation = null
-        val running = job
-        job = null
-        if (running != null) {
-            running.cancel()
-            thinking = false
-            onBusy(false)
-        }
+        thinking = false
     }
 
-    /**
-     * The live analysis of the position on the board: a mate or a draw found
-     * deeper than the fixed-depth search guides the explanation, as on the desktop.
-     */
+    /** A line of the live analysis, of whatever position is on the board. */
     fun liveAnalysis(analysis: Analysis?) {
+        if (analysis == null || analysis.fen.isEmpty()) return
+        val key = key(analysis.fen)
+        val sideToMove = if (analysis.fen.split(' ').getOrNull(1) == "b") Side.Black else Side.White
+        val evaluation = EngineEvaluation.of(analysis, sideToMove)
+        // Only a search at least as deep as the one known adds anything.
+        if ((evaluations[key]?.depth ?: -1) > evaluation.depth) return
+        if (evaluations.size >= MAX_REMEMBERED) evaluations.clear()
+        evaluations[key] = evaluation
+        if (enabled && after?.let { key(it.fen()) } == key) tick()
+    }
+
+    private fun tick() {
         val position = after ?: return
-        if (analysis == null || !enabled || thinking) return
-        val evaluation = EngineEvaluation.of(analysis, position.sideToMove)
-        hint = evaluation
-        val known = analyses[key(before, played, position)] ?: return
-        if (!known.acceptsHint(evaluation) || evaluation.text == usedHint) return
-        show(known)
+        val evaluation = evaluations[key(position.fen())] ?: return
+        val previous = before
+        val tick = explainTick(ExplanationInput(before = previous, played = played,
+            beforeEvaluation = previous?.let { evaluations[key(it.fen())] }, after = position,
+            afterEvaluation = evaluation, figurines = true), text)
+        if (!tick.shown) return
+        thinking = false
+        if (tick.explanation != explanation) explanation = tick.explanation
     }
 
-    private fun show(analysis: ExplanationAnalysis) {
-        val current = hint
-        val hinted = current != null && analysis.acceptsHint(current)
-        usedHint = if (hinted) current!!.text else ""
-        explanation = explainPosition(analysis.input(figurines = true, hint = current), text)
-    }
+    fun close() = stop()
 
-    fun close() {
-        stop()
-        search.close()
-    }
-
-    private fun key(before: Position?, played: Move?, after: Position) =
-        "${before?.fen().orEmpty()}|${played?.uci.orEmpty()}|${after.fen()}"
+    /** A position by what makes it one: pieces, side to move, castling, en passant. */
+    private fun key(fen: String) = fen.split(' ').take(4).joinToString(" ")
 
     private companion object {
-        const val MAX_REMEMBERED = 500
+        const val MAX_REMEMBERED = 5000
     }
 }

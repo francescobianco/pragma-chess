@@ -42,6 +42,7 @@ import org.pragmachess.mobile.link.SyncResult
 import java.io.File
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import org.pragmachess.mobile.smart.SmartPrograms
 
 /** The screens above the board, which is always at the bottom of the stack. */
 sealed interface Screen {
@@ -122,10 +123,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val engineReady: Boolean get() = engineBinary != null
 
     /** Explain: arrows on the board justifying the evaluation of the move on it. */
-    val explainer = ExplainController(viewModelScope, ExplainStrings(application)) { busy ->
-        // The explanation's searches get the phone's cores; the live analysis waits.
-        if (busy) engine.stop() else positionChanged()
-    }
+    val explainer = ExplainController(ExplainStrings(application))
 
     /** A short message for the snackbar, consumed by the UI. */
     var message by mutableStateOf<String?>(null)
@@ -139,6 +137,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val position: Position get() = line.positionAt(ply)
 
     init {
+        // Explain and the tutor are the SMART programs of the repository, carried as assets.
+        SmartPrograms.reader = { name ->
+            runCatching { app.assets.open("smart/$name").bufferedReader().use { it.readText() } }.getOrNull()
+        }
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 corpus.prepare(identity.name, store.computers().associate { it.pubkey to it.name })
@@ -388,9 +390,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         if (!engineOn) toggleEngine()
-        val binary = engineBinary ?: return
-        explainer.start(binary, if (ply > 0) line.positionAt(ply - 1) else null, line.moves.getOrNull(ply - 1)?.move, position,
-            app.getString(R.string.explain_analyzing)) { app.getString(R.string.explain_failed, it) }
+        if (engineBinary == null) return // The analysis area offers to install one.
+        explainer.start(if (ply > 0) line.positionAt(ply - 1) else null, line.moves.getOrNull(ply - 1)?.move, position,
+            app.getString(R.string.explain_analyzing))
     }
 
     fun chooseEngine(engine: OexEngine) {
@@ -443,10 +445,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (!engineOn || !foreground) {
             // In the background the process goes: no memory held for nothing.
             if (foreground) engine.stop() else engine.close()
-            return
-        }
-        if (explainer.thinking) {
-            engine.stop()
             return
         }
         val position = position

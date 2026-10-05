@@ -122,7 +122,6 @@
     <string name="explain">Explain</string>
     <string name="explain_tooltip">Explain the evaluation: show on the board what the last move allows or wins</string>
     <string name="explain_analyzing">Analyzing…</string>
-    <string name="explain_failed">The engine stopped: %1$s</string>
     <!-- Explain: the desktop's MoveExplanation texts, keyed by their English text in ui/ExplainStrings -->
     <string name="explain_a_pawn">a pawn</string>
     <string name="explain_two_pawns">two pawns</string>

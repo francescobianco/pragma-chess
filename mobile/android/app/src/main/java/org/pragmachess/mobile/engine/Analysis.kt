@@ -12,6 +12,8 @@ data class Analysis(
     val mate: Int?,
     /** Principal variation in UCI, from the analysed position. */
     val pv: List<String>,
+    /** The position analysed, so a line that arrives late is not taken for the next one's. */
+    val fen: String = "",
 ) {
     /** Share of the bar for White: the winning-chances curve the desktop uses. */
     val whiteShare: Float

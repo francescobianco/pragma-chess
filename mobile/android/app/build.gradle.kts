@@ -14,6 +14,15 @@ val pragmaVersionCode: Int = pragmaVersion.split('.').map(String::toInt).let { (
     major * 10000 + minor * 100 + patch
 }
 
+// The SMART programs of the repository (smart/*.smart: Explain and the
+// tutor, the same files the desktop runs) go into the APK as assets under
+// smart/; the JVM tests read them from the folder itself.
+val smartPrograms = rootProject.file("../../smart")
+val copySmartPrograms by tasks.registering(Sync::class) {
+    from(smartPrograms) { include("*.smart") }
+    into(layout.buildDirectory.dir("generated/smart/assets/smart"))
+}
+
 android {
     namespace = "org.pragmachess.mobile"
     compileSdk = 36
@@ -66,6 +75,14 @@ android {
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
+    sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/smart/assets"))
+}
+
+tasks.named("preBuild") { dependsOn(copySmartPrograms) }
+tasks.matching { it.name.endsWith("Assets") || it.name.startsWith("lint") }.configureEach { dependsOn(copySmartPrograms) }
+tasks.withType<Test>().configureEach {
+    systemProperty("pragma.smart.dir", smartPrograms.absolutePath)
+    inputs.dir(smartPrograms) // A change to a program runs the tests again.
 }
 
 kotlin {

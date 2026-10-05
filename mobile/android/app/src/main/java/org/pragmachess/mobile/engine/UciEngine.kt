@@ -22,8 +22,15 @@ class UciEngine : AutoCloseable {
     private var process: Process? = null
     private var input: BufferedWriter? = null
     private var reader: Job? = null
-    @Volatile private var whiteToMove = true
-    @Volatile private var generation = 0
+    /** The position being searched, or null. */
+    private class Search(val fen: String, val whiteToMove: Boolean)
+    @Volatile private var search: Search? = null
+    /**
+     * Searches stopped whose "bestmove" has not come yet: until it does, the
+     * engine may still print lines of the old position, which must not be
+     * taken for the new one's.
+     */
+    private val stale = java.util.concurrent.atomic.AtomicInteger(0)
 
     private val _analysis = MutableStateFlow<Analysis?>(null)
     val analysis: StateFlow<Analysis?> = _analysis
@@ -49,9 +56,13 @@ class UciEngine : AutoCloseable {
                 started.inputStream.bufferedReader().useLines { lines ->
                     for (line in lines) {
                         if (!isActive) break
-                        val current = generation
-                        if (line.startsWith("info ")) {
-                            Analysis.parseInfo(line, whiteToMove)?.let { if (current == generation) _analysis.value = it }
+                        if (line.startsWith("bestmove")) {
+                            stale.updateAndGet { if (it > 0) it - 1 else 0 }
+                        } else if (line.startsWith("info ") && stale.get() == 0) {
+                            val current = search
+                            if (current != null) Analysis.parseInfo(line, current.whiteToMove)?.let {
+                                if (current === search && stale.get() == 0) _analysis.value = it.copy(fen = current.fen)
+                            }
                         }
                     }
                 }
@@ -79,22 +90,29 @@ class UciEngine : AutoCloseable {
     /** Starts an infinite analysis of [fen] with [executable]; false if it cannot run. */
     fun analyse(executable: File, fen: String): Boolean {
         if (!start(executable)) return false
-        send("stop")
-        generation++
-        _analysis.value = null
-        whiteToMove = fen.split(' ').getOrNull(1) != "b"
+        stopSearch()
+        search = Search(fen, fen.split(' ').getOrNull(1) != "b")
         send("position fen $fen")
         send("go infinite")
         return true
     }
 
     fun stop() {
-        generation++
-        send("stop")
+        stopSearch()
+    }
+
+    private fun stopSearch() {
+        if (search != null) {
+            stale.incrementAndGet()
+            search = null
+            send("stop")
+        }
         _analysis.value = null
     }
 
     override fun close() {
+        search = null
+        stale.set(0)
         send("quit")
         reader?.cancel()
         process?.destroy()

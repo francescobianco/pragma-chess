@@ -53,23 +53,24 @@ evaluation, judged against the position before the move, the pieces that fall
 ringed in red, and the sentence under the engine's line. Moving on turns it
 off; the user asks again at the next move.
 
-- `explain/` is a port of the desktop's pure logic — `MoveExplanation`
-  (`explainPosition`, `classifyMove`), `AdvantageProbe`, `ExplanationAnalysis`
-  and `ExplainSettings` — with the same thresholds, arrow kinds and colours
-  (red only when material falls) and the desktop's texts and Italian
-  translations (`ExplainText`, string resources `explain_*`). Tuning happens on
-  the desktop (`docs/tech/explain-tuning.md`): bring its changes here, and the
-  tests of `MoveExplanationTest` with them.
-- `ExplanationSearch` runs the desktop's searches on an engine process of its
-  own (depth 20 before and after the move, then the depth-2 line probe, one
-  thread, hash cleared before each search), so the phone shows what
-  `pragma-explain` shows. The live analysis is paused meanwhile and resumes
-  after; a mate or a draw it finds deeper guides the explanation, as on the
-  desktop. `ui/ExplainController` keeps finished analyses by move.
+- The logic is not here: it is `smart/EXPLAIN.smart` (and the verdict
+  `smart/TUTOR.smart`), the SMART programs the desktop runs too, read by the
+  app's own interpreter (`smart/`: a transcription of the desktop's, see
+  `smart/README.md`). The build copies them into the APK's assets; a fix to
+  Explain is made there, once, for every client. `explain/` keeps the types,
+  feeds the programs (`explainPosition`, `explainTick`, `classifyMove`) and
+  translates their sentences (`ExplainText`, string resources `explain_*`).
+- **Explain reacts to the live analysis**, with no engine of its own:
+  `ui/ExplainController` hands every line of it to EXPLAIN.smart, which
+  answers as the engine goes deeper; the deepest evaluation of each position
+  is kept, to judge the move with the position before it. An `Analysis`
+  carries the FEN it is about, and `UciEngine` drops an old search's lines
+  until its `bestmove`, so no line is taken for another position's.
 - The board's frame says where Explain is: it breathes towards blue while the
   engine searches and turns blue with the answer (`BoardBorder`).
-- `ExplanationSearchTest` runs the whole search on a real engine only with
-  `PRAGMA_EXPLAIN_ENGINE=/path/to/stockfish`.
+- `SmartTest` holds the interpreter to the desktop's (the same language test)
+  and replays the recorded cases of `smart/tests`; `MoveExplanationTest` runs
+  the desktop's Explain tests through the programs.
 
 ## Architecture
 

@@ -893,6 +893,8 @@ END FUNCTION
                  QStringLiteral("[3, 2, 1, 1]"));
         QCOMPARE(value(QStringLiteral("SLICE(REPEAT(0, 3) + [1, 2], 2, 10)")), QStringLiteral("[0, 1, 2]"));
         QCOMPARE(value(QStringLiteral("[FIXED(2.5, 1), FIXED(7, 2), TRIM(\"  a b \")]")), QStringLiteral(R"(["2.5", "7.00", "a b"])"));
+        QCOMPARE(value(QStringLiteral("[FIXED(2.25, 1), FIXED(-2.25, 1), FIXED(-0.04, 1), FIXED(0.125, 2), FIXED(2.5, 0)]")),
+                 QStringLiteral(R"(["2.3", "-2.3", "0.0", "0.13", "3"])"));
         QCOMPARE(value(QStringLiteral("\"say \"\"hi\"\"\" + 2")), QStringLiteral("say \"hi\"2"));
         QCOMPARE(value(QStringLiteral("1 + 2 * 3 - 4 / 2 = 5 AND \"a\" < \"b\"")), QStringLiteral("1"));
 

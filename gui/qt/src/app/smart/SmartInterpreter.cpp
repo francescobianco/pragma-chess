@@ -445,7 +445,11 @@ void SmartInterpreter::defineCore()
     define(QStringLiteral("FIXED"), [](const std::vector<SmartValue> &args) {
         expectArguments(QStringLiteral("FIXED"), args, 2);
         const int decimals = qBound(0, intArgument(QStringLiteral("FIXED"), args, 1), 12);
-        return SmartValue(QString::number(numberArgument(QStringLiteral("FIXED"), args, 0), 'f', decimals));
+        QString text = QString::number(numberArgument(QStringLiteral("FIXED"), args, 0), 'f', decimals);
+        // A negative number rounded to zero is written 0, as every client writes it.
+        if (text.startsWith(QLatin1Char('-')) && text.toDouble() == 0)
+            text.remove(0, 1);
+        return SmartValue(text);
     });
     define(QStringLiteral("TRIM"), [](const std::vector<SmartValue> &args) {
         expectArguments(QStringLiteral("TRIM"), args, 1);

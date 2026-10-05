@@ -221,8 +221,18 @@ fixed once, in SMART.
   per move, text, with `expect` lines for what must be shown):
   `pragma-explain --record`/`--replay`/`--ticks`, the desktop client with
   `PRAGMA_EXPLAIN_RECORD=<folder>`. `smart/tests/*.ticks` are cases every
-  client replays (`tst_chessrules::replaysRecordedTicks`; the Android suite
-  next, with the Kotlin interpreter).
+  client replays (`tst_chessrules::replaysRecordedTicks`, and the Android
+  `SmartTest`).
+- **Android** runs the same files with its own interpreter
+  (`mobile/android/…/smart/`: `SmartValue`, `SmartScript`,
+  `SmartInterpreter`, a transcription of the C++ one, and `SmartChess`, the
+  same chess functions on the app's `Position`). The build copies
+  `smart/*.smart` into the APK's assets (`assets/smart/`), the JVM tests
+  read the folder (`pragma.smart.dir`). Its `ExplainController` reacts to
+  the live analysis like the desktop's `Explainer`; the analysis carries the
+  FEN it is about, and the engine drops an old search's lines until its
+  `bestmove`. `SmartTest` runs the desktop's language test and replays
+  `smart/tests`: a change to either interpreter must keep both suites green.
 - **The language is a contract**: any change to it goes into
   smart/README.md and into both interpreters, with a test
   (`tst_chessrules::runsSmartPrograms`). Keep it small: the chess belongs

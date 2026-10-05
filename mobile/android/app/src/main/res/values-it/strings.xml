@@ -120,7 +120,6 @@
     <string name="explain">Spiega</string>
     <string name="explain_tooltip">Spiega la valutazione: mostra sulla scacchiera cosa concede o vince l\'ultima mossa</string>
     <string name="explain_analyzing">Analisi in corso…</string>
-    <string name="explain_failed">Il motore si è fermato: %1$s</string>
     <!-- Explain: the desktop's MoveExplanation texts, keyed by their English text in ui/ExplainStrings -->
     <string name="explain_a_pawn">un pedone</string>
     <string name="explain_two_pawns">due pedoni</string>

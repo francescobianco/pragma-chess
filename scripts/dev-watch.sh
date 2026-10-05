@@ -6,7 +6,7 @@ set -u
 
 BUILD_DIR="${BUILD_DIR:-build}"
 APP="$BUILD_DIR/gui/qt/pragma-chess"
-WATCH_PATHS=(gui/qt CMakeLists.txt)
+WATCH_PATHS=(gui/qt smart CMakeLists.txt) # smart/: the SMART programs are built into the app
 POLL_INTERVAL="${POLL_INTERVAL:-1}"
 
 app_pid=""
@@ -80,7 +80,7 @@ snapshot() {
         return 0
     fi
     find "${WATCH_PATHS[@]}" -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.txt' \
-        -o -name '*.qrc' -o -name '*.ui' -o -name '*.svg' -o -name '*.png' \) \
+        -o -name '*.qrc' -o -name '*.ui' -o -name '*.svg' -o -name '*.png' -o -name '*.smart' \) \
         -printf '%T@ %p\n' 2>/dev/null | sort | md5sum
 }
 

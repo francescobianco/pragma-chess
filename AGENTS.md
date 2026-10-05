@@ -709,7 +709,8 @@ edits, signs in again or removes them.
 
 The tree left of the games list (`DatabaseTreeWidget`) shows only the open
 database, and under it Board (Position, Variant), Me/Friends/Opponents, ECO
-(letter → code), Tournaments, Years, Sources and, always last, Trash, listing
+(letter → code), Tournaments, Years, Studies (study → chapters, from the
+StudyName/ChapterName/ChapterURL tags, which the headers load for it), Sources and, always last, Trash, listing
 only values some game has (`DatabaseOutline`, unit-tested); selecting a node
 filters the list through `GameFilterProxyModel`.
 

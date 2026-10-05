@@ -1778,6 +1778,32 @@ private Q_SLOTS:
         QVERIFY(!outline.events.contains("?"));
         QCOMPARE(outline.years.keys(), (QList<int>{1851, 2001}));
         QCOMPARE(DatabaseOutline::ecoCode(QStringLiteral("F10")), QString());
+
+        // Games of a lichess study: the study, then its chapters as they come.
+        const auto chapter = [](const QString &study, const QString &url, const QString &name) {
+            GameRecord record;
+            record.tags = {{u"StudyName"_s, study}, {u"ChapterName"_s, name}};
+            if (!url.isEmpty())
+                record.tags << PgnTag{u"ChapterURL"_s, url};
+            return record;
+        };
+        DatabaseOutline studies;
+        studies.add(chapter(u"Caro-Kann"_s, u"https://lichess.org/study/ix4sJU2m/jV4i0xm4"_s, u"Panov"_s));
+        studies.add(chapter(u"Caro-Kann"_s, u"https://lichess.org/study/ix4sJU2m/tJSkZAFy"_s, u"Advance"_s));
+        studies.add(chapter(u"Caro-Kann"_s, u"https://lichess.org/study/ix4sJU2m/jV4i0xm4"_s, u"Panov"_s));
+        studies.add(chapter(u"Endgames"_s, QString(), u"Lucena"_s));
+        studies.add(GameRecord());
+        QCOMPARE(studies.studies.size(), 2);
+        QCOMPARE(studies.studies.at(0).key, u"ix4sJU2m"_s);
+        QCOMPARE(studies.studies.at(0).name, u"Caro-Kann"_s);
+        QCOMPARE(studies.studies.at(0).games, 3);
+        QCOMPARE(studies.studies.at(0).chapters.size(), 2);
+        QCOMPARE(studies.studies.at(0).chapters.at(0).name, u"Panov"_s);
+        QCOMPARE(studies.studies.at(0).chapters.at(0).games, 2);
+        QCOMPARE(studies.studies.at(0).chapters.at(1).key, u"ix4sJU2m/tJSkZAFy"_s);
+        QCOMPARE(studies.studies.at(1).key, u"Endgames"_s);
+        QCOMPARE(DatabaseOutline::chapterKey(chapter(u"Endgames"_s, QString(), u"Lucena"_s)), u"Endgames/Lucena"_s);
+        QCOMPARE(DatabaseOutline::studyKey(GameRecord()), QString());
     }
 
     void countsResultsByPosition()

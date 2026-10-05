@@ -449,7 +449,7 @@ bool SqliteGameDatabase::loadHeaders(QString *errorMessage)
     if (!query.exec(QStringLiteral(
             "SELECT g.id, w.name, b.name, g.white_elo, g.black_elo, e.name, s.name,"
             " g.date, g.round, g.result, g.eco, g.ply_count, g.start_fen, g.uid, g.modified, st.state, st.modified,"
-            " substr(g.moves_san, 1, %1)"
+            " substr(g.moves_san, 1, %1), g.tags"
             " FROM games g"
             " LEFT JOIN players w ON w.id = g.white_id"
             " LEFT JOIN players b ON b.id = g.black_id"
@@ -491,6 +491,8 @@ bool SqliteGameDatabase::loadHeaders(QString *errorMessage)
         if (san.size() == kPreviewChars && !moves.isEmpty())
             moves.removeLast();
         g.linePreview = Pgn::preview(g.startFen, moves.first(qMin(moves.size(), qsizetype(kPreviewPlies))), g.plyCount);
+        // The tags with no column: which study and chapter a game is, for the tree.
+        g.tags = Pgn::tagsFromText(query.value(18).toString());
         m_headers << g;
     }
     return true;

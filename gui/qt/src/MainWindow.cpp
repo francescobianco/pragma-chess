@@ -1895,6 +1895,12 @@ void MainWindow::showCategory(const GameCategory &category)
     case Kind::Year:
         predicate = [year = value.toInt()](const GameRecord &game) { return DatabaseOutline::year(game.date) == year; };
         break;
+    case Kind::Study:
+        predicate = [value](const GameRecord &game) { return DatabaseOutline::studyKey(game) == value; };
+        break;
+    case Kind::StudyChapter:
+        predicate = [value](const GameRecord &game) { return DatabaseOutline::chapterKey(game) == value; };
+        break;
     case Kind::Source:
         if (m_database) {
             predicate = [ids = m_database->sourceGameIds(category.sourceId)](const GameRecord &game) {

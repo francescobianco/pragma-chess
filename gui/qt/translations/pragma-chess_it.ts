@@ -597,6 +597,10 @@ Il Nero ha catturato: %2</translation>
             <numerusform>Nel cestino da %n giorni o più</numerusform>
         </translation>
     </message>
+    <message>
+        <source>Studies</source>
+        <translation>Studi</translation>
+    </message>
 </context>
 <context>
     <name>EnginePanel</name>
@@ -4061,11 +4065,11 @@ Le %n partite già importate restano nel database.</numerusform>
     </message>
     <message>
         <source>lichess.org does not let this study be downloaded: it is private, or its author lets only its members export it (Share &amp; export). Sign in with an account that is a member, or ask the author to allow export to everyone.</source>
-        <translation>lichess.org non permette di scaricare questo studio: è privato, oppure il suo autore lascia esportarlo solo ai membri (Condividi ed esporta). Accedi con un account che ne è membro, o chiedi all'autore di permettere l'esportazione a tutti.</translation>
+        <translation>lichess.org non permette di scaricare questo studio: è privato, oppure il suo autore lascia esportarlo solo ai membri (Condividi ed esporta). Accedi con un account che ne è membro, o chiedi all&apos;autore di permettere l&apos;esportazione a tutti.</translation>
     </message>
     <message>
         <source>lichess.org does not let this account download the study: it is private, or its author lets only its members export it (Share &amp; export). Ask the author to add you, or to allow export to everyone.</source>
-        <translation>lichess.org non permette a questo account di scaricare lo studio: è privato, oppure il suo autore lascia esportarlo solo ai membri (Condividi ed esporta). Chiedi all'autore di aggiungerti, o di permettere l'esportazione a tutti.</translation>
+        <translation>lichess.org non permette a questo account di scaricare lo studio: è privato, oppure il suo autore lascia esportarlo solo ai membri (Condividi ed esporta). Chiedi all&apos;autore di aggiungerti, o di permettere l&apos;esportazione a tutti.</translation>
     </message>
 </context>
 <context>

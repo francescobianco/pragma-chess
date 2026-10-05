@@ -56,6 +56,7 @@ Left of the games list, the tree shows what the open database contains. Select a
 - **Me**, **Friends**, **Opponents**: the players you named with “Who Is This?”.
 - **ECO**: the games by opening code.
 - **Tournaments** and **Years**.
+- **Studies**: the studies the games came from — a lichess study connected as a source, or games whose PGN carries the tags `StudyName` and `ChapterName` — each with its chapters in the study's order. Select a study for all its games, or a chapter for its own.
 - **Sources**: the games that came from lichess.org, chess.com or torneionline.com.
 - **Trash**: the games you threw away.
 

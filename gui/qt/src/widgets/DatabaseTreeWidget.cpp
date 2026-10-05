@@ -17,7 +17,7 @@
 namespace {
 
 constexpr int kNodeRole = Qt::UserRole;
-/// ECO letter or code, event, year or source id.
+/// ECO letter or code, event, year, study or chapter key, or source id.
 constexpr int kValueRole = Qt::UserRole + 1;
 
 } // namespace
@@ -204,6 +204,16 @@ void DatabaseTreeWidget::refresh()
             addItem(group, Node::Year, QString::number(year.key()), year.key(), year.value());
         }
     }
+    // The studies the games came from, each with its chapters as the study has them.
+    if (!outline.studies.isEmpty()) {
+        QTreeWidgetItem *group = addItem(root, Node::Studies, tr("Studies"), QVariant(), -1);
+        for (const DatabaseOutline::Study &study : outline.studies) {
+            QTreeWidgetItem *studyItem = addItem(group, Node::Study, study.name, study.key, study.games);
+            studyItem->setToolTip(0, study.name);
+            for (const DatabaseOutline::StudyChapter &chapter : study.chapters)
+                addItem(studyItem, Node::StudyChapter, chapter.name, chapter.key, chapter.games)->setToolTip(0, chapter.name);
+        }
+    }
     const QList<GameSource> sources = m_database->sources();
     if (!sources.isEmpty()) {
         QTreeWidgetItem *group = addItem(root, Node::Sources, tr("Sources"), QVariant(), -1);
@@ -247,6 +257,7 @@ void DatabaseTreeWidget::onCurrentItemChanged(QTreeWidgetItem *current)
     case Node::EcoGroup:
     case Node::Tournaments:
     case Node::Years:
+    case Node::Studies:
     case Node::Sources:
         break;
     case Node::Role:
@@ -266,6 +277,12 @@ void DatabaseTreeWidget::onCurrentItemChanged(QTreeWidgetItem *current)
         break;
     case Node::Year:
         category = {GameCategory::Kind::Year, value.toString()};
+        break;
+    case Node::Study:
+        category = {GameCategory::Kind::Study, value.toString()};
+        break;
+    case Node::StudyChapter:
+        category = {GameCategory::Kind::StudyChapter, value.toString()};
         break;
     case Node::Source:
         category = {GameCategory::Kind::Source, QString(), value.toLongLong()};

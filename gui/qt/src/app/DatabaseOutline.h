@@ -18,9 +18,31 @@ struct DatabaseOutline {
     QMap<QString, int> events;
     QMap<int, int> years;
 
+    /// A study the games came from (a lichess study: its tags StudyName,
+    /// ChapterName, ChapterURL), with its chapters in the order met.
+    struct StudyChapter {
+        QString key;
+        QString name;
+        int games = 0;
+    };
+    struct Study {
+        QString key;
+        QString name;
+        int games = 0;
+        QList<StudyChapter> chapters;
+    };
+    /// In the order the games have them.
+    QList<Study> studies;
+
     void add(const GameRecord &game, const PlayerRoles &roles = {});
     /// Whether a player with `role` plays in `game`.
     static bool hasRole(const GameRecord &game, const PlayerRoles &roles, PlayerRole role);
+
+    /// The study a game belongs to: the study's id when its ChapterURL has
+    /// one, else its StudyName; empty for a game of no study.
+    static QString studyKey(const GameRecord &game);
+    /// The chapter of that study: "<study>/<chapter id or ChapterName>".
+    static QString chapterKey(const GameRecord &game);
 
     /// "e10", "E10a", " E10 " → "E10"; empty when not an ECO code.
     static QString ecoCode(const QString &eco);

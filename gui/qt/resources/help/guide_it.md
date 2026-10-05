@@ -55,7 +55,7 @@ A sinistra della lista delle partite, l'albero mostra che cosa contiene il datab
 - **Scacchiera ▸ Variante**: le partite che cominciano esattamente con le mosse giocate sulla scacchiera.
 - **Io**, **Amici**, **Avversari**: i giocatori che hai indicato con «Chi è?».
 - **ECO**: le partite per codice d'apertura.
-- **Tornei** e **Anni**.
+- **Studi**: gli studi da cui vengono le partite — uno studio di lichess collegato come fonte, o partite il cui PGN porta i tag `StudyName` e `ChapterName` — ognuno con i suoi capitoli nell'ordine dello studio. Seleziona uno studio per tutte le sue partite, o un capitolo per le sue.
 - **Sorgenti**: le partite arrivate da lichess.org, chess.com o torneionline.com.
 - **Cestino**: le partite che hai buttato.
 

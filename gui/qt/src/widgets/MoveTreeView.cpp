@@ -708,7 +708,7 @@ void MoveTreeView::rebuild()
                                   "td.dots { color: %1; }"
                                   "td.cur { color: %4; background-color: %5; }"
                                   "td.var { font-size: 92%; color: %2; padding-left: 14px; }"
-                                  "td.com { font-size: 92%; font-style: italic; color: %3; }"
+                                  "td.com { font-size: 92%; font-style: italic; color: %3; padding-left: 4px; }"
                                   "td.par { color: %3; padding: 8px %6px; }"
                                   "td.break { padding: 10px %6px; }"
                                   "a { text-decoration: none; }"

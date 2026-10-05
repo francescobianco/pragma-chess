@@ -36,6 +36,7 @@
 #include "app/sources/LichessFetch.h"
 #include "app/sources/LichessStudy.h"
 #include "app/smart/SmartInterpreter.h"
+#include "app/smart/SmartPrograms.h"
 #include "app/smart/SmartScript.h"
 #include "app/sources/PgnFile.h"
 #include "app/sources/PgnFileFetch.h"
@@ -795,6 +796,18 @@ END FUNCTION
         spinning.setStepLimit(1000);
         QVERIFY(!spinning.call(QStringLiteral("Spin"), {}, &error));
         QVERIFY2(error.startsWith(QStringLiteral("line 7: stopped after 1000 statements")), qPrintable(error));
+
+        // The programs of smart/ are built in; PRAGMA_SMART_DIR reads them from a folder instead.
+        QVERIFY(SmartPrograms::source(QStringLiteral("TUTOR.smart")).contains(QStringLiteral("FUNCTION Judge")));
+        QTemporaryDir folder;
+        QFile tuned(folder.filePath(QStringLiteral("TUTOR.smart")));
+        QVERIFY(tuned.open(QIODevice::WriteOnly));
+        tuned.write("' tuned\n");
+        tuned.close();
+        qputenv("PRAGMA_SMART_DIR", folder.path().toUtf8());
+        QCOMPARE(SmartPrograms::source(QStringLiteral("TUTOR.smart")), QStringLiteral("' tuned\n"));
+        qunsetenv("PRAGMA_SMART_DIR");
+        QVERIFY(SmartPrograms::program(QStringLiteral("TUTOR.smart"))->hasFunction(QStringLiteral("Classify")));
     }
 
     void readsStudyChaptersWithoutKings()

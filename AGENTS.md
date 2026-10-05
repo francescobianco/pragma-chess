@@ -198,6 +198,15 @@ fixed once, in SMART.
   `call()` runs an entry function per tick; globals persist between calls.
   `SmartValue` is a number, text, list (a value, copied on write), NOTHING
   or a client `SmartObject`. Errors carry the program's line.
+- `SmartPrograms::program("TUTOR.smart")` is the program loaded, with the
+  chess of `SmartChess` defined (the functions each `.smart` file lists at
+  its top: every client provides the same), one per thread. The files are
+  built into the core library (`:/smart`); **`PRAGMA_SMART_DIR=<checkout>/smart`
+  reads them from disk**, so a fix is tried without building.
+- Done so far: `TUTOR.smart` judges the moves — `classifyMove` (Explain's
+  verdict) and `TrainingTutor::judge` only call its `Classify` and `Judge`.
+  `EXPLAIN.smart`, the reactive Explain on the live analysis, the command
+  line's recorded ticks and the Kotlin interpreter are next.
 - **The language is a contract**: any change to it goes into
   smart/README.md and into both interpreters, with a test
   (`tst_chessrules::runsSmartPrograms`). Keep it small: the chess belongs

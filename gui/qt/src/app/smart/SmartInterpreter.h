@@ -33,8 +33,10 @@ public:
 
     /// Defines (or replaces) a function of the client, by a case-insensitive name.
     void define(const QString &name, Builtin builtin);
-    /// Runs the top-level statements: constants and memory. False, with the
-    /// line in `error`, if the program stops on a mistake.
+    /// A constant of the client (WHITE, BLACK…), before load().
+    void defineConstant(const QString &name, const SmartValue &value);
+    /// Runs the top-level statements, once: constants and memory. False,
+    /// with the line in `error`, if the program stops on a mistake.
     bool load(QString *error = nullptr);
     /// Calls a function of the program; nothing, with `error`, if it fails.
     std::optional<SmartValue> call(const QString &function, const std::vector<SmartValue> &args = {},

@@ -87,6 +87,8 @@ struct ExplanationInput {
 /// the advantage without losing material, the better move's line is shown.
 MoveExplanation explainPosition(const ExplanationInput &input);
 
-/// Classifies `played` by how much of its side's expected share of the game it gave away.
+/// Classifies `played` by how much of its side's expected share of the game
+/// it gave away: smart/TUTOR.smart's Classify, shared with the tutor. None if
+/// the program cannot run (logged).
 MoveExplanation::Verdict classifyMove(const EngineEvaluation &before, const EngineEvaluation &after,
                                       Side mover, const ChessMove &played);

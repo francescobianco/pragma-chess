@@ -1,0 +1,53 @@
+' TUTOR.smart — the tutor of a training game, and the judgement of a move
+' that Explain shares with it, so the two always agree.
+'
+' The client provides:
+'   WHITE, BLACK          the sides: 1 and -1
+'   SHARE(eval, side)     the side's expected share of the game, 0 to 1
+'   BESTMOVE(eval)        the first move of the engine's line, in UCI ("" if none)
+'
+' Entry functions: Classify and Judge.
+
+' Points of winning chances (0 to 100) a move gives away: lichess's scale.
+CONST BLUNDER_DROP = 30
+CONST MISTAKE_DROP = 20
+CONST INACCURACY_DROP = 10
+
+' Shares of the game: about +1.5 and -0.5 pawns.
+CONST BETTER = 0.63
+CONST NOT_WORSE = 0.45
+
+' The move `played` (UCI) of `mover`, judged by how much of its side's
+' expected share of the game it gave away, from the evaluation `before` it
+' to the evaluation `after` it: "best", "good", "inaccuracy", "mistake" or
+' "blunder".
+FUNCTION Classify(before, after, mover, played)
+    IF BESTMOVE(before) = played THEN RETURN "best"
+    drop = 100 * (SHARE(before, mover) - SHARE(after, mover))
+    IF drop >= BLUNDER_DROP THEN RETURN "blunder"
+    IF drop >= MISTAKE_DROP THEN RETURN "mistake"
+    IF drop >= INACCURACY_DROP THEN RETURN "inaccuracy"
+    RETURN "good"
+END FUNCTION
+
+FUNCTION IsError(verdict)
+    RETURN verdict = "inaccuracy" OR verdict = "mistake" OR verdict = "blunder"
+END FUNCTION
+
+' Whether the training game stops on the move the user just played:
+' "none", "missed-chance", "inaccuracy", "mistake" or "blunder".
+'
+' `before` is the evaluation of the position the user moved from (the
+' engine's search for its own last move, or the analysis that ran while the
+' user was thinking), `after` what the engine found looking for its answer.
+' Anything Explain calls an error stops the game, from an inaccuracy up:
+' an inaccuracy is already a jump of a pawn or more near equality (1.e4 e5
+' 2.f4 exf4 3.a4, from -0.5 to -2.1, is one).
+FUNCTION Judge(before, after, user, played)
+    verdict = Classify(before, after, user, played)
+    IF NOT IsError(verdict) THEN RETURN "none"
+    ' Nothing was lost that the user had on the board: the advantage was
+    ' there to take, and the position is still playable.
+    IF SHARE(before, user) >= BETTER AND SHARE(after, user) >= NOT_WORSE THEN RETURN "missed-chance"
+    RETURN verdict
+END FUNCTION

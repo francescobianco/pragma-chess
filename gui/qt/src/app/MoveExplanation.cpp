@@ -1,5 +1,9 @@
 #include "MoveExplanation.h"
 
+#include "smart/SmartChess.h"
+#include "smart/SmartInterpreter.h"
+#include "smart/SmartPrograms.h"
+
 #include <QCoreApplication>
 
 #include <array>
@@ -342,15 +346,26 @@ QString assessment(const EngineEvaluation &evaluation)
 MoveExplanation::Verdict classifyMove(const EngineEvaluation &before, const EngineEvaluation &after,
                                       Side mover, const ChessMove &played)
 {
-    if (!before.pv.isEmpty() && before.pv.first() == played.uci())
+    // The judgement is smart/TUTOR.smart's, shared with the tutor and the other clients.
+    SmartInterpreter *tutor = SmartPrograms::program(QStringLiteral("TUTOR.smart"));
+    QString error;
+    const std::optional<SmartValue> verdict =
+        tutor ? tutor->call(QStringLiteral("Classify"), {SmartChess::evaluation(before), SmartChess::evaluation(after),
+                                                        SmartChess::side(mover), SmartValue(played.uci())}, &error)
+              : std::nullopt;
+    if (!verdict) {
+        if (tutor)
+            qWarning("SMART TUTOR.smart Classify: %s", qPrintable(error));
+        return MoveExplanation::Verdict::None;
+    }
+    const QString name = verdict->toText();
+    if (name == QLatin1String("best"))
         return MoveExplanation::Verdict::Best;
-    // Same scale as lichess: points of winning chances (0–100) given away.
-    const double drop = 100.0 * (before.shareFor(mover) - after.shareFor(mover));
-    if (drop >= 30)
+    if (name == QLatin1String("blunder"))
         return MoveExplanation::Verdict::Blunder;
-    if (drop >= 20)
+    if (name == QLatin1String("mistake"))
         return MoveExplanation::Verdict::Mistake;
-    if (drop >= 10)
+    if (name == QLatin1String("inaccuracy"))
         return MoveExplanation::Verdict::Inaccuracy;
     return MoveExplanation::Verdict::Good;
 }

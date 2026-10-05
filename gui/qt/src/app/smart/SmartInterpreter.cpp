@@ -22,10 +22,14 @@ void SmartInterpreter::define(const QString &name, Builtin builtin)
     m_builtins.insert(name.toUpper(), std::move(builtin));
 }
 
+void SmartInterpreter::defineConstant(const QString &name, const SmartValue &value)
+{
+    m_globals.insert(name.toUpper(), value);
+    m_constants.insert(name.toUpper());
+}
+
 bool SmartInterpreter::load(QString *error)
 {
-    m_globals.clear();
-    m_constants.clear();
     m_frames.clear();
     m_steps = 0;
     try {

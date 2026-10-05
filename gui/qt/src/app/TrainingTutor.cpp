@@ -1,32 +1,35 @@
 #include "TrainingTutor.h"
 
-#include "MoveExplanation.h"
+#include "smart/SmartChess.h"
+#include "smart/SmartInterpreter.h"
+#include "smart/SmartPrograms.h"
 
 namespace TrainingTutor {
 
-namespace {
-
-// Shares of the game (EngineEvaluation::shareFor): about +1.5 and −0.5 pawns.
-constexpr double kBetter = 0.63;
-constexpr double kNotWorse = 0.45;
-
-} // namespace
-
 Alert judge(const EngineEvaluation &before, const EngineEvaluation &after, Side user, const ChessMove &played)
 {
-    const MoveExplanation::Verdict verdict = classifyMove(before, after, user, played);
-    if (verdict != MoveExplanation::Verdict::Inaccuracy && verdict != MoveExplanation::Verdict::Mistake
-        && verdict != MoveExplanation::Verdict::Blunder)
+    // The judgement is smart/TUTOR.smart's: the same in every client.
+    SmartInterpreter *tutor = SmartPrograms::program(QStringLiteral("TUTOR.smart"));
+    QString error;
+    const std::optional<SmartValue> alert =
+        tutor ? tutor->call(QStringLiteral("Judge"), {SmartChess::evaluation(before), SmartChess::evaluation(after),
+                                                     SmartChess::side(user), SmartValue(played.uci())}, &error)
+              : std::nullopt;
+    if (!alert) {
+        if (tutor)
+            qWarning("SMART TUTOR.smart Judge: %s", qPrintable(error));
         return Alert::None;
-    // Nothing was lost that the user had on the board: the advantage was
-    // there to take, and the position is still playable.
-    if (before.shareFor(user) >= kBetter && after.shareFor(user) >= kNotWorse)
-        return Alert::MissedChance;
-    switch (verdict) {
-    case MoveExplanation::Verdict::Blunder: return Alert::Blunder;
-    case MoveExplanation::Verdict::Mistake: return Alert::Mistake;
-    default: return Alert::Inaccuracy;
     }
+    const QString name = alert->toText();
+    if (name == QLatin1String("missed-chance"))
+        return Alert::MissedChance;
+    if (name == QLatin1String("inaccuracy"))
+        return Alert::Inaccuracy;
+    if (name == QLatin1String("mistake"))
+        return Alert::Mistake;
+    if (name == QLatin1String("blunder"))
+        return Alert::Blunder;
+    return Alert::None;
 }
 
 } // namespace TrainingTutor

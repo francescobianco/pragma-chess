@@ -225,8 +225,12 @@ qt_add_library(pragma-chess-core STATIC
     src/app/sources/SourceSync.h
     src/app/sources/TorneiOnlineFetch.cpp
     src/app/sources/TorneiOnlineFetch.h
+    src/app/smart/SmartChess.cpp
+    src/app/smart/SmartChess.h
     src/app/smart/SmartInterpreter.cpp
     src/app/smart/SmartInterpreter.h
+    src/app/smart/SmartPrograms.cpp
+    src/app/smart/SmartPrograms.h
     src/app/smart/SmartScript.cpp
     src/app/smart/SmartScript.h
     src/app/smart/SmartValue.cpp
@@ -251,6 +255,9 @@ qt_add_library(pragma-chess-core STATIC
 )
 target_include_directories(pragma-chess-core PUBLIC src)
 target_link_libraries(pragma-chess-core PUBLIC Qt6::Core Qt6::Network)
+# The SMART programs (smart/README.md), built in; PRAGMA_SMART_DIR reads them from a folder instead.
+qt_add_resources(pragma-chess-core smart PREFIX /smart BASE ${CMAKE_CURRENT_SOURCE_DIR}/../../smart
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../smart/TUTOR.smart ${CMAKE_CURRENT_SOURCE_DIR}/../../smart/EXPLAIN.smart)
 target_compile_definitions(pragma-chess-core PUBLIC QT_NO_KEYWORDS APP_VERSION="${PROJECT_VERSION}")
 
 # The engine shipped with the app (EngineCatalog): its version is pinned in

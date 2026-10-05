@@ -120,8 +120,14 @@ scripts/install-dev-desktop.sh  user menu entry + icons for the build (Wayland d
   `BoardWidget::animatedMoveLanded`. Graphics Settings turns it off.
 - The board style (`widgets/BoardTheme`: square colours and piece set,
   together) is chosen in Personal Settings and synced with them: Pragma
-  Classic (default, `resources/pieces/companion`) and Lichess Alpha
-  (`resources/pieces/alpha`, lichess's green). Every view that paints
+  Classic (default, `resources/pieces/companion`), Lichess Alpha
+  (`resources/pieces/alpha`, lichess's green) and Classic Book (`hatched`:
+  one paper, the dark squares hatched in `ink` across the whole board, and
+  around each piece on a dark square the lines cut back by its silhouette
+  grown a little, `haloMask`). The squares are painted by
+  `BoardTheme::paintSquares`, which the board, the position editor and the
+  preview in Personal Settings share: a view that draws squares calls it
+  with the pieces standing on dark squares. Every view that paints
   squares or pieces asks `BoardTheme::current()` (through
   `BoardWidget::lightSquareColor()` and `PieceRenderer`), never a colour of
   its own; `MainWindow::applyBoardTheme` switches and repaints.

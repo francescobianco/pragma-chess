@@ -206,7 +206,27 @@ MoveTreeView::MoveTreeView(GameSession *session, QWidget *parent)
     header->setSectionResizeMode(1, QHeaderView::Stretch);
     header->setSectionResizeMode(2, QHeaderView::Stretch);
     setViewportMargins(0, header->sizeHint().height(), 0, 0);
-    connect(header, &QHeaderView::sectionResized, this, [this] { rebuild(); });
+    connect(header, &QHeaderView::sectionResized, this, [this] {
+        if (!m_rebuilding) {
+            if (columnWidths() != m_builtWidths)
+                rebuild();
+            return;
+        }
+        // Inside setHtml() the new contents move the scroll bar and the
+        // columns pass through passing widths: what counts is the width they
+        // settle at, once the build is over.
+        if (m_widthCheckPending)
+            return;
+        m_widthCheckPending = true;
+        QTimer::singleShot(0, this, [this] {
+            m_widthCheckPending = false;
+            const QList<int> widths = columnWidths();
+            // The width of the build before is the scroll bar going back to
+            // where it was: building for it would bring it back, for ever.
+            if (widths != m_builtWidths && widths != m_widthsBefore)
+                rebuild();
+        });
+    });
     connect(this, &QTextBrowser::anchorClicked, this, [this](const QUrl &url) {
         const Place place = placeOf(url.toString());
         if (!place.isMove())
@@ -433,6 +453,11 @@ void MoveTreeView::placeEditor()
     m_editor->setGeometry(kParagraphPadding, first.top(), width, height);
 }
 
+QList<int> MoveTreeView::columnWidths() const
+{
+    return {m_header->sectionSize(0), m_header->sectionSize(1), m_header->sectionSize(2)};
+}
+
 void MoveTreeView::rebuild()
 {
     if (m_rebuilding) {
@@ -446,6 +471,10 @@ void MoveTreeView::rebuild()
         return;
     }
     const QScopedValueRollback<bool> running(m_rebuilding, true);
+    if (const QList<int> widths = columnWidths(); widths != m_builtWidths) {
+        m_widthsBefore = m_builtWidths;
+        m_builtWidths = widths;
+    }
     const int scroll = verticalScrollBar()->value();
     // The rule between games is drawn with the palette's Dark: a light one,
     // a little of the text over the page.

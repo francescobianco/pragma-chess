@@ -363,17 +363,44 @@ void BoardWidget::paintEvent(QPaintEvent *)
     rounded.addRoundedRect(board, kCornerRadius, kCornerRadius);
     painter.save();
     painter.setClipPath(rounded);
-    const QColor lightSquare = lightSquareColor();
-    const QColor darkSquare = darkSquareColor();
+    const BoardTheme &theme = BoardTheme::current();
+    // The pieces at rest on dark squares: a book's hatching leaves them a halo.
+    const bool slidingNow = m_slide->state() == QAbstractAnimation::Running && !m_slideSteps.isEmpty();
+    QSet<int> notOnSquare;
+    if (slidingNow) {
+        for (qsizetype i = m_slideStep; i < m_slideSteps.size(); ++i)
+            notOnSquare.insert(m_slideSteps.at(i).to);
+    }
+    if (m_dragging)
+        notOnSquare.insert(m_selected);
+    QList<QRectF> darkSquares;
+    QList<BoardTheme::PlacedPiece> piecesOnDark;
     for (int square = 0; square < 64; ++square) {
-        const QRectF rect = squareRect(square);
-        const bool light = (square / 8 + square % 8) % 2 == 1;
-        painter.fillRect(rect, light ? lightSquare : darkSquare);
-        if (square == m_lastMoveFrom || square == m_lastMoveTo)
-            painter.fillRect(rect, kLastMove);
+        if ((square / 8 + square % 8) % 2 == 1)
+            continue;
+        darkSquares << squareRect(square);
+        if (const Piece piece = m_board.at(square); !piece.isNull() && !notOnSquare.contains(square))
+            piecesOnDark << BoardTheme::PlacedPiece{squareRect(square), piece};
+    }
+    if (slidingNow) {
+        // A captured piece stays until the attacker lands; a castling rook waits on its corner.
+        for (const auto &[square, piece] : m_slideCaptures) {
+            if ((square / 8 + square % 8) % 2 == 0)
+                piecesOnDark << BoardTheme::PlacedPiece{squareRect(square), piece};
+        }
+        for (qsizetype i = m_slideStep + 1; i < m_slideSteps.size(); ++i) {
+            const int from = m_slideSteps.at(i).from;
+            if ((from / 8 + from % 8) % 2 == 0)
+                piecesOnDark << BoardTheme::PlacedPiece{squareRect(from), m_slideSteps.at(i).piece};
+        }
+    }
+    theme.paintSquares(painter, board, darkSquares, piecesOnDark, devicePixelRatioF());
+    for (const int square : {m_lastMoveFrom, m_lastMoveTo}) {
+        if (square >= 0)
+            painter.fillRect(squareRect(square), kLastMove);
     }
 
-    if (m_showCoordinates) {
+    if (m_showCoordinates && theme.showsCoordinates()) {
         QFont font = this->font();
         font.setPixelSize(qMax(8, int(size * 0.16)));
         font.setBold(true);
@@ -386,11 +413,11 @@ void BoardWidget::paintEvent(QPaintEvent *)
             const bool bottomLight = (bottomSquare / 8 + bottomSquare % 8) % 2 == 1;
             const bool leftLight = (leftSquare / 8 + leftSquare % 8) % 2 == 1;
 
-            painter.setPen(bottomLight ? darkSquare : lightSquare);
+            painter.setPen(theme.coordinateColor(bottomLight));
             painter.drawText(squareRect(bottomSquare).adjusted(pad, pad, -pad, -pad),
                              Qt::AlignRight | Qt::AlignBottom,
                              QString(QChar('a' + bottomSquare % 8)));
-            painter.setPen(leftLight ? darkSquare : lightSquare);
+            painter.setPen(theme.coordinateColor(leftLight));
             painter.drawText(squareRect(leftSquare).adjusted(pad, pad, -pad, -pad),
                              Qt::AlignLeft | Qt::AlignTop,
                              QString(QChar('1' + leftSquare / 8)));

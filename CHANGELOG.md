@@ -8,6 +8,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- A new board style, **Classic Book**: the diagram of a printed chess book,
+  one old paper with the dark squares hatched in diagonal ink lines, the
+  Good Companion pieces, and a margin of paper around each piece standing
+  on a dark square, without coordinates (Options ▸ Personal Settings…).
 - A new source, **Lichess Study**: paste the address of a study on
   lichess.org and each of its chapters becomes a game of the database, with
   its comments and variations, the study and the chapter in its PGN tags
@@ -33,6 +37,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- The application could keep a processor core at 100% while idle: the move
+  list rebuilt itself again and again when its scroll bar came and went.
 - On Windows with a dark theme, Database ▸ Connect Source… showed a white
   window on which the texts could not be read; with a light theme some of
   them were white too. It is now drawn with the theme's colours like the

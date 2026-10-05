@@ -1,6 +1,7 @@
 #include "PositionEditorWidget.h"
 
 #include "BoardWidget.h"
+#include "BoardTheme.h"
 #include "PieceRenderer.h"
 
 #include <QApplication>
@@ -61,33 +62,45 @@ void PositionEditorWidget::paintEvent(QPaintEvent *)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     const qreal ratio = devicePixelRatioF();
+    const BoardTheme &theme = BoardTheme::current();
+    QList<QRectF> darkSquares;
+    QList<BoardTheme::PlacedPiece> piecesOnDark;
+    for (int square = 0; square < 64; ++square) {
+        if ((square / 8 + square % 8) % 2 == 1)
+            continue;
+        darkSquares << squareRect(square);
+        const bool lifted = square == m_pressSquare && !m_dragged.isNull();
+        if (const Piece piece = m_setup.at(square); !piece.isNull() && !lifted)
+            piecesOnDark << BoardTheme::PlacedPiece{squareRect(square), piece};
+    }
+    theme.paintSquares(painter, boardRect(), darkSquares, piecesOnDark, ratio);
     for (int square = 0; square < 64; ++square) {
         const QRectF rect = squareRect(square);
-        const bool light = (square / 8 + square % 8) % 2 == 1;
-        painter.fillRect(rect, light ? BoardWidget::lightSquareColor() : BoardWidget::darkSquareColor());
         if (square == m_pressSquare && !m_dragged.isNull())
             continue; // Lifted: drawn under the pointer.
         if (const Piece piece = m_setup.at(square); !piece.isNull())
             PieceRenderer::paint(painter, piece, rect, ratio);
     }
-    // The coordinates in the corner squares of the edges, small.
-    QFont font = this->font();
-    font.setPixelSize(qMax(8, int(boardRect().width() / 48)));
-    painter.setFont(font);
-    for (int i = 0; i < 8; ++i) {
-        // The files along the bottom row, the ranks down the left column.
-        const int bottom = m_flipped ? 63 - i : i;
-        const QRectF fileRect = squareRect(bottom);
-        const bool light = (bottom / 8 + bottom % 8) % 2 == 1;
-        painter.setPen(light ? BoardWidget::darkSquareColor() : BoardWidget::lightSquareColor());
-        painter.drawText(fileRect.adjusted(2, 0, -2, -1), Qt::AlignRight | Qt::AlignBottom,
-                         QString(QChar('a' + bottom % 8)));
-        const int left = m_flipped ? 7 + 8 * i : 56 - 8 * i;
-        const QRectF rankRect = squareRect(left);
-        const bool leftLight = (left / 8 + left % 8) % 2 == 1;
-        painter.setPen(leftLight ? BoardWidget::darkSquareColor() : BoardWidget::lightSquareColor());
-        painter.drawText(rankRect.adjusted(2, 1, -2, 0), Qt::AlignLeft | Qt::AlignTop,
-                         QString::number(left / 8 + 1));
+    // The coordinates in the corner squares of the edges, small; a book's diagram has none.
+    if (theme.showsCoordinates()) {
+        QFont font = this->font();
+        font.setPixelSize(qMax(8, int(boardRect().width() / 48)));
+        painter.setFont(font);
+        for (int i = 0; i < 8; ++i) {
+            // The files along the bottom row, the ranks down the left column.
+            const int bottom = m_flipped ? 63 - i : i;
+            const QRectF fileRect = squareRect(bottom);
+            const bool light = (bottom / 8 + bottom % 8) % 2 == 1;
+            painter.setPen(theme.coordinateColor(light));
+            painter.drawText(fileRect.adjusted(2, 0, -2, -1), Qt::AlignRight | Qt::AlignBottom,
+                             QString(QChar('a' + bottom % 8)));
+            const int left = m_flipped ? 7 + 8 * i : 56 - 8 * i;
+            const QRectF rankRect = squareRect(left);
+            const bool leftLight = (left / 8 + left % 8) % 2 == 1;
+            painter.setPen(theme.coordinateColor(leftLight));
+            painter.drawText(rankRect.adjusted(2, 1, -2, 0), Qt::AlignLeft | Qt::AlignTop,
+                             QString::number(left / 8 + 1));
+        }
     }
     if (!m_dragged.isNull()) {
         const qreal size = boardRect().width() / 8.0;

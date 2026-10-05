@@ -30,10 +30,11 @@ QIcon themePreview(const BoardTheme &theme, qreal devicePixelRatio)
     painter.setRenderHint(QPainter::Antialiasing);
     const QRectF light(0, 0, kPreviewSquare, kPreviewSquare);
     const QRectF dark = light.translated(kPreviewSquare, 0);
-    painter.fillRect(light, theme.lightSquare);
-    painter.fillRect(dark, theme.darkSquare);
-    PieceRenderer::paint(painter, Piece{PieceType::Knight, Side::White}, light, devicePixelRatio, theme.pieceSet);
-    PieceRenderer::paint(painter, Piece{PieceType::Knight, Side::Black}, dark, devicePixelRatio, theme.pieceSet);
+    const Piece blackKnight{PieceType::Knight, Side::Black};
+    theme.paintSquares(painter, light.united(dark), {dark}, {BoardTheme::PlacedPiece{dark, blackKnight}},
+                       devicePixelRatio);
+    PieceRenderer::paint(painter, Piece{PieceType::Knight, Side::White}, light, devicePixelRatio, theme.pieceStyle());
+    PieceRenderer::paint(painter, blackKnight, dark, devicePixelRatio, theme.pieceStyle());
     return QIcon(pixmap);
 }
 

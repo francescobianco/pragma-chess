@@ -95,6 +95,13 @@ private:
     /// for another rebuild from inside it; that one waits (m_rebuildAgain).
     bool m_rebuilding = false;
     bool m_rebuildAgain = false;
+    /// The header's column widths the list was last built for, and the ones
+    /// before: a scroll bar that comes and goes must not rebuild it for ever.
+    QList<int> m_builtWidths;
+    QList<int> m_widthsBefore;
+    /// A check of the columns' settled width is waiting for the build to end.
+    bool m_widthCheckPending = false;
+    QList<int> columnWidths() const;
 
     QTextEdit *m_editor;
     /// The paragraph being written, (game, index), and its text so far.

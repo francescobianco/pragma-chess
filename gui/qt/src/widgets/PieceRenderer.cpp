@@ -12,6 +12,8 @@
 #include <array>
 
 #ifdef PRAGMA_HAS_SVG
+#include <QFile>
+#include <QRegularExpression>
 #include <QSvgRenderer>
 #endif
 
@@ -55,24 +57,49 @@ const QPainterPath &glyphPath(PieceType type)
 }
 
 /// Piece rendered from the SVG piece set `pieceSet`, or a null pixmap if unavailable.
-QPixmap piecePixmap(Piece piece, int pixelSize, qreal devicePixelRatio, const QString &pieceSet)
+QString styleKey(const PieceStyle &style)
+{
+    return QStringLiteral("%1%2%3")
+        .arg(style.set, style.solidBlack ? QStringLiteral("+black") : QString(),
+             style.paper.isValid() ? QLatin1Char('+') + style.paper.name() : QString());
+}
+
+QPixmap piecePixmap(Piece piece, int pixelSize, qreal devicePixelRatio, const PieceStyle &style)
 {
 #ifdef PRAGMA_HAS_SVG
     static const char roles[] = " PNBRQK";
     static QHash<QString, QPixmap> cache;
     if (pixelSize <= 0)
         return {};
-    const QString key = QStringLiteral("%1/%2-%3-%4").arg(pieceSet).arg(pixelSize).arg(int(piece.type)).arg(int(piece.side));
+    const QString key = QStringLiteral("%1/%2-%3-%4")
+                            .arg(styleKey(style))
+                            .arg(pixelSize)
+                            .arg(int(piece.type))
+                            .arg(int(piece.side));
     if (auto it = cache.constFind(key); it != cache.cend())
         return *it;
     if (cache.size() > 128)
         cache.clear(); // Old sizes after a resize, or another set.
 
     const QString file = QStringLiteral(":/resources/pieces/%1/%2%3.svg")
-                             .arg(pieceSet)
+                             .arg(style.set)
                              .arg(piece.side == Side::White ? QLatin1Char('w') : QLatin1Char('b'))
                              .arg(QLatin1Char(roles[int(piece.type)]));
-    QSvgRenderer renderer(file);
+    QFile svg(file);
+    if (!svg.open(QIODevice::ReadOnly))
+        return {};
+    QByteArray drawing = svg.readAll();
+    if (style.solidBlack && piece.side == Side::Black) {
+        // The set's charcoal fills and dark outlines become printing ink.
+        static const QRegularExpression dark(QStringLiteral(R"re("#(?:333|333333|201917)")re"));
+        drawing = QString::fromUtf8(drawing).replace(dark, QStringLiteral("\"#000\"")).toUtf8();
+    }
+    if (style.paper.isValid()) {
+        // White is where no ink went: the paper shows through.
+        static const QRegularExpression white(QStringLiteral(R"re("#(?:fff|ffffff|FFF|FFFFFF)")re"));
+        drawing = QString::fromUtf8(drawing).replace(white, QLatin1Char('"') + style.paper.name() + QLatin1Char('"')).toUtf8();
+    }
+    QSvgRenderer renderer(drawing);
     if (!renderer.isValid())
         return {};
     QPixmap pixmap(pixelSize, pixelSize);
@@ -89,7 +116,7 @@ QPixmap piecePixmap(Piece piece, int pixelSize, qreal devicePixelRatio, const QS
     Q_UNUSED(piece)
     Q_UNUSED(pixelSize)
     Q_UNUSED(devicePixelRatio)
-    Q_UNUSED(pieceSet)
+    Q_UNUSED(style)
     return {};
 #endif
 }
@@ -100,14 +127,14 @@ namespace PieceRenderer {
 
 void paint(QPainter &painter, Piece piece, const QRectF &rect, qreal devicePixelRatio)
 {
-    paint(painter, piece, rect, devicePixelRatio, BoardTheme::current().pieceSet);
+    paint(painter, piece, rect, devicePixelRatio, BoardTheme::current().pieceStyle());
 }
 
-void paint(QPainter &painter, Piece piece, const QRectF &rect, qreal devicePixelRatio, const QString &pieceSet)
+void paint(QPainter &painter, Piece piece, const QRectF &rect, qreal devicePixelRatio, const PieceStyle &style)
 {
     // The vector piece set of the board style.
     const qreal size = rect.width();
-    const QPixmap pixmap = piecePixmap(piece, qRound(size * devicePixelRatio), devicePixelRatio, pieceSet);
+    const QPixmap pixmap = piecePixmap(piece, qRound(size * devicePixelRatio), devicePixelRatio, style);
     if (!pixmap.isNull()) {
         painter.drawPixmap(rect.topLeft(), pixmap);
         return;
@@ -145,7 +172,7 @@ void paintMuted(QPainter &painter, Piece piece, const QRectF &rect, qreal device
     // Pieces are few and small: cache them per piece, size and background.
     static QHash<QString, QImage> cache;
     const QString key = QStringLiteral("%1-%2-%3-%4x%5-%6")
-                            .arg(BoardTheme::current().pieceSet)
+                            .arg(styleKey(BoardTheme::current().pieceStyle()))
                             .arg(int(piece.type))
                             .arg(int(piece.side))
                             .arg(pixels.width())

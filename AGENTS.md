@@ -190,6 +190,12 @@ playing a move turns it off, and the user asks again at the next move.
   the red comes back after it. `MainWindow::updateBoardBorder`
   is the one place that decides: add new meanings there, do not call
   `setBorder` elsewhere.
+- The Engine panel shows the engine's whole line, and an eye beside Stop
+  Analysis (`EnginePanel::peekHeld`): held down, the board shows the
+  position at the end of the line (`MainWindow::peekAtEngineLine`,
+  `BoardWidget::peek`: no arrows, no marks, no moves taken), and letting go
+  brings back what was there (`endPeek`, a sequence going on where it was).
+  It is off while the line is hidden (training) or not about the board.
 - `widgets/BoardWidget` only paints `BoardArrow`s and lost-piece rings, and
   plays `BoardFrame` sequences (a forced mate from `MoveExplanation::playback`)
   with a red frame, restoring the position on `stopSequence()`.
@@ -280,8 +286,9 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   refuses screenshots to other programs).
 - `POST /api/ply {"ply": n}`, `/api/move {"uci": "e2e4"}` (as a move on
   the board), `/api/line {"moves": "1.e4 …", "fen", "ply"}` (a new game at
-  the end of the chapter), `/api/explain`, `/api/analysis`, `/api/flip`
-  `{"on": bool}`; each answers with the state.
+  the end of the chapter), `/api/explain`, `/api/analysis`, `/api/flip`,
+  `/api/peek` (the Engine panel's eye held) `{"on": bool}`; each answers
+  with the state.
 - **To see what the user sees**, call it on their `make start` instance
   (state, screenshot) instead of guessing. A test instance of your own:
   `PRAGMA_DEV_API=1 PRAGMA_DEV_API_PORT=…` with a scratch

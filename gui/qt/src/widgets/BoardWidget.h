@@ -85,6 +85,14 @@ public:
     void stopSequence();
     bool isShowingSequence() const { return m_sequenceActive; }
 
+    /// Shows another position for a moment (the end of the engine's line,
+    /// while its button is held), without arrows or marks and without
+    /// taking moves; endPeek() brings back what was there, a sequence
+    /// going on where it was.
+    void peek(const BoardFrame &frame);
+    void endPeek();
+    bool isPeeking() const { return m_peeking; }
+
     bool isFlipped() const { return m_flipped; }
     void setFlipped(bool flipped);
 
@@ -176,6 +184,9 @@ private:
     KingMark m_kingMark = KingMark::None;
     /// Board and last move to show again when the sequence is stopped.
     BoardFrame m_beforeSequence;
+    bool m_peeking = false;
+    /// What peek() covered, shown again by endPeek().
+    BoardFrame m_beforePeek;
     QTimer *m_sequenceTimer;
     /// Progress (0–1) of the piece sliding to the last move's target.
     QVariantAnimation *m_slide;

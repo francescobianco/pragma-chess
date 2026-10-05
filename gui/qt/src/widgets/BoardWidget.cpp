@@ -126,6 +126,7 @@ void BoardWidget::setBorder(BoardBorder border)
 
 void BoardWidget::setBoard(const BoardFrame &frame)
 {
+    m_peeking = false; // A new position is no longer covered by the peek.
     endSequence();
     m_slide->stop();
     m_slideEmphasis = false;
@@ -253,6 +254,39 @@ void BoardWidget::stopSequence()
     m_lastMoveTo = original.lastMoveTo;
     m_markedKing = original.markedKing;
     m_kingMark = original.kingMark;
+    update();
+}
+
+void BoardWidget::peek(const BoardFrame &frame)
+{
+    if (!m_peeking)
+        m_beforePeek = {m_board, m_lastMoveFrom, m_lastMoveTo, m_markedKing, m_kingMark};
+    m_peeking = true;
+    m_sequenceTimer->stop();
+    m_slide->stop();
+    m_slideSteps.clear();
+    m_slideCaptures.clear();
+    clearSelection();
+    m_board = frame.board;
+    m_lastMoveFrom = frame.lastMoveFrom;
+    m_lastMoveTo = frame.lastMoveTo;
+    m_markedKing = frame.markedKing;
+    m_kingMark = frame.kingMark;
+    update();
+}
+
+void BoardWidget::endPeek()
+{
+    if (!m_peeking)
+        return;
+    m_peeking = false;
+    m_board = m_beforePeek.board;
+    m_lastMoveFrom = m_beforePeek.lastMoveFrom;
+    m_lastMoveTo = m_beforePeek.lastMoveTo;
+    m_markedKing = m_beforePeek.markedKing;
+    m_kingMark = m_beforePeek.kingMark;
+    if (m_sequenceActive && m_nextFrame < m_frames.size())
+        m_sequenceTimer->start(kSequenceStepMs);
     update();
 }
 
@@ -533,7 +567,7 @@ void BoardWidget::paintEvent(QPaintEvent *)
     }
 
     // The comment's marks, under Explain's: a ring inside the square, an arrow.
-    for (const MoveComment::Mark &mark : m_sequenceActive ? QList<MoveComment::Mark>() : m_marks) {
+    for (const MoveComment::Mark &mark : (m_sequenceActive || m_peeking) ? QList<MoveComment::Mark>() : m_marks) {
         if (mark.isCircle()) {
             painter.setPen(QPen(markColor(mark.color), qMax(2.0, size * 0.07)));
             painter.setBrush(Qt::NoBrush);
@@ -544,17 +578,17 @@ void BoardWidget::paintEvent(QPaintEvent *)
         }
     }
     // Arrows belong to the position the sequence started from.
-    for (int square : m_sequenceActive ? QList<int>() : m_lostPieces) {
+    for (int square : (m_sequenceActive || m_peeking) ? QList<int>() : m_lostPieces) {
         painter.setPen(QPen(arrowColor(BoardArrow::Kind::Refutation), qMax(2.0, size * 0.06)));
         painter.setBrush(Qt::NoBrush);
         const qreal inset = size * 0.07;
         painter.drawEllipse(squareRect(square).adjusted(inset, inset, -inset, -inset));
     }
-    for (const BoardArrow &arrow : m_sequenceActive ? QList<BoardArrow>() : m_arrows)
+    for (const BoardArrow &arrow : (m_sequenceActive || m_peeking) ? QList<BoardArrow>() : m_arrows)
         paintArrow(painter, arrow);
     // The piece the better move would have moved, small and faint where it
     // goes: the square the arrow leaves is often empty on this board.
-    for (const BoardArrow &arrow : m_sequenceActive ? QList<BoardArrow>() : m_arrows) {
+    for (const BoardArrow &arrow : (m_sequenceActive || m_peeking) ? QList<BoardArrow>() : m_arrows) {
         if (arrow.piece.isNull() || arrow.to < 0)
             continue;
         QRectF ghost(0, 0, size * 0.55, size * 0.55);
@@ -695,7 +729,7 @@ void BoardWidget::paintArrow(QPainter &painter, const BoardArrow &arrow, const Q
 
 void BoardWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (m_sequenceActive) {
+    if (m_sequenceActive || m_peeking) {
         QWidget::mousePressEvent(event); // The shown position is not the one to play from.
         return;
     }

@@ -35,6 +35,7 @@ enum class Shape {
     Online,
     Book,
     Engine,
+    Eye,
 };
 
 /// The square New Game and New Training share: a board, and a face as large.
@@ -236,6 +237,19 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         painter->drawLine(QPointF(7, 14.75), QPointF(9, 14.75));
         break;
     }
+    case Shape::Eye: {
+        // An eye: the end of the engine's line, seen while it is held.
+        QPainterPath eye;
+        eye.moveTo(1.5, 8);
+        eye.quadTo(8, 1, 14.5, 8);
+        eye.quadTo(8, 15, 1.5, 8);
+        eye.closeSubpath();
+        painter->drawPath(eye);
+        QPainterPath pupil;
+        pupil.addEllipse(QPointF(8, 8), 2.25, 2.25);
+        painter->fillPath(pupil, color);
+        break;
+    }
     case Shape::NewGame: {
         // A board of four squares, two light and two dark (a1 is dark),
         // drawn with the same edge as New Training and New Online Game.
@@ -394,6 +408,7 @@ QIcon icon(const QString &name)
         {QStringLiteral("pragma-online"), Shape::Online},
         {QStringLiteral("pragma-book"), Shape::Book},
         {QStringLiteral("pragma-engine"), Shape::Engine},
+        {QStringLiteral("pragma-eye"), Shape::Eye},
     };
     const auto it = shapes.constFind(name);
     if (it == shapes.cend())

@@ -41,6 +41,9 @@ Q_SIGNALS:
     void takeBackRequested();
     void explainRequested();
     void ignoreRequested();
+    /// The eye button is held down (true) or let go (false): the board
+    /// shows the end of the best line meanwhile.
+    void peekHeld(bool held);
 
 private:
     QWidget *m_tutor;
@@ -50,12 +53,15 @@ private:
     QLabel *m_depth;
     QLabel *m_explanation;
     QLabel *m_line;
+    QToolButton *m_peek;
     QLabel *m_eco;
     QLabel *m_opening;
     QLabel *m_book;
     /// What m_line would show if it were not hidden.
     QString m_lineText;
     bool m_lineHidden = false;
+    /// Whether the line is about the position on the board (a stale one is not peeked at).
+    bool m_hasLine = false;
 
     void refreshLine();
 };

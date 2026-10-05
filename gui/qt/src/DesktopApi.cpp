@@ -250,4 +250,12 @@ void DesktopApi::addRoutes()
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/analysis"),
                     toggle(w->m_startEngineAction, QStringLiteral("the analysis")));
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/flip"), toggle(w->m_flipBoardAction, QStringLiteral("the board")));
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/peek"), [w, state](const Request &request) {
+        // As the Engine panel's eye held down (true) or let go (false).
+        const std::optional<QJsonObject> body = bodyOf(request);
+        if (!body || !body->value(QStringLiteral("on")).isBool())
+            return LocalHttpServer::error(400, QStringLiteral("expected {\"on\": true or false}"));
+        w->peekAtEngineLine(body->value(QStringLiteral("on")).toBool());
+        return json(state());
+    });
 }

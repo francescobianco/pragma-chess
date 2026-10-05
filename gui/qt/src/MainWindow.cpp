@@ -264,7 +264,7 @@ MainWindow::MainWindow(QWidget *parent)
         m_evaluationBar->setEvaluation(evaluation);
         m_explainer->setLiveEvaluation(evaluation);
         m_engineLine = m_session->position().lineText(evaluation.pv);
-        m_enginePanel->setEvaluation(evaluation, m_session->position().lineText(evaluation.pv, 12, SanStyle::Figurines));
+        m_enginePanel->setEvaluation(evaluation, m_session->position().lineText(evaluation.pv, -1, SanStyle::Figurines));
     });
     connect(m_explainer, &Explainer::explanationChanged, this, [this](const MoveExplanation &explanation) {
         m_explanation = explanation;
@@ -1228,6 +1228,7 @@ void MainWindow::createDocks()
     connect(m_enginePanel, &EnginePanel::takeBackRequested, this, &MainWindow::takeBackTutorMove);
     connect(m_enginePanel, &EnginePanel::explainRequested, this, [this] { m_explainAction->setChecked(true); });
     connect(m_enginePanel, &EnginePanel::ignoreRequested, this, &MainWindow::ignoreTutorAlert);
+    connect(m_enginePanel, &EnginePanel::peekHeld, this, &MainWindow::peekAtEngineLine);
     m_engineDock = addDock(m_sidebar, QStringLiteral("engineDock"), tr("Engine"), m_enginePanel, Qt::RightDockWidgetArea);
 
     m_bookPanel = new BookPanel;
@@ -1951,6 +1952,30 @@ void MainWindow::setPlayerRole(const QString &player, PlayerRole role)
     showCategory(m_category); // A filter on roles now shows other games.
     if (role == PlayerRole::Me)
         orientBoardForMe(m_session->game());
+}
+
+void MainWindow::peekAtEngineLine(bool held)
+{
+    if (!held) {
+        m_board->endPeek();
+        return;
+    }
+    // Only a line about the position on the board: the board clears it when it moves.
+    if (m_engineLine.isEmpty() || m_lastEvaluation.pv.isEmpty())
+        return;
+    ChessPosition position = m_session->position();
+    int from = -1;
+    int to = -1;
+    for (const QString &uci : m_lastEvaluation.pv) {
+        const std::optional<ChessMove> move = position.moveFromUci(uci);
+        if (!move)
+            break;
+        position.play(*move);
+        from = move->from;
+        to = move->to;
+    }
+    if (from >= 0)
+        m_board->peek(frameFor(position, from, to));
 }
 
 void MainWindow::syncBoard()

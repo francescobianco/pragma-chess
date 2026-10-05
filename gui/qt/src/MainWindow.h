@@ -112,6 +112,8 @@ private:
     void setDatabase(std::unique_ptr<GameDatabase> database);
     void openGame(const QModelIndex &proxyIndex);
     void syncBoard();
+    /// While the Engine panel's eye is held, the board shows where the best line ends.
+    void peekAtEngineLine(bool held);
     void updateNavigationActions();
     void updateGameCount();
     /// Shows the games of a part of the database chosen in the tree.

@@ -122,6 +122,8 @@ Explain reads the analysis running in the Engine panel: the explanation appears 
 
 **Engine ▸ Analysis** (Ctrl+E) turns on and off the analysis of the position on the board. The Engine panel shows the score — always from White's side: positive is good for White —, the depth and the best line. The bar beside the board shows the same score.
 
+**To see where the line leads**, hold down the eye beside Stop Analysis: as long as you hold it, the board shows the position at the end of the engine's line, as if all its moves were played. Let go and your position comes back.
+
 Pragma Chess comes with Stockfish, and works with any UCI engine.
 
 - **Engine ▸ Switch Engine** chooses among the engines of this computer. The engine icon of the toolbar drops down the same list.

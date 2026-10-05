@@ -1,6 +1,7 @@
 #include "EnginePanel.h"
 
 #include "FigurineFont.h"
+#include "platform/SymbolicIcons.h"
 
 #include <QAction>
 #include <QFormLayout>
@@ -19,6 +20,7 @@ EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
     , m_depth(new QLabel)
     , m_explanation(new QLabel)
     , m_line(new QLabel)
+    , m_peek(new QToolButton)
     , m_eco(new QLabel)
     , m_opening(new QLabel)
     , m_book(new QLabel)
@@ -33,7 +35,15 @@ EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
     toggle->setDefaultAction(analysisAction);
     toggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     toggle->setAutoRaise(true);
+    // Held down, the board shows where the best line ends.
+    m_peek->setIcon(SymbolicIcons::icon(QStringLiteral("pragma-eye")));
+    m_peek->setAutoRaise(true);
+    m_peek->setToolTip(tr("Hold to see on the board the position at the end of the engine's line"));
+    m_peek->setEnabled(false);
+    connect(m_peek, &QToolButton::pressed, this, [this] { Q_EMIT peekHeld(true); });
+    connect(m_peek, &QToolButton::released, this, [this] { Q_EMIT peekHeld(false); });
     header->addWidget(m_name, 1);
+    header->addWidget(m_peek);
     header->addWidget(toggle);
     layout->addLayout(header);
 
@@ -152,11 +162,14 @@ void EnginePanel::setEvaluation(const std::optional<EngineEvaluation> &evaluatio
     if (!evaluation) {
         m_score->setText(QStringLiteral("–"));
         m_depth->clear();
+        m_hasLine = false;
+        refreshLine();
         return;
     }
+    m_hasLine = !evaluation->pv.isEmpty();
     m_score->setText(evaluation->text());
     m_depth->setText(tr("Depth %1").arg(evaluation->depth));
-    m_lineText = line.isEmpty() ? evaluation->pv.mid(0, 12).join(QLatin1Char(' ')) : line;
+    m_lineText = line.isEmpty() ? evaluation->pv.join(QLatin1Char(' ')) : line;
     refreshLine();
 }
 
@@ -172,6 +185,13 @@ void EnginePanel::refreshLine()
 {
     m_line->setText(m_lineHidden ? tr("The best line is hidden: it is your move.") : m_lineText);
     m_line->setEnabled(!m_lineHidden);
+    // The end of a line the user may not see is not shown either.
+    const bool peekable = m_hasLine && !m_lineHidden;
+    if (!peekable && m_peek->isDown()) {
+        m_peek->setDown(false);
+        Q_EMIT peekHeld(false);
+    }
+    m_peek->setEnabled(peekable);
 }
 
 void EnginePanel::setOpening(const OpeningNames::Name &opening)

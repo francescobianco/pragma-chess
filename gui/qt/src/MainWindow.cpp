@@ -3793,8 +3793,12 @@ void MainWindow::updateTraining()
     m_enginePanel->setLineHidden(training && !isEngineTurn());
     if (!training || m_tutorReply) // With the alert up the engine waits for the user's choice.
         return;
-    // Looking back at an earlier move is not a turn to answer.
-    if (m_session->ply() != m_session->plyCount())
+    // Looking back at an earlier move is not a turn to answer; a move the
+    // user plays on the board is, even where the game goes on after it
+    // (a game played before, tried again): the engine answers and the tutor
+    // judges, and an answer other than the next move starts a variation.
+    const bool playedNow = std::exchange(m_trainingMovePlayed, false);
+    if (m_session->ply() != m_session->plyCount() && !playedNow)
         return;
     const ChessPosition &position = m_session->position();
     if (position.isCheckmate() || position.isStalemate()) {
@@ -3997,8 +4001,12 @@ void MainWindow::playMove(const ChessMove &move)
     // game — at its end, or as a variation — and a stored game is saved at once.
     const bool adds = !m_session->isNextMove(move);
     const bool animated = m_animateNextBoard; // Heard when it lands, not now.
-    if (!m_session->playMove(move))
+    // In training a move of the user's own colour is their turn (updateTraining).
+    m_trainingMovePlayed = m_trainingModeAction->isChecked() && !isEngineTurn();
+    if (!m_session->playMove(move)) {
+        m_trainingMovePlayed = false;
         return;
+    }
     if (!animated)
         playMoveSound();
     if (!adds)

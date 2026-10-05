@@ -141,6 +141,8 @@ The **tutor** watches your moves. When one is an **inaccuracy**, a **mistake**, 
 - **Explain**: show on the board why it is an error;
 - **Ignore**: keep the move, and the engine answers.
 
+You can go back in a training game and play a move again, even where the game goes on after it: a move you play on the board is your turn, so the engine answers and the tutor judges it (an answer other than the one already there starts a variation). Going through the moves with the arrows is only looking.
+
 Checkmate or stalemate ends the game, which is saved in the open database.
 
 Tick **Remember for this session** in the New Training window and the toolbar button will start the next trainings with the same choice, without asking. The menu always asks.

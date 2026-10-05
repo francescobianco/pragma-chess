@@ -140,6 +140,8 @@ Il **tutor** guarda le tue mosse. Quando una è un'**imprecisione**, un **errore
 - **Spiega**: mostra sulla scacchiera perché è un errore;
 - **Ignora**: tieni la mossa, e il motore risponde.
 
+Puoi tornare indietro in una partita di allenamento e rigiocare una mossa, anche dove la partita prosegue: una mossa che giochi sulla scacchiera è il tuo turno, quindi il motore risponde e il tutor la giudica (una risposta diversa da quella già presente apre una variante). Scorrere le mosse con le frecce è solo guardare.
+
 Scacco matto o stallo chiudono la partita, che viene salvata nel database aperto.
 
 Spunta **Ricorda per questa sessione** nella finestra Nuovo allenamento e il bottone della barra degli strumenti comincerà i prossimi allenamenti con la stessa scelta, senza chiedere. Il menu chiede sempre.

@@ -499,6 +499,8 @@ private:
     std::optional<NewGameChoiceDialog::Choice> m_rememberedNewGame;
     /// A training move is being searched, so the analysis must not restart.
     bool m_trainingThinking = false;
+    /// The user just played a move on the board in training: their turn, even inside a game (updateTraining).
+    bool m_trainingMovePlayed = false;
     /// The evaluation of the position the user is to move from in training
     /// (the engine's search for its last move, or the analysis running while
     /// they think) and that position, as FEN: what the tutor judges their

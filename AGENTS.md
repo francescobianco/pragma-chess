@@ -1088,6 +1088,11 @@ while the menu entry and its shortcut always ask. Everything lives in `MainWindo
   engine answers). An inaccuracy is already a jump of a pawn or more near
   equality (3.a4 in the King's Gambit, −0.5 → −2.1), which is why it does
   not pass. Navigating away drops the alert.
+- **A move the user plays on the board is a turn**, even where the game
+  goes on after it (`m_trainingMovePlayed`, set in `playMove`, consumed by
+  `updateTraining`): a game played before can be tried again, the engine
+  answers and the tutor judges; an answer other than the next move starts a
+  variation. Navigating to a ply is only looking, as before.
 - Checkmate or stalemate fills in the result and saves the game to the open
   database through `saveGameToDatabase`, which is a no-op once it is stored.
 - The flag and the user's colour are part of `Project` (`training` with

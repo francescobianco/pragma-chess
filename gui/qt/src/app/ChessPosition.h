@@ -55,6 +55,10 @@ public:
     static std::optional<ChessPosition> fromFen(const QString &fen, Kings kings = Kings::Required);
     /// Both kings are on the board: moves can be played, an engine can search.
     bool hasKings() const;
+    /// The same position with the other side to move, as if the side to move
+    /// passed: what it would face if it did nothing (threats). Nothing when
+    /// the side to move is in check, which cannot pass.
+    std::optional<ChessPosition> passed() const;
     QString fen() const;
     /// The FEN without move counters, identifying the position for caches.
     QString positionKey() const;

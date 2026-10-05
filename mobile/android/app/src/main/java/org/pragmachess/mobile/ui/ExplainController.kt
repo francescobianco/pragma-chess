@@ -38,6 +38,9 @@ class ExplainStrings(private val context: Context) : ExplainText {
         " Better was %1." to R.string.explain_better_was, "%1 mates in %2: %3." to R.string.explain_mates,
         "%1 %2: %3." to R.string.explain_side_wins, "Missed mate in %1: %2." to R.string.explain_missed_mate,
         "Missed: %1 %2." to R.string.explain_missed, " Main line: %1." to R.string.explain_main_line,
+        "the pawn" to R.string.explain_the_pawn, "the knight" to R.string.explain_the_knight,
+        "the bishop" to R.string.explain_the_bishop, "the rook" to R.string.explain_the_rook,
+        "%1 attacks %2 on %3" to R.string.explain_attacks, "%1: %2 parries it." to R.string.explain_parries,
     )
 
     override fun tr(source: String): String = ids[source]?.let(context::getString) ?: source

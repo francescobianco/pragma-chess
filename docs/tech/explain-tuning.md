@@ -267,3 +267,17 @@ Parameters (top of `MoveExplanation.cpp`, `AdvantageProbe.h`, `Explainer.cpp`):
   c6 …". Next: threats along the line (TODO.md). Fixed now: f3 was ringed
   in red as a piece lost, in an even exchange; the branches where no
   material explains the evaluation no longer ring anything (`ringing`).
+- 2026-10-06 — Same position. The user suggested walking the line backwards
+  from the forced capture instead of new tools; it does not apply here: the
+  17 plies of the line keep the material level, because the engine's line
+  holds the best defence and a threat parried is never a capture. So the
+  clients give EXPLAIN.smart two generic primitives, `MOVES(p)` (the legal
+  moves) and `PASS(p)` (the other side to move), and the threat logic is
+  SMART: after each of the first 4 moves of the line, the captures the side
+  that played it would have if the other side passed, worth ≥ 200 cp
+  (taken piece, less the capturer if the target square can be retaken),
+  new since the move; the next move parries it if the capture is gone
+  after it. Ties are broken by UCI order, never by the order of the moves,
+  which differs between clients. 4…Bxf3 now says "5.Qxf3 attacks the rook
+  on a8: 5…c6 parries it."; no other recorded case changed. The user
+  expects harder cases (forced tactics over several moves): TODO.md.

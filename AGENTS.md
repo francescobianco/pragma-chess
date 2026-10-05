@@ -239,6 +239,11 @@ fixed once, in SMART.
   FEN it is about, and the engine drops an old search's lines until its
   `bestmove`. `SmartTest` runs the desktop's language test and replays
   `smart/tests`: a change to either interpreter must keep both suites green.
+- The clients' chess functions are generic (positions, moves, `MOVES` the
+  legal moves, `PASS` the other side to move, evaluations): anything that
+  is judgement — threats, realizations, focus — is written in SMART on top
+  of them. A program never depends on the order of `MOVES` (it differs
+  between clients): ties are broken by value, then UCI order.
 - **The language is a contract**: any change to it goes into
   smart/README.md and into both interpreters, with a test
   (`tst_chessrules::runsSmartPrograms`). Keep it small: the chess belongs

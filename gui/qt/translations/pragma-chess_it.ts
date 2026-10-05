@@ -3232,6 +3232,30 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>Explain stopped on a mistake of its program: %1</source>
         <translation>Spiega si è fermato su un errore del suo programma: %1</translation>
     </message>
+    <message>
+        <source>the pawn</source>
+        <translation>il pedone</translation>
+    </message>
+    <message>
+        <source>the knight</source>
+        <translation>il cavallo</translation>
+    </message>
+    <message>
+        <source>the bishop</source>
+        <translation>l&apos;alfiere</translation>
+    </message>
+    <message>
+        <source>the rook</source>
+        <translation>la torre</translation>
+    </message>
+    <message>
+        <source>%1 attacks %2 on %3</source>
+        <translation>%1 attacca %2 in %3</translation>
+    </message>
+    <message>
+        <source>%1: %2 parries it.</source>
+        <translation>%1: %2 la para.</translation>
+    </message>
 </context>
 <context>
     <name>MoveTreeView</name>

@@ -153,23 +153,18 @@ app Android. Ultimo commit del lavoro: `d7f16c1`. Resta:
   3. la frase "vince la donna per 2 cavalli" conta anche il cavallo che la
      mossa stessa ha preso (9.Bxf6): giusto in bilancio, strano da leggere.
      Meglio "la donna era attaccata: 9.Qe3 la salvava".
-- **Spiega non sa dire le minacce (4…Bxf3, feedback del 6 ottobre).**
-  1.f4 e6 2.Nf3 b6 3.e3 Bb7 4.b3 Bxf3: l'utente (col Nero) vede la mossa
-  migliore ma non "cosa subisco dopo la cattura". Nessun materiale cade:
-  5.Qxf3 attacca la torre a8 indifesa (per questo 5…c6 è forzata) e il
-  Bianco ha la coppia degli alfieri. Spiega dice solo "Linea principale:
-  5.Qxf3 c6 …". Serve, in EXPLAIN.smart, riconoscere lungo la linea le
-  minacce: un pezzo attaccato e non difeso, o attaccato da uno di valore
-  minore, e la mossa che le para ("5.Qxf3 attacca la torre in a8: 5…c6 la
-  difende"). Mancano le primitive nei client: chi attacca/difende una casa
-  (`ChessPosition::attackers` c'è sul desktop, `Position.isAttacked` su
-  Android) da esporre come `ATTACKERS(p, square, side)` in SmartChess dei
-  due client, con test. Poi forse temi posizionali (coppia degli alfieri,
-  sviluppo), più difficili da dire bene. Il caso è in
-  `smart/tests/user-feedback.ticks`. Corretto intanto: l'anello rosso che
-  segnava f3 come pezzo perso (nei rami senza materiale non si cerchia).
-  L'orientamento della scacchiera non c'entra: la spiegazione è già dalla
-  parte di chi ha mosso, il punteggio dal Bianco come ovunque.
+- **Minacce (4…Bxf3, feedback del 6 ottobre): primo passo fatto.**
+  1.f4 e6 2.Nf3 b6 3.e3 Bb7 4.b3 Bxf3: Spiega ora dice "5.Qxf3 attacca la
+  torre in a8: 5…c6 la para." (`ThreatText` in EXPLAIN.smart, con le
+  primitive `MOVES` e `PASS` dei due client: dopo ognuna delle prime 4
+  mosse della linea, cosa potrebbe prendere chi l'ha giocata se l'altro
+  passasse; vale una presa che vince ≥ 200 cp, contando una sola ripresa
+  sulla stessa casa). Resta, come dice l'utente: le minacce tattiche
+  forzate a più mosse (un'infilata, un doppio che si prepara con uno
+  scacco, un sacrificio che apre) non si vedono con una presa sola e
+  saranno più difficili da raccontare; servirà guardare più a fondo, forse
+  scambi interi (SEE) invece di una ripresa, e disegnarle (una freccia
+  della minaccia?). Poi i temi posizionali (coppia degli alfieri, sviluppo).
 - **3.Qf5** dopo 2.Qg4 a profondità 18 dice "il Nero vince un alfiere e un
   pedone per un cavallo" con una linea di 14 semimosse: debole (c'era già
   prima di SMART). Forse un limite di semimosse per chiamare "materiale" un

@@ -70,8 +70,9 @@ end
 # 2026-10-06, 4...Bxf3 (the user plays Black): "it shows what I should have
 # done, but not what I suffer after the capture". No material falls; 5.Qxf3
 # hits the undefended rook on a8 (hence 5...c6) and White has the bishop pair.
-# Explain cannot say threats yet (TODO.md). It also ringed f3 as if a piece
-# fell: no rings any more where no material explains the evaluation.
+# It also ringed f3 as if a piece fell: no rings any more where no material
+# explains the evaluation. Then Explain learnt threats (ThreatText, with
+# MOVES and PASS): "5.Qxf3 attacks the rook on a8: 5...c6 parries it."
 explain
 before rn1qkbnr/pbpp1ppp/1p2p3/8/5P2/1P2PN2/P1PP2PP/RNBQKB1R b KQkq - 0 4
 played b7f3
@@ -97,5 +98,5 @@ tick depth 17 cp 124 pv d1f3 c7c6 c1b2 d7d5 b1c3 f7f5 c3e2 g8f6 e2d4 d8d7 h2h3 f
 tick depth 18 cp 138 pv d1f3 c7c6 b1c3 d7d5 c1b2 a7a5 e3e4 a5a4 c3a4 b6b5 a4c3 f8a3 b2a3 a8a3 f3g3 g7g6 e4d5 e6d5
 expect verdict inaccuracy
 expect arrows g8f6 alternative, d1f3 reply 1, c7c6 reply 2
-expect summary Inaccuracy (−0.1 → +1.2). Better was 4…Nf6. Main line: 5.Qxf3 c6 6.Bb2 d5.
+expect summary Inaccuracy (−0.1 → +1.2). Better was 4…Nf6. 5.Qxf3 attacks the rook on a8: 5…c6 parries it. Main line: 5.Qxf3 c6 6.Bb2 d5.
 end

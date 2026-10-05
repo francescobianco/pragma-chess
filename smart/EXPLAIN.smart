@@ -24,6 +24,9 @@
 '     PIECE(p, square)                the piece on a square (0 to 63, a1 to h8), or 0
 '     COUNT(p, side, piece)           how many of that piece the side has
 '     LINETEXT(p, moves, plies)       "14…Bxf2+ 15.Kxf2 Ng4+": at most `plies` moves
+'     MOVES(p)                        the legal moves, in UCI, in no particular order
+'     PASS(p)                         the side to move passes: the other side to move,
+'                                     NOTHING when in check
 '   Moves (UCI): FROMSQ(move), TOSQ(move), PROMOTION(move) (the piece, or 0)
 '   Evaluations:
 '     ISMATE(e), MATEIN(e), MATING(e) a mate: in how many moves, by which side
@@ -361,6 +364,123 @@ FUNCTION MaterialPhrase(start, finish, beneficiary)
     RETURN TEXT("wins %1 for %2", gains, losses)
 END FUNCTION
 
+' --- Threats ---------------------------------------------------------------
+'
+' When no material falls the engine's line often still holds a threat: a
+' move that attacks a piece, and the answer that parries it (4...Bxf3
+' 5.Qxf3 attacks the rook on a8, 5...c6 parries it). The line never shows
+' the capture, because the engine defends; so the threat is found by
+' asking, after each of the first moves, what the side that played it
+' could take if the other side did nothing (PASS).
+
+' How many plies of the line to look at, and what a threat must win.
+CONST THREAT_PLIES = 4
+CONST THREAT_GAIN = 200
+
+FUNCTION Value(piece)
+    IF piece = PAWN THEN RETURN 100
+    IF piece = KNIGHT OR piece = BISHOP THEN RETURN 300
+    IF piece = ROOK THEN RETURN 500
+    IF piece = QUEEN THEN RETURN 900
+    RETURN 0
+END FUNCTION
+
+' What `capture` wins in `position`, the capturing side to move: the piece
+' taken, less the capturer when the other side can take back on that square.
+FUNCTION CaptureGain(position, capture)
+    taken = CAPTURED(position, capture)
+    IF taken = 0 THEN RETURN 0
+    after = PLAY(position, capture)
+    IF after = NOTHING THEN RETURN 0
+    replies = MOVES(after)
+    FOR i = 0 TO LEN(replies) - 1
+        IF TOSQ(replies[i]) = TOSQ(capture) THEN RETURN Value(taken) - Value(PIECE(position, FROMSQ(capture)))
+    NEXT
+    RETURN Value(taken)
+END FUNCTION
+
+' The captures worth a threat that `side` would have in `position` if it
+' were its move: [[capture, gain], …], each target square once, its best
+' capture (on equal gains the first in UCI order, so that every client,
+' whatever the order of its moves, picks the same).
+FUNCTION Threats(position, side)
+    IF SIDETOMOVE(position) <> side THEN position = PASS(position)
+    IF position = NOTHING THEN RETURN []
+    moves = MOVES(position)
+    found = []
+    FOR i = 0 TO LEN(moves) - 1
+        gain = CaptureGain(position, moves[i])
+        IF gain >= THREAT_GAIN THEN
+            known = -1
+            FOR j = 0 TO LEN(found) - 1
+                IF TOSQ(found[j][0]) = TOSQ(moves[i]) THEN known = j
+            NEXT
+            IF known < 0 THEN
+                found = found + [[moves[i], gain]]
+            ELSEIF gain > found[known][1] OR (gain = found[known][1] AND moves[i] < found[known][0]) THEN
+                found[known] = [moves[i], gain]
+            END IF
+        END IF
+    NEXT
+    RETURN found
+END FUNCTION
+
+FUNCTION Threatens(threats, square)
+    FOR i = 0 TO LEN(threats) - 1
+        IF TOSQ(threats[i][0]) = square THEN RETURN TRUE
+    NEXT
+    RETURN FALSE
+END FUNCTION
+
+FUNCTION SquareName(square)
+    RETURN ["a", "b", "c", "d", "e", "f", "g", "h"][FileOf(square)] + STR(RankOf(square) + 1)
+END FUNCTION
+
+FUNCTION PieceName(piece)
+    IF piece = PAWN THEN RETURN TEXT("the pawn")
+    IF piece = KNIGHT THEN RETURN TEXT("the knight")
+    IF piece = BISHOP THEN RETURN TEXT("the bishop")
+    IF piece = ROOK THEN RETURN TEXT("the rook")
+    RETURN TEXT("the queen")
+END FUNCTION
+
+' The first threat a move of the first THREAT_PLIES of `line` makes —
+' attacking a piece it could not win before — said with the answer that
+' parries it, when the next move does: " 5.Qxf3 attacks the rook on a8:
+' 5…c6 parries it." Empty when there is none.
+FUNCTION ThreatText(line)
+    moves = line[0]
+    positions = line[1]
+    FOR k = 0 TO MIN(THREAT_PLIES, LEN(moves)) - 1
+        side = SIDETOMOVE(positions[k])
+        before = Threats(positions[k], side)
+        after = Threats(positions[k + 1], side)
+        ' The best new threat: the biggest gain, then the first in UCI order.
+        best = NOTHING
+        FOR i = 0 TO LEN(after) - 1
+            IF NOT Threatens(before, TOSQ(after[i][0])) THEN
+                IF best = NOTHING THEN
+                    best = after[i]
+                ELSEIF after[i][1] > best[1] OR (after[i][1] = best[1] AND after[i][0] < best[0]) THEN
+                    best = after[i]
+                END IF
+            END IF
+        NEXT
+        IF best <> NOTHING THEN
+            target = TOSQ(best[0])
+            NOTE "threat: " + MoveText(positions[k], moves[k]) + " attacks " + SquareName(target) + " (+" + STR(best[1]) + ")"
+            attack = TEXT("%1 attacks %2 on %3", MoveText(positions[k], moves[k]), PieceName(PIECE(positions[k + 1], target)), SquareName(target))
+            IF k + 1 < LEN(moves) THEN
+                IF NOT Threatens(Threats(positions[k + 2], side), target) THEN
+                    RETURN " " + TEXT("%1: %2 parries it.", attack, MoveText(positions[k + 1], moves[k + 1]))
+                END IF
+            END IF
+            RETURN " " + attack + "."
+        END IF
+    NEXT
+    RETURN ""
+END FUNCTION
+
 FUNCTION VerdictName(verdict)
     IF verdict = "best" THEN RETURN TEXT("Best move")
     IF verdict = "good" THEN RETURN TEXT("Good move")
@@ -513,7 +633,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         ' 5.Qxf3) is not ringed.
         ringing = FALSE
         AddArrows current, 0, fallbackPlies, toMove, "reply", -1, -1
-        summary = prefix + TRIM(better)
+        summary = prefix + TRIM(better) + ThreatText(current)
         IF concreteText <> "" THEN
             summary = summary + concreteText
         ELSEIF Plies(current) > 0 THEN
@@ -582,7 +702,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
     NOTE "branch: no material or mate, showing " + STR(fallbackPlies) + " plies of the line"
     ringing = FALSE
     AddArrows current, 0, fallbackPlies, toMove, "idea", -1, -1
-    summary = prefix + Assessment(afterEval)
+    summary = prefix + Assessment(afterEval) + ThreatText(current)
     IF concreteText <> "" THEN
         summary = summary + concreteText
     ELSEIF Plies(current) > 0 THEN

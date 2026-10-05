@@ -79,6 +79,14 @@ class Position private constructor(
 ) {
     fun pieceAt(square: Int): Int = board[square]
 
+    /**
+     * The same position with the other side to move, as if the side to move
+     * passed: what it would face if it did nothing (threats). Null when it is
+     * in check, which cannot pass.
+     */
+    fun passed(): Position? =
+        if (isCheck) null else Position(board, sideToMove.opponent, castling, -1, halfmoveClock, fullmoveNumber)
+
     fun kingSquare(side: Side): Int {
         val king = Piece.of(Piece.KING, side)
         for (square in 0 until 64) if (board[square] == king) return square

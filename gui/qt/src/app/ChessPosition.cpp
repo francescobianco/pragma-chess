@@ -263,6 +263,16 @@ int ChessPosition::kingSquare(Side side) const
     return -1;
 }
 
+std::optional<ChessPosition> ChessPosition::passed() const
+{
+    if (inCheck())
+        return std::nullopt;
+    ChessPosition position = *this;
+    position.m_sideToMove = opposite(m_sideToMove);
+    position.m_enPassant = -1; // A pass is no pawn move.
+    return position;
+}
+
 bool ChessPosition::hasKings() const
 {
     return kingSquare(Side::White) >= 0 && kingSquare(Side::Black) >= 0;

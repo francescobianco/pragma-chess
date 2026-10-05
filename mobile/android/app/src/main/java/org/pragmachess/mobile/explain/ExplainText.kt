@@ -25,6 +25,7 @@ fun interface ExplainText {
             " No material explains it: the assessment is positional, clear after %1.",
             "%1 (%2 → %3). ", "%1 (%2). ", " Better was %1.", "%1 mates in %2: %3.", "%1 %2: %3.",
             "Missed mate in %1: %2.", "Missed: %1 %2.", " Main line: %1.",
+            "the pawn", "the knight", "the bishop", "the rook", "%1 attacks %2 on %3", "%1: %2 parries it.",
         )
     }
 }

@@ -159,4 +159,10 @@
     <string name="explain_missed_mate" formatted="false">Missed mate in %1: %2.</string>
     <string name="explain_missed" formatted="false">Missed: %1 %2.</string>
     <string name="explain_main_line" formatted="false">" Main line: %1."</string>
+    <string name="explain_the_pawn" formatted="false">the pawn</string>
+    <string name="explain_the_knight" formatted="false">the knight</string>
+    <string name="explain_the_bishop" formatted="false">the bishop</string>
+    <string name="explain_the_rook" formatted="false">the rook</string>
+    <string name="explain_attacks" formatted="false">%1 attacks %2 on %3</string>
+    <string name="explain_parries" formatted="false">%1: %2 parries it.</string>
 </resources>

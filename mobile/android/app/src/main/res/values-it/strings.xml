@@ -157,4 +157,10 @@
     <string name="explain_missed_mate" formatted="false">Matto in %1 mancato: %2.</string>
     <string name="explain_missed" formatted="false">Mancato: %1 %2.</string>
     <string name="explain_main_line" formatted="false">" Linea principale: %1."</string>
+    <string name="explain_the_pawn" formatted="false">il pedone</string>
+    <string name="explain_the_knight" formatted="false">il cavallo</string>
+    <string name="explain_the_bishop" formatted="false">l\'alfiere</string>
+    <string name="explain_the_rook" formatted="false">la torre</string>
+    <string name="explain_attacks" formatted="false">%1 attacca %2 in %3</string>
+    <string name="explain_parries" formatted="false">%1: %2 la para.</string>
 </resources>

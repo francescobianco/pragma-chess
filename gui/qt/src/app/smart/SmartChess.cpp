@@ -213,6 +213,18 @@ void define(SmartInterpreter &smart, Output &output)
         position.play(*move);
         return SmartChess::position(position);
     });
+    smart.define(QStringLiteral("MOVES"), [](const std::vector<SmartValue> &args) {
+        expect("MOVES", args, 1);
+        std::vector<SmartValue> moves;
+        for (const ChessMove &move : positionArgument("MOVES", args, 0).legalMoves())
+            moves.emplace_back(move.uci());
+        return SmartValue(std::move(moves));
+    });
+    smart.define(QStringLiteral("PASS"), [](const std::vector<SmartValue> &args) {
+        expect("PASS", args, 1);
+        const std::optional<ChessPosition> passed = positionArgument("PASS", args, 0).passed();
+        return passed ? SmartChess::position(*passed) : SmartValue();
+    });
     smart.define(QStringLiteral("SIDETOMOVE"), [](const std::vector<SmartValue> &args) {
         expect("SIDETOMOVE", args, 1);
         return side(positionArgument("SIDETOMOVE", args, 0).sideToMove());

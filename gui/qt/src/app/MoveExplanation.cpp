@@ -51,6 +51,12 @@ const char *const kSentences[] = {
     QT_TRANSLATE_NOOP("MoveExplanation", "Missed mate in %1: %2."),
     QT_TRANSLATE_NOOP("MoveExplanation", "Missed: %1 %2."),
     QT_TRANSLATE_NOOP("MoveExplanation", " Main line: %1."),
+    QT_TRANSLATE_NOOP("MoveExplanation", "the pawn"),
+    QT_TRANSLATE_NOOP("MoveExplanation", "the knight"),
+    QT_TRANSLATE_NOOP("MoveExplanation", "the bishop"),
+    QT_TRANSLATE_NOOP("MoveExplanation", "the rook"),
+    QT_TRANSLATE_NOOP("MoveExplanation", "%1 attacks %2 on %3"),
+    QT_TRANSLATE_NOOP("MoveExplanation", "%1: %2 parries it."),
 };
 
 MoveExplanation::Verdict verdictNamed(const QString &name)

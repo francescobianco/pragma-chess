@@ -171,6 +171,14 @@ object SmartChess {
             val move = position.parseUci(moveArgument("PLAY", args, 1)) ?: return@define SmartValue.None
             position(position.play(move))
         }
+        smart.define("MOVES") { args ->
+            expectArguments("MOVES", args, 1)
+            SmartValue.Items(positionArgument("MOVES", args, 0).legalMoves().map { SmartValue.Text(it.uci) })
+        }
+        smart.define("PASS") { args ->
+            expectArguments("PASS", args, 1)
+            positionArgument("PASS", args, 0).passed()?.let { position(it) } ?: SmartValue.None
+        }
         smart.define("SIDETOMOVE") { args ->
             expectArguments("SIDETOMOVE", args, 1)
             side(positionArgument("SIDETOMOVE", args, 0).sideToMove)

@@ -149,12 +149,17 @@ playing a move turns it off, and the user asks again at the next move.
   `Reply` and said to be positional. It replays the engine's principal variation and finds
   where the evaluation becomes concrete: material won once exchanges, checks
   and recaptures are over (and stays won for a few plies), or a mate.
-- `app/ExplanationSearch.*` — the engine searches for an explanation
-  (positions before and after the move at fixed depth, then the line probe)
-  with `ExplainSettings`. Shared by the desktop client and `pragma-explain`,
-  so both show the same explanation: never explain from the live analysis.
-- `app/Explainer.*` — desktop controller: runs ExplanationSearch on the
-  configured engine and caches finished analyses by move.
+- `app/Explainer.*` — desktop controller, **reactive**: it runs no engine.
+  Every line of the live analysis of the position on the board is a tick
+  for EXPLAIN.smart's `Tick` (`Start` when Explain turns to a move), which
+  says when its answer is to be shown: from a minimum depth, the verdict
+  only once the search after the move can be compared with the one before,
+  other arrows only once they held for two depths. The deepest evaluation
+  of each position seen is kept: the position before the move is judged
+  with it, and a position searched before is explained at once. Without an
+  evaluation of the position before, the position is explained alone.
+- `app/ExplanationSearch.*` — fixed-depth searches (before, after, line
+  probe) with `ExplainSettings`; only `pragma-explain` uses them now.
 - `app/AdvantageProbe.*` — pure: where an advantage becomes concrete, from
   shallow searches along the principal variation and searches by depth.
 - The board's two-pixel border says where Explain is: it breathes between the

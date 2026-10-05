@@ -10,6 +10,7 @@
 #include "app/EngineDetector.h"
 #include "app/ExplanationSearch.h"
 #include "app/GameIdentity.h"
+#include "app/Explainer.h"
 #include "app/GameSession.h"
 #include "app/GameState.h"
 #include "app/GameVariations.h"
@@ -282,6 +283,63 @@ private Q_SLOTS:
                                                        BoardArrow::Kind::Refutation, 1}));
         QVERIFY2(explanation.summary.contains(QStringLiteral("Black mates in 1: 2…Qh4#")), qPrintable(explanation.summary));
         QCOMPARE(explanation.playback, QStringList{"d8h4"});
+    }
+
+    void explainsAsTheSearchDeepens()
+    {
+        // 3.Nxe5?? as the live analysis would report it, depth after depth.
+        const ExplanationInput input = inputFor({"e2e4", "e7e5", "g1f3", "d7d6"}, QStringLiteral("f3e5"),
+                                                centipawns(40, {"d2d4"}),
+                                                centipawns(-190, {"d6e5", "b1c3", "g8f6"}));
+        const auto at = [](EngineEvaluation evaluation, int depth) {
+            evaluation.depth = depth;
+            return evaluation;
+        };
+        Explainer explainer;
+        QList<MoveExplanation> shown;
+        connect(&explainer, &Explainer::explanationChanged, this,
+                [&shown](const MoveExplanation &explanation) { shown << explanation; });
+
+        // The position before the move was searched while it was on the board.
+        explainer.setPosition(*input.before, std::nullopt, std::nullopt);
+        explainer.setLiveEvaluation(at(*input.beforeEvaluation, 20));
+        explainer.setPosition(input.after, input.before, input.played);
+        explainer.setEnabled(true);
+        QCOMPARE(shown.size(), 1);
+        QCOMPARE(shown.last().summary, QStringLiteral("Analyzing…"));
+
+        // Too shallow: nothing yet. Then the first answer, without a verdict:
+        // depth 9 cannot be compared with the 20 of the position before.
+        explainer.setLiveEvaluation(at(input.afterEvaluation, 4));
+        QCOMPARE(shown.size(), 1);
+        explainer.setLiveEvaluation(at(input.afterEvaluation, 9));
+        QCOMPARE(shown.size(), 2);
+        QCOMPARE(shown.last().verdict, MoveExplanation::Verdict::None);
+        QCOMPARE(shown.last().arrows.size(), 1);
+
+        // From depth 12 the verdict comes, and the better move's arrow with
+        // it: other arrows, shown once they held for two depths.
+        explainer.setLiveEvaluation(at(input.afterEvaluation, 12));
+        QCOMPARE(shown.size(), 2);
+        explainer.setLiveEvaluation(at(input.afterEvaluation, 13));
+        QCOMPARE(shown.size(), 3);
+        QCOMPARE(shown.last().verdict, MoveExplanation::Verdict::Mistake);
+        QCOMPARE(shown.last().arrows.size(), 2);
+
+        // A shallower line changes nothing; the same arrows with a new score update the text only.
+        explainer.setLiveEvaluation(at(input.afterEvaluation, 11));
+        QCOMPARE(shown.size(), 3);
+        EngineEvaluation deeper = at(input.afterEvaluation, 14);
+        deeper.centipawns = -210;
+        explainer.setLiveEvaluation(deeper);
+        QCOMPARE(shown.size(), 4);
+        QCOMPARE(shown.last().arrows, shown.at(2).arrows);
+        QVERIFY2(shown.last().summary.contains(QStringLiteral("−2.1")), qPrintable(shown.last().summary));
+
+        // Coming back to a position searched before explains it at once.
+        explainer.setPosition(*input.before, std::nullopt, std::nullopt);
+        explainer.setPosition(input.after, input.before, input.played);
+        QCOMPARE(shown.last().verdict, MoveExplanation::Verdict::Mistake);
     }
 
     void explainsWinningCapture()

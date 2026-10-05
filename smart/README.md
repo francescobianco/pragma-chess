@@ -114,6 +114,10 @@ starting with a name is an assignment if `=` or `[` follows the name, a call
 otherwise. A call statement cannot start with a list literal, `Show [1, 2]`:
 that reads as `Show[1, 2] = …`; write `CALL Show([1, 2])`.
 
+Names do not tell case apart, so a program's function must not take the
+name of one of the client's (`Arrow` would hide `ARROW`): the program's
+function wins.
+
 The top-level statements run once, when the program is loaded: they set the
 constants and the memory. Then the client calls the program's entry
 functions (`Tick`, `Judge`…) as often as it needs.

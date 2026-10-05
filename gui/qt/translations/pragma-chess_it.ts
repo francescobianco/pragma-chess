@@ -667,16 +667,16 @@ Il Nero ha catturato: %2</translation>
 <context>
     <name>Explainer</name>
     <message>
-        <source>The engine stopped: %1</source>
-        <translation>Il motore si è fermato: %1</translation>
-    </message>
-    <message>
-        <source>No UCI engine to explain with.</source>
-        <translation>Nessun motore UCI con cui spiegare.</translation>
-    </message>
-    <message>
         <source>Analyzing…</source>
         <translation>Analisi in corso…</translation>
+    </message>
+    <message>
+        <source>Explain cannot run: its program has a mistake (see the log).</source>
+        <translation>Spiega non può funzionare: il suo programma contiene un errore (vedi il log).</translation>
+    </message>
+    <message>
+        <source>Explain stopped on a mistake of its program: %1</source>
+        <translation>Spiega si è fermato su un errore del suo programma: %1</translation>
     </message>
 </context>
 <context>

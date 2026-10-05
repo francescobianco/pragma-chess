@@ -486,6 +486,8 @@ private:
     /// Latest engine line (SAN) and explanation, for Edit ▸ Copy.
     QString m_engineLine;
     QString m_explanationText;
+    /// The mate the explanation is playing on the board, if any.
+    QStringList m_explanationPlayback;
     /// Latest evaluation reported by the engine; its first move is the one it plays.
     EngineEvaluation m_lastEvaluation;
     /// The colour the user plays in training; the engine plays the other one.

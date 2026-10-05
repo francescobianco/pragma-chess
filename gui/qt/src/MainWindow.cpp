@@ -251,6 +251,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_explainer, &Explainer::explanationChanged, this, [this](const MoveExplanation &explanation) {
         m_board->setExplanation(explanation.arrows, explanation.lostPieces);
         // A forced mate is shown by playing it; the board returns when Explain is turned off.
+        // The same mate found again at a deeper search keeps playing, it does not start over.
+        const bool samePlayback = explanation.playback == m_explanationPlayback;
+        m_explanationPlayback = explanation.playback;
+        if (samePlayback && !explanation.playback.isEmpty()) {
+            m_enginePanel->setExplanation(explanation.summary);
+            m_explanationText = explanation.summary;
+            return;
+        }
         QList<BoardFrame> frames;
         ChessPosition position = m_session->position();
         for (const QString &uci : explanation.playback) {
@@ -3124,10 +3132,11 @@ void MainWindow::setExplainEnabled(bool enabled)
         m_engineDock->show();
         m_explainBorder = BoardBorder::Thinking; // Until the engine answers.
         updateBoardBorder();
-        m_explainer->setEnabled(true, m_engineExecutable);
+        m_explainer->setEnabled(true);
         return;
     }
     m_explainer->setEnabled(false);
+    m_explanationPlayback.clear();
     m_explainBorder = BoardBorder::Plain;
     updateBoardBorder();
     m_board->stopSequence();

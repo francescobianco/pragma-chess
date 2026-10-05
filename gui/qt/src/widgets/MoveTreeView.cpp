@@ -107,17 +107,21 @@ QFont kindFont(const QFont &book, Paragraph::Kind kind)
     return font;
 }
 
+/// A title or a subtitle sits close to the text it heads: little room under it.
+QString headingStyle(Paragraph::Kind kind)
+{
+    return kind == Paragraph::Kind::Text ? QString() : QStringLiteral(" padding-bottom: 2px;");
+}
+
 /// A paragraph's text as the view shows it: each line a paragraph of a book,
 /// justified, its first line indented, a quarter of a line apart. A title's
-/// lines are centred, a subtitle's to the left, neither indented.
+/// and a subtitle's lines are centred, not indented.
 QString paragraphHtml(const Paragraph &paragraph, const QFont &book)
 {
     const QFont font = kindFont(book, paragraph.kind);
     const bool heading = paragraph.kind != Paragraph::Kind::Text;
     // align: the CSS text-align is not honoured here, the attribute is.
-    const QString align = paragraph.kind == Paragraph::Kind::Title ? QStringLiteral("center")
-                          : heading                                ? QStringLiteral("left")
-                                                                   : QStringLiteral("justify");
+    const QString align = heading ? QStringLiteral("center") : QStringLiteral("justify");
     const QString face = heading ? QStringLiteral(" font-size: %1pt; font-weight: 700;").arg(font.pointSizeF()) : QString();
     QString html;
     // An empty paragraph (one just inserted) still has a line to write on.
@@ -138,9 +142,7 @@ QTextBlockFormat paragraphFormat(const QFont &font, Paragraph::Kind kind)
 {
     QTextBlockFormat format;
     format.setTextIndent(kind == Paragraph::Kind::Text ? BookFont::indent(font) : 0);
-    format.setAlignment(kind == Paragraph::Kind::Title  ? Qt::AlignHCenter
-                        : kind == Paragraph::Kind::Text ? Qt::AlignJustify
-                                                        : Qt::AlignLeft);
+    format.setAlignment(kind == Paragraph::Kind::Text ? Qt::AlignJustify : Qt::AlignHCenter);
     format.setLineHeight(BookFont::lineHeight, QTextBlockFormat::ProportionalHeight);
     return format;
 }
@@ -163,7 +165,8 @@ protected:
     void paintEvent(QPaintEvent *event) override
     {
         QTextEdit::paintEvent(event);
-        if (!document()->isEmpty() || hint.isEmpty())
+        // A title or a subtitle starts blank: its place says what it is.
+        if (!document()->isEmpty() || hint.isEmpty() || (!comment && kind != Paragraph::Kind::Text))
             return;
         QTextDocument shown;
         shown.setDocumentMargin(document()->documentMargin());
@@ -334,6 +337,14 @@ MoveTreeView::MoveTreeView(GameSession *session, QWidget *parent)
     connect(m_editor, &QTextEdit::textChanged, this, [this] {
         if (!m_editing.active() || m_formatting)
             return;
+        if (isHeading() && m_editor->toPlainText().contains(QLatin1Char('\n'))) {
+            // A title is one line: what is pasted on several joins up.
+            QString line = m_editor->toPlainText();
+            line.replace(QLatin1Char('\n'), QLatin1Char(' '));
+            const QSignalBlocker quiet(m_editor);
+            m_editor->setPlainText(line);
+            m_editor->moveCursor(QTextCursor::End);
+        }
         formatEditor();
         m_editText = m_editor->toPlainText();
         rebuild();
@@ -536,10 +547,11 @@ bool MoveTreeView::eventFilter(QObject *watched, QEvent *event)
                 finishEditing();
         } else if (event->type() == QEvent::KeyPress) {
             const auto *key = static_cast<QKeyEvent *>(event);
-            // Esc, or Ctrl+Enter, ends; a plain Enter starts a new line.
+            // Esc, or Ctrl+Enter, ends; a plain Enter starts a new line, but
+            // a title or a subtitle is one line: there Enter ends too.
+            const bool enter = key->key() == Qt::Key_Return || key->key() == Qt::Key_Enter;
             if (key->key() == Qt::Key_Escape
-                || ((key->key() == Qt::Key_Return || key->key() == Qt::Key_Enter)
-                    && key->modifiers().testFlag(Qt::ControlModifier))) {
+                || (enter && (key->modifiers().testFlag(Qt::ControlModifier) || isHeading()))) {
                 finishEditing();
                 return true;
             }
@@ -600,6 +612,12 @@ void MoveTreeView::editComment(const QList<int> &path, int index)
     rebuild();
     m_editor->show();
     m_editor->setFocus();
+}
+
+bool MoveTreeView::isHeading() const
+{
+    const auto *editor = static_cast<const ParagraphEditor *>(m_editor);
+    return m_editing.active() && !m_editing.isComment() && editor->kind != Paragraph::Kind::Text;
 }
 
 void MoveTreeView::formatEditor()
@@ -758,7 +776,7 @@ void MoveTreeView::rebuild()
 
         const int currentPly = g == current && owner.isEmpty() ? m_session->ply() : 0;
         const std::optional<ChessPosition> start = game.startFen.isEmpty() ? ChessPosition::startingPosition()
-                                                                            : ChessPosition::fromFen(game.startFen);
+                                                                            : ChessPosition::fromFen(game.startFen, ChessPosition::Kings::Optional);
         ChessPosition position = start.value_or(ChessPosition::startingPosition());
         QList<ChessPosition> line{position}; // The main line's positions so far.
         bool rowOpen = false;
@@ -792,7 +810,7 @@ void MoveTreeView::rebuild()
                 if (m_editing.game == g && m_editing.paragraph == p)
                     m_editRow = row;
                 html += QStringLiteral("<tr><td colspan=\"3\" class=\"par\" style=\"%1\">%2</td></tr>")
-                            .arg(bookStyle, paragraphHtml(paragraphs.at(p), book));
+                            .arg(bookStyle + headingStyle(paragraphs.at(p).kind), paragraphHtml(paragraphs.at(p), book));
             }
         };
         // A comment of the main line: a row under its move, in italics,
@@ -880,7 +898,7 @@ void MoveTreeView::rebuild()
                 ++row;
                 m_paragraphRows.insert(row, {g, p});
                 html += QStringLiteral("<tr><td colspan=\"3\" class=\"par\" style=\"%1\">%2</td></tr>")
-                            .arg(bookStyle, paragraphHtml(paragraphs.at(p), book));
+                            .arg(bookStyle + headingStyle(paragraphs.at(p).kind), paragraphHtml(paragraphs.at(p), book));
             }
         }
     }

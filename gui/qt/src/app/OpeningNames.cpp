@@ -11,7 +11,7 @@ OpeningNames::OpeningNames(const QList<GameRecord> &games)
         if (game.event.trimmed().isEmpty())
             continue;
         std::optional<ChessPosition> position =
-            game.startFen.isEmpty() ? ChessPosition::startingPosition() : ChessPosition::fromFen(game.startFen);
+            game.startFen.isEmpty() ? ChessPosition::startingPosition() : ChessPosition::fromFen(game.startFen, ChessPosition::Kings::Optional);
         if (!position)
             continue;
         QString prefix = game.startFen;

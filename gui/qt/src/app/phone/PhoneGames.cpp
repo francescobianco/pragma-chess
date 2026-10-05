@@ -78,7 +78,7 @@ std::optional<QList<ImportedGame>> parse(const QJsonArray &games, QString *error
         game.startFen = text(object, "start_fen");
 
         std::optional<ChessPosition> position =
-            game.startFen.isEmpty() ? ChessPosition::startingPosition() : ChessPosition::fromFen(game.startFen);
+            game.startFen.isEmpty() ? ChessPosition::startingPosition() : ChessPosition::fromFen(game.startFen, ChessPosition::Kings::Optional);
         if (!position) {
             setError(errorMessage, QStringLiteral("game %1: bad start_fen").arg(i));
             return std::nullopt;

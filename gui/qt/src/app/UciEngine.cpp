@@ -1,5 +1,7 @@
 #include "UciEngine.h"
 
+#include "ChessPosition.h"
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -86,6 +88,16 @@ bool UciEngine::isRunning() const
 void UciEngine::analyze(const QString &startFen, const QStringList &uciMoves, Side sideToMove,
                         SearchLimit limit)
 {
+    if (!startFen.isEmpty() && !ChessPosition::fromFen(startFen)) {
+        // A diagram without kings: nothing to search, and engines are not
+        // made for it. A search still running stops.
+        m_pending.reset();
+        if (m_state == State::Searching) {
+            send("stop");
+            m_state = State::Stopping;
+        }
+        return;
+    }
     m_pending = Request{startFen, uciMoves, sideToMove, limit};
     switch (m_state) {
     case State::Idle:

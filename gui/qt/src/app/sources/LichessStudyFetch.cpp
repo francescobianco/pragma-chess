@@ -13,6 +13,11 @@ namespace {
 
 const QString kSite = QStringLiteral("lichess.org");
 constexpr char kLastModified[] = "lastModified";
+/// What this version reads of a study. A study last read by an older reader
+/// is read whole once, even unchanged: it may have chapters that reader
+/// skipped (2: chapters on a board without kings).
+constexpr char kReader[] = "reader";
+constexpr int kReaderVersion = 2;
 
 } // namespace
 
@@ -64,7 +69,8 @@ void LichessStudyFetch::start()
     QNetworkRequest request = exportRequest(*id, SourceCredentials::token(m_source.uuid));
     // Unchanged since the last sync: lichess answers 304 and sends nothing.
     const QString lastModified = m_source.state.value(QLatin1String(kLastModified)).toString();
-    if (!lastModified.isEmpty())
+    const bool sameReader = m_source.state.value(QLatin1String(kReader)).toInt() >= kReaderVersion;
+    if (!lastModified.isEmpty() && sameReader)
         request.setRawHeader("If-Modified-Since", lastModified.toLatin1());
     m_reply = m_network->get(request);
     connect(m_reply, &QNetworkReply::finished, this, [this] {
@@ -166,6 +172,7 @@ void LichessStudyFetch::apply(const QByteArray &pgn, const QString &lastModified
         PgnFilePlan::baseToJson(LichessStudy::nextBase(base, chapters, databaseGames(), linked()));
     if (!lastModified.isEmpty())
         state.insert(QLatin1String(kLastModified), lastModified);
+    state.insert(QLatin1String(kReader), kReaderVersion);
     saveState(state, LichessStudy::studyName(chapters));
     Q_EMIT finished(unreadable > 0 ? tr("%n chapter(s) of the study could not be read.", nullptr, unreadable)
                                    : QString());

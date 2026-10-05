@@ -9,7 +9,7 @@
 /// its game (0: before the first move).
 struct Paragraph {
     /// How the text is set: a paragraph of a book, or a heading — a title,
-    /// bold and centred, or a subtitle, bold, smaller and to the left.
+    /// bold and centred, or a subtitle, bold, smaller and centred too.
     enum class Kind { Text, Title, Subtitle };
 
     int ply = 0;

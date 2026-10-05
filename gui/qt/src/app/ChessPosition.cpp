@@ -111,7 +111,7 @@ ChessPosition ChessPosition::startingPosition()
     return *fromFen(QString::fromLatin1(kStartingFen));
 }
 
-std::optional<ChessPosition> ChessPosition::fromFen(const QString &fen)
+std::optional<ChessPosition> ChessPosition::fromFen(const QString &fen, Kings kings)
 {
     const QStringList fields = fen.simplified().split(QLatin1Char(' '));
     const QStringList ranks = fields.value(0).split(QLatin1Char('/'));
@@ -195,8 +195,10 @@ std::optional<ChessPosition> ChessPosition::fromFen(const QString &fen)
         if (piece.type == PieceType::King)
             ++(piece.side == Side::White ? whiteKings : blackKings);
     }
-    if (whiteKings != 1 || blackKings != 1)
+    if (whiteKings > 1 || blackKings > 1)
         return std::nullopt;
+    if (whiteKings == 0 || blackKings == 0)
+        return kings == Kings::Optional ? std::optional<ChessPosition>(position) : std::nullopt; // A diagram.
     const Side justMoved = opposite(position.m_sideToMove);
     if (position.isAttacked(position.kingSquare(justMoved), position.m_sideToMove))
         return std::nullopt;
@@ -261,8 +263,15 @@ int ChessPosition::kingSquare(Side side) const
     return -1;
 }
 
+bool ChessPosition::hasKings() const
+{
+    return kingSquare(Side::White) >= 0 && kingSquare(Side::Black) >= 0;
+}
+
 bool ChessPosition::isAttacked(int square, Side by) const
 {
+    if (square < 0)
+        return false; // No king to attack: a diagram.
     const auto holds = [&](int target, PieceType type) {
         return target >= 0 && m_squares[target] == Piece{type, by};
     };
@@ -471,6 +480,8 @@ bool ChessPosition::leavesKingSafe(const ChessMove &move) const
 QList<ChessMove> ChessPosition::legalMoves() const
 {
     QList<ChessMove> moves;
+    if (!hasKings())
+        return moves; // A diagram: nothing is played from it.
     moves.reserve(48);
     generatePseudoLegal(moves);
     moves.removeIf([this](const ChessMove &move) { return !leavesKingSafe(move); });
@@ -479,7 +490,7 @@ QList<ChessMove> ChessPosition::legalMoves() const
 
 bool ChessPosition::isLegal(const ChessMove &move) const
 {
-    if (move.from < 0 || move.from > 63 || move.to < 0 || move.to > 63)
+    if (move.from < 0 || move.from > 63 || move.to < 0 || move.to > 63 || !hasKings())
         return false;
     if (m_squares[move.from].isNull() || m_squares[move.from].side != m_sideToMove)
         return false;

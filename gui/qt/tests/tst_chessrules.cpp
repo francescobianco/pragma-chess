@@ -649,6 +649,28 @@ private Q_SLOTS:
         QVERIFY(weights.at(0) <= 65535);
     }
 
+    void readsStudyChaptersWithoutKings()
+    {
+        // A chapter of text on an empty board, as lichess studies use for their sections.
+        const QByteArray pgn =
+            "[Event \"Study: Section 1\"]\n[ChapterURL \"https://lichess.org/study/hAnnVmfo/bEE0urap\"]\n"
+            "[FEN \"8/8/8/8/8/8/8/8 w - - 0 1\"]\n[SetUp \"1\"]\n\n{ We first enter the main lines. [%csl Gd4] } *\n\n"
+            "[Event \"Study: Kings only\"]\n[ChapterURL \"https://lichess.org/study/hAnnVmfo/Vs1yXKob\"]\n"
+            "[FEN \"8/8/8/8/8/8/8/4K3 b - - 0 1\"]\n[SetUp \"1\"]\n\n*\n";
+        int unreadable = -1;
+        const QList<LichessStudy::Chapter> chapters = LichessStudy::chapters(pgn, &unreadable);
+        QCOMPARE(chapters.size(), 2);
+        QCOMPARE(unreadable, 0);
+        // A diagram: shown as it is, nothing played from it; a FEN typed in still needs its kings.
+        GameSession session;
+        session.setGame(chapters.first().game);
+        QCOMPARE(session.position().fen(), QStringLiteral("8/8/8/8/8/8/8/8 w - - 0 1"));
+        QVERIFY(session.position().legalMoves().isEmpty());
+        QVERIFY(!session.position().hasKings());
+        QVERIFY(!ChessPosition::fromFen(QStringLiteral("8/8/8/8/8/8/8/8 w - - 0 1")));
+        QCOMPARE(MoveComment::marks(session.game().startComment).size(), 1);
+    }
+
     void editsCommentsAndReadsTheirMoves()
     {
         QString error;
@@ -696,6 +718,13 @@ private Q_SLOTS:
         QCOMPARE(early.at(0).basePly, 3);
         QCOMPARE(early.at(2).uci, (QStringList{QStringLiteral("b8c6"), QStringLiteral("g1f3"), QStringLiteral("g8f6")}));
         QVERIFY(MoveComment::movesIn(QStringLiteral("Be2e4 and h9"), line, 7).isEmpty());
+
+        // The marks a comment draws: circles and arrows, lichess's four colours.
+        const QList<MoveComment::Mark> marks =
+            MoveComment::marks(QStringLiteral("Look [%csl Gd4,Ra8,Xb2] here [%cal Bg2b7,Yd2] [%eval 0.3]"));
+        QCOMPARE(marks, (QList<MoveComment::Mark>{{27, -1, u'G'}, {56, -1, u'R'}, {14, 49, u'B'}}));
+        QVERIFY(marks.first().isCircle());
+        QVERIFY(MoveComment::marks(QStringLiteral("[%cal Gd4]")).isEmpty());
     }
 
     void keepsCommentsAndTags()

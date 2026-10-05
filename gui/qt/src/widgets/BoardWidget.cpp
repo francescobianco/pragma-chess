@@ -57,6 +57,17 @@ QColor arrowColor(BoardArrow::Kind kind)
     return {};
 }
 
+/// The colours of a comment's marks, lichess's own: green, red, yellow, blue.
+QColor markColor(QChar letter)
+{
+    switch (letter.unicode()) {
+    case 'R': return QColor(0x88, 0x20, 0x20, 0xc8);
+    case 'Y': return QColor(0xe6, 0x8f, 0x00, 0xc8);
+    case 'B': return QColor(0x00, 0x30, 0x88, 0xc8);
+    default: return QColor(0x15, 0x78, 0x1b, 0xc8);
+    }
+}
+
 } // namespace
 
 BoardWidget::BoardWidget(QWidget *parent)
@@ -207,6 +218,14 @@ void BoardWidget::setExplanation(const QList<BoardArrow> &arrows, const QList<in
         return;
     m_arrows = arrows;
     m_lostPieces = lostPieces;
+    update();
+}
+
+void BoardWidget::setMarks(const QList<MoveComment::Mark> &marks)
+{
+    if (m_marks == marks)
+        return;
+    m_marks = marks;
     update();
 }
 
@@ -512,6 +531,17 @@ void BoardWidget::paintEvent(QPaintEvent *)
         }
     }
 
+    // The comment's marks, under Explain's: a ring inside the square, an arrow.
+    for (const MoveComment::Mark &mark : m_sequenceActive ? QList<MoveComment::Mark>() : m_marks) {
+        if (mark.isCircle()) {
+            painter.setPen(QPen(markColor(mark.color), qMax(2.0, size * 0.07)));
+            painter.setBrush(Qt::NoBrush);
+            const qreal inset = size * 0.06;
+            painter.drawEllipse(squareRect(mark.from).adjusted(inset, inset, -inset, -inset));
+        } else {
+            paintArrow(painter, BoardArrow{mark.from, mark.to, BoardArrow::Kind::Idea, 0}, markColor(mark.color));
+        }
+    }
     // Arrows belong to the position the sequence started from.
     for (int square : m_sequenceActive ? QList<int>() : m_lostPieces) {
         painter.setPen(QPen(arrowColor(BoardArrow::Kind::Refutation), qMax(2.0, size * 0.06)));
@@ -582,12 +612,12 @@ void BoardWidget::paintKingBadge(QPainter &painter) const
                      m_kingMark == KingMark::Mate ? QStringLiteral("#") : QStringLiteral("+"));
 }
 
-void BoardWidget::paintArrow(QPainter &painter, const BoardArrow &arrow) const
+void BoardWidget::paintArrow(QPainter &painter, const BoardArrow &arrow, const QColor &ownColor) const
 {
     if (arrow.from < 0 || arrow.to < 0 || arrow.from == arrow.to)
         return;
     const qreal size = boardRect().width() / 8;
-    const QColor color = arrowColor(arrow.kind);
+    const QColor color = ownColor.isValid() ? ownColor : arrowColor(arrow.kind);
 
     // Knight moves bend like the knight goes: along the long leg first.
     QList<QPointF> points{squareRect(arrow.from).center()};

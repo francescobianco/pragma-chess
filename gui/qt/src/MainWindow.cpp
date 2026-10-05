@@ -211,6 +211,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_session, &GameSession::headerChanged, this, &MainWindow::syncChapterGame);
     connect(m_session, &GameSession::annotationsChanged, this, &MainWindow::syncChapterGame);
     connect(m_session, &GameSession::commentsChanged, this, &MainWindow::syncChapterGame);
+    connect(m_session, &GameSession::commentsChanged, this, &MainWindow::updateCommentMarks);
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateGameHeader);
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::updateGameActions);
     connect(m_session, &GameSession::headerChanged, this, &MainWindow::updateGameHeader);
@@ -1599,7 +1600,7 @@ void MainWindow::showMoveListMenu(const QPoint &position)
     insert->addAction(tr("&Title"), this, [insertText] { insertText(Paragraph::Kind::Title); })
         ->setToolTip(tr("A heading in bold, centred"));
     insert->addAction(tr("&Subtitle"), this, [insertText] { insertText(Paragraph::Kind::Subtitle); })
-        ->setToolTip(tr("A smaller heading in bold, on the left"));
+        ->setToolTip(tr("A smaller heading in bold, centred"));
     insert->addAction(tr("&Paragraph"), this, [insertText] { insertText(Paragraph::Kind::Text); });
     insert->addSeparator();
     QAction *gameBreak = insert->addAction(tr("&Game Break"), this, &MainWindow::insertGameBreak);
@@ -1951,8 +1952,18 @@ void MainWindow::syncBoard()
     m_explainAction->setChecked(false);
     updateExplainer();
     updateBoardBorder(); // A checkmate on the board turns it red.
+    updateCommentMarks();
 
     updateNavigationActions();
+}
+
+void MainWindow::updateCommentMarks()
+{
+    // The comment of the position on the board: after the move that led
+    // there, or before the first move.
+    const int ply = m_session->ply();
+    const QString &comment = ply > 0 ? m_session->moveAt(ply).comment : m_session->game().startComment;
+    m_board->setMarks(MoveComment::marks(comment));
 }
 
 void MainWindow::updateNavigationActions()
@@ -3684,7 +3695,7 @@ void MainWindow::onlineGameUpdated(const OnlineGame &game)
         record.moves.clear();
         record.variations.clear();
         ChessPosition position = record.startFen.isEmpty() ? ChessPosition::startingPosition()
-                                                           : ChessPosition::fromFen(record.startFen).value_or(ChessPosition::startingPosition());
+                                                           : ChessPosition::fromFen(record.startFen, ChessPosition::Kings::Optional).value_or(ChessPosition::startingPosition());
         for (const QString &uci : game.moves) {
             const std::optional<ChessMove> move = position.moveFromUci(uci);
             if (!move)
@@ -4326,7 +4337,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         }
     }
     const bool unsavedGame = project.startFen.isEmpty() ? !project.moves.isEmpty()
-                                                        : ChessPosition::fromFen(project.startFen).has_value();
+                                                        : ChessPosition::fromFen(project.startFen, ChessPosition::Kings::Optional).has_value();
     if (!opened && project.gameId < 0 && unsavedGame) {
         GameRecord game;
         game.startFen = project.startFen;

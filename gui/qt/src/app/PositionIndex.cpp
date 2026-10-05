@@ -53,7 +53,7 @@ PositionIndex PositionIndex::build(const QList<GameLine> &games, const std::atom
             break;
         std::optional<ChessPosition> start;
         if (!game.startFen.isEmpty())
-            start = ChessPosition::fromFen(game.startFen);
+            start = ChessPosition::fromFen(game.startFen, ChessPosition::Kings::Optional);
         ChessPosition position = start.value_or(ChessPosition::startingPosition());
 
         quint64 line = mix(PolyglotBook::key(position));

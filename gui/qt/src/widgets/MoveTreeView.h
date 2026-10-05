@@ -106,6 +106,8 @@ private:
     void placeEditor();
     /// Sets every line of the editor as the view sets a paragraph.
     void formatEditor();
+    /// A title or a subtitle is being written: one line, Enter ends it.
+    bool isHeading() const;
 
     GameSession *m_session;
     const ChapterBook *m_book = nullptr;

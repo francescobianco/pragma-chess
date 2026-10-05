@@ -54,6 +54,20 @@ bool set(GameRecord &game, const QList<int> &path, int index, const QString &com
 /// and arrows.
 QString withText(const QString &comment, const QString &text);
 
+/// A mark drawn on the board by a comment's commands, as lichess draws them:
+/// a coloured circle on a square ("[%csl Gd4,Re5]") or an arrow ("[%cal
+/// Gd2d4]"). `color` is the command's letter: G, R, Y or B.
+struct Mark {
+    int from = -1;
+    /// -1 for a circle on `from`.
+    int to = -1;
+    QChar color;
+    bool isCircle() const { return to < 0; }
+    bool operator==(const Mark &) const = default;
+};
+/// The marks of a comment, in the order written; malformed ones are skipped.
+QList<Mark> marks(const QString &comment);
+
 /// A move written in a comment's text ("14.Bxd4 Qxd4", "better is Nf3"),
 /// and the line it ends, as the rules read it.
 struct TextMove {

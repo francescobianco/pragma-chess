@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/BoardState.h"
+#include "app/MoveComment.h"
 #include "app/MoveExplanation.h"
 
 #include <QHash>
@@ -69,6 +70,9 @@ public:
 
     /// Arrows and lost-piece rings explaining the position.
     void setExplanation(const QList<BoardArrow> &arrows, const QList<int> &lostPieces);
+    /// The circles and arrows the comment of the position draws, under
+    /// Explain's (MoveComment::marks).
+    void setMarks(const QList<MoveComment::Mark> &marks);
 
     /// What the border says: a sequence being played still overrides it.
     void setBorder(BoardBorder border);
@@ -127,7 +131,8 @@ private:
     /// Square under a point in widget coordinates, or -1.
     int squareAt(const QPointF &point) const;
     void paintPiece(QPainter &painter, Piece piece, const QRectF &rect) const;
-    void paintArrow(QPainter &painter, const BoardArrow &arrow) const;
+    /// An arrow in its kind's colour, or in `color` when it is given.
+    void paintArrow(QPainter &painter, const BoardArrow &arrow, const QColor &color = QColor()) const;
     /// A soft red glow under a king in check or mated, and a "+" or "#" badge above it.
     void paintKingGlow(QPainter &painter) const;
     void paintKingBadge(QPainter &painter) const;
@@ -162,6 +167,7 @@ private:
 
     QList<BoardArrow> m_arrows;
     QList<int> m_lostPieces;
+    QList<MoveComment::Mark> m_marks;
 
     QList<BoardFrame> m_frames;
     qsizetype m_nextFrame = 0;

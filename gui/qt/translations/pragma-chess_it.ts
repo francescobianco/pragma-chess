@@ -2554,10 +2554,6 @@ non è su questo computer.</translation>
         <translation>&amp;Sottotitolo</translation>
     </message>
     <message>
-        <source>A smaller heading in bold, on the left</source>
-        <translation>Un&apos;intestazione più piccola in grassetto, a sinistra</translation>
-    </message>
-    <message>
         <source>&amp;Paragraph</source>
         <translation>&amp;Paragrafo</translation>
     </message>
@@ -2653,6 +2649,10 @@ non è su questo computer.</translation>
     <message>
         <source>Could not save the comment: %1</source>
         <translation>Impossibile salvare il commento: %1</translation>
+    </message>
+    <message>
+        <source>A smaller heading in bold, centred</source>
+        <translation>Un'intestazione più piccola in grassetto, centrata</translation>
     </message>
 </context>
 <context>

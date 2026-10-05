@@ -228,7 +228,7 @@ QString moveText(const GameRecord &game, int plies)
 {
     const std::optional<ChessPosition> start = game.startFen.isEmpty()
         ? ChessPosition::startingPosition()
-        : ChessPosition::fromFen(game.startFen);
+        : ChessPosition::fromFen(game.startFen, ChessPosition::Kings::Optional);
     if (!start)
         return {};
     QStringList parts;
@@ -272,7 +272,7 @@ std::optional<ParsedLine> parseLine(const QString &text, const QString &startFen
     if (const QRegularExpressionMatch match = fenTag.match(text); match.hasMatch())
         line.startFen = match.captured(1).trimmed();
     const std::optional<ChessPosition> position = line.startFen.isEmpty() ? ChessPosition::startingPosition()
-                                                                           : ChessPosition::fromFen(line.startFen);
+                                                                           : ChessPosition::fromFen(line.startFen, ChessPosition::Kings::Optional);
     if (!position)
         return fail(QObject::tr("Invalid FEN: %1").arg(line.startFen));
 

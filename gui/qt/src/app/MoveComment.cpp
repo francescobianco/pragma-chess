@@ -169,6 +169,25 @@ bool set(GameRecord &game, const QList<int> &path, int index, const QString &com
     return true;
 }
 
+QList<Mark> marks(const QString &comment)
+{
+    static const QRegularExpression command(QStringLiteral(R"(\[%(csl|cal)\s+([^\]]*)\])"));
+    static const QRegularExpression entry(QStringLiteral(R"(^([GRYB])([a-h][1-8])([a-h][1-8])?$)"));
+    QList<Mark> found;
+    for (const QRegularExpressionMatch &match : command.globalMatch(comment)) {
+        const bool arrows = match.captured(1) == QLatin1String("cal");
+        for (const QString &item : match.captured(2).split(QLatin1Char(','), Qt::SkipEmptyParts)) {
+            const QRegularExpressionMatch mark = entry.match(item.trimmed());
+            // A circle has one square, an arrow two.
+            if (!mark.hasMatch() || arrows == mark.captured(3).isEmpty())
+                continue;
+            const auto square = [](QStringView name) { return (name.at(1).unicode() - '1') * 8 + name.at(0).unicode() - 'a'; };
+            found << Mark{square(mark.captured(2)), arrows ? square(mark.captured(3)) : -1, mark.captured(1).at(0)};
+        }
+    }
+    return found;
+}
+
 QString withText(const QString &comment, const QString &text)
 {
     static const QRegularExpression command(QStringLiteral(R"(\[%[^\]]*\])"));

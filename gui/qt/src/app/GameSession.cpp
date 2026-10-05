@@ -16,7 +16,7 @@ GameRecord GameSession::resolved(const GameRecord &game)
 {
     GameRecord result = game;
     const std::optional<ChessPosition> start = game.startFen.isEmpty() ? ChessPosition::startingPosition()
-                                                                        : ChessPosition::fromFen(game.startFen);
+                                                                        : ChessPosition::fromFen(game.startFen, ChessPosition::Kings::Optional);
     const ChessPosition initial = start.value_or(ChessPosition::startingPosition());
 
     // The main line is cut at the first illegal move; the variations are
@@ -72,7 +72,7 @@ void GameSession::followLine(const QList<int> &path)
     m_line = GameVariations::lineMoves(m_game, m_path);
     m_branchPly = GameVariations::branchPly(m_game, m_path);
     const std::optional<ChessPosition> start = m_game.startFen.isEmpty() ? ChessPosition::startingPosition()
-                                                                          : ChessPosition::fromFen(m_game.startFen);
+                                                                          : ChessPosition::fromFen(m_game.startFen, ChessPosition::Kings::Optional);
     m_positions = {start.value_or(ChessPosition::startingPosition())};
     m_moves.clear();
     for (qsizetype i = 0; i < m_line.size(); ++i) {

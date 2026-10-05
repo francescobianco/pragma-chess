@@ -142,6 +142,9 @@ private:
     /// Writes the text of a comment of the game on the board (MoveComment::at)
     /// and saves the game, keeping the comment's commands.
     void writeComment(const QList<int> &path, int index, const QString &text);
+    /// Draws on the board the circles and arrows of the comment of the
+    /// position shown (lichess's [%csl] and [%cal]).
+    void updateCommentMarks();
     /// Plays a line written in a comment, from the ply `basePly` of the line
     /// `path`: it becomes a variation of the game, or takes the one it is.
     void playCommentLine(int game, const QList<int> &path, int basePly, const QStringList &uci);

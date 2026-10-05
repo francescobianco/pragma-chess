@@ -472,6 +472,14 @@ painted as a menu item, since QMenu draws an item in one font).
   `replaceGame`, which moves `modified`, so the other copies get it); in a
   game not yet saved the annotations travel with the project (`annotations`
   in the `.pch`).
+- A game may start from a diagram without kings (lichess studies' chapters
+  of text on an empty board): game start positions are read with
+  `ChessPosition::fromFen(fen, Kings::Optional)`, such a position has no
+  legal moves (`hasKings()`), and `UciEngine::analyze` never sends it to
+  an engine. A FEN the user types still needs both kings.
+- The marks of a comment (lichess's `[%csl]` circles and `[%cal]` arrows,
+  `MoveComment::marks`) are drawn on the board, under Explain's arrows,
+  for the position the comment belongs to (`MainWindow::updateCommentMarks`).
 - Comments (`MoveRecord::comment`, `startComment`, addressed by line path
   and own move as `MoveComment::at`/`set` and `games.comments` count them)
   are written in place in the move list like paragraphs (double click, or
@@ -553,8 +561,9 @@ a chapter always has a game. In other tools this is a study or a chess book.
   ExtraLight, justified, line height 125%, the first line of each paragraph
   indented). A paragraph has a `Paragraph::Kind`: Text, or a heading —
   Title (bold, centred, half as large again) or Subtitle (bold, a fifth
-  larger, on the left); the move list's right-click menu inserts them all,
-  and the game break, from one Insert ▸ submenu.
+  larger, centred too), both one line (Enter ends them, no hint while
+  empty) with little room under them; the move list's right-click menu
+  inserts them all, and the game break, from one Insert ▸ submenu.
   Paragraphs are written in place, on a double click (a single click on
   one does nothing): `editParagraph` lays a `QTextEdit` with
   the same font, width and block format over the paragraph's row, the row

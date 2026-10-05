@@ -45,9 +45,16 @@ struct ChessMove {
 class ChessPosition {
 public:
     static ChessPosition startingPosition();
+    /// Whether a position needs its two kings. A game may start from a
+    /// diagram without them (a lichess study's chapter of text, on an empty
+    /// board): it is shown, and no move can be played from it.
+    enum class Kings { Required, Optional };
     /// Parses a FEN; rejects malformed FENs and positions where the side that
-    /// just moved is in check or a king is missing.
-    static std::optional<ChessPosition> fromFen(const QString &fen);
+    /// just moved is in check or a king is missing (unless `kings` is
+    /// Optional; a side never has two).
+    static std::optional<ChessPosition> fromFen(const QString &fen, Kings kings = Kings::Required);
+    /// Both kings are on the board: moves can be played, an engine can search.
+    bool hasKings() const;
     QString fen() const;
     /// The FEN without move counters, identifying the position for caches.
     QString positionKey() const;

@@ -4110,15 +4110,15 @@ void TestChessRules::sharesTheComputerWithTheEngine()
 {
     // A share of the machine, never a weaker search: threads, a cap, a priority.
     const EnginePower minimum = EnginePower::forLevel(EnginePower::Minimum, 12);
-    QCOMPARE(minimum.cpuPercent, 5);
-    QCOMPARE(minimum.threads, 1); // 0.6 of a core, rounded up: the cap does the rest.
-    QCOMPARE(minimum.quotaOfOneCore(12), 60);
+    QCOMPARE(minimum.cpuPercent, 3);
+    QCOMPARE(minimum.threads, 1); // A third of a core: the cap does the rest.
+    QCOMPARE(minimum.quotaOfOneCore(12), 36);
     QVERIFY(minimum.lowPriority);
     const EnginePower medium = EnginePower::forLevel(EnginePower::kDefault, 12);
-    QCOMPARE(medium.cpuPercent, 20);
-    QCOMPARE(medium.threads, 3);
-    QCOMPARE(medium.quotaOfOneCore(12), 240);
-    QCOMPARE(EnginePower::forLevel(EnginePower::High, 12).threads, 5);
+    QCOMPARE(medium.cpuPercent, 10);
+    QCOMPARE(medium.threads, 2); // 1.2 cores, rounded up.
+    QCOMPARE(medium.quotaOfOneCore(12), 120);
+    QCOMPARE(EnginePower::forLevel(EnginePower::High, 12).threads, 3);
     const EnginePower full = EnginePower::forLevel(EnginePower::Full, 12);
     QCOMPARE(full.cpuPercent, 0);
     QCOMPARE(full.threads, 12);
@@ -4126,10 +4126,10 @@ void TestChessRules::sharesTheComputerWithTheEngine()
     QVERIFY(!full.lowPriority);
     // A small machine: one thread, the cap below one core.
     QCOMPARE(EnginePower::forLevel(EnginePower::Medium, 4).threads, 1);
-    QCOMPARE(EnginePower::forLevel(EnginePower::Medium, 4).quotaOfOneCore(4), 80);
+    QCOMPARE(EnginePower::forLevel(EnginePower::Medium, 4).quotaOfOneCore(4), 40);
     QCOMPARE(EnginePower::forLevel(EnginePower::Light, 1).threads, 1);
     // Out of range: the nearest level.
-    QCOMPARE(EnginePower::forLevel(0, 8).cpuPercent, 5);
+    QCOMPARE(EnginePower::forLevel(0, 8).cpuPercent, 3);
     QCOMPARE(EnginePower::forLevel(9, 8).cpuPercent, 0);
 
     // The level is saved with the engine, the bundled one's too.

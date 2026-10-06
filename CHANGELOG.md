@@ -12,8 +12,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   later** too (`.2cbh`), with their variations: choose the `.2cbh` file as
   you would a `.cbh`.
 - **Computing Power** for each engine (Engine ▸ Manage Engines…): how much
-  of the processor it may use while it analyzes, from Minimum (5%) to
-  Full (no limit), Medium (20%) by default, so the fans stay quiet and the
+  of the processor it may use while it analyzes, from Minimum (3%) to
+  Full (no limit), Medium (10%) by default, so the fans stay quiet and the
   rest of the computer stays free. The engine is just as strong, only
   slower: fewer threads, a lower priority and, on Linux and Windows, a hard
   cap on its share of the processor.

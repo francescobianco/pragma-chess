@@ -4,7 +4,9 @@
 #include "app/GameSession.h"
 #include "app/Pgn.h"
 #include "app/api/LocalHttpServer.h"
+#include "app/EnginePower.h"
 #include "app/GameDatabase.h"
+#include "app/UciEngine.h"
 #include "widgets/BoardWidget.h"
 
 #include <QAction>
@@ -12,7 +14,15 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QDateTime>
+#include <QFile>
 #include <QPixmap>
+#include <QSettings>
+#include <QThread>
+
+#if defined(Q_OS_LINUX)
+#include <unistd.h>
+#endif
 
 namespace {
 
@@ -62,6 +72,26 @@ QString arrowKind(BoardArrow::Kind kind)
     case BoardArrow::Kind::Plan: return QStringLiteral("plan");
     }
     return {};
+}
+
+/// The CPU time a process has used, in seconds (user and system, all its
+/// threads), where the system tells (Linux: /proc); negative otherwise.
+double cpuSecondsOf(qint64 pid)
+{
+#if defined(Q_OS_LINUX)
+    QFile stat(QStringLiteral("/proc/%1/stat").arg(pid));
+    if (pid <= 0 || !stat.open(QIODevice::ReadOnly))
+        return -1;
+    const QByteArray line = stat.readAll();
+    // After the name in parentheses: state is field 3, utime and stime 14 and 15.
+    const QList<QByteArray> fields = line.mid(line.lastIndexOf(')') + 2).split(' ');
+    if (fields.size() < 13)
+        return -1;
+    return (fields.at(11).toDouble() + fields.at(12).toDouble()) / double(sysconf(_SC_CLK_TCK));
+#else
+    Q_UNUSED(pid);
+    return -1;
+#endif
 }
 
 QString verdictName(MoveExplanation::Verdict verdict)
@@ -262,6 +292,82 @@ void DesktopApi::addRoutes()
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/analysis"),
                     toggle(w->m_startEngineAction, QStringLiteral("the analysis")));
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/flip"), toggle(w->m_flipBoardAction, QStringLiteral("the board")));
+    // The engines of this computer and their Computing Power, and what the
+    // engine running takes of the processor since the last call.
+    const auto engines = [this, w]() {
+        const int cores = QThread::idealThreadCount();
+        const QString inUse = w->m_engines.resolve(w->m_engineId, w->m_engineName).id;
+        QJsonArray list;
+        for (const EngineProfile &profile : w->m_engines.engines()) {
+            const EnginePower power = EnginePower::forLevel(profile.power, cores);
+            list.append(QJsonObject{{QStringLiteral("id"), profile.id},
+                                    {QStringLiteral("name"), profile.name},
+                                    {QStringLiteral("bundled"), profile.bundled},
+                                    {QStringLiteral("inUse"), profile.id == inUse},
+                                    {QStringLiteral("power"), profile.power},
+                                    {QStringLiteral("sharePercent"), power.cpuPercent > 0 ? power.cpuPercent : 100},
+                                    {QStringLiteral("threads"), profile.threads},
+                                    {QStringLiteral("threadsUsed"), profile.threads > 0 ? profile.threads : power.threads},
+                                    {QStringLiteral("hash"), profile.hashMb},
+                                    {QStringLiteral("lowPriority"), power.lowPriority}});
+        }
+        QJsonObject process{{QStringLiteral("running"), w->m_engine->isRunning()}};
+        const qint64 pid = w->m_engine->processId();
+        const double cpu = cpuSecondsOf(pid);
+        const qint64 now = QDateTime::currentMSecsSinceEpoch();
+        if (pid > 0) {
+            process.insert(QStringLiteral("pid"), pid);
+            if (cpu >= 0) {
+                process.insert(QStringLiteral("cpuSeconds"), cpu);
+                // Per cent of one core since the last call (on the same process).
+                if (m_cpuSample.pid == pid && now > m_cpuSample.atMs)
+                    process.insert(QStringLiteral("cpuPercentOfOneCore"),
+                                   qRound(100.0 * (cpu - m_cpuSample.cpuSeconds) * 1000.0 / double(now - m_cpuSample.atMs)));
+            }
+        }
+        m_cpuSample = {pid, cpu, now};
+        return QJsonObject{{QStringLiteral("cores"), cores},
+                           {QStringLiteral("canCap"), UciEngine::canLimitCpu()},
+                           {QStringLiteral("analyzing"), w->m_startEngineAction->isChecked()},
+                           {QStringLiteral("engines"), list},
+                           {QStringLiteral("process"), process}};
+    };
+    m_server->route(QStringLiteral("GET"), QStringLiteral("/api/engines"), [engines](const Request &) {
+        return json(engines());
+    });
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/engines"), [w, engines](const Request &request) {
+        // As Manage Engines with OK: the engine `id` (else the one in use)
+        // gets `power` (1–5), `threads`, `hash`; the engine in use restarts with them.
+        const std::optional<QJsonObject> body = bodyOf(request);
+        if (!body)
+            return LocalHttpServer::error(400, QStringLiteral("expected {\"id\", \"power\": 1-5, \"threads\", \"hash\"}"));
+        const QString inUse = w->m_engines.resolve(w->m_engineId, w->m_engineName).id;
+        const QString id = body->value(QStringLiteral("id")).toString(inUse);
+        const EngineProfile *found = w->m_engines.find(id);
+        if (!found)
+            return LocalHttpServer::error(404, QStringLiteral("no engine \"%1\"").arg(id));
+        EngineProfile profile = *found;
+        if (body->contains(QStringLiteral("power"))) {
+            const int power = body->value(QStringLiteral("power")).toInt();
+            if (power < EnginePower::Minimum || power > EnginePower::Full)
+                return LocalHttpServer::error(400, QStringLiteral("power is 1 (Minimum) to 5 (Full)"));
+            profile.power = power;
+        }
+        if (body->contains(QStringLiteral("threads")))
+            profile.threads = qMax(0, body->value(QStringLiteral("threads")).toInt());
+        if (body->contains(QStringLiteral("hash")))
+            profile.hashMb = qMax(0, body->value(QStringLiteral("hash")).toInt());
+        w->m_engines.update(profile);
+        {
+            QSettings settings;
+            w->m_engines.save(settings);
+        }
+        if (id == inUse) {
+            w->m_engineId.clear(); // Restarts it, as Manage Engines does.
+            w->selectEngine(id);
+        }
+        return json(engines());
+    });
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/peek"), [w, state](const Request &request) {
         // As the Engine panel's eye turned on (true) or off (false).
         const std::optional<QJsonObject> body = bodyOf(request);

@@ -166,6 +166,11 @@ void UciEngine::shutdown()
 #endif
 }
 
+qint64 UciEngine::processId() const
+{
+    return isRunning() ? m_process->processId() : 0;
+}
+
 bool UciEngine::isRunning() const
 {
     return m_process->state() != QProcess::NotRunning;

@@ -127,7 +127,7 @@ Pragma Chess arriva con Stockfish, e funziona con qualunque motore UCI.
 
 - **Motore ▸ Cambia motore** sceglie tra i motori di questo computer. L'icona del motore nella barra degli strumenti apre lo stesso elenco.
 - **Motore ▸ Gestisci motori…** aggiunge, modifica e rimuove motori. **Rileva motori** trova quelli installati sul computer; **Usa questo motore** passa a quello selezionato.
-- **Potenza di calcolo**, nella stessa finestra, è quanta parte del computer il motore può usare mentre analizza, da **Minima** (5% del processore) a **Piena** (tutto, senza limiti); **Media**, 20%, è quella da cui parte ogni motore. A ogni livello il motore è forte uguale, solo più lento: riceve meno thread, una priorità più bassa e, su Linux e Windows, un tetto alla sua parte del processore, così le ventole restano tranquille e il resto del computer libero. I **Thread**, se li imposti, valgono più del livello.
+- **Potenza di calcolo**, nella stessa finestra, è quanta parte del computer il motore può usare mentre analizza, da **Minima** (3% del processore) a **Piena** (tutto, senza limiti); **Media**, 10%, è quella da cui parte ogni motore. A ogni livello il motore è forte uguale, solo più lento: riceve meno thread, una priorità più bassa e, su Linux e Windows, un tetto alla sua parte del processore, così le ventole restano tranquille e il resto del computer libero. I **Thread**, se li imposti, valgono più del livello.
 
 Il motore in uso fa parte del progetto.
 

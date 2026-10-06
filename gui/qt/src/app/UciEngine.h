@@ -35,6 +35,8 @@ public:
     bool start(const QString &executable);
     void shutdown();
     bool isRunning() const;
+    /// The engine's process id, 0 when it is not running.
+    qint64 processId() const;
 
     /// Sets a UCI option ("Threads", "Hash", …), sent when the engine is ready
     /// (and right away if it already is) if the engine has it. Overrides the

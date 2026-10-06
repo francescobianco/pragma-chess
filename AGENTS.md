@@ -309,6 +309,13 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   `GET /api/explanation`; `GET /api/screenshot` the window as a PNG, taken
   from inside (`QWidget::grab`: no compositor permission needed — GNOME
   refuses screenshots to other programs).
+- `GET /api/engines` the engines of this computer with their Computing
+  Power (level, share of the machine, threads used), the cores, whether the
+  system can cap a process (`canCap`), and the engine's process: pid, CPU
+  seconds and `cpuPercentOfOneCore` since the previous call (Linux, from
+  /proc) — call it twice a few seconds apart to measure.
+  `POST /api/engines {"id", "power": 1-5, "threads", "hash"}` sets them as
+  Manage Engines does (saved; the engine in use restarts with them).
 - `POST /api/ply {"ply": n}`, `/api/move {"uci": "e2e4"}` (as a move on
   the board), `/api/line {"moves": "1.e4 …", "fen", "ply"}` (a new game at
   the end of the chapter), `/api/explain`, `/api/analysis`, `/api/flip`,
@@ -1139,8 +1146,9 @@ edits them; Detect Engines (`EngineDetector`) adds UCI engines found in PATH
 and the usual install folders, skipping binaries already registered. The
 project stores the engine id; an unknown id falls back to the bundled engine.
 Each engine has a **Computing Power** (`EngineProfile::power`, Manage Engines),
-how much of the computer it may take: 1 Minimum 5%, 2 Light 10%, 3 Medium
-20% (the default: the user found half too much), 4 High 40%, 5 Full (no limit): `app/EnginePower` (pure, unit-tested) gives the
+how much of the computer it may take: 1 Minimum 3%, 2 Light 6%, 3 Medium
+10% (the default: the user found half, then a fifth, too much), 4 High 25%,
+5 Full (no limit): `app/EnginePower` (pure, unit-tested) gives the
 threads, a hard cap and a low priority. It never weakens the search — no
 depth or time limit: the engine is only slower. The cap is the system's:
 on Linux the engine runs in a systemd scope with `CPUQuota`

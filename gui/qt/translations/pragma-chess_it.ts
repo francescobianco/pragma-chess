@@ -2857,20 +2857,20 @@ non è su questo computer.</translation>
         <translation>%1 — in uso</translation>
     </message>
     <message>
-        <source>Minimum: 5% of the processor</source>
-        <translation>Minima: 5% del processore</translation>
+        <source>Minimum: 3% of the processor</source>
+        <translation>Minima: 3% del processore</translation>
     </message>
     <message>
-        <source>Light: 10% of the processor</source>
-        <translation>Leggera: 10% del processore</translation>
+        <source>Light: 6% of the processor</source>
+        <translation>Leggera: 6% del processore</translation>
     </message>
     <message>
-        <source>Medium: 20% of the processor</source>
-        <translation>Media: 20% del processore</translation>
+        <source>Medium: 10% of the processor</source>
+        <translation>Media: 10% del processore</translation>
     </message>
     <message>
-        <source>High: 40% of the processor</source>
-        <translation>Alta: 40% del processore</translation>
+        <source>High: 25% of the processor</source>
+        <translation>Alta: 25% del processore</translation>
     </message>
     <message>
         <source>Full: the whole processor, no limit</source>

@@ -34,4 +34,10 @@ private:
 
     MainWindow *m_window;
     LocalHttpServer *m_server;
+    /// The engine's CPU time at the last GET /api/engines, to report its use since.
+    struct CpuSample {
+        qint64 pid = 0;
+        double cpuSeconds = 0;
+        qint64 atMs = 0;
+    } m_cpuSample;
 };

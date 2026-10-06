@@ -547,28 +547,8 @@ Il Nero ha catturato: %2</translation>
         <translation>Io</translation>
     </message>
     <message>
-        <source>Friends</source>
-        <translation>Amici</translation>
-    </message>
-    <message>
-        <source>Opponents</source>
-        <translation>Avversari</translation>
-    </message>
-    <message>
         <source>ECO</source>
         <translation>ECO</translation>
-    </message>
-    <message>
-        <source>Tournaments</source>
-        <translation>Tornei</translation>
-    </message>
-    <message>
-        <source>Years</source>
-        <translation>Anni</translation>
-    </message>
-    <message>
-        <source>Sources</source>
-        <translation>Sorgenti</translation>
     </message>
     <message>
         <source>S&amp;ync Now</source>
@@ -633,16 +613,36 @@ Il Nero ha catturato: %2</translation>
         </translation>
     </message>
     <message>
-        <source>Studies</source>
-        <translation>Studi</translation>
-    </message>
-    <message>
         <source>Database &amp;Settings…</source>
         <translation>Impostazioni &amp;database…</translation>
     </message>
     <message>
         <source>Time Control</source>
         <translation>Cadenza</translation>
+    </message>
+    <message>
+        <source>Friend</source>
+        <translation>Amico</translation>
+    </message>
+    <message>
+        <source>Opponent</source>
+        <translation>Avversario</translation>
+    </message>
+    <message>
+        <source>Tournament/Event</source>
+        <translation>Torneo/Evento</translation>
+    </message>
+    <message>
+        <source>Year</source>
+        <translation>Anno</translation>
+    </message>
+    <message>
+        <source>Study</source>
+        <translation>Studio</translation>
+    </message>
+    <message>
+        <source>Source</source>
+        <translation>Sorgente</translation>
     </message>
 </context>
 <context>

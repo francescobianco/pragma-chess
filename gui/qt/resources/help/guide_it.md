@@ -53,11 +53,12 @@ A sinistra della lista delle partite, l'albero mostra che cosa contiene il datab
 
 - **Scacchiera ▸ Posizione**: le partite in cui compare la posizione sulla scacchiera, qualunque sia l'ordine delle mosse.
 - **Scacchiera ▸ Variante**: le partite che cominciano esattamente con le mosse giocate sulla scacchiera.
-- **Io**, **Amici**, **Avversari**: i giocatori che hai indicato con «Chi è?».
+- **Io**, **Amico**, **Avversario**: i giocatori che hai indicato con «Chi è?».
 - **ECO**: le partite per codice d'apertura.
+- **Torneo/Evento** e **Anno**.
 - **Cadenza**: le cadenze a cui sono state giocate le partite, dalla più veloce — *Blitz 3+2*, *Rapid 10+5*, *Classica 90+30*, *Corrispondenza 1 giorno*. Le partite di lichess.org e chess.com portano la loro; per ogni altra partita fai clic sui nomi dei giocatori sopra la scacchiera e scrivila in **Cadenza**, come la dicono i giocatori (*3+2*: tre minuti, due secondi aggiunti a ogni mossa).
-- **Studi**: gli studi da cui vengono le partite — uno studio di lichess collegato come fonte, o partite il cui PGN porta i tag `StudyName` e `ChapterName` — ognuno con i suoi capitoli nell'ordine dello studio. Seleziona uno studio per tutte le sue partite, o un capitolo per le sue.
-- **Sorgenti**: le partite arrivate da lichess.org, chess.com o torneionline.com.
+- **Studio**: gli studi da cui vengono le partite — uno studio di lichess collegato come fonte, o partite il cui PGN porta i tag `StudyName` e `ChapterName` — ognuno con i suoi capitoli nell'ordine dello studio. Seleziona uno studio per tutte le sue partite, o un capitolo per le sue.
+- **Sorgente**: le partite arrivate da lichess.org, chess.com o torneionline.com.
 - **Cestino**: le partite che hai buttato.
 
 Posizione e Variante seguono la scacchiera: scorri una partita e i loro conteggi cambiano.
@@ -202,7 +203,7 @@ Una sorgente porta nel database aperto le tue partite da un sito e le tiene aggi
 
 Le sorgenti vengono lette quando il database viene aperto e ogni venti minuti. Una partita non viene mai importata due volte. **Database ▸ Gestisci sorgenti…** sincronizza subito una sorgente, la modifica, rifà l'accesso o la rimuove; le partite già importate restano.
 
-Il nodo **Sorgenti** dell'albero elenca le partite di ogni sorgente.
+Il nodo **Sorgente** dell'albero elenca le partite di ogni sorgente.
 
 # Cestino {#trash}
 

@@ -272,7 +272,7 @@ void DatabaseTreeWidget::refresh()
     showBoardCounts();
 
     const std::pair<PlayerRole, QString> roleGroups[] = {
-        {PlayerRole::Me, tr("Me")}, {PlayerRole::Friend, tr("Friends")}, {PlayerRole::Opponent, tr("Opponents")}};
+        {PlayerRole::Me, tr("Me")}, {PlayerRole::Friend, tr("Friend")}, {PlayerRole::Opponent, tr("Opponent")}};
     for (const auto &[role, title] : roleGroups) {
         const QMap<QString, int> players = outline.players.value(role);
         if (players.isEmpty())
@@ -293,14 +293,14 @@ void DatabaseTreeWidget::refresh()
         }
     }
     if (!outline.events.isEmpty()) {
-        QTreeWidgetItem *group = addItem(root, Node::Tournaments, tr("Tournaments"), QVariant(), -1);
+        QTreeWidgetItem *group = addItem(root, Node::Tournaments, tr("Tournament/Event"), QVariant(), -1);
         for (auto event = outline.events.cbegin(); event != outline.events.cend(); ++event) {
             QTreeWidgetItem *item = addItem(group, Node::Event, event.key(), event.key(), event.value());
             item->setToolTip(0, event.key());
         }
     }
     if (!outline.years.isEmpty()) {
-        QTreeWidgetItem *group = addItem(root, Node::Years, tr("Years"), QVariant(), -1);
+        QTreeWidgetItem *group = addItem(root, Node::Years, tr("Year"), QVariant(), -1);
         // Most recent first.
         for (auto year = outline.years.cend(); year != outline.years.cbegin();) {
             --year;
@@ -322,7 +322,7 @@ void DatabaseTreeWidget::refresh()
     }
     // The studies the games came from, each with its chapters as the study has them.
     if (!outline.studies.isEmpty()) {
-        QTreeWidgetItem *group = addItem(root, Node::Studies, tr("Studies"), QVariant(), -1);
+        QTreeWidgetItem *group = addItem(root, Node::Studies, tr("Study"), QVariant(), -1);
         for (const DatabaseOutline::Study &study : outline.studies) {
             QTreeWidgetItem *studyItem = addItem(group, Node::Study, study.name, study.key, study.games);
             studyItem->setToolTip(0, study.name);
@@ -332,7 +332,7 @@ void DatabaseTreeWidget::refresh()
     }
     const QList<GameSource> sources = m_database->sources();
     if (!sources.isEmpty()) {
-        QTreeWidgetItem *group = addItem(root, Node::Sources, tr("Sources"), QVariant(), -1);
+        QTreeWidgetItem *group = addItem(root, Node::Sources, tr("Source"), QVariant(), -1);
         for (const GameSource &source : sources) {
             QTreeWidgetItem *item = addItem(group, Node::Source, SourceCatalog::displayName(source), source.id,
                                             int(source.importedGames));

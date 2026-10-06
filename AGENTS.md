@@ -936,8 +936,8 @@ study, chess.com, torneionline.com, ChessBase files, a PGN file) to the open dat
 edits, signs in again or removes them.
 
 The tree left of the games list (`DatabaseTreeWidget`) shows only the open
-database, and under it Board (Position, Variant), Me/Friends/Opponents, ECO
-(letter → code), Tournaments, Years, Studies (study → chapters, from the
+database, and under it Board (Position, Variant), Me/Friend/Opponent, ECO
+(letter → code), Tournament/Event, Year, Time Control, Study (study → chapters, from the
 StudyName/ChapterName/ChapterURL tags, which the headers load for it), Sources and, always last, Trash, listing
 only values some game has (`DatabaseOutline`, unit-tested); selecting a node
 filters the list through `GameFilterProxyModel`. Which nodes are open and which is

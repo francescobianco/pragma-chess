@@ -59,7 +59,7 @@ void ChapterBook::clear()
     *this = ChapterBook();
 }
 
-void ChapterBook::setChapters(const QList<Chapter> &list, int open, bool none)
+void ChapterBook::setChapters(const QList<Chapter> &list, int open, bool none, bool automatic)
 {
     if (list.isEmpty()) {
         clear();
@@ -68,6 +68,7 @@ void ChapterBook::setChapters(const QList<Chapter> &list, int open, bool none)
     chapters = list;
     current = qBound(0, open, int(list.size()) - 1);
     m_none = none && list.size() == 1;
+    m_automatic = m_none || automatic;
     settle();
 }
 
@@ -85,9 +86,24 @@ void ChapterBook::settle()
         m_none = false;
 }
 
+void ChapterBook::settleAfterRemoval()
+{
+    if (m_none || !m_automatic || chapters.size() != 1)
+        return;
+    const Chapter &only = chapters.first();
+    if (only.games.size() != 1)
+        return;
+    const ChapterGame &game = only.games.first();
+    if (game.paragraphs.isEmpty() && (!game.game.uid.isEmpty() || game.isEmpty())) {
+        m_none = true;
+        current = 0;
+    }
+}
+
 int ChapterBook::addChapter(const QString &title)
 {
     settle();
+    m_automatic = false; // A chapter asked for: it stays.
     if (m_none) {
         // What is there, nothing yet, becomes the first chapter.
         m_none = false;
@@ -166,6 +182,23 @@ void ChapterBook::removeEmptyGames()
         if (i < open.currentGame)
             --open.currentGame;
     }
+    settleAfterRemoval();
+}
+
+bool ChapterBook::removeGame(int index)
+{
+    Chapter &open = chapter();
+    if (index <= 0 || index >= open.games.size())
+        return false;
+    open.games.removeAt(index);
+    if (open.currentGame == index) {
+        open.currentGame = index - 1;
+        open.ply = int(open.games.at(index - 1).game.moves.size());
+    } else if (open.currentGame > index) {
+        --open.currentGame;
+    }
+    settleAfterRemoval();
+    return true;
 }
 
 void ChapterBook::moveGame(int from, int to)
@@ -232,7 +265,16 @@ void ChapterBook::setParagraph(int game, int index, const QString &text)
     if (index < 0 || index >= paragraphs.size())
         return;
     if (text.trimmed().isEmpty())
-        paragraphs.removeAt(index);
+        removeParagraph(game, index);
     else
         paragraphs[index].text = text;
+}
+
+void ChapterBook::removeParagraph(int game, int index)
+{
+    QList<Paragraph> &paragraphs = chapter().games[game].paragraphs;
+    if (index < 0 || index >= paragraphs.size())
+        return;
+    paragraphs.removeAt(index);
+    settleAfterRemoval();
 }

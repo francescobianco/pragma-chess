@@ -200,6 +200,9 @@ private:
     /// Insert Game Break: a new game, from the starting position, at the end
     /// of the chapter (ChapterBook::breakGame).
     void insertGameBreak();
+    /// Deletes the game `index` of the chapter with the break before it
+    /// (the move list's menu on a break), asking first when work would be lost.
+    void deleteChapterGame(int index);
     void newChapter();
     void switchChapter(int index);
     void manageChapters();

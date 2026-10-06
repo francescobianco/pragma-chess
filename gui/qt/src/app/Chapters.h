@@ -68,14 +68,24 @@ public:
     /// Back to no chapter: everything in the chapters goes.
     void clear();
     /// The chapters of a project, and the one open; an empty list, or one
-    /// held with `none`, is no chapter.
-    void setChapters(const QList<Chapter> &list, int open, bool none = false);
+    /// held with `none`, is no chapter. `automatic`: they came by themselves
+    /// (isAutomatic).
+    void setChapters(const QList<Chapter> &list, int open, bool none = false, bool automatic = false);
+    /// The chapters came by themselves — things were put in a project without
+    /// chapters —, not by New Chapter or by renaming them: taking those things
+    /// away again leaves the project without chapters (settleAfterRemoval).
+    bool isAutomatic() const { return m_automatic; }
     /// Something was done: if the project had no chapter and the one held
     /// now has something in it, it becomes the first chapter: moves of a game
     /// not stored, a paragraph, a second game — not a game of the database
     /// only opened, which the next one opened replaces. Inserting a game or a
     /// paragraph does it by itself.
     void settle();
+    /// Something was taken away: if the chapters came by themselves and what
+    /// is left is what a project without chapters holds — one game, a game
+    /// of the database only looked at or nothing at all, no paragraph —,
+    /// the project is without chapters again. The removals here do it.
+    void settleAfterRemoval();
 
     Chapter &chapter() { return chapters[current]; }
     const Chapter &chapter() const { return chapters.at(current); }
@@ -102,6 +112,11 @@ public:
     /// Takes away the empty games of the open chapter (breaks with nothing
     /// after them) but the current one, which keeps its place in the list.
     void removeEmptyGames();
+    /// Takes the game `index` of the open chapter away, with the break before
+    /// it: Delete Game Break for an empty one, Delete Following Game for one
+    /// with something in it. The first game has no break and stays. The
+    /// current game, if it goes, is the one before. Returns whether it went.
+    bool removeGame(int index);
     /// Moves a game of the open chapter to the place `to`; the current game
     /// stays current wherever it goes.
     void moveGame(int from, int to);
@@ -118,8 +133,12 @@ public:
     int moveParagraph(int game, int index, int ply, bool first);
     /// Sets the text of a paragraph; an empty text removes it.
     void setParagraph(int game, int index, const QString &text);
+    /// Takes a paragraph, a title or a subtitle away.
+    void removeParagraph(int game, int index);
 
 private:
     /// No chapter yet: the one in `chapters` is a holder.
     bool m_none = true;
+    /// The chapters came by themselves (isAutomatic).
+    bool m_automatic = true;
 };

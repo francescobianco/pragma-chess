@@ -2689,6 +2689,42 @@ non è su questo computer.</translation>
         <source>Explain: looking at the position before the move…</source>
         <translation>Spiega: guardo la posizione prima della mossa…</translation>
     </message>
+    <message>
+        <source>&amp;Delete Game Break</source>
+        <translation>&amp;Elimina interruzione di partita</translation>
+    </message>
+    <message>
+        <source>&amp;Delete Following Game</source>
+        <translation>&amp;Elimina partita seguente</translation>
+    </message>
+    <message>
+        <source>&amp;Edit Title</source>
+        <translation>&amp;Modifica titolo</translation>
+    </message>
+    <message>
+        <source>&amp;Edit Subtitle</source>
+        <translation>&amp;Modifica sottotitolo</translation>
+    </message>
+    <message>
+        <source>&amp;Delete Title</source>
+        <translation>&amp;Elimina titolo</translation>
+    </message>
+    <message>
+        <source>&amp;Delete Subtitle</source>
+        <translation>&amp;Elimina sottotitolo</translation>
+    </message>
+    <message>
+        <source>Delete Following Game</source>
+        <translation>Elimina partita seguente</translation>
+    </message>
+    <message>
+        <source>The game after the break is not saved in a database: its moves will be lost. Delete it?</source>
+        <translation>La partita dopo l&apos;interruzione non è salvata in un database: le sue mosse andranno perse. Eliminarla?</translation>
+    </message>
+    <message>
+        <source>The text written around the game after the break will be lost; the game stays in the database. Delete it from the chapter?</source>
+        <translation>Il testo scritto intorno alla partita dopo l&apos;interruzione andrà perso; la partita resta nel database. Eliminarla dal capitolo?</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

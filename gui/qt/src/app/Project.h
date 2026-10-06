@@ -34,6 +34,10 @@ struct Project {
     /// No chapter yet (ChapterBook::hasChapters): `chapters` holds the one
     /// game on the board.
     bool noChapters = false;
+    /// The chapters came by themselves (ChapterBook::isAutomatic): written
+    /// `automatic`; a project without the key has them so when it holds one
+    /// chapter under the default title.
+    bool automaticChapters = false;
     /// Before chapters (read, never written): database id of the open game,
     /// or -1 when viewing a position without a game.
     qint64 gameId = -1;

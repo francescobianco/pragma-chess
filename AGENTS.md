@@ -689,7 +689,21 @@ a chapter always has a game. In other tools this is a study or a chess book.
   not stored, a paragraph, a game break, New Chapter —, never for a stored
   game only looked at. Deleting every chapter in Manage Chapters
   (`setChapters({})`) goes back to it. The `.pch` writes it as
-  `chapters: none: true`, with the holder in `list`.
+  `chapters: none: true`, with the holder in `list`. Chapters that came by
+  themselves (`isAutomatic`, `.pch` `automatic: true`; a project without the
+  key has them so when its one chapter has the default title) go back too:
+  `settleAfterRemoval`, run by the removals — a game with its break
+  (`removeGame`), a paragraph (`removeParagraph`, an emptied one), the empty
+  games cleaned up — makes the project without chapters again when what is
+  left is what such a project holds (one game, only looked at or empty, no
+  paragraph). Only removals do it: saving the game does not make a chapter
+  vanish. New Chapter, and renaming or reordering in Manage Chapters, make
+  the chapters asked for: they stay.
+- Right-clicking the rule of a game break (`MoveTreeView::Place::gameBreak`,
+  the rows in `m_breakRows`) offers Delete Game Break when the game after it
+  is empty, Delete Following Game otherwise (`MainWindow::deleteChapterGame`,
+  asking first when moves saved nowhere or text would be lost); a title,
+  subtitle or paragraph has Edit and Delete by its own name.
 - **The session is the chapter's current game** (`m_chapters.game()`):
   `syncChapterGame` copies the session into it on every change, and
   `loadChapterGame` puts a chapter game on the board — from the database

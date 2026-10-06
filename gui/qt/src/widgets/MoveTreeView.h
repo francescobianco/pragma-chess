@@ -51,7 +51,10 @@ public:
         /// A comment of the line `path`: after its own move `comment`, or
         /// before its first move for 0 (MoveComment::at).
         int comment = -1;
+        /// The rule of a game break: the game it begins (then `game` is it too).
+        int gameBreak = -1;
         bool isMove() const { return ply > 0; }
+        bool isBreak() const { return gameBreak > 0; }
         bool isParagraph() const { return paragraph >= 0; }
         bool isComment() const { return comment >= 0; }
     };
@@ -116,6 +119,7 @@ private:
     QHash<int, QPair<int, int>> m_cellPlaces; // (row << 2 | column) → (game, ply), main lines.
     QHash<int, QPair<int, int>> m_paragraphRows; // row → (game, paragraph).
     QHash<int, QPair<int, int>> m_commentRows;   // row → (game, own move), main lines.
+    QHash<int, int> m_breakRows;                 // row → the game the break before it begins.
     int m_currentCell = -1; // The highlighted cell, same key; -1 if the current move is in a variation.
 
     /// rebuild() is running: setHtml() can resize the view, whose header asks

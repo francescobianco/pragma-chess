@@ -384,6 +384,11 @@ MoveTreeView::Place MoveTreeView::placeAt(const QPoint &position) const
     if (cell < 0)
         return place;
     const int row = cell >> 2;
+    if (const auto gameBreak = m_breakRows.constFind(row); gameBreak != m_breakRows.constEnd()) {
+        place.game = *gameBreak;
+        place.gameBreak = *gameBreak;
+        return place;
+    }
     if (const auto comment = m_commentRows.constFind(row); comment != m_commentRows.constEnd()) {
         place.game = comment->first;
         place.comment = comment->second;
@@ -752,6 +757,7 @@ void MoveTreeView::rebuild()
     m_cellPlaces.clear();
     m_paragraphRows.clear();
     m_commentRows.clear();
+    m_breakRows.clear();
     m_editRow = -1;
     m_currentCell = -1;
     int row = 0; // Every row written counts, from 0 (the widths' row).
@@ -771,6 +777,7 @@ void MoveTreeView::rebuild()
         if (g > 0) {
             // A game break: a light rule across the list, and the numbering starts again.
             ++row;
+            m_breakRows.insert(row, g);
             html += QStringLiteral("<tr><td colspan=\"3\" class=\"break\"><hr></td></tr>");
         }
 

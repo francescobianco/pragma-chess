@@ -8,6 +8,11 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Right-click the rule of a game break in the move list: **Delete Game
+  Break** when nothing was entered after it, **Delete Following Game** when
+  the game after it has moves. Titles and subtitles have Edit and Delete by
+  their own name. A chapter that came by itself, from things put in a
+  project without chapters, goes away again when they are deleted.
 - The ChessBase files source reads the databases of **ChessBase 17 and
   later** too (`.2cbh`), with their variations: choose the `.2cbh` file as
   you would a `.cbh`.

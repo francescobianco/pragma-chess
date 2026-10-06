@@ -1597,6 +1597,16 @@ void MainWindow::showMoveListMenu(const QPoint &position)
     };
     int game = place.game >= 0 ? place.game : m_chapters.chapter().currentGame;
     int paragraphPly = 0;
+    if (place.isBreak()) {
+        // The rule between two games: it goes, and with it the game after it
+        // when something was entered there.
+        syncChapterGame();
+        const bool empty = m_chapters.chapter().games.at(place.gameBreak).isEmpty();
+        menu.addAction(empty ? tr("&Delete Game Break") : tr("&Delete Following Game"), this,
+                       [this, following = place.gameBreak] { deleteChapterGame(following); })
+            ->setEnabled(!m_onlinePlay);
+        menu.addSeparator();
+    }
     if (place.isMove()) {
         // A move of another game or line is brought on the board first: the menu acts on it.
         if (place.game != m_chapters.chapter().currentGame) {
@@ -1641,13 +1651,17 @@ void MainWindow::showMoveListMenu(const QPoint &position)
     gameBreak->setEnabled(!m_onlinePlay);
     insert->setToolTipsVisible(true);
     if (place.isParagraph()) {
-        menu.addAction(tr("&Edit Paragraph"), this, [this, game, index = place.paragraph] {
-            m_moveView->editParagraph(game, index);
-        });
-        menu.addAction(tr("&Delete Paragraph"), this, [this, game, index = place.paragraph] {
-            m_chapters.setParagraph(game, index, QString());
-            chapterChanged();
-        });
+        // A title, a subtitle or a paragraph, by its name.
+        const Paragraph::Kind kind = m_chapters.chapter().games.at(game).paragraphs.at(place.paragraph).kind;
+        const bool title = kind == Paragraph::Kind::Title;
+        const bool subtitle = kind == Paragraph::Kind::Subtitle;
+        menu.addAction(title ? tr("&Edit Title") : subtitle ? tr("&Edit Subtitle") : tr("&Edit Paragraph"), this,
+                       [this, game, index = place.paragraph] { m_moveView->editParagraph(game, index); });
+        menu.addAction(title ? tr("&Delete Title") : subtitle ? tr("&Delete Subtitle") : tr("&Delete Paragraph"), this,
+                       [this, game, index = place.paragraph] {
+                           m_chapters.removeParagraph(game, index);
+                           chapterChanged();
+                       });
     }
     // One Move for what was clicked: a title, a subtitle or a paragraph moves
     // along its game, anything else moves the whole game past the one above
@@ -3396,6 +3410,42 @@ void MainWindow::editProjectSettings()
     scheduleSaveSession(); // The project has changes: its name is saved with it.
 }
 
+void MainWindow::deleteChapterGame(int index)
+{
+    if (index <= 0 || index >= m_chapters.chapter().games.size())
+        return;
+    syncChapterGame();
+    const bool current = index == m_chapters.chapter().currentGame;
+    if (current && !canLeaveGame())
+        return;
+    // What would be lost: moves not saved in a database, or text written
+    // around them. A game of the database stays there.
+    const ChapterGame &doomed = m_chapters.chapter().games.at(index);
+    const bool unsaved = doomed.game.uid.isEmpty() && (!doomed.game.moves.isEmpty() || !doomed.game.startFen.isEmpty());
+    if (unsaved || !doomed.paragraphs.isEmpty()) {
+        const auto answer = QMessageBox::question(
+            this, tr("Delete Following Game"),
+            unsaved ? tr("The game after the break is not saved in a database: its moves will be lost. Delete it?")
+                    : tr("The text written around the game after the break will be lost; the game stays in the "
+                         "database. Delete it from the chapter?"),
+            QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
+        if (answer != QMessageBox::Yes)
+            return;
+    }
+    if (current) {
+        m_trainingModeAction->setChecked(false);
+        m_chapters.chapter().ply = m_session->ply();
+    }
+    if (!m_chapters.removeGame(index))
+        return;
+    if (current) {
+        // The board goes to the game before the break.
+        loadChapterGame();
+        m_session->goToPly(m_chapters.chapter().ply);
+    }
+    chapterChanged();
+}
+
 void MainWindow::insertGameBreak()
 {
     if (!canLeaveGame())
@@ -3490,7 +3540,12 @@ void MainWindow::manageChapters()
     const bool sameChapter = current >= 0;
     if (!sameChapter && !canLeaveGame())
         return;
-    m_chapters.setChapters(chapters, sameChapter ? current : 0);
+    // Chapters that came by themselves stay so unless the user changed them
+    // here (renamed, added, deleted, reordered): those are chapters asked for.
+    bool unchanged = m_chapters.hasChapters() && chosen.size() == m_chapters.chapters.size();
+    for (int i = 0; unchanged && i < chosen.size(); ++i)
+        unchanged = chosen.at(i).source == i && chapters.at(i).title == m_chapters.chapters.at(i).title;
+    m_chapters.setChapters(chapters, sameChapter ? current : 0, false, m_chapters.isAutomatic() && unchanged);
     if (!sameChapter) {
         m_trainingModeAction->setChecked(false);
         loadChapterGame();
@@ -4351,6 +4406,7 @@ Project MainWindow::captureProject()
     open.games[open.currentGame].game = m_session->game();
     open.ply = m_session->path().isEmpty() ? m_session->ply() : m_session->branchPly();
     project.noChapters = !m_chapters.hasChapters();
+    project.automaticChapters = m_chapters.isAutomatic();
     project.boardFlipped = m_flipBoardAction->isChecked();
     project.showCoordinates = m_coordinatesAction->isChecked();
     project.engineId = m_engineId;
@@ -4390,7 +4446,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
 
     m_projectName = project.name;
     if (!project.chapters.isEmpty()) {
-        m_chapters.setChapters(project.chapters, project.chapter, project.noChapters);
+        m_chapters.setChapters(project.chapters, project.chapter, project.noChapters, project.automaticChapters);
         // Games stored in the database are shown as it has them now; the
         // others as the project kept them, their moves replayed.
         for (Chapter &chapter : m_chapters.chapters) {

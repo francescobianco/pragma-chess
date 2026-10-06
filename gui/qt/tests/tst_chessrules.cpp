@@ -3439,6 +3439,79 @@ END FUNCTION
         QVERIFY(!book.removeChapter(0));
     }
 
+    void deletesGameBreaksAndGoesBackToNoChapter()
+    {
+        // A game of the database only looked at, then a break: the chapter
+        // came by itself, and deleting the break takes it away again.
+        ChapterBook book;
+        book.game().game.uid = QStringLiteral("stored");
+        book.breakGame();
+        QVERIFY(book.hasChapters());
+        QVERIFY(book.isAutomatic());
+        QCOMPARE(book.chapter().games.size(), 2);
+        QCOMPARE(book.chapter().currentGame, 1);
+        QVERIFY(!book.removeGame(0)); // The first game has no break.
+        QVERIFY(book.removeGame(1));
+        QCOMPARE(book.chapter().games.size(), 1);
+        QCOMPARE(book.chapter().currentGame, 0);
+        QVERIFY(!book.hasChapters());
+
+        // A following game with moves goes with its break; a title, then
+        // deleted, came and went the same way.
+        book.breakGame();
+        book.game().game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4")}};
+        book.chapter().currentGame = 0;
+        const int title = book.insertParagraph(0, 0, -1, Paragraph::Kind::Title);
+        book.setParagraph(0, title, QStringLiteral("Openings"));
+        QVERIFY(book.removeGame(1));
+        QVERIFY(book.hasChapters()); // The title is still there.
+        book.removeParagraph(0, 0);
+        QVERIFY(!book.hasChapters());
+        // An emptied paragraph is a deleted one.
+        book.insertParagraph(0, 0);
+        QVERIFY(book.hasChapters());
+        book.setParagraph(0, 0, QString());
+        QVERIFY(!book.hasChapters());
+
+        // Moves not saved anywhere are something put in: the chapter stays.
+        book.clear();
+        book.game().game.moves = {{QStringLiteral("d4"), QStringLiteral("d2d4")}};
+        book.breakGame();
+        QVERIFY(book.removeGame(1));
+        QVERIFY(book.hasChapters());
+
+        // A chapter asked for (New Chapter) stays, whatever is taken away.
+        book.clear();
+        book.addChapter(QStringLiteral("Openings"));
+        QVERIFY(!book.isAutomatic());
+        book.game().game.uid = QStringLiteral("stored");
+        book.breakGame();
+        QVERIFY(book.removeGame(1));
+        QVERIFY(book.hasChapters());
+
+        // Breaks left empty are cleaned up the same way.
+        book.clear();
+        book.game().game.uid = QStringLiteral("stored");
+        book.breakGame();
+        book.chapter().currentGame = 0;
+        book.removeEmptyGames();
+        QVERIFY(!book.hasChapters());
+
+        // Whether they came by themselves travels with the project.
+        Project project;
+        Chapter only;
+        only.title = QStringLiteral("Chapter One");
+        project.chapters = {only};
+        project.automaticChapters = true;
+        QString error;
+        std::optional<Project> read = Project::fromYaml(project.toYaml(), QDir(), &error);
+        QVERIFY2(read, qPrintable(error));
+        QVERIFY(read->automaticChapters);
+        project.automaticChapters = false;
+        read = Project::fromYaml(project.toYaml(), QDir(), &error);
+        QVERIFY(!read->automaticChapters);
+    }
+
     void savesChaptersInProjects()
     {
         Project project;

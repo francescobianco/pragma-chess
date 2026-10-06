@@ -6,10 +6,10 @@ EnginePower EnginePower::forLevel(int level, int cores)
 {
     level = qBound(int(Minimum), level, int(Full));
     cores = qMax(1, cores);
-    static const int shares[] = {10, 25, 50, 75, 0};
+    static const int shares[] = {5, 10, 20, 40, 0};
     EnginePower power;
     power.cpuPercent = shares[level - 1];
-    // The threads the share covers, rounded up: a cap below one core (10%
+    // The threads the share covers, rounded up: a cap below one core (20%
     // of a four-core machine) is left to the cap.
     power.threads = power.cpuPercent > 0 ? qMax(1, (cores * power.cpuPercent + 99) / 100) : cores;
     power.lowPriority = level < Full;

@@ -233,6 +233,33 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>Cbg2Decoder</name>
+    <message>
+        <source>Unexpected marker %1 among the moves.</source>
+        <translation>Marcatore %1 inatteso tra le mosse.</translation>
+    </message>
+    <message>
+        <source>Unknown move word %1.</source>
+        <translation>Codice di mossa %1 sconosciuto.</translation>
+    </message>
+    <message>
+        <source>The moves of the game are not where its header says.</source>
+        <translation>Le mosse della partita non sono dove dice la sua intestazione.</translation>
+    </message>
+    <message>
+        <source>The move record is cut short.</source>
+        <translation>Il record delle mosse è troncato.</translation>
+    </message>
+    <message>
+        <source>Games from a set-up position are not read yet.</source>
+        <translation>Le partite da una posizione impostata non si leggono ancora.</translation>
+    </message>
+    <message>
+        <source>The move record does not start with its moves.</source>
+        <translation>Il record delle mosse non comincia con le mosse.</translation>
+    </message>
+</context>
+<context>
     <name>CbgDecoder</name>
     <message>
         <source>The move record is cut short.</source>
@@ -307,6 +334,14 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>Move %1 (%2) is not legal.</source>
         <translation>La mossa %1 (%2) non è legale.</translation>
+    </message>
+    <message>
+        <source>The moves file (.2cbg) is missing beside %1.</source>
+        <translation>Manca il file delle mosse (.2cbg) accanto a %1.</translation>
+    </message>
+    <message>
+        <source>Chess960 games are not read yet.</source>
+        <translation>Le partite di Chess960 non si leggono ancora.</translation>
     </message>
 </context>
 <context>
@@ -2822,24 +2857,24 @@ non è su questo computer.</translation>
         <translation>%1 — in uso</translation>
     </message>
     <message>
-        <source>Minimum: a tenth of the computer</source>
-        <translation>Minima: un decimo del computer</translation>
+        <source>Minimum: 5% of the processor</source>
+        <translation>Minima: 5% del processore</translation>
     </message>
     <message>
-        <source>Light: a quarter of the computer</source>
-        <translation>Leggera: un quarto del computer</translation>
+        <source>Light: 10% of the processor</source>
+        <translation>Leggera: 10% del processore</translation>
     </message>
     <message>
-        <source>Medium: half of the computer</source>
-        <translation>Media: metà del computer</translation>
+        <source>Medium: 20% of the processor</source>
+        <translation>Media: 20% del processore</translation>
     </message>
     <message>
-        <source>High: three quarters of the computer</source>
-        <translation>Alta: tre quarti del computer</translation>
+        <source>High: 40% of the processor</source>
+        <translation>Alta: 40% del processore</translation>
     </message>
     <message>
-        <source>Full: the whole computer, no limit</source>
-        <translation>Piena: tutto il computer, senza limiti</translation>
+        <source>Full: the whole processor, no limit</source>
+        <translation>Piena: tutto il processore, senza limiti</translation>
     </message>
     <message>
         <source>The share of the processor the engine may use while it analyzes. It is just as strong, only slower: the rest of the computer stays free.</source>
@@ -3922,10 +3957,6 @@ Le %n partite già importate restano nel database.</numerusform>
         <translation>File ChessBase</translation>
     </message>
     <message>
-        <source>The games of a ChessBase database (.cbh and its files) on this computer. The file stays where it is; games added to it later are picked up.</source>
-        <translation>Le partite di un database ChessBase (.cbh e i suoi file) su questo computer. Il file resta dov’è; le partite aggiunte in seguito vengono riprese.</translation>
-    </message>
-    <message>
         <source>Public games played on lichess.org by an account. Signing in to lichess.org is optional: it downloads them faster.</source>
         <translation>Partite pubbliche giocate su lichess.org da un account. L&apos;accesso a lichess.org è facoltativo: le scarica più in fretta.</translation>
     </message>
@@ -3940,6 +3971,10 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>The chapters of a study on lichess.org, from the address of its page: each chapter a game, with its comments and variations. A public study needs no account; a private one, signing in.</source>
         <translation>I capitoli di uno studio su lichess.org, dall&apos;indirizzo della sua pagina: ogni capitolo una partita, con i suoi commenti e le sue varianti. Uno studio pubblico non chiede un account; uno privato, l&apos;accesso.</translation>
+    </message>
+    <message>
+        <source>The games of a ChessBase database (.cbh or .2cbh, and its files) on this computer. The file stays where it is; games added to it later are picked up.</source>
+        <translation>Le partite di un database ChessBase (.cbh o .2cbh, e i suoi file) su questo computer. Il file resta dov&apos;è; le partite aggiunte in seguito vengono riprese.</translation>
     </message>
 </context>
 <context>
@@ -4061,10 +4096,6 @@ Le %n partite già importate restano nel database.</numerusform>
         <translation>Accedi con %1…</translation>
     </message>
     <message>
-        <source>The .cbh file of the database</source>
-        <translation>Il file .cbh del database</translation>
-    </message>
-    <message>
         <source>&amp;Browse…</source>
         <translation>&amp;Sfoglia…</translation>
     </message>
@@ -4073,20 +4104,12 @@ Le %n partite già importate restano nel database.</numerusform>
         <translation>Scegli un database ChessBase</translation>
     </message>
     <message>
-        <source>ChessBase databases (*.cbh *.CBH)</source>
-        <translation>Database ChessBase (*.cbh *.CBH)</translation>
-    </message>
-    <message>
         <source>&amp;File:</source>
         <translation>&amp;File:</translation>
     </message>
     <message>
         <source>The games are copied into this database; the ChessBase files stay where they are and are read again while the database is open, so games added to them later arrive too. On another computer the file will not be there: the sync says so and can leave the source alone there.</source>
         <translation>Le partite vengono copiate in questo database; i file ChessBase restano dove sono e vengono riletti mentre il database è aperto, così arrivano anche le partite aggiunte in seguito. Su un altro computer il file non ci sarà: la sincronizzazione lo dice e può lasciar perdere la sorgente lì.</translation>
-    </message>
-    <message>
-        <source>Choose the .cbh file of the ChessBase database.</source>
-        <translation>Scegli il file .cbh del database ChessBase.</translation>
     </message>
     <message>
         <source>Not signed in: public games only</source>
@@ -4223,6 +4246,18 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>lichess.org does not let this account download the study: it is private, or its author lets only its members export it (Share &amp; export). Ask the author to add you, or to allow export to everyone.</source>
         <translation>lichess.org non permette a questo account di scaricare lo studio: è privato, oppure il suo autore lascia esportarlo solo ai membri (Condividi ed esporta). Chiedi all&apos;autore di aggiungerti, o di permettere l&apos;esportazione a tutti.</translation>
+    </message>
+    <message>
+        <source>The .cbh or .2cbh file of the database</source>
+        <translation>Il file .cbh o .2cbh del database</translation>
+    </message>
+    <message>
+        <source>ChessBase databases (*.cbh *.CBH *.2cbh *.2CBH)</source>
+        <translation>Database ChessBase (*.cbh *.CBH *.2cbh *.2CBH)</translation>
+    </message>
+    <message>
+        <source>Choose the .cbh or .2cbh file of the ChessBase database.</source>
+        <translation>Scegli il file .cbh o .2cbh del database ChessBase.</translation>
     </message>
 </context>
 <context>

@@ -8,24 +8,25 @@ AGENTS.md, nel CHANGELOG e nella storia di git.
 
 ## Da fare, in ordine di priorità
 
-### Priorità: la sorgente ChessBase legga anche i file .2cbh
+### ChessBase .2cbh: quel che resta
 
-Richiesta del 6 ottobre 2026, prioritaria. La sorgente ChessBase
-(`chessbase`, `app/chessbase/ChessBaseDatabase`, `ChessBaseFetch`) legge
-oggi solo la famiglia `.cbh` (vedi "Formato ChessBase" più sotto). Le basi
-più recenti di ChessBase sono salvate come **`.2cbh`**: il selettore di file
-di Connetti sorgente deve accettarle e il lettore deve decifrarle.
+Il lettore c'è (AGENTS.md, "ChessBase files"; il formato è sotto, "Formato
+ChessBase 17+"). Verificato sulle due basi vere che avevamo: `wch2` (1 025
+partite, identiche partita per partita alla sua gemella `.cbh`, 8 138
+varianti) e 53 partite di Mega Database 2026 (379 varianti). Resta:
 
-- Prima cosa: procurarsi un `.2cbh` vero (ChessBase 17/18, o una base
-  scaricata in quel formato) e confrontarlo con il `.cbh` della stessa base:
-  intestazione, dimensione dei record, quali file compagni ha accanto
-  (`.2cbg`? `.cbp`/`.cbt` come prima?). Annotare quanto decifrato nella
-  sezione "Formato ChessBase", come per `.cbh`.
-- Se i record sono gli stessi con un'intestazione diversa, basta riconoscere
-  l'estensione e la famiglia di file; altrimenti un lettore suo accanto a
-  `ChessBaseDatabase`, puro e con unit-test su record veri.
-- Il filtro del selettore (`*.cbh`) diventa `*.cbh *.2cbh`; la guida in ogni
-  lingua cita entrambe.
+- **Una base vera dell'utente**: provarlo con un `.2cbh` suo (ChessBase 17
+  o 18), dall'interfaccia (Collega sorgente… ▸ File ChessBase).
+- **Posizioni iniziali** (`0xFFFB`): oggi la partita arriva con la sola
+  intestazione e un errore. Nessun campione le ha: servirebbe una base con
+  partite da posizione.
+- **Chess960** (tag 2 nel record del `.2cbg`): idem.
+- **Annotazioni** (`.2cba`): commenti e simboli, come per il `.cbh` (che
+  non legge nemmeno il suo `.cba`).
+- **Una revisione più vecchia del formato** (byte 0x08 del `.2cbh` = 0x22,
+  `.2cbg` versione 3, vista da altri): mai vista qui; se arriva, controllare
+  se le parole delle mosse sono le stesse.
+- **Testi guida e analisi** (record con bit 1, o tipo 2): saltati.
 
 ### INSIGHT.smart: tarare i piani della linea
 
@@ -347,6 +348,58 @@ variante) tutte le mosse di tutte le varianti risultano legali. Esempi reali:
 26.Qe5", variante "25…Rfe8 26.Re5 Qb4"; `12…f6 ( 13.Bf3 Qxc4 ( 14.Be2 … ) 14.Qa3
 Nc7 15.Qxa7 Qa6 ) 13.Qa3 Kb7 …`. Il decodificatore attuale si ferma alla prima
 255: per importare le varianti serve prima l'albero (punto 1, "Varianti").
+
+## Formato ChessBase 17+ (.2cbh e famiglia) — quanto decifrato e verificato
+
+Verificato su `wch2` (1 025 partite) e su 53 partite di Mega Database 2026,
+campioni presi dal repository `Yarin78/morphy` (`test-databases/`, **senza
+licenza: solo per prove locali, mai nel repository**; tenuti nello
+scratchpad, si ritrovano clonando morphy, commit 9363411e). Fonti dei fatti:
+`Yarin78/morphy` `format/v2/*.md` (nessuna licenza: solo i fatti, niente
+testo né codice) e le correzioni di `asavis/oschess-cb-bridge`
+`docs/format-notes.md` (AGPL dal 28/9/2026: letto, non copiato). Il nostro
+codice è scritto da zero. Tutto little-endian, salvo l'intestazione del
+`.2lid`; testi = int32 lunghezza + UTF-8.
+
+**.2cbh** — intestazione di 192 byte (0x0A short = dimensione del record,
+192; 0x0D versione 5; 0x10 int32 prossimo id), poi record di 192 byte, la
+partita n a 192·n. Byte 0: bit0 presente, bit1 testo guida, bit7
+cancellato; byte 2: 1 partita/testo, 2 analisi. Partita: 0x08 int64 offset
+nel `.2cbg`; 0x10 int64 offset nel `.2cba`; 0x18/0x20 int64 bianco/nero,
+0x28 torneo, 0x30 annotatore, 0x38 fonte, 0x40/0x48 squadre (−1), 0x50 tag
+(id di entità del `.2lid`); 0x58 risultato (0 = 0-1, 1 = ½, 2 = 1-0, 3 =
+linea, 4–6 forfait, 7 = 0-0); 0x5A/0x5C/0x5E turno/sottoturno/scacchiera;
+0x60 e 0x70 Elo bianco e nero (int16, poi 14 byte di tipo); 0x80 ECO come nel
+`.cbh` (`v >> 7` da 1 a 500); 0x84 flag (bit0 posizione, bit1 varianti,
+bit2 commenti, 0x08000000 Chess960); 0x8A mosse intere della linea
+principale; 0xBC data `anno<<9 | mese<<5 | giorno`.
+
+**.2cbg** — 12 byte di testa (int64 dimensione, versione 5 a 0x0B), poi per
+partita: magic `88 77 66 55 44 33 22 11`, int32 A (contenuto), int32 B
+(spazio libero, zeri), 8 byte di checksum, 2 byte di tag (1 normale, 2
+Chess960), A byte di contenuto, B zeri, int64 = A + B + 34. Il contenuto è
+una sequenza di parole uint16: `FFFC` inizio delle mosse, `FFFA` mossa
+nulla, `FFFB` posizione iniziale, `FFFD` dopo una mossa = "questa mossa ha
+un'alternativa", `FFFF` fine linea (poi l'alternativa, dalla posizione
+prima di quella mossa). Le parole non dipendono dalla posizione: una tabella
+fissa (`Cbg2Decoder`) che per ogni lato enumera re, donna, cavallo,
+alfiere, torre (ogni casa di partenza, a1 = 0, a2 = 1…, ogni direzione,
+verso l'esterno, 6 parole per arrivo: tranquilla e le 5 catture), fino a
+`ABF0`; poi i pedoni bianchi (`ABF1` = a2-a4) e neri fino a `B128`, poi
+l'arrocco (`B129` O-O-O bianco, `B12A` O-O bianco, `B12B`/`B12C` nero).
+
+**.2lid** — giocatori, tornei, fonti, …, squadre, tag. Intestazione
+big-endian: int32 sua lunghezza (184, ma altrove 216/228/236: usare il
+campo), int32 numero di tipi (6), poi per tipo a 8+20·i: int32 dimensione
+del contenitore, int64 conteggio, int64 primo cancellato. Il blocco i (a
+intestazione + i·somma delle dimensioni) tiene l'entità i di ogni tipo, un
+contenitore dopo l'altro (giocatore 1024, torneo 1120, fonte 220, ?, squadra
+314, tag 532). Un record: int32 lunghezza, poi i campi. Giocatore: cognome,
+nome. Torneo: **luogo, poi titolo**, poi data e tipo.
+
+Nella stessa occasione: i `.cbp`/`.cbt` delle basi convertite dai ChessBase
+recenti hanno un'intestazione di 32 byte, non 28; il lettore la ricava ora
+dal conteggio (`entityStart`).
 
 ## Pagine e strumenti utili
 

@@ -8,9 +8,12 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- The ChessBase files source reads the databases of **ChessBase 17 and
+  later** too (`.2cbh`), with their variations: choose the `.2cbh` file as
+  you would a `.cbh`.
 - **Computing Power** for each engine (Engine ▸ Manage Engines…): how much
-  of the computer it may use while it analyzes, from Minimum (a tenth) to
-  Full (no limit), Medium (half) by default, so the fans stay quiet and the
+  of the processor it may use while it analyzes, from Minimum (5%) to
+  Full (no limit), Medium (20%) by default, so the fans stay quiet and the
   rest of the computer stays free. The engine is just as strong, only
   slower: fewer threads, a lower priority and, on Linux and Windows, a hard
   cap on its share of the processor.
@@ -49,6 +52,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Players and tournaments of a ChessBase database converted by a recent
+  ChessBase are no longer read four characters off ("ÿÿÿÿZukertort").
 - The application could keep a processor core at 100% while idle: the move
   list rebuilt itself again and again when its scroll bar came and went.
 - On Windows with a dark theme, Database ▸ Connect Source… showed a white

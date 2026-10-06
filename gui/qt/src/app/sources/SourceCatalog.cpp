@@ -41,7 +41,7 @@ QList<SourceKind> kinds()
                   "without moves."),
          false, true},
         {QStringLiteral("chessbase"), Text::tr("ChessBase files"),
-         Text::tr("The games of a ChessBase database (.cbh and its files) on this computer. The file stays where "
+         Text::tr("The games of a ChessBase database (.cbh or .2cbh, and its files) on this computer. The file stays where "
                   "it is; games added to it later are picked up."),
          false, false, true},
         {QStringLiteral("pgn"), Text::tr("PGN file"),

@@ -50,11 +50,11 @@ ManageEnginesDialog::ManageEnginesDialog(const EngineCatalog &catalog, const QSt
     // How much of the computer the engine is given: never a weaker search,
     // a slower one (fewer threads, a cap on its CPU, a lower priority).
     m_power = new QComboBox(this);
-    m_power->addItem(tr("Minimum: a tenth of the computer"), int(EnginePower::Minimum));
-    m_power->addItem(tr("Light: a quarter of the computer"), int(EnginePower::Light));
-    m_power->addItem(tr("Medium: half of the computer"), int(EnginePower::Medium));
-    m_power->addItem(tr("High: three quarters of the computer"), int(EnginePower::High));
-    m_power->addItem(tr("Full: the whole computer, no limit"), int(EnginePower::Full));
+    m_power->addItem(tr("Minimum: 5% of the processor"), int(EnginePower::Minimum));
+    m_power->addItem(tr("Light: 10% of the processor"), int(EnginePower::Light));
+    m_power->addItem(tr("Medium: 20% of the processor"), int(EnginePower::Medium));
+    m_power->addItem(tr("High: 40% of the processor"), int(EnginePower::High));
+    m_power->addItem(tr("Full: the whole processor, no limit"), int(EnginePower::Full));
     m_power->setToolTip(UciEngine::canLimitCpu()
                             ? tr("The share of the processor the engine may use while it analyzes. It is just "
                                  "as strong, only slower: the rest of the computer stays free.")

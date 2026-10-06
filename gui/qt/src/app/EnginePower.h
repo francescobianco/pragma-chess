@@ -10,7 +10,7 @@
 /// first. Pure, unit-tested.
 struct EnginePower {
     enum Level { Minimum = 1, Light, Medium, High, Full };
-    /// Every engine starts here: a relaxed half of the computer, not all of it.
+    /// Every engine starts here: a relaxed fifth of the computer, not all of it.
     static constexpr int kDefault = Medium;
 
     /// Share of the whole machine's CPU, in per cent; 0 for no cap (Full).

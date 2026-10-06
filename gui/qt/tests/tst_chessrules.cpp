@@ -28,6 +28,7 @@
 #include "app/ShippedOpeningNames.h"
 #include "app/SqliteGameDatabase.h"
 #include "app/TrainingTutor.h"
+#include "app/chessbase/Cbg2Decoder.h"
 #include "app/chessbase/CbgDecoder.h"
 #include "app/chessbase/ChessBaseDatabase.h"
 #include "app/sources/ChessBaseFetch.h"
@@ -69,6 +70,7 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QTemporaryDir>
+#include <QtEndian>
 
 #include <QTest>
 
@@ -531,7 +533,110 @@ private Q_SLOTS:
     /// A one-game ChessBase database (Kieseritzky – Anderssen, London 1851,
     /// from ChessBase's own sample base) and a guiding text, written as
     /// `london.cbh` and its files into `dir`; returns the `.cbh` path.
-    static QString writeChessBaseFixture(const QString &dir)
+    static /// A ChessBase 17+ database in `folder`: three records (a game with a
+/// variation, a deleted game, a guiding text), its moves and a players and
+/// tournaments file, laid out as ChessBase writes them. Returns the .2cbh.
+QString writeChessBase2Fixture(const QString &folder)
+{
+    const auto put16 = [](QByteArray &bytes, int at, quint16 value) { qToLittleEndian(value, bytes.data() + at); };
+    const auto put32 = [](QByteArray &bytes, int at, quint32 value) { qToLittleEndian(value, bytes.data() + at); };
+    const auto put64 = [](QByteArray &bytes, int at, qint64 value) { qToLittleEndian(value, bytes.data() + at); };
+    const auto word = [](const QString &uci) {
+        for (int w = 1; w <= Cbg2Decoder::lastMoveWord(); ++w)
+            if (Cbg2Decoder::moveOf(quint16(w)) == uci)
+                return quint16(w);
+        return quint16(0);
+    };
+    // 1.e4 e5 2.Nf3 Nc6 (2...d6 3.d4) 3.Bb5: the move with an alternative
+    // is followed by 0xFFFD; its line ends, then the alternative's.
+    QList<quint16> words{0xFFFC, word("e2e4"), word("e7e5"), word("g1f3"), word("b8c6"), 0xFFFD,
+                         word("f1b5"), 0xFFFF, word("d7d6"), word("d2d4"), 0xFFFF};
+    QByteArray content(int(words.size()) * 2, '\0');
+    for (int i = 0; i < words.size(); ++i)
+        put16(content, 2 * i, words.at(i));
+    QByteArray moves(12, '\0');
+    moves[0x0B] = 5;
+    const int gameAt = int(moves.size());
+    QByteArray frame(0x1A, '\0');
+    frame.replace(0, 8, QByteArray("\x88\x77\x66\x55\x44\x33\x22\x11", 8));
+    put32(frame, 8, quint32(content.size()));
+    put16(frame, 0x18, 1);
+    QByteArray total(8, '\0');
+    put64(total, 0, content.size() + 34);
+    moves += frame + content + total;
+    put64(moves, 0, moves.size());
+
+    QByteArray headers(192 * 4, '\0');
+    put16(headers, 0x08, 38);
+    put16(headers, 0x0A, 192);
+    headers[0x0D] = 5;
+    put32(headers, 0x10, 4);
+    const int game = 192;
+    headers[game] = 0x01;
+    headers[game + 2] = 1;
+    put64(headers, game + 0x08, gameAt);
+    put64(headers, game + 0x18, 0);
+    put64(headers, game + 0x20, 1);
+    put64(headers, game + 0x28, 0);
+    headers[game + 0x58] = 2;
+    put16(headers, game + 0x5A, 3);
+    put16(headers, game + 0x5C, 2);
+    put16(headers, game + 0x60, 2830);
+    put16(headers, game + 0x70, 2762);
+    put16(headers, game + 0x80, quint16(261 << 7)); // C60
+    put16(headers, game + 0x8A, 3);
+    put32(headers, game + 0xBC, (2024 << 9) | (5 << 5) | 17);
+    headers[2 * 192] = char(0x81); // Deleted.
+    headers[2 * 192 + 2] = 1;
+    headers[3 * 192] = 0x03; // A guiding text.
+    headers[3 * 192 + 2] = 1;
+
+    // The players and tournaments: a big-endian header with each type's
+    // container size and count, then one block per id holding each type's
+    // container; a record is its length, then texts with their length.
+    const QList<int> containers{1024, 1120, 220, 1024, 314, 532};
+    const QList<int> counts{2, 1, 0, 0, 0, 0};
+    const int headerSize = 184;
+    int block = 0;
+    for (int size : containers)
+        block += size;
+    QByteArray lid(headerSize + 2 * block, '\0');
+    qToBigEndian(qint32(headerSize), lid.data());
+    qToBigEndian(qint32(containers.size()), lid.data() + 4);
+    for (int type = 0; type < containers.size(); ++type) {
+        qToBigEndian(qint32(containers.at(type)), lid.data() + 8 + 20 * type);
+        qToBigEndian(qint64(counts.at(type)), lid.data() + 12 + 20 * type);
+        qToBigEndian(qint64(-1), lid.data() + 20 + 20 * type);
+    }
+    const auto texts = [&](const QStringList &values) {
+        QByteArray fields;
+        for (const QString &value : values) {
+            const QByteArray utf8 = value.toUtf8();
+            QByteArray length(4, '\0');
+            put32(length, 0, quint32(utf8.size()));
+            fields += length + utf8;
+        }
+        QByteArray record(4, '\0');
+        put32(record, 0, quint32(fields.size()));
+        return record + fields;
+    };
+    const auto place = [&](int at, const QByteArray &record) { lid.replace(at, record.size(), record); };
+    place(headerSize, texts({QStringLiteral("Carlsen"), QStringLiteral("Magnus")}));
+    place(headerSize + block, texts({QStringLiteral("Ding"), QStringLiteral("Liren")}));
+    place(headerSize + 1024, texts({QStringLiteral("Zürich"), QStringLiteral("Classic Open")}));
+
+    const QDir dir(folder);
+    for (const auto &[name, bytes] : {std::pair{QStringLiteral("Modern.2cbh"), headers},
+                                     std::pair{QStringLiteral("Modern.2cbg"), moves},
+                                     std::pair{QStringLiteral("Modern.2lid"), lid}}) {
+        QFile file(dir.filePath(name));
+        if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size())
+            return {};
+    }
+    return dir.filePath(QStringLiteral("Modern.2cbh"));
+}
+
+QString writeChessBaseFixture(const QString &dir)
     {
         const auto fixed = [](const QString &text, int width) {
             return text.toLatin1().leftJustified(width, '\0', true);
@@ -684,6 +789,97 @@ private Q_SLOTS:
         QCOMPARE(ChessBaseDatabase::dateText(1851 << 9), QStringLiteral("1851.??.??"));
         QCOMPARE(ChessBaseDatabase::dateText(0), QString());
         QVERIFY(!ChessBaseDatabase::open(dir.filePath(QStringLiteral("missing.cbh")), &error));
+    }
+
+    void readsChessBase2Databases()
+    {
+        // The move words of ChessBase 17+: a fixed enumeration. The edges of
+        // its blocks, as found on real databases: the pieces end at 0xABF0,
+        // the white pawns start with a2-a4, castling closes the table.
+        QCOMPARE(Cbg2Decoder::moveOf(0), QString());
+        QCOMPARE(Cbg2Decoder::moveOf(1), QStringLiteral("a1a2")); // The white king, from a1, up.
+        QVERIFY(!Cbg2Decoder::moveOf(0xABF0).isEmpty());
+        QCOMPARE(Cbg2Decoder::moveOf(0xABF1), QStringLiteral("a2a4"));
+        QCOMPARE(Cbg2Decoder::moveOf(0xABF2), QStringLiteral("a2a3"));
+        QCOMPARE(Cbg2Decoder::moveOf(0xB129), QStringLiteral("e1c1"));
+        QCOMPARE(Cbg2Decoder::moveOf(0xB12A), QStringLiteral("e1g1"));
+        QCOMPARE(Cbg2Decoder::moveOf(0xB12B), QStringLiteral("e8c8"));
+        QCOMPARE(Cbg2Decoder::moveOf(0xB12C), QStringLiteral("e8g8"));
+        QCOMPARE(Cbg2Decoder::lastMoveWord(), 0xB12C);
+        QCOMPARE(Cbg2Decoder::moveOf(0xFFFF), QString());
+
+        // A database written here: one game with a variation, a deleted
+        // game and a guiding text; players and a tournament, one in UTF-8.
+        QTemporaryDir dir;
+        const QString path = writeChessBase2Fixture(dir.path());
+        QVERIFY(!path.isEmpty());
+        QString error;
+        const std::unique_ptr<ChessBaseDatabase> database = ChessBaseDatabase::open(path, &error);
+        QVERIFY2(database, qPrintable(error));
+        QCOMPARE(database->count(), 3);
+        const ChessBaseDatabase::Entry entry = database->entry(0);
+        QVERIFY(entry.isGame && !entry.deleted);
+        QCOMPARE(entry.header.white, QStringLiteral("Carlsen, Magnus"));
+        QCOMPARE(entry.header.black, QStringLiteral("Ding, Liren"));
+        QCOMPARE(entry.header.event, QStringLiteral("Classic Open"));
+        QCOMPARE(entry.header.site, QStringLiteral("Zürich"));
+        QCOMPARE(entry.header.date, QStringLiteral("2024.05.17"));
+        QCOMPARE(entry.header.result, QStringLiteral("1-0"));
+        QCOMPARE(entry.header.round, QStringLiteral("3.2"));
+        QCOMPARE(entry.header.whiteElo, 2830);
+        QCOMPARE(entry.header.blackElo, 2762);
+        QCOMPARE(entry.header.eco, QStringLiteral("C60"));
+        QVERIFY(database->entry(1).deleted);
+        QVERIFY(!database->entry(2).isGame);
+        const GameRecord game = database->game(0, &error);
+        QVERIFY2(error.isEmpty(), qPrintable(error));
+        QStringList sans;
+        for (const MoveRecord &move : game.moves)
+            sans << move.san;
+        QCOMPARE(sans, (QStringList{"e4", "e5", "Nf3", "Nc6", "Bb5"}));
+        QCOMPARE(game.variations.size(), 1);
+        QCOMPARE(game.variations.first().atPly, 4);
+        QCOMPARE(game.variations.first().moves.size(), 2);
+        QCOMPARE(game.variations.first().moves.first().san, QStringLiteral("d6"));
+        QVERIFY(!ChessBaseDatabase::open(dir.filePath(QStringLiteral("missing.2cbh")), &error));
+
+        // A real database and the same one as a .cbh, when given
+        // (PRAGMA_2CBH_SAMPLE, PRAGMA_2CBH_TWIN: ChessBase converts both
+        // ways): every game the same, moves and names.
+        const QString sample = qEnvironmentVariable("PRAGMA_2CBH_SAMPLE");
+        const QString twin = qEnvironmentVariable("PRAGMA_2CBH_TWIN");
+        if (sample.isEmpty() || twin.isEmpty())
+            return;
+        const std::unique_ptr<ChessBaseDatabase> modern = ChessBaseDatabase::open(sample, &error);
+        QVERIFY2(modern, qPrintable(error));
+        const std::unique_ptr<ChessBaseDatabase> classic = ChessBaseDatabase::open(twin, &error);
+        QVERIFY2(classic, qPrintable(error));
+        int compared = 0;
+        int variations = 0;
+        for (int index = 0, other = 0; index < modern->count() && other < classic->count(); ++index, ++other) {
+            const ChessBaseDatabase::Entry a = modern->entry(index);
+            const ChessBaseDatabase::Entry b = classic->entry(other);
+            if (!a.isGame || !b.isGame)
+                continue;
+            QString modernError;
+            QString classicError;
+            const GameRecord x = modern->game(index, &modernError);
+            const GameRecord y = classic->game(other, &classicError);
+            const QString where = QStringLiteral("record %1: %2 - %3").arg(index).arg(x.white, x.black);
+            QVERIFY2(modernError.isEmpty(), qPrintable(where + QStringLiteral(": ") + modernError));
+            QCOMPARE(x.white, y.white);
+            QCOMPARE(x.black, y.black);
+            QCOMPARE(x.date, y.date);
+            QCOMPARE(x.result, y.result);
+            QCOMPARE(x.eco, y.eco);
+            QCOMPARE(x.moves.size(), y.moves.size());
+            for (qsizetype i = 0; i < x.moves.size(); ++i)
+                QVERIFY2(x.moves.at(i).uci == y.moves.at(i).uci, qPrintable(where));
+            variations += int(x.variations.size());
+            ++compared;
+        }
+        qInfo("compared %d games with their .cbh twin; %d variations read", compared, variations);
+        QVERIFY(compared > 0);
     }
 
     void readsAndSearchesTheGuide()
@@ -3914,26 +4110,26 @@ void TestChessRules::sharesTheComputerWithTheEngine()
 {
     // A share of the machine, never a weaker search: threads, a cap, a priority.
     const EnginePower minimum = EnginePower::forLevel(EnginePower::Minimum, 12);
-    QCOMPARE(minimum.cpuPercent, 10);
-    QCOMPARE(minimum.threads, 2); // 1.2 cores, rounded up: the cap does the rest.
-    QCOMPARE(minimum.quotaOfOneCore(12), 120);
+    QCOMPARE(minimum.cpuPercent, 5);
+    QCOMPARE(minimum.threads, 1); // 0.6 of a core, rounded up: the cap does the rest.
+    QCOMPARE(minimum.quotaOfOneCore(12), 60);
     QVERIFY(minimum.lowPriority);
-    const EnginePower balanced = EnginePower::forLevel(EnginePower::kDefault, 12);
-    QCOMPARE(balanced.cpuPercent, 50);
-    QCOMPARE(balanced.threads, 6);
-    QCOMPARE(balanced.quotaOfOneCore(12), 600);
-    QCOMPARE(EnginePower::forLevel(EnginePower::High, 12).threads, 9);
+    const EnginePower medium = EnginePower::forLevel(EnginePower::kDefault, 12);
+    QCOMPARE(medium.cpuPercent, 20);
+    QCOMPARE(medium.threads, 3);
+    QCOMPARE(medium.quotaOfOneCore(12), 240);
+    QCOMPARE(EnginePower::forLevel(EnginePower::High, 12).threads, 5);
     const EnginePower full = EnginePower::forLevel(EnginePower::Full, 12);
     QCOMPARE(full.cpuPercent, 0);
     QCOMPARE(full.threads, 12);
     QCOMPARE(full.quotaOfOneCore(12), 0);
     QVERIFY(!full.lowPriority);
     // A small machine: one thread, the cap below one core.
-    QCOMPARE(EnginePower::forLevel(EnginePower::Minimum, 4).threads, 1);
-    QCOMPARE(EnginePower::forLevel(EnginePower::Minimum, 4).quotaOfOneCore(4), 40);
+    QCOMPARE(EnginePower::forLevel(EnginePower::Medium, 4).threads, 1);
+    QCOMPARE(EnginePower::forLevel(EnginePower::Medium, 4).quotaOfOneCore(4), 80);
     QCOMPARE(EnginePower::forLevel(EnginePower::Light, 1).threads, 1);
     // Out of range: the nearest level.
-    QCOMPARE(EnginePower::forLevel(0, 8).cpuPercent, 10);
+    QCOMPARE(EnginePower::forLevel(0, 8).cpuPercent, 5);
     QCOMPARE(EnginePower::forLevel(9, 8).cpuPercent, 0);
 
     // The level is saved with the engine, the bundled one's too.

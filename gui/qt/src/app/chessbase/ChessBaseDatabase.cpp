@@ -1,6 +1,7 @@
 #include "ChessBaseDatabase.h"
 
 #include "CbgDecoder.h"
+#include "ChessBase2Database.h"
 #include "app/ChessPosition.h"
 #include "app/GameVariations.h"
 
@@ -16,7 +17,8 @@ struct Text {
 };
 
 constexpr int kHeaderRecord = 46;
-/// The entity files start with 28 bytes, the count first.
+/// The entity files start with a header, the count first (little-endian):
+/// 28 bytes in older databases, 32 in those of recent ChessBase versions.
 constexpr int kEntityHeader = 28;
 constexpr int kPlayerRecord = 67;
 constexpr int kTournamentRecord = 99;
@@ -37,16 +39,16 @@ QString field(const QByteArray &bytes, int offset, int size)
     return QString::fromLatin1(end < 0 ? raw : raw.left(end)).trimmed();
 }
 
-/// The file beside the `.cbh` with another suffix, whatever its case.
-QString sibling(const QString &cbhPath, const QString &suffix)
+/// Where the records of an entity file start: after the header, whose
+/// length is what the count of records leaves of the file.
+int entityStart(const QByteArray &bytes, int recordSize)
 {
-    const QFileInfo info(cbhPath);
-    for (const QString &candidate : {suffix, suffix.toUpper()}) {
-        const QString path = info.dir().filePath(info.completeBaseName() + QLatin1Char('.') + candidate);
-        if (QFile::exists(path))
-            return path;
-    }
-    return info.dir().filePath(info.completeBaseName() + QLatin1Char('.') + suffix);
+    if (bytes.size() < 4)
+        return kEntityHeader;
+    const qint64 count = qint64(quint8(bytes.at(0))) | qint64(quint8(bytes.at(1))) << 8
+                         | qint64(quint8(bytes.at(2))) << 16 | qint64(quint8(bytes.at(3))) << 24;
+    const qint64 header = bytes.size() - count * recordSize;
+    return header >= kEntityHeader && header <= 64 ? int(header) : kEntityHeader;
 }
 
 QByteArray readAll(const QString &path)
@@ -57,8 +59,21 @@ QByteArray readAll(const QString &path)
 
 } // namespace
 
+QString ChessBaseDatabase::sibling(const QString &path, const QString &suffix)
+{
+    const QFileInfo info(path);
+    for (const QString &candidate : {suffix, suffix.toUpper()}) {
+        const QString found = info.dir().filePath(info.completeBaseName() + QLatin1Char('.') + candidate);
+        if (QFile::exists(found))
+            return found;
+    }
+    return info.dir().filePath(info.completeBaseName() + QLatin1Char('.') + suffix);
+}
+
 std::unique_ptr<ChessBaseDatabase> ChessBaseDatabase::open(const QString &cbhPath, QString *errorMessage)
 {
+    if (cbhPath.endsWith(QLatin1String(".2cbh"), Qt::CaseInsensitive))
+        return ChessBase2Database::open(cbhPath, errorMessage);
     const auto fail = [&](const QString &why) {
         if (errorMessage)
             *errorMessage = why;
@@ -77,10 +92,11 @@ std::unique_ptr<ChessBaseDatabase> ChessBaseDatabase::open(const QString &cbhPat
         return fail(Text::tr("The moves file (.cbg) is missing beside %1.").arg(QFileInfo(cbhPath).fileName()));
 
     const QByteArray players = readAll(sibling(cbhPath, QStringLiteral("cbp")));
-    for (int offset = kEntityHeader; offset + kPlayerRecord <= players.size(); offset += kPlayerRecord)
+    for (int offset = entityStart(players, kPlayerRecord); offset + kPlayerRecord <= players.size(); offset += kPlayerRecord)
         database->m_players << playerName(field(players, offset + 9, 30), field(players, offset + 39, 20));
     const QByteArray tournaments = readAll(sibling(cbhPath, QStringLiteral("cbt")));
-    for (int offset = kEntityHeader; offset + kTournamentRecord <= tournaments.size(); offset += kTournamentRecord)
+    for (int offset = entityStart(tournaments, kTournamentRecord); offset + kTournamentRecord <= tournaments.size();
+         offset += kTournamentRecord)
         database->m_tournaments << Tournament{field(tournaments, offset + 9, 40), field(tournaments, offset + 49, 30)};
     return database;
 }
@@ -159,9 +175,14 @@ GameRecord ChessBaseDatabase::game(int index, QString *errorMessage) const
     const int size = CbgDecoder::recordSize(head);
     const QByteArray record = head + cbg.read(qMax(0, size - 4));
     const CbgDecoder::Decoded decoded = CbgDecoder::decode(record);
+    fillMoves(game, decoded, errorMessage);
+    return game;
+}
+
+void ChessBaseDatabase::fillMoves(GameRecord &game, const CbgDecoder::Decoded &decoded, QString *errorMessage)
+{
     if (!decoded.error.isEmpty() && errorMessage)
         *errorMessage = decoded.error;
-
     // SAN, and the line cut at the first move that is not legal.
     game.startFen = decoded.startFen;
     std::optional<ChessPosition> position = decoded.startFen.isEmpty() ? ChessPosition::startingPosition()
@@ -170,7 +191,7 @@ GameRecord ChessBaseDatabase::game(int index, QString *errorMessage) const
         if (errorMessage)
             *errorMessage = Text::tr("The start position is not valid: %1").arg(decoded.startFen);
         game.startFen.clear();
-        return game;
+        return;
     }
     const ChessPosition start = *position;
     for (const QString &uci : decoded.uciMoves) {
@@ -187,5 +208,4 @@ GameRecord ChessBaseDatabase::game(int index, QString *errorMessage) const
     // The variations: SAN filled in, illegal tails cut, with the rules.
     game.variations = decoded.variations;
     GameVariations::resolve(game, start);
-    return game;
 }

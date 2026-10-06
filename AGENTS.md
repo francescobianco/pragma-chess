@@ -932,7 +932,16 @@ while one of them is selected.
   reads the `.cbh` family read-only (headers, players `.cbp`, tournaments
   `.cbt`, moves `.cbg` through `app/chessbase/CbgDecoder`, both pure and
   unit-tested on records of ChessBase's own sample base); the format is
-  written down in TODO.md. `ChessBaseFetch` reads from where the last sync
+  written down in TODO.md. The format of ChessBase 17 and later, the
+  `.2cbh` family (headers `.2cbh`, moves `.2cbg`, players and tournaments
+  in `.2lid`, little-endian, 64-bit ids, UTF-8 texts), is
+  `ChessBase2Database` behind the same interface (`ChessBaseDatabase::open`
+  chooses by suffix), its files mapped rather than read (a big base is
+  gigabytes); its moves are `Cbg2Decoder`: words that name a move whatever
+  the position, so the variations come with them. Set-up positions,
+  Chess960 and annotations (`.2cba`) are not read yet. A real base and its
+  `.cbh` twin can be compared game by game (`readsChessBase2Databases`,
+  `PRAGMA_2CBH_SAMPLE`/`PRAGMA_2CBH_TWIN`). `ChessBaseFetch` reads from where the last sync
   stopped (`state.read` = records read; external id = record index) in
   batches of 200. The settings widget shows a file picker instead of an
   account; the "account" is the file's base name. A file that is not on this
@@ -1130,16 +1139,16 @@ edits them; Detect Engines (`EngineDetector`) adds UCI engines found in PATH
 and the usual install folders, skipping binaries already registered. The
 project stores the engine id; an unknown id falls back to the bundled engine.
 Each engine has a **Computing Power** (`EngineProfile::power`, Manage Engines),
-how much of the computer it may take, 1 Minimum (10%) to 5 Full (no limit),
-3 Medium (half) by default: `app/EnginePower` (pure, unit-tested) gives the
+how much of the computer it may take: 1 Minimum 5%, 2 Light 10%, 3 Medium
+20% (the default: the user found half too much), 4 High 40%, 5 Full (no limit): `app/EnginePower` (pure, unit-tested) gives the
 threads, a hard cap and a low priority. It never weakens the search — no
 depth or time limit: the engine is only slower. The cap is the system's:
 on Linux the engine runs in a systemd scope with `CPUQuota`
 (`systemd-run --user --scope`, when a user session can make one,
 `UciEngine::canLimitCpu`), on Windows in a job object with a hard CPU rate;
 macOS has none, so threads and priority only. Threads set by hand win over
-the level's; the cap stays. Measured on 12 cores: 120/300/600/900% of one
-core for levels 1–4.
+the level's; the cap stays. Measured on 12 cores with the earlier shares
+(10/25/50/75%): 120/300/600/900% of one core, exactly the cap.
 The dialog's list marks the engine in use (bold, "in use"), and selecting
 another one offers Use This Engine, which switches at once through
 `MainWindow::selectEngine`, like Engine ▸ Switch Engine: the engine is part of

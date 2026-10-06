@@ -75,12 +75,12 @@ SourceSettingsWidget::SourceSettingsWidget(const SourceKind &kind, const QString
     if (m_kind.localFile) {
         // A file on this computer: chosen with the file dialog, the name shown as the account.
         m_path = new QLineEdit;
-        m_path->setPlaceholderText(tr("The .cbh file of the database"));
+        m_path->setPlaceholderText(tr("The .cbh or .2cbh file of the database"));
         auto *browse = new QPushButton(tr("&Browse…"));
         connect(browse, &QPushButton::clicked, this, [this] {
             const QString chosen = QFileDialog::getOpenFileName(this, tr("Choose a ChessBase Database"),
                                                                 m_path->text().isEmpty() ? QDir::homePath() : m_path->text(),
-                                                                tr("ChessBase databases (*.cbh *.CBH)"));
+                                                                tr("ChessBase databases (*.cbh *.CBH *.2cbh *.2CBH)"));
             if (!chosen.isEmpty())
                 m_path->setText(chosen);
         });
@@ -409,7 +409,7 @@ bool SourceSettingsWidget::validate(QString *errorMessage)
     if (m_path) {
         const QString path = m_path->text().trimmed();
         if (path.isEmpty()) {
-            *errorMessage = tr("Choose the .cbh file of the ChessBase database.");
+            *errorMessage = tr("Choose the .cbh or .2cbh file of the ChessBase database.");
             return false;
         }
         QString why;

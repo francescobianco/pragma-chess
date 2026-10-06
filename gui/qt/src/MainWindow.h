@@ -342,6 +342,10 @@ private:
     /// Reads the names again when their database changed since they were read.
     void reloadOpeningNamesIfChanged();
     /// Plays a move chosen outside the board, keeping a stored game unchanged.
+    /// A move the user made (the board, the Opening Tree): one other than
+    /// the next in the middle of a line asks first whether it is a variation
+    /// or replaces the rest of the line.
+    void playUserMove(const ChessMove &move);
     void playMove(const ChessMove &move);
     void updateDatabaseActions();
     // External sources of games (lichess.org, chess.com, …), synced in the background.

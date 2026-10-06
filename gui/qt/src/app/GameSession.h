@@ -67,6 +67,15 @@ public:
     /// one, appends it at the end of the line, or else starts a variation
     /// with it. Returns false if the move is illegal.
     bool playMove(const ChessMove &move);
+    /// Whether playMove() would start a new variation with `move`: a legal
+    /// move other than the next one, in the middle of a line, that no
+    /// variation there begins with. The board then asks what to do with it.
+    bool wouldBranch(const ChessMove &move) const;
+    /// Plays `move` in place of the rest of the line: the line's moves after
+    /// the current ply, and the variations hanging off them, are gone; the
+    /// alternatives to the move replaced stay, as alternatives to this one.
+    /// Returns false if the move is illegal.
+    bool replaceLine(const ChessMove &move);
     /// Annotates the move that leads to `ply` (1 to plyCount()) of the line
     /// with these NAGs (MoveAnnotation), in place of the ones it had.
     void setAnnotations(int ply, const QList<int> &nags);

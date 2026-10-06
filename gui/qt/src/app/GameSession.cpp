@@ -195,6 +195,61 @@ bool GameSession::playMove(const ChessMove &move)
     return true;
 }
 
+bool GameSession::wouldBranch(const ChessMove &move) const
+{
+    if (isNextMove(move) || !position().isLegal(move))
+        return false;
+    const QString uci = move.uci();
+    // At the very branch of a variation: the parent's move and the siblings.
+    if (!m_path.isEmpty() && m_ply == m_branchPly) {
+        QList<int> parentPath = m_path;
+        const int taken = parentPath.takeLast();
+        const QList<MoveRecord> parentLine = GameVariations::lineMoves(m_game, parentPath);
+        if (m_ply < parentLine.size() && parentLine.at(m_ply).uci == uci)
+            return false;
+        const QList<Variation> &siblings = *GameVariations::variationsOf(m_game, parentPath);
+        const int atPly = siblings.at(taken).atPly;
+        for (const Variation &sibling : siblings) {
+            if (sibling.atPly == atPly && sibling.moves.first().uci == uci)
+                return false;
+        }
+        return true;
+    }
+    const int ownPly = m_ply + 1 - m_branchPly;
+    for (const Variation &variation : *GameVariations::variationsOf(m_game, m_path)) {
+        if (variation.atPly == ownPly && variation.moves.first().uci == uci)
+            return false;
+    }
+    return m_ply < plyCount();
+}
+
+bool GameSession::replaceLine(const ChessMove &move)
+{
+    if (!position().isLegal(move))
+        return false;
+    const int ply = m_ply;
+    // At the very branch of a variation the line going on is the parent's.
+    if (!m_path.isEmpty() && ply == m_branchPly) {
+        QList<int> parentPath = m_path;
+        parentPath.removeLast();
+        followLine(parentPath);
+    }
+    const MoveRecord record{position().san(move), move.uci(), {}};
+    const int kept = ply - m_branchPly; // The line's own moves before the new one.
+    QList<MoveRecord> &moves = ownMoves();
+    moves.resize(kept);
+    moves << record;
+    // Variations off the moves gone go with them; those replacing the move
+    // replaced (at its own place, kept + 1) now replace the new one.
+    lineVariations().removeIf([kept](const Variation &variation) { return variation.atPly > kept + 1; });
+    followLine(m_path);
+    m_ply = ply + 1;
+    m_game.plyCount = int(m_game.moves.size());
+    Q_EMIT gameChanged();
+    Q_EMIT plyChanged(m_ply);
+    return true;
+}
+
 void GameSession::setComment(const QList<int> &path, int index, const QString &comment)
 {
     if (MoveComment::at(m_game, path, index) == comment || !MoveComment::set(m_game, path, index, comment))

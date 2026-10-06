@@ -30,23 +30,26 @@
 
 namespace {
 
-/// The link of a move: "game:path/ply", the path's indexes joined by dots.
+/// The link of a move: "mv:game:path/ply", the path's indexes joined by dots.
 QString href(int game, const QList<int> &path, int ply)
 {
     QStringList parts;
     for (const int index : path)
         parts << QString::number(index);
-    return QStringLiteral("%1:%2/%3").arg(game).arg(parts.join(QLatin1Char('.'))).arg(ply);
+    // With a scheme of its own: "0:…" is no URL, and anchorClicked() would
+    // hand over an empty one (variation moves could not be clicked).
+    return QStringLiteral("mv:%1:%2/%3").arg(game).arg(parts.join(QLatin1Char('.'))).arg(ply);
 }
 
 MoveTreeView::Place placeOf(const QString &link)
 {
     MoveTreeView::Place place;
-    const int colon = int(link.indexOf(QLatin1Char(':')));
-    const QStringList halves = link.mid(colon + 1).split(QLatin1Char('/'));
+    const QString move = link.startsWith(QLatin1String("mv:")) ? link.mid(3) : link;
+    const int colon = int(move.indexOf(QLatin1Char(':')));
+    const QStringList halves = move.mid(colon + 1).split(QLatin1Char('/'));
     if (colon < 0 || halves.size() != 2)
         return place;
-    place.game = link.left(colon).toInt();
+    place.game = move.left(colon).toInt();
     for (const QString &index : halves.first().split(QLatin1Char('.'), Qt::SkipEmptyParts))
         place.path << index.toInt();
     place.ply = halves.last().toInt();
@@ -765,7 +768,7 @@ void MoveTreeView::rebuild()
                                   "td.dots { color: %1; }"
                                   "td.cur { color: %4; background-color: %5; }"
                                   "td.start { color: %1; }"
-                                  "td.var { font-size: 92%; color: %2; padding-left: 14px; }"
+                                  "td.var { font-size: 92%; color: %2; }"
                                   "td.com { font-size: 92%; font-style: italic; color: %3; padding-left: 6px; }"
                                   "td.par { color: %3; padding: 8px %6px; }"
                                   "td.break { padding: 10px %6px; }"

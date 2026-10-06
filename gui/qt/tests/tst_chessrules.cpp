@@ -1597,6 +1597,63 @@ END FUNCTION
         }
     }
 
+    void replacesTheRestOfALine()
+    {
+        GameRecord game;
+        for (const char *uci : {"e2e4", "e7e5", "g1f3", "b8c6", "f1b5"})
+            game.moves << MoveRecord{QString(), QString::fromLatin1(uci), {}};
+        GameSession session;
+        session.setGame(game);
+        const auto move = [&](const char *uci) { return *session.position().moveFromUci(QString::fromLatin1(uci)); };
+
+        // Asked only for a new move in the middle of a line.
+        session.goToPly(2);
+        QVERIFY(!session.wouldBranch(move("g1f3"))); // The next move.
+        QVERIFY(session.wouldBranch(move("f1c4")));
+        session.goToEnd();
+        QVERIFY(!session.wouldBranch(move("a7a6"))); // The end: the line goes on.
+
+        // An alternative to 3.Bb5 (2...Nc6 3.Bc4), and one hanging further on.
+        session.goToPly(4);
+        QVERIFY(session.playMove(move("f1c4")));
+        session.goToLine({}, 2);
+        QVERIFY(session.playMove(move("b1c3")));
+        session.goToLine({}, 2);
+        QVERIFY(!session.wouldBranch(move("b1c3"))); // A variation begins with it: it is taken.
+
+        // Replacing from 2.Nf3: the rest of the main line goes, with the
+        // variation off a move gone; the one replacing the move replaced stays.
+        session.goToLine({}, 2);
+        QVERIFY(session.replaceLine(move("f1c4")));
+        QVERIFY(session.path().isEmpty());
+        QCOMPARE(session.ply(), 3);
+        QCOMPARE(session.plyCount(), 3);
+        QCOMPARE(session.game().moves.last().uci, QStringLiteral("f1c4"));
+        QCOMPARE(session.game().moves.last().san, QStringLiteral("Bc4"));
+        QCOMPARE(session.game().variations.size(), 1);
+        QCOMPARE(session.game().variations.first().moves.first().uci, QStringLiteral("b1c3"));
+
+        // In a variation, the rest of that line only.
+        session.goToLine({0}, 3);
+        QVERIFY(session.playMove(move("b8c6")));
+        QVERIFY(session.playMove(move("g1f3")));
+        session.goToLine({0}, 4);
+        QVERIFY(session.wouldBranch(move("d2d3")));
+        QVERIFY(session.replaceLine(move("d2d3")));
+        QCOMPARE(session.path(), QList<int>{0});
+        QCOMPARE(session.game().variations.first().moves.size(), 3);
+        QCOMPARE(session.game().variations.first().moves.last().uci, QStringLiteral("d2d3"));
+        QCOMPARE(session.game().moves.size(), 3); // The main line is untouched.
+
+        // At the very branch of a variation, the line replaced is the parent's.
+        session.goToLine({0}, 2);
+        QVERIFY(session.replaceLine(move("d2d4")));
+        QVERIFY(session.path().isEmpty());
+        QCOMPARE(session.game().moves.size(), 3);
+        QCOMPARE(session.game().moves.last().uci, QStringLiteral("d2d4"));
+        QCOMPARE(session.game().variations.size(), 1); // Nc3 now replaces d4.
+    }
+
     void playsIntoVariations()
     {
         GameRecord game;

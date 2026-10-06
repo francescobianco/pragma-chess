@@ -586,10 +586,15 @@ branch, empty for the main line.
   reader of the moves on the board goes through the session, never through
   `game().moves` (that is the main line). `playMove`: the next move steps
   forward; a move that begins an existing variation takes it; at the end of
-  the line the move is appended; anywhere else it starts a variation. At the
+  the line the move is appended; anywhere else it starts a variation. A
+  move the user makes there (board, Opening Tree: `MainWindow::playUserMove`,
+  `GameSession::wouldBranch`) asks first: Insert as Variation, or Replace
+  Main Line / Replace Line (`GameSession::replaceLine`: the line's moves after
+  it go, with the variations off them) — the one way a game's moves are
+  overwritten, chosen by the user. Not in training or online. At the
   very branch of a variation the parent's move takes the parent line and a
   new move becomes a sister, not a variation of the variation. **A game's
-  moves are never overwritten**, and a stored game is written back at once
+  moves are never overwritten** but by Replace (below), and a stored game is written back at once
   (`MainWindow::storeOpenGame`, shared with annotations; the old "the new
   line becomes a game of its own" is gone).
 - `widgets/MoveTreeView` (QTextBrowser) draws the tree as a classic table
@@ -766,7 +771,7 @@ a chapter always has a game. In other tools this is a study or a chess book.
   paragraph goes first among those of its move, from below last. A first row of
   nothing pins the columns' widths, and `rebuild` never runs inside
   itself (`setHtml` resizes the view, whose header asks for another).
-  Links are `game:path/ply`; another game's moves emit `gameMoveActivated`.
+  Links are `mv:game:path/ply` (a scheme of their own: "0:…" is no URL, and the click would come empty); another game's moves emit `gameMoveActivated`.
 - File ▸ New Chapter…, Switch Chapter (with Manage Chapters… under its list)
   (`dialogs/ManageChaptersDialog`) and Project Settings…
   (`dialogs/ProjectSettingsDialog`: the project's `name`, shown in the

@@ -74,7 +74,7 @@ Move a piece by dragging it, or by clicking it and then its square. A pawn reach
 
 **Game ▸ New Game** (Ctrl+Shift+N) starts a game to enter move by move. **Game ▸ Save Game to Database** stores it in the open database; **Game ▸ Save Game to Another Database…** stores it in a database you choose, which is not opened.
 
-Play a move that is not the next one of the game and it becomes a **variation**: the game keeps its line, and the new one appears in the Moves panel under the move it replaces. A game stored in the database is saved at once, variations included.
+Play a move that is not the next one of the game and you are asked what it is: **Insert as Variation** keeps the game's line, and the new one appears in the Moves panel under the move it replaces; **Replace Main Line** (or **Replace Line**, in a variation) deletes the moves after it and goes on with yours. While training or playing online nothing is asked: a different move is a variation. A game stored in the database is saved at once, variations included.
 
 **Game ▸ Set Up Position…** opens a board to draw a position on: choose a piece on the right and click the squares to put it down (a click on the same piece takes it off), drag a piece to move it anywhere on the board (let go off the board, it goes back), right-click a square to empty it. Set the side to move, castling, en passant and the move number, or type a FEN; **Starting Position**, **Clear Board** and **Flip Board** help. OK is enabled only for a position a game can start from, and the text below the board says what is wrong. The position starts a new game at the end of the chapter, so the game you were on stays as it is. An online game in progress is kept or resigned first.
 

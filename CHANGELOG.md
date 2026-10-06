@@ -8,6 +8,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- A move other than the game's next one, played in the middle of a game,
+  asks whether to **insert it as a variation** or to **replace the main line**
+  (or the variation) from there.
 - **Time control** of a game: games imported from lichess.org and chess.com
   and online games keep theirs, Game Information lets you write it (3+2,
   90+30), and a new Time Control node of the database tree lists them —
@@ -66,6 +69,7 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Variations in the move list start where the moves above them start.
 - The evaluation bar has a hairline edge, the board's own, so White's side
   stands out on a light window.
 - Titles and subtitles in the move list have less room under them.
@@ -75,6 +79,7 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- The moves of a variation in the move list could not be clicked.
 - After a restart the move list could be built narrower than its header
   (its columns, paragraphs and titles some pixels short) until something
   redrew it.

@@ -2773,6 +2773,30 @@ non è su questo computer.</translation>
         <source>A new game after this one</source>
         <translation>Una nuova partita dopo questa</translation>
     </message>
+    <message>
+        <source>New Move</source>
+        <translation>Nuova mossa</translation>
+    </message>
+    <message>
+        <source>%1 is not the move the game goes on with.</source>
+        <translation>%1 non è la mossa con cui prosegue la partita.</translation>
+    </message>
+    <message>
+        <source>Insert as &amp;Variation</source>
+        <translation>Inserisci come &amp;variante</translation>
+    </message>
+    <message>
+        <source>&amp;Replace Main Line</source>
+        <translation>&amp;Sostituisci linea principale</translation>
+    </message>
+    <message>
+        <source>&amp;Replace Line</source>
+        <translation>&amp;Sostituisci linea</translation>
+    </message>
+    <message>
+        <source>The moves after it are deleted</source>
+        <translation>Le mosse successive vengono eliminate</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

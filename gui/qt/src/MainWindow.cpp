@@ -1237,7 +1237,7 @@ void MainWindow::createDocks()
     m_engineDock = addDock(m_sidebar, QStringLiteral("engineDock"), tr("Engine"), m_enginePanel, Qt::RightDockWidgetArea);
 
     m_bookPanel = new BookPanel;
-    connect(m_bookPanel, &BookPanel::moveActivated, this, &MainWindow::playMove);
+    connect(m_bookPanel, &BookPanel::moveActivated, this, &MainWindow::playUserMove);
     connect(m_bookPanel, &BookPanel::backActivated, m_session, &GameSession::goBack);
     connect(m_bookPanel, &BookPanel::repertoireToggled, this, [this](const ChessMove &move, bool inRepertoire) {
         QString error;
@@ -4205,7 +4205,42 @@ void MainWindow::playBoardMove(int from, int to, const QPoint &globalPosition)
         move.promotion = PieceType(chosen->data().toInt());
     }
 
-    playMove(move);
+    playUserMove(move);
+}
+
+void MainWindow::playUserMove(const ChessMove &move)
+{
+    // A move other than the one the game goes on with, in the middle of a
+    // line: the user says whether it is a variation or replaces the rest.
+    // Not while playing (training, online): the game goes on as it is.
+    if (m_onlinePlay || m_trainingModeAction->isChecked() || !m_session->wouldBranch(move)) {
+        playMove(move);
+        return;
+    }
+    const bool atBranch = !m_session->path().isEmpty() && m_session->ply() == m_session->branchPly();
+    const bool mainLine = m_session->path().size() - (atBranch ? 1 : 0) == 0;
+    QMessageBox box(QMessageBox::Question, tr("New Move"),
+                    tr("%1 is not the move the game goes on with.")
+                        .arg(m_session->position().moveNumberText() + m_session->position().san(move)),
+                    QMessageBox::NoButton, this);
+    QPushButton *variation = box.addButton(tr("Insert as &Variation"), QMessageBox::AcceptRole);
+    QPushButton *replace =
+        box.addButton(mainLine ? tr("&Replace Main Line") : tr("&Replace Line"), QMessageBox::DestructiveRole);
+    replace->setToolTip(tr("The moves after it are deleted"));
+    box.addButton(QMessageBox::Cancel);
+    box.setDefaultButton(variation);
+    box.exec();
+    if (box.clickedButton() == variation) {
+        playMove(move);
+    } else if (box.clickedButton() == replace) {
+        if (!m_session->replaceLine(move))
+            return;
+        playMoveSound();
+        QString error;
+        if (!storeOpenGame(&error))
+            statusBar()->showMessage(tr("The move could not be saved in the database: %1").arg(error), 8000);
+    }
+    // Cancel: nothing was played, the board never moved the piece.
 }
 
 void MainWindow::playMove(const ChessMove &move)

@@ -653,8 +653,8 @@ Il Nero ha catturato: %2</translation>
         <translation>Tieni la mossa: il motore risponde</translation>
     </message>
     <message>
-        <source>Hold to see on the board the position at the end of the engine&apos;s line</source>
-        <translation>Tieni premuto per vedere sulla scacchiera la posizione alla fine della linea del motore</translation>
+        <source>Hold: where the line ends</source>
+        <translation>Tieni premuto: fine della linea</translation>
     </message>
 </context>
 <context>

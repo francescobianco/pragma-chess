@@ -45,6 +45,9 @@ Q_SIGNALS:
     /// shows the end of the best line meanwhile.
     void peekHeld(bool held);
 
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 private:
     QWidget *m_tutor;
     QLabel *m_tutorMessage;
@@ -62,6 +65,9 @@ private:
     bool m_lineHidden = false;
     /// Whether the line is about the position on the board (a stale one is not peeked at).
     bool m_hasLine = false;
+    /// The eye is held down.
+    bool m_peeking = false;
+    void stopPeeking();
 
     void refreshLine();
 };

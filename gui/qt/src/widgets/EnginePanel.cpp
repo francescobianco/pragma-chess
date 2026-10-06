@@ -8,6 +8,7 @@
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QMouseEvent>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -38,10 +39,13 @@ EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
     // Held down, the board shows where the best line ends.
     m_peek->setIcon(SymbolicIcons::icon(QStringLiteral("pragma-eye")));
     m_peek->setAutoRaise(true);
-    m_peek->setToolTip(tr("Hold to see on the board the position at the end of the engine's line"));
+    m_peek->setToolTip(tr("Hold: where the line ends"));
     m_peek->setEnabled(false);
-    connect(m_peek, &QToolButton::pressed, this, [this] { Q_EMIT peekHeld(true); });
-    connect(m_peek, &QToolButton::released, this, [this] { Q_EMIT peekHeld(false); });
+    // The physical press and release, not the button's own down state: taking
+    // the focus, or a tooltip appearing, let the button go after a moment
+    // while the mouse was still held.
+    m_peek->setFocusPolicy(Qt::NoFocus);
+    m_peek->installEventFilter(this);
     header->addWidget(m_name, 1);
     header->addWidget(m_peek);
     header->addWidget(toggle);
@@ -181,16 +185,43 @@ void EnginePanel::setLineHidden(bool hidden)
     refreshLine();
 }
 
+bool EnginePanel::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == m_peek && m_peek->isEnabled()) {
+        const auto *mouse = static_cast<QMouseEvent *>(event);
+        if (event->type() == QEvent::MouseButtonPress && mouse->button() == Qt::LeftButton) {
+            m_peeking = true;
+            m_peek->setDown(true);
+            Q_EMIT peekHeld(true);
+            return true;
+        }
+        if (event->type() == QEvent::MouseButtonRelease && mouse->button() == Qt::LeftButton) {
+            stopPeeking();
+            return true;
+        }
+        if (event->type() == QEvent::MouseButtonDblClick)
+            return true; // A quick second tap is another press, already handled.
+    }
+    return QWidget::eventFilter(watched, event);
+}
+
+void EnginePanel::stopPeeking()
+{
+    if (!m_peeking)
+        return;
+    m_peeking = false;
+    m_peek->setDown(false);
+    Q_EMIT peekHeld(false);
+}
+
 void EnginePanel::refreshLine()
 {
     m_line->setText(m_lineHidden ? tr("The best line is hidden: it is your move.") : m_lineText);
     m_line->setEnabled(!m_lineHidden);
     // The end of a line the user may not see is not shown either.
     const bool peekable = m_hasLine && !m_lineHidden;
-    if (!peekable && m_peek->isDown()) {
-        m_peek->setDown(false);
-        Q_EMIT peekHeld(false);
-    }
+    if (!peekable)
+        stopPeeking();
     m_peek->setEnabled(peekable);
 }
 

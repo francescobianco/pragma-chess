@@ -66,6 +66,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- The evaluation bar has a hairline edge, the board's own, so White's side
+  stands out on a light window.
 - Titles and subtitles in the move list have less room under them.
 - The `.pdb` schema is now version 8 (the games' other PGN tags and their
   comments). A database opened by this version can no longer be opened by

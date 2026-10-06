@@ -84,9 +84,21 @@ void EvaluationBar::paintEvent(QPaintEvent *)
     painter.fillRect(QRectF(bounds.left(), bounds.center().y() - 0.5, bounds.width(), 1),
                      QColor(0x80, 0x80, 0x80, 0x90));
 
-    if (!m_evaluation)
-        return;
+    if (m_evaluation)
+        paintScore(painter, bounds);
 
+    // A hairline around it, the board's neutral frame: on a light window
+    // White's side would melt into the background.
+    painter.setClipping(false);
+    QColor edge = palette().color(QPalette::WindowText);
+    edge.setAlphaF(0.28);
+    painter.setPen(QPen(edge, 1));
+    painter.setBrush(Qt::NoBrush);
+    painter.drawRoundedRect(bounds.adjusted(0.5, 0.5, -0.5, -0.5), 2.5, 2.5);
+}
+
+void EvaluationBar::paintScore(QPainter &painter, const QRectF &bounds) const
+{
     // The score sits at the end of the side that is ahead.
     const bool whiteAhead = m_evaluation->isMate ? m_evaluation->mating == Side::White
                                                  : m_evaluation->centipawns >= 0;

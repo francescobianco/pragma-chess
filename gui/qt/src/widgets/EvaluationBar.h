@@ -6,6 +6,8 @@
 
 #include <optional>
 
+class QPainter;
+class QRectF;
 class QVariantAnimation;
 
 /// Vertical evaluation gauge shown next to the board: the White share grows
@@ -26,6 +28,9 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
+    /// The score, at the end of the side that is ahead.
+    void paintScore(QPainter &painter, const QRectF &bounds) const;
+
     std::optional<EngineEvaluation> m_evaluation;
     bool m_flipped = false;
     double m_whiteShare = 0.5;

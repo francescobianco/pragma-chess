@@ -3398,16 +3398,20 @@ END FUNCTION
         book.chapter().currentGame = 0;
         QCOMPARE(book.breakGame(), 2);
         QCOMPARE(book.chapter().games.size(), 3);
-        // Breaks with nothing after them go, but not the game on the board.
-        book.chapter().games.insert(1, ChapterGame());
-        book.chapter().currentGame = 3;
-        book.removeEmptyGames();
-        QCOMPARE(book.chapter().games.size(), 3);
-        QCOMPARE(book.chapter().currentGame, 2);
+        // Insert Game Break: always a new game, right after the one clicked,
+        // even after an empty one; empty games stay until deleted.
         book.chapter().currentGame = 0;
-        book.removeEmptyGames();
-        QCOMPARE(book.chapter().games.size(), 2);
-        book.insertGame(0); // As before: a new game right after the first, current.
+        QCOMPARE(book.insertGame(0), 1);
+        QCOMPARE(book.insertGame(1), 2);
+        QCOMPARE(book.chapter().games.size(), 5);
+        QVERIFY(book.chapter().games.at(1).isEmpty() && book.chapter().games.at(2).isEmpty());
+        QCOMPARE(book.chapter().currentGame, 2);
+        QVERIFY(book.removeGame(2));
+        QVERIFY(book.removeGame(1));
+        QCOMPARE(book.chapter().games.size(), 3);
+        QCOMPARE(book.chapter().currentGame, 0); // The game before the one deleted.
+        QVERIFY(book.removeGame(2)); // The empty one at the end.
+        book.insertGame(0); // A new game right after the first, current.
         QCOMPARE(book.chapter().currentGame, 1);
         // Games move, and the one on the board stays the current one.
         const QString stored = book.chapter().games.at(0).game.uid;
@@ -3450,7 +3454,6 @@ END FUNCTION
         QVERIFY(book.isAutomatic());
         QCOMPARE(book.chapter().games.size(), 2);
         QCOMPARE(book.chapter().currentGame, 1);
-        QVERIFY(!book.removeGame(0)); // The first game has no break.
         QVERIFY(book.removeGame(1));
         QCOMPARE(book.chapter().games.size(), 1);
         QCOMPARE(book.chapter().currentGame, 0);
@@ -3489,13 +3492,20 @@ END FUNCTION
         QVERIFY(book.removeGame(1));
         QVERIFY(book.hasChapters());
 
-        // Breaks left empty are cleaned up the same way.
+        // The first game can go too, the next one taking its place; the only
+        // game is emptied.
         book.clear();
-        book.game().game.uid = QStringLiteral("stored");
-        book.breakGame();
+        book.game().game.uid = QStringLiteral("first");
+        book.insertGame(0);
+        book.game().game.uid = QStringLiteral("second");
         book.chapter().currentGame = 0;
-        book.removeEmptyGames();
-        QVERIFY(!book.hasChapters());
+        QVERIFY(book.removeGame(0));
+        QCOMPARE(book.chapter().games.size(), 1);
+        QCOMPARE(book.game().game.uid, QStringLiteral("second"));
+        QVERIFY(!book.hasChapters()); // One game of the database, only looked at.
+        QVERIFY(book.removeGame(0));
+        QVERIFY(book.game().isEmpty());
+        QVERIFY(!book.removeGame(0)); // Nothing left to take away.
 
         // Whether they came by themselves travels with the project.
         Project project;

@@ -8,6 +8,12 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Insert ▸ Game Break puts the new game right under the game you
+  right-clicked in, always; a game with no moves yet has its own row in the
+  move list ("1. …") and stays until deleted. Right-click a game for Delete
+  Game (Delete Line when it does not start from move 1), and the number of
+  its first move for Change Move Number…, so a line from a set-up position
+  can start from move 12.
 - Right-click the rule of a game break in the move list: **Delete Game
   Break** when nothing was entered after it, **Delete Following Game** when
   the game after it has moves. Titles and subtitles have Edit and Delete by

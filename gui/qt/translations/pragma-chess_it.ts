@@ -2561,10 +2561,6 @@ non è su questo computer.</translation>
         <translation>In &amp;fondo</translation>
     </message>
     <message>
-        <source>A new game at the end of the chapter, from the starting position; the numbering starts again</source>
-        <translation>Una nuova partita in fondo al capitolo, dalla posizione iniziale; la numerazione riparte</translation>
-    </message>
-    <message>
         <source>&amp;Graphics Settings…</source>
         <translation>Impostazioni &amp;grafiche…</translation>
     </message>
@@ -2718,12 +2714,44 @@ non è su questo computer.</translation>
         <translation>Elimina partita seguente</translation>
     </message>
     <message>
-        <source>The game after the break is not saved in a database: its moves will be lost. Delete it?</source>
-        <translation>La partita dopo l&apos;interruzione non è salvata in un database: le sue mosse andranno perse. Eliminarla?</translation>
+        <source>Delete Game Break</source>
+        <translation>Elimina interruzione di partita</translation>
     </message>
     <message>
-        <source>The text written around the game after the break will be lost; the game stays in the database. Delete it from the chapter?</source>
-        <translation>Il testo scritto intorno alla partita dopo l&apos;interruzione andrà perso; la partita resta nel database. Eliminarla dal capitolo?</translation>
+        <source>A new game right after this one, from the starting position; the numbering starts again</source>
+        <translation>Una nuova partita subito dopo questa, dalla posizione iniziale; la numerazione riparte</translation>
+    </message>
+    <message>
+        <source>Change Move &amp;Number…</source>
+        <translation>Cambia &amp;numero di mossa…</translation>
+    </message>
+    <message>
+        <source>Delete &amp;Line</source>
+        <translation>Cancella &amp;linea</translation>
+    </message>
+    <message>
+        <source>Delete &amp;Game</source>
+        <translation>Cancella &amp;partita</translation>
+    </message>
+    <message>
+        <source>Delete Line</source>
+        <translation>Cancella linea</translation>
+    </message>
+    <message>
+        <source>Change Move Number</source>
+        <translation>Cambia numero di mossa</translation>
+    </message>
+    <message>
+        <source>Number of the first move:</source>
+        <translation>Numero della prima mossa:</translation>
+    </message>
+    <message>
+        <source>This game is not saved in a database: its moves will be lost. Delete it?</source>
+        <translation>Questa partita non è salvata in un database: le sue mosse andranno perse. Eliminarla?</translation>
+    </message>
+    <message>
+        <source>The text written around this game will be lost; the game stays in the database. Delete it from the chapter?</source>
+        <translation>Il testo scritto intorno a questa partita andrà perso; la partita resta nel database. Eliminarla dal capitolo?</translation>
     </message>
 </context>
 <context>

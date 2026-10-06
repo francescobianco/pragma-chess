@@ -199,10 +199,19 @@ private:
     void chapterChanged();
     /// Insert Game Break: a new game, from the starting position, at the end
     /// of the chapter (ChapterBook::breakGame).
-    void insertGameBreak();
-    /// Deletes the game `index` of the chapter with the break before it
-    /// (the move list's menu on a break), asking first when work would be lost.
-    void deleteChapterGame(int index);
+    /// A new, empty game right after the game `after` of the chapter (the
+    /// current one for -1), from the move list's Insert ▸ Game Break.
+    void insertGameBreak(int after = -1);
+    /// Deletes the game `index` of the chapter with its break (the move
+    /// list's menu: Delete Game or Line, Delete Game Break, Delete Following
+    /// Game, `title`), asking first when work would be lost.
+    void deleteChapterGame(int index, const QString &title);
+    /// The number of the first move of the chapter's game `index`: its start
+    /// position's, 1 for the standard one.
+    int chapterGameStartNumber(int index) const;
+    /// Change Move Number…: the game `index` starts from another move number
+    /// (its start FEN's), e.g. a line from a position set up.
+    void changeMoveNumber(int index);
     void newChapter();
     void switchChapter(int index);
     void manageChapters();

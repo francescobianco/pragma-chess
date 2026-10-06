@@ -53,6 +53,10 @@ public:
         int comment = -1;
         /// The rule of a game break: the game it begins (then `game` is it too).
         int gameBreak = -1;
+        /// Where the first move of a game with no moves yet goes.
+        bool start = false;
+        /// The number of a game's first move.
+        bool moveNumber = false;
         bool isMove() const { return ply > 0; }
         bool isBreak() const { return gameBreak > 0; }
         bool isParagraph() const { return paragraph >= 0; }
@@ -120,6 +124,8 @@ private:
     QHash<int, QPair<int, int>> m_paragraphRows; // row → (game, paragraph).
     QHash<int, QPair<int, int>> m_commentRows;   // row → (game, own move), main lines.
     QHash<int, int> m_breakRows;                 // row → the game the break before it begins.
+    QHash<int, int> m_startCells;                // (row << 2 | column) → a game with no moves yet.
+    QHash<int, int> m_numberCells;               // (row << 2 | 0) → the game whose first move it numbers.
     int m_currentCell = -1; // The highlighted cell, same key; -1 if the current move is in a variation.
 
     /// rebuild() is running: setHtml() can resize the view, whose header asks

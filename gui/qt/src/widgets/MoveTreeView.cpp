@@ -396,6 +396,16 @@ MoveTreeView::Place MoveTreeView::placeAt(const QPoint &position) const
     }
     if (const Place inline_ = inlineCommentAt(position); inline_.isComment())
         return inline_;
+    if (const auto start = m_startCells.constFind(cell); start != m_startCells.constEnd()) {
+        place.game = *start;
+        place.start = true;
+        return place;
+    }
+    if (const auto number = m_numberCells.constFind(row << 2); number != m_numberCells.constEnd() && (cell & 3) == 0) {
+        place.game = *number;
+        place.moveNumber = true;
+        return place;
+    }
     if (const auto found = m_cellPlaces.constFind(cell); found != m_cellPlaces.constEnd()) {
         place.game = found->first;
         place.ply = found->second;
@@ -520,6 +530,8 @@ void MoveTreeView::mouseReleaseEvent(QMouseEvent *event)
         return; // Only a double click writes in it.
     if (place.game == currentGame() && place.isMove())
         Q_EMIT moveActivated({}, place.ply);
+    else if (place.game == currentGame() && place.start)
+        Q_EMIT moveActivated({}, 0);
     else if (place.game >= 0 && place.game != currentGame())
         Q_EMIT gameMoveActivated(place.game, {}, place.ply);
 }
@@ -730,6 +742,7 @@ void MoveTreeView::rebuild()
                                   "td.n { color: %1; text-align: right; }"
                                   "td.dots { color: %1; }"
                                   "td.cur { color: %4; background-color: %5; }"
+                                  "td.start { color: %1; }"
                                   "td.var { font-size: 92%; color: %2; padding-left: 14px; }"
                                   "td.com { font-size: 92%; font-style: italic; color: %3; padding-left: 6px; }"
                                   "td.par { color: %3; padding: 8px %6px; }"
@@ -758,6 +771,8 @@ void MoveTreeView::rebuild()
     m_paragraphRows.clear();
     m_commentRows.clear();
     m_breakRows.clear();
+    m_startCells.clear();
+    m_numberCells.clear();
     m_editRow = -1;
     m_currentCell = -1;
     int row = 0; // Every row written counts, from 0 (the widths' row).
@@ -787,10 +802,14 @@ void MoveTreeView::rebuild()
         ChessPosition position = start.value_or(ChessPosition::startingPosition());
         QList<ChessPosition> line{position}; // The main line's positions so far.
         bool rowOpen = false;
+        bool numbered = false; // The game's first move number is written.
         const auto openRow = [&](const QString &number) {
             html += QStringLiteral("<tr><td class=\"n\" width=\"%1\">%2</td>").arg(widths[0], number);
             rowOpen = true;
             ++row;
+            if (!numbered) // Its first number: a click there changes it.
+                m_numberCells.insert(row << 2, g);
+            numbered = true;
         };
         // A move of the main line fills its cell; the cell is what the user clicks.
         const auto moveCell = [&](int ply, bool white, const MoveRecord &move) {
@@ -846,6 +865,22 @@ void MoveTreeView::rebuild()
         };
         commentRow(game.startComment, 0);
         paragraphRows(0);
+        if (game.moves.isEmpty()) {
+            // A game with no moves yet still has its place: where its first
+            // move will go, faint, the game's own area to click and to delete.
+            const bool white = position.sideToMove() == Side::White;
+            openRow(QStringLiteral("%1.").arg(position.fullMoveNumber()));
+            if (!white)
+                html += QStringLiteral("<td class=\"dots\">…</td>");
+            const int key = row << 2 | (white ? 1 : 2);
+            m_startCells.insert(key, g);
+            const bool isCurrent = g == current && m_session->ply() == 0;
+            if (isCurrent)
+                m_currentCell = key;
+            html += QStringLiteral("<td class=\"%1\" width=\"%2\">…</td>")
+                        .arg(isCurrent ? QStringLiteral("cur") : QStringLiteral("start"), widths[white ? 1 : 2]);
+            closeRow();
+        }
 
         for (qsizetype i = 0; i < game.moves.size(); ++i) {
             const MoveRecord &move = game.moves.at(i);

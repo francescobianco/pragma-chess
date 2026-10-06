@@ -1603,7 +1603,9 @@ void MainWindow::showMoveListMenu(const QPoint &position)
         syncChapterGame();
         const bool empty = m_chapters.chapter().games.at(place.gameBreak).isEmpty();
         menu.addAction(empty ? tr("&Delete Game Break") : tr("&Delete Following Game"), this,
-                       [this, following = place.gameBreak] { deleteChapterGame(following); })
+                       [this, following = place.gameBreak, empty] {
+                           deleteChapterGame(following, empty ? tr("Delete Game Break") : tr("Delete Following Game"));
+                       })
             ->setEnabled(!m_onlinePlay);
         menu.addSeparator();
     }
@@ -1646,8 +1648,8 @@ void MainWindow::showMoveListMenu(const QPoint &position)
         ->setToolTip(tr("A smaller heading in bold, centred"));
     insert->addAction(tr("&Paragraph"), this, [insertText] { insertText(Paragraph::Kind::Text); });
     insert->addSeparator();
-    QAction *gameBreak = insert->addAction(tr("&Game Break"), this, &MainWindow::insertGameBreak);
-    gameBreak->setToolTip(tr("A new game at the end of the chapter, from the starting position; the numbering starts again"));
+    QAction *gameBreak = insert->addAction(tr("&Game Break"), this, [this, game] { insertGameBreak(game); });
+    gameBreak->setToolTip(tr("A new game right after this one, from the starting position; the numbering starts again"));
     gameBreak->setEnabled(!m_onlinePlay);
     insert->setToolTipsVisible(true);
     if (place.isParagraph()) {
@@ -1662,6 +1664,18 @@ void MainWindow::showMoveListMenu(const QPoint &position)
                            m_chapters.removeParagraph(game, index);
                            chapterChanged();
                        });
+    }
+    if (place.game >= 0 && !place.isBreak()) {
+        // The game the click is in: a whole game, or a line that starts from
+        // a later move (a position set up from a game).
+        const bool line = chapterGameStartNumber(place.game) != 1;
+        if (place.moveNumber || place.start)
+            menu.addAction(tr("Change Move &Number…"), this, [this, g = place.game] { changeMoveNumber(g); })
+                ->setEnabled(!m_onlinePlay);
+        menu.addAction(line ? tr("Delete &Line") : tr("Delete &Game"), this,
+                       [this, g = place.game, line] { deleteChapterGame(g, line ? tr("Delete Line") : tr("Delete Game")); })
+            ->setEnabled(!m_onlinePlay);
+        menu.addSeparator();
     }
     // One Move for what was clicked: a title, a subtitle or a paragraph moves
     // along its game, anything else moves the whole game past the one above
@@ -3373,7 +3387,6 @@ void MainWindow::switchToChapterGame(int game, const QList<int> &path, int ply)
         m_trainingModeAction->setChecked(false);
         m_chapters.chapter().currentGame = game;
         loadChapterGame();
-        m_chapters.removeEmptyGames(); // The game left, if nothing was entered in it.
         chapterChanged();
     }
     m_session->goToLine(path, ply);
@@ -3410,9 +3423,60 @@ void MainWindow::editProjectSettings()
     scheduleSaveSession(); // The project has changes: its name is saved with it.
 }
 
-void MainWindow::deleteChapterGame(int index)
+int MainWindow::chapterGameStartNumber(int index) const
 {
-    if (index <= 0 || index >= m_chapters.chapter().games.size())
+    const GameRecord &game = index == m_chapters.chapter().currentGame ? m_session->game()
+                                                                      : m_chapters.chapter().games.at(index).game;
+    if (game.startFen.isEmpty())
+        return 1;
+    const std::optional<ChessPosition> start = ChessPosition::fromFen(game.startFen, ChessPosition::Kings::Optional);
+    return start ? start->fullMoveNumber() : 1;
+}
+
+void MainWindow::changeMoveNumber(int index)
+{
+    if (index < 0 || index >= m_chapters.chapter().games.size())
+        return;
+    // The number is the start position's: the board goes to that game first.
+    if (index != m_chapters.chapter().currentGame) {
+        switchToChapterGame(index, {}, 0);
+        if (index != m_chapters.chapter().currentGame)
+            return;
+    }
+    bool ok = false;
+    const int number = QInputDialog::getInt(this, tr("Change Move Number"),
+                                            tr("Number of the first move:"), chapterGameStartNumber(index), 1, 9999, 1, &ok);
+    if (!ok || number == chapterGameStartNumber(index))
+        return;
+    // As PGN has it: the move number of the start position's FEN; the
+    // standard position numbered from 1 needs none.
+    GameRecord game = m_session->game();
+    const std::optional<ChessPosition> start =
+        game.startFen.isEmpty() ? ChessPosition::startingPosition() : ChessPosition::fromFen(game.startFen, ChessPosition::Kings::Optional);
+    if (!start)
+        return;
+    QStringList fields = start->fen().split(QLatin1Char(' '));
+    fields.last() = QString::number(number);
+    const QString fen = fields.join(QLatin1Char(' '));
+    const QString before = game.startFen;
+    game.startFen = fen == ChessPosition::startingPosition().fen() ? QString() : fen;
+    const QList<int> path = m_session->path();
+    const int ply = m_session->ply();
+    m_session->setGame(game);
+    m_session->goToLine(path, ply);
+    QString error;
+    if (!storeOpenGame(&error)) {
+        game.startFen = before;
+        m_session->setGame(game);
+        m_session->goToLine(path, ply);
+        QMessageBox::warning(this, tr("Change Move Number"), tr("Could not save the game: %1").arg(error));
+    }
+    chapterChanged();
+}
+
+void MainWindow::deleteChapterGame(int index, const QString &title)
+{
+    if (index < 0 || index >= m_chapters.chapter().games.size())
         return;
     syncChapterGame();
     const bool current = index == m_chapters.chapter().currentGame;
@@ -3424,10 +3488,10 @@ void MainWindow::deleteChapterGame(int index)
     const bool unsaved = doomed.game.uid.isEmpty() && (!doomed.game.moves.isEmpty() || !doomed.game.startFen.isEmpty());
     if (unsaved || !doomed.paragraphs.isEmpty()) {
         const auto answer = QMessageBox::question(
-            this, tr("Delete Following Game"),
-            unsaved ? tr("The game after the break is not saved in a database: its moves will be lost. Delete it?")
-                    : tr("The text written around the game after the break will be lost; the game stays in the "
-                         "database. Delete it from the chapter?"),
+            this, title,
+            unsaved ? tr("This game is not saved in a database: its moves will be lost. Delete it?")
+                    : tr("The text written around this game will be lost; the game stays in the database. "
+                         "Delete it from the chapter?"),
             QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
         if (answer != QMessageBox::Yes)
             return;
@@ -3439,21 +3503,23 @@ void MainWindow::deleteChapterGame(int index)
     if (!m_chapters.removeGame(index))
         return;
     if (current) {
-        // The board goes to the game before the break.
+        // The board goes to the game before (or, for the first, the next).
         loadChapterGame();
         m_session->goToPly(m_chapters.chapter().ply);
     }
     chapterChanged();
 }
 
-void MainWindow::insertGameBreak()
+void MainWindow::insertGameBreak(int after)
 {
     if (!canLeaveGame())
         return;
     m_trainingModeAction->setChecked(false);
-    // After every game but the last there is a break already: the new game
-    // goes at the end, and breaks with nothing after them go.
-    m_chapters.breakGame();
+    // Always a new game, right under the one the user is in; it stays,
+    // empty, until something is entered in it or it is deleted.
+    syncChapterGame();
+    m_chapters.chapter().ply = m_session->ply();
+    m_chapters.insertGame(after < 0 ? m_chapters.chapter().currentGame : after);
     GameRecord game;
     game.result = QStringLiteral("*");
     game.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
@@ -4456,7 +4522,6 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
                 entry.game = GameSession::resolved(stored.value_or(entry.game));
             }
         }
-        m_chapters.removeEmptyGames();
         m_moveView->refresh();
         loadChapterGame();
         m_session->goToPly(m_chapters.chapter().ply);

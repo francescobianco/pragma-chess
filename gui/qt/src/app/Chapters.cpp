@@ -167,35 +167,30 @@ int ChapterBook::breakGame()
     } else {
         insertGame(int(open.games.size()) - 1);
     }
-    removeEmptyGames();
     m_none = false;
     return open.currentGame;
-}
-
-void ChapterBook::removeEmptyGames()
-{
-    Chapter &open = chapter();
-    for (int i = int(open.games.size()) - 1; i >= 0; --i) {
-        if (i == open.currentGame || !open.games.at(i).isEmpty())
-            continue;
-        open.games.removeAt(i);
-        if (i < open.currentGame)
-            --open.currentGame;
-    }
-    settleAfterRemoval();
 }
 
 bool ChapterBook::removeGame(int index)
 {
     Chapter &open = chapter();
-    if (index <= 0 || index >= open.games.size())
+    if (index < 0 || index >= open.games.size())
         return false;
-    open.games.removeAt(index);
-    if (open.currentGame == index) {
-        open.currentGame = index - 1;
-        open.ply = int(open.games.at(index - 1).game.moves.size());
-    } else if (open.currentGame > index) {
-        --open.currentGame;
+    if (open.games.size() == 1) {
+        // A chapter always has a game: the only one is emptied.
+        if (open.games.first().isEmpty())
+            return false;
+        open.games.first() = ChapterGame();
+        open.ply = 0;
+    } else {
+        open.games.removeAt(index);
+        if (open.currentGame == index) {
+            // The game before; for the first, the one that came after it.
+            open.currentGame = qMax(0, index - 1);
+            open.ply = index > 0 ? int(open.games.at(open.currentGame).game.moves.size()) : 0;
+        } else if (open.currentGame > index) {
+            --open.currentGame;
+        }
     }
     settleAfterRemoval();
     return true;

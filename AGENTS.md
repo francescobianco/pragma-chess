@@ -693,8 +693,7 @@ a chapter always has a game. In other tools this is a study or a chess book.
   themselves (`isAutomatic`, `.pch` `automatic: true`; a project without the
   key has them so when its one chapter has the default title) go back too:
   `settleAfterRemoval`, run by the removals — a game with its break
-  (`removeGame`), a paragraph (`removeParagraph`, an emptied one), the empty
-  games cleaned up — makes the project without chapters again when what is
+  (`removeGame`), a paragraph (`removeParagraph`, an emptied one) — makes the project without chapters again when what is
   left is what such a project holds (one game, only looked at or empty, no
   paragraph). Only removals do it: saving the game does not make a chapter
   vanish. New Chapter, and renaming or reordering in Manage Chapters, make
@@ -715,15 +714,21 @@ a chapter always has a game. In other tools this is a study or a chess book.
   list) add a game at the end of the chapter, or take the place of an
   empty one (`ChapterGame::isEmpty`); a game the chapter has already
   (`findGame` by uid) is switched to. Switching database keeps the
-  chapter (`relinkChapterGame`). Insert Game Break (`insertGameBreak`,
-  `ChapterBook::breakGame`) is a new empty game at the end of the chapter
-  (every game but the last has a break after it already), or the empty one
-  there; Move reorders them (`moveGame`, the current game followed) —
+  chapter (`relinkChapterGame`). Insert Game Break (`insertGameBreak(after)`,
+  `ChapterBook::insertGame`) is always a new empty game right under the
+  game right-clicked in; a game coming in (New Game, a game opened) goes at
+  the end, or into the empty game there (`breakGame`). Empty games stay
+  until deleted: the move list gives one with no moves a row of its own,
+  its first move's cell faint ("1. …", `Place::start`, `m_startCells`), to
+  click and to delete. Move reorders them (`moveGame`, the current game
+  followed) —
   one Move submenu acts on what was right-clicked: a paragraph, title or
-  subtitle along its game, otherwise the whole game;
-  empty games but the current one are removed
-  (`removeEmptyGames`) when the board leaves a game and when a project
-  opens. While
+  subtitle along its game, otherwise the whole game. Right-clicking in a
+  game offers Delete Game, or Delete Line when it does not start from move 1
+  (`removeGame`, any game; the only one is emptied), and on its first move
+  number (`Place::moveNumber`) Change Move Number… (`changeMoveNumber`: the
+  full-move number of the start FEN, as PGN keeps it; the standard position
+  from move 1 has no FEN). While
   playing online the board cannot leave its game (`canLeaveGame`).
 - `widgets/MoveTreeView` draws the whole chapter in its one table: a light
   rule (an `<hr>`, drawn with the view's palette Dark, set light) where

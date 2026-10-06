@@ -102,20 +102,19 @@ public:
     bool removeChapter(int index);
     void moveChapter(int from, int to);
 
-    /// A new game, from the starting position, after the game `after` of the
-    /// open chapter; it becomes the current one. Returns its index.
+    /// Insert Game Break: a new game, from the starting position, right
+    /// after the game `after` of the open chapter, always — empty games stay
+    /// until they are deleted. It becomes the current one. Returns its index.
     int insertGame(int after);
-    /// Insert Game Break: a new game at the end of the open chapter — every
-    /// game but the last has a break after it already —, or the empty one
-    /// already there. It becomes the current one; returns its index.
+    /// A game coming into the chapter (New Game, a game opened): at the end
+    /// of the open chapter, or in the empty game already there. It becomes
+    /// the current one; returns its index.
     int breakGame();
-    /// Takes away the empty games of the open chapter (breaks with nothing
-    /// after them) but the current one, which keeps its place in the list.
-    void removeEmptyGames();
-    /// Takes the game `index` of the open chapter away, with the break before
-    /// it: Delete Game Break for an empty one, Delete Following Game for one
-    /// with something in it. The first game has no break and stays. The
-    /// current game, if it goes, is the one before. Returns whether it went.
+    /// Takes the game `index` of the open chapter away, with the break
+    /// before it (the break after it, for the first game): Delete Game,
+    /// Delete Game Break, Delete Following Game. The only game is emptied
+    /// instead. The current game, if it goes, is the one before (the next,
+    /// for the first). Returns whether anything changed.
     bool removeGame(int index);
     /// Moves a game of the open chapter to the place `to`; the current game
     /// stays current wherever it goes.

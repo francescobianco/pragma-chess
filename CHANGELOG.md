@@ -75,6 +75,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- After a restart the move list could be built narrower than its header
+  (its columns, paragraphs and titles some pixels short) until something
+  redrew it.
 - Players and tournaments of a ChessBase database converted by a recent
   ChessBase are no longer read four characters off ("ÿÿÿÿZukertort").
 - The application could keep a processor core at 100% while idle: the move

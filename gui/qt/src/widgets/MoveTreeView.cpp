@@ -26,6 +26,8 @@
 #include <QTimer>
 #include <QScopedValueRollback>
 
+#include <utility>
+
 namespace {
 
 /// The link of a move: "game:path/ply", the path's indexes joined by dots.
@@ -281,24 +283,24 @@ MoveTreeView::MoveTreeView(GameSession *session, QWidget *parent)
     header->setSectionResizeMode(2, QHeaderView::Stretch);
     setViewportMargins(0, header->sizeHint().height(), 0, 0);
     connect(header, &QHeaderView::sectionResized, this, [this] {
-        if (!m_rebuilding) {
-            if (columnWidths() != m_builtWidths)
-                rebuild();
-            return;
-        }
-        // Inside setHtml() the new contents move the scroll bar and the
-        // columns pass through passing widths: what counts is the width they
-        // settle at, once the build is over.
+        // The sections pass through passing widths (the stretched ones are
+        // told before they all have their new size): what counts is the width
+        // they settle at, checked once the header is done.
+        m_widthCheckAfterBuild = m_widthCheckAfterBuild || m_rebuilding;
         if (m_widthCheckPending)
             return;
         m_widthCheckPending = true;
         QTimer::singleShot(0, this, [this] {
             m_widthCheckPending = false;
+            const bool afterBuild = std::exchange(m_widthCheckAfterBuild, false);
             const QList<int> widths = columnWidths();
-            // The width of the build before is the scroll bar going back to
-            // where it was: building for it would bring it back, for ever.
-            if (widths != m_builtWidths && widths != m_widthsBefore)
-                rebuild();
+            if (widths == m_builtWidths)
+                return;
+            // A build that moved the scroll bar back to the width of the
+            // build before: building for it would bring it back, for ever.
+            if (afterBuild && widths == m_widthsBefore)
+                return;
+            rebuild();
         });
     });
     connect(this, &QTextBrowser::anchorClicked, this, [this](const QUrl &url) {
@@ -493,9 +495,28 @@ int MoveTreeView::cellAt(const QPoint &position) const
 void MoveTreeView::resizeEvent(QResizeEvent *event)
 {
     QTextBrowser::resizeEvent(event);
-    const int frame = frameWidth();
-    m_header->setGeometry(frame, frame, viewport()->width(), m_header->sizeHint().height());
+    fitHeader();
     placeEditor();
+}
+
+bool MoveTreeView::viewportEvent(QEvent *event)
+{
+    // The viewport also changes width alone, when the scroll bar comes or
+    // goes: the header must follow it there too, or the columns are built
+    // for the width it had before (a list narrower than its header after a
+    // restart, until something rebuilt it).
+    const bool handled = QTextBrowser::viewportEvent(event);
+    if (event->type() == QEvent::Resize)
+        fitHeader();
+    return handled;
+}
+
+void MoveTreeView::fitHeader()
+{
+    const int frame = frameWidth();
+    const QRect geometry(frame, frame, viewport()->width(), m_header->sizeHint().height());
+    if (m_header->geometry() != geometry)
+        m_header->setGeometry(geometry);
 }
 
 void MoveTreeView::mouseMoveEvent(QMouseEvent *event)

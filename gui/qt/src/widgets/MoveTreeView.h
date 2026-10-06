@@ -95,11 +95,14 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    bool viewportEvent(QEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
     void rebuild();
     void showCurrent();
+    /// The header as wide as the viewport, over it.
+    void fitHeader();
     /// The table cell under `position`, as (row << 2 | column), or -1.
     int cellAt(const QPoint &position) const;
     /// The one table of the document.
@@ -136,8 +139,10 @@ private:
     /// before: a scroll bar that comes and goes must not rebuild it for ever.
     QList<int> m_builtWidths;
     QList<int> m_widthsBefore;
-    /// A check of the columns' settled width is waiting for the build to end.
+    /// A check of the columns' settled width is waiting for the header to settle.
     bool m_widthCheckPending = false;
+    /// The widths it checks moved during a build (the build's scroll bar).
+    bool m_widthCheckAfterBuild = false;
     QList<int> columnWidths() const;
 
     QTextEdit *m_editor;

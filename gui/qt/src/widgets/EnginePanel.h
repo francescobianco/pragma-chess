@@ -3,7 +3,6 @@
 #include "app/OpeningNames.h"
 #include "app/UciEngine.h"
 
-#include <QElapsedTimer>
 #include <QWidget>
 
 #include <optional>
@@ -44,8 +43,9 @@ Q_SIGNALS:
     void takeBackRequested();
     void explainRequested();
     void ignoreRequested();
-    /// The eye button is held down (true) or let go (false): the board
-    /// shows the end of the best line meanwhile.
+    /// The eye is turned on with a double click (true) and off with a
+    /// click, or by leaving it (false): the board shows the end of the best
+    /// line meanwhile.
     void peekHeld(bool held);
 
 protected:
@@ -68,14 +68,10 @@ private:
     bool m_lineHidden = false;
     /// Whether the line is about the position on the board (a stale one is not peeked at).
     bool m_hasLine = false;
-    /// The eye is held down, or was tapped and left on (m_peekLatched).
+    /// The eye is on: the board shows the end of the line.
     bool m_peeking = false;
-    bool m_peekLatched = false;
-    /// The release of the press that turned a tapped peek off.
-    bool m_peekReleaseIgnored = false;
-    QElapsedTimer m_peekPressed;
-    /// A press shorter than this is a tap: the peek stays on.
-    static constexpr int kPeekHoldMs = 300;
+    /// The click that turned it off may be the first of a double click.
+    bool m_peekDoubleClickIgnored = false;
     void stopPeeking();
 
     void refreshLine();

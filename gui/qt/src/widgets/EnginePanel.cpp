@@ -39,10 +39,10 @@ EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
     // Held down, the board shows where the best line ends.
     m_peek->setIcon(SymbolicIcons::icon(QStringLiteral("pragma-eye")));
     m_peek->setAutoRaise(true);
-    m_peek->setToolTip(tr("Where the line ends: hold, or tap"));
+    m_peek->setToolTip(tr("Where the line ends: double-click"));
     m_peek->setEnabled(false);
-    // The physical press and release, not the button's own down state, which
-    // taking the focus let go after a moment.
+    // Its own clicks, not the button's: a double click turns it on (a
+    // touchpad's press never stays down long enough to hold it).
     m_peek->setFocusPolicy(Qt::NoFocus);
     m_peek->installEventFilter(this);
     header->addWidget(m_name, 1);
@@ -188,36 +188,27 @@ bool EnginePanel::eventFilter(QObject *watched, QEvent *event)
 {
     if (watched == m_peek && m_peek->isEnabled()) {
         const auto *mouse = static_cast<QMouseEvent *>(event);
-        // A quick second tap comes as a double click: it is a press like any other.
-        const bool press = event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonDblClick;
-        if (press && mouse->button() == Qt::LeftButton) {
-            if (m_peekLatched) {
-                // The press that ends a peek a tap left on.
-                stopPeeking();
-                m_peekReleaseIgnored = true;
-                return true;
-            }
-            m_peeking = true;
-            m_peekPressed.start();
-            m_peek->setDown(true);
-            Q_EMIT peekHeld(true);
-            return true;
-        }
-        if (event->type() == QEvent::MouseButtonRelease && mouse->button() == Qt::LeftButton) {
-            if (m_peekReleaseIgnored) {
-                m_peekReleaseIgnored = false;
-            } else if (m_peeking && m_peekPressed.elapsed() < kPeekHoldMs) {
-                // A tap, or a click too short to hold anything (a touchpad's
-                // tap is a press and a release a moment apart): the end of the
-                // line stays until the next press or the pointer leaves.
-                m_peekLatched = true;
-            } else {
-                stopPeeking();
+        const bool left = event->isPointerEvent() && mouse->button() == Qt::LeftButton;
+        // A double click shows the end of the line; any click takes it away.
+        if (event->type() == QEvent::MouseButtonDblClick && left) {
+            if (m_peekDoubleClickIgnored)
+                m_peekDoubleClickIgnored = false; // The second click of the one that ended it.
+            else if (!m_peeking) {
+                m_peeking = true;
+                m_peek->setDown(true);
+                Q_EMIT peekHeld(true);
             }
             return true;
         }
+        if (event->type() == QEvent::MouseButtonPress && left) {
+            m_peekDoubleClickIgnored = m_peeking;
+            stopPeeking();
+            return true;
+        }
+        if (event->type() == QEvent::MouseButtonRelease && left)
+            return true;
     }
-    if (watched == m_peek && event->type() == QEvent::Leave && m_peekLatched)
+    if (watched == m_peek && event->type() == QEvent::Leave)
         stopPeeking();
     return QWidget::eventFilter(watched, event);
 }
@@ -227,7 +218,6 @@ void EnginePanel::stopPeeking()
     if (!m_peeking)
         return;
     m_peeking = false;
-    m_peekLatched = false;
     m_peek->setDown(false);
     Q_EMIT peekHeld(false);
 }

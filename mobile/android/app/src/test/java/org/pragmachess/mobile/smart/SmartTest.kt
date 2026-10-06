@@ -5,6 +5,8 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.pragmachess.mobile.explain.ExplainTicks
+import org.pragmachess.mobile.explain.InsightCase
+import org.pragmachess.mobile.explain.lineInsight
 import java.io.File
 
 /**
@@ -123,6 +125,8 @@ END FUNCTION
         assertEquals("[-2, 3, 2, 8, -1, 1]", value("[INT(-2.7), ABS(-3), MIN(4, 2, 8), MAX(4, 2, 8), -7 MOD 3, 7 MOD -3]"))
         assertEquals("[3, 2, 1, 1]", value("[LEN(\"abc\"), LEN([1, [2, 3]]), CONTAINS([1, 2], 2), INDEXOF([\"a\", \"b\"], \"b\")]"))
         assertEquals("[0, 1, 2]", value("SLICE(REPEAT(0, 3) + [1, 2], 2, 10)"))
+        // -0 is 0, in lists too, as in C++ (Double.equals tells them apart).
+        assertEquals("[1, 1, 1]", value("[-0 = 0, [-0, 1] = [0, 1], CONTAINS([-0], 0)]"))
         assertEquals("""["2.5", "7.00", "a b"]""", value("[FIXED(2.5, 1), FIXED(7, 2), TRIM(\"  a b \")]"))
         assertEquals("""["2.3", "-2.3", "0.0", "0.13", "3"]""",
             value("[FIXED(2.25, 1), FIXED(-2.25, 1), FIXED(-0.04, 1), FIXED(0.125, 2), FIXED(2.5, 0)]"))
@@ -174,5 +178,23 @@ END FUNCTION
             }
         }
         assertTrue(records >= 6)
+    }
+
+    @Test
+    fun drawsThePlansOfRecordedLines() {
+        // smart/tests/*.insight: the arrows of the Engine panel's eye, as on the desktop.
+        val folder = File(System.getProperty("pragma.smart.dir")!!, "tests")
+        val files = folder.listFiles { file -> file.name.endsWith(".insight") }.orEmpty().sortedBy { it.name }
+        assertTrue(files.isNotEmpty())
+        var cases = 0
+        for (file in files) {
+            for (case in InsightCase.parse(file.readText())) {
+                cases++
+                val insight = lineInsight(case.start, case.line)
+                assertEquals(case.name, "", insight.error)
+                assertEquals(case.name, case.expected, InsightCase.outcome(insight.arrows))
+            }
+        }
+        assertTrue(cases >= 8)
     }
 }

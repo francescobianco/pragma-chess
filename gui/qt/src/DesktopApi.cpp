@@ -59,6 +59,7 @@ QString arrowKind(BoardArrow::Kind kind)
     case BoardArrow::Kind::Reply: return QStringLiteral("reply");
     case BoardArrow::Kind::Alternative: return QStringLiteral("alternative");
     case BoardArrow::Kind::Threat: return QStringLiteral("threat");
+    case BoardArrow::Kind::Plan: return QStringLiteral("plan");
     }
     return {};
 }
@@ -91,6 +92,12 @@ QJsonObject explanationJson(const MoveExplanation &explanation)
                            {QStringLiteral("number"), arrow.step}};
         if (!arrow.piece.isNull())
             object.insert(QStringLiteral("piece"), pieceLetter(arrow.piece));
+        if (!arrow.via.isEmpty()) {
+            QJsonArray via;
+            for (int square : arrow.via)
+                via.append(BoardState::squareName(square));
+            object.insert(QStringLiteral("via"), via);
+        }
         arrows.append(object);
     }
     QJsonArray lost;
@@ -161,6 +168,10 @@ void DesktopApi::addRoutes()
             engine.insert(QStringLiteral("evaluation"), evaluationJson(w->m_lastEvaluation, position));
         QJsonObject explain = explanationJson(w->m_explanation);
         explain.insert(QStringLiteral("on"), w->m_explainAction->isChecked());
+        MoveExplanation plans;
+        plans.arrows = w->m_peekArrows;
+        QJsonObject peek{{QStringLiteral("on"), w->m_board->isPeeking()},
+                         {QStringLiteral("arrows"), explanationJson(plans).value(QStringLiteral("arrows"))}};
         return QJsonObject{
             {QStringLiteral("fen"), position.fen()},
             {QStringLiteral("ply"), session->ply()},
@@ -173,6 +184,7 @@ void DesktopApi::addRoutes()
                                                      {QStringLiteral("side"), sideName(w->m_trainingSide)}}},
             {QStringLiteral("engine"), engine},
             {QStringLiteral("explain"), explain},
+            {QStringLiteral("peek"), peek},
             {QStringLiteral("game"), QJsonObject{{QStringLiteral("white"), game.white},
                                                  {QStringLiteral("black"), game.black},
                                                  {QStringLiteral("event"), game.event},

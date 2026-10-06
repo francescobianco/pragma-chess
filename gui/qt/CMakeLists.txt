@@ -151,6 +151,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/GameIdentity.h
     src/app/GameState.cpp
     src/app/GameState.h
+    src/app/LineInsight.cpp
+    src/app/LineInsight.h
     src/app/MoveExplanation.cpp
     src/app/MoveExplanation.h
     src/app/MoveComment.cpp
@@ -261,7 +263,8 @@ target_include_directories(pragma-chess-core PUBLIC src)
 target_link_libraries(pragma-chess-core PUBLIC Qt6::Core Qt6::Network)
 # The SMART programs (smart/README.md), built in; PRAGMA_SMART_DIR reads them from a folder instead.
 qt_add_resources(pragma-chess-core smart PREFIX /smart BASE ${CMAKE_CURRENT_SOURCE_DIR}/../../smart
-    FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../smart/TUTOR.smart ${CMAKE_CURRENT_SOURCE_DIR}/../../smart/EXPLAIN.smart)
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../smart/TUTOR.smart ${CMAKE_CURRENT_SOURCE_DIR}/../../smart/EXPLAIN.smart
+          ${CMAKE_CURRENT_SOURCE_DIR}/../../smart/INSIGHT.smart)
 target_compile_definitions(pragma-chess-core PUBLIC QT_NO_KEYWORDS APP_VERSION="${PROJECT_VERSION}")
 
 # The engine shipped with the app (EngineCatalog): its version is pinned in

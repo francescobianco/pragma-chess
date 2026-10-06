@@ -11,6 +11,7 @@
 #include "app/ChessPosition.h"
 #include "app/ExplainTicks.h"
 #include "app/ExplanationSearch.h"
+#include "app/LineInsight.h"
 #include "app/MoveExplanation.h"
 #include "app/Pgn.h"
 #include "app/UciEngine.h"
@@ -312,7 +313,7 @@ int main(int argc, char *argv[])
     const QCommandLineOption depthOption(QStringLiteral("depth"), QStringLiteral("Depth of the searches."),
                                          QStringLiteral("d"), QString::number(ExplainSettings().depth));
     const QCommandLineOption recordOption(QStringLiteral("record"),
-                                          QStringLiteral("Append the ticks of each move explained to a file."),
+                                          QStringLiteral("Append the ticks of each move explained to a file (with --insight: the line and its plans, a case of smart/tests)."),
                                           QStringLiteral("path"));
     const QCommandLineOption replayOption(QStringLiteral("replay"),
                                           QStringLiteral("Explain the ticks of a file (from --record, or from the "
@@ -341,11 +342,15 @@ int main(int argc, char *argv[])
     const QCommandLineOption hintDepthOption(QStringLiteral("hint-depth"),
                                              QStringLiteral("Depth the hint was found at."), QStringLiteral("d"),
                                              QStringLiteral("99"));
+    const QCommandLineOption insightOption(QStringLiteral("insight"),
+                                           QStringLiteral("Show the plans INSIGHT.smart draws for the line from --ply "
+                                                          "(default the start) to its end, with no engine: the "
+                                                          "arrows of the Engine panel's eye."));
     const QCommandLineOption boardOption({QStringLiteral("b"), QStringLiteral("board")},
                                          QStringLiteral("Draw the position after the move."));
     parser.addOptions({fenOption, fileOption, plyOption, allOption, depthOption, recordOption, replayOption, ticksOption,
                        threadsOption, hashOption, engineOption, traceOption, boardOption, hintMateOption,
-                       hintDrawOption, hintLineOption, hintDepthOption});
+                       hintDrawOption, hintLineOption, hintDepthOption, insightOption});
     parser.process(app);
 
     Options options;
@@ -380,6 +385,50 @@ int main(int argc, char *argv[])
     if (!line) {
         err() << error << '\n';
         return 1;
+    }
+
+    if (parser.isSet(insightOption)) {
+        const int ply = parser.isSet(plyOption) ? parser.value(plyOption).toInt() : 0;
+        if (ply < 0 || ply > line->moves.size()) {
+            err() << "The line has " << line->moves.size() << " plies.\n";
+            return 1;
+        }
+        ChessPosition start = line->startFen.isEmpty() ? ChessPosition::startingPosition()
+                                                       : *ChessPosition::fromFen(line->startFen);
+        QStringList moves;
+        for (qsizetype i = 0; i < line->moves.size(); ++i) {
+            if (i < ply) {
+                start.play(*start.moveFromUci(line->moves.at(i).uci));
+                continue;
+            }
+            moves << line->moves.at(i).uci;
+        }
+        const LineInsight insight = lineInsight(start, moves, options.trace);
+        out() << "from    " << start.fen() << '\n';
+        out() << "line    " << start.lineText(moves, int(moves.size())) << '\n';
+        for (const QString &note : insight.trace)
+            out() << "  " << note << '\n';
+        if (!insight.error.isEmpty()) {
+            err() << "INSIGHT.smart: " << insight.error << '\n';
+            return 3;
+        }
+        for (const QString &arrow : InsightCase::outcome(insight.arrows))
+            out() << "plan    " << arrow << '\n';
+        if (!options.record.isEmpty()) {
+            // The line becomes a case of smart/tests, expecting what is drawn now.
+            InsightCase recorded;
+            recorded.name = start.lineText(moves, 6);
+            recorded.start = start;
+            recorded.line = moves;
+            recorded.expected = InsightCase::outcome(insight.arrows);
+            QFile file(options.record);
+            if (!file.open(QIODevice::Append | QIODevice::Text)) {
+                err() << "Cannot write " << file.fileName() << ": " << file.errorString() << '\n';
+                return 1;
+            }
+            file.write(recorded.toText().toUtf8());
+        }
+        return 0;
     }
 
     const QString executable = UciEngine::findExecutable(parser.value(engineOption));

@@ -99,6 +99,8 @@ BoardArrow::Kind arrowKind(const QString &kind)
         return BoardArrow::Kind::Alternative;
     if (kind == QLatin1String("threat"))
         return BoardArrow::Kind::Threat;
+    if (kind == QLatin1String("plan"))
+        return BoardArrow::Kind::Plan;
     if (kind != QLatin1String("idea"))
         SmartInterpreter::fail(QStringLiteral("ARROW: \"%1\" is not a kind of arrow").arg(kind));
     return BoardArrow::Kind::Idea;
@@ -257,6 +259,11 @@ void define(SmartInterpreter &smart, Output &output)
         expect("PIECE", args, 2);
         return SmartValue(int(positionArgument("PIECE", args, 0).at(squareArgument("PIECE", args, 1)).type));
     });
+    smart.define(QStringLiteral("SIDEAT"), [](const std::vector<SmartValue> &args) {
+        expect("SIDEAT", args, 2);
+        const Piece piece = positionArgument("SIDEAT", args, 0).at(squareArgument("SIDEAT", args, 1));
+        return piece.isNull() ? SmartValue(0) : side(piece.side);
+    });
     smart.define(QStringLiteral("COUNT"), [](const std::vector<SmartValue> &args) {
         expect("COUNT", args, 3);
         const ChessPosition &position = positionArgument("COUNT", args, 0);
@@ -337,6 +344,13 @@ void define(SmartInterpreter &smart, Output &output)
         output.explanation.arrows << BoardArrow{squareArgument("ARROW", args, 0), squareArgument("ARROW", args, 1),
                                                 arrowKind(SmartInterpreter::textArgument(fn("ARROW"), args, 2)),
                                                 SmartInterpreter::intArgument(fn("ARROW"), args, 3), piece};
+        return SmartValue();
+    });
+    smart.define(QStringLiteral("VIA"), [&output](const std::vector<SmartValue> &args) {
+        expect("VIA", args, 1);
+        if (output.explanation.arrows.isEmpty())
+            SmartInterpreter::fail(QStringLiteral("VIA: no arrow to pass through %1").arg(args.at(0).toText()));
+        output.explanation.arrows.last().via << squareArgument("VIA", args, 0);
         return SmartValue();
     });
     smart.define(QStringLiteral("LOST"), [&output](const std::vector<SmartValue> &args) {

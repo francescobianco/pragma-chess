@@ -99,6 +99,7 @@ object SmartChess {
         "reply" -> BoardArrow.Kind.Reply
         "alternative" -> BoardArrow.Kind.Alternative
         "threat" -> BoardArrow.Kind.Threat
+        "plan" -> BoardArrow.Kind.Plan
         "idea" -> BoardArrow.Kind.Idea
         else -> fail("ARROW: \"$kind\" is not a kind of arrow")
     }
@@ -210,6 +211,11 @@ object SmartChess {
             expectArguments("PIECE", args, 2)
             SmartValue.of(Piece.type(positionArgument("PIECE", args, 0).pieceAt(squareArgument("PIECE", args, 1))))
         }
+        smart.define("SIDEAT") { args ->
+            expectArguments("SIDEAT", args, 2)
+            val piece = positionArgument("SIDEAT", args, 0).pieceAt(squareArgument("SIDEAT", args, 1))
+            if (piece == Piece.NONE) SmartValue.of(0) else side(Piece.side(piece))
+        }
         smart.define("COUNT") { args ->
             expectArguments("COUNT", args, 3)
             val position = positionArgument("COUNT", args, 0)
@@ -270,6 +276,13 @@ object SmartChess {
                 Piece.of(intArgument("ARROW", args, 4).coerceIn(0, 6), sideArgument("ARROW", args, 5)) else Piece.NONE
             output.arrows += BoardArrow(squareArgument("ARROW", args, 0), squareArgument("ARROW", args, 1),
                 arrowKind(textArgument("ARROW", args, 2)), intArgument("ARROW", args, 3), piece)
+            SmartValue.None
+        }
+        smart.define("VIA") { args ->
+            expectArguments("VIA", args, 1)
+            if (output.arrows.isEmpty()) fail("VIA: no arrow to pass through ${args[0].toText()}")
+            val last = output.arrows.removeAt(output.arrows.size - 1)
+            output.arrows += last.copy(via = last.via + squareArgument("VIA", args, 0))
             SmartValue.None
         }
         smart.define("LOST") { args ->

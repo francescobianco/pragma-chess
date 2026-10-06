@@ -491,6 +491,8 @@ private:
     /// Latest engine line (SAN) and explanation, for Edit ▸ Copy.
     QString m_engineLine;
     QString m_explanationText;
+    /// The plans drawn over the end of the engine's line while the eye is held.
+    QList<BoardArrow> m_peekArrows;
     /// The explanation on the board, as the local API reports it.
     MoveExplanation m_explanation;
     /// The development API (PRAGMA_DEV_API=1, set by make start).

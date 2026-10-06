@@ -17,7 +17,12 @@ interface SmartObject {
 /** A value of a SMART program: a number, a text, a list, NOTHING, or an object of the client. */
 sealed class SmartValue {
     object None : SmartValue()
-    data class Number(val value: Double) : SmartValue()
+    data class Number(val value: Double) : SmartValue() {
+        // As in C++: -0 and 0 are one number (Double.equals tells them apart,
+        // and -x of 0 is -0), in lists too.
+        override fun equals(other: Any?) = other is Number && other.value == value
+        override fun hashCode() = (value + 0.0).hashCode()
+    }
     data class Text(val value: String) : SmartValue()
     /** Lists are values: changing an element makes a new list. */
     data class Items(val items: List<SmartValue>) : SmartValue()

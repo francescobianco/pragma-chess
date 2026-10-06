@@ -21,7 +21,7 @@ data class BoardArrow(
     val from: Int,
     val to: Int,
     val kind: Kind,
-    /** Position in the line, starting at 1; 0 for arrows outside a sequence. */
+    /** Position in the line, starting at 1; 0 for arrows outside a sequence. For a Plan, its rank, which chooses its colour. */
     val step: Int = 0,
     /**
      * The piece the arrow moves ([Piece] code), drawn small and faint where it
@@ -29,6 +29,8 @@ data class BoardArrow(
      * the one on the board, where that piece may no longer stand.
      */
     val piece: Int = Piece.NONE,
+    /** Squares the arrow passes through between [from] and [to], in order: a route. */
+    val via: List<Int> = emptyList(),
 ) {
     enum class Kind {
         /** A move of the side punishing a mistake: material is falling (red). */
@@ -41,6 +43,8 @@ data class BoardArrow(
         Alternative,
         /** A capture threatened, not played: a piece left attacked (dashed red). */
         Threat,
+        /** A piece's trip along the engine's line, a plan (INSIGHT.smart). */
+        Plan,
     }
 }
 

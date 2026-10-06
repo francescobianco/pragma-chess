@@ -195,7 +195,8 @@ playing a move turns it off, and the user asks again at the next move.
   position at the end of the line, and follows it while the engine goes on
   (each `evaluationChanged` peeks again; `BoardWidget::peek` keeps what it
   covered from the first one) (`MainWindow::peekAtEngineLine`,
-  `BoardWidget::peek`: no arrows, no marks, no moves taken), and letting go
+  `BoardWidget::peek`: no Explain arrows, no marks, no moves taken, but
+  the line's plans: `lineInsight`, see INSIGHT below), and letting go
   or the board moving brings back what was there (`endPeek`, a sequence
   going on where it was). It is off while the line is hidden (training) or
   not about the board. The eye follows the physical press and release (an
@@ -203,6 +204,20 @@ playing a move turns it off, and the user asks again at the next move.
   took the focus. A held press does reach Qt on X11 with a mouse — measured
   on 2026-10-06, press and release 5.8 s apart, the eye enabled throughout —
   so hold is the gesture; there is no double click.
+- **INSIGHT** (`smart/INSIGHT.smart`, `app/LineInsight`): over the end of
+  the line the eye shows, violet `Plan` arrows for the plans the line holds.
+  The program replays the PV only (no search, no `MOVES`), follows each
+  piece as a trip (castling restarts king and rook, a promotion goes on as
+  the new piece, a capture ends the victim's trip), scores the trips that
+  are plans — promotion, king march in an endgame, passed pawn running,
+  manoeuvre (2+ quiet moves, far or across wings), pawn advance, pawn
+  break — and draws the best three; pawns of one side on one wing are one
+  plan. A route is one arrow through the squares where it turned
+  (`BoardArrow::via`, SMART's `VIA`), and each plan has its colour, by
+  rank (`BoardArrow::step`: violet, orange, teal, `planColor`), so routes
+  crossing on a square stay apart; the strongest is drawn on top. Tuning with `pragma-explain --insight
+  [-t] [--ply n] "<moves>"`; `--record` adds a case to
+  `smart/tests/*.insight`, which both clients replay.
 - `widgets/BoardWidget` only paints `BoardArrow`s and lost-piece rings, and
   plays `BoardFrame` sequences (a forced mate from `MoveExplanation::playback`)
   with a red frame, restoring the position on `stopSequence()`.
@@ -263,6 +278,8 @@ fixed once, in SMART.
   FEN it is about, and the engine drops an old search's lines until its
   `bestmove`. `SmartTest` runs the desktop's language test and replays
   `smart/tests`: a change to either interpreter must keep both suites green.
+  It runs INSIGHT.smart too (`explain/LineInsight.kt`), though the phone has
+  no eye yet.
 - The clients' chess functions are generic (positions, moves, `MOVES` the
   legal moves, `PASS` the other side to move, evaluations): anything that
   is judgement — threats, realizations, focus — is written in SMART on top
@@ -287,7 +304,8 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
 - `GET /api` the routes; `GET /api/state` position (FEN, ply, the line,
   path), training, the engine (name, evaluation with depth, score, PV and
   the line in SAN), Explain (on, verdict, arrows with from/to/kind/number/
-  piece, lost pieces, summary, playback), the game's players, the database;
+  piece, lost pieces, summary, playback), the eye (`peek`: on, the plan
+  arrows with `via`), the game's players, the database;
   `GET /api/explanation`; `GET /api/screenshot` the window as a PNG, taken
   from inside (`QWidget::grab`: no compositor permission needed — GNOME
   refuses screenshots to other programs).

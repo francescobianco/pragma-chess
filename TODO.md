@@ -1,152 +1,132 @@
 # TODO — handoff
 
-Stato del lavoro e conoscenza acquisita nelle sessioni del 2, 3 e 5 ottobre 2026,
-per chi riprende (persona o agente). AGENTS.md descrive com'è fatto il codice;
-qui c'è quello che AGENTS.md non dice: cosa resta da fare, le decisioni aperte,
-i formati decifrati e i trucchi di verifica. Tutto è su `main`, pushato;
-l'ultimo commit è `48eb8cc` (sorgente ChessBase).
+Stato del lavoro e conoscenza acquisita, per chi riprende (persona o agente).
+AGENTS.md descrive com'è fatto il codice; qui c'è quello che AGENTS.md non
+dice: cosa resta da fare, le decisioni aperte, i formati decifrati e i
+trucchi di verifica. Quello che è fatto non sta qui: è nel codice, in
+AGENTS.md, nel CHANGELOG e nella storia di git.
 
 ## Da fare, in ordine di priorità
 
-### Prossimo: INSIGHT.smart — i piani e le manovre della linea, sull'occhio
+### Priorità: la sorgente ChessBase legga anche i file .2cbh
 
-Richiesta del 6 ottobre 2026, da fare. Tenendo premuto l'occhio del pannello
-del motore la scacchiera mostra la posizione alla fine della linea del motore,
-e la segue mentre il motore va avanti (`EnginePanel::isPeeking`,
-`MainWindow::peekAtEngineLine`, `BoardWidget::peek`). Oggi quella posizione è
-nuda: si vede dove si arriva, non come. **INSIGHT.smart** è un nuovo programma
-SMART (`smart/INSIGHT.smart`, accanto a EXPLAIN.smart e TUTOR.smart) che,
-mentre si guarda la fine della linea, disegna le **frecce di manovra
-salienti**: i piani e i percorsi dei pezzi che la linea contiene.
+Richiesta del 6 ottobre 2026, prioritaria. La sorgente ChessBase
+(`chessbase`, `app/chessbase/ChessBaseDatabase`, `ChessBaseFetch`) legge
+oggi solo la famiglia `.cbh` (vedi "Formato ChessBase" più sotto). Le basi
+più recenti di ChessBase sono salvate come **`.2cbh`**: il selettore di file
+di Connetti sorgente deve accettarle e il lettore deve decifrarle.
 
-Il principio, da non tradire:
+- Prima cosa: procurarsi un `.2cbh` vero (ChessBase 17/18, o una base
+  scaricata in quel formato) e confrontarlo con il `.cbh` della stessa base:
+  intestazione, dimensione dei record, quali file compagni ha accanto
+  (`.2cbg`? `.cbp`/`.cbt` come prima?). Annotare quanto decifrato nella
+  sezione "Formato ChessBase", come per `.cbh`.
+- Se i record sono gli stessi con un'intestazione diversa, basta riconoscere
+  l'estensione e la famiglia di file; altrimenti un lettore suo accanto a
+  `ChessBaseDatabase`, puro e con unit-test su record veri.
+- Il filtro del selettore (`*.cbh`) diventa `*.cbh *.2cbh`; la guida in ogni
+  lingua cita entrambe.
 
-- **Solo la linea giocata.** Non si rianalizza niente, non si va in profondità
-  sulle singole mosse e non si guarda oltre la fine della linea: il programma
-  riceve la posizione di partenza e le mosse della PV, le rigioca e ne trae
-  considerazioni. È una lettura della linea, non una ricerca.
-- **Poche frecce, quelle che dicono qualcosa.** Il risultato non è la linea
-  ridisegnata mossa per mossa (quella c'è già, scritta nel pannello), ma i
-  movimenti che hanno un senso da piano: 2–4 frecce al massimo.
+### INSIGHT.smart: tarare i piani della linea
 
-Esempi di cosa mostrare (da affinare con casi veri):
+INSIGHT (AGENTS.md, "INSIGHT") disegna i piani della linea sull'occhio.
+Regole e punteggi sono costanti in testa a `smart/INSIGHT.smart`; si tara con
+`pragma-explain --insight -t`, e ogni caso deciso va in
+`smart/tests/plans.insight` (`--record`). Resta:
 
-- **Manovre di donna**: da dove si trovava a dove è arrivata, quando nella
-  linea fa strada (più mosse, o un trasferimento d'ala).
-- **Il re nei finali**: la marcia del re, casa di partenza → casa d'arrivo
-  (con le case intermedie se il percorso non è dritto), quando il materiale è
-  da finale (niente donne, pochi pezzi).
-- **Piani di pedoni**: un pedone che corre (passato che avanza), una rottura
-  (c4-c5, f4-f5), una catena che avanza; più pedoni che vanno nella stessa
-  direzione sono un piano solo.
-- **Percorsi dei pezzi minori e delle torri**: un cavallo che fa un giro di
-  più salti per arrivare a una casa (Cb1-d2-f1-g3), una torre che si alza e
-  traversa (Ta1-a3-h3), un alfiere che cambia diagonale.
-- Un pezzo catturato lungo la linea finisce lì: le sue frecce si fermano
-  alla casa dove è stato preso; gli scambi in sé non sono manovre.
+- **Tarare su linee vere con l'utente.** Prima prova (Spagnola chiusa dopo
+  11…Dc7, Stockfish a profondità 30): Dd1-e2-b2-e5, c3-c5 e a6-a4. La donna
+  viene dalla coda della linea (mosse 22–26), dove la PV è rumore: da
+  decidere se leggere solo i primi ~20 ply (e allora forse anche il peek
+  dovrebbe fermarsi lì), o se va bene così perché è la posizione che
+  l'occhio mostra.
+- Un pezzo il cui viaggio finisce con una cattura (Dxe5) è ancora una
+  manovra: forse la cattura finale dovrebbe tagliare la strada o abbassare
+  il punteggio.
+- I tre colori dei percorsi (viola, arancio, verde acqua) sono in due punti,
+  `BoardWidget.cpp` (`planColor`) e `BoardArrows.kt` (`ArrowColors.plans`):
+  da cambiare insieme se l'utente ne vuole altri.
+- Android: l'occhio non c'è ancora; quando arriverà, le frecce ci sono già
+  (`lineInsight`, `drawExplanation` disegna `via`).
 
-Come si innesta (proposta, da decidere al momento):
+### Prossimo: limitare la CPU del motore — "Potenza di calcolo" a 5 livelli
 
-- **Reattivo come gli altri SMART**: una funzione d'ingresso (per es.
-  `Insight(start, line)`) chiamata quando l'occhio si preme e a ogni nuova
-  linea mentre è premuto; le frecce cambiano con la linea, come la posizione.
-- **Le funzioni del client sono quelle di EXPLAIN.smart** (`PLAY`, `PIECE`,
-  `FROMSQ`/`TOSQ`, `MATERIAL`, `COUNT`, `ARROW`…): il giudizio su cosa è
-  "saliente" sta tutto nel programma, in SMART, così desktop, `pragma-explain`
-  e Android mostrano le stesse frecce.
-- **Cosa serve di nuovo ai client**: probabilmente una freccia che passa per
-  case intermedie (un percorso, non solo da→a) e un tipo di freccia suo
-  (`Plan`?), con un colore che non si confonda con quelli di Explain, il cui
-  colore è un'affermazione (rosso = materiale che cade). `BoardWidget::peek`
-  oggi mostra la posizione "senza frecce": va esteso per disegnare queste.
-- **Test**: linee registrate con le frecce attese, come `smart/tests/*.ticks`,
-  giocate da ogni client: una manovra di donna, una marcia di re in un
-  finale di re e pedoni, un attacco di pedoni.
+Richiesta del 6 ottobre 2026, da fare (proposta, l'utente deve confermare i
+livelli). Oggi l'analisi è `go infinite` su metà dei core
+(`UciEngine::handleLine`, `uciok`: `idealThreadCount() / 2`) e non si ferma
+mai: anche a posizione ferma, con la finestra in secondo piano, metà della
+CPU resta al 100%, ventole e batteria comprese. Il numero di thread da solo
+non basta a moderarla: **quello che consuma è che l'analisi non finisce
+mai**. Le leve vere, insieme:
 
-Decisioni aperte: quante frecce al massimo; percorso spezzato o freccia dritta
-dalla casa di partenza a quella d'arrivo; entrambi i colori o solo il lato che
-muove; la soglia di "interessante" (quante mosse, quanta strada) per pezzo.
+1. **Thread** (`setoption Threads`): quanta CPU nello stesso istante.
+2. **Fine dell'analisi**: fermarsi a una profondità o dopo un tempo per
+   posizione (`go depth N` / `go movetime`), invece di `infinite`. A
+   posizione analizzata la CPU torna a zero. Spiega ha bisogno di
+   profondità ≥ `kExplainBeforeDepth` (16) e di 3 profondità su 4 dopo
+   `MIN_DEPTH` (8): ogni livello deve arrivare almeno a ~20.
+3. **Priorità del processo**: il motore a priorità bassa cede la CPU a tutto
+   il resto (il sistema resta reattivo), ma non scende sotto il 100% se la
+   CPU è libera. Unix: `QProcess::setChildProcessModifier` con
+   `setpriority`/`nice(10)`; Windows: `SetPriorityClass(...,
+   BELOW_NORMAL_PRIORITY_CLASS)` sul `processId()`. Non è una leva UCI: vale
+   per ogni motore.
+4. **Hash** in proporzione (meno memoria ai livelli bassi).
 
-### 0. Release Windows: sbloccare la verifica dei pacchetti — fatto, 0.3.0 uscita il 5 ottobre
+Proposta dei livelli (Motore ▸ Gestisci motori…, al posto di "Thread:
+Automatico"; un'impostazione per computer, in `EngineProfile`):
 
-La 0.3.0 è pubblicata (setup Windows 18 MB, zip 23 MB, dmg 33 MB, deb/rpm
-7 MB), con l'APK Android allegato a mano e la PR winget passata alla 0.3.0.
-Resta: Flathub (build con `flatpak-builder`, mai provato) e avvisare
-l'utente che aveva la 0.2.0 rotta su Windows. Quello che segue è la storia.
+| Livello      | Thread       | L'analisi si ferma a        | Priorità |
+|--------------|--------------|-----------------------------|----------|
+| 1 Minima     | 1            | profondità 20 o 10 s        | bassa    |
+| 2 Leggera    | 25% dei core | profondità 24 o 20 s        | bassa    |
+| 3 Equilibrata (default) | 50% | profondità 30 o 60 s      | bassa    |
+| 4 Alta       | 75%          | mai (infinita)              | normale  |
+| 5 Piena      | tutti        | mai, nessun limite          | normale  |
 
-**Al prossimo rilascio (0.3.1 o 0.4.0), pulizia:** la release 0.3.0 ha
-quattro file estranei, `AUTHORS`, `Copying.txt`, `README.txt` e uno
-`stockfish.exe` sciolto, arrivati dall'artifact `engine-windows` (il job
-`release` scaricava tutti gli artifact). Il workflow è già corretto
-(`pattern:` nel download degli artifact, commit `9a27ed0`): alla prossima
-release controllare che non ci siano più. Poi togliere i quattro file
-dalla 0.3.0 (`gh release delete-asset v0.3.0 <nome>`) e rigenerare il suo
-`SHA256SUMS.txt` senza di loro, così non elenca file che non ci sono.
+- Thread e Hash scritti a mano da chi li conosce restano: un valore
+  esplicito vince sul livello (il livello decide solo dove oggi c'è
+  "Automatico" / "predefinito").
+- **Pausa in secondo piano** (proposta, per ogni livello sotto Piena): con
+  la finestra ridotta a icona o non attiva per più di qualche minuto
+  l'analisi si ferma (`stop`) e riparte al ritorno
+  (`QGuiApplication::applicationStateChanged`). È la cosa che risparmia di
+  più, e non costa niente a chi guarda la scacchiera.
+- L'allenamento (`kTrainingDepth`) e la ricerca "prima" di Spiega sono già
+  a profondità fissa: non cambiano, cambia solo quanti thread usano.
+- Il pannello del motore dice quando l'analisi si è fermata per il limite
+  ("Analisi completata a profondità 24"), con un modo di continuare
+  (il bottone di analisi riparte senza limite per quella posizione).
+- Scartato: sospendere il processo a intermittenza (SIGSTOP/SIGCONT,
+  `NtSuspendProcess`) per un "x% di CPU": funziona, ma è fragile, diverso
+  per ogni sistema e falsa i tempi che il motore misura.
+- Da fare: `EngineProfile::power` (1–5) in `EngineCatalog` (unit-test di
+  load/save), la traduzione livello → thread/limite/priorità pura e
+  testata (`EnginePower`), `UciEngine` che accetta priorità e limite,
+  `MainWindow::analyzeCurrentPosition` che usa il limite, il campo nel
+  dialogo, la guida in ogni lingua, `GET /api/state` col livello.
 
-Contesto (4 ottobre 2026, commit `6644142` e `22ef96c`). Un utente ha
-segnalato che la 0.2.0 su Windows non parte: "libssl-3-x64.dll non è stato
-trovato" (e `libcrypto-3-x64.dll`). Causa: Phone Link → libdatachannel →
-OpenSSL linkato dinamicamente, DLL mai copiate nel pacchetto; sul runner
-c'erano, quindi nessun test se ne accorgeva. In più i pacchetti pesavano
-85–113 MB per colpa di Stockfish (103 MB, quasi tutto la rete NNUE grande);
-l'utente vuole restare **sotto i 20 MB**.
+### 0. Dopo la 0.3.0: quel che resta dei pacchetti
 
-Fatto (vedi `packaging/README.md`, "Bundled engine" e "Packages that start"):
-
-- Stockfish ora è nostro: Stockfish 18 dal sorgente con
-  `packaging/stockfish/small-net.patch` (solo la rete piccola,
-  `nn-37f18f62d772.nnue`), costruito da `scripts/build-stockfish.sh`
-  (ex `fetch-stockfish.sh`): 4,1 MB su Linux, 5,1 MB su Windows (MinGW,
-  job `engine-windows` su Ubuntu), `x86-64-sse41-popcnt`. Stockfish 19 non
-  ha più la rete piccola: per aggiornare serve una release che ce l'abbia.
-  Il sorgente GPL allegato alla release è `stockfish-sf_18-pragma-source.tar.gz`.
-  Explain confrontato con Stockfish 16 ufficiale: valutazioni vicine
-  (`docs/tech/explain-tuning.md`, voce del 2026-10-04).
-- `packaging/windows/build.ps1`: `dumpbin /dependents` su ogni exe/dll del
-  pacchetto, copia OpenSSL e il runtime C++ (mai dati per presenti in
-  System32), fallisce se una DLL non si trova; poi avvia `stockfish.exe`
-  (deve rispondere `uci`/`bestmove`) e `pragma-chess.exe` (deve essere vivo
-  dopo 15 s) con PATH = solo Windows e `SetErrorMode` che trasforma il
-  dialogo "DLL mancante" in un exit code. Via anche `dxcompiler.dll`,
-  `dxil.dll` (`--no-system-dxc-compiler`) e le traduzioni Qt separate
-  (`--no-translations`: le nostre sono incorporate).
-- macOS (`build.sh`): `otool -L` su tutto il bundle, niente fuori da
-  `@rpath`/`/System`/`/usr/lib`; motore e app devono partire. **Passato in CI.**
-- Linux: il motore deve rispondere. .deb e .rpm **passati in CI.**
-- I test hanno impostazioni proprie (`initTestCase`: organizzazione
-  "Pragma Chess Tests", INI): `syncsChessBaseFiles` falliva su Windows
-  perché `QSettings()` senza organizzazione non scriveva nel registro.
-
-Da fare:
-
-1. ~~Il job Windows si ferma ai test~~ — **fatto** (4 ottobre, sera). La
-   sync Git falliva su Windows perché sostituire `.pragma-chess.sync` nel
-   clone con `QSaveFile` era sempre rifiutato ("Access is denied"): ora,
-   dopo qualche tentativo, `GitStore::saveReplacing` rimuove il vecchio file
-   e scrive il nuovo al suo posto. Run 37218265901: tutti i test passano su
-   Windows, Git compresi, e sono di nuovo tutti bloccanti in `build.ps1`; la
-   verifica delle DLL e l'avvio da pacchetto passano.
-2. ~~Rilanciare il workflow a mano~~ (fatto: il job `windows` passa). Rilanciare il workflow a mano (Actions ▸ Release ▸ Run workflow, o
-   `gh workflow run release.yml --ref main`) finché il job `windows` passa.
-   Il codice PowerShell nuovo di `build.ps1` non è mai girato (non c'è
-   `pwsh` sulla macchina di sviluppo): aspettarsi qualche errore da
-   correggere lì (parsing di `dumpbin`, `OPENSSL_INCLUDE_DIR` dal
-   `CMakeCache.txt`, avvio del processo).
-3. Peso degli artifact (run 37216697952, zip degli artifact di Actions):
-   **windows 41 MB, macos 32 MB**, deb 7 MB, rpm 6 MB: Windows e macOS sono
-   sopra i 20 MB voluti. Guardare cosa c'è dentro (plugin Qt superflui di
-   `windeployqt`/`macdeployqt`: imageformats, tls, styles, …; il runtime) e
-   sfoltire. Poi correggere se serve "about 80 MB smaller" nel CHANGELOG.
-4. Solo allora il tag della release. Dopo: aggiornare il `tag` nel manifest
-   Flatpak (il modulo `stockfish` ora compila dal sorgente: verificarlo con
-   `flatpak-builder`, mai provato) e avvisare l'utente che aveva la 0.2.0
-   rotta su Windows.
+- **Al prossimo rilascio, pulizia:** la release 0.3.0 ha quattro file
+  estranei, `AUTHORS`, `Copying.txt`, `README.txt` e uno `stockfish.exe`
+  sciolto, arrivati dall'artifact `engine-windows`. Il workflow è già
+  corretto (`pattern:` nel download degli artifact, commit `9a27ed0`): alla
+  prossima release controllare che non ci siano più, poi toglierli dalla
+  0.3.0 (`gh release delete-asset v0.3.0 <nome>`) e rigenerare il suo
+  `SHA256SUMS.txt` senza di loro.
+- **Peso:** l'utente vuole i pacchetti **sotto i 20 MB**. La 0.3.0: setup
+  Windows 18 MB, zip 23 MB, dmg 33 MB, deb/rpm 7 MB. Guardare cosa c'è
+  dentro zip e dmg (plugin Qt superflui di `windeployqt`/`macdeployqt`:
+  imageformats, tls, styles, …; il runtime) e sfoltire.
+- **Flathub:** il modulo `stockfish` del manifest ora compila dal sorgente;
+  mai provato con `flatpak-builder`. Aggiornare il `tag` e provarlo.
+- Avvisare l'utente che aveva la 0.2.0 rotta su Windows (DLL di OpenSSL
+  mancanti) che la 0.3.0 la corregge.
+- Stockfish 19 non ha più la rete piccola (`packaging/stockfish/small-net.patch`):
+  per aggiornare il motore incluso serve una release che ce l'abbia.
 
 ### 1. Varianti: quel che resta
-
-Il grosso è fatto (vedi CHANGELOG: modello, archiviazione in `games.variations`
-con migrazione 7, PGN, sessione per linee, vista ad albero `MoveTreeView`,
-salvataggio immediato nelle partite del database). Restano:
 
 - **Import delle varianti da ChessBase**: `CbgDecoder` si ferma al primo
   codice di fine linea; con la regola del formato (sotto) può costruire
@@ -181,11 +161,6 @@ tre soglie, rifare la taratura sui casi del documento, aggiornare la guida.
 
 ### 2b. SMART e Spiega reattivo: quel che resta
 
-SMART (smart/README.md, AGENTS.md "SMART") è fatto nei quattro passi
-concordati: linguaggio e interprete C++, TUTOR.smart, EXPLAIN.smart reattivo
-sull'analisi live del desktop con tick registrabili, interprete Kotlin e
-app Android. Ultimo commit del lavoro: `d7f16c1`. Resta:
-
 - **La frase posizionale persa.** Spiega reattivo non ha più la sonda lungo
   la variante (ricerche brevi su ogni posizione della linea, `concretePly`):
   "nessun materiale lo spiega: la valutazione è posizionale, chiara dopo …"
@@ -199,40 +174,20 @@ app Android. Ultimo commit del lavoro: `d7f16c1`. Resta:
   1.d4 d5 2.Nf3 Nf6 3.Nc3 e6 4.Bg5 Bb4 5.a3 Bxc3+ 6.bxc3 c5 7.dxc5 Qc7
   8.Qd4 Nc6 9.Bxf6: l'utente non capiva la freccia 2. È f6–d4 blu, la
   ripresa del Bianco 10.Bxd4 dopo 9…Nxd4: la sequenza finisce lì perché il
-  materiale si conta a scambi finiti. Tre cose da decidere:
-  1. ~~la ripresa di chi perde va disegnata?~~ Deciso: no. Le ultime mosse
-     della parte che perde non si disegnano (`WithoutLoserTail` in
-     EXPLAIN.smart); il testo dà ancora la linea intera;
-  2. ~~il verdetto è "Errore" per una donna in presa~~ Fatto: TUTOR.smart
-     conta anche i centipawn persi (≥100/200/300, se dopo la mossa non si
-     vince chiaramente) e il materiale che la mossa regala (`Handed`: un
-     pezzo per un pedone è un errore, una torre o più un errore grave, se
-     la valutazione perde almeno 50 cp). 9.Bxf6 è "Errore grave"; 12.Bxe5
-     (alfiere per pedone da −4.6, che il tutor non vedeva) è "Errore";
-  3. la frase "vince la donna per 2 cavalli" conta anche il cavallo che la
-     mossa stessa ha preso (9.Bxf6): giusto in bilancio, strano da leggere.
-     Meglio "la donna era attaccata: 9.Qe3 la salvava".
-- **Minacce (4…Bxf3, feedback del 6 ottobre): primo passo fatto.**
-  1.f4 e6 2.Nf3 b6 3.e3 Bb7 4.b3 Bxf3: Spiega ora dice "5.Qxf3 attacca la
-  torre in a8: 5…c6 la para." (`ThreatText` in EXPLAIN.smart, con le
-  primitive `MOVES` e `PASS` dei due client: dopo ognuna delle prime 4
-  mosse della linea, cosa potrebbe prendere chi l'ha giocata se l'altro
-  passasse; vale una presa che vince ≥ 200 cp, contando una sola ripresa
-  sulla stessa casa). Resta, come dice l'utente: le minacce tattiche
-  forzate a più mosse (un'infilata, un doppio che si prepara con uno
-  scacco, un sacrificio che apre) non si vedono con una presa sola e
-  saranno più difficili da raccontare; servirà guardare più a fondo, forse
+  materiale si conta a scambi finiti. Resta: la frase "vince la donna per
+  2 cavalli" conta anche il cavallo che la mossa stessa ha preso (9.Bxf6):
+  giusto in bilancio, strano da leggere. Meglio "la donna era attaccata:
+  9.Qe3 la salvava".
+- **Minacce a più mosse (feedback del 6 ottobre).** Spiega vede le minacce
+  di una presa sola (`ThreatText`, 4…Bxf3). Restano, come dice l'utente,
+  le minacce tattiche forzate a più mosse (un'infilata, un doppio che si
+  prepara con uno scacco, un sacrificio che apre), più difficili da
+  raccontare; servirà guardare più a fondo, forse
   scambi interi (SEE) invece di una ripresa, e disegnarle (una freccia
   della minaccia?). Poi i temi posizionali (coppia degli alfieri, sviluppo).
-- **L'attacco doppio (8…Bc5 a profondità 40, 6 ottobre): primo passo
-  fatto.** Linea 9.b4 Bxb4 10.Nxb4 Nxb4 11.Qb3!: Spiega ora dice "11.Qb3
-  attacca il cavallo in b4 e il pedone in f7", con la mossa e le due
-  minacce disegnate e la linea principale allungata fino a lì. Una mossa
-  che non cattura e crea due minacce nuove (del pezzo mosso o di uno che
-  gli sta dietro sulla stessa linea, come l'alfiere in c4 dietro la donna),
-  ciascuna ≥ 100 cp e insieme ≥ 300, nelle prime 8 semimosse; le minacce
-  singole restano nelle prime 4. Resta, come dice l'utente: +3.7 con un
-  pedone in più non si spiega ancora del tutto. Dopo 12.Bxf7+ Kf8 il
+- **I temi del re (8…Bc5 a profondità 40, 6 ottobre).** Dopo 9.b4 Bxb4
+  10.Nxb4 Nxb4 11.Qb3! Spiega dice l'attacco doppio, ma +3.7 con un pedone
+  in più non si spiega ancora del tutto. Dopo 12.Bxf7+ Kf8 il
   materiale torna pari e il resto è il re nero che non arrocca più; la
   frase "non si perde materiale: è posizionale" è vera ma non dice *quale*
   posizione. Servono i temi del re (arrocco perso, re esposto).
@@ -242,18 +197,11 @@ app Android. Ultimo commit del lavoro: `d7f16c1`. Resta:
   (`unjudgedBefore`, `kExplainBeforeDepth`); il telefono no: lì la mossa
   resta senza giudizio finché l'utente non è passato dalla posizione prima.
   Portare lo stesso giro in `AppViewModel.positionChanged`.
-- **La minaccia ignorata (5…Qh4+, 6 ottobre): fatto.** Spiega ora disegna
-  le minacce (frecce rosse tratteggiate, tipo `threat`) e trova quella che
-  l'errore ha lasciato in piedi (`IgnoredThreatText`: una presa che
-  l'avversario aveva prima della mossa e che la linea esegue nelle prime
-  semimosse): "5…Qh4+ leaves the rook on a8 attacked: 7.Qxa8", con le
-  frecce g2–g3, Qf3→a8, g3→h4. Resta: nella linea del motore il Nero
+- **La minaccia ignorata (5…Qh4+, 6 ottobre).** Spiega dice "5…Qh4+ leaves
+  the rook on a8 attacked: 7.Qxa8" (`IgnoredThreatText`). Resta: nella linea del motore il Nero
   riprende la torre (7…Qxa1) e il vantaggio viene da 8.Qxb8+; la frase non
   lo dice. E solo nel ramo dell'errore senza materiale: se il materiale
   cade, il ramo del materiale non cerca minacce.
-- **3.Qf5: fatto.** Le vincite di materiale lontane nella linea (oltre 8
-  semimosse) devono coprire l'80% del crollo (`LONG_PLIES`, `LONG_SHARE`):
-  3.Qf5 ora dice "4…g6 attacca la donna in f5: 5.Qg5 la para".
 - **Le combinazioni profonde (8…Bc5, 6 ottobre).** Spiega disegna ora il
   cammino del pezzo che cattura (12.Bxf7+ 13.Ne5+ 14.Ng6+ 15.Nxh8), ma lo
   trova solo quando il motore è arrivato a vederlo (profondità ~26 qui): a
@@ -261,10 +209,7 @@ app Android. Ultimo commit del lavoro: `d7f16c1`. Resta:
   l'analisi live ci arriva in pochi secondi; vale la pena vedere se la
   spiegazione cambia davanti all'utente e se va detto ("il motore sta ancora
   cercando"). Da osservare dal vero.
-- **Stabilità di Spiega (8…Bc5, 6 ottobre).** `Tick` ora mostra altre
-  frecce solo quando sono uscite in 3 delle ultime 4 profondità, il giudizio
-  subito, e lascia una spiegazione che il motore non dà più da 4 profondità.
-  Da osservare sul desktop vero: se capita ancora di vedere spiegazioni che
+- **Stabilità di Spiega (8…Bc5, 6 ottobre).** Da osservare sul desktop vero: se capita ancora di vedere spiegazioni che
   cambiano, registrare i tick (`PRAGMA_EXPLAIN_RECORD`) e rigiocarli. Resta
   12.Bxe5, che a profondità 18 oscilla tra "vince un alfiere per un pedone"
   e la spiegazione senza materiale (il Bianco riprende un pedone dopo
@@ -376,28 +321,6 @@ bus: muoiono con lei, ma ogni avvio costa ~20 s. Per trovare chi fa una
 chiamata Wayland: `gdb -batch -x cmd` con `break
 _ZN15QtWaylandClient18QWaylandXdgSurface15requestActivateEv` e `bt`.
 
-## Bug GNOME risolti (perché, non solo cosa)
-
-- **Dock che compare aprendo un menu**: il plugin Wayland di Qt 6.4
-  (`QWaylandIntegration` ctor) collega `QGuiApplication::focusObjectChanged`
-  a una lambda che chiama `requestActivate()` sulla shell surface della
-  finestra col fuoco → `xdg_activation_v1.activate` con token non valido →
-  Mutter marca la finestra "richiede attenzione" → la dock si mostra per le
-  finestre urgenti. Fix in `main.cpp`: `QObject::disconnect(&app,
-  SIGNAL(focusObjectChanged(QObject*)), nullptr, nullptr)` su Wayland (è
-  l'unico ascoltatore fra tutte le librerie/plugin Qt installati: verificato
-  con `objdump -R`).
-- **Menu e finestre piatti**: Mutter non decora né ombreggia; l'unica
-  decorazione Qt installata è `bradient` (senza ombra; `qgnomeplatform`/
-  `qadwaitadecorations` per Qt 6 non esistono in Ubuntu 24.04). Soluzione:
-  ombre disegnate dall'app (`GtkDesktopStyle` per i `QMenu`, `WindowChrome`
-  per `QDialog` e `QMainWindow`). Insidie trovate: la finestra nativa resta
-  opaca se `WA_TranslucentBackground` arriva dopo la sua creazione → si
-  distrugge il `QWindow` nativo al polish e lo show lo ricrea;
-  `QPainterPath::arcTo` con rettangolo vuoto non fa nulla → gli angoli
-  squadrati vanno fatti con `lineTo`, altrimenti il pannello non si riempie;
-  il titolo con "[*]" si legge da `windowHandle()->title()`.
-
 ## Formato ChessBase (.cbh e famiglia) — quanto decifrato e verificato
 
 Letto e verificato su tutta la base di esempio (14 820 partite, 0 errori,
@@ -470,7 +393,7 @@ variante) tutte le mosse di tutte le varianti risultano legali. Esempi reali:
 `25.Nd7 ( 25…Rfd8 26.Qe5 ) 25…Rfe8 26.Re5 Qb4` = principale "…25.Nd7 Rfd8
 26.Qe5", variante "25…Rfe8 26.Re5 Qb4"; `12…f6 ( 13.Bf3 Qxc4 ( 14.Be2 … ) 14.Qa3
 Nc7 15.Qxa7 Qa6 ) 13.Qa3 Kb7 …`. Il decodificatore attuale si ferma alla prima
-255: per importare le varianti serve prima l'albero (punto 1).
+255: per importare le varianti serve prima l'albero (punto 1, "Varianti").
 
 ## Pagine e strumenti utili
 

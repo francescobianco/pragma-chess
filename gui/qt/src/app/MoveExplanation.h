@@ -21,17 +21,23 @@ struct BoardArrow {
         Alternative,
         /// A capture threatened, not played: a piece left attacked (dashed red).
         Threat,
+        /// A piece's trip along the engine's line, a plan (INSIGHT.smart).
+        Plan,
     };
 
     int from = -1;
     int to = -1;
     Kind kind = Kind::Idea;
     /// Position in the line, starting at 1; 0 for arrows outside a sequence.
+    /// For a Plan, its rank (1 the strongest), which chooses its colour.
     int step = 0;
     /// The piece the arrow moves, drawn small and faint where it goes: given
     /// for the better move, which starts from the position before the one on
     /// the board, where that piece may no longer stand.
     Piece piece = {};
+    /// Squares the arrow passes through between `from` and `to`, in order:
+    /// a route (Nb1-d2-f1-g3) rather than a single move.
+    QList<int> via = {};
 
     bool operator==(const BoardArrow &) const = default;
 };

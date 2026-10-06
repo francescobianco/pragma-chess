@@ -1,0 +1,385 @@
+' INSIGHT.smart — the plans of the engine's line. While the Engine panel's
+' eye is held, the board shows the position at the end of the engine's line;
+' these arrows say how the pieces got there: a knight's route, a rook lift,
+' the king marching in an endgame, a pawn running or breaking through.
+'
+' It is a reading of the line, not a search: the line is replayed as the
+' engine gave it, nothing is looked at beyond its end, no legal moves are
+' asked for. Each piece is followed along the line as a trip — the square it
+' started from, the squares where it stopped, the one where it arrived —, the
+' trips that make a plan get a score, and the best few are drawn. Better no
+' arrow than a trivial one: exchanges, moves forced by a check and a piece
+' that went and came back are not plans.
+'
+' The client provides:
+'   WHITE, BLACK                      the sides: 1 and -1
+'   PAWN, KNIGHT, BISHOP, ROOK,       the pieces: 1 to 6 (0 is no piece)
+'   QUEEN, KING
+'   Positions:
+'     PLAY(p, move)                   the position after a move (UCI), NOTHING if illegal
+'     SIDETOMOVE(p)                   WHITE or BLACK
+'     INCHECK(p)
+'     CAPTURED(p, move)               the piece the move takes (en passant too), or 0
+'     PIECE(p, square)                the piece on a square (0 to 63, a1 to h8), or 0
+'     SIDEAT(p, square)               the side of the piece on a square, or 0
+'     COUNT(p, side, piece)           how many of that piece the side has
+'   Moves (UCI): FROMSQ(move), TOSQ(move), PROMOTION(move) (the piece, or 0)
+'   Commands, what is shown:
+'     ARROW from, to, "plan", n       a trip, from where it started to where it arrived;
+'                                     n its rank (1 the strongest), which gives it its
+'                                     colour: routes crossing on a square stay apart
+'     VIA square                      a square the last arrow passes through, in order
+'     NOTE text                       how the arrows were chosen (--trace)
+'
+' Entry function: Insight, the arrows of one line.
+
+' At most this many arrows: a plan is read at a glance.
+CONST MAX_ARROWS = 3
+' A trip scoring less is not drawn.
+CONST MIN_SCORE = 60
+' Squares an arrow passes through, at most: the first, and the last ones.
+CONST MAX_VIA = 3
+' Lines are replayed this far at most (a safeguard: the eye shows the end of the line).
+CONST MAX_PLIES = 80
+
+' What each kind of trip is worth, from the strongest.
+CONST PROMOTION_SCORE = 100
+CONST KING_MARCH_SCORE = 80
+CONST PASSED_RUN_SCORE = 75
+CONST MANOEUVRE_SCORE = 60
+CONST PAWN_RUN_SCORE = 45
+CONST BREAK_SCORE = 45
+' Added for each square of road travelled, up to MAX_ROAD_BONUS.
+CONST ROAD_BONUS = 5
+CONST MAX_ROAD_BONUS = 25
+' Added when the trip ends in the opponent's half.
+CONST ENEMY_HALF_BONUS = 10
+' Taken off when the piece is captured before the end of the line: the plan
+' failed, or it was an exchange.
+CONST CAPTURED_MALUS = 30
+
+FILES = ["a", "b", "c", "d", "e", "f", "g", "h"]
+' Piece values, for ties: none, pawn, knight, bishop, rook, queen, king.
+VALUES = [0, 100, 300, 310, 500, 900, 1000]
+PIECE_LETTERS = ["", "", "N", "B", "R", "Q", "K"]
+
+' The trips of the line being read, one entry each in every list: the piece
+' (a promoted pawn becomes the new piece), the one it started as, its side,
+' the squares it stood on, its quiet moves (no capture, no check to answer),
+' its captures, whether it is still on the board, whether it made a pawn break.
+tPiece = []
+tStartPiece = []
+tSide = []
+tPath = []
+tQuiet = []
+tCaptures = []
+tAlive = []
+tBreak = []
+
+FUNCTION FileOf(square)
+    RETURN square MOD 8
+END FUNCTION
+
+FUNCTION RankOf(square)
+    RETURN INT(square / 8)
+END FUNCTION
+
+FUNCTION Sign(x)
+    IF x > 0 THEN RETURN 1
+    IF x < 0 THEN RETURN -1
+    RETURN 0
+END FUNCTION
+
+FUNCTION SquareName(square)
+    RETURN FILES[FileOf(square)] + STR(RankOf(square) + 1)
+END FUNCTION
+
+' King steps between two squares.
+FUNCTION Distance(a, b)
+    RETURN MAX(ABS(FileOf(a) - FileOf(b)), ABS(RankOf(a) - RankOf(b)))
+END FUNCTION
+
+' Queenside (a–c), centre (d–e) or kingside (f–h).
+FUNCTION Wing(square)
+    IF FileOf(square) <= 2 THEN RETURN -1
+    IF FileOf(square) >= 5 THEN RETURN 1
+    RETURN 0
+END FUNCTION
+
+FUNCTION PathText(k)
+    text = PIECE_LETTERS[tStartPiece[k]]
+    FOR i = 0 TO LEN(tPath[k]) - 1
+        IF i > 0 THEN text = text + "-"
+        text = text + SquareName(tPath[k][i])
+    NEXT
+    RETURN text
+END FUNCTION
+
+' The trip of the piece standing on `square`, or -1.
+FUNCTION TripAt(square)
+    FOR k = 0 TO LEN(tPath) - 1
+        IF tAlive[k] THEN
+            IF tPath[k][LEN(tPath[k]) - 1] = square THEN RETURN k
+        END IF
+    NEXT
+    RETURN -1
+END FUNCTION
+
+FUNCTION NewTrip(piece, side, square)
+    SHARED tPiece, tStartPiece, tSide, tPath, tQuiet, tCaptures, tAlive, tBreak
+    tPiece = tPiece + [piece]
+    tStartPiece = tStartPiece + [piece]
+    tSide = tSide + [side]
+    tPath = tPath + [[square]]
+    tQuiet = tQuiet + [0]
+    tCaptures = tCaptures + [0]
+    tAlive = tAlive + [TRUE]
+    tBreak = tBreak + [FALSE]
+    RETURN LEN(tPath) - 1
+END FUNCTION
+
+' Whether a pawn of `side` on `square` of `p` attacks a pawn of the other side.
+FUNCTION AttacksPawn(p, square, side)
+    rank = RankOf(square) + side
+    IF rank < 0 OR rank > 7 THEN RETURN FALSE
+    FOR df = -1 TO 1 STEP 2
+        file = FileOf(square) + df
+        IF file >= 0 AND file <= 7 THEN
+            target = rank * 8 + file
+            IF PIECE(p, target) = PAWN AND SIDEAT(p, target) = -side THEN RETURN TRUE
+        END IF
+    NEXT
+    RETURN FALSE
+END FUNCTION
+
+' Whether a pawn of `side` on `square` of `p` has no pawn of the other side
+' in front of it, on its file or the next ones.
+FUNCTION Passed(p, square, side)
+    FOR file = MAX(0, FileOf(square) - 1) TO MIN(7, FileOf(square) + 1)
+        rank = RankOf(square) + side
+        WHILE rank >= 0 AND rank <= 7
+            target = rank * 8 + file
+            IF PIECE(p, target) = PAWN AND SIDEAT(p, target) = -side THEN RETURN FALSE
+            rank = rank + side
+        WEND
+    NEXT
+    RETURN TRUE
+END FUNCTION
+
+' No queens, and at most two other pieces a side: the kings come out.
+FUNCTION Endgame(p)
+    IF COUNT(p, WHITE, QUEEN) + COUNT(p, BLACK, QUEEN) > 0 THEN RETURN FALSE
+    FOR side = -1 TO 1 STEP 2
+        pieces = COUNT(p, side, KNIGHT) + COUNT(p, side, BISHOP) + COUNT(p, side, ROOK)
+        IF pieces > 2 THEN RETURN FALSE
+    NEXT
+    RETURN TRUE
+END FUNCTION
+
+' One move of the line, `p` the position before it: the trips follow it.
+FUNCTION Follow(p, move)
+    SHARED tPiece, tPath, tQuiet, tCaptures, tAlive, tBreak
+    side = SIDETOMOVE(p)
+    origin = FROMSQ(move)
+    target = TOSQ(move)
+    piece = PIECE(p, origin)
+    took = CAPTURED(p, move)
+    IF took <> 0 THEN
+        ' A captured piece's trip ends where it was taken (en passant: behind).
+        victim = target
+        IF PIECE(p, target) = 0 THEN victim = target - 8 * side
+        v = TripAt(victim)
+        IF v >= 0 THEN tAlive[v] = FALSE
+    END IF
+    k = TripAt(origin)
+    IF k < 0 THEN k = NewTrip(piece, side, origin)
+    IF piece = KING AND ABS(FileOf(target) - FileOf(origin)) = 2 THEN
+        ' Castling puts king and rook in place: it is not a plan, and their
+        ' trips start again where they stand.
+        rookFrom = RankOf(origin) * 8
+        rookTo = RankOf(origin) * 8 + 3
+        IF FileOf(target) = 6 THEN
+            rookFrom = rookFrom + 7
+            rookTo = rookTo + 2
+        END IF
+        tPath[k] = [target]
+        r = TripAt(rookFrom)
+        IF r < 0 THEN r = NewTrip(ROOK, side, rookFrom)
+        tPath[r] = [rookTo]
+        RETURN
+    END IF
+    ' Back on a square it stood on: the loop in between was no road (a piece
+    ' back where it started has made no trip at all).
+    at = INDEXOF(tPath[k], target)
+    IF at >= 0 THEN
+        tPath[k] = SLICE(tPath[k], 0, at + 1)
+    ELSE
+        tPath[k] = tPath[k] + [target]
+    END IF
+    IF took <> 0 THEN
+        tCaptures[k] = tCaptures[k] + 1
+    ELSEIF NOT INCHECK(p) THEN
+        tQuiet[k] = tQuiet[k] + 1
+        IF piece = PAWN THEN
+            IF AttacksPawn(p, target, side) THEN tBreak[k] = TRUE
+        END IF
+    END IF
+    IF PROMOTION(move) <> 0 THEN tPiece[k] = PROMOTION(move)
+END FUNCTION
+
+' What trip `k` is worth as a plan, `last` the position at the end of the
+' line; 0 when it is none. The kind of plan is said in the trace.
+FUNCTION Score(k, last, endgame)
+    path = tPath[k]
+    IF LEN(path) < 2 THEN RETURN 0
+    first = path[0]
+    final = path[LEN(path) - 1]
+    side = tSide[k]
+    road = 0
+    FOR i = 1 TO LEN(path) - 1
+        road = road + Distance(path[i - 1], path[i])
+    NEXT
+    base = 0
+    kind = ""
+    IF tStartPiece[k] = PAWN THEN
+        advance = (RankOf(final) - RankOf(first)) * side
+        IF tPiece[k] <> PAWN THEN
+            base = PROMOTION_SCORE
+            kind = "promotion"
+        ELSEIF tCaptures[k] = 0 AND tQuiet[k] >= 2 AND advance >= 2 THEN
+            IF Passed(last, final, side) THEN
+                base = PASSED_RUN_SCORE
+                kind = "passed pawn"
+            ELSE
+                base = PAWN_RUN_SCORE
+                kind = "pawn advance"
+            END IF
+        ELSEIF tBreak[k] THEN
+            base = BREAK_SCORE
+            kind = "pawn break"
+        END IF
+    ELSEIF tPiece[k] = KING THEN
+        IF endgame AND tQuiet[k] >= 2 AND Distance(first, final) >= 2 THEN
+            base = KING_MARCH_SCORE
+            kind = "king march"
+        END IF
+    ELSEIF tQuiet[k] >= 2 AND final <> first THEN
+        IF Distance(first, final) >= 3 OR Wing(first) * Wing(final) = -1 THEN
+            base = MANOEUVRE_SCORE
+            kind = "manoeuvre"
+        END IF
+    END IF
+    IF base = 0 THEN RETURN 0
+    score = base + MIN(MAX_ROAD_BONUS, ROAD_BONUS * road)
+    IF (RankOf(final) * 2 - 7) * side > 0 THEN score = score + ENEMY_HALF_BONUS
+    IF NOT tAlive[k] THEN score = score - CAPTURED_MALUS
+    NOTE PathText(k) + ": " + kind + ", " + STR(score)
+    RETURN score
+END FUNCTION
+
+' Whether trip `a` comes before trip `b`: score, then the piece's value,
+' then the squares (the program never depends on the order of the trips).
+FUNCTION Before(a, sa, b, sb)
+    IF sa <> sb THEN RETURN sa > sb
+    IF VALUES[tPiece[a]] <> VALUES[tPiece[b]] THEN RETURN VALUES[tPiece[a]] > VALUES[tPiece[b]]
+    IF tPath[a][0] <> tPath[b][0] THEN RETURN tPath[a][0] < tPath[b][0]
+    RETURN tPath[a][LEN(tPath[a]) - 1] < tPath[b][LEN(tPath[b]) - 1]
+END FUNCTION
+
+' Whether a leg is a straight line (a file, a rank, a diagonal).
+FUNCTION Straight(a, b)
+    df = ABS(FileOf(b) - FileOf(a))
+    dr = ABS(RankOf(b) - RankOf(a))
+    RETURN df = 0 OR dr = 0 OR df = dr
+END FUNCTION
+
+' The trip drawn: one arrow from where it started to where it arrived,
+' through the squares where it turned (legs along one line are one), the
+' first and the last ones when there are many.
+FUNCTION DrawTrip(k, rank)
+    path = tPath[k]
+    turns = [path[0]]
+    FOR i = 1 TO LEN(path) - 1
+        n = LEN(turns)
+        merged = FALSE
+        IF n >= 2 THEN
+            a = turns[n - 2]
+            b = turns[n - 1]
+            c = path[i]
+            IF Straight(a, b) AND Straight(b, c) THEN
+                df1 = Sign(FileOf(b) - FileOf(a))
+                dr1 = Sign(RankOf(b) - RankOf(a))
+                df2 = Sign(FileOf(c) - FileOf(b))
+                dr2 = Sign(RankOf(c) - RankOf(b))
+                ' On one line, going on or coming back part of the way (Rf8-b8-c8
+                ' is Rf8-c8): the arrow would run over itself.
+                IF (df1 = df2 AND dr1 = dr2) OR (df1 = -df2 AND dr1 = -dr2) THEN
+                    turns[n - 1] = c
+                    merged = TRUE
+                END IF
+            END IF
+        END IF
+        IF NOT merged THEN turns = turns + [path[i]]
+    NEXT
+    via = SLICE(turns, 1, LEN(turns) - 2)
+    IF LEN(via) > MAX_VIA THEN via = [via[0]] + SLICE(via, LEN(via) - (MAX_VIA - 1), MAX_VIA - 1)
+    ARROW turns[0], turns[LEN(turns) - 1], "plan", rank
+    FOR i = 0 TO LEN(via) - 1
+        VIA via[i]
+    NEXT
+END FUNCTION
+
+' The arrows of the plans in `line`, the engine's moves from `start`.
+FUNCTION Insight(start, line)
+    SHARED tPiece, tStartPiece, tSide, tPath, tQuiet, tCaptures, tAlive, tBreak
+    tPiece = []
+    tStartPiece = []
+    tSide = []
+    tPath = []
+    tQuiet = []
+    tCaptures = []
+    tAlive = []
+    tBreak = []
+    p = start
+    FOR i = 0 TO MIN(LEN(line), MAX_PLIES) - 1
+        nextPosition = PLAY(p, line[i])
+        IF nextPosition = NOTHING THEN
+            NOTE "illegal move " + line[i] + ": the line is read up to it"
+            EXIT FOR
+        END IF
+        Follow p, line[i]
+        p = nextPosition
+    NEXT
+    endgame = Endgame(start)
+    candidates = []
+    scores = []
+    FOR k = 0 TO LEN(tPath) - 1
+        score = Score(k, p, endgame)
+        IF score >= MIN_SCORE THEN
+            candidates = candidates + [k]
+            scores = scores + [score]
+        END IF
+    NEXT
+    ' The best ones; pawns of a side on the same wing are one plan, drawn
+    ' by the best of them.
+    wings = []
+    drawn = 0
+    WHILE drawn < MAX_ARROWS AND LEN(candidates) > 0
+        best = 0
+        FOR i = 1 TO LEN(candidates) - 1
+            IF Before(candidates[i], scores[i], candidates[best], scores[best]) THEN best = i
+        NEXT
+        k = candidates[best]
+        candidates = SLICE(candidates, 0, best) + SLICE(candidates, best + 1, LEN(candidates))
+        scores = SLICE(scores, 0, best) + SLICE(scores, best + 1, LEN(scores))
+        wing = NOTHING
+        IF tStartPiece[k] = PAWN AND tPiece[k] = PAWN THEN wing = [tSide[k], Wing(tPath[k][LEN(tPath[k]) - 1])]
+        IF wing <> NOTHING AND CONTAINS(wings, wing) THEN
+            NOTE PathText(k) + ": same plan as a pawn drawn"
+        ELSE
+            IF wing <> NOTHING THEN wings = wings + [wing]
+            drawn = drawn + 1
+            DrawTrip k, drawn
+        END IF
+    WEND
+END FUNCTION

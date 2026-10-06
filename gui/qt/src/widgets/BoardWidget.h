@@ -86,10 +86,10 @@ public:
     bool isShowingSequence() const { return m_sequenceActive; }
 
     /// Shows another position for a moment (the end of the engine's line,
-    /// while its button is held), without arrows or marks and without
-    /// taking moves; endPeek() brings back what was there, a sequence
-    /// going on where it was.
-    void peek(const BoardFrame &frame);
+    /// while its button is held), without Explain's arrows or the marks and
+    /// without taking moves, with `arrows` of its own (the line's plans);
+    /// endPeek() brings back what was there, a sequence going on where it was.
+    void peek(const BoardFrame &frame, const QList<BoardArrow> &arrows = {});
     void endPeek();
     bool isPeeking() const { return m_peeking; }
 
@@ -187,6 +187,7 @@ private:
     bool m_peeking = false;
     /// What peek() covered, shown again by endPeek().
     BoardFrame m_beforePeek;
+    QList<BoardArrow> m_peekArrows;
     QTimer *m_sequenceTimer;
     /// Progress (0–1) of the piece sliding to the last move's target.
     QVariantAnimation *m_slide;

@@ -11,6 +11,7 @@
 #include "app/ExplanationSearch.h"
 #include "app/GameIdentity.h"
 #include "app/ExplainTicks.h"
+#include "app/LineInsight.h"
 #include "app/Explainer.h"
 #include "app/GameSession.h"
 #include "app/GameState.h"
@@ -441,6 +442,55 @@ private Q_SLOTS:
             }
         }
         QVERIFY(records >= 6);
+    }
+
+    void drawsThePlansOfALine()
+    {
+        // INSIGHT.smart: a knight's route is one arrow through the squares it stopped on.
+        const ChessPosition start = afterMoves(QString(), {"e2e4", "e7e5"});
+        const LineInsight insight = lineInsight(start, {"g1e2", "b8c6", "e2g3", "g8f6", "g3f5"}, true);
+        QVERIFY2(insight.error.isEmpty(), qPrintable(insight.error));
+        QCOMPARE(InsightCase::outcome(insight.arrows), QStringList{QStringLiteral("g1f5 via e2 g3")});
+        QCOMPARE(insight.arrows.first().kind, BoardArrow::Kind::Plan);
+        QCOMPARE(insight.arrows.first().step, 1); // Its rank: each plan has a colour of its own.
+        QVERIFY(!insight.trace.isEmpty());
+        // Going on in the same direction is one leg: Ra1-a3-a5 is a straight arrow.
+        const ChessPosition rook = *ChessPosition::fromFen(QStringLiteral("6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1"));
+        QCOMPARE(InsightCase::outcome(lineInsight(rook, {"a1a3", "h7h6", "a3a5", "h6h5", "a5c5"}).arrows),
+                 QStringList{QStringLiteral("a1c5 via a5")});
+        // An illegal move ends the reading, it is not an error; an empty line draws nothing.
+        QCOMPARE(InsightCase::outcome(lineInsight(start, {"g1f3", "e5e4"}).arrows), QStringList{QStringLiteral("-")});
+        QVERIFY(lineInsight(start, {}).arrows.isEmpty());
+
+        QString error;
+        QVERIFY(!InsightCase::fromText(QStringLiteral("insight x\nline e2e5\nexpect -\nend\n"), &error));
+        QCOMPARE(error, QStringLiteral("line 4: e2e5 is not a legal move of the line"));
+        QVERIFY(!InsightCase::fromText(QStringLiteral("insight x\nline e2e4\nend\n"), &error));
+
+        // The cases of smart/tests, which the Android app replays too.
+        const QDir folder(QStringLiteral(PRAGMA_SMART_TESTS_DIR));
+        const QStringList files = folder.entryList({QStringLiteral("*.insight")}, QDir::Files);
+        QVERIFY(!files.isEmpty());
+        int cases = 0;
+        for (const QString &name : files) {
+            QFile file(folder.filePath(name));
+            QVERIFY(file.open(QIODevice::ReadOnly));
+            const std::optional<QList<InsightCase>> read = InsightCase::fromText(QString::fromUtf8(file.readAll()), &error);
+            QVERIFY2(read, qPrintable(name + QStringLiteral(", ") + error));
+            for (const InsightCase &recorded : *read) {
+                ++cases;
+                const std::optional<QList<InsightCase>> again = InsightCase::fromText(recorded.toText());
+                QVERIFY(again && again->size() == 1 && again->first().toText() == recorded.toText());
+                const LineInsight insight = lineInsight(recorded.start, recorded.line);
+                QVERIFY2(insight.error.isEmpty(), qPrintable(recorded.name + QStringLiteral(": ") + insight.error));
+                for (qsizetype i = 0; i < insight.arrows.size(); ++i)
+                    QCOMPARE(insight.arrows.at(i).step, int(i) + 1);
+                QVERIFY2(InsightCase::outcome(insight.arrows) == recorded.expected,
+                         qPrintable(recorded.name + QStringLiteral(": ")
+                                    + InsightCase::outcome(insight.arrows).join(QStringLiteral(", "))));
+            }
+        }
+        QVERIFY(cases >= 8);
     }
 
     void explainsWinningCapture()
@@ -1003,6 +1053,8 @@ END FUNCTION
                  QStringLiteral("[-2, 3, 2, 8, -1, 1]"));
         QCOMPARE(value(QStringLiteral("[LEN(\"abc\"), LEN([1, [2, 3]]), CONTAINS([1, 2], 2), INDEXOF([\"a\", \"b\"], \"b\")]")),
                  QStringLiteral("[3, 2, 1, 1]"));
+        // -0 is 0, in lists too (Kotlin's Double.equals tells them apart).
+        QCOMPARE(value(QStringLiteral("[-0 = 0, [-0, 1] = [0, 1], CONTAINS([-0], 0)]")), QStringLiteral("[1, 1, 1]"));
         QCOMPARE(value(QStringLiteral("SLICE(REPEAT(0, 3) + [1, 2], 2, 10)")), QStringLiteral("[0, 1, 2]"));
         QCOMPARE(value(QStringLiteral("[FIXED(2.5, 1), FIXED(7, 2), TRIM(\"  a b \")]")), QStringLiteral(R"(["2.5", "7.00", "a b"])"));
         QCOMPARE(value(QStringLiteral("[FIXED(2.25, 1), FIXED(-2.25, 1), FIXED(-0.04, 1), FIXED(0.125, 2), FIXED(2.5, 0)]")),

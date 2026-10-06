@@ -6,7 +6,11 @@ in. The files of this folder hold it:
 - `EXPLAIN.smart` — Explain: the arrows, lost pieces and summary that justify
   the evaluation of the position on the board;
 - `TUTOR.smart` — the tutor of a training game: whether the move just played
-  was an error.
+  was an error;
+- `INSIGHT.smart` — the plans of the engine's line, drawn over the position
+  at its end while the Engine panel's eye is held: the routes of the pieces,
+  the king's march, the pawns that run. A reading of the line, called once
+  per line (`Insight`), not per tick.
 
 Every client runs these same files — the desktop client, the command line
 tool `pragma-explain` and the Android app —, each with its own interpreter
@@ -50,6 +54,7 @@ LET needed = MAX(MINIMUM, INT(drop * REALIZED_SHARE)) : NOTE "needed " + STR(nee
 ### Values
 
 - **Numbers**, always decimal (`3`, `-0.5`). `INT` cuts towards zero.
+  `-0` is `0`: equal to it, in lists too.
 - **Texts** in double quotes; a double quote inside is written twice
   (`"say ""hi"""`).
 - **Lists**: `[1, 2, 3]`, `[]`. Indexes start at 0: `moves[0]`. A list is a

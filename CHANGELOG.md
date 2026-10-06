@@ -8,6 +8,12 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Where the line leads, and how**: hold the eye beside Stop Analysis and
+  the board shows the position at the end of the engine's line, following
+  the engine as it goes deeper. Violet arrows show the plans the line holds:
+  a knight's route, a rook lift, the king marching in an endgame, a pawn
+  running or breaking through, each arrow passing through the squares where
+  the piece stopped.
 - A new board style, **Classic Book**: the diagram of a printed chess book,
   one old paper with the dark squares hatched in diagonal ink lines, the
   Good Companion pieces, and a margin of paper around each piece standing

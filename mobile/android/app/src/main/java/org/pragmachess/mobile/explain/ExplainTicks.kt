@@ -116,7 +116,7 @@ data class ExplainTicks(
         /** An explanation as the `expect` lines write it, as the desktop's outcome(). */
         fun outcome(explanation: MoveExplanation): List<String> {
             val verdicts = listOf("none", "best", "good", "inaccuracy", "mistake", "blunder")
-            val kinds = listOf("refutation", "idea", "reply", "alternative", "threat")
+            val kinds = listOf("refutation", "idea", "reply", "alternative", "threat", "plan")
             val arrows = explanation.arrows.joinToString(", ") { arrow ->
                 Square.name(arrow.from) + Square.name(arrow.to) + " " + kinds[arrow.kind.ordinal] +
                     if (arrow.step > 0) " ${arrow.step}" else ""

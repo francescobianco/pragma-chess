@@ -34,6 +34,7 @@
 #include "dialogs/ConnectMobileDialog.h"
 #endif
 #include "app/Explainer.h"
+#include "app/LineInsight.h"
 #include "app/GameSession.h"
 #include "app/GameVariations.h"
 #include "app/MoveAnnotation.h"
@@ -1961,6 +1962,7 @@ void MainWindow::peekAtEngineLine(bool held)
 {
     if (!held) {
         m_board->endPeek();
+        m_peekArrows.clear();
         return;
     }
     // Only a line about the position on the board: the board clears it when it moves.
@@ -1977,8 +1979,11 @@ void MainWindow::peekAtEngineLine(bool held)
         from = move->from;
         to = move->to;
     }
-    if (from >= 0)
-        m_board->peek(frameFor(position, from, to));
+    if (from < 0)
+        return;
+    // The plans the line holds, INSIGHT.smart's: how the pieces got there.
+    m_peekArrows = lineInsight(m_session->position(), m_lastEvaluation.pv).arrows;
+    m_board->peek(frameFor(position, from, to), m_peekArrows);
 }
 
 void MainWindow::syncBoard()

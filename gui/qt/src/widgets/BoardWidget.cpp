@@ -46,6 +46,17 @@ QColor blend(const QColor &from, const QColor &to, qreal t)
                             mix(from.blueF(), to.blueF()), mix(from.alphaF(), to.alphaF()));
 }
 
+/// The colour of the plan of rank `rank` (1, 2, 3…): each route its own, so
+/// that two routes through one square can be told apart. Not Explain's red,
+/// green and blue, which are claims about material.
+QColor planColor(int rank)
+{
+    static const QColor colors[] = {QColor(0x8e, 0x4f, 0xb5, 0xc8),  // violet
+                                    QColor(0xe0, 0x7b, 0x1f, 0xc8),  // orange
+                                    QColor(0x17, 0x9a, 0x94, 0xc8)}; // teal
+    return colors[qMax(0, rank - 1) % 3];
+}
+
 QColor arrowColor(BoardArrow::Kind kind)
 {
     switch (kind) {
@@ -54,6 +65,7 @@ QColor arrowColor(BoardArrow::Kind kind)
     case BoardArrow::Kind::Reply: return QColor(0x3a, 0x6e, 0xb5, 0xc0);
     case BoardArrow::Kind::Alternative: return QColor(0x2f, 0x8f, 0x44, 0xa8);
     case BoardArrow::Kind::Threat: return QColor(0xd4, 0x3f, 0x32, 0xa8);
+    case BoardArrow::Kind::Plan: return planColor(1);
     }
     return {};
 }
@@ -257,7 +269,7 @@ void BoardWidget::stopSequence()
     update();
 }
 
-void BoardWidget::peek(const BoardFrame &frame)
+void BoardWidget::peek(const BoardFrame &frame, const QList<BoardArrow> &arrows)
 {
     if (!m_peeking)
         m_beforePeek = {m_board, m_lastMoveFrom, m_lastMoveTo, m_markedKing, m_kingMark};
@@ -272,6 +284,7 @@ void BoardWidget::peek(const BoardFrame &frame)
     m_lastMoveTo = frame.lastMoveTo;
     m_markedKing = frame.markedKing;
     m_kingMark = frame.kingMark;
+    m_peekArrows = arrows;
     update();
 }
 
@@ -280,6 +293,7 @@ void BoardWidget::endPeek()
     if (!m_peeking)
         return;
     m_peeking = false;
+    m_peekArrows.clear();
     m_board = m_beforePeek.board;
     m_lastMoveFrom = m_beforePeek.lastMoveFrom;
     m_lastMoveTo = m_beforePeek.lastMoveTo;
@@ -586,6 +600,11 @@ void BoardWidget::paintEvent(QPaintEvent *)
     }
     for (const BoardArrow &arrow : (m_sequenceActive || m_peeking) ? QList<BoardArrow>() : m_arrows)
         paintArrow(painter, arrow);
+    // The plans of the line whose end is shown, the strongest drawn last, on top.
+    if (m_peeking) {
+        for (qsizetype i = m_peekArrows.size() - 1; i >= 0; --i)
+            paintArrow(painter, m_peekArrows.at(i));
+    }
     // The piece the better move would have moved, small and faint where it
     // goes: the square the arrow leaves is often empty on this board.
     for (const BoardArrow &arrow : (m_sequenceActive || m_peeking) ? QList<BoardArrow>() : m_arrows) {
@@ -664,18 +683,26 @@ void BoardWidget::paintArrow(QPainter &painter, const BoardArrow &arrow, const Q
     if (arrow.from < 0 || arrow.to < 0 || arrow.from == arrow.to)
         return;
     const qreal size = boardRect().width() / 8;
-    const QColor color = ownColor.isValid() ? ownColor : arrowColor(arrow.kind);
+    const QColor color = ownColor.isValid() ? ownColor
+                         : arrow.kind == BoardArrow::Kind::Plan ? planColor(arrow.step)
+                                                                : arrowColor(arrow.kind);
 
-    // Knight moves bend like the knight goes: along the long leg first.
+    // A route passes through its squares; knight moves bend like the knight
+    // goes: along the long leg first.
+    QList<int> squares{arrow.from};
+    squares << arrow.via << arrow.to;
     QList<QPointF> points{squareRect(arrow.from).center()};
-    const int fileDistance = qAbs(arrow.to % 8 - arrow.from % 8);
-    const int rankDistance = qAbs(arrow.to / 8 - arrow.from / 8);
-    if (fileDistance + rankDistance == 3 && fileDistance > 0 && rankDistance > 0) {
-        const int corner = rankDistance == 2 ? (arrow.to / 8) * 8 + arrow.from % 8
-                                             : (arrow.from / 8) * 8 + arrow.to % 8;
-        points << squareRect(corner).center();
+    for (qsizetype i = 1; i < squares.size(); ++i) {
+        const int from = squares.at(i - 1);
+        const int to = squares.at(i);
+        const int fileDistance = qAbs(to % 8 - from % 8);
+        const int rankDistance = qAbs(to / 8 - from / 8);
+        if (fileDistance + rankDistance == 3 && fileDistance > 0 && rankDistance > 0) {
+            const int corner = rankDistance == 2 ? (to / 8) * 8 + from % 8 : (from / 8) * 8 + to % 8;
+            points << squareRect(corner).center();
+        }
+        points << squareRect(to).center();
     }
-    points << squareRect(arrow.to).center();
 
     const auto unitVector = [](const QPointF &from, const QPointF &to) {
         const QPointF delta = to - from;
@@ -694,7 +721,8 @@ void BoardWidget::paintArrow(QPainter &painter, const BoardArrow &arrow, const Q
     for (qsizetype i = 1; i + 1 < points.size(); ++i)
         shaft.lineTo(points.at(i));
     shaft.lineTo(headBase);
-    QPen pen(color, size * 0.15, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+    QPen pen(color, size * 0.15, Qt::SolidLine, Qt::FlatCap,
+             arrow.via.isEmpty() ? Qt::MiterJoin : Qt::RoundJoin);
     if (arrow.kind == BoardArrow::Kind::Alternative || arrow.kind == BoardArrow::Kind::Threat)
         pen.setDashPattern({0.9, 0.6});
     painter.strokePath(shaft, pen);
@@ -707,8 +735,8 @@ void BoardWidget::paintArrow(QPainter &painter, const BoardArrow &arrow, const Q
     head.closeSubpath();
     painter.fillPath(head, color);
 
-    if (arrow.step <= 0)
-        return;
+    if (arrow.step <= 0 || arrow.kind == BoardArrow::Kind::Plan)
+        return; // A plan's rank is its colour, not a step to read.
     // Step number where the arrow leaves its square, so that it stays readable
     // when several arrows end on the same square.
     const qreal radius = size * 0.15;

@@ -360,3 +360,20 @@ threats and those a piece uncovers by blocking a check (6.g3) do not count;
 nor does a capture that forks (7.Qxa8: its material says it). 3.Qf5 gains
 "6…Nd4 attacks the bishop on b5 and the pawn on c2". Recorded:
 user-feedback.ticks. Still missing: what the king's position is worth.
+
+### 11.Re1?? in training: exchanges that never stop (6 October)
+
+The user, White in training, stopped by the tutor on 11.Re1 (−2.2 → −5.8),
+asked Explain and read "No material is lost: the evaluation is positional".
+They suspected the tutor's hidden reply made the state wrong: it does not
+(the reply is held, `m_tutorReply`, the board and the analysis are the
+position after 11.Re1). The fault was Explain's: at depth 45 the line is
+11…Qb6 12.Nbc3 Bxf2+ 13.Kf1 Bxe1 14.Rxe1 Bxe2+ 15.Rxe2 Rxe2 16.Qxe2 Re8
+17.Nxd5 Rxe2 18.Nxb6 …, a capture every other move, so no ply was settled
+and held for HOLD_PLIES, and the last ply of the window (19.Bxc6) waits
+for its recapture. A shallower line (14…a6) was explained right.
+`FindRealization` now falls back, within the first LONG_PLIES, to the first
+ply with enough material that the next move does not take back (14.Rxe1,
+not 13…Bxe1), when the exchanges stop at least once after it and every
+stop keeps enough; the last ply of the window is no stop. Recorded:
+user-feedback.ticks.

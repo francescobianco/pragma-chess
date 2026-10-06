@@ -235,3 +235,19 @@ expect verdict mistake
 expect arrows a7a5 alternative, b2b4 reply 1, b4c5 threat, d1b3 reply, b3b4 threat, c4f7 threat
 expect summary Mistake (+0.8 → +3.7). Better was 8…a5. 9.b4 attacks the bishop on c5: 9…Bxb4 takes the attacker. 11.Qb3 attacks the knight on b4 and the pawn on f7. No material is lost: the evaluation is positional. Main line: 9.b4 Bxb4 10.Nxb4 Nxb4 11.Qb3.
 end
+
+# 11.Re1?? in training (the user is White), at depth 45 on their board:
+# 11…Qb6 12.Nbc3 Bxf2+ 13.Kf1 Bxe1 14.Rxe1 Bxe2+ 15.Rxe2 Rxe2 16.Qxe2
+# Re8 17.Nxd5 … — the exchanges never stop for four plies, and Explain
+# said no material was lost. It is realized at 14.Rxe1 now.
+explain
+before r2qr1k1/pp3ppp/2n2n2/1Bbp4/5Bb1/3Q4/PPP1NPPP/RN3RK1 w - - 8 11
+played f1e1
+before-eval depth 24 cp -220 pv e2g3 f6e4 g3e4 e8e4
+after r2qr1k1/pp3ppp/2n2n2/1Bbp4/5Bb1/3Q4/PPP1NPPP/RN2R1K1 b - - 9 11
+tick depth 45 cp -583 pv d8b6 b1c3 c5f2 g1f1 f2e1 a1e1 g4e2 e1e2 e8e2 d3e2 a8e8 c3d5 e8e2 d5b6 e2e4 b5c6 b7c6 b6c8 e4f4 f1e2 c6c5 c2c3 a7a6 c8b6 g8h8 e2e3 f4f1 b6c4 f1h1 h2h3 h1e1 e3d3 f6d7 b2b4 c5b4 c3b4 f7f5 a2a4 f5f4 b4b5 a6b5 a4b5 f4f3 g2f3 e1h1 d3c2
+expect verdict blunder
+expect arrows c5f2 refutation 1, f2e1 refutation 2
+expect lost f2, e1
+expect summary Blunder (−2.2 → −5.8). Black wins a rook and a pawn for a bishop: 11…Qb6 12.Nbc3 Bxf2+ 13.Kf1 Bxe1 14.Rxe1. Better was 11.Ng3.
+end

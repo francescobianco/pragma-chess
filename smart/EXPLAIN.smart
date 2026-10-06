@@ -174,8 +174,10 @@ END FUNCTION
 ' First ply from `firstPly` at which `beneficiary` is up at least `needed`
 ' centipawns of material compared with `baseline` — past LONG_PLIES, at
 ' least LONG_SHARE of `swing` —, the exchanges are over, and the gain holds
-' for the next few plies of the line; -1 if none. Intermediate checks,
-' recaptures and quiet in-between moves are skipped this way.
+' for the next few plies of the line; failing that, the first stop of
+' exchanges that keep `needed` at every stop after it; -1 if none.
+' Intermediate checks, recaptures and quiet in-between moves are skipped
+' this way.
 FUNCTION FindRealization(line, firstPly, beneficiary, baseline, needed, swing)
     NOTE "  material for " + SideName(beneficiary) + ", needs +" + STR(needed) + " cp from ply " + STR(firstPly) + ", +" + STR(MAX(needed, INT(swing * LONG_SHARE))) + " past " + STR(LONG_PLIES) + " plies (settled and held " + STR(HOLD_PLIES) + " plies):"
     shortNeeded = needed
@@ -200,6 +202,31 @@ FUNCTION FindRealization(line, firstPly, beneficiary, baseline, needed, swing)
         IF gained >= 0 THEN plus = "+"
         NOTE "    ply " + STR(k) + " " + MoveText(line[1][k - 1], line[0][k - 1]) + " gain " + plus + STR(gained) + mark
         IF holds THEN RETURN k
+    NEXT
+    ' Exchanges that run on to the end of the line (11.Re1?: 11...Qb6 and
+    ' Bxf2+, Bxe1, Rxe1, Bxe2+, Rxe2, ... at depth 45) never hold still for
+    ' HOLD_PLIES. Within LONG_PLIES, the gain is realized at the first ply
+    ' with enough that the next move does not take back (14.Rxe1, not
+    ' 13...Bxe1), if the exchanges stop at least once after it and every
+    ' stop keeps enough. The last ply is no stop: the line may take back
+    ' right after it.
+    FOR k = firstPly TO MIN(Plies(line) - 1, firstPly + LONG_PLIES - 1)
+        recaptured = FALSE
+        IF k < Plies(line) THEN recaptured = TOSQ(line[0][k]) = TOSQ(line[0][k - 1])
+        IF NOT recaptured AND Gain(line, k, beneficiary, baseline) >= shortNeeded THEN
+            keeps = TRUE
+            stops = 0
+            FOR later = k + 1 TO Plies(line) - 1
+                IF IsSettled(line, later) THEN
+                    stops = stops + 1
+                    IF Gain(line, later, beneficiary, baseline) < shortNeeded THEN keeps = FALSE
+                END IF
+            NEXT
+            IF keeps AND stops > 0 THEN
+                NOTE "    realized at ply " + STR(k) + ": the exchanges go on, every stop after it keeps +" + STR(shortNeeded)
+                RETURN k
+            END IF
+        END IF
     NEXT
     NOTE "    not realized within " + STR(Plies(line)) + " plies"
     RETURN -1

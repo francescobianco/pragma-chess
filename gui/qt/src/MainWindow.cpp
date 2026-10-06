@@ -3954,9 +3954,9 @@ void MainWindow::updateOnlineStatus(const OnlineGame &game)
     if (game.isOver())
         status = game.endText() + QLatin1Char(' ') + status;
     else if (isOpponentTurn())
-        status += QLatin1String(" — ") + tr("waiting for the opponent…");
+        status += QStringLiteral(" — ") + tr("waiting for the opponent…");
     else
-        status += QLatin1String(" — ") + tr("your move");
+        status += QStringLiteral(" — ") + tr("your move");
     m_enginePanel->setStatus(status);
 }
 

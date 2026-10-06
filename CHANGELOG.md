@@ -79,6 +79,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- While playing online, the status under the clocks showed "â" in place
+  of its dash.
 - The moves of a variation in the move list could not be clicked.
 - After a restart the move list could be built narrower than its header
   (its columns, paragraphs and titles some pixels short) until something

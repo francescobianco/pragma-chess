@@ -876,7 +876,6 @@ void MainWindow::createMenus()
     file->addAction(tr("New C&hapter…"), this, &MainWindow::newChapter);
     m_switchChapterMenu = file->addMenu(tr("S&witch Chapter"));
     connect(m_switchChapterMenu, &QMenu::aboutToShow, this, &MainWindow::fillChapterMenu);
-    file->addAction(tr("&Manage Chapters…"), this, &MainWindow::manageChapters);
     file->addAction(tr("Project Se&ttings…"), this, &MainWindow::editProjectSettings);
     file->addSeparator();
     // The toolbar's first button; its settings are in Options.
@@ -3571,16 +3570,19 @@ void MainWindow::fillChapterMenu()
     m_switchChapterMenu->clear();
     if (!m_chapters.hasChapters()) {
         m_switchChapterMenu->addAction(tr("(No Chapter)"))->setEnabled(false);
-        return;
+    } else {
+        auto *group = new QActionGroup(m_switchChapterMenu);
+        for (int i = 0; i < m_chapters.chapters.size(); ++i) {
+            QAction *action = m_switchChapterMenu->addAction(m_chapters.chapters.at(i).title);
+            action->setCheckable(true);
+            action->setChecked(i == m_chapters.current);
+            action->setActionGroup(group);
+            connect(action, &QAction::triggered, this, [this, i] { switchChapter(i); });
+        }
     }
-    auto *group = new QActionGroup(m_switchChapterMenu);
-    for (int i = 0; i < m_chapters.chapters.size(); ++i) {
-        QAction *action = m_switchChapterMenu->addAction(m_chapters.chapters.at(i).title);
-        action->setCheckable(true);
-        action->setChecked(i == m_chapters.current);
-        action->setActionGroup(group);
-        connect(action, &QAction::triggered, this, [this, i] { switchChapter(i); });
-    }
+    // Managing them goes with the list, under it.
+    m_switchChapterMenu->addSeparator();
+    m_switchChapterMenu->addAction(tr("&Manage Chapters…"), this, &MainWindow::manageChapters);
 }
 
 void MainWindow::manageChapters()

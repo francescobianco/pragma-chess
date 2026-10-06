@@ -756,7 +756,7 @@ a chapter always has a game. In other tools this is a study or a chess book.
   nothing pins the columns' widths, and `rebuild` never runs inside
   itself (`setHtml` resizes the view, whose header asks for another).
   Links are `game:path/ply`; another game's moves emit `gameMoveActivated`.
-- File ▸ New Chapter…, Switch Chapter, Manage Chapters…
+- File ▸ New Chapter…, Switch Chapter (with Manage Chapters… under its list)
   (`dialogs/ManageChaptersDialog`) and Project Settings…
   (`dialogs/ProjectSettingsDialog`: the project's `name`, shown in the
   title bar in place of the file's, then the chapter when there are

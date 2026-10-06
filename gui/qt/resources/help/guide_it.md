@@ -238,7 +238,7 @@ Fai clic col tasto destro sulla lista delle mosse — su una mossa, su un paragr
 
 Nuova partita, Nuovo allenamento, Inserisci posizione, gli Incolla e le partite online aggiungono la loro partita in fondo al capitolo, e così una partita aperta dalla lista delle partite (una che il capitolo ha già viene semplicemente mostrata). Le partite salvate in un database vengono salvate lì man mano che cambiano; le altre, e tutti i paragrafi, vengono salvati con il progetto.
 
-Il menu **File** ha i capitoli: **Nuovo capitolo…**, **Cambia capitolo** per scegliere quello aperto, e **Gestione capitoli…** per riordinarli (trascinando, o con Sposta su e Sposta giù), rinominarli, aggiungerli ed eliminarli. **Impostazioni progetto…** dà al progetto un nome suo.
+Il menu **File** ha i capitoli: **Nuovo capitolo…**, **Cambia capitolo** per scegliere quello aperto, e in fondo al suo elenco **Gestione capitoli…** per riordinarli (trascinando, o con Sposta su e Sposta giù), rinominarli, aggiungerli ed eliminarli. **Impostazioni progetto…** dà al progetto un nome suo.
 
 Un progetto nuovo e vuoto non ha capitoli: **Cambia capitolo** mostra *(Nessun capitolo)*, in grigio, e una partita aperta dalla lista partite prende il posto di quella sulla scacchiera. Appena ci metti qualcosa — le mosse di una partita nuova, un paragrafo, un'interruzione di partita — diventa il primo capitolo, con tutto ciò che c'è; **Nuovo capitolo…** fa lo stesso. Elimina tutti i capitoli in **Gestione capitoli…** e il progetto torna senza capitoli, con la scacchiera vuota. E se il capitolo era nato da solo, eliminare ciò che l'aveva creato — l'interruzione, il paragrafo, il titolo — riporta anche il progetto senza capitoli; un capitolo creato con **Nuovo capitolo…**, o rinominato, resta.
 

@@ -1436,11 +1436,11 @@ void MainWindow::openGame(const QModelIndex &proxyIndex)
             return;
         }
         // Otherwise it joins the chapter, at its end (or in place of an empty
-        // game). Without chapters it takes the place of the game on the board.
-        // Without chapters too, when the game on the board holds work kept
-        // nowhere else: it is not replaced, the opened game comes after it.
-        syncChapterGame();
-        if (inChapter < 0 && !m_chapters.game().isEmpty() && (m_chapters.hasChapters() || m_chapters.game().holdsWork()))
+        // game). Without chapters it takes the place of the game on the board,
+        // once a game not saved anywhere was saved or let go.
+        if (inChapter < 0 && !mayReplaceBoardGame())
+            return;
+        if (inChapter < 0 && keepsBoardGame())
             m_chapters.breakGame();
         // A game from the database is to be studied, not played: training
         // goes off first, or the engine would answer in it.
@@ -3304,6 +3304,8 @@ void MainWindow::newGame()
             leaveOnlineThen([this] { newGame(); });
         return;
     }
+    if (!mayReplaceBoardGame()) // A game not saved anywhere: saved, let go, or kept.
+        return;
     m_trainingModeAction->setChecked(false); // A plain new game is not a training one.
     GameRecord game;
     game.result = QStringLiteral("*");
@@ -3322,6 +3324,8 @@ void MainWindow::setUpPosition()
     }
     PositionSetupDialog dialog(m_session->position().fen(), m_flipBoardAction->isChecked(), this);
     if (dialog.exec() != QDialog::Accepted)
+        return;
+    if (!mayReplaceBoardGame()) // A game not saved anywhere: saved, let go, or kept.
         return;
     m_trainingModeAction->setChecked(false); // A position set up is studied, not played against the engine.
     GameRecord game;
@@ -3636,13 +3640,47 @@ void MainWindow::manageChapters()
     chapterChanged();
 }
 
-void MainWindow::startGame(const GameRecord &game)
+bool MainWindow::mayReplaceBoardGame()
+{
+    // With chapters nothing is replaced: the new game comes after.
+    syncChapterGame();
+    if (m_chapters.hasChapters() || !m_chapters.game().holdsWork())
+        return true;
+    QMessageBox box(QMessageBox::Question, tr("Game Not Saved"),
+                    tr("The game on the board is not saved in a database."),
+                    QMessageBox::Discard | QMessageBox::Cancel, this);
+    box.setInformativeText(m_database ? tr("Save it to %1 before it is replaced?").arg(m_database->name())
+                                      : tr("It will be replaced and lost."));
+    if (m_database)
+        box.addButton(QMessageBox::Save);
+    box.setDefaultButton(m_database ? QMessageBox::Save : QMessageBox::Cancel);
+    box.button(QMessageBox::Discard)->setText(tr("Don't Save"));
+    const int answer = box.exec();
+    if (answer == QMessageBox::Cancel)
+        return false;
+    if (answer == QMessageBox::Save) {
+        saveGameToDatabase();
+        syncChapterGame();
+        return !m_chapters.game().holdsWork(); // Not saved after all: nothing is replaced.
+    }
+    m_replaceBoardGame = true; // Let go: the next game takes its place.
+    return true;
+}
+
+bool MainWindow::keepsBoardGame()
 {
     // A new game goes at the end of the chapter: the games before it stay.
     // Without chapters it takes the place of the game on the board, unless
-    // that one holds work kept nowhere else (it then becomes a chapter).
+    // that one holds work kept nowhere else and the user did not let it go
+    // (mayReplaceBoardGame): it then becomes a chapter, rather than be lost.
     syncChapterGame();
-    if (!m_chapters.game().isEmpty() && (m_chapters.hasChapters() || m_chapters.game().holdsWork()))
+    const bool letGo = std::exchange(m_replaceBoardGame, false);
+    return !m_chapters.game().isEmpty() && (m_chapters.hasChapters() || (m_chapters.game().holdsWork() && !letGo));
+}
+
+void MainWindow::startGame(const GameRecord &game)
+{
+    if (keepsBoardGame())
         m_chapters.breakGame();
     m_gameView->clearSelection();
     m_openGameIndex = -1;
@@ -3667,6 +3705,8 @@ void MainWindow::newTraining(bool alwaysAsk)
         // Unticking it forgets the choice: the toolbar asks again.
         m_rememberedTraining = dialog.remember() ? std::optional<Choice>(choice) : std::nullopt;
     }
+    if (!mayReplaceBoardGame()) // A game not saved anywhere: saved, let go, or kept.
+        return;
     m_trainingSide = NewTrainingDialog::sideFor(choice);
     const GameRecord game = trainingHeader();
     const QString engineName = m_trainingSide == Side::White ? game.black : game.white;
@@ -4358,6 +4398,8 @@ void MainWindow::pasteFen()
         statusBar()->showMessage(tr("The clipboard does not contain a valid FEN"), 5000);
         return;
     }
+    if (!mayReplaceBoardGame()) // A game not saved anywhere: saved, let go, or kept.
+        return;
     GameRecord game;
     game.startFen = text;
     startGame(game);
@@ -4374,6 +4416,8 @@ void MainWindow::pasteLine()
                                  5000);
         return;
     }
+    if (!mayReplaceBoardGame()) // A game not saved anywhere: saved, let go, or kept.
+        return;
     GameRecord game;
     game.startFen = line->startFen;
     game.moves = line->moves;

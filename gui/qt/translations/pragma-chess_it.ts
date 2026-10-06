@@ -2797,6 +2797,26 @@ non è su questo computer.</translation>
         <source>The moves after it are deleted</source>
         <translation>Le mosse successive vengono eliminate</translation>
     </message>
+    <message>
+        <source>Game Not Saved</source>
+        <translation>Partita non salvata</translation>
+    </message>
+    <message>
+        <source>The game on the board is not saved in a database.</source>
+        <translation>La partita sulla scacchiera non è salvata in un database.</translation>
+    </message>
+    <message>
+        <source>Save it to %1 before it is replaced?</source>
+        <translation>Salvarla in %1 prima che venga sostituita?</translation>
+    </message>
+    <message>
+        <source>It will be replaced and lost.</source>
+        <translation>Verrà sostituita e andrà persa.</translation>
+    </message>
+    <message>
+        <source>Don&apos;t Save</source>
+        <translation>Non salvare</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

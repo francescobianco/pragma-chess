@@ -176,6 +176,15 @@ private:
     /// Opens `game` as the game being entered, unlinked from the database: a
     /// new game at the end of the chapter (or in place of an empty one).
     void startGame(const GameRecord &game);
+    /// Without chapters a new or opened game takes the place of the one on
+    /// the board: when that one is saved nowhere, asks to save it to the
+    /// database or let it go. False: cancelled, nothing is to change.
+    bool mayReplaceBoardGame();
+    /// Whether the game on the board stays, the next one coming after it
+    /// (with chapters, or a game saved nowhere that was not let go).
+    bool keepsBoardGame();
+    /// Set when the user let the game on the board go (mayReplaceBoardGame).
+    bool m_replaceBoardGame = false;
     void saveGameToDatabase();
     /// Game ▸ Set Up Position…: draws a position and starts a game from it.
     void setUpPosition();

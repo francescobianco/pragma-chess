@@ -703,9 +703,12 @@ a chapter always has a game. In other tools this is a study or a chess book.
   holder, where the board's game lands; File ▸ Switch Chapter shows a grey
   "(No Chapter)". The game on the board alone is never a chapter, whatever
   its moves. A game opened from the games list, or a new game, takes its
-  place — unless it holds work kept nowhere else (`ChapterGame::holdsWork`:
-  moves of a game not stored, paragraphs): then the new one comes after it,
-  and that second game makes the chapter. `settle()` (called by
+  place. When it holds work kept nowhere else (`ChapterGame::holdsWork`:
+  moves of a game not stored), the user action first asks
+  (`MainWindow::mayReplaceBoardGame`: Save to the open database, Don't
+  Save, Cancel); only a game that was neither saved nor let go — a path
+  that does not ask, an online game starting — is kept, the new one coming
+  after it and making the chapter (`keepsBoardGame`). `settle()` (called by
   `syncChapterGame` and `chapterChanged`) makes it the first chapter as
   soon as something is put in it — a second game (a game break), a
   paragraph or a title, New Chapter. Deleting every chapter in Manage Chapters

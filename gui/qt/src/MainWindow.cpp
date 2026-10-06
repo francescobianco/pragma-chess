@@ -3228,8 +3228,8 @@ void MainWindow::analyzeCurrentPosition()
     const GameRecord &game = m_session->game();
     QStringList moves;
     moves.reserve(m_session->ply());
-    for (int i = 0; i < m_session->ply(); ++i)
-        moves << game.moves.at(i).uci;
+    for (int i = 1; i <= m_session->ply(); ++i)
+        moves << m_session->moveAt(i).uci; // The line on the board, variations included.
     m_engine->analyze(game.startFen, moves, m_session->position().sideToMove());
 }
 

@@ -1040,8 +1040,10 @@ while one of them is selected.
   The title bar shows only the project's name and the application's,
   "Untitled* - Pragma Chess", with a plain hyphen: the asterisk is there
   while the project was never saved or has unsaved changes; no database, no
-  game (`MainWindow::updateWindowTitle` writes the title in full, so Qt does
-  not append the application name after its long dash).
+  game (`MainWindow::updateWindowTitle` writes the title in full). The
+  application sets no display name (`main.cpp`): Qt would append
+  " — Pragma Chess" to every window's title, dialogs included; a dialog's
+  title is the feature's alone ("New Training").
   Anything about what the user is looking at belongs in `Project`, not in
   QSettings. The panels are `workspace` (`app/WorkspaceLayout`), in clear:
   `panels` (toolbar, moves, openingTree, engine, games: shown or not) and

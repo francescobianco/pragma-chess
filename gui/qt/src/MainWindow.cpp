@@ -4784,17 +4784,17 @@ void MainWindow::updateWindowTitle()
 {
     // Only the project, with the asterisk of unsaved changes, and the
     // application: "Untitled* - Pragma Chess". The database and the game are
-    // on show in the window itself. Written in full, with a plain hyphen: Qt
-    // would add the name by itself after a long dash.
+    // on show in the window itself. Written in full, with a plain hyphen: the
+    // application sets no display name, so Qt adds nothing to any title.
     // The project's own name wins over the file's; with several chapters, the
     // one open follows it: "Openings* - The Italian - Pragma Chess".
     const QString fileName = m_projectPath.isEmpty() ? tr("Untitled") : QFileInfo(m_projectPath).completeBaseName();
     const QString name = m_projectName.isEmpty() ? fileName : m_projectName;
     if (m_chapters.chapters.size() > 1)
         setWindowTitle(QStringLiteral("%1[*] - %2 - %3")
-                           .arg(name, m_chapters.chapter().title, QGuiApplication::applicationDisplayName()));
+                           .arg(name, m_chapters.chapter().title, QStringLiteral("Pragma Chess")));
     else
-        setWindowTitle(QStringLiteral("%1[*] - %2").arg(name, QGuiApplication::applicationDisplayName()));
+        setWindowTitle(QStringLiteral("%1[*] - %2").arg(name, QStringLiteral("Pragma Chess")));
 }
 
 void MainWindow::updateProjectModified()

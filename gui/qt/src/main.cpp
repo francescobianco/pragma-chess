@@ -65,7 +65,9 @@ int main(int argc, char *argv[])
         QObject::disconnect(&app, SIGNAL(focusObjectChanged(QObject*)), nullptr, nullptr);
     QApplication::setOrganizationName(QStringLiteral("Pragma"));
     QApplication::setApplicationName(QStringLiteral("pragma-chess"));
-    QApplication::setApplicationDisplayName(QStringLiteral("Pragma Chess"));
+    // No application display name: Qt would append " — Pragma Chess" to the
+    // title of every window, dialogs included. The main window writes the
+    // application's name in its own title (MainWindow::updateWindowTitle).
     QApplication::setApplicationVersion(QStringLiteral(APP_VERSION));
     UiLanguage::install(app);
     // Lets GNOME and KDE match windows to the installed .desktop entry.

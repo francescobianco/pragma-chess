@@ -3,6 +3,7 @@
 #include "PaddedItemDelegate.h"
 
 #include "app/DatabaseOutline.h"
+#include "app/TimeControl.h"
 #include "app/UiLanguage.h"
 #include "app/GameDatabase.h"
 #include "app/sources/SourceCatalog.h"
@@ -306,6 +307,19 @@ void DatabaseTreeWidget::refresh()
             addItem(group, Node::Year, QString::number(year.key()), year.key(), year.value());
         }
     }
+    // The time controls the games were played at, from the fastest.
+    if (!outline.timeControls.isEmpty()) {
+        QTreeWidgetItem *group = addItem(root, Node::TimeControls, tr("Time Control"), QVariant(), -1);
+        QStringList values = outline.timeControls.keys();
+        std::sort(values.begin(), values.end(), [](const QString &a, const QString &b) {
+            const qint64 left = TimeControl::estimatedSeconds(a);
+            const qint64 right = TimeControl::estimatedSeconds(b);
+            return left != right ? left < right : a < b;
+        });
+        for (const QString &value : std::as_const(values))
+            addItem(group, Node::TimeControl, TimeControl::label(value), value, outline.timeControls.value(value))
+                ->setToolTip(0, value);
+    }
     // The studies the games came from, each with its chapters as the study has them.
     if (!outline.studies.isEmpty()) {
         QTreeWidgetItem *group = addItem(root, Node::Studies, tr("Studies"), QVariant(), -1);
@@ -359,6 +373,7 @@ void DatabaseTreeWidget::onCurrentItemChanged(QTreeWidgetItem *current)
     case Node::EcoGroup:
     case Node::Tournaments:
     case Node::Years:
+    case Node::TimeControls:
     case Node::Studies:
     case Node::Sources:
         break;
@@ -379,6 +394,9 @@ void DatabaseTreeWidget::onCurrentItemChanged(QTreeWidgetItem *current)
         break;
     case Node::Year:
         category = {GameCategory::Kind::Year, value.toString()};
+        break;
+    case Node::TimeControl:
+        category = {GameCategory::Kind::TimeControl, value.toString()};
         break;
     case Node::Study:
         category = {GameCategory::Kind::Study, value.toString()};

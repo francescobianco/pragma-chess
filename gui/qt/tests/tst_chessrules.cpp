@@ -12,6 +12,7 @@
 #include "app/GameIdentity.h"
 #include "app/ExplainTicks.h"
 #include "app/LineInsight.h"
+#include "app/TimeControl.h"
 #include "app/Explainer.h"
 #include "app/GameSession.h"
 #include "app/GameState.h"
@@ -1026,9 +1027,11 @@ QString writeChessBaseFixture(const QString &dir)
         QVERIFY(LichessBoard::applyGameLine(
             R"({"type":"gameFull","id":"abcd1234","rated":true,"initialFen":"startpos",)"
             R"("white":{"id":"me","name":"Me","rating":1500},"black":{"id":"them","name":"Them","rating":1620},)"
+            R"("clock":{"initial":600000,"increment":5000},)"
             R"("state":{"type":"gameState","moves":"e2e4 c7c5","wtime":600000,"btime":598000,"status":"started"}})",
             game));
         QCOMPARE(game.id, QStringLiteral("abcd1234"));
+        QCOMPARE(game.timeControl, QStringLiteral("600+5"));
         QCOMPARE(game.white, QStringLiteral("Me"));
         QCOMPARE(game.blackRating, 1620);
         QVERIFY(game.rated);
@@ -3846,6 +3849,7 @@ END FUNCTION
             " \"moves\": \"e4 e5 Bc4 Nc6 Qh5 Nf6 Qxf7#\","
             " \"players\": {\"white\": {\"user\": {\"name\": \"Alice\"}, \"rating\": 1850},"
             " \"black\": {\"user\": {\"name\": \"Bob\"}, \"rating\": 1790}},"
+            " \"clock\": {\"initial\": 180, \"increment\": 2, \"totalTime\": 260},"
             " \"opening\": {\"eco\": \"C23\", \"name\": \"Bishop's Opening\"}}").object();
         const std::optional<ImportedGame> imported = LichessFetch::parseGame(game);
         QVERIFY(imported);
@@ -3857,6 +3861,11 @@ END FUNCTION
         QCOMPARE(imported->game.eco, QStringLiteral("C23"));
         QCOMPARE(imported->game.moves.size(), 7);
         QCOMPARE(imported->game.site, QStringLiteral("https://lichess.org/q7ZvsdUF"));
+        QCOMPARE(TimeControl::of(imported->game), QStringLiteral("180+2"));
+        QJsonObject daily = game;
+        daily.remove(QStringLiteral("clock"));
+        daily.insert(QStringLiteral("daysPerTurn"), 3);
+        QCOMPARE(TimeControl::of(LichessFetch::parseGame(daily)->game), QStringLiteral("1/259200"));
 
         QJsonObject ongoing = game;
         ongoing.insert(QStringLiteral("status"), QStringLiteral("started"));
@@ -3864,6 +3873,70 @@ END FUNCTION
         QJsonObject chess960 = game;
         chess960.insert(QStringLiteral("variant"), QStringLiteral("chess960"));
         QVERIFY(!LichessFetch::parseGame(chess960));
+    }
+
+    void readsTimeControls()
+    {
+        // PGN's TimeControl tag, read and written in the game's other tags.
+        GameRecord game;
+        QVERIFY(TimeControl::of(game).isEmpty());
+        TimeControl::set(game, QStringLiteral("180+2"));
+        QCOMPARE(TimeControl::of(game), QStringLiteral("180+2"));
+        TimeControl::set(game, QStringLiteral("600+5"));
+        QCOMPARE(game.tags.size(), 1); // In place.
+        TimeControl::set(game, QString());
+        QVERIFY(game.tags.isEmpty());
+        game.tags = {{QStringLiteral("TimeControl"), QStringLiteral("?")}};
+        QVERIFY(TimeControl::of(game).isEmpty());
+
+        // How fast, as lichess counts it: base plus forty increments.
+        QCOMPARE(TimeControl::speed(QStringLiteral("15+0")), TimeControl::Speed::UltraBullet);
+        QCOMPARE(TimeControl::speed(QStringLiteral("60+0")), TimeControl::Speed::Bullet);
+        QCOMPARE(TimeControl::speed(QStringLiteral("180+2")), TimeControl::Speed::Blitz);
+        QCOMPARE(TimeControl::speed(QStringLiteral("600+5")), TimeControl::Speed::Rapid);
+        QCOMPARE(TimeControl::speed(QStringLiteral("5400+30")), TimeControl::Speed::Classical);
+        QCOMPARE(TimeControl::speed(QStringLiteral("40/7200:3600")), TimeControl::Speed::Classical);
+        QCOMPARE(TimeControl::speed(QStringLiteral("1/259200")), TimeControl::Speed::Correspondence);
+        QCOMPARE(TimeControl::speed(QStringLiteral("-")), TimeControl::Speed::Unlimited);
+        QCOMPARE(TimeControl::speed(QStringLiteral("blitz")), TimeControl::Speed::Unknown);
+
+        // As players say it, and as the tree names it.
+        QCOMPARE(TimeControl::shortText(QStringLiteral("180+2")), QStringLiteral("3+2"));
+        QCOMPARE(TimeControl::shortText(QStringLiteral("30+0")), QStringLiteral("½+0"));
+        QCOMPARE(TimeControl::shortText(QStringLiteral("5400+30")), QStringLiteral("90+30"));
+        QCOMPARE(TimeControl::shortText(QStringLiteral("40/7200:3600")), QStringLiteral("40/120:60"));
+        QCOMPARE(TimeControl::shortText(QStringLiteral("1/259200")), QStringLiteral("3 days"));
+        QCOMPARE(TimeControl::label(QStringLiteral("180+2")), QStringLiteral("Blitz 3+2"));
+        QCOMPARE(TimeControl::label(QStringLiteral("-")), QStringLiteral("No clock"));
+        QCOMPARE(TimeControl::label(QStringLiteral("blitz")), QStringLiteral("blitz"));
+        // From the fastest; correspondence and no clock last.
+        QVERIFY(TimeControl::estimatedSeconds(QStringLiteral("60+1")) < TimeControl::estimatedSeconds(QStringLiteral("180+0")));
+        QVERIFY(TimeControl::estimatedSeconds(QStringLiteral("5400+30")) < TimeControl::estimatedSeconds(QStringLiteral("1/86400")));
+        QVERIFY(TimeControl::estimatedSeconds(QStringLiteral("1/86400")) < TimeControl::estimatedSeconds(QStringLiteral("-")));
+
+        // What is typed in Game Information: minutes and seconds a move, or PGN's form.
+        QCOMPARE(TimeControl::fromInput(QStringLiteral("3+2")), std::optional<QString>(QStringLiteral("180+2")));
+        QCOMPARE(TimeControl::fromInput(QStringLiteral(" 90 + 30 ")), std::optional<QString>(QStringLiteral("5400+30")));
+        QCOMPARE(TimeControl::fromInput(QStringLiteral("½")), std::optional<QString>(QStringLiteral("30+0")));
+        QCOMPARE(TimeControl::fromInput(QStringLiteral("1,5+1")), std::optional<QString>(QStringLiteral("90+1")));
+        QCOMPARE(TimeControl::fromInput(QStringLiteral("40/7200:3600")), std::optional<QString>(QStringLiteral("40/7200:3600")));
+        QCOMPARE(TimeControl::fromInput(QStringLiteral("-")), std::optional<QString>(QStringLiteral("-")));
+        QCOMPARE(TimeControl::fromInput(QString()), std::optional<QString>(QString()));
+        QVERIFY(!TimeControl::fromInput(QStringLiteral("blitz")));
+        QVERIFY(!TimeControl::fromInput(QStringLiteral("0+2")));
+        // What the field shows reads back the same.
+        for (const QString &value : {QStringLiteral("180+2"), QStringLiteral("30+0"), QStringLiteral("5400+30"),
+                                     QStringLiteral("40/7200:3600"), QStringLiteral("1/86400"), QStringLiteral("-")})
+            QCOMPARE(TimeControl::fromInput(TimeControl::inputText(value)), std::optional<QString>(value));
+
+        // The tree counts them.
+        DatabaseOutline outline;
+        GameRecord blitz;
+        TimeControl::set(blitz, QStringLiteral("180+2"));
+        outline.add(blitz);
+        outline.add(blitz);
+        outline.add(GameRecord());
+        QCOMPARE(outline.timeControls, (QMap<QString, int>{{QStringLiteral("180+2"), 2}}));
     }
 
     void parsesChessComGames()
@@ -3876,6 +3949,7 @@ END FUNCTION
         game.insert(QStringLiteral("pgn"), QStringLiteral(
             "[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[Date \"2014.01.06\"]\n[Result \"1-0\"]\n[ECO \"C25\"]\n\n"
             "1. e4 {[%clk 0:03:00]} 1... e5 {[%clk 0:03:00]} 2. Nc3 {[%clk 0:02:57.6]} 1-0"));
+        game.insert(QStringLiteral("time_control"), QStringLiteral("180"));
         game.insert(QStringLiteral("white"), QJsonObject{{"username", "Hikaru"}, {"rating", 2354}});
         game.insert(QStringLiteral("black"), QJsonObject{{"username", "Godswill"}, {"rating", 2167}});
         const std::optional<ImportedGame> imported = ChessComFetch::parseGame(game);
@@ -3886,6 +3960,7 @@ END FUNCTION
         QCOMPARE(imported->game.date, QStringLiteral("2014.01.06"));
         QCOMPARE(imported->game.eco, QStringLiteral("C25"));
         QCOMPARE(imported->game.moves.size(), 3);
+        QCOMPARE(TimeControl::of(imported->game), QStringLiteral("180"));
 
         game.insert(QStringLiteral("rules"), QStringLiteral("crazyhouse"));
         QVERIFY(!ChessComFetch::parseGame(game));

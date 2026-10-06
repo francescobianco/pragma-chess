@@ -40,6 +40,7 @@
 #include "app/MoveAnnotation.h"
 #include "app/MoveComment.h"
 #include "app/Pgn.h"
+#include "app/TimeControl.h"
 #include "app/Project.h"
 #include "app/PersonalSettings.h"
 #include "app/SqliteGameDatabase.h"
@@ -2144,6 +2145,9 @@ void MainWindow::showCategory(const GameCategory &category)
     case Kind::Year:
         predicate = [year = value.toInt()](const GameRecord &game) { return DatabaseOutline::year(game.date) == year; };
         break;
+    case Kind::TimeControl:
+        predicate = [value](const GameRecord &game) { return TimeControl::of(game) == value; };
+        break;
     case Kind::Study:
         predicate = [value](const GameRecord &game) { return DatabaseOutline::studyKey(game) == value; };
         break;
@@ -3962,6 +3966,10 @@ void MainWindow::onlineGameFinished(const OnlineGame &game)
     GameRecord record = m_session->game();
     record.result = game.result();
     m_session->setHeader(record);
+    if (!game.timeControl.isEmpty()) {
+        TimeControl::set(record, game.timeControl);
+        m_session->setTags(record.tags);
+    }
     if (record.result != QLatin1String("*"))
         saveGameToDatabase(); // The game goes to the open database, like a finished training game.
     statusBar()->showMessage(game.endText(), 10000);
@@ -4278,6 +4286,7 @@ void MainWindow::editGameInfo()
     const GameRecord edited = dialog.game();
     if (!inDatabase) {
         m_session->setHeader(edited);
+        m_session->setTags(edited.tags); // The time control is a tag.
         return;
     }
     QString error;
@@ -4288,6 +4297,8 @@ void MainWindow::editGameInfo()
     }
     m_gameListModel->refreshRow(int(m_openGameIndex));
     m_session->setHeader(m_database->header(m_openGameIndex));
+    m_session->setTags(edited.tags);
+    m_databaseTree->scheduleRefresh(); // A new time control, or one no game has any more.
     m_sourceSync->scheduleWrite();
 }
 

@@ -8,6 +8,11 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Time control** of a game: games imported from lichess.org and chess.com
+  and online games keep theirs, Game Information lets you write it (3+2,
+  90+30), and a new Time Control node of the database tree lists them —
+  Blitz 3+2, Rapid 10+5, Classical 90+30 — to choose the games played at
+  one. It is PGN's TimeControl tag, so it goes in and out with PGN.
 - A database named in Database Settings is shown by its name, with the
   file in brackets — "My Games (games.pdb)" — in Switch Database and at the
   top of the tree, the name in bold; right-clicking it there opens Database

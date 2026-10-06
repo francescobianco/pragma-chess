@@ -650,7 +650,7 @@ bool SqliteGameDatabase::updateHeader(qint64 index, const GameRecord &header, QS
     QSqlQuery update(db);
     update.prepare(QStringLiteral(
         "UPDATE games SET white_id = ?, black_id = ?, event_id = ?, site_id = ?, date = ?,"
-        " round = ?, result = ?, white_elo = ?, black_elo = ?, eco = ?, modified = ? WHERE id = ?"));
+        " round = ?, result = ?, white_elo = ?, black_elo = ?, eco = ?, tags = ?, modified = ? WHERE id = ?"));
     update.addBindValue(players.idFor(header.white));
     update.addBindValue(players.idFor(header.black));
     update.addBindValue(events.idFor(header.event));
@@ -661,6 +661,7 @@ bool SqliteGameDatabase::updateHeader(qint64 index, const GameRecord &header, QS
     update.addBindValue(nullIfZero(header.whiteElo));
     update.addBindValue(nullIfZero(header.blackElo));
     update.addBindValue(nullIfEmpty(header.eco));
+    update.addBindValue(Pgn::tagsText(header.tags)); // The time control among them.
     const QString modified = GameIdentity::now();
     update.addBindValue(modified);
     update.addBindValue(m_headers.at(index).id);
@@ -681,6 +682,7 @@ bool SqliteGameDatabase::updateHeader(qint64 index, const GameRecord &header, QS
     cached.round = header.round;
     cached.result = header.result;
     cached.eco = header.eco;
+    cached.tags = header.tags;
     cached.modified = modified;
     return true;
 }

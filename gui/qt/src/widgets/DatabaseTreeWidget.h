@@ -15,10 +15,10 @@ struct GameCategory {
     /// TrashRecent those put there in the last GameStates::kRecentDays days,
     /// TrashOld the others. Study and StudyChapter are the games of a study
     /// and of one of its chapters (DatabaseOutline::studyKey, chapterKey).
-    enum class Kind { All, Position, Variant, Role, Player, EcoLetter, Eco, Event, Year, Study, StudyChapter, Source, Trash, TrashRecent, TrashOld };
+    enum class Kind { All, Position, Variant, Role, Player, EcoLetter, Eco, Event, Year, TimeControl, Study, StudyChapter, Source, Trash, TrashRecent, TrashOld };
     Kind kind = Kind::All;
     /// Role key ("me", "friend", "opponent"), player name, ECO letter or code,
-    /// event name, year, or study or chapter key.
+    /// event name, year, time control (the TimeControl tag), or study or chapter key.
     QString value;
     qint64 sourceId = 0;
 
@@ -70,7 +70,8 @@ protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
 private:
-    enum class Node { Database, Board, Position, Variant, Role, Player, EcoGroup, EcoLetter, Eco, Tournaments, Event, Years, Year, Studies, Study, StudyChapter, Sources, Source, Trash, TrashRecent, TrashOld };
+    /// New kinds go at the end: the open and selected nodes are kept by number.
+    enum class Node { Database, Board, Position, Variant, Role, Player, EcoGroup, EcoLetter, Eco, Tournaments, Event, Years, Year, Studies, Study, StudyChapter, Sources, Source, Trash, TrashRecent, TrashOld, TimeControls, TimeControl };
 
     void onCurrentItemChanged(QTreeWidgetItem *current);
     static Node nodeOf(const QTreeWidgetItem *item);

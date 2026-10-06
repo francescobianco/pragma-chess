@@ -95,6 +95,13 @@ bool applyGameLine(const QByteArray &line, OnlineGame &game)
         game.rated = object.value(QStringLiteral("rated")).toBool();
         const QString fen = object.value(QStringLiteral("initialFen")).toString();
         game.initialFen = fen == QLatin1String("startpos") ? QString() : fen;
+        // The clock in milliseconds, or days a move for correspondence.
+        const QJsonObject clock = object.value(QStringLiteral("clock")).toObject();
+        if (!clock.isEmpty())
+            game.timeControl = QStringLiteral("%1+%2").arg(clock.value(QStringLiteral("initial")).toInteger() / 1000)
+                                   .arg(clock.value(QStringLiteral("increment")).toInteger() / 1000);
+        else if (const int days = object.value(QStringLiteral("daysPerTurn")).toInt(); days > 0)
+            game.timeControl = QStringLiteral("1/%1").arg(days * 86400);
         applyState(object.value(QStringLiteral("state")).toObject(), game);
         return true;
     }

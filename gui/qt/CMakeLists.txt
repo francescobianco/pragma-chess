@@ -202,6 +202,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/ShippedOpeningNames.h
     src/app/UciEngine.cpp
     src/app/UciEngine.h
+    src/app/TimeControl.cpp
+    src/app/TimeControl.h
     src/app/UiLanguage.cpp
     src/app/UiLanguage.h
     src/app/online/LichessBoardClient.cpp

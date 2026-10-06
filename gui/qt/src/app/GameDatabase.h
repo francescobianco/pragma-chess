@@ -49,8 +49,9 @@ public:
     /// Appends a game (header and moves) and returns its index, or -1 on failure.
     virtual qint64 addGame(const GameRecord &game, QString *errorMessage) = 0;
 
-    /// Replaces the header information (players, event, date, result, …) of
-    /// the game at `index`. Moves are left untouched.
+    /// Replaces the header information (players, event, date, result, …, and
+    /// the other PGN tags, the time control among them) of the game at
+    /// `index`. Moves are left untouched.
     virtual bool updateHeader(qint64 index, const GameRecord &header, QString *errorMessage) = 0;
 
     /// Replaces the whole game at `index` (header and moves) with another

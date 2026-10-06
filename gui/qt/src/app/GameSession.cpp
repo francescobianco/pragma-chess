@@ -49,6 +49,14 @@ void GameSession::setGame(const GameRecord &game)
     Q_EMIT plyChanged(m_ply);
 }
 
+void GameSession::setTags(const QList<PgnTag> &tags)
+{
+    if (m_game.tags == tags)
+        return;
+    m_game.tags = tags;
+    Q_EMIT headerChanged();
+}
+
 void GameSession::setHeader(const GameRecord &header)
 {
     const QList<MoveRecord> moves = m_game.moves;

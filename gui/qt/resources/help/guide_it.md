@@ -55,6 +55,7 @@ A sinistra della lista delle partite, l'albero mostra che cosa contiene il datab
 - **Scacchiera ▸ Variante**: le partite che cominciano esattamente con le mosse giocate sulla scacchiera.
 - **Io**, **Amici**, **Avversari**: i giocatori che hai indicato con «Chi è?».
 - **ECO**: le partite per codice d'apertura.
+- **Cadenza**: le cadenze a cui sono state giocate le partite, dalla più veloce — *Blitz 3+2*, *Rapid 10+5*, *Classica 90+30*, *Corrispondenza 1 giorno*. Le partite di lichess.org e chess.com portano la loro; per ogni altra partita fai clic sui nomi dei giocatori sopra la scacchiera e scrivila in **Cadenza**, come la dicono i giocatori (*3+2*: tre minuti, due secondi aggiunti a ogni mossa).
 - **Studi**: gli studi da cui vengono le partite — uno studio di lichess collegato come fonte, o partite il cui PGN porta i tag `StudyName` e `ChapterName` — ognuno con i suoi capitoli nell'ordine dello studio. Seleziona uno studio per tutte le sue partite, o un capitolo per le sue.
 - **Sorgenti**: le partite arrivate da lichess.org, chess.com o torneionline.com.
 - **Cestino**: le partite che hai buttato.

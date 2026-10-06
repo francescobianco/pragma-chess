@@ -655,6 +655,15 @@ painted as a menu item, since QMenu draws an item in one font).
 - The games list ends with Line, the beginning of the game's moves
   (`GameRecord::linePreview`, built by `Pgn::preview` from the first stored
   SAN moves without replaying them); the view elides it with "…".
+- **Time control** is PGN's `TimeControl` tag, among the game's other tags
+  (`games.tags`: no schema change), read and written by `app/TimeControl`
+  (pure, unit-tested: speed as lichess counts it, "Blitz 3+2" labels, what
+  the user types as players say it). Lichess and chess.com imports and
+  online games set it; Game Information edits it (`GameSession::setTags`,
+  and `updateHeader` now writes the tags); the tree's Time Control node
+  (`DatabaseOutline::timeControls`, `GameCategory::Kind::TimeControl`)
+  lists the values from the fastest. New tree node kinds go at the end of
+  `DatabaseTreeWidget::Node`: the saved tree state keys nodes by number.
 - A database named in Database Settings is shown by that name, the file
   after it in brackets ("My Games (games.pdb)", `DatabaseProperties::label`,
   `givenName`), in Switch Database and over the tree, whose root draws the

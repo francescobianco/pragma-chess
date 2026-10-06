@@ -31,6 +31,9 @@ public:
     static GameRecord resolved(const GameRecord &game);
     /// Updates players, event, date, … of the open game, keeping moves and ply.
     void setHeader(const GameRecord &header);
+    /// Replaces the open game's other PGN tags (TimeControl, StudyName…),
+    /// which setHeader() keeps as they are.
+    void setTags(const QList<PgnTag> &tags);
     const GameRecord &game() const { return m_game; }
 
     /// The line being followed: the variation taken at each branch from the

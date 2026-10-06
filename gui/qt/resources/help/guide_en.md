@@ -56,6 +56,7 @@ Left of the games list, the tree shows what the open database contains. Select a
 - **Me**, **Friends**, **Opponents**: the players you named with “Who Is This?”.
 - **ECO**: the games by opening code.
 - **Tournaments** and **Years**.
+- **Time Control**: the time controls the games were played at, from the fastest — *Blitz 3+2*, *Rapid 10+5*, *Classical 90+30*, *Correspondence 1 day*. Games from lichess.org and chess.com bring theirs; for any other game, click the names of the players above the board and write it in **Time Control**, as players say it (*3+2*: three minutes, two seconds added at each move).
 - **Studies**: the studies the games came from — a lichess study connected as a source, or games whose PGN carries the tags `StudyName` and `ChapterName` — each with its chapters in the study's order. Select a study for all its games, or a chapter for its own.
 - **Sources**: the games that came from lichess.org, chess.com or torneionline.com.
 - **Trash**: the games you threw away.

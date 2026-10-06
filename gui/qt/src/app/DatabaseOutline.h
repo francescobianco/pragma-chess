@@ -17,6 +17,8 @@ struct DatabaseOutline {
     QMap<QString, QMap<QString, int>> eco;
     QMap<QString, int> events;
     QMap<int, int> years;
+    /// TimeControl tag → games (TimeControl::of).
+    QMap<QString, int> timeControls;
 
     /// A study the games came from (a lichess study: its tags StudyName,
     /// ChapterName, ChapterURL), with its chapters in the order met.

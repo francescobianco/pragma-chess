@@ -1,5 +1,7 @@
 #include "GameInfoDialog.h"
 
+#include "app/TimeControl.h"
+
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QFormLayout>
@@ -52,6 +54,7 @@ GameInfoDialog::GameInfoDialog(const GameRecord &game, QWidget *parent)
     , m_round(new QLineEdit(unknownToEmpty(game.round)))
     , m_result(new QComboBox)
     , m_eco(new QLineEdit(game.eco))
+    , m_timeControl(new QLineEdit(TimeControl::inputText(TimeControl::of(game))))
 {
     setWindowTitle(tr("Game Information"));
 
@@ -70,6 +73,12 @@ GameInfoDialog::GameInfoDialog(const GameRecord &game, QWidget *parent)
     m_eco->setValidator(new QRegularExpressionValidator(
         QRegularExpression(QStringLiteral(R"([A-Ea-e](\d{2}([a-z]|\d{2})?)?)")), this));
     m_eco->setMaximumWidth(fontMetrics().horizontalAdvance(QStringLiteral("B90a00")) * 2);
+
+    // As players say it: minutes, then the seconds added a move.
+    m_timeControl->setPlaceholderText(tr("3+2, 15+10, 90+30"));
+    m_timeControl->setToolTip(tr("Minutes for the game, then the seconds added at each move: 3+2, 90+30. "
+                                 "PGN's form works too: 40/7200:3600 (forty moves in two hours, then an hour), "
+                                 "1/86400 (a day a move), - (no clock)."));
 
     m_result->addItem(tr("White wins (1-0)"), QStringLiteral("1-0"));
     m_result->addItem(tr("Black wins (0-1)"), QStringLiteral("0-1"));
@@ -97,8 +106,13 @@ GameInfoDialog::GameInfoDialog(const GameRecord &game, QWidget *parent)
     details->addRow(tr("Round"), m_round);
     details->addRow(tr("Result"), m_result);
     details->addRow(tr("ECO"), m_eco);
+    details->addRow(tr("Time Control"), m_timeControl);
 
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel);
+    // A time control that cannot be read is not saved.
+    connect(m_timeControl, &QLineEdit::textChanged, this, [buttons](const QString &text) {
+        buttons->button(QDialogButtonBox::Save)->setEnabled(TimeControl::fromInput(text).has_value());
+    });
     connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
@@ -130,5 +144,6 @@ GameRecord GameInfoDialog::game() const
     // ECO codes are upper case, sub-codes lower case (e.g. "B90a").
     const QString eco = m_eco->text().trimmed();
     game.eco = eco.left(3).toUpper() + eco.mid(3).toLower();
+    TimeControl::set(game, TimeControl::fromInput(m_timeControl->text()).value_or(TimeControl::of(m_game)));
     return game;
 }

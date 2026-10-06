@@ -1,5 +1,7 @@
 #include "DatabaseOutline.h"
 
+#include "TimeControl.h"
+
 #include <QRegularExpression>
 
 #include <algorithm>
@@ -36,6 +38,8 @@ void DatabaseOutline::add(const GameRecord &game, const PlayerRoles &roles)
         ++events[event];
     if (const int gameYear = year(game.date); gameYear > 0)
         ++years[gameYear];
+    if (const QString timeControl = TimeControl::of(game); !timeControl.isEmpty())
+        ++timeControls[timeControl];
     if (const QString key = studyKey(game); !key.isEmpty()) {
         auto study = std::find_if(studies.begin(), studies.end(), [&](const Study &s) { return s.key == key; });
         if (study == studies.end()) {

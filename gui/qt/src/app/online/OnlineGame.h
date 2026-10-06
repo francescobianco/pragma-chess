@@ -27,6 +27,8 @@ struct OnlineGame {
     int whiteTimeMs = 0;
     int blackTimeMs = 0;
     bool rated = false;
+    /// As PGN's TimeControl tag writes it: "300+3", "1/259200"; empty if unknown.
+    QString timeControl;
 
     bool isOver() const { return !status.isEmpty() && status != QLatin1String("started") && status != QLatin1String("created"); }
     /// The PGN result of a finished game, "*" otherwise.

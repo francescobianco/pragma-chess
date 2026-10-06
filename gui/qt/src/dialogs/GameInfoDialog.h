@@ -31,4 +31,6 @@ private:
     QLineEdit *m_round;
     QComboBox *m_result;
     QLineEdit *m_eco;
+    /// The TimeControl tag, as players say it (TimeControl::inputText).
+    QLineEdit *m_timeControl;
 };

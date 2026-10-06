@@ -1,7 +1,9 @@
 #include "LichessFetch.h"
 
+
 #include "SourceCredentials.h"
 #include "app/Pgn.h"
+#include "app/TimeControl.h"
 
 #include <QDate>
 #include <QJsonDocument>
@@ -74,6 +76,16 @@ std::optional<ImportedGame> LichessFetch::parseGame(const QJsonObject &game)
         : winner == QLatin1String("black")           ? QStringLiteral("0-1")
                                                      : QStringLiteral("1/2-1/2");
     record.eco = game.value(QStringLiteral("opening")).toObject().value(QStringLiteral("eco")).toString();
+    // The time control, as PGN writes it: "300+3", "1/259200" for three
+    // days a move, "-" for a game with no clock.
+    const QJsonObject clock = game.value(QStringLiteral("clock")).toObject();
+    if (!clock.isEmpty())
+        TimeControl::set(record, QStringLiteral("%1+%2").arg(clock.value(QStringLiteral("initial")).toInt())
+                                     .arg(clock.value(QStringLiteral("increment")).toInt()));
+    else if (const int days = game.value(QStringLiteral("daysPerTurn")).toInt(); days > 0)
+        TimeControl::set(record, QStringLiteral("1/%1").arg(days * 86400));
+    else if (speed == QLatin1String("correspondence") || speed == QLatin1String("unlimited"))
+        TimeControl::set(record, QStringLiteral("-"));
     record.startFen = line->startFen;
     record.moves = line->moves;
     record.plyCount = int(line->moves.size());

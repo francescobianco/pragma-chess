@@ -1,6 +1,8 @@
 #include "ChessComFetch.h"
 
+
 #include "app/Pgn.h"
+#include "app/TimeControl.h"
 
 #include <QDate>
 #include <QJsonArray>
@@ -64,6 +66,11 @@ std::optional<ImportedGame> ChessComFetch::parseGame(const QJsonObject &game)
     record.round = QStringLiteral("-");
     record.result = pgnTag(pgn, "Result");
     record.eco = pgnTag(pgn, "ECO");
+    // Already PGN's form: "600+5", "1/86400" for a day a move.
+    QString timeControl = game.value(QStringLiteral("time_control")).toString();
+    if (timeControl.isEmpty())
+        timeControl = pgnTag(pgn, "TimeControl");
+    TimeControl::set(record, timeControl);
     record.startFen = line->startFen;
     record.moves = line->moves;
     record.plyCount = int(line->moves.size());

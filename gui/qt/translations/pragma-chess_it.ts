@@ -640,6 +640,10 @@ Il Nero ha catturato: %2</translation>
         <source>Database &amp;Settings…</source>
         <translation>Impostazioni &amp;database…</translation>
     </message>
+    <message>
+        <source>Time Control</source>
+        <translation>Cadenza</translation>
+    </message>
 </context>
 <context>
     <name>EnginePanel</name>
@@ -1006,6 +1010,18 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>Game</source>
         <translation>Partita</translation>
+    </message>
+    <message>
+        <source>3+2, 15+10, 90+30</source>
+        <translation>3+2, 15+10, 90+30</translation>
+    </message>
+    <message>
+        <source>Minutes for the game, then the seconds added at each move: 3+2, 90+30. PGN&apos;s form works too: 40/7200:3600 (forty moves in two hours, then an hour), 1/86400 (a day a move), - (no clock).</source>
+        <translation>I minuti per la partita, poi i secondi aggiunti a ogni mossa: 3+2, 90+30. Va bene anche la forma del PGN: 40/7200:3600 (quaranta mosse in due ore, poi un&apos;ora), 1/86400 (un giorno a mossa), - (senza orologio).</translation>
+    </message>
+    <message>
+        <source>Time Control</source>
+        <translation>Cadenza</translation>
     </message>
 </context>
 <context>
@@ -4497,6 +4513,49 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>The files on the server; delete the ones no device should have any more</source>
         <translation>I file sul server; elimina quelli che nessun dispositivo deve più avere</translation>
+    </message>
+</context>
+<context>
+    <name>TimeControl</name>
+    <message>
+        <source>UltraBullet</source>
+        <translation>UltraBullet</translation>
+    </message>
+    <message>
+        <source>Bullet</source>
+        <translation>Bullet</translation>
+    </message>
+    <message>
+        <source>Blitz</source>
+        <translation>Blitz</translation>
+    </message>
+    <message>
+        <source>Rapid</source>
+        <translation>Rapid</translation>
+    </message>
+    <message>
+        <source>Classical</source>
+        <translation>Classica</translation>
+    </message>
+    <message>
+        <source>Correspondence</source>
+        <translation>Corrispondenza</translation>
+    </message>
+    <message>
+        <source>No clock</source>
+        <translation>Senza orologio</translation>
+    </message>
+    <message>
+        <source>no clock</source>
+        <translation>senza orologio</translation>
+    </message>
+    <message>
+        <source>1 day</source>
+        <translation>1 giorno</translation>
+    </message>
+    <message>
+        <source>%1 days</source>
+        <translation>%1 giorni</translation>
     </message>
 </context>
 <context>

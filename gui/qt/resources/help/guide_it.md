@@ -121,7 +121,7 @@ Spiega legge l'analisi in corso nel pannello Motore: la spiegazione compare appe
 
 **Motore ▸ Analisi** (Ctrl+E) accende e spegne l'analisi della posizione sulla scacchiera. Il pannello Motore mostra il punteggio — sempre dal lato del Bianco: positivo è buono per il Bianco —, la profondità e la linea migliore. La barra accanto alla scacchiera mostra lo stesso punteggio.
 
-**Per vedere dove porta la linea**, fai doppio clic sull'occhio accanto a Ferma analisi: la scacchiera mostra la posizione alla fine della linea del motore, come se tutte le sue mosse fossero giocate. Fai clic di nuovo sull'occhio, o allontanati, e torna la tua posizione.
+**Per vedere dove porta la linea**, tieni premuto l'occhio accanto a Ferma analisi: finché lo tieni, la scacchiera mostra la posizione alla fine della linea del motore, come se tutte le sue mosse fossero giocate, e segue il motore: quando il motore trova un'altra linea, la scacchiera va dove finisce quella nuova. Rilascia e torna la tua posizione.
 
 Pragma Chess arriva con Stockfish, e funziona con qualunque motore UCI.
 

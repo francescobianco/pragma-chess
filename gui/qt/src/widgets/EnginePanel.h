@@ -37,15 +37,16 @@ public:
     void setBookName(const QString &name);
     /// Lets the eye go: the board moved on.
     void cancelPeek() { stopPeeking(); }
+    /// Whether the eye is held down now.
+    bool isPeeking() const { return m_peeking; }
 
 Q_SIGNALS:
     /// The choices of the tutor's alert.
     void takeBackRequested();
     void explainRequested();
     void ignoreRequested();
-    /// The eye is turned on with a double click (true) and off with a
-    /// click, or by leaving it (false): the board shows the end of the best
-    /// line meanwhile.
+    /// The eye is held down (true) or let go (false): the board shows the
+    /// end of the best line meanwhile, and follows it as the engine changes it.
     void peekHeld(bool held);
 
 protected:
@@ -68,10 +69,8 @@ private:
     bool m_lineHidden = false;
     /// Whether the line is about the position on the board (a stale one is not peeked at).
     bool m_hasLine = false;
-    /// The eye is on: the board shows the end of the line.
+    /// The eye is held down: the board shows the end of the line.
     bool m_peeking = false;
-    /// The click that turned it off may be the first of a double click.
-    bool m_peekDoubleClickIgnored = false;
     void stopPeeking();
 
     void refreshLine();

@@ -8,6 +8,65 @@ l'ultimo commit è `48eb8cc` (sorgente ChessBase).
 
 ## Da fare, in ordine di priorità
 
+### Prossimo: INSIGHT.smart — i piani e le manovre della linea, sull'occhio
+
+Richiesta del 6 ottobre 2026, da fare. Tenendo premuto l'occhio del pannello
+del motore la scacchiera mostra la posizione alla fine della linea del motore,
+e la segue mentre il motore va avanti (`EnginePanel::isPeeking`,
+`MainWindow::peekAtEngineLine`, `BoardWidget::peek`). Oggi quella posizione è
+nuda: si vede dove si arriva, non come. **INSIGHT.smart** è un nuovo programma
+SMART (`smart/INSIGHT.smart`, accanto a EXPLAIN.smart e TUTOR.smart) che,
+mentre si guarda la fine della linea, disegna le **frecce di manovra
+salienti**: i piani e i percorsi dei pezzi che la linea contiene.
+
+Il principio, da non tradire:
+
+- **Solo la linea giocata.** Non si rianalizza niente, non si va in profondità
+  sulle singole mosse e non si guarda oltre la fine della linea: il programma
+  riceve la posizione di partenza e le mosse della PV, le rigioca e ne trae
+  considerazioni. È una lettura della linea, non una ricerca.
+- **Poche frecce, quelle che dicono qualcosa.** Il risultato non è la linea
+  ridisegnata mossa per mossa (quella c'è già, scritta nel pannello), ma i
+  movimenti che hanno un senso da piano: 2–4 frecce al massimo.
+
+Esempi di cosa mostrare (da affinare con casi veri):
+
+- **Manovre di donna**: da dove si trovava a dove è arrivata, quando nella
+  linea fa strada (più mosse, o un trasferimento d'ala).
+- **Il re nei finali**: la marcia del re, casa di partenza → casa d'arrivo
+  (con le case intermedie se il percorso non è dritto), quando il materiale è
+  da finale (niente donne, pochi pezzi).
+- **Piani di pedoni**: un pedone che corre (passato che avanza), una rottura
+  (c4-c5, f4-f5), una catena che avanza; più pedoni che vanno nella stessa
+  direzione sono un piano solo.
+- **Percorsi dei pezzi minori e delle torri**: un cavallo che fa un giro di
+  più salti per arrivare a una casa (Cb1-d2-f1-g3), una torre che si alza e
+  traversa (Ta1-a3-h3), un alfiere che cambia diagonale.
+- Un pezzo catturato lungo la linea finisce lì: le sue frecce si fermano
+  alla casa dove è stato preso; gli scambi in sé non sono manovre.
+
+Come si innesta (proposta, da decidere al momento):
+
+- **Reattivo come gli altri SMART**: una funzione d'ingresso (per es.
+  `Insight(start, line)`) chiamata quando l'occhio si preme e a ogni nuova
+  linea mentre è premuto; le frecce cambiano con la linea, come la posizione.
+- **Le funzioni del client sono quelle di EXPLAIN.smart** (`PLAY`, `PIECE`,
+  `FROMSQ`/`TOSQ`, `MATERIAL`, `COUNT`, `ARROW`…): il giudizio su cosa è
+  "saliente" sta tutto nel programma, in SMART, così desktop, `pragma-explain`
+  e Android mostrano le stesse frecce.
+- **Cosa serve di nuovo ai client**: probabilmente una freccia che passa per
+  case intermedie (un percorso, non solo da→a) e un tipo di freccia suo
+  (`Plan`?), con un colore che non si confonda con quelli di Explain, il cui
+  colore è un'affermazione (rosso = materiale che cade). `BoardWidget::peek`
+  oggi mostra la posizione "senza frecce": va esteso per disegnare queste.
+- **Test**: linee registrate con le frecce attese, come `smart/tests/*.ticks`,
+  giocate da ogni client: una manovra di donna, una marcia di re in un
+  finale di re e pedoni, un attacco di pedoni.
+
+Decisioni aperte: quante frecce al massimo; percorso spezzato o freccia dritta
+dalla casa di partenza a quella d'arrivo; entrambi i colori o solo il lato che
+muove; la soglia di "interessante" (quante mosse, quanta strada) per pezzo.
+
 ### 0. Release Windows: sbloccare la verifica dei pacchetti — fatto, 0.3.0 uscita il 5 ottobre
 
 La 0.3.0 è pubblicata (setup Windows 18 MB, zip 23 MB, dmg 33 MB, deb/rpm

@@ -191,15 +191,18 @@ playing a move turns it off, and the user asks again at the next move.
   is the one place that decides: add new meanings there, do not call
   `setBorder` elsewhere.
 - The Engine panel shows the engine's whole line, and an eye beside Stop
-  Analysis (`EnginePanel::peekHeld`): a double click turns it on and the
-  board shows the position at the end of the line
-  (`MainWindow::peekAtEngineLine`, `BoardWidget::peek`: no arrows, no
-  marks, no moves taken); a click, the pointer leaving the eye or the board
-  moving turns it off and brings back what was there (`endPeek`, a sequence
+  Analysis (`EnginePanel::peekHeld`): held down, the board shows the
+  position at the end of the line, and follows it while the engine goes on
+  (each `evaluationChanged` peeks again; `BoardWidget::peek` keeps what it
+  covered from the first one) (`MainWindow::peekAtEngineLine`,
+  `BoardWidget::peek`: no arrows, no marks, no moves taken), and letting go
+  or the board moving brings back what was there (`endPeek`, a sequence
   going on where it was). It is off while the line is hidden (training) or
-  not about the board. Not press-and-hold: on this machine's touchpad a
-  tap reaches Qt as a press and a release 180 ms apart, and a held physical
-  click never reached it at all.
+  not about the board. The eye follows the physical press and release (an
+  event filter, no focus): the button's own down state was let go when it
+  took the focus. A held press does reach Qt on X11 with a mouse — measured
+  on 2026-10-06, press and release 5.8 s apart, the eye enabled throughout —
+  so hold is the gesture; there is no double click.
 - `widgets/BoardWidget` only paints `BoardArrow`s and lost-piece rings, and
   plays `BoardFrame` sequences (a forced mate from `MoveExplanation::playback`)
   with a red frame, restoring the position on `stopSequence()`.

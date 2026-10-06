@@ -265,6 +265,9 @@ MainWindow::MainWindow(QWidget *parent)
         m_explainer->setLiveEvaluation(evaluation);
         m_engineLine = m_session->position().lineText(evaluation.pv);
         m_enginePanel->setEvaluation(evaluation, m_session->position().lineText(evaluation.pv, -1, SanStyle::Figurines));
+        // Held, the eye follows the engine: each new line moves the board to where it now ends.
+        if (m_enginePanel->isPeeking())
+            peekAtEngineLine(true);
     });
     connect(m_explainer, &Explainer::explanationChanged, this, [this](const MoveExplanation &explanation) {
         m_explanation = explanation;

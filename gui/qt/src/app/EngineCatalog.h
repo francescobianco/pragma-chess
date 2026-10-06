@@ -1,5 +1,7 @@
 #pragma once
 
+#include "EnginePower.h"
+
 #include <QList>
 #include <QString>
 #include <QStringList>
@@ -17,6 +19,9 @@ struct EngineProfile {
     int threads = 0;
     /// Hash table in MB, 0 = the engine's default.
     int hashMb = 0;
+    /// How much of the computer it may take, 1 (Minimum) to 5 (Full): see
+    /// EnginePower. Threads set above win over the level's.
+    int power = EnginePower::kDefault;
 };
 
 /// A UCI engine found on this computer by EngineDetector.

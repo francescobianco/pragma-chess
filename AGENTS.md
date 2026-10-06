@@ -1129,6 +1129,17 @@ first and cannot be removed. Engine ▸ Manage Engines… (`ManageEnginesDialog`
 edits them; Detect Engines (`EngineDetector`) adds UCI engines found in PATH
 and the usual install folders, skipping binaries already registered. The
 project stores the engine id; an unknown id falls back to the bundled engine.
+Each engine has a **Computing Power** (`EngineProfile::power`, Manage Engines),
+how much of the computer it may take, 1 Minimum (10%) to 5 Full (no limit),
+3 Medium (half) by default: `app/EnginePower` (pure, unit-tested) gives the
+threads, a hard cap and a low priority. It never weakens the search — no
+depth or time limit: the engine is only slower. The cap is the system's:
+on Linux the engine runs in a systemd scope with `CPUQuota`
+(`systemd-run --user --scope`, when a user session can make one,
+`UciEngine::canLimitCpu`), on Windows in a job object with a hard CPU rate;
+macOS has none, so threads and priority only. Threads set by hand win over
+the level's; the cap stays. Measured on 12 cores: 120/300/600/900% of one
+core for levels 1–4.
 The dialog's list marks the engine in use (bold, "in use"), and selecting
 another one offers Use This Engine, which switches at once through
 `MainWindow::selectEngine`, like Engine ▸ Switch Engine: the engine is part of

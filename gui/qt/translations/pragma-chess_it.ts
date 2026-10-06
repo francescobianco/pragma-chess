@@ -2821,6 +2821,38 @@ non è su questo computer.</translation>
         <source>%1 — in use</source>
         <translation>%1 — in uso</translation>
     </message>
+    <message>
+        <source>Minimum: a tenth of the computer</source>
+        <translation>Minima: un decimo del computer</translation>
+    </message>
+    <message>
+        <source>Light: a quarter of the computer</source>
+        <translation>Leggera: un quarto del computer</translation>
+    </message>
+    <message>
+        <source>Medium: half of the computer</source>
+        <translation>Media: metà del computer</translation>
+    </message>
+    <message>
+        <source>High: three quarters of the computer</source>
+        <translation>Alta: tre quarti del computer</translation>
+    </message>
+    <message>
+        <source>Full: the whole computer, no limit</source>
+        <translation>Piena: tutto il computer, senza limiti</translation>
+    </message>
+    <message>
+        <source>The share of the processor the engine may use while it analyzes. It is just as strong, only slower: the rest of the computer stays free.</source>
+        <translation>La parte del processore che il motore può usare mentre analizza. È forte uguale, solo più lento: il resto del computer resta libero.</translation>
+    </message>
+    <message>
+        <source>The share of the processor the engine may use while it analyzes. It is just as strong, only slower. This system has no hard cap for another program: the engine gets fewer threads and a lower priority.</source>
+        <translation>La parte del processore che il motore può usare mentre analizza. È forte uguale, solo più lento. Questo sistema non ha un tetto rigido per un altro programma: il motore riceve meno thread e una priorità più bassa.</translation>
+    </message>
+    <message>
+        <source>Computing &amp;Power:</source>
+        <translation>&amp;Potenza di calcolo:</translation>
+    </message>
 </context>
 <context>
     <name>ManageSourcesDialog</name>

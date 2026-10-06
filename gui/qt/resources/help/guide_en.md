@@ -128,6 +128,7 @@ Pragma Chess comes with Stockfish, and works with any UCI engine.
 
 - **Engine ▸ Switch Engine** chooses among the engines of this computer. The engine icon of the toolbar drops down the same list.
 - **Engine ▸ Manage Engines…** adds, edits and removes engines. **Detect Engines** finds the ones installed on the computer; **Use This Engine** switches to the selected one.
+- **Computing Power**, in the same window, is how much of the computer the engine may use while it analyzes, from **Minimum** (a tenth) to **Full** (all of it, no limit); **Medium**, half, is where every engine starts. The engine is just as strong at every level, only slower: it gets fewer threads, a lower priority and, on Linux and Windows, a cap on its share of the processor, so the fans stay quiet and the rest of the computer stays free. **Threads**, if you set them, win over the level's.
 
 The engine in use is part of the project.
 

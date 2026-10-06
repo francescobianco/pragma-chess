@@ -49,62 +49,15 @@ Regole e punteggi sono costanti in testa a `smart/INSIGHT.smart`; si tara con
 - Android: l'occhio non c'è ancora; quando arriverà, le frecce ci sono già
   (`lineInsight`, `drawExplanation` disegna `via`).
 
-### Prossimo: limitare la CPU del motore — "Potenza di calcolo" a 5 livelli
+### Potenza di calcolo: da verificare su Windows
 
-Richiesta del 6 ottobre 2026, da fare (proposta, l'utente deve confermare i
-livelli). Oggi l'analisi è `go infinite` su metà dei core
-(`UciEngine::handleLine`, `uciok`: `idealThreadCount() / 2`) e non si ferma
-mai: anche a posizione ferma, con la finestra in secondo piano, metà della
-CPU resta al 100%, ventole e batteria comprese. Il numero di thread da solo
-non basta a moderarla: **quello che consuma è che l'analisi non finisce
-mai**. Le leve vere, insieme:
-
-1. **Thread** (`setoption Threads`): quanta CPU nello stesso istante.
-2. **Fine dell'analisi**: fermarsi a una profondità o dopo un tempo per
-   posizione (`go depth N` / `go movetime`), invece di `infinite`. A
-   posizione analizzata la CPU torna a zero. Spiega ha bisogno di
-   profondità ≥ `kExplainBeforeDepth` (16) e di 3 profondità su 4 dopo
-   `MIN_DEPTH` (8): ogni livello deve arrivare almeno a ~20.
-3. **Priorità del processo**: il motore a priorità bassa cede la CPU a tutto
-   il resto (il sistema resta reattivo), ma non scende sotto il 100% se la
-   CPU è libera. Unix: `QProcess::setChildProcessModifier` con
-   `setpriority`/`nice(10)`; Windows: `SetPriorityClass(...,
-   BELOW_NORMAL_PRIORITY_CLASS)` sul `processId()`. Non è una leva UCI: vale
-   per ogni motore.
-4. **Hash** in proporzione (meno memoria ai livelli bassi).
-
-Proposta dei livelli (Motore ▸ Gestisci motori…, al posto di "Thread:
-Automatico"; un'impostazione per computer, in `EngineProfile`):
-
-| Livello      | Thread       | L'analisi si ferma a        | Priorità |
-|--------------|--------------|-----------------------------|----------|
-| 1 Minima     | 1            | profondità 20 o 10 s        | bassa    |
-| 2 Leggera    | 25% dei core | profondità 24 o 20 s        | bassa    |
-| 3 Equilibrata (default) | 50% | profondità 30 o 60 s      | bassa    |
-| 4 Alta       | 75%          | mai (infinita)              | normale  |
-| 5 Piena      | tutti        | mai, nessun limite          | normale  |
-
-- Thread e Hash scritti a mano da chi li conosce restano: un valore
-  esplicito vince sul livello (il livello decide solo dove oggi c'è
-  "Automatico" / "predefinito").
-- **Pausa in secondo piano** (proposta, per ogni livello sotto Piena): con
-  la finestra ridotta a icona o non attiva per più di qualche minuto
-  l'analisi si ferma (`stop`) e riparte al ritorno
-  (`QGuiApplication::applicationStateChanged`). È la cosa che risparmia di
-  più, e non costa niente a chi guarda la scacchiera.
-- L'allenamento (`kTrainingDepth`) e la ricerca "prima" di Spiega sono già
-  a profondità fissa: non cambiano, cambia solo quanti thread usano.
-- Il pannello del motore dice quando l'analisi si è fermata per il limite
-  ("Analisi completata a profondità 24"), con un modo di continuare
-  (il bottone di analisi riparte senza limite per quella posizione).
-- Scartato: sospendere il processo a intermittenza (SIGSTOP/SIGCONT,
-  `NtSuspendProcess`) per un "x% di CPU": funziona, ma è fragile, diverso
-  per ogni sistema e falsa i tempi che il motore misura.
-- Da fare: `EngineProfile::power` (1–5) in `EngineCatalog` (unit-test di
-  load/save), la traduzione livello → thread/limite/priorità pura e
-  testata (`EnginePower`), `UciEngine` che accetta priorità e limite,
-  `MainWindow::analyzeCurrentPosition` che usa il limite, il campo nel
-  dialogo, la guida in ogni lingua, `GET /api/state` col livello.
+Fatta (AGENTS.md, "Engines"; misurata su Linux). Il tetto di Windows (job
+object con `JOB_OBJECT_CPU_RATE_CONTROL_HARD_CAP`, in `UciEngine::start`)
+non è mai stato compilato né provato: alla prossima build CI guardare che
+compili, e su una macchina Windows che il motore resti sotto la quota (Task
+Manager). macOS non ha un tetto per un altro processo: lì solo thread e
+priorità; se non basta, l'unica via è sospendere il processo a intermittenza
+(SIGSTOP/SIGCONT), scartata finché nessuno la chiede.
 
 ### 0. Dopo la 0.3.0: quel che resta dei pacchetti
 

@@ -8,6 +8,12 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Computing Power** for each engine (Engine ▸ Manage Engines…): how much
+  of the computer it may use while it analyzes, from Minimum (a tenth) to
+  Full (no limit), Medium (half) by default, so the fans stay quiet and the
+  rest of the computer stays free. The engine is just as strong, only
+  slower: fewer threads, a lower priority and, on Linux and Windows, a hard
+  cap on its share of the processor.
 - **Where the line leads, and how**: hold the eye beside Stop Analysis and
   the board shows the position at the end of the engine's line, following
   the engine as it goes deeper. Violet arrows show the plans the line holds:

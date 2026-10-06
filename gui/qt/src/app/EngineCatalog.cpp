@@ -54,10 +54,14 @@ EngineCatalog EngineCatalog::load(QSettings &settings)
         profile.path = settings.value(QStringLiteral("path")).toString();
         profile.threads = qMax(0, settings.value(QStringLiteral("threads")).toInt());
         profile.hashMb = qMax(0, settings.value(QStringLiteral("hash")).toInt());
+        profile.power = qBound(int(EnginePower::Minimum),
+                               settings.value(QStringLiteral("power"), EnginePower::kDefault).toInt(),
+                               int(EnginePower::Full));
         if (profile.id == kBundledId) {
             // Only the parameters are the user's: name and path belong to this build.
             catalog.m_engines.first().threads = profile.threads;
             catalog.m_engines.first().hashMb = profile.hashMb;
+            catalog.m_engines.first().power = profile.power;
         } else if (!profile.id.isEmpty() && !catalog.find(profile.id)) {
             catalog.m_engines.append(profile);
         }
@@ -80,6 +84,7 @@ void EngineCatalog::save(QSettings &settings) const
         }
         settings.setValue(QStringLiteral("threads"), profile.threads);
         settings.setValue(QStringLiteral("hash"), profile.hashMb);
+        settings.setValue(QStringLiteral("power"), profile.power);
     }
     settings.endArray();
 }
@@ -129,6 +134,7 @@ void EngineCatalog::update(const EngineProfile &profile)
         if (existing.bundled) {
             existing.threads = profile.threads;
             existing.hashMb = profile.hashMb;
+            existing.power = profile.power;
         } else {
             existing = profile;
             existing.bundled = false;

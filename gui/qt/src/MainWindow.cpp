@@ -110,6 +110,7 @@
 #include <QStandardPaths>
 #include <QStatusBar>
 #include <QTableView>
+#include <QThread>
 #include <QTimer>
 #include <QToolBar>
 #include <QToolButton>
@@ -3071,8 +3072,15 @@ void MainWindow::setAnalysisEnabled(bool enabled)
         const EngineProfile &profile = m_engines.resolve(m_engineId, m_engineName);
         const QString executable = EngineCatalog::executableFor(profile);
         m_engine->clearOptions();
-        if (profile.threads > 0)
-            m_engine->setOption(QStringLiteral("Threads"), QString::number(profile.threads));
+        // The Computing Power: the share of the machine the engine is given
+        // (threads, unless the user set them, a cap and a priority), never a
+        // weaker search.
+        const int cores = QThread::idealThreadCount();
+        const EnginePower power = EnginePower::forLevel(profile.power, cores);
+        m_engine->setOption(QStringLiteral("Threads"),
+                            QString::number(profile.threads > 0 ? profile.threads : power.threads));
+        m_engine->setLowPriority(power.lowPriority);
+        m_engine->setCpuLimit(power.cpuPercent, power.quotaOfOneCore(cores));
         if (profile.hashMb > 0)
             m_engine->setOption(QStringLiteral("Hash"), QString::number(profile.hashMb));
         if (executable.isEmpty() || !m_engine->start(executable)) {

@@ -10,6 +10,14 @@
 #include <QStandardPaths>
 #include <QThread>
 
+#if defined(Q_OS_WIN)
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#elif defined(Q_OS_UNIX)
+#include <sys/resource.h>
+#endif
+
 UciEngine::UciEngine(QObject *parent)
     : QObject(parent)
     , m_process(new QProcess(this))
@@ -52,6 +60,34 @@ QString UciEngine::findExecutable(const QString &command)
     return found;
 }
 
+void UciEngine::setCpuLimit(int machinePercent, int quotaOfOneCore)
+{
+    m_cpuMachinePercent = qBound(0, machinePercent, 100);
+    m_cpuQuotaOfOneCore = qMax(0, quotaOfOneCore);
+}
+
+bool UciEngine::canLimitCpu()
+{
+#if defined(Q_OS_WIN)
+    return true;
+#elif defined(Q_OS_LINUX)
+    // A systemd user session that can make a scope with a quota: tried once.
+    static const bool available = [] {
+        if (QStandardPaths::findExecutable(QStringLiteral("systemd-run")).isEmpty())
+            return false;
+        QProcess probe;
+        probe.start(QStringLiteral("systemd-run"),
+                    {QStringLiteral("--user"), QStringLiteral("--scope"), QStringLiteral("--quiet"),
+                     QStringLiteral("--collect"), QStringLiteral("-p"), QStringLiteral("CPUQuota=100%"),
+                     QStringLiteral("true")});
+        return probe.waitForFinished(5000) && probe.exitStatus() == QProcess::NormalExit && probe.exitCode() == 0;
+    }();
+    return available;
+#else
+    return false;
+#endif
+}
+
 bool UciEngine::start(const QString &executable)
 {
     if (isRunning())
@@ -59,8 +95,52 @@ bool UciEngine::start(const QString &executable)
     m_name.clear();
     m_options.clear();
     m_buffer.clear();
-    m_process->start(executable, {});
-    return m_process->waitForStarted(3000);
+    QString program = executable;
+    QStringList arguments;
+#if defined(Q_OS_UNIX)
+    // In the child, before the engine runs: its threads inherit the niceness.
+    const bool low = m_lowPriority;
+    m_process->setChildProcessModifier([low] {
+        if (low)
+            setpriority(PRIO_PROCESS, 0, 10);
+    });
+#endif
+#if defined(Q_OS_LINUX)
+    // The cap: the engine runs in a scope of its own whose CPUQuota the
+    // kernel enforces on all its threads; systemd-run hands it our pipes.
+    if (m_cpuQuotaOfOneCore > 0 && canLimitCpu()) {
+        program = QStringLiteral("systemd-run");
+        arguments = {QStringLiteral("--user"), QStringLiteral("--scope"), QStringLiteral("--quiet"),
+                     QStringLiteral("--collect"), QStringLiteral("-p"),
+                     QStringLiteral("CPUQuota=%1%").arg(m_cpuQuotaOfOneCore), QStringLiteral("--"), executable};
+    }
+#endif
+    m_process->start(program, arguments);
+    if (!m_process->waitForStarted(3000))
+        return false;
+#if defined(Q_OS_WIN)
+    if (HANDLE process = OpenProcess(PROCESS_SET_INFORMATION | PROCESS_SET_QUOTA | PROCESS_TERMINATE, FALSE,
+                                     DWORD(m_process->processId()))) {
+        if (m_lowPriority)
+            SetPriorityClass(process, BELOW_NORMAL_PRIORITY_CLASS);
+        if (m_cpuMachinePercent > 0) {
+            // A job object with a hard cap: CpuRate is the share of the whole
+            // machine in hundredths of a per cent.
+            HANDLE job = CreateJobObjectW(nullptr, nullptr);
+            JOBOBJECT_CPU_RATE_CONTROL_INFORMATION rate = {};
+            rate.ControlFlags = JOB_OBJECT_CPU_RATE_CONTROL_ENABLE | JOB_OBJECT_CPU_RATE_CONTROL_HARD_CAP;
+            rate.CpuRate = DWORD(m_cpuMachinePercent) * 100;
+            if (job && SetInformationJobObject(job, JobObjectCpuRateControlInformation, &rate, sizeof rate)
+                && AssignProcessToJobObject(job, process)) {
+                m_job = job;
+            } else if (job) {
+                CloseHandle(job);
+            }
+        }
+        CloseHandle(process);
+    }
+#endif
+    return true;
 }
 
 void UciEngine::shutdown()
@@ -78,6 +158,12 @@ void UciEngine::shutdown()
     m_state = State::Stopped;
     m_pending.reset();
     m_name.clear(); // The next engine says its own name.
+#if defined(Q_OS_WIN)
+    if (m_job) {
+        CloseHandle(HANDLE(m_job));
+        m_job = nullptr;
+    }
+#endif
 }
 
 bool UciEngine::isRunning() const

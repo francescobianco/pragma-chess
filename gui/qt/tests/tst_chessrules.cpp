@@ -130,6 +130,7 @@ class TestChessRules : public QObject {
 private Q_SLOTS:
     void initTestCase();
     void keepsTheBundledEngine();
+    void sharesTheComputerWithTheEngine();
     void savesAndResolvesEngines();
     void addsDetectedEnginesOnce();
     void recognizesEngineFiles();
@@ -3907,6 +3908,48 @@ void TestChessRules::initTestCase()
     QCoreApplication::setApplicationName(QStringLiteral("tst_chessrules"));
     QSettings::setDefaultFormat(QSettings::IniFormat);
     QSettings().clear();
+}
+
+void TestChessRules::sharesTheComputerWithTheEngine()
+{
+    // A share of the machine, never a weaker search: threads, a cap, a priority.
+    const EnginePower minimum = EnginePower::forLevel(EnginePower::Minimum, 12);
+    QCOMPARE(minimum.cpuPercent, 10);
+    QCOMPARE(minimum.threads, 2); // 1.2 cores, rounded up: the cap does the rest.
+    QCOMPARE(minimum.quotaOfOneCore(12), 120);
+    QVERIFY(minimum.lowPriority);
+    const EnginePower balanced = EnginePower::forLevel(EnginePower::kDefault, 12);
+    QCOMPARE(balanced.cpuPercent, 50);
+    QCOMPARE(balanced.threads, 6);
+    QCOMPARE(balanced.quotaOfOneCore(12), 600);
+    QCOMPARE(EnginePower::forLevel(EnginePower::High, 12).threads, 9);
+    const EnginePower full = EnginePower::forLevel(EnginePower::Full, 12);
+    QCOMPARE(full.cpuPercent, 0);
+    QCOMPARE(full.threads, 12);
+    QCOMPARE(full.quotaOfOneCore(12), 0);
+    QVERIFY(!full.lowPriority);
+    // A small machine: one thread, the cap below one core.
+    QCOMPARE(EnginePower::forLevel(EnginePower::Minimum, 4).threads, 1);
+    QCOMPARE(EnginePower::forLevel(EnginePower::Minimum, 4).quotaOfOneCore(4), 40);
+    QCOMPARE(EnginePower::forLevel(EnginePower::Light, 1).threads, 1);
+    // Out of range: the nearest level.
+    QCOMPARE(EnginePower::forLevel(0, 8).cpuPercent, 10);
+    QCOMPARE(EnginePower::forLevel(9, 8).cpuPercent, 0);
+
+    // The level is saved with the engine, the bundled one's too.
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    EngineCatalog catalog;
+    EngineProfile bundled = catalog.engines().first();
+    QCOMPARE(bundled.power, int(EnginePower::kDefault));
+    bundled.power = EnginePower::Light;
+    catalog.update(bundled);
+    {
+        QSettings settings(dir.filePath(QStringLiteral("engines.ini")), QSettings::IniFormat);
+        catalog.save(settings);
+    }
+    QSettings settings(dir.filePath(QStringLiteral("engines.ini")), QSettings::IniFormat);
+    QCOMPARE(EngineCatalog::load(settings).engines().first().power, int(EnginePower::Light));
 }
 
 void TestChessRules::keepsTheBundledEngine()

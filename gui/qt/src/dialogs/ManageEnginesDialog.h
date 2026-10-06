@@ -8,6 +8,7 @@ class QLabel;
 class QLineEdit;
 class QListWidget;
 class QPushButton;
+class QComboBox;
 class QSpinBox;
 
 /// Engine ▸ Manage Engines…: the engines of this computer. Each one can be
@@ -60,6 +61,8 @@ private:
     QLineEdit *m_name;
     QLineEdit *m_path;
     QPushButton *m_browse;
+    /// The Computing Power, 1 to 5 (EnginePower).
+    QComboBox *m_power;
     QSpinBox *m_threads;
     QSpinBox *m_hash;
     QLabel *m_status;

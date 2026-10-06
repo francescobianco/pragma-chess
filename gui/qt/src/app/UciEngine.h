@@ -42,6 +42,17 @@ public:
     void setOption(const QString &name, const QString &value);
     /// Forgets the options set with setOption(), for the next start().
     void clearOptions() { m_optionValues.clear(); }
+    /// Runs the engine started next below normal priority, so that the rest
+    /// of the computer goes first (any engine: it is not a UCI option).
+    void setLowPriority(bool low) { m_lowPriority = low; }
+    /// Caps the CPU the engine started next may use, whatever its threads:
+    /// `machinePercent` of the whole machine (Windows, a job object), or
+    /// `quotaOfOneCore` per cent of one core (Linux, a systemd scope with a
+    /// CPUQuota). 0 for no cap. Where the system has no cap (macOS, or
+    /// Linux without a systemd user session) the engine runs uncapped.
+    void setCpuLimit(int machinePercent, int quotaOfOneCore);
+    /// Whether this computer can cap an engine's CPU (setCpuLimit).
+    static bool canLimitCpu();
     /// Name reported by the engine ("id name"), empty until known.
     QString name() const { return m_name; }
 
@@ -81,5 +92,10 @@ private:
     std::optional<Request> m_pending;
     Side m_searchSide = Side::White;
     bool m_searchLimited = false;
+    bool m_lowPriority = false;
+    int m_cpuMachinePercent = 0;
+    int m_cpuQuotaOfOneCore = 0;
+    /// The job object holding the engine's process (Windows), or null.
+    void *m_job = nullptr;
     QByteArray m_buffer;
 };

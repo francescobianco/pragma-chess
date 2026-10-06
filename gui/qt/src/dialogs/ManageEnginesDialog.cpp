@@ -1,7 +1,9 @@
 #include "ManageEnginesDialog.h"
 
 #include "app/EngineDetector.h"
+#include "app/UciEngine.h"
 
+#include <QComboBox>
 #include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -45,6 +47,20 @@ ManageEnginesDialog::ManageEnginesDialog(const EngineCatalog &catalog, const QSt
     auto *pathRow = new QHBoxLayout;
     pathRow->addWidget(m_path);
     pathRow->addWidget(m_browse);
+    // How much of the computer the engine is given: never a weaker search,
+    // a slower one (fewer threads, a cap on its CPU, a lower priority).
+    m_power = new QComboBox(this);
+    m_power->addItem(tr("Minimum: a tenth of the computer"), int(EnginePower::Minimum));
+    m_power->addItem(tr("Light: a quarter of the computer"), int(EnginePower::Light));
+    m_power->addItem(tr("Medium: half of the computer"), int(EnginePower::Medium));
+    m_power->addItem(tr("High: three quarters of the computer"), int(EnginePower::High));
+    m_power->addItem(tr("Full: the whole computer, no limit"), int(EnginePower::Full));
+    m_power->setToolTip(UciEngine::canLimitCpu()
+                            ? tr("The share of the processor the engine may use while it analyzes. It is just "
+                                 "as strong, only slower: the rest of the computer stays free.")
+                            : tr("The share of the processor the engine may use while it analyzes. It is just "
+                                 "as strong, only slower. This system has no hard cap for another program: "
+                                 "the engine gets fewer threads and a lower priority."));
     m_threads = new QSpinBox(this);
     m_threads->setRange(0, 1024);
     m_threads->setSpecialValueText(tr("Automatic"));
@@ -58,7 +74,12 @@ ManageEnginesDialog::ManageEnginesDialog(const EngineCatalog &catalog, const QSt
 
     auto *form = new QFormLayout;
     form->addRow(tr("&Name:"), m_name);
-    form->addRow(tr("&Executable:"), pathRow);
+    // The field is a row (path and Browse…): the label needs its buddy set by
+    // hand, or it shows the "&" instead of underlining the letter.
+    auto *pathLabel = new QLabel(tr("&Executable:"), this);
+    pathLabel->setBuddy(m_path);
+    form->addRow(pathLabel, pathRow);
+    form->addRow(tr("Computing &Power:"), m_power);
     form->addRow(tr("&Threads:"), m_threads);
     form->addRow(tr("&Hash:"), m_hash);
     form->addRow(QString(), m_status);
@@ -89,6 +110,7 @@ ManageEnginesDialog::ManageEnginesDialog(const EngineCatalog &catalog, const QSt
     connect(m_list, &QListWidget::currentRowChanged, this, &ManageEnginesDialog::showEngine);
     for (QLineEdit *edit : {m_name, m_path})
         connect(edit, &QLineEdit::textEdited, this, &ManageEnginesDialog::storeEngine);
+    connect(m_power, &QComboBox::currentIndexChanged, this, &ManageEnginesDialog::storeEngine);
     for (QSpinBox *spin : {m_threads, m_hash})
         connect(spin, &QSpinBox::valueChanged, this, &ManageEnginesDialog::storeEngine);
     connect(add, &QPushButton::clicked, this, &ManageEnginesDialog::addEngine);
@@ -165,8 +187,10 @@ void ManageEnginesDialog::showEngine()
     m_path->setReadOnly(!editable);
     m_browse->setEnabled(editable);
     m_remove->setEnabled(editable);
+    m_power->setEnabled(profile);
     m_threads->setEnabled(profile);
     m_hash->setEnabled(profile);
+    m_power->setCurrentIndex(qMax(0, m_power->findData(profile ? profile->power : int(EnginePower::kDefault))));
     m_threads->setValue(profile ? profile->threads : 0);
     m_hash->setValue(profile ? profile->hashMb : 0);
     if (profile && profile->bundled) {
@@ -199,6 +223,7 @@ void ManageEnginesDialog::storeEngine()
         profile.name = m_name->text().trimmed();
         profile.path = m_path->text().trimmed();
     }
+    profile.power = m_power->currentData().toInt();
     profile.threads = m_threads->value();
     profile.hashMb = m_hash->value();
     m_catalog.update(profile);

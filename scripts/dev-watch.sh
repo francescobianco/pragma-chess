@@ -27,7 +27,11 @@ start_app() {
     local attempt status
     for attempt in $(seq 1 40); do
         log "starting $APP (development API on 127.0.0.1:${PRAGMA_DEV_API_PORT:-7457})"
-        PRAGMA_DEV_API=1 "$APP" "$@" &
+        # An activation token is good for one launch, and this one came with
+        # the shell (a terminal, an IDE): handed to every restart, GNOME
+        # refuses it and marks the window as demanding attention, which keeps
+        # the Ubuntu Dock out over it.
+        env -u XDG_ACTIVATION_TOKEN -u DESKTOP_STARTUP_ID PRAGMA_DEV_API=1 "$APP" "$@" &
         app_pid=$!
         sleep 0.3
         if kill -0 "$app_pid" 2>/dev/null; then

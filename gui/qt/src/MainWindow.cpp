@@ -1980,6 +1980,7 @@ void MainWindow::peekAtEngineLine(bool held)
 
 void MainWindow::syncBoard()
 {
+    m_enginePanel->cancelPeek(); // The end of the line belonged to the position before.
     const BoardFrame frame = frameFor(m_session->position(), m_session->lastMoveFrom(), m_session->lastMoveTo());
     if (m_animateNextBoard) {
         m_animateNextBoard = false;

@@ -3,6 +3,7 @@
 #include "app/OpeningNames.h"
 #include "app/UciEngine.h"
 
+#include <QElapsedTimer>
 #include <QWidget>
 
 #include <optional>
@@ -35,6 +36,8 @@ public:
     /// The opening the game is in and the chosen opening book; empty values show a dash.
     void setOpening(const OpeningNames::Name &opening);
     void setBookName(const QString &name);
+    /// Lets the eye go: the board moved on.
+    void cancelPeek() { stopPeeking(); }
 
 Q_SIGNALS:
     /// The choices of the tutor's alert.
@@ -65,8 +68,14 @@ private:
     bool m_lineHidden = false;
     /// Whether the line is about the position on the board (a stale one is not peeked at).
     bool m_hasLine = false;
-    /// The eye is held down.
+    /// The eye is held down, or was tapped and left on (m_peekLatched).
     bool m_peeking = false;
+    bool m_peekLatched = false;
+    /// The release of the press that turned a tapped peek off.
+    bool m_peekReleaseIgnored = false;
+    QElapsedTimer m_peekPressed;
+    /// A press shorter than this is a tap: the peek stays on.
+    static constexpr int kPeekHoldMs = 300;
     void stopPeeking();
 
     void refreshLine();

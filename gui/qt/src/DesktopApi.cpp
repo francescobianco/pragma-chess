@@ -203,6 +203,7 @@ void DesktopApi::addRoutes()
         QJsonObject peek{{QStringLiteral("on"), w->m_board->isPeeking()},
                          {QStringLiteral("arrows"), explanationJson(plans).value(QStringLiteral("arrows"))}};
         return QJsonObject{
+            {QStringLiteral("title"), w->windowTitle().replace(QLatin1String("[*]"), w->isWindowModified() ? QStringLiteral("*") : QString())},
             {QStringLiteral("fen"), position.fen()},
             {QStringLiteral("ply"), session->ply()},
             {QStringLiteral("plyCount"), session->plyCount()},

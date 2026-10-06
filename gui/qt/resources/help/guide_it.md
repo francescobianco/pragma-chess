@@ -213,7 +213,7 @@ Eliminare non rimpicciolisce ancora il file. **Database ▸ Impostazioni databas
 
 # Progetti {#projects}
 
-Un progetto è quello che stai guardando: il database, la partita e la mossa, il lato da cui vedi la scacchiera, il motore, i pannelli e se ti stai allenando. La barra del titolo ne mostra il nome — quello del file, o quello dato in **File ▸ Impostazioni progetto…** — con un asterisco quando ha modifiche non salvate, e il capitolo aperto quando sono più d'uno: *Aperture* - L'Italiana - Pragma Chess*.
+Un progetto è quello che stai guardando: il database, la partita e la mossa, il lato da cui vedi la scacchiera, il motore, i pannelli e se ti stai allenando. La barra del titolo ne mostra il nome — quello del file, o quello dato in **File ▸ Impostazioni progetto…** — con un asterisco quando ha modifiche non salvate, e, quando il progetto ha dei capitoli, il capitolo aperto (sparisce quando il progetto torna senza capitoli): *Aperture* - L'Italiana - Pragma Chess*.
 
 - **File ▸ Nuovo progetto** tiene quello che vedi — database, motore, pannelli — e comincia una partita nuova, vuota, col Bianco in basso.
 - **File ▸ Apri progetto…** e **File ▸ Apri progetto recente** aprono un file `.pch`.

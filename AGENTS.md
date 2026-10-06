@@ -301,7 +301,7 @@ an optional token) and `DesktopApi` (app; a friend of MainWindow) with the
 routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
 (`PRAGMA_DEV_API_URL` for another address).
 
-- `GET /api` the routes; `GET /api/state` position (FEN, ply, the line,
+- `GET /api` the routes; `GET /api/state` the window's title, position (FEN, ply, the line,
   path), training, the engine (name, evaluation with depth, score, PV and
   the line in SAN), Explain (on, verdict, arrows with from/to/kind/number/
   piece, lost pieces, summary, playback), the eye (`peek`: on, the plan
@@ -761,8 +761,9 @@ a chapter always has a game. In other tools this is a study or a chess book.
 - File ▸ New Chapter…, Switch Chapter (with Manage Chapters… under its list)
   (`dialogs/ManageChaptersDialog`) and Project Settings…
   (`dialogs/ProjectSettingsDialog`: the project's `name`, shown in the
-  title bar in place of the file's, then the chapter when there are
-  several: "Name* - Chapter - Pragma Chess").
+  title bar in place of the file's, then the chapter open as soon as the
+  project has chapters, and no more when it is back without:
+  "Name* - Chapter - Pragma Chess").
 - In the `.pch` (format 2) `chapters` holds `current` and the `list`:
   each chapter its `title`, `game`, `ply` and `games`, each game its uid
   when stored plus its content (header, `fen`, `moves`, `annotations`,

@@ -32,6 +32,12 @@ struct DatabaseProperties {
     /// The name to show in the interface language `languageCode` ("it", "en"
     /// or "it_IT"): that translation, else the default name, else `fileBaseName`.
     QString displayName(const QString &languageCode, const QString &fileBaseName) const;
+    /// The name given in Database Settings (displayName), or empty when the
+    /// database has none but its file's: the interface then shows the file.
+    QString givenName(const QString &languageCode, const QString &fileBaseName) const;
+    /// How the menus name the database file `path`: "My Games (games.pdb)"
+    /// when it has a name of its own, else the file's base name.
+    QString label(const QString &languageCode, const QString &path) const;
 
     /// Reads the stored key/value rows; missing or unknown values are defaults.
     static DatabaseProperties fromValues(const QHash<QString, QString> &values);

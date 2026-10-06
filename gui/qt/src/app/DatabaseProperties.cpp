@@ -1,5 +1,7 @@
 #include "DatabaseProperties.h"
 
+#include <QFileInfo>
+
 namespace {
 
 const QString kIdKey = QStringLiteral("id");
@@ -50,6 +52,19 @@ QString DatabaseProperties::displayName(const QString &languageCode, const QStri
     if (const QString language = localizedNames.value(code.section(QLatin1Char('_'), 0, 0)); !language.isEmpty())
         return language;
     return name.isEmpty() ? fileBaseName : name;
+}
+
+QString DatabaseProperties::givenName(const QString &languageCode, const QString &fileBaseName) const
+{
+    const QString shown = displayName(languageCode, fileBaseName).trimmed();
+    return shown == fileBaseName ? QString() : shown;
+}
+
+QString DatabaseProperties::label(const QString &languageCode, const QString &path) const
+{
+    const QFileInfo file(path);
+    const QString given = givenName(languageCode, file.completeBaseName());
+    return given.isEmpty() ? file.completeBaseName() : QStringLiteral("%1 (%2)").arg(given, file.fileName());
 }
 
 QString DatabaseProperties::typeKey(DatabaseType type)

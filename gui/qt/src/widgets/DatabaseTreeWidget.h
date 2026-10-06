@@ -61,6 +61,8 @@ Q_SIGNALS:
     void stateChanged();
     void categorySelected(const GameCategory &category);
     void connectSourceRequested();
+    /// Database Settings…, from the root's menu.
+    void settingsRequested();
     void manageSourcesRequested();
     void syncSourceRequested(qint64 sourceId);
 

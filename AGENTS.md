@@ -655,6 +655,11 @@ painted as a menu item, since QMenu draws an item in one font).
 - The games list ends with Line, the beginning of the game's moves
   (`GameRecord::linePreview`, built by `Pgn::preview` from the first stored
   SAN moves without replaying them); the view elides it with "…".
+- A database named in Database Settings is shown by that name, the file
+  after it in brackets ("My Games (games.pdb)", `DatabaseProperties::label`,
+  `givenName`), in Switch Database and over the tree, whose root draws the
+  name bold and the file in the normal weight (the tree's delegate, role
+  `kAfterRole`); the root's menu has Database Settings… too.
 - Which columns of the games list are shown belongs to the database
   (`DatabaseProperties::hiddenColumns`, property `columns.hidden`, by
   `GameListModel::columnKey`): right-click a column title to Hide it or Show

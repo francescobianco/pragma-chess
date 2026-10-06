@@ -1307,6 +1307,7 @@ void MainWindow::createDocks()
     connect(m_databaseTree, &DatabaseTreeWidget::categorySelected, this, &MainWindow::showCategory);
     connect(m_databaseTree, &DatabaseTreeWidget::stateChanged, this, &MainWindow::saveTreeState);
     connect(m_databaseTree, &DatabaseTreeWidget::connectSourceRequested, this, &MainWindow::connectSource);
+    connect(m_databaseTree, &DatabaseTreeWidget::settingsRequested, this, &MainWindow::editDatabaseSettings);
     connect(m_databaseTree, &DatabaseTreeWidget::manageSourcesRequested, this, &MainWindow::manageSources);
     connect(m_databaseTree, &DatabaseTreeWidget::syncSourceRequested, this,
             [this](qint64 id) { m_sourceSync->syncSource(id); });
@@ -2362,7 +2363,10 @@ void MainWindow::rebuildDatabasesMenu()
     const QFileInfoList files = folder.entryInfoList(
         {QStringLiteral("*.") + QLatin1String(UserFolders::databaseSuffix)}, QDir::Files, QDir::Name);
     for (const QFileInfo &file : files) {
-        QAction *action = m_databasesMenu->addAction(file.completeBaseName());
+        // By the name given in Database Settings, with the file in brackets.
+        const QString label = SqliteGameDatabase::readProperties(file.absoluteFilePath())
+                                  .label(UiLanguage::effective(), file.absoluteFilePath());
+        QAction *action = m_databasesMenu->addAction(label);
         action->setCheckable(true);
         action->setChecked(m_database && m_database->location() == file.absoluteFilePath());
         const QString path = file.absoluteFilePath();
@@ -2925,6 +2929,9 @@ void MainWindow::editDatabaseSettings()
         QMessageBox::warning(this, tr("Database Settings"), tr("Could not save the settings: %1").arg(error));
         return;
     }
+    // A new name shows at once in Switch Database and over the tree.
+    rebuildDatabasesMenu();
+    m_databaseTree->refresh();
     // Only opening books name openings: a database that is no longer one stops doing it.
     if (dialog.properties().type != DatabaseType::OpeningBook && !m_openingNamesPath.isEmpty()
         && QFileInfo(m_openingNamesPath) == QFileInfo(m_database->location()))

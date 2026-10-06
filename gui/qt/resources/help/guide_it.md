@@ -26,7 +26,7 @@ Un database è un file `.pdb` che contiene partite. Se ne apre uno alla volta; i
 - **Database ▸ Nuovo database…** ne crea uno vuoto nella cartella dei database.
 - **Database ▸ Apri database…** apre un file da qualunque posizione.
 - **Database ▸ Cambia database** elenca i database della cartella: scegline uno per aprirlo. L'icona del database nella barra degli strumenti apre lo stesso elenco.
-- **Database ▸ Impostazioni database…** modifica il nome e la descrizione, dice se il database è una raccolta di partite o un libro d'aperture, e contiene **Ottimizza database**.
+- **Database ▸ Impostazioni database…** (anche dal menu del clic destro sul database in cima all'albero) modifica il nome e la descrizione, dice se il database è una raccolta di partite o un libro d'aperture, e contiene **Ottimizza database**. Un database con un nome si presenta con quello, seguito dal file tra parentesi — *Mie Partite (partite.pdb)* — in **Cambia database** e in cima all'albero, dove il nome è in grassetto.
 - **Database ▸ Salva database come…** ne scrive una copia.
 - **Database ▸ Cambia database ▸ Mostra cartella dei database** apre la cartella nel gestore dei file.
 

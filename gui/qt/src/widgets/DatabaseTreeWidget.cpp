@@ -3,12 +3,16 @@
 #include "PaddedItemDelegate.h"
 
 #include "app/DatabaseOutline.h"
+#include "app/UiLanguage.h"
 #include "app/GameDatabase.h"
 #include "app/sources/SourceCatalog.h"
 #include "platform/SymbolicIcons.h"
 
+#include <QApplication>
 #include <QContextMenuEvent>
 #include <QDateTime>
+#include <QFileInfo>
+#include <QPainter>
 #include <QHeaderView>
 #include <QLocale>
 #include <QMenu>
@@ -19,6 +23,57 @@ namespace {
 constexpr int kNodeRole = Qt::UserRole;
 /// ECO letter or code, event, year, study or chapter key, or source id.
 constexpr int kValueRole = Qt::UserRole + 1;
+/// What follows the text in the normal weight: the root's "(games.pdb)".
+constexpr int kAfterRole = Qt::UserRole + 2;
+
+/// The tree's cells, padded; the root's name, bold, followed by its file in
+/// the normal weight (an item has one font: the rest is drawn here).
+class TreeDelegate : public PaddedItemDelegate {
+public:
+    explicit TreeDelegate(QObject *parent)
+        : PaddedItemDelegate(kPadding, kPadding, parent)
+    {
+    }
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        PaddedItemDelegate::paint(painter, option, index);
+        const QString after = index.data(kAfterRole).toString();
+        if (after.isEmpty())
+            return;
+        QStyleOptionViewItem cell = option;
+        initStyleOption(&cell, index);
+        cell.rect.adjust(kPadding, kPadding, -kPadding, -kPadding);
+        const QStyle *style = cell.widget ? cell.widget->style() : QApplication::style();
+        const QRect text = style->subElementRect(QStyle::SE_ItemViewItemText, &cell, cell.widget);
+        const int margin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, cell.widget) + 1;
+        const int used = QFontMetrics(cell.font).horizontalAdvance(cell.text) + margin;
+        QFont normal = cell.font;
+        normal.setBold(false);
+        const QFontMetrics metrics(normal);
+        const QRect rest(text.left() + used + metrics.horizontalAdvance(QLatin1Char(' ')), text.top(),
+                         text.right() - text.left() - used, text.height());
+        if (rest.width() <= 0)
+            return;
+        painter->save();
+        painter->setFont(normal);
+        painter->setPen(cell.palette.color(cell.state & QStyle::State_Selected ? QPalette::HighlightedText
+                                                                               : QPalette::Text));
+        painter->drawText(rest, Qt::AlignLeft | Qt::AlignVCenter, metrics.elidedText(after, Qt::ElideRight, rest.width()));
+        painter->restore();
+    }
+
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        QSize size = PaddedItemDelegate::sizeHint(option, index);
+        if (const QString after = index.data(kAfterRole).toString(); !after.isEmpty())
+            size.rwidth() += QFontMetrics(option.font).horizontalAdvance(QLatin1Char(' ') + after);
+        return size;
+    }
+
+private:
+    static constexpr int kPadding = 2;
+};
 
 } // namespace
 
@@ -33,7 +88,7 @@ DatabaseTreeWidget::DatabaseTreeWidget(QWidget *parent)
     header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     setUniformRowHeights(true);
     // A little room between the entries, the least that keeps them apart.
-    setItemDelegate(new PaddedItemDelegate(2, 2, this));
+    setItemDelegate(new TreeDelegate(this));
     setAccessibleName(tr("Database"));
     m_refreshTimer->setSingleShot(true);
     m_refreshTimer->setInterval(700);
@@ -193,7 +248,13 @@ void DatabaseTreeWidget::refresh()
         }
     }
 
-    QTreeWidgetItem *root = addItem(nullptr, Node::Database, m_database->name(), QVariant(), liveGames);
+    // The name given in Database Settings, bold, then the file; or the file alone.
+    const QString fileBaseName = QFileInfo(m_database->location()).completeBaseName();
+    const QString given = m_database->properties().givenName(UiLanguage::effective(), fileBaseName);
+    QTreeWidgetItem *root =
+        addItem(nullptr, Node::Database, given.isEmpty() ? m_database->name() : given, QVariant(), liveGames);
+    if (!given.isEmpty())
+        root->setData(0, kAfterRole, QStringLiteral("(%1)").arg(QFileInfo(m_database->location()).fileName()));
     root->setIcon(0, SymbolicIcons::icon(QStringLiteral("pragma-database")));
     root->setToolTip(0, m_database->location());
     QFont bold = root->font(0);
@@ -347,6 +408,11 @@ void DatabaseTreeWidget::contextMenuEvent(QContextMenuEvent *event)
     if (!item || !m_database)
         return;
     QMenu menu(this);
+    if (nodeOf(item) == Node::Database) {
+        // The database itself: its name, description and columns.
+        menu.addAction(tr("Database &Settings…"), this, &DatabaseTreeWidget::settingsRequested);
+        menu.addSeparator();
+    }
     if (nodeOf(item) == Node::Source) {
         const qint64 id = item->data(0, kValueRole).toLongLong();
         menu.addAction(tr("S&ync Now"), this, [this, id] { Q_EMIT syncSourceRequested(id); });

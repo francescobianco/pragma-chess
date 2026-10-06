@@ -26,7 +26,7 @@ A database is a `.pdb` file holding games. One database is open at a time; its n
 - **Database ▸ New Database…** creates an empty one in the Databases folder.
 - **Database ▸ Open Database…** opens a file from anywhere.
 - **Database ▸ Switch Database** lists the databases of the folder: choose one to open it. The database icon of the toolbar drops down the same list.
-- **Database ▸ Database Settings…** edits the name and the description, says whether the database is a collection of games or an opening book, and has **Optimize Database**.
+- **Database ▸ Database Settings…** (also from the right-click menu of the database at the top of the tree) edits the name and the description, says whether the database is a collection of games or an opening book, and has **Optimize Database**. A database with a name is shown by it, the file in brackets after it — *My Games (games.pdb)* — in **Switch Database** and at the top of the tree, where the name is in bold.
 - **Database ▸ Save Database As…** writes a copy.
 - **Database ▸ Switch Database ▸ Show Databases Folder** opens the folder in the file manager.
 

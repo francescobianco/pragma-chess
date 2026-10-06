@@ -110,7 +110,7 @@ QFont kindFont(const QFont &book, Paragraph::Kind kind)
 /// A title or a subtitle sits close to the text it heads: little room under it.
 QString headingStyle(Paragraph::Kind kind)
 {
-    return kind == Paragraph::Kind::Text ? QString() : QStringLiteral(" padding-bottom: 2px;");
+    return kind == Paragraph::Kind::Text ? QString() : QStringLiteral(" padding-bottom: 0;");
 }
 
 /// A paragraph's text as the view shows it: each line a paragraph of a book,
@@ -130,7 +130,8 @@ QString paragraphHtml(const Paragraph &paragraph, const QFont &book)
         html += QStringLiteral("<p align=\"%1\" style=\"margin: 0; text-indent: %2px; line-height: %3%;%4\">%5</p>")
                     .arg(align)
                     .arg(heading ? 0 : qRound(BookFont::indent(book)))
-                    .arg(BookFont::lineHeight)
+                    // A heading is one line: the book's leading would only add room under it.
+                    .arg(heading ? 100 : BookFont::lineHeight)
                     .arg(face, line.isEmpty() ? QStringLiteral("&nbsp;") : line.toHtmlEscaped());
     }
     return html;

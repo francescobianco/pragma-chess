@@ -8,6 +8,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- A database named in Database Settings is shown by its name, with the
+  file in brackets — "My Games (games.pdb)" — in Switch Database and at the
+  top of the tree, the name in bold; right-clicking it there opens Database
+  Settings… too.
 - Insert ▸ Game Break puts the new game right under the game you
   right-clicked in, always; a game with no moves yet has its own row in the
   move list ("1. …") and stays until deleted. Right-click a game for Delete
@@ -57,6 +61,7 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Titles and subtitles in the move list have less room under them.
 - The `.pdb` schema is now version 8 (the games' other PGN tags and their
   comments). A database opened by this version can no longer be opened by
   0.3.0, nor by the Android app before 0.3.1.

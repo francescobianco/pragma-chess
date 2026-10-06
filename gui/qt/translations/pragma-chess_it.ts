@@ -636,6 +636,10 @@ Il Nero ha catturato: %2</translation>
         <source>Studies</source>
         <translation>Studi</translation>
     </message>
+    <message>
+        <source>Database &amp;Settings…</source>
+        <translation>Impostazioni &amp;database…</translation>
+    </message>
 </context>
 <context>
     <name>EnginePanel</name>

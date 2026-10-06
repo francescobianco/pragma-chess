@@ -3644,6 +3644,13 @@ END FUNCTION
         QCOMPARE(properties.displayName(QStringLiteral("it_IT"), QStringLiteral("file")), QStringLiteral("Inglese"));
         QCOMPARE(properties.displayName(QStringLiteral("en"), QStringLiteral("file")), QStringLiteral("English"));
         QCOMPARE(properties.displayName(QStringLiteral("de"), QStringLiteral("file")), QStringLiteral("English"));
+        // Menus show the name with the file in brackets; a database without
+        // a name of its own, the file alone.
+        QCOMPARE(properties.givenName(QStringLiteral("it"), QStringLiteral("file")), QStringLiteral("Inglese"));
+        QCOMPARE(properties.label(QStringLiteral("it"), QStringLiteral("/x/My Games.pdb")),
+                 QStringLiteral("Inglese (My Games.pdb)"));
+        QCOMPARE(DatabaseProperties().label(QStringLiteral("it"), QStringLiteral("/x/My Games.pdb")), QStringLiteral("My Games"));
+        QCOMPARE(DatabaseProperties().givenName(QStringLiteral("it"), QStringLiteral("file")), QString());
 
         // Stored as name and name.<code>, and read back.
         const QHash<QString, QString> values = properties.values();

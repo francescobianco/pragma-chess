@@ -3326,7 +3326,10 @@ END FUNCTION
         book.clear();
         QVERIFY(!book.hasChapters());
         book.game().game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4")}};
-        book.settle(); // A move on the board, too.
+        book.settle(); // The game on the board alone is no chapter, whatever its moves…
+        QVERIFY(!book.hasChapters());
+        QVERIFY(book.game().holdsWork()); // …but they are kept nowhere else.
+        book.insertParagraph(0, 0); // A paragraph is something put in.
         QVERIFY(book.hasChapters());
         QCOMPARE(book.chapter().title, ChapterBook::defaultTitle(1));
         book.clear();
@@ -3476,12 +3479,18 @@ END FUNCTION
         book.setParagraph(0, 0, QString());
         QVERIFY(!book.hasChapters());
 
-        // Moves not saved anywhere are something put in: the chapter stays.
+        // Moves played, a break, moves in the game under it, that game
+        // deleted: back without chapters, the moves of the first kept.
         book.clear();
         book.game().game.moves = {{QStringLiteral("d4"), QStringLiteral("d2d4")}};
-        book.breakGame();
-        QVERIFY(book.removeGame(1));
+        book.settle();
+        QVERIFY(!book.hasChapters());
+        book.insertGame(0);
         QVERIFY(book.hasChapters());
+        book.game().game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4")}};
+        QVERIFY(book.removeGame(1));
+        QVERIFY(!book.hasChapters());
+        QCOMPARE(book.game().game.moves.size(), 1);
 
         // A chapter asked for (New Chapter) stays, whatever is taken away.
         book.clear();

@@ -37,6 +37,11 @@ bool ChapterGame::isEmpty() const
     return game.moves.isEmpty() && game.startFen.isEmpty() && game.uid.isEmpty() && paragraphs.isEmpty();
 }
 
+bool ChapterGame::holdsWork() const
+{
+    return !paragraphs.isEmpty() || (game.uid.isEmpty() && (!game.moves.isEmpty() || !game.startFen.isEmpty()));
+}
+
 ChapterBook::ChapterBook()
 {
     Chapter first;
@@ -76,13 +81,10 @@ void ChapterBook::settle()
 {
     if (!m_none)
         return;
-    // A game of the database only looked at is not something put in: the
-    // next one opened takes its place. Moves of a game not stored are.
+    // The game on the board alone is not a chapter, whatever its moves: a
+    // second game, a paragraph, a title are.
     const Chapter &held = chapters.first();
-    const ChapterGame &game = held.games.first();
-    const bool stored = !game.game.uid.isEmpty();
-    if (chapters.size() > 1 || held.games.size() > 1 || !game.paragraphs.isEmpty()
-        || (!stored && !game.isEmpty()))
+    if (chapters.size() > 1 || held.games.size() > 1 || !held.games.first().paragraphs.isEmpty())
         m_none = false;
 }
 
@@ -93,8 +95,7 @@ void ChapterBook::settleAfterRemoval()
     const Chapter &only = chapters.first();
     if (only.games.size() != 1)
         return;
-    const ChapterGame &game = only.games.first();
-    if (game.paragraphs.isEmpty() && (!game.game.uid.isEmpty() || game.isEmpty())) {
+    if (only.games.first().paragraphs.isEmpty()) {
         m_none = true;
         current = 0;
     }

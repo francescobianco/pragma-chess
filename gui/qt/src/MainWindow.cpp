@@ -1436,7 +1436,10 @@ void MainWindow::openGame(const QModelIndex &proxyIndex)
         }
         // Otherwise it joins the chapter, at its end (or in place of an empty
         // game). Without chapters it takes the place of the game on the board.
-        if (inChapter < 0 && m_chapters.hasChapters() && !m_chapters.game().isEmpty())
+        // Without chapters too, when the game on the board holds work kept
+        // nowhere else: it is not replaced, the opened game comes after it.
+        syncChapterGame();
+        if (inChapter < 0 && !m_chapters.game().isEmpty() && (m_chapters.hasChapters() || m_chapters.game().holdsWork()))
             m_chapters.breakGame();
         // A game from the database is to be studied, not played: training
         // goes off first, or the engine would answer in it.
@@ -3632,8 +3635,10 @@ void MainWindow::manageChapters()
 void MainWindow::startGame(const GameRecord &game)
 {
     // A new game goes at the end of the chapter: the games before it stay.
-    // Without chapters it takes the place of a game of the database on the board.
-    if (m_chapters.hasChapters() && !m_chapters.game().isEmpty())
+    // Without chapters it takes the place of the game on the board, unless
+    // that one holds work kept nowhere else (it then becomes a chapter).
+    syncChapterGame();
+    if (!m_chapters.game().isEmpty() && (m_chapters.hasChapters() || m_chapters.game().holdsWork()))
         m_chapters.breakGame();
     m_gameView->clearSelection();
     m_openGameIndex = -1;

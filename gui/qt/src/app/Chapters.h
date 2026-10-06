@@ -36,6 +36,10 @@ struct ChapterGame {
     /// Nothing in it yet: no moves, no position of its own, no paragraph,
     /// not a stored game. Such a game is taken over by the next one opened.
     bool isEmpty() const;
+    /// Something in it that is kept nowhere else: moves or a position of a
+    /// game not stored in a database, or paragraphs. A game opened next must
+    /// not take its place, but come after it.
+    bool holdsWork() const;
 };
 
 /// A chapter: games one after the other, as a chess book has them, with
@@ -75,16 +79,15 @@ public:
     /// chapters —, not by New Chapter or by renaming them: taking those things
     /// away again leaves the project without chapters (settleAfterRemoval).
     bool isAutomatic() const { return m_automatic; }
-    /// Something was done: if the project had no chapter and the one held
-    /// now has something in it, it becomes the first chapter: moves of a game
-    /// not stored, a paragraph, a second game — not a game of the database
-    /// only opened, which the next one opened replaces. Inserting a game or a
-    /// paragraph does it by itself.
+    /// Something was done: if the project had no chapter and something was
+    /// put in it — a second game, a paragraph, a title — it becomes the first
+    /// chapter. The game on the board alone is not a chapter, whatever its
+    /// moves. Inserting a game or a paragraph does it by itself.
     void settle();
     /// Something was taken away: if the chapters came by themselves and what
-    /// is left is what a project without chapters holds — one game, a game
-    /// of the database only looked at or nothing at all, no paragraph —,
-    /// the project is without chapters again. The removals here do it.
+    /// is left is what a project without chapters holds — one game, whatever
+    /// its moves, and no paragraph —, the project is without chapters again.
+    /// The removals here do it.
     void settleAfterRemoval();
 
     Chapter &chapter() { return chapters[current]; }

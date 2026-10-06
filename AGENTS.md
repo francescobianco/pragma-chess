@@ -687,19 +687,21 @@ a chapter always has a game. In other tools this is a study or a chess book.
 - **No chapter** is the state of a new, empty project
   (`ChapterBook::hasChapters()` false): `chapters` still holds one, the
   holder, where the board's game lands; File ▸ Switch Chapter shows a grey
-  "(No Chapter)". There a game opened from the games list, or a new game,
-  takes the place of the one on the board instead of joining a chapter.
-  `settle()` (called by `syncChapterGame` and `chapterChanged`) makes it
-  the first chapter as soon as something is put in it — moves of a game
-  not stored, a paragraph, a game break, New Chapter —, never for a stored
-  game only looked at. Deleting every chapter in Manage Chapters
+  "(No Chapter)". The game on the board alone is never a chapter, whatever
+  its moves. A game opened from the games list, or a new game, takes its
+  place — unless it holds work kept nowhere else (`ChapterGame::holdsWork`:
+  moves of a game not stored, paragraphs): then the new one comes after it,
+  and that second game makes the chapter. `settle()` (called by
+  `syncChapterGame` and `chapterChanged`) makes it the first chapter as
+  soon as something is put in it — a second game (a game break), a
+  paragraph or a title, New Chapter. Deleting every chapter in Manage Chapters
   (`setChapters({})`) goes back to it. The `.pch` writes it as
   `chapters: none: true`, with the holder in `list`. Chapters that came by
   themselves (`isAutomatic`, `.pch` `automatic: true`; a project without the
   key has them so when its one chapter has the default title) go back too:
   `settleAfterRemoval`, run by the removals — a game with its break
   (`removeGame`), a paragraph (`removeParagraph`, an emptied one) — makes the project without chapters again when what is
-  left is what such a project holds (one game, only looked at or empty, no
+  left is what such a project holds (one game, whatever its moves, no
   paragraph). Only removals do it: saving the game does not make a chapter
   vanish. New Chapter, and renaming or reordering in Manage Chapters, make
   the chapters asked for: they stay.

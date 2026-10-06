@@ -72,8 +72,8 @@ ConnectSourceWizard::ConnectSourceWizard(const QString &databaseName, QWidget *p
     for (const SourceKind &kind : SourceCatalog::kinds()) {
         auto *item = new QListWidgetItem(kind.name, m_kinds);
         item->setData(Qt::UserRole, kind.id);
+        // The description is written under the name: no tooltip repeating it.
         item->setData(SourceKindDelegate::kDescriptionRole, kind.description);
-        item->setToolTip(kind.description);
     }
     // Tall enough to show four kinds whole at the window's smallest width.
     QStyleOptionViewItem option;

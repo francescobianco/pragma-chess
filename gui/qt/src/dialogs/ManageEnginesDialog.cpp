@@ -1,7 +1,6 @@
 #include "ManageEnginesDialog.h"
 
 #include "app/EngineDetector.h"
-#include "app/UciEngine.h"
 
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -55,12 +54,7 @@ ManageEnginesDialog::ManageEnginesDialog(const EngineCatalog &catalog, const QSt
     m_power->addItem(tr("Medium: 10% of the processor"), int(EnginePower::Medium));
     m_power->addItem(tr("High: 25% of the processor"), int(EnginePower::High));
     m_power->addItem(tr("Full: the whole processor, no limit"), int(EnginePower::Full));
-    m_power->setToolTip(UciEngine::canLimitCpu()
-                            ? tr("The share of the processor the engine may use while it analyzes. It is just "
-                                 "as strong, only slower: the rest of the computer stays free.")
-                            : tr("The share of the processor the engine may use while it analyzes. It is just "
-                                 "as strong, only slower. This system has no hard cap for another program: "
-                                 "the engine gets fewer threads and a lower priority."));
+    m_power->setToolTip(tr("Processor share while analyzing: just as strong, slower"));
     m_threads = new QSpinBox(this);
     m_threads->setRange(0, 1024);
     m_threads->setSpecialValueText(tr("Automatic"));

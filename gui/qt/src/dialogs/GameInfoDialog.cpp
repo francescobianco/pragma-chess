@@ -76,9 +76,7 @@ GameInfoDialog::GameInfoDialog(const GameRecord &game, QWidget *parent)
 
     // As players say it: minutes, then the seconds added a move.
     m_timeControl->setPlaceholderText(tr("3+2, 15+10, 90+30"));
-    m_timeControl->setToolTip(tr("Minutes for the game, then the seconds added at each move: 3+2, 90+30. "
-                                 "PGN's form works too: 40/7200:3600 (forty moves in two hours, then an hour), "
-                                 "1/86400 (a day a move), - (no clock)."));
+    m_timeControl->setToolTip(tr("Minutes + seconds a move"));
 
     m_result->addItem(tr("White wins (1-0)"), QStringLiteral("1-0"));
     m_result->addItem(tr("Black wins (0-1)"), QStringLiteral("0-1"));
@@ -103,10 +101,10 @@ GameInfoDialog::GameInfoDialog(const GameRecord &game, QWidget *parent)
     details->addRow(tr("Event"), m_event);
     details->addRow(tr("Site"), m_site);
     details->addRow(tr("Date"), m_date);
+    details->addRow(tr("Time Control"), m_timeControl);
     details->addRow(tr("Round"), m_round);
     details->addRow(tr("Result"), m_result);
     details->addRow(tr("ECO"), m_eco);
-    details->addRow(tr("Time Control"), m_timeControl);
 
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel);
     // A time control that cannot be read is not saved.

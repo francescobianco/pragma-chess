@@ -1016,12 +1016,12 @@ Il Nero ha catturato: %2</translation>
         <translation>3+2, 15+10, 90+30</translation>
     </message>
     <message>
-        <source>Minutes for the game, then the seconds added at each move: 3+2, 90+30. PGN&apos;s form works too: 40/7200:3600 (forty moves in two hours, then an hour), 1/86400 (a day a move), - (no clock).</source>
-        <translation>I minuti per la partita, poi i secondi aggiunti a ogni mossa: 3+2, 90+30. Va bene anche la forma del PGN: 40/7200:3600 (quaranta mosse in due ore, poi un&apos;ora), 1/86400 (un giorno a mossa), - (senza orologio).</translation>
-    </message>
-    <message>
         <source>Time Control</source>
         <translation>Cadenza</translation>
+    </message>
+    <message>
+        <source>Minutes + seconds a move</source>
+        <translation>Minuti + secondi a mossa</translation>
     </message>
 </context>
 <context>
@@ -2738,10 +2738,6 @@ non è su questo computer.</translation>
         <translation>Elimina interruzione di partita</translation>
     </message>
     <message>
-        <source>A new game right after this one, from the starting position; the numbering starts again</source>
-        <translation>Una nuova partita subito dopo questa, dalla posizione iniziale; la numerazione riparte</translation>
-    </message>
-    <message>
         <source>Change Move &amp;Number…</source>
         <translation>Cambia &amp;numero di mossa…</translation>
     </message>
@@ -2772,6 +2768,10 @@ non è su questo computer.</translation>
     <message>
         <source>The text written around this game will be lost; the game stays in the database. Delete it from the chapter?</source>
         <translation>Il testo scritto intorno a questa partita andrà perso; la partita resta nel database. Eliminarla dal capitolo?</translation>
+    </message>
+    <message>
+        <source>A new game after this one</source>
+        <translation>Una nuova partita dopo questa</translation>
     </message>
 </context>
 <context>
@@ -2961,16 +2961,12 @@ non è su questo computer.</translation>
         <translation>Piena: tutto il processore, senza limiti</translation>
     </message>
     <message>
-        <source>The share of the processor the engine may use while it analyzes. It is just as strong, only slower: the rest of the computer stays free.</source>
-        <translation>La parte del processore che il motore può usare mentre analizza. È forte uguale, solo più lento: il resto del computer resta libero.</translation>
-    </message>
-    <message>
-        <source>The share of the processor the engine may use while it analyzes. It is just as strong, only slower. This system has no hard cap for another program: the engine gets fewer threads and a lower priority.</source>
-        <translation>La parte del processore che il motore può usare mentre analizza. È forte uguale, solo più lento. Questo sistema non ha un tetto rigido per un altro programma: il motore riceve meno thread e una priorità più bassa.</translation>
-    </message>
-    <message>
         <source>Computing &amp;Power:</source>
         <translation>&amp;Potenza di calcolo:</translation>
+    </message>
+    <message>
+        <source>Processor share while analyzing: just as strong, slower</source>
+        <translation>Quota di processore in analisi: forte uguale, più lento</translation>
     </message>
 </context>
 <context>

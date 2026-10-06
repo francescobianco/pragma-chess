@@ -1653,7 +1653,7 @@ void MainWindow::showMoveListMenu(const QPoint &position)
     insert->addAction(tr("&Paragraph"), this, [insertText] { insertText(Paragraph::Kind::Text); });
     insert->addSeparator();
     QAction *gameBreak = insert->addAction(tr("&Game Break"), this, [this, game] { insertGameBreak(game); });
-    gameBreak->setToolTip(tr("A new game right after this one, from the starting position; the numbering starts again"));
+    gameBreak->setToolTip(tr("A new game after this one"));
     gameBreak->setEnabled(!m_onlinePlay);
     insert->setToolTipsVisible(true);
     if (place.isParagraph()) {

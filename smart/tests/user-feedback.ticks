@@ -251,3 +251,37 @@ expect arrows c5f2 refutation 1, f2e1 refutation 2
 expect lost f2, e1
 expect summary Blunder (−2.2 → −5.8). Black wins a rook and a pawn for a bishop: 11…Qb6 12.Nbc3 Bxf2+ 13.Kf1 Bxe1 14.Rxe1. Better was 11.Ng3.
 end
+
+# 2026-10-07, 13...Bd6 (Scandinavian, a lobby game): "the arrows say the queen
+# falls, but the knight is in the way" — the arrows were 15...Qxd2+ 16.Qxd2 (or
+# cxb5 Bxa5), without 14.Nb5, the knight stepping aside so that the bishop of
+# d2 attacks the queen. Decision: a focused refutation also draws its first
+# move when that move uncovers an attack (EXPLAIN.smart, Discovers).
+explain
+before r3k2r/pp1n1ppp/2p1p1b1/q7/1bBP2P1/P1N4P/1PPBQP2/R3K2R b KQkq - 0 13
+played b4d6
+before-eval depth 18 cp 13 pv e8c8 e1c1 b4c3 d2c3 a5c7 c3d2 d7f6 e2e5 h7h5 c4e2 c7e5 d4e5 f6d7 f2f4 g6e4 h1e1 h5g4 h3g4
+after r3k2r/pp1n1ppp/2pbp1b1/q7/2BP2P1/P1N4P/1PPBQP2/R3K2R w KQkq - 1 14
+tick depth 1 cp 171 pv c3b5
+tick depth 2 cp 210 pv c3b5
+tick depth 3 cp 295 pv c3b5
+tick depth 4 cp 427 pv c3b5
+tick depth 5 cp 602 pv c3b5 c6b5 d2a5
+tick depth 6 cp 614 pv c3b5 c6b5 d2a5 b5c4 e2c4 b7b6
+tick depth 7 cp 599 pv c3b5 c6b5 d2a5 b5c4 e2c4 b7b6 a5d2
+tick depth 8 cp 540 pv c3b5 c6b5 d2a5 b5c4 a5b4
+tick depth 9 cp 528 pv c3b5 c6b5 d2a5 b5c4 e2c4 e8g8 c4e2 f8c8
+tick depth 10 cp 556 pv c3b5 c6b5 d2a5 b5c4 h3h4 d7f6 h4h5
+tick depth 11 cp 616 pv c3b5 a5b5 c4b5 c6b5 h3h4 g6e4 e2e4
+tick depth 12 cp 545 pv c3b5 c6b5 d2a5 b5c4 h3h4 d7f6 h4h5 g6e4 h1h4
+tick depth 13 cp 494 pv c3b5 c6b5 d2a5 b5c4 e1c1 e8g8 h3h4 d7f6 h4h5 d6f4 a5d2 f4d2 c1d2 g6e4 h1h4
+tick depth 14 cp 517 pv c3b5 c6b5 d2a5 b5c4 e1c1 e8g8 d4d5 e6d5 d1d5 f8e8
+tick depth 15 cp 585 pv c3b5 c6b5 d2a5 b5c4 a5b4 d6b4 a3b4 d7f6 e2c4 e8g8 c4b3 f8d8 e1g1 g6e4
+tick depth 16 cp 574 pv c3b5 c6b5 d2a5 b5c4 a5b4 d6b4 a3b4 d7f6 e2c4 e8g8 c2c3 g6e4 h1g1 a8c8 c4e2 e4d5 h3h4 a7a6 h4h5 h7h6
+tick depth 17 cp 584 pv c3b5 c6b5 d2a5 b5c4 a5b4 d6b4 a3b4 e8g8 h3h4 h7h6 h4h5 g6h7 g4g5 h6g5 h1g1 g8h8
+tick depth 18 cp 590 pv c3b5 c6b5 d2a5 b5c4 a5b4 d6b4 a3b4 e8g8 h3h4 h7h6 h4h5 g6h7 h1g1 d7f6 g4g5 h6g5 g1g5 a8d8 h5h6 h7g6 h6g7 g8g7 e1c1 d8d5 e2e3 f8d8
+expect verdict blunder
+expect arrows c3b5 refutation 1, c6b5 reply 2, d2a5 refutation 3
+expect lost a5
+expect summary Blunder (+0.1 → +5.9). White wins the queen for a bishop and a knight: 14.Nb5 cxb5 15.Bxa5 bxc4 16.Bb4 Bxb4+ 17.axb4. Better was 13…O-O-O.
+end

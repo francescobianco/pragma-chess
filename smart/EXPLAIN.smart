@@ -305,16 +305,38 @@ FUNCTION IsBetween(square, source, target)
     RETURN FALSE
 END FUNCTION
 
+' Whether `move` uncovers an attack: once the piece has left its square, a
+' piece of the same side behind it can take an enemy piece across that
+' square (14.Nb5 and the bishop of d2 takes the queen of a5). Asked of the
+' position after the move with the turn passed back to the mover.
+FUNCTION Discovers(position, move)
+    after = PLAY(position, move)
+    IF after = NOTHING THEN RETURN FALSE
+    again = PASS(after)
+    IF again = NOTHING THEN RETURN FALSE
+    vacated = FROMSQ(move)
+    captures = MOVES(again)
+    FOR i = 0 TO LEN(captures) - 1
+        capture = captures[i]
+        IF CAPTURED(again, capture) <> 0 AND FROMSQ(capture) <> TOSQ(move) AND IsBetween(vacated, FROMSQ(capture), TOSQ(capture)) THEN RETURN TRUE
+    NEXT
+    RETURN FALSE
+END FUNCTION
+
 ' The moves to draw for a realization [first, last): all of them when short,
 ' otherwise the move with the biggest material jump for `beneficiary` (the
 ' latest on ties: the piece that finally falls), preceded by the move before
 ' it only when that move is part of the tactic: a capture, a check, a piece
 ' stepping onto the square that is then taken, or a square cleared for the
-' capture. Returns [focusFirst, focusLast], without the losing side's last
-' moves (WithoutLoserTail).
-FUNCTION FocusWindow(line, first, last, beneficiary)
+' capture. Returns [focusFirst, focusLast, firstAdded], without the losing
+' side's last moves (WithoutLoserTail); `firstAdded` when the first move was
+' drawn only because of `keepFirst` (the window is still a focused one). With `keepFirst`, the move at `first` is drawn
+' too when it is the winning side's: the answer that starts the tactic —
+' 14.Nb5, a knight stepping aside so that the bishop behind it attacks the
+' queen — is what the user has to see first, however far the jump.
+FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
     SHARED drawOnly
-    IF last - first <= FOCUS_ABOVE THEN RETURN WithoutLoserTail(line, [first, last], beneficiary)
+    IF last - first <= FOCUS_ABOVE THEN RETURN WithoutLoserTail(line, [first, last], beneficiary) + [FALSE]
     moves = line[0]
     positions = line[1]
     decisive = first
@@ -352,7 +374,20 @@ FUNCTION FocusWindow(line, first, last, beneficiary)
         drawOnly = path
     END IF
     NOTE "  focus: " + STR(last - first) + " plies are too many arrows; biggest jump +" + STR(biggest) + " at " + MoveText(positions[decisive], moves[decisive]) + ", drawing plies " + STR(focusFirst + 1) + "-" + STR(decisive + 1)
-    RETURN WithoutLoserTail(line, [focusFirst, decisive + 1], beneficiary)
+    window = WithoutLoserTail(line, [focusFirst, decisive + 1], beneficiary)
+    firstAdded = FALSE
+    IF keepFirst AND window[0] > first AND SIDETOMOVE(positions[first]) = beneficiary AND Discovers(positions[first], moves[first]) THEN
+        IF LEN(drawOnly) = 0 THEN
+            FOR k = window[0] TO window[1] - 1
+                drawOnly = drawOnly + [k]
+            NEXT
+        END IF
+        drawOnly = [first] + drawOnly
+        NOTE "  and the first move, " + MoveText(positions[first], moves[first]) + ": it uncovers the attack"
+        window = [first, window[1]]
+        firstAdded = TRUE
+    END IF
+    RETURN window + [firstAdded]
 END FUNCTION
 
 ' The moves a sequence ends with that the losing side plays — taking back
@@ -776,9 +811,10 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
             ply = FindRealization(line, 2, toMove, MATERIAL(before), needed, drop)
             IF ply >= 0 THEN
                 NOTE "branch: the move loses material"
-                focus = FocusWindow(line, 1, ply, toMove)
-                ' A focused refutation is clearer without the better move on top.
-                IF focus[0] = 1 AND betterExists THEN DrawBetter before, best[0][0], played
+                focus = FocusWindow(line, 1, ply, toMove, TRUE)
+                ' A focused refutation is clearer without the better move on top
+                ' (focus[2]: it starts at the reply only because that is drawn too).
+                IF NOT focus[2] AND focus[0] = 1 AND betterExists THEN DrawBetter before, best[0][0], played
                 AddArrows line, 1, ply, toMove, "refutation", focus[0], focus[1]
                 SAY prefix + TEXT("%1 %2: %3.", SideName(toMove), MaterialPhrase(before, line[1][ply], toMove), LINETEXT(after, pv, ply - 1)) + better
                 RETURN
@@ -863,7 +899,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
             ply = FindRealization(line, 1, favored, MATERIAL(before), needed, extra)
             IF ply >= 0 THEN
                 NOTE "branch: the move wins material"
-                focus = FocusWindow(line, 1, ply, favored)
+                focus = FocusWindow(line, 1, ply, favored, TRUE)
                 AddArrows line, 1, ply, favored, "idea", focus[0], focus[1]
                 SAY prefix + TEXT("%1 %2: %3.", SideName(favored), MaterialPhrase(before, line[1][ply], favored), LINETEXT(before, moves, ply))
                 RETURN
@@ -879,7 +915,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         ply = FindRealization(current, 1, favored, MATERIAL(after), needed, extra)
         IF ply >= 0 THEN
             NOTE "branch: material won in the line"
-            focus = FocusWindow(current, 0, ply, favored)
+            focus = FocusWindow(current, 0, ply, favored, FALSE)
             AddArrows current, 0, ply, favored, favoredKind, focus[0], focus[1]
             SAY prefix + TEXT("%1 %2: %3.", SideName(favored), MaterialPhrase(after, current[1][ply], favored), LINETEXT(after, pv, ply))
             RETURN

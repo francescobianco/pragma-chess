@@ -377,3 +377,21 @@ ply with enough material that the next move does not take back (14.Rxe1,
 not 13…Bxe1), when the exchanges stop at least once after it and every
 stop keeps enough; the last ply of the window is no stop. Recorded:
 user-feedback.ticks.
+
+### 13…Bd6?? in a lobby game: the knight in the way (7 October)
+
+The user, Black, explained 13…Bd6 (Scandinavian, after 12…Bb4 13.a3) and
+read "Blunder: White wins the queen for a bishop and a knight", with the
+arrows 14…Qxd2+ 15.Qxd2 (and, at depth 20, 14…cxb5 15.Bxa5): a queen
+falling across c3, where the white knight still stood. The text was right,
+the arrows were not enough: the realization is 7 plies, `FocusWindow` drew
+the biggest jump and the move before it, and 14.Nb5 — the knight stepping
+aside so that the bishop of d2 attacks the queen, a discovered attack — is
+neither a capture, a check, nor the move right before the jump. Drawing
+the first move always was tried and dropped: a recorded case (12.b4 before
+12…Bxf7+…) got an arrow that says nothing. `FocusWindow` now draws the
+first move of a refutation or a threat when it uncovers an attack
+(`Discovers`: with the turn passed back, a piece behind it takes across the
+square it left), and the better move is then not drawn on top, as for any
+focused refutation. Arrows: 14.Nb5 1, 14…cxb5 2, 15.Bxa5 3. Recorded:
+user-feedback.ticks.

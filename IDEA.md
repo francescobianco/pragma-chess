@@ -1949,3 +1949,1828 @@ La variante passa da **annotazione passiva** ad **azione futura condizionata**.
 Due giocatori possono costruire contemporaneamente alberi di decisioni e lasciare che i propri nodi li percorrano autonomamente mentre la partita avanza.
 
 Il risultato è una forma di gioco asincrono nella quale una parte dell'attività scacchistica può essere preparata, firmata, verificata ed eseguita in anticipo, senza togliere all'avversario la libertà di scegliere qualsiasi mossa legale.
+
+
+
+
+# Tornei asincroni a 4 giocatori e lobby dinamica
+
+## Idea generale
+
+L'unità principale del sistema non è la singola partita, ma un **torneo asincrono a 4 giocatori**.
+
+Ogni torneo è una stanza con quattro posti.
+
+I quattro partecipanti giocano un girone all'italiana completo di andata e ritorno.
+
+Ogni coppia di giocatori disputa quindi due partite:
+
+```text
+A - B
+B - A
+```
+
+Di conseguenza ogni giocatore disputa:
+
+```text
+6 partite
+3 con il Bianco
+3 con il Nero
+```
+
+e il torneo completo contiene:
+
+```text
+4 giocatori × 6 partite / 2
+=
+12 partite
+```
+
+Il torneo è quindi l'oggetto sociale fondamentale.
+
+Le singole partite esistono esclusivamente come elementi interni del torneo.
+
+---
+
+# 1. La lobby contiene tornei, non partite
+
+L'utente non pubblica una singola partita.
+
+Entra invece in una lobby che mostra tornei nei quali esistono ancora posti disponibili.
+
+Per esempio:
+
+```text
+AVAILABLE TOURNAMENTS
+
+Room #A91
+3 / 4 players
+
+Room #B27
+2 / 4 players
+```
+
+L'azione principale dell'utente è:
+
+```text
+JOIN
+```
+
+oppure, concettualmente:
+
+```text
+SIT AT TABLE
+```
+
+Non esiste quindi:
+
+```text
+Create game
+```
+
+come operazione primaria.
+
+Esiste invece:
+
+```text
+join tournament
+```
+
+Il torneo costituisce una piccola unità sociale temporanea di quattro giocatori.
+
+---
+
+# 2. Non è necessario attendere quattro giocatori
+
+Un torneo può iniziare appena sono presenti almeno due giocatori.
+
+Per esempio:
+
+```text
+Tournament T1
+
+Seat A: Alice
+Seat B: Bob
+Seat C: empty
+Seat D: empty
+```
+
+Alice e Bob possono già iniziare a giocare.
+
+Tra loro vengono automaticamente generate due partite:
+
+```text
+Alice - Bob
+Bob - Alice
+```
+
+Non è necessario attendere gli altri due partecipanti.
+
+---
+
+# 3. Il torneo cresce progressivamente
+
+Se successivamente entra Carol:
+
+```text
+Seat A: Alice
+Seat B: Bob
+Seat C: Carol
+Seat D: empty
+```
+
+vengono generate automaticamente le partite tra Carol e tutti i partecipanti già presenti:
+
+```text
+Alice - Carol
+Carol - Alice
+
+Bob - Carol
+Carol - Bob
+```
+
+Le partite precedentemente iniziate continuano normalmente.
+
+Quando infine entra David:
+
+```text
+Seat A: Alice
+Seat B: Bob
+Seat C: Carol
+Seat D: David
+```
+
+vengono generate:
+
+```text
+Alice - David
+David - Alice
+
+Bob - David
+David - Bob
+
+Carol - David
+David - Carol
+```
+
+A quel punto il torneo possiede il calendario completo di 12 partite.
+
+---
+
+# 4. Regola deterministica di generazione delle partite
+
+Quando un nuovo giocatore `X` entra nel torneo, per ogni giocatore già presente `Y` vengono generate due partite:
+
+```text
+X - Y
+Y - X
+```
+
+Formalmente:
+
+```text
+on JOIN(X):
+
+    for each existing player Y:
+
+        create game:
+            White = X
+            Black = Y
+
+        create game:
+            White = Y
+            Black = X
+```
+
+Non serve quindi memorizzare un calendario tradizionale a turni.
+
+L'intero set di partite deriva deterministicamente dall'insieme dei partecipanti.
+
+---
+
+# 5. Nessun concetto di round
+
+Il torneo non è organizzato in:
+
+```text
+Round 1
+Round 2
+Round 3
+...
+```
+
+perché le partite sono asincrone.
+
+Ogni partita procede indipendentemente dalle altre.
+
+Un giocatore può avere contemporaneamente:
+
+```text
+vs Alice, White
+your move
+
+vs Alice, Black
+waiting
+
+vs Bob, White
+move automatically executed
+
+vs Bob, Black
+your move
+
+vs Carol, White
+finished
+
+vs Carol, Black
+waiting
+```
+
+Non esiste alcun obbligo di completare una partita prima di iniziarne un'altra.
+
+---
+
+# 6. Fino a sei partite contemporanee per giocatore
+
+Quando il torneo è completo, ogni giocatore può avere fino a sei partite contemporaneamente attive.
+
+Per esempio:
+
+```text
+MY TOURNAMENT
+
+vs Alice
+  White   your move
+  Black   waiting
+
+vs Bob
+  White   finished
+  Black   waiting
+
+vs Carol
+  White   automatic line running
+  Black   your move
+```
+
+Questa caratteristica è particolarmente compatibile con un sistema di gioco asincrono.
+
+---
+
+# 7. Compatibilità con mosse condizionali
+
+Ogni singola partita mantiene il proprio meccanismo di mosse programmate.
+
+Per esempio, in una delle sei partite il giocatore può avere preparato:
+
+```text
+if ...c5 → Nf3
+if ...e5 → Nf3
+if ...c6 → d4
+```
+
+Un'altra partita può avere un albero completamente differente.
+
+Le partite procedono indipendentemente.
+
+Quindi il torneo costituisce il contenitore, mentre ogni partita mantiene autonomamente:
+
+```text
+current position
+side to move
+conditional branches
+result
+state
+```
+
+---
+
+# 8. Stato del torneo
+
+Una macchina a stati semplice può essere:
+
+```text
+OPEN
+RUNNING
+FULL
+FINISHED
+```
+
+Più precisamente:
+
+```text
+OPEN
+1 / 4
+
+RUNNING
+2 / 4
+
+RUNNING
+3 / 4
+
+FULL
+4 / 4
+
+FINISHED
+12 / 12 games completed
+```
+
+È possibile anche introdurre:
+
+```text
+ABORTED
+```
+
+o altri stati particolari, ma non sono indispensabili per il modello base.
+
+---
+
+# 9. Stato delle singole partite
+
+Ogni partita appartenente al torneo può invece essere:
+
+```text
+WAITING_TO_START
+ACTIVE
+FINISHED
+ABORTED
+```
+
+In pratica, però, una partita può essere creata immediatamente quando entrambi i giocatori esistono.
+
+Quindi normalmente passa direttamente a:
+
+```text
+ACTIVE
+```
+
+---
+
+# 10. Il torneo come struttura dati
+
+Concettualmente:
+
+```text
+Tournament
+│
+├── tournament_id
+│
+├── seats
+│   ├── A
+│   ├── B
+│   ├── C
+│   └── D
+│
+├── games
+│   ├── A-B
+│   ├── B-A
+│   ├── A-C
+│   ├── C-A
+│   ├── A-D
+│   ├── D-A
+│   ├── B-C
+│   ├── C-B
+│   ├── B-D
+│   ├── D-B
+│   ├── C-D
+│   └── D-C
+│
+└── standings
+```
+
+La partita non è quindi un'entità isolata della lobby.
+
+Possiede sempre:
+
+```text
+tournament_id
+```
+
+---
+
+# 11. La classifica
+
+La classifica può essere calcolata continuamente.
+
+Sistema standard:
+
+```text
+Win  = 1
+Draw = 0.5
+Loss = 0
+```
+
+Esempio:
+
+```text
+             P   W   D   L   Pts
+
+Alice        4   3   0   1   3.0
+Bob          3   1   2   0   2.0
+Carol        4   1   1   2   1.5
+David        1   0   1   0   0.5
+```
+
+Poiché il torneo è asincrono, i partecipanti possono avere giocato un numero differente di partite.
+
+Questo non costituisce un problema.
+
+La classifica definitiva esiste soltanto quando tutte le 12 partite sono concluse.
+
+---
+
+# 12. Nessun requisito che la stanza sia piena
+
+Lo stato:
+
+```text
+2 / 4 players
+```
+
+non significa:
+
+```text
+waiting to start
+```
+
+significa semplicemente:
+
+```text
+tournament running
+2 seats still available
+```
+
+Analogamente:
+
+```text
+3 / 4
+```
+
+significa:
+
+```text
+running
+1 seat available
+```
+
+Questa distinzione è importante.
+
+La stanza non è una waiting room.
+
+È già il torneo.
+
+---
+
+# 13. L'ingresso di un nuovo giocatore modifica il torneo
+
+Quando entra un nuovo partecipante, il torneo cresce.
+
+Per esempio:
+
+```text
+prima:
+
+A
+B
+```
+
+esistono:
+
+```text
+A-B
+B-A
+```
+
+Poi entra C:
+
+```text
+A
+B
+C
+```
+
+il sistema aggiunge:
+
+```text
+A-C
+C-A
+B-C
+C-B
+```
+
+Il nuovo giocatore entra quindi in un torneo che potrebbe già avere partite concluse.
+
+Questo è perfettamente valido.
+
+---
+
+# 14. Un giocatore può entrare mentre altri hanno già giocato
+
+Esempio:
+
+```text
+Alice-Bob       1-0
+Bob-Alice       active
+```
+
+Entra Carol.
+
+Il torneo diventa:
+
+```text
+Alice-Bob       1-0
+Bob-Alice       active
+
+Alice-Carol     active
+Carol-Alice     active
+
+Bob-Carol       active
+Carol-Bob       active
+```
+
+Non è necessario resettare nulla.
+
+---
+
+# 15. Chiusura dei posti
+
+Quando vengono occupati tutti e quattro i seat:
+
+```text
+4 / 4
+```
+
+il torneo diventa:
+
+```text
+FULL
+```
+
+e nessun altro giocatore può entrare.
+
+Le dodici partite possono però continuare per tutto il tempo necessario.
+
+---
+
+# 16. Fine del torneo
+
+Il torneo termina quando tutte le dodici partite sono terminate.
+
+Condizione:
+
+```text
+finished_games == 12
+```
+
+quindi:
+
+```text
+TOURNAMENT_FINISHED
+```
+
+Il torneo non termina quando viene giocata una determinata quantità di turni.
+
+Non esistendo round, conta esclusivamente lo stato delle dodici partite.
+
+---
+
+# 17. Abbandono di un giocatore
+
+Una volta che un partecipante ha iniziato almeno una partita, il suo seat non dovrebbe essere riassegnato a un altro giocatore.
+
+Questo è importante perché l'identità dei partecipanti appartiene alla struttura stessa del torneo.
+
+Quindi:
+
+```text
+Alice joins Seat A
+```
+
+significa che `Seat A` rimane associato ad Alice fino alla fine del torneo.
+
+Se Alice decide di non continuare, può esistere:
+
+```text
+WITHDRAW
+```
+
+ma il suo posto non viene liberato.
+
+Le partite rimanenti possono essere:
+
+```text
+forfeit
+aborted
+drawn
+```
+
+secondo la policy definita.
+
+Il dettaglio può essere deciso successivamente.
+
+La regola strutturale importante è:
+
+> un seat utilizzato non cambia proprietario.
+
+---
+
+# 18. Lobby dinamica
+
+Il numero delle stanze disponibili non è fisso.
+
+La rete deve assicurare che esista sempre una minima capacità disponibile per nuovi utenti.
+
+La policy iniziale può essere:
+
+```text
+MIN_JOINABLE_ROOMS = 2
+```
+
+Significa:
+
+> devono esistere sempre almeno due tornei nei quali sia possibile entrare.
+
+---
+
+# 19. Definizione di stanza disponibile
+
+Una stanza è `JOINABLE` quando:
+
+```text
+players < 4
+```
+
+e non è terminata o chiusa.
+
+Quindi:
+
+```text
+1 / 4 → JOINABLE
+2 / 4 → JOINABLE
+3 / 4 → JOINABLE
+4 / 4 → NOT JOINABLE
+```
+
+---
+
+# 20. Regola di capacità della lobby
+
+Si può calcolare:
+
+```text
+available_rooms =
+    count(tournaments where joinable)
+```
+
+Poi:
+
+```text
+missing =
+    MIN_JOINABLE_ROOMS
+    -
+    available_rooms
+```
+
+Se:
+
+```text
+missing <= 0
+```
+
+non bisogna fare nulla.
+
+Se:
+
+```text
+missing > 0
+```
+
+bisogna rendere disponibili `missing` nuovi slot di stanza.
+
+---
+
+# 21. Esempio
+
+Supponiamo:
+
+```text
+Room A   3/4
+Room B   2/4
+```
+
+Esistono due stanze disponibili.
+
+Quindi:
+
+```text
+available_rooms = 2
+```
+
+e la lobby è soddisfatta.
+
+Un giocatore entra nella Room A:
+
+```text
+Room A   4/4
+Room B   2/4
+```
+
+Ora:
+
+```text
+available_rooms = 1
+```
+
+manca una stanza.
+
+La lobby deve quindi esporre una nuova possibilità:
+
+```text
+Room B   2/4
+New Room
+```
+
+---
+
+# 22. Le stanze vuote non devono necessariamente esistere
+
+Questo è particolarmente importante in una rete distribuita.
+
+Non è necessario creare realmente due tornei:
+
+```text
+0/4
+0/4
+```
+
+nel ledger.
+
+Una stanza completamente vuota può essere considerata semplicemente:
+
+```text
+available capacity
+```
+
+La lobby può mostrare:
+
+```text
+Room A     2/4
+Room B     3/4
+
+New Room
+New Room
+```
+
+Le due `New Room` non sono ancora tornei reali.
+
+---
+
+# 23. Materializzazione di una stanza
+
+Una stanza virtuale viene materializzata soltanto quando il primo giocatore decide di entrarvi.
+
+Prima:
+
+```text
+New Room
+```
+
+Dopo il join:
+
+```text
+Room C
+1 / 4
+```
+
+A quel punto viene creato realmente:
+
+```text
+TOURNAMENT_CREATED
+```
+
+con il primo seat occupato.
+
+Questo evita di mantenere nella rete migliaia di tornei completamente vuoti.
+
+---
+
+# 24. Distinzione tra capacità e torneo
+
+Quindi:
+
+```text
+0 / 4
+```
+
+non deve necessariamente corrispondere a un torneo reale.
+
+La distinzione concettuale è:
+
+```text
+0 players
+=
+capacity
+
+1-4 players
+=
+tournament
+```
+
+In altre parole:
+
+> una stanza vuota non è ancora un torneo.
+
+Diventa torneo nel momento in cui qualcuno occupa il primo seat.
+
+---
+
+# 25. Problema della creazione distribuita
+
+In una rete P2P non conviene utilizzare una regola del tipo:
+
+```text
+if available_rooms < 2:
+    create room
+```
+
+perché peer differenti possono osservare contemporaneamente lo stesso stato.
+
+Per esempio:
+
+```text
+Peer A sees 1 available room
+Peer B sees 1 available room
+Peer C sees 1 available room
+```
+
+e tutti e tre potrebbero creare una stanza.
+
+Risultato:
+
+```text
+4 available rooms
+```
+
+anziché due.
+
+Quindi la capacità vuota dovrebbe essere **derivata**, non pubblicata.
+
+---
+
+# 26. Stanze virtuali deterministiche
+
+Tutti i peer, dato lo stesso stato della rete, devono poter derivare autonomamente la stessa capacità disponibile.
+
+Per esempio:
+
+```text
+existing joinable rooms = 1
+minimum required = 2
+
+virtual capacity needed = 1
+```
+
+La UI mostra quindi automaticamente:
+
+```text
+New Room
+```
+
+senza generare alcun evento.
+
+Il torneo reale viene creato soltanto quando qualcuno usa quella capacità.
+
+---
+
+# 27. Identificatore della nuova stanza
+
+È possibile assegnare il vero `tournament_id` soltanto quando arriva il primo join.
+
+Per esempio:
+
+```text
+TOURNAMENT_CREATE {
+    creator
+    nonce
+    timestamp_logical
+    ...
+}
+```
+
+da cui:
+
+```text
+tournament_id =
+HASH(event)
+```
+
+La `New Room` mostrata nella lobby non deve necessariamente possedere un ID globale definitivo.
+
+Può essere semplicemente un comando UI:
+
+```text
+CREATE_AND_JOIN
+```
+
+Questo semplifica ancora di più il modello.
+
+---
+
+# 28. Comportamento della lobby
+
+Supponiamo:
+
+```text
+Room A    4/4
+Room B    4/4
+Room C    3/4
+Room D    2/4
+```
+
+Solo C e D sono joinable.
+
+La lobby mostra:
+
+```text
+Room C    3/4
+Room D    2/4
+```
+
+Sono già due.
+
+Non mostra nuove stanze.
+
+Poi Room D diventa:
+
+```text
+4/4
+```
+
+Rimane:
+
+```text
+Room C    3/4
+```
+
+La lobby mostra:
+
+```text
+Room C    3/4
+New Room
+```
+
+Qualcuno sceglie `New Room`.
+
+Nasce:
+
+```text
+Room E    1/4
+```
+
+Ora nuovamente:
+
+```text
+Room C    3/4
+Room E    1/4
+```
+
+quindi ci sono due possibilità reali di ingresso.
+
+---
+
+# 29. Autoscaling naturale
+
+Questo produce una forma di autoscaling completamente decentralizzata.
+
+Con pochi giocatori possono esserci:
+
+```text
+3 tornei
+```
+
+Con molti giocatori:
+
+```text
+100 tornei
+500 tornei
+1000 tornei
+```
+
+ma il sistema continua a mantenere alla frontiera:
+
+```text
+almeno 2 tornei joinable
+```
+
+Non serve un componente che conosca anticipatamente la dimensione della rete.
+
+La capacità emerge dalla domanda.
+
+---
+
+# 30. Scalabilità verso l'alto
+
+Quando molti utenti entrano rapidamente:
+
+```text
+join
+join
+join
+join
+```
+
+le stanze vengono progressivamente riempite.
+
+Appena il numero di stanze joinable scende sotto la soglia:
+
+```text
+MIN_JOINABLE_ROOMS
+```
+
+la lobby rende visibile nuova capacità.
+
+Non è necessario creare preventivamente centinaia di stanze.
+
+---
+
+# 31. Scalabilità verso il basso
+
+Quando i tornei diventano pieni:
+
+```text
+4 / 4
+```
+
+non fanno più parte della capacità disponibile.
+
+Quando terminano:
+
+```text
+FINISHED
+```
+
+escono completamente dalla rete live.
+
+Quindi il numero degli oggetti attivi diminuisce naturalmente.
+
+Non è necessario un processo esplicito di scaling down.
+
+---
+
+# 32. Lobby come frontiera di ingresso
+
+La lobby può mostrare esclusivamente i tornei nei quali è ancora possibile entrare.
+
+Per esempio:
+
+```text
+JOIN A TOURNAMENT
+
+Room #A71    3 / 4
+Room #B19    1 / 4
+```
+
+I tornei pieni possono invece essere mostrati separatamente:
+
+```text
+LIVE TOURNAMENTS
+```
+
+Questo mantiene la lobby estremamente semplice.
+
+---
+
+# 33. Tre viste distinte
+
+Il sistema può quindi essere concettualmente diviso in:
+
+```text
+LOBBY
+tornei con posti disponibili
+
+LIVE
+tornei pieni o comunque in corso
+
+HISTORY
+tornei terminati
+```
+
+Naturalmente un torneo `2/4` o `3/4` è contemporaneamente:
+
+```text
+live
++
+joinable
+```
+
+quindi le viste sono interfacce, non necessariamente stati mutuamente esclusivi.
+
+---
+
+# 34. Un torneo aperto è già live
+
+È importante non introdurre una falsa separazione:
+
+```text
+waiting room
+→
+live tournament
+```
+
+Il torneo diventa live appena esistono almeno due giocatori e una partita può iniziare.
+
+Quindi:
+
+```text
+1/4
+```
+
+è solo disponibile.
+
+```text
+2/4
+```
+
+è disponibile e live.
+
+```text
+3/4
+```
+
+è disponibile e live.
+
+```text
+4/4
+```
+
+è live ma non più disponibile.
+
+---
+
+# 35. Stato derivato
+
+Molte informazioni non devono essere memorizzate come eventi espliciti.
+
+Per esempio:
+
+```text
+JOINABLE
+FULL
+FINISHED
+```
+
+possono essere derivati.
+
+Esempio:
+
+```text
+JOINABLE =
+players < 4
+AND tournament not finished
+```
+
+```text
+FULL =
+players == 4
+```
+
+```text
+FINISHED =
+number_of_finished_games == 12
+```
+
+Meno stato esplicito significa meno possibilità di divergenza tra peer.
+
+---
+
+# 36. Classifica derivata
+
+Anche la classifica non deve necessariamente essere sincronizzata.
+
+Ogni peer possiede i risultati delle partite e può calcolare localmente:
+
+```text
+points
+wins
+draws
+losses
+played
+```
+
+Quindi la rete deve sincronizzare soltanto i fatti:
+
+```text
+Game A finished 1-0
+Game B finished 1/2-1/2
+...
+```
+
+La classifica è una vista derivata.
+
+---
+
+# 37. Calendario derivato
+
+Analogamente, non serve sincronizzare:
+
+```text
+12 game records
+```
+
+nel momento in cui il torneo viene creato.
+
+Le partite possono essere derivate progressivamente dai partecipanti.
+
+Dato:
+
+```text
+players = [A, B, C]
+```
+
+il set delle partite è automaticamente:
+
+```text
+A-B
+B-A
+A-C
+C-A
+B-C
+C-B
+```
+
+Quando entra D vengono aggiunte:
+
+```text
+A-D
+D-A
+B-D
+D-B
+C-D
+D-C
+```
+
+Questo rende il modello molto deterministico.
+
+---
+
+# 38. Identificatore delle partite
+
+Anche l'identificatore della partita può essere derivato.
+
+Per esempio:
+
+```text
+game_id =
+HASH(
+    tournament_id,
+    white_player_id,
+    black_player_id
+)
+```
+
+Dato che in ogni torneo esiste una sola partita:
+
+```text
+A white vs B black
+```
+
+non serve altro.
+
+La partita inversa:
+
+```text
+B white vs A black
+```
+
+produce automaticamente un altro ID.
+
+Questo evita collisioni e rende tutti i peer capaci di identificare autonomamente le stesse partite.
+
+---
+
+# 39. Nessuna creazione manuale della singola partita
+
+L'utente non deve mai fare:
+
+```text
+new game
+```
+
+La singola partita nasce automaticamente come conseguenza:
+
+```text
+player joins tournament
+```
+
+Questa è una caratteristica importante del modello.
+
+La partita è un effetto della struttura sociale del torneo.
+
+---
+
+# 40. Esperienza utente
+
+L'esperienza dovrebbe essere molto semplice.
+
+L'utente apre la lobby:
+
+```text
+Room 31       3/4
+Room 45       2/4
+```
+
+sceglie:
+
+```text
+JOIN Room 31
+```
+
+e immediatamente vede:
+
+```text
+You joined Room 31
+
+Players:
+Alice
+Bob
+You
+Empty
+```
+
+Il sistema genera automaticamente:
+
+```text
+You - Alice
+Alice - You
+
+You - Bob
+Bob - You
+```
+
+Non serve alcuna configurazione ulteriore.
+
+---
+
+# 41. Quando arriva il quarto
+
+Se successivamente entra David:
+
+```text
+Alice
+Bob
+You
+David
+```
+
+il tuo client aggiunge automaticamente:
+
+```text
+You - David
+David - You
+```
+
+e lo stesso avviene per gli altri partecipanti.
+
+---
+
+# 42. La dashboard personale del torneo
+
+Una possibile vista:
+
+```text
+TOURNAMENT #31
+
+Players
+Alice
+Bob
+Carol
+David
+
+My games
+
+White vs Alice     your move
+Black vs Alice     waiting
+
+White vs Bob       1-0
+Black vs Bob       waiting
+
+White vs Carol     active
+Black vs Carol     your move
+
+Score
+2.0 / 3
+
+Tournament progress
+5 / 12 finished
+```
+
+L'utente vede quindi il torneo come oggetto unico.
+
+---
+
+# 43. Osservazione del torneo
+
+Gli altri utenti possono osservare l'intero torneo.
+
+Invece di aprire semplicemente una partita, possono vedere:
+
+```text
+Tournament #31
+
+Standings
+Games
+Players
+Progress
+```
+
+e poi entrare in una singola partita se vogliono guardarla.
+
+Questo rafforza ulteriormente il torneo come unità principale.
+
+---
+
+# 44. Fine e archiviazione
+
+Quando:
+
+```text
+12 / 12 games finished
+```
+
+il torneo viene chiuso.
+
+Le singole partite vengono trasformate in normali partite storiche nei database locali.
+
+Si può inoltre materializzare un record torneo:
+
+```text
+TournamentResult {
+    tournament_id
+    players
+    standings
+    game_ids
+    completed_at
+}
+```
+
+Il record storico può quindi collegare le dodici partite.
+
+---
+
+# 45. La rete conserva solo i tornei vivi
+
+Come per le partite asincrone, la rete deve rappresentare principalmente il presente.
+
+Quindi contiene:
+
+```text
+joinable tournaments
+active tournaments
+active games
+```
+
+I tornei conclusi vengono trasferiti nei database locali.
+
+Non devono rimanere indefinitamente nel dataset live.
+
+---
+
+# 46. Tombstone dei tornei conclusi
+
+Per evitare che un vecchio peer torni online e riproponga un torneo già terminato, è possibile conservare temporaneamente:
+
+```text
+TOURNAMENT_CLOSED {
+    tournament_id
+    final_hash
+}
+```
+
+È un piccolo tombstone.
+
+Non contiene tutte le dodici partite.
+
+Serve soltanto a comunicare:
+
+```text
+questo torneo non appartiene più allo stato live
+```
+
+---
+
+# 47. Separazione concettuale
+
+Il modello complessivo diventa:
+
+```text
+LOBBY
+    ↓
+TOURNAMENT
+    ↓
+PLAYERS
+    ↓
+GAMES
+    ↓
+RESULTS
+    ↓
+STANDINGS
+    ↓
+TOURNAMENT FINISHED
+    ↓
+LOCAL DATABASE
+```
+
+La partita non è più il livello principale dell'interfaccia.
+
+Il torneo sì.
+
+---
+
+# 48. Regola strutturale fondamentale
+
+L'unità sociale della rete è:
+
+```text
+4-player tournament
+```
+
+L'unità scacchistica è:
+
+```text
+game
+```
+
+L'unità di disponibilità della lobby è:
+
+```text
+joinable tournament slot
+```
+
+Sono tre concetti differenti.
+
+---
+
+# 49. La lobby non deve conoscere la domanda futura
+
+Non è necessario dire:
+
+```text
+ci sono 100 utenti,
+creiamo 30 stanze
+```
+
+La lobby osserva esclusivamente la capacità corrente:
+
+```text
+quante stanze accettano ancora giocatori?
+```
+
+e mantiene:
+
+```text
+MIN_JOINABLE_ROOMS
+```
+
+Questa regola è sufficiente per adattarsi automaticamente alla dimensione della rete.
+
+---
+
+# 50. Policy configurabile
+
+Il valore:
+
+```text
+MIN_JOINABLE_ROOMS = 2
+```
+
+non deve necessariamente appartenere al protocollo.
+
+Può essere una policy.
+
+In futuro potrebbe diventare:
+
+```text
+2
+5
+10
+```
+
+oppure essere calcolato in funzione del traffico.
+
+Per esempio:
+
+```text
+desired_capacity =
+max(
+    2,
+    recent_join_rate / factor
+)
+```
+
+Ma una prima implementazione può utilizzare semplicemente:
+
+```text
+2
+```
+
+che ha anche un significato molto comprensibile:
+
+> ci sono sempre almeno due tavoli ai quali puoi sederti.
+
+---
+
+# 51. Perché due e non uno
+
+Con una sola stanza disponibile, l'utente non avrebbe una vera scelta.
+
+Con due:
+
+```text
+Room A    3/4
+Room B    1/4
+```
+
+può scegliere se:
+
+```text
+entrare in un torneo quasi completo
+```
+
+oppure:
+
+```text
+entrare in uno appena iniziato
+```
+
+Questo crea una lobby più naturale senza moltiplicare inutilmente le stanze.
+
+---
+
+# 52. Possibili criteri futuri di scelta
+
+Il modello consente in seguito di introdurre criteri come:
+
+```text
+rating range
+variant
+starting position
+rated/unrated
+language
+friends-only
+public/private
+```
+
+Questi criteri produrrebbero pool distinti.
+
+Per esempio:
+
+```text
+Standard / Open
+
+Room A
+Room B
+```
+
+e:
+
+```text
+Chess960 / Open
+
+Room C
+Room D
+```
+
+Ogni pool potrebbe mantenere autonomamente:
+
+```text
+MIN_JOINABLE_ROOMS = 2
+```
+
+Ma questo non è necessario nella prima versione.
+
+---
+
+# 53. Torneo come piccolo tavolo sociale
+
+Il modello può essere pensato meno come un torneo tradizionale e più come un:
+
+> tavolo persistente da quattro giocatori.
+
+Quando ti siedi non stai prenotando una singola partita.
+
+Stai accettando una relazione scacchistica con tutti gli altri partecipanti:
+
+```text
+2 games against each opponent
+```
+
+Questo rende molto naturale la struttura:
+
+```text
+4 seats
+6 games each
+12 games total
+```
+
+---
+
+# 54. Conseguenza importante
+
+L'utente non cerca più:
+
+> qualcuno con cui giocare una partita.
+
+Cerca:
+
+> un piccolo gruppo nel quale giocare sei partite asincrone.
+
+Questo può generare un comportamento sociale molto diverso dai normali server di scacchi.
+
+Lo stesso gruppo rimane insieme per l'intera durata delle dodici partite.
+
+---
+
+# 55. Il torneo come contesto persistente
+
+Dal momento in cui entra, il giocatore vede sempre:
+
+```text
+the same three opponents
+```
+
+e segue:
+
+```text
+their games
+the standings
+the progress of the tournament
+```
+
+Quindi esiste una narrativa naturale:
+
+```text
+sono entrato
+ho incontrato tre giocatori
+abbiamo giocato dodici partite
+è emerso un vincitore
+```
+
+nonostante tutto avvenga in modo completamente asincrono.
+
+---
+
+# 56. Principio finale
+
+Il sistema non deve essere pensato come:
+
+```text
+un matchmaking che genera singole partite
+```
+
+ma come:
+
+```text
+una rete che mantiene una quantità dinamica
+di tavoli da quattro giocatori
+```
+
+Ogni tavolo:
+
+```text
+accetta fino a 4 giocatori
+parte già con 2
+genera automaticamente le partite
+mantiene una classifica
+rimane aperto fino al completamento
+```
+
+La lobby mantiene sempre una piccola riserva di tavoli disponibili.
+
+Il numero delle stanze cresce automaticamente quando la domanda aumenta e diminuisce naturalmente quando i tornei vengono completati.
+
+La regola fondamentale può essere riassunta così:
+
+```text
+4 giocatori
+6 partite per giocatore
+12 partite totali
+
+il torneo parte appena ci sono 2 giocatori
+
+ogni nuovo giocatore genera
+2 partite contro ogni partecipante già presente
+
+tutte le partite sono indipendenti e asincrone
+
+quando 12 partite terminano
+il torneo termina
+
+la lobby mantiene sempre
+almeno 2 possibilità di ingresso
+```
+
+L'oggetto principale non è quindi la partita.
+
+È il **tavolo da quattro giocatori**, dal quale le partite emergono automaticamente.
+
+
+
+

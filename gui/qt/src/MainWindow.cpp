@@ -4269,7 +4269,7 @@ void MainWindow::holdEngineReply(const ChessMove &reply, const EngineEvaluation 
         break;
     case TrainingTutor::Alert::None: return;
     }
-    m_enginePanel->setTutorAlert(message + QLatin1Char(' ') + tr("The engine has not answered yet."));
+    m_enginePanel->setTutorAlert(message);
     m_engineDock->show();
     updateBoardBorder(); // Red: the game stopped on this move.
     scheduleSaveSession(); // A client closed now opens with the alert up.

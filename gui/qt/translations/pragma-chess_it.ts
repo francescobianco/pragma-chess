@@ -2511,10 +2511,6 @@ Il Nero ha catturato: %2</translation>
         <translation>Occasione mancata: %1 lascia andare il tuo vantaggio (%2 → %3).</translation>
     </message>
     <message>
-        <source>The engine has not answered yet.</source>
-        <translation>Il motore non ha ancora risposto.</translation>
-    </message>
-    <message>
         <source>No Book</source>
         <translation>Nessun libro</translation>
     </message>

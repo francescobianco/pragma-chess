@@ -1,6 +1,7 @@
 #include "DatabaseOutline.h"
 
 #include "TimeControl.h"
+#include "TrainingSets.h"
 
 #include <QRegularExpression>
 
@@ -40,6 +41,10 @@ void DatabaseOutline::add(const GameRecord &game, const PlayerRoles &roles)
         ++years[gameYear];
     if (const QString timeControl = TimeControl::of(game); !timeControl.isEmpty())
         ++timeControls[timeControl];
+    if (const QString endgame = TrainingSets::endgameOf(game); !endgame.isEmpty())
+        ++endgames[TrainingSets::endgameFamily(endgame)][endgame];
+    for (const QString &theme : TrainingSets::tacticsOf(game))
+        ++tactics[theme];
     if (const QString key = studyKey(game); !key.isEmpty()) {
         auto study = std::find_if(studies.begin(), studies.end(), [&](const Study &s) { return s.key == key; });
         if (study == studies.end()) {

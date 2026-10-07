@@ -30,6 +30,8 @@ Un database è un file `.pdb` che contiene partite. Se ne apre uno alla volta; i
 - **Database ▸ Salva database come…** ne scrive una copia.
 - **Database ▸ Cambia database ▸ Mostra cartella dei database** apre la cartella nel gestore dei file.
 
+Pragma Chess arriva con due database per allenarsi, aggiunti alla cartella Database: **Finali per l'allenamento** — i finali teorici classici (i matti elementari, l'opposizione, Lucena, Philidor…) con il loro obiettivo, e più di duemila problemi di finale — e **Tattica per l'allenamento**, problemi di venti temi, dai facili ai difficili. I problemi vengono dal database dei problemi di lichess.org (libero, CC0); ognuno parte dopo la mossa dell'avversario, e tocca a te trovare la risposta: giocalo in **Modalità allenamento**, o scorri la soluzione. Li trovi nell'albero sotto **Finali** e **Tattica**. Un database di allenamento che elimini non viene aggiunto di nuovo.
+
 Le modifiche a un database vengono scritte mentre le fai: non c'è niente da salvare a mano.
 
 # La lista delle partite {#games-list}
@@ -59,6 +61,8 @@ A sinistra della lista delle partite, l'albero mostra che cosa contiene il datab
 - **Cadenza**: le cadenze a cui sono state giocate le partite, dalla più veloce — *Blitz 3+2*, *Rapid 10+5*, *Classica 90+30*, *Corrispondenza 1 giorno*. Le partite di lichess.org e chess.com portano la loro; per ogni altra partita fai clic sui nomi dei giocatori sopra la scacchiera e scrivila in **Cadenza**, come la dicono i giocatori (*3+2*: tre minuti, due secondi aggiunti a ogni mossa).
 - **Studio**: gli studi da cui vengono le partite — uno studio di lichess collegato come fonte, o partite il cui PGN porta i tag `StudyName` e `ChapterName` — ognuno con i suoi capitoli nell'ordine dello studio. Seleziona uno studio per tutte le sue partite, o un capitolo per le sue.
 - **Sorgente**: le partite arrivate da lichess.org, chess.com o torneionline.com.
+- **Finali**: le partite che partono da un finale, per famiglia — *Matti elementari*, *Finali di pedoni*, *Finali di torre*… — e, sotto ciascuna, per materiale: *R+T+P contro R+T*, prima la parte più forte.
+- **Tattica**: i problemi per tema — *Inchiodatura*, *Infilata*, *Forchetta*, *Attacco di scoperta*, *Deviazione*…
 - **Cestino**: le partite che hai buttato.
 
 Posizione e Variante seguono la scacchiera: scorri una partita e i loro conteggi cambiano.

@@ -326,8 +326,9 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
 - `POST /api/ply {"ply": n}`, `/api/move {"uci": "e2e4"}` (as a move on
   the board), `/api/line {"moves": "1.e4 …", "fen", "ply"}` (a new game at
   the end of the chapter), `/api/explain`, `/api/analysis`, `/api/flip`,
-  `/api/peek` (the Engine panel's eye held) `{"on": bool}`; each answers
-  with the state.
+  `/api/peek` (the Engine panel's eye held) `{"on": bool}`,
+  `/api/database {"path"}` (opens a database file); each answers with the
+  state.
 - `POST /api/lobby {"lobby": bool, "playNow": row, "room": row, "join": bool,
   "game": row, "play": bool}` opens Game ▸ Enter the Lobby…, does those steps in that
   order (back to the list, the Play Now of that row, enter the room on that row, take a seat, select
@@ -1137,6 +1138,29 @@ while one of them is selected.
   seeds `Classic Games.pdb`. The last session is restored on startup.
 - When testing, set `PRAGMA_CHESS_DIR` to a scratch directory rather than
   touching the user's real chess folder.
+
+## Training databases
+
+We ship two databases to train on, seeded once into the Databases folder
+(`MainWindow::seedTrainingDatabases`, QSettings `training/seeded/<key>`: one
+the user deleted is not brought back): **Endgames.pdb** (Endgame Training —
+the theoretical endgames of `app/TrainingSets::theoryEndgames`, checked with
+Stockfish, plus endgame puzzles) and **Tactics.pdb** (Tactics Training).
+The puzzles are the lichess puzzle database's (CC0), picked by
+`resources/training/make-training.py` into `endgames.tsv`/`tactics.tsv`
+(`:/training`); `TrainingSets::puzzleGames` starts each once the opponent
+has moved, the solution as the moves, the themes in the `Themes` tag.
+**Every database we ship is named in every language** (`name` and
+`name.<code>` in its properties, `nameShippedDatabase`; Classic Games too),
+with a fixed lineage (`GameIdentity`); the file keeps one name on every
+device.
+
+The tree classifies any database's games for training (`DatabaseOutline`,
+`TrainingSets`, pure, unit-tested): **Endgames** — games starting from a
+position with at most four pieces besides kings and pawns — by family
+(`endgameFamily`) and material (`endgameOf`: "KRP-KR", stronger side first,
+pawns once; shown in the interface's letters), and **Tactics** by the themes
+of the `Themes` tag (lichess's names; `tacticThemes` lists those shown).
 
 ## Opening books
 

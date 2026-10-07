@@ -420,6 +420,14 @@ void DesktopApi::addRoutes()
         }
         return json(engines());
     });
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/database"), [w, state](const Request &request) {
+        // Opens a database file, as Database ▸ Open Database.
+        const std::optional<QJsonObject> body = bodyOf(request);
+        if (!body || !body->value(QStringLiteral("path")).isString())
+            return LocalHttpServer::error(400, QStringLiteral("expected {\"path\": \"…/Endgames.pdb\"}"));
+        w->openDatabaseFile(body->value(QStringLiteral("path")).toString());
+        return json(state());
+    });
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/peek"), [w, state](const Request &request) {
         // As the Engine panel's eye turned on (true) or off (false).
         const std::optional<QJsonObject> body = bodyOf(request);

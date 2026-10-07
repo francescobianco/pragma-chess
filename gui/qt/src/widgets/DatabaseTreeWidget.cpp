@@ -4,6 +4,7 @@
 
 #include "app/DatabaseOutline.h"
 #include "app/TimeControl.h"
+#include "app/TrainingSets.h"
 #include "app/UiLanguage.h"
 #include "app/GameDatabase.h"
 #include "app/sources/SourceCatalog.h"
@@ -330,6 +331,33 @@ void DatabaseTreeWidget::refresh()
                 addItem(studyItem, Node::StudyChapter, chapter.name, chapter.key, chapter.games)->setToolTip(0, chapter.name);
         }
     }
+    // Training: endgames by family and material, tactics by theme.
+    if (!outline.endgames.isEmpty()) {
+        QTreeWidgetItem *group = addItem(root, Node::Endgames, tr("Endgames"), QVariant(), -1);
+        for (const QString &family : TrainingSets::endgameFamilies()) {
+            if (!outline.endgames.contains(family))
+                continue;
+            const QMap<QString, int> &endgames = outline.endgames.value(family);
+            int games = 0;
+            for (const int count : endgames)
+                games += count;
+            QTreeWidgetItem *familyItem =
+                addItem(group, Node::EndgameFamily, TrainingSets::endgameFamilyName(family), family, games);
+            // The most common material first.
+            QStringList keys = endgames.keys();
+            std::stable_sort(keys.begin(), keys.end(),
+                             [&](const QString &a, const QString &b) { return endgames.value(a) > endgames.value(b); });
+            for (const QString &endgame : std::as_const(keys))
+                addItem(familyItem, Node::Endgame, TrainingSets::endgameName(endgame), endgame, endgames.value(endgame));
+        }
+    }
+    if (!outline.tactics.isEmpty()) {
+        QTreeWidgetItem *group = addItem(root, Node::Tactics, tr("Tactics"), QVariant(), -1);
+        for (const QString &theme : TrainingSets::tacticThemes()) {
+            if (outline.tactics.contains(theme))
+                addItem(group, Node::Tactic, TrainingSets::tacticName(theme), theme, outline.tactics.value(theme));
+        }
+    }
     const QList<GameSource> sources = m_database->sources();
     if (!sources.isEmpty()) {
         QTreeWidgetItem *group = addItem(root, Node::Sources, tr("Source"), QVariant(), -1);
@@ -376,6 +404,17 @@ void DatabaseTreeWidget::onCurrentItemChanged(QTreeWidgetItem *current)
     case Node::TimeControls:
     case Node::Studies:
     case Node::Sources:
+    case Node::Endgames:
+    case Node::Tactics:
+        break;
+    case Node::EndgameFamily:
+        category = {GameCategory::Kind::EndgameFamily, value.toString()};
+        break;
+    case Node::Endgame:
+        category = {GameCategory::Kind::Endgame, value.toString()};
+        break;
+    case Node::Tactic:
+        category = {GameCategory::Kind::Tactic, value.toString()};
         break;
     case Node::Role:
         category = {GameCategory::Kind::Role, value.toString()};

@@ -49,6 +49,7 @@
 #include "app/MoveComment.h"
 #include "app/Pgn.h"
 #include "app/TimeControl.h"
+#include "app/TrainingSets.h"
 #include "app/Project.h"
 #include "app/PersonalSettings.h"
 #include "app/SqliteGameDatabase.h"
@@ -464,6 +465,7 @@ MainWindow::MainWindow(QWidget *parent)
         lobbyService();
     resumeOnlineGame(); // After the session: the online game takes the board.
     adoptShippedLineages();
+    seedTrainingDatabases();
     restoreOpeningNames(); // After the session, so the first launch still seeds Classic Games first.
     applySyncSettings();
     createPhoneLink();
@@ -2223,6 +2225,18 @@ void MainWindow::showCategory(const GameCategory &category)
     case Kind::StudyChapter:
         predicate = [value](const GameRecord &game) { return DatabaseOutline::chapterKey(game) == value; };
         break;
+    case Kind::EndgameFamily:
+        predicate = [value](const GameRecord &game) {
+            const QString endgame = TrainingSets::endgameOf(game);
+            return !endgame.isEmpty() && TrainingSets::endgameFamily(endgame) == value;
+        };
+        break;
+    case Kind::Endgame:
+        predicate = [value](const GameRecord &game) { return TrainingSets::endgameOf(game) == value; };
+        break;
+    case Kind::Tactic:
+        predicate = [value](const GameRecord &game) { return TrainingSets::tacticsOf(game).contains(value); };
+        break;
     case Kind::Source:
         if (m_database) {
             predicate = [ids = m_database->sourceGameIds(category.sourceId)](const GameRecord &game) {
@@ -2323,6 +2337,23 @@ bool MainWindow::openDatabaseFile(const QString &path)
     return true;
 }
 
+namespace {
+
+/// A database we ship is named in every language we have (DatabaseProperties'
+/// name and name.<code>), not by its file: the file keeps one name on every
+/// device, the interface shows the user's language. A name already given stays.
+void nameShippedDatabase(GameDatabase &database, const QString &english, const QString &italian)
+{
+    DatabaseProperties properties = database.properties();
+    if (!properties.name.isEmpty())
+        return;
+    properties.name = english;
+    properties.localizedNames.insert(QStringLiteral("it"), italian);
+    database.setProperties(properties, nullptr);
+}
+
+} // namespace
+
 void MainWindow::openInitialDatabase(const QString &preferredPath)
 {
     if (m_database && !preferredPath.isEmpty() && m_database->location() == preferredPath)
@@ -2361,6 +2392,7 @@ void MainWindow::openInitialDatabase(const QString &preferredPath)
         DatabaseProperties properties = database->properties();
         properties.id = GameIdentity::kClassicGamesLineage;
         database->setProperties(properties, nullptr);
+        nameShippedDatabase(*database, QStringLiteral("Classic Games"), QStringLiteral("Partite classiche"));
         setDatabase(std::move(database));
         return;
     }
@@ -2834,6 +2866,60 @@ void MainWindow::rebuildOpeningNamesMenu()
                                   });
 }
 
+
+void MainWindow::seedTrainingDatabases()
+{
+    // The training sets we ship (resources/training): added once to the
+    // databases folder, with fixed lineages so that every device has the same
+    // database; one the user deleted is not brought back.
+    struct Shipped {
+        const char *key;
+        const char *file;
+        QString lineage;
+        const char *english;
+        const char *italian;
+        const char *description;
+        const char *resource;
+        bool theory;
+    };
+    const Shipped shipped[] = {
+        {"endgames", "Endgames", GameIdentity::kEndgamesLineage, "Endgame Training", "Finali per l'allenamento",
+         "Theoretical endgames and endgame puzzles from the lichess.org puzzle database (CC0).",
+         ":/training/endgames.tsv", true},
+        {"tactics", "Tactics", GameIdentity::kTacticsLineage, "Tactics Training", "Tattica per l'allenamento",
+         "Tactical puzzles by theme from the lichess.org puzzle database (CC0).", ":/training/tactics.tsv", false},
+    };
+    QSettings settings;
+    for (const Shipped &set : shipped) {
+        const QString seededKey = QStringLiteral("training/seeded/") + QLatin1String(set.key);
+        if (settings.value(seededKey, false).toBool())
+            continue;
+        if (!UserFolders::ensureDatabasesDir())
+            return;
+        const QString path = QDir(UserFolders::databasesDir())
+                                 .filePath(QLatin1String(set.file) + QLatin1Char('.') + QLatin1String(UserFolders::databaseSuffix));
+        if (!QFileInfo::exists(path)) {
+            QFile resource(QLatin1String(set.resource));
+            if (!resource.open(QIODevice::ReadOnly))
+                continue;
+            QList<GameRecord> games = set.theory ? TrainingSets::theoryEndgames() : QList<GameRecord>();
+            games += TrainingSets::puzzleGames(QString::fromUtf8(resource.readAll()));
+            QString error;
+            const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::create(path, games, &error);
+            if (!database) {
+                qWarning("Could not create %s: %s", qPrintable(path), qPrintable(error));
+                continue;
+            }
+            DatabaseProperties properties = database->properties();
+            properties.id = set.lineage;
+            properties.description = QLatin1String(set.description);
+            database->setProperties(properties, nullptr);
+            nameShippedDatabase(*database, QLatin1String(set.english), QString::fromUtf8(set.italian));
+        }
+        settings.setValue(seededKey, true);
+    }
+}
+
 void MainWindow::adoptShippedLineages()
 {
     // The databases we ship have fixed universal ids, so every install and
@@ -2842,8 +2928,17 @@ void MainWindow::adoptShippedLineages()
     // The shipped opening names get theirs in migrateOpeningNames() and when seeded.
     const QString path = QDir(UserFolders::databasesDir())
                              .filePath(tr("Classic Games") + QLatin1Char('.') + QLatin1String(UserFolders::databaseSuffix));
-    if (QFile::exists(path))
+    if (QFile::exists(path)) {
         SqliteGameDatabase::adoptLineage(path, GameIdentity::kClassicGamesLineage);
+        // Named in every language, like every database we ship.
+        if (SqliteGameDatabase::readProperties(path).name.isEmpty()) {
+            QString error;
+            if (m_database && QFileInfo(m_database->location()) == QFileInfo(path))
+                nameShippedDatabase(*m_database, QStringLiteral("Classic Games"), QStringLiteral("Partite classiche"));
+            else if (const std::unique_ptr<SqliteGameDatabase> classic = SqliteGameDatabase::open(path, &error))
+                nameShippedDatabase(*classic, QStringLiteral("Classic Games"), QStringLiteral("Partite classiche"));
+        }
+    }
 }
 
 bool MainWindow::markAsOpeningBook(const QString &path)

@@ -35,6 +35,11 @@ struct DatabaseOutline {
     };
     /// In the order the games have them.
     QList<Study> studies;
+    /// Endgames by family and material (TrainingSets::endgameOf, endgameFamily):
+    /// "rook" → {"KRP-KR": 12}.
+    QMap<QString, QMap<QString, int>> endgames;
+    /// Tactical theme → games (TrainingSets::tacticsOf).
+    QMap<QString, int> tactics;
 
     void add(const GameRecord &game, const PlayerRoles &roles = {});
     /// Whether a player with `role` plays in `game`.

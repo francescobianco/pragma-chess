@@ -131,10 +131,12 @@ qt_add_library(pragma-chess-core STATIC
     src/app/ChessPosition.cpp
     src/app/ChessPosition.h
     src/app/DatabaseOutline.cpp
+    src/app/TrainingSets.cpp
     src/app/DatabaseDedupe.cpp
     src/app/DatabaseDedupe.h
     src/app/DatabaseProperties.cpp
     src/app/DatabaseOutline.h
+    src/app/TrainingSets.h
     src/app/EngineCatalog.cpp
     src/app/EngineCatalog.h
     src/app/EngineDetector.cpp
@@ -525,6 +527,8 @@ qt_add_resources(pragma-chess openings PREFIX /openings BASE resources/openings
     FILES resources/openings/opening-names.pdb resources/openings/lichess-openings.tsv
           resources/openings/opening-names-it.pdb resources/openings/lichess-openings-it.tsv)
 # The guide (Help ▸ Pragma Chess Guide), one Markdown file per language.
+qt_add_resources(pragma-chess training PREFIX /training BASE resources/training
+    FILES resources/training/endgames.tsv resources/training/tactics.tsv)
 qt_add_resources(pragma-chess help PREFIX /help BASE resources/help
     FILES resources/help/guide_en.md resources/help/guide_it.md)
 # Logos of the clubs that support Pragma Chess, shown in About.

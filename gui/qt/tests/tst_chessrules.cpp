@@ -17,6 +17,7 @@
 #include "app/ExplainTicks.h"
 #include "app/LineInsight.h"
 #include "app/TimeControl.h"
+#include "app/TrainingSets.h"
 #include "app/Explainer.h"
 #include "app/GameSession.h"
 #include "app/GameState.h"
@@ -457,6 +458,49 @@ private Q_SLOTS:
             }
         }
         QVERIFY(found);
+    }
+
+    void classifiesTrainingSets()
+    {
+        // Endgames by the material they start from, stronger side first, pawns once.
+        const auto endgame = [](const char *fen) {
+            GameRecord game;
+            game.startFen = QLatin1String(fen);
+            return TrainingSets::endgameOf(game);
+        };
+        QCOMPARE(endgame("8/8/8/4k3/8/8/8/R3K3 w - - 0 1"), QStringLiteral("KR-K"));
+        QCOMPARE(endgame("1K1k4/1P6/8/8/8/8/r7/2R5 w - - 0 1"), QStringLiteral("KRP-KR"));
+        QCOMPARE(endgame("8/8/8/8/8/k7/p7/1K6 w - - 0 1"), QStringLiteral("KP-K")); // Black is the stronger side.
+        QCOMPARE(endgame("7k/ppp5/8/PPP5/8/8/8/7K w - - 0 1"), QStringLiteral("KP-KP"));
+        QVERIFY(endgame("r1bqkbnr/pppppppp/2n5/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2").isEmpty());
+        QVERIFY(TrainingSets::endgameOf(GameRecord()).isEmpty()); // The usual start is no endgame.
+        QCOMPARE(TrainingSets::endgameFamily(QStringLiteral("KR-K")), QStringLiteral("mate"));
+        QCOMPARE(TrainingSets::endgameFamily(QStringLiteral("KP-K")), QStringLiteral("pawn"));
+        QCOMPARE(TrainingSets::endgameFamily(QStringLiteral("KRP-KR")), QStringLiteral("rook"));
+        QCOMPARE(TrainingSets::endgameFamily(QStringLiteral("KBP-KNP")), QStringLiteral("minor"));
+        QCOMPARE(TrainingSets::endgameFamily(QStringLiteral("KRP-KBP")), QStringLiteral("rook-minor"));
+        QCOMPARE(TrainingSets::endgameFamily(QStringLiteral("KQP-KRP")), QStringLiteral("queen-other"));
+        QCOMPARE(TrainingSets::endgameName(QStringLiteral("KRP-KR")), QStringLiteral("K+R+P vs K+R"));
+
+        // Tactics by the puzzle's themes, only those the tree lists.
+        GameRecord puzzle;
+        puzzle.tags = {{QStringLiteral("Themes"), QStringLiteral("crushing fork middlegame pin short")}};
+        QCOMPARE(TrainingSets::tacticsOf(puzzle), (QStringList{QStringLiteral("pin"), QStringLiteral("fork")}));
+
+        // A puzzle starts once the opponent has moved; its solution follows.
+        const QList<GameRecord> games = TrainingSets::puzzleGames(QStringLiteral(
+            "# comment\n0000D\t5rk1/1p3ppp/pq3b2/8/8/1P1Q1N2/P4PPP/3R2K1 w - - 2 27\td3d6 f8d8 d6d8 f6d8\t1529\t"
+            "advantage endgame short\thttps://lichess.org/F8M8OS71#53\nbad\tnot a fen\te2e4\t1\tx\ty\n"));
+        QCOMPARE(games.size(), 1);
+        QCOMPARE(games.first().moves.size(), 3);
+        QCOMPARE(games.first().moves.first().san, QStringLiteral("Rd8"));
+        QVERIFY(games.first().startFen.contains(QStringLiteral(" b "))); // Black to find the answer.
+
+        // The classic endgames start from legal positions.
+        const QList<GameRecord> theory = TrainingSets::theoryEndgames();
+        QVERIFY(theory.size() >= 15);
+        for (const GameRecord &game : theory)
+            QVERIFY2(ChessPosition::fromFen(game.startFen) && !TrainingSets::endgameOf(game).isEmpty(), qPrintable(game.event));
     }
 
     void drawsTheFallingPieceFaintWhereItIsTaken()

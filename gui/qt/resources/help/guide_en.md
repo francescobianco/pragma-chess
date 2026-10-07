@@ -32,6 +32,8 @@ A database is a `.pdb` file holding games. One database is open at a time; its n
 
 Changes to a database are written as you make them: there is nothing to save by hand.
 
+Pragma Chess comes with two databases to train on, added to the Databases folder: **Endgame Training** — the classic theoretical endgames (the basic mates, the opposition, Lucena, Philidor…) with their goal, and more than two thousand endgame puzzles — and **Tactics Training**, puzzles of twenty themes, from easy to hard. The puzzles come from the lichess.org puzzle database (free, CC0); each starts once the opponent has moved, with you to find the answer: play it in **Training Mode**, or step through the solution. Find them in the tree under **Endgames** and **Tactics**. A training database you delete is not added again.
+
 # The games list {#games-list}
 
 The list shows the games of the open database, one per row. Double-click a game to put it on the board.
@@ -59,6 +61,8 @@ Left of the games list, the tree shows what the open database contains. Select a
 - **Time Control**: the time controls the games were played at, from the fastest — *Blitz 3+2*, *Rapid 10+5*, *Classical 90+30*, *Correspondence 1 day*. Games from lichess.org and chess.com bring theirs; for any other game, click the names of the players above the board and write it in **Time Control**, as players say it (*3+2*: three minutes, two seconds added at each move).
 - **Study**: the studies the games came from — a lichess study connected as a source, or games whose PGN carries the tags `StudyName` and `ChapterName` — each with its chapters in the study's order. Select a study for all its games, or a chapter for its own.
 - **Source**: the games that came from lichess.org, chess.com or torneionline.com.
+- **Endgames**: the games that start from an endgame, by family — *Basic Mates*, *Pawn Endings*, *Rook Endings*… — and, under each, by material: *K+R+P vs K+R*, the stronger side first.
+- **Tactics**: the puzzles by theme — *Pin*, *Skewer*, *Fork*, *Discovered Attack*, *Deflection*…
 - **Trash**: the games you threw away.
 
 Position and Variant follow the board: move through a game and their counts change.

@@ -15,7 +15,9 @@ struct GameCategory {
     /// TrashRecent those put there in the last GameStates::kRecentDays days,
     /// TrashOld the others. Study and StudyChapter are the games of a study
     /// and of one of its chapters (DatabaseOutline::studyKey, chapterKey).
-    enum class Kind { All, Position, Variant, Role, Player, EcoLetter, Eco, Event, Year, TimeControl, Study, StudyChapter, Source, Trash, TrashRecent, TrashOld };
+    /// EndgameFamily, Endgame and Tactic: the training classification
+    /// (TrainingSets): an endgame family, its material, a tactical theme.
+    enum class Kind { All, Position, Variant, Role, Player, EcoLetter, Eco, Event, Year, TimeControl, Study, StudyChapter, Source, Trash, TrashRecent, TrashOld, EndgameFamily, Endgame, Tactic };
     Kind kind = Kind::All;
     /// Role key ("me", "friend", "opponent"), player name, ECO letter or code,
     /// event name, year, time control (the TimeControl tag), or study or chapter key.
@@ -71,7 +73,7 @@ protected:
 
 private:
     /// New kinds go at the end: the open and selected nodes are kept by number.
-    enum class Node { Database, Board, Position, Variant, Role, Player, EcoGroup, EcoLetter, Eco, Tournaments, Event, Years, Year, Studies, Study, StudyChapter, Sources, Source, Trash, TrashRecent, TrashOld, TimeControls, TimeControl };
+    enum class Node { Database, Board, Position, Variant, Role, Player, EcoGroup, EcoLetter, Eco, Tournaments, Event, Years, Year, Studies, Study, StudyChapter, Sources, Source, Trash, TrashRecent, TrashOld, TimeControls, TimeControl, Endgames, EndgameFamily, Endgame, Tactics, Tactic };
 
     void onCurrentItemChanged(QTreeWidgetItem *current);
     static Node nodeOf(const QTreeWidgetItem *item);

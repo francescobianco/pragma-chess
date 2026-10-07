@@ -655,6 +655,14 @@ Il Nero ha catturato: %2</translation>
         <source>Source</source>
         <translation>Sorgente</translation>
     </message>
+    <message>
+        <source>Endgames</source>
+        <translation>Finali</translation>
+    </message>
+    <message>
+        <source>Tactics</source>
+        <translation>Tattica</translation>
+    </message>
 </context>
 <context>
     <name>Drawers</name>
@@ -5309,6 +5317,303 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>Could not read the tournaments of the player on %1.</source>
         <translation>Impossibile leggere i tornei del giocatore su %1.</translation>
+    </message>
+</context>
+<context>
+    <name>TrainingSets</name>
+    <message>
+        <source>K</source>
+        <comment>piece letter: king</comment>
+        <translation>R</translation>
+    </message>
+    <message>
+        <source>Q</source>
+        <comment>piece letter: queen</comment>
+        <translation>D</translation>
+    </message>
+    <message>
+        <source>R</source>
+        <comment>piece letter: rook</comment>
+        <translation>T</translation>
+    </message>
+    <message>
+        <source>B</source>
+        <comment>piece letter: bishop</comment>
+        <translation>A</translation>
+    </message>
+    <message>
+        <source>N</source>
+        <comment>piece letter: knight</comment>
+        <translation>C</translation>
+    </message>
+    <message>
+        <source>P</source>
+        <comment>piece letter: pawn</comment>
+        <translation>P</translation>
+    </message>
+    <message>
+        <source>Mate with the queen</source>
+        <translation>Matto con la donna</translation>
+    </message>
+    <message>
+        <source>White to play and mate.</source>
+        <translation>Il Bianco muove e dà matto.</translation>
+    </message>
+    <message>
+        <source>Mate with the rook</source>
+        <translation>Matto con la torre</translation>
+    </message>
+    <message>
+        <source>Mate with two bishops</source>
+        <translation>Matto con i due alfieri</translation>
+    </message>
+    <message>
+        <source>Mate with bishop and knight</source>
+        <translation>Matto con alfiere e cavallo</translation>
+    </message>
+    <message>
+        <source>White to play and mate: in the corner of the bishop&apos;s colour.</source>
+        <translation>Il Bianco muove e dà matto: nell&apos;angolo del colore dell&apos;alfiere.</translation>
+    </message>
+    <message>
+        <source>King in front of the pawn</source>
+        <translation>Il re davanti al pedone</translation>
+    </message>
+    <message>
+        <source>White to play and win: the king on the sixth rank, in front of its pawn.</source>
+        <translation>Il Bianco muove e vince: il re in sesta traversa, davanti al suo pedone.</translation>
+    </message>
+    <message>
+        <source>The opposition</source>
+        <translation>L&apos;opposizione</translation>
+    </message>
+    <message>
+        <source>White to play: Black holds the opposition, it is a draw. Try to win, and see why not.</source>
+        <translation>Muove il Bianco: il Nero tiene l&apos;opposizione, è patta. Prova a vincere, e scopri perché non si può.</translation>
+    </message>
+    <message>
+        <source>Defending with the opposition</source>
+        <translation>Difendersi con l&apos;opposizione</translation>
+    </message>
+    <message>
+        <source>Black to play and draw: take the opposition.</source>
+        <translation>Il Nero muove e patta: prendi l&apos;opposizione.</translation>
+    </message>
+    <message>
+        <source>The square of the pawn</source>
+        <translation>Il quadrato del pedone</translation>
+    </message>
+    <message>
+        <source>White to play and draw: step into the square of the pawn.</source>
+        <translation>Il Bianco muove e patta: entra nel quadrato del pedone.</translation>
+    </message>
+    <message>
+        <source>The rook pawn</source>
+        <translation>Il pedone di torre</translation>
+    </message>
+    <message>
+        <source>White to play and draw: the king in the corner.</source>
+        <translation>Il Bianco muove e patta: il re nell&apos;angolo.</translation>
+    </message>
+    <message>
+        <source>The wrong bishop</source>
+        <translation>L&apos;alfiere sbagliato</translation>
+    </message>
+    <message>
+        <source>White to play: the bishop does not control h8, it is a draw. Try to win, and see why not.</source>
+        <translation>Muove il Bianco: l&apos;alfiere non controlla h8, è patta. Prova a vincere, e scopri perché non si può.</translation>
+    </message>
+    <message>
+        <source>Triangulation</source>
+        <translation>La triangolazione</translation>
+    </message>
+    <message>
+        <source>White to play: Black keeps the opposition, it is a draw.</source>
+        <translation>Muove il Bianco: il Nero mantiene l&apos;opposizione, è patta.</translation>
+    </message>
+    <message>
+        <source>The outside passed pawn</source>
+        <translation>Il pedone passato lontano</translation>
+    </message>
+    <message>
+        <source>White to play: with best play it is a draw.</source>
+        <translation>Muove il Bianco: con il gioco migliore è patta.</translation>
+    </message>
+    <message>
+        <source>Pawn breakthrough</source>
+        <translation>Lo sfondamento di pedoni</translation>
+    </message>
+    <message>
+        <source>White to play and win: break through with a pawn.</source>
+        <translation>Il Bianco muove e vince: sfonda con un pedone.</translation>
+    </message>
+    <message>
+        <source>Lucena position</source>
+        <translation>La posizione di Lucena</translation>
+    </message>
+    <message>
+        <source>White to play and win: build the bridge.</source>
+        <translation>Il Bianco muove e vince: costruisci il ponte.</translation>
+    </message>
+    <message>
+        <source>Philidor position</source>
+        <translation>La posizione di Philidor</translation>
+    </message>
+    <message>
+        <source>Black to play and draw: the rook on the third rank.</source>
+        <translation>Il Nero muove e patta: la torre in terza traversa.</translation>
+    </message>
+    <message>
+        <source>Queen against a centre pawn</source>
+        <translation>Donna contro pedone centrale</translation>
+    </message>
+    <message>
+        <source>White to play and win: bring the king closer with checks.</source>
+        <translation>Il Bianco muove e vince: avvicina il re con gli scacchi.</translation>
+    </message>
+    <message>
+        <source>Queen against a bishop pawn</source>
+        <translation>Donna contro pedone d&apos;alfiere</translation>
+    </message>
+    <message>
+        <source>White to play and win: here the king is close enough.</source>
+        <translation>Il Bianco muove e vince: qui il re è abbastanza vicino.</translation>
+    </message>
+    <message>
+        <source>Rook against bishop</source>
+        <translation>Torre contro alfiere</translation>
+    </message>
+    <message>
+        <source>White to play: rook against bishop is usually a draw.</source>
+        <translation>Muove il Bianco: torre contro alfiere di solito è patta.</translation>
+    </message>
+    <message>
+        <source>Pin</source>
+        <translation>Inchiodatura</translation>
+    </message>
+    <message>
+        <source>Skewer</source>
+        <translation>Infilata</translation>
+    </message>
+    <message>
+        <source>Fork</source>
+        <translation>Forchetta</translation>
+    </message>
+    <message>
+        <source>Discovered Attack</source>
+        <translation>Attacco di scoperta</translation>
+    </message>
+    <message>
+        <source>Double Check</source>
+        <translation>Scacco doppio</translation>
+    </message>
+    <message>
+        <source>Deflection</source>
+        <translation>Deviazione</translation>
+    </message>
+    <message>
+        <source>Attraction</source>
+        <translation>Adescamento</translation>
+    </message>
+    <message>
+        <source>X-Ray Attack</source>
+        <translation>Attacco ai raggi X</translation>
+    </message>
+    <message>
+        <source>Interference</source>
+        <translation>Interferenza</translation>
+    </message>
+    <message>
+        <source>Intermezzo</source>
+        <translation>Mossa intermedia</translation>
+    </message>
+    <message>
+        <source>Clearance</source>
+        <translation>Sgombero</translation>
+    </message>
+    <message>
+        <source>Capturing the Defender</source>
+        <translation>Eliminazione del difensore</translation>
+    </message>
+    <message>
+        <source>Hanging Piece</source>
+        <translation>Pezzo indifeso</translation>
+    </message>
+    <message>
+        <source>Trapped Piece</source>
+        <translation>Pezzo intrappolato</translation>
+    </message>
+    <message>
+        <source>Sacrifice</source>
+        <translation>Sacrificio</translation>
+    </message>
+    <message>
+        <source>Back-Rank Mate</source>
+        <translation>Matto sulla traversa</translation>
+    </message>
+    <message>
+        <source>Smothered Mate</source>
+        <translation>Matto affogato</translation>
+    </message>
+    <message>
+        <source>Quiet Move</source>
+        <translation>Mossa tranquilla</translation>
+    </message>
+    <message>
+        <source>Zugzwang</source>
+        <translation>Zugzwang</translation>
+    </message>
+    <message>
+        <source>Promotion</source>
+        <translation>Promozione</translation>
+    </message>
+    <message>
+        <source>Basic Mates</source>
+        <translation>Matti elementari</translation>
+    </message>
+    <message>
+        <source>Pawn Endings</source>
+        <translation>Finali di pedoni</translation>
+    </message>
+    <message>
+        <source>Knight Endings</source>
+        <translation>Finali di cavallo</translation>
+    </message>
+    <message>
+        <source>Bishop Endings</source>
+        <translation>Finali di alfiere</translation>
+    </message>
+    <message>
+        <source>Minor Piece Endings</source>
+        <translation>Finali di pezzi minori</translation>
+    </message>
+    <message>
+        <source>Rook Endings</source>
+        <translation>Finali di torre</translation>
+    </message>
+    <message>
+        <source>Rook and Minor Piece</source>
+        <translation>Torre e pezzo minore</translation>
+    </message>
+    <message>
+        <source>Queen Endings</source>
+        <translation>Finali di donna</translation>
+    </message>
+    <message>
+        <source>Queen and Other Pieces</source>
+        <translation>Donna e altri pezzi</translation>
+    </message>
+    <message>
+        <source>Other Endings</source>
+        <translation>Altri finali</translation>
+    </message>
+    <message>
+        <source>lichess.org puzzles</source>
+        <translation>Problemi di lichess.org</translation>
+    </message>
+    <message>
+        <source>%1 vs %2</source>
+        <translation>%1 contro %2</translation>
     </message>
 </context>
 <context>

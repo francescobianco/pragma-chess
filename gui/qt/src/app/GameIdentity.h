@@ -15,6 +15,8 @@ inline const QUuid kGameNamespace{QStringLiteral("7b0c5a1e-3f0d-4a55-9e3c-6f1d0a
 inline const QString kOpeningNamesLineage = QStringLiteral("7b0c5a1e-3f0d-4a55-9e3c-6f1d0a9b4c01");
 inline const QString kClassicGamesLineage = QStringLiteral("7b0c5a1e-3f0d-4a55-9e3c-6f1d0a9b4c02");
 inline const QString kItalianOpeningNamesLineage = QStringLiteral("7b0c5a1e-3f0d-4a55-9e3c-6f1d0a9b4c03");
+inline const QString kEndgamesLineage = QStringLiteral("7b0c5a1e-3f0d-4a55-9e3c-6f1d0a9b4c04");
+inline const QString kTacticsLineage = QStringLiteral("7b0c5a1e-3f0d-4a55-9e3c-6f1d0a9b4c05");
 
 /// What a game's uid is made from: white, black, event, site, date, round,
 /// result, start FEN and UCI moves, trimmed and joined by newlines.

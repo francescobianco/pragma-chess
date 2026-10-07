@@ -305,6 +305,34 @@ FUNCTION IsBetween(square, source, target)
     RETURN FALSE
 END FUNCTION
 
+' Whether the capture moves[k] of `line` takes what a piece of the losing
+' side defended until the two moves before it drove it away: moves[k - 2]
+' attacks that piece, moves[k - 1] moves it, and where it stood it could
+' have taken back. 10...Nf5 attacks the queen of g3, 11.Qd3 leaves, and
+' 11...Bxg2 takes a pawn the queen no longer guards.
+FUNCTION Deflects(line, k)
+    moves = line[0]
+    positions = line[1]
+    IF k < 2 THEN RETURN FALSE
+    IF CAPTURED(positions[k], moves[k]) = 0 THEN RETURN FALSE
+    guard = FROMSQ(moves[k - 1])
+    ' The attack: after moves[k - 2], the winning side could take on the guard's square.
+    attacked = FALSE
+    threats = MOVES(PASS(positions[k - 1]))
+    FOR i = 0 TO LEN(threats) - 1
+        IF TOSQ(threats[i]) = guard AND CAPTURED(PASS(positions[k - 1]), threats[i]) <> 0 THEN attacked = TRUE
+    NEXT
+    IF NOT attacked THEN RETURN FALSE
+    ' The guard: had it stayed, it could have taken back on the square of the capture.
+    stayed = PLAY(PASS(positions[k - 1]), moves[k])
+    IF stayed = NOTHING THEN RETURN FALSE
+    answers = MOVES(stayed)
+    FOR i = 0 TO LEN(answers) - 1
+        IF FROMSQ(answers[i]) = guard AND TOSQ(answers[i]) = TOSQ(moves[k]) THEN RETURN TRUE
+    NEXT
+    RETURN FALSE
+END FUNCTION
+
 ' Whether `move` uncovers an attack: once the piece has left its square, a
 ' piece of the same side behind it can take an enemy piece across that
 ' square (14.Nb5 and the bishop of d2 takes the queen of a5). Asked of the
@@ -386,6 +414,24 @@ FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
         NOTE "  and the first move, " + MoveText(positions[first], moves[first]) + ": it uncovers the attack"
         window = [first, window[1]]
         firstAdded = TRUE
+    END IF
+    ' A capture of something its guard was driven from: the attack on the
+    ' guard and its flight are drawn before it, or the board seems to say
+    ' the piece can be taken back (11...Bxg2, and the queen of g3 is gone).
+    capture = window[0]
+    IF LEN(drawOnly) > 0 THEN capture = drawOnly[0]
+    IF capture - 2 >= first THEN
+        IF SIDETOMOVE(positions[capture]) = beneficiary AND Deflects(line, capture) THEN
+            IF LEN(drawOnly) = 0 THEN
+                FOR k = window[0] TO window[1] - 1
+                    drawOnly = drawOnly + [k]
+                NEXT
+            END IF
+            drawOnly = [capture - 2, capture - 1] + drawOnly
+            NOTE "  and " + MoveText(positions[capture - 2], moves[capture - 2]) + " " + MoveText(positions[capture - 1], moves[capture - 1]) + ": the guard of " + SquareName(TOSQ(moves[capture])) + " driven away"
+            Draw TOSQ(moves[capture - 2]), FROMSQ(moves[capture - 1]), "threat", 0
+            window = [MIN(window[0], capture - 2), window[1]]
+        END IF
     END IF
     RETURN window + [firstAdded]
 END FUNCTION

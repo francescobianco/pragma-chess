@@ -285,3 +285,19 @@ expect arrows c3b5 refutation 1, c6b5 reply 2, d2a5 refutation 3
 expect lost a5
 expect summary Blunder (+0.1 → +5.9). White wins the queen for a bishop and a knight: 14.Nb5 cxb5 15.Bxa5 bxc4 16.Bb4 Bxb4+ 17.axb4. Better was 13…O-O-O.
 end
+
+# 10.d4? in training (the user is White): 10…Nf5 drives the queen of g3
+# away, 11.Qd3, and 11…Bxg2 takes what it guarded. Drawn alone, Bxg2 and
+# Bxh1 seemed to let the queen take back on g2: the attack on the guard
+# and its flight are drawn before them now.
+explain
+before r3kb1r/p3n1pp/1qb2p2/4p3/8/2N3Q1/PPPP1PPP/R1B1K1NR w KQkq - 0 10
+played d2d4
+before-eval depth 30 cp 40 pv g1e2
+after r3kb1r/p3n1pp/1qb2p2/4p3/3P4/2N3Q1/PPP2PPP/R1B1K1NR b KQkq - 0 10
+tick depth 34 cp -254 pv e7f5 g3d3 c6g2 d3f5 g2h1 f2f3 a8d8 c3e2 f8e7 f5d3 f6f5 d3f5 e5d4 c1f4 b6c5 f5e6 c5d5 e6d5 d8d5 a1d1 e8g8 d1d3 d5c5 e1d2 c5a5 a2a3 a5f5 f4g3 h1f3 g1f3 f5f3 e2d4 e7g5 d2e2 f3f7
+expect verdict mistake
+expect arrows f5g3 threat, g1e2 alternative, e7f5 refutation 1, g3d3 reply 2, c6g2 refutation 3, g2h1 refutation 4
+expect lost g2, h1
+expect summary Mistake (+0.4 → −2.5). Black wins a rook and a pawn for a knight: 10…Nf5 11.Qd3 Bxg2 12.Qxf5 Bxh1. Better was 10.Nge2.
+end

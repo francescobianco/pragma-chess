@@ -395,3 +395,15 @@ first move of a refutation or a threat when it uncovers an attack
 square it left), and the better move is then not drawn on top, as for any
 focused refutation. Arrows: 14.Nb5 1, 14…cxb5 2, 15.Bxa5 3. Recorded:
 user-feedback.ticks.
+
+### 10.d4?: the guard driven away (7 October)
+
+The user, White in training, after 10.d4 (+0.4 → −2.5): Explain drew only
+11…Bxg2 and 12…Bxh1, and "the queen can take back on g2". It cannot: the
+line is 10…Nf5 11.Qd3 Bxg2 12.Qxf5 Bxh1, the knight drives the queen of g3
+away first. FocusWindow drew the biggest jump traced back to the bishop,
+not the deflection. `Deflects(line, k)`: the capture moves[k] takes what a
+piece of the losing side guarded until moves[k - 2] attacked it and
+moves[k - 1] moved it (had it stayed, it could take back on that square).
+Then both moves are drawn before the capture, with the threat on the guard
+dashed. Recorded: user-feedback.ticks.

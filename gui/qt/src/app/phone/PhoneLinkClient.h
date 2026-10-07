@@ -7,7 +7,7 @@
 #include <QObject>
 #include <QStringList>
 
-class NostrEvent;
+struct NostrEvent;
 class NostrRelayPool;
 class QTimer;
 class WebRtcPeer;

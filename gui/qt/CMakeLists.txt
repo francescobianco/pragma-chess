@@ -28,6 +28,12 @@ endif()
 option(PRAGMA_PHONE_LINK "Let the Android app copy the databases (Phone Link)" ON)
 set(PRAGMA_HAS_PHONE_LINK OFF)
 if(PRAGMA_PHONE_LINK)
+    # FetchContent_Declare's SYSTEM (3.25) and EXCLUDE_FROM_ALL (3.28): an
+    # older CMake fetches nothing and the client is built without the network.
+    if(CMAKE_VERSION VERSION_LESS 3.28)
+        message(WARNING "CMake ${CMAKE_VERSION} is too old to fetch libdatachannel and libsecp256k1 "
+                        "(3.28 or later is needed): unless they are installed, Phone Link and the lobby are left out")
+    endif()
     include(FetchContent)
     find_package(OpenSSL QUIET)
     find_package(LibDataChannel CONFIG QUIET)
@@ -423,6 +429,8 @@ qt_add_executable(pragma-chess
     src/platform/DialogFrame.h
     src/platform/GtkDesktopStyle.cpp
     src/platform/GtkDesktopStyle.h
+    src/platform/MacDesktopStyle.cpp
+    src/platform/MacDesktopStyle.h
     src/platform/SymbolicIcons.cpp
     src/platform/SymbolicIcons.h
     src/models/GameFilterProxyModel.cpp

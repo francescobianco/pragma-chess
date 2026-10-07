@@ -11,7 +11,7 @@
 #include <QSet>
 #include <QStringList>
 
-class NostrEvent;
+struct NostrEvent;
 class NostrRelayPool;
 class PhoneGameStore;
 class PhoneLinkSession;

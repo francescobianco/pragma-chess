@@ -10,6 +10,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QRegularExpression>
+#include <QTimeZone>
 
 #include <algorithm>
 
@@ -118,7 +119,7 @@ void ChessComFetch::fetchNextArchive()
         const QJsonArray games = QJsonDocument::fromJson(body).object().value(QStringLiteral("games")).toArray();
         const qint64 syncedEnd = qint64(m_state.value(QStringLiteral("endTime")).toDouble());
         const QString since = m_source.settings.value(QLatin1String(SourceSettings::since)).toString();
-        const qint64 sinceTime = since.isEmpty() ? 0 : QDate::fromString(since, Qt::ISODate).startOfDay(Qt::UTC).toSecsSinceEpoch();
+        const qint64 sinceTime = since.isEmpty() ? 0 : QDate::fromString(since, Qt::ISODate).startOfDay(QTimeZone::utc()).toSecsSinceEpoch();
         const bool ratedOnly = m_source.settings.value(QLatin1String(SourceSettings::ratedOnly)).toBool();
 
         QList<std::pair<qint64, ImportedGame>> fetched;

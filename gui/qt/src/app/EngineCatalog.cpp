@@ -207,6 +207,8 @@ QStringList EngineCatalog::bundledEngineDirs(const QString &applicationDir)
 #ifdef Q_OS_MACOS
     // macOS: code lives in Contents/MacOS, where the signature expects it.
     dirs << applicationDir;
+    // A development build: engines/ next to the bundle (`make stockfish`).
+    dirs << QDir::cleanPath(app.filePath(QStringLiteral("../../../engines")));
 #endif
     return dirs;
 }

@@ -10,6 +10,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QUrlQuery>
+#include <QTimeZone>
 
 namespace {
 
@@ -70,7 +71,7 @@ std::optional<ImportedGame> LichessFetch::parseGame(const QJsonObject &game)
                                                                 : QStringLiteral("Casual %1 game").arg(speed);
     record.site = QStringLiteral("https://lichess.org/") + id;
     record.date = QDateTime::fromMSecsSinceEpoch(qint64(game.value(QStringLiteral("createdAt")).toDouble()),
-                                                 Qt::UTC).toString(QStringLiteral("yyyy.MM.dd"));
+                                                 QTimeZone::utc()).toString(QStringLiteral("yyyy.MM.dd"));
     record.round = QStringLiteral("-");
     record.result = winner == QLatin1String("white") ? QStringLiteral("1-0")
         : winner == QLatin1String("black")           ? QStringLiteral("0-1")
@@ -109,7 +110,7 @@ void LichessFetch::start()
     } else {
         const QString date = m_source.settings.value(QLatin1String(SourceSettings::since)).toString();
         if (!date.isEmpty())
-            since = QDate::fromString(date, Qt::ISODate).startOfDay(Qt::UTC).toMSecsSinceEpoch();
+            since = QDate::fromString(date, Qt::ISODate).startOfDay(QTimeZone::utc()).toMSecsSinceEpoch();
     }
     if (since > 0)
         query.addQueryItem(QStringLiteral("since"), QString::number(since));

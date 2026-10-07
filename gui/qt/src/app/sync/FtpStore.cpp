@@ -268,7 +268,7 @@ void FtpStore::openData(std::function<void(QSslSocket *data, const QString &erro
             }
             connect(data, &QAbstractSocket::connected, this, [data, done] { done(data, QString()); },
                     Qt::SingleShotConnection);
-            connect(data, &QAbstractSocket::errorOccurred, this, [this, data, done](QAbstractSocket::SocketError error) {
+            connect(data, &QAbstractSocket::errorOccurred, this, [data, done](QAbstractSocket::SocketError error) {
                 if (error == QAbstractSocket::RemoteHostClosedError)
                     return;
                 if (data->state() != QAbstractSocket::ConnectedState && !data->property("reported").toBool()) {
@@ -287,7 +287,7 @@ void FtpStore::openData(std::function<void(QSslSocket *data, const QString &erro
                 return;
             }
         }
-        command("PASV", [this, done, connectTo](int pasvCode, const QString &pasvText) {
+        command("PASV", [done, connectTo](int pasvCode, const QString &pasvText) {
             // "Entering Passive Mode (h1,h2,h3,h4,p1,p2)"; the address is ignored (NAT).
             const QRegularExpressionMatch match =
                 QRegularExpression(QStringLiteral(R"re((\d+),(\d+),(\d+),(\d+),(\d+),(\d+))re")).match(pasvText);

@@ -31,6 +31,9 @@ protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
 
 private:
+    /// Runs `change` to the filter's state and filters the rows again.
+    void changeFilter(const std::function<void()> &change);
+
     const GameDatabase *m_database = nullptr;
     Predicate m_predicate;
     GameState m_state = GameState::Live;

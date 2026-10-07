@@ -6,6 +6,7 @@ set -u
 
 BUILD_DIR="${BUILD_DIR:-build}"
 APP="$BUILD_DIR/gui/qt/pragma-chess"
+[[ "$(uname)" == Darwin ]] && APP="$APP.app/Contents/MacOS/pragma-chess" # a bundle
 WATCH_PATHS=(gui/qt smart CMakeLists.txt) # smart/: the SMART programs are built into the app
 POLL_INTERVAL="${POLL_INTERVAL:-1}"
 
@@ -78,20 +79,24 @@ build() {
     done
 }
 
-# Fingerprint of the watched files: path + modification time.
+# Fingerprint of the watched files: path + modification time. BSD find (macOS)
+# has no -printf, so stat prints the times there.
 snapshot() {
-    if command -v inotifywait >/dev/null; then
-        return 0
-    fi
     find "${WATCH_PATHS[@]}" -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.txt' \
         -o -name '*.qrc' -o -name '*.ui' -o -name '*.svg' -o -name '*.png' -o -name '*.smart' \) \
-        -printf '%T@ %p\n' 2>/dev/null | sort | md5sum
+        -print0 2>/dev/null | sort -z | xargs -0 stat $STAT_FORMAT 2>/dev/null | cksum
 }
+if stat -c '%Y' / >/dev/null 2>&1; then STAT_FORMAT="-c %Y:%n"; else STAT_FORMAT="-f %m:%N"; fi
 
 wait_for_change() {
-    if command -v inotifywait >/dev/null; then
+    if command -v inotifywait >/dev/null; then # Linux
         inotifywait -qq -r -e close_write,create,delete,move "${WATCH_PATHS[@]}"
         sleep 0.2 # let editors finish writing (atomic saves, formatters)
+        return
+    fi
+    if command -v fswatch >/dev/null; then # macOS (FSEvents)
+        fswatch -1 -r "${WATCH_PATHS[@]}" >/dev/null
+        sleep 0.2
         return
     fi
     local before

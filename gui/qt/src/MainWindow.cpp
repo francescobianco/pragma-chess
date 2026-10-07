@@ -1084,6 +1084,9 @@ void MainWindow::createToolBar()
     toolBar->toggleViewAction()->setText(tr("&Toolbar"));
     toolBar->setObjectName(QStringLiteral("mainToolBar"));
     toolBar->setMovable(false);
+    // The size the icons are drawn for, on every system: Linux's and Windows'
+    // styles give 24, macOS's 32, which made the toolbar too large there.
+    toolBar->setIconSize(QSize(24, 24));
     // Syncing everything is the one button that stands on its own.
     toolBar->addAction(m_syncNowAction);
     toolBar->addSeparator();
@@ -3380,11 +3383,15 @@ void MainWindow::setAnalysisEnabled(bool enabled)
         if (profile.hashMb > 0)
             m_engine->setOption(QStringLiteral("Hash"), QString::number(profile.hashMb));
         if (executable.isEmpty() || !m_engine->start(executable)) {
-            m_enginePanel->setStatus(tr("The engine “%1” was not found. Choose another one or set its "
-                                        "executable in Engine ▸ Manage Engines….").arg(profile.name));
-            // Defer so the action's toggle finishes before being reverted.
-            QMetaObject::invokeMethod(m_startEngineAction, [this] { m_startEngineAction->setChecked(false); },
-                                      Qt::QueuedConnection);
+            const QString message = tr("The engine “%1” was not found. Choose another one or set its "
+                                       "executable in Engine ▸ Manage Engines….").arg(profile.name);
+            m_enginePanel->setStatus(message);
+            // Defer so the action's toggle finishes before being reverted. Turning
+            // the analysis off clears the status: the message is written again after.
+            QMetaObject::invokeMethod(m_startEngineAction, [this, message] {
+                m_startEngineAction->setChecked(false);
+                m_enginePanel->setStatus(message);
+            }, Qt::QueuedConnection);
             return;
         }
         m_engineId = profile.id;

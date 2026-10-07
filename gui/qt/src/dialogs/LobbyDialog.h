@@ -3,12 +3,14 @@
 #include "app/lobby/LobbyService.h"
 
 #include <QDialog>
+#include <QSet>
 
 class BoardWidget;
 class QLabel;
 class QPushButton;
 class QStackedWidget;
 class QTreeWidget;
+class QVariantAnimation;
 
 /// Game ▸ Enter the Lobby…: the tournaments of four players with a free
 /// seat (IDEA.md). Entering a room shows its seats and its games, each
@@ -55,6 +57,12 @@ private:
     void showRoom();
     void showSelectedGame();
     void showNetwork();
+    /// The lobby changed: the window follows it, and what turned to the
+    /// user's move since glows.
+    void lobbyChanged();
+    /// The games waiting for the user's move now, by "room|white|black".
+    QSet<QString> waitingGames() const;
+    void paintGlow();
     /// Enters room `room` (an index of the lobby) on its game `game`, and plays it.
     void playGame(int room, int game);
     /// The room shown: the lobby's, or the new room offered.
@@ -79,9 +87,18 @@ private:
     QLabel *m_joinHint;
     QTreeWidget *m_games;
     BoardWidget *m_board;
+    /// The players of the game shown, over the board.
+    QLabel *m_gameNames;
     QLabel *m_gameLine;
     QPushButton *m_playButton;
     QLabel *m_notice;
     /// The network as it is: relays and peers, or none.
     QLabel *m_network;
+    /// The window is live, the only place the application tells of what
+    /// happens in the lobby (the rest of it does not disturb): a game that
+    /// turns to the user's move glows, and its room in the list, fading.
+    QSet<QString> m_waiting;
+    QSet<QString> m_glowGames;
+    QSet<QString> m_glowRooms;
+    QVariantAnimation *m_glow;
 };

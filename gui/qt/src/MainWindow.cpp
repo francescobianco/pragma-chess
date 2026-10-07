@@ -816,7 +816,7 @@ void MainWindow::createActions()
     m_playOnlineAction = new QAction(themeIcon("pragma-online", QStyle::SP_ComputerIcon), tr("New &Online Game…"), this);
     m_playOnlineAction->setToolTip(tr("Play a game against a person on lichess.org, with one of your accounts"));
     connect(m_playOnlineAction, &QAction::triggered, this, [this] { playOnline(true); });
-    m_lobbyAction = new QAction(tr("Enter the &Lobby…"), this);
+    m_lobbyAction = new QAction(themeIcon("pragma-lobby", QStyle::SP_ComputerIcon), tr("Enter the &Lobby…"), this);
     m_lobbyAction->setToolTip(tr("Tournaments of four players without a clock: sit at a table with a free seat"));
     connect(m_lobbyAction, &QAction::triggered, this, &MainWindow::showLobby);
 #ifndef PRAGMA_HAS_PHONE_LINK
@@ -1088,6 +1088,7 @@ void MainWindow::createToolBar()
     toolBar->addAction(m_newGameAction);
     toolBar->addAction(m_quickTrainingAction);
     toolBar->addAction(m_quickOnlineAction);
+    toolBar->addAction(m_lobbyAction); // The fourth game: the lobby, a martini glass in the square.
     // Some air around each icon: bigger buttons to aim at, the same icons.
     constexpr int kButtonPadding = 4;
     // The book, the engine and the database in use: an icon each, which
@@ -1369,18 +1370,44 @@ void MainWindow::createDocks()
 
 void MainWindow::createStatusBar()
 {
-    setStatusBar(new PaddedStatusBar);
+    auto *bar = new PaddedStatusBar;
+    setStatusBar(bar);
 
+    // The sections on the right, each set apart by a thin line.
     m_folderSyncLabel = new QLabel;
     m_folderSyncLabel->hide();
-    statusBar()->addPermanentWidget(m_folderSyncLabel);
+    bar->addSection(m_folderSyncLabel);
 
     m_syncLabel = new QLabel;
     m_syncLabel->hide();
-    statusBar()->addPermanentWidget(m_syncLabel);
+    bar->addSection(m_syncLabel);
+
+    // The lobby's network, as it is (IDEA.md §38): shown while the lobby is on.
+    m_lobbyNetworkLabel = new QLabel;
+    m_lobbyNetworkLabel->hide();
+    bar->addSection(m_lobbyNetworkLabel);
 
     m_gameCountLabel = new QLabel;
-    statusBar()->addPermanentWidget(m_gameCountLabel);
+    bar->addSection(m_gameCountLabel);
+}
+
+void MainWindow::updateLobbyNetwork()
+{
+    if (!m_lobbyService) {
+        m_lobbyNetworkLabel->hide();
+        return;
+    }
+    if (!m_lobbyService->isOnline()) {
+        m_lobbyNetworkLabel->setText(tr("Lobby: not on the network"));
+        m_lobbyNetworkLabel->setToolTip(tr("No relay or peer can be reached: what you send leaves when one can"));
+    } else {
+        m_lobbyNetworkLabel->setText(tr("Lobby: %1, %2")
+                                         .arg(tr("%n relay(s)", nullptr, m_lobbyService->relayCount()),
+                                              tr("%n peer(s)", nullptr, m_lobbyService->peerCount())));
+        m_lobbyNetworkLabel->setToolTip(tr("The lobby's network: the relays that keep its moves, and the other "
+                                           "players' computers connected directly"));
+    }
+    m_lobbyNetworkLabel->show();
 }
 
 void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
@@ -2062,6 +2089,8 @@ void MainWindow::peekAtEngineLine(bool held)
 
 void MainWindow::syncBoard()
 {
+    if (m_mergingLobbyMoves)
+        return; // Moves arriving in the lobby game: drawn once they are in.
     m_enginePanel->cancelPeek(); // The end of the line belonged to the position before.
     const BoardFrame frame = frameFor(m_session->position(), m_session->lastMoveFrom(), m_session->lastMoveTo());
     if (m_animateNextBoard) {
@@ -4604,13 +4633,11 @@ LobbyService *MainWindow::lobbyService()
         if (!relays.isEmpty())
             m_lobbyNetwork->setRelays(relays.split(QLatin1Char(','), Qt::SkipEmptyParts));
         m_lobbyNetwork->start();
+        updateLobbyNetwork();
         connect(node, &LobbyService::changed, this, &MainWindow::lobbyChanged);
-        connect(node, &LobbyService::networkChanged, this, &MainWindow::updateLobbyPanel);
-        connect(node, &LobbyService::planPlayed, this, [this](const QString &roomId, const QString &white,
-                                                              const QString &black, const QString &uci) {
-            if (m_lobbyGame && m_lobbyGame->room == roomId && m_lobbyGame->white == white && m_lobbyGame->black == black)
-                statusBar()->showMessage(tr("Your plan answered: %1").arg(uci), 8000);
-        });
+        connect(node, &LobbyService::networkChanged, this, &MainWindow::updateLobbyNetwork);
+        // Do not disturb: what happens in the lobby is told by its window only,
+        // and the board follows the game it holds; no message pops up.
     }
     if (auto *node = qobject_cast<LobbyNode *>(m_lobbyService))
         node->setName(lobbyName()); // The name goes in the events that seat the user.
@@ -4635,6 +4662,7 @@ void MainWindow::resetLobbyService()
     delete m_lobbyService;
     m_lobbyService = nullptr;
     lobbyService();
+    updateLobbyNetwork();
 }
 
 QString MainWindow::lobbyName() const
@@ -4735,31 +4763,51 @@ void MainWindow::lobbyChanged()
         updateLobbyPanel();
         return;
     }
-    if (game->moves.size() > m_lobbyGame->plies) {
-        // New moves of the game: the opponent's, or the user's plan answering.
-        const int from = m_lobbyGame->plies;
-        bool prepared = m_session->game().moves.size() >= game->moves.size();
-        for (int ply = 0; prepared && ply < game->moves.size(); ++ply)
-            prepared = m_session->game().moves.at(ply).uci == game->moves.at(ply);
-        const QString who = linkedRoom()->displayName(m_lobbyGame->side == Side::White ? m_lobbyGame->black
-                                                                                      : m_lobbyGame->white);
-        ChessPosition position = ChessPosition::startingPosition();
-        for (int ply = 0; ply < from; ++ply) {
-            if (const std::optional<ChessMove> move = position.moveFromUci(game->moves.at(ply)))
-                position.play(*move);
-        }
-        const QString line = position.lineText(game->moves.mid(from), -1, SanStyle::Letters);
-        if (prepared) {
-            // The board's line already goes that way (the user played it, or
-            // prepared it): it stays, with the rest of the plan on it.
-            m_lobbyGame->plies = int(game->moves.size());
-        } else {
-            showLobbyGameOnBoard(from);
-        }
-        if (game->moves.size() % 2 == (m_lobbyGame->side == Side::White ? 0 : 1))
-            statusBar()->showMessage(tr("%1 played: %2").arg(who, line), 10000);
-    }
+    if (game->moves.size() > m_lobbyGame->plies)
+        mergeLobbyMoves(*game);
     updateLobbyPanel();
+}
+
+void MainWindow::mergeLobbyMoves(const LobbyGame &game)
+{
+    // The new moves go into the board's own tree — through the moves the
+    // user prepared when they are there, as a new variation otherwise —, so
+    // nothing they prepared is lost. The board moves to the game's new
+    // position only if it stood where the game stood; a user looking
+    // elsewhere (preparing a plan, a piece in the hand) stays there.
+    const int from = m_lobbyGame->plies;
+    const QList<int> path = m_session->path();
+    const int ply = m_session->ply();
+    bool atGame = ply == from;
+    for (int i = 1; atGame && i <= from; ++i)
+        atGame = m_session->moveAt(i).uci == game.moves.at(i - 1);
+
+    m_settingLobbyGame = true;
+    m_mergingLobbyMoves = true; // The board is drawn once, at the end.
+    m_session->goToLine({}, 0);
+    bool merged = true;
+    for (int i = 0; merged && i < game.moves.size(); ++i) {
+        const std::optional<ChessMove> move = m_session->position().moveFromUci(game.moves.at(i));
+        merged = move && m_session->playMove(*move); // Steps forward when the tree has it.
+    }
+    const QList<int> gamePath = m_session->path();
+    m_mergingLobbyMoves = false;
+    if (!merged) {
+        m_settingLobbyGame = false;
+        showLobbyGameOnBoard(from); // A tree that cannot hold them: the game's moves alone.
+        return;
+    }
+    m_lobbyGame->plies = int(game.moves.size());
+    if (atGame) {
+        // At the game's position: on to the new one, the last move sliding in.
+        m_session->goToLine(gamePath, int(game.moves.size()) - 1);
+        m_animateNextBoard = true;
+        m_session->goToLine(gamePath, int(game.moves.size()));
+    } else {
+        m_session->goToLine(path, ply);
+    }
+    m_settingLobbyGame = false;
+    syncBoard();
 }
 
 void MainWindow::updateLobbyPanel()
@@ -4767,6 +4815,7 @@ void MainWindow::updateLobbyPanel()
     const LobbyGame *game = m_lobbyModeAction->isChecked() ? linkedGame() : nullptr;
     if (!game) {
         m_lobbyStatus.clear();
+        m_lobbyCanSend = {false, false};
         m_enginePanel->setLobby(false);
         return;
     }
@@ -4798,20 +4847,34 @@ void MainWindow::updateLobbyPanel()
         status = tr("Waiting for %1's move. You can prepare your answers on the board, moving their pieces too.")
                      .arg(opponent);
     }
-    if (!game->isOver() && !prepared.plan.isEmpty()) {
+    // What the board holds is sent already when every answer on it is one the
+    // node has: nothing to send until the user's turn, or a change of plan.
+    const LobbyPlan sent = m_lobbyService->plan(m_lobbyGame->room, m_lobbyGame->white, m_lobbyGame->black);
+    bool planSent = !prepared.plan.isEmpty();
+    for (auto answer = prepared.plan.cbegin(); planSent && answer != prepared.plan.cend(); ++answer)
+        planSent = sent.value(answer.key()) == answer.value();
+    if (!game->isOver() && planSent && !myTurn) {
+        status += QLatin1Char(' ') + tr("Plan sent: %n answer(s) ready, played as soon as the game reaches them.",
+                                        nullptr, int(prepared.plan.size()));
+    } else if (!game->isOver() && !prepared.plan.isEmpty()) {
         status += QLatin1Char(' ') + tr("Your plan: %n answer(s) prepared.", nullptr, int(prepared.plan.size()));
         if (prepared.ignored > 0)
             status += QLatin1Char(' ')
                 + tr("%n other move(s) of yours left out: a plan has one answer for each position, the line's.",
                      nullptr, prepared.ignored);
     }
-    // The network, as it is: a move sent while no peer is reachable waits here (IDEA.md §38).
-    if (!m_lobbyService->isOnline())
-        status += QLatin1Char(' ') + tr("Offline: what you send leaves when the network is reachable.");
+    // On the user's turn both are offered, ready or not: that they light up
+    // says the turn came back (a click with nothing ready says what to do).
+    // While waiting, only a plan that changed since it was sent.
+    const bool canSendPlan = !game->isOver() && (myTurn || (!prepared.plan.isEmpty() && !planSent));
+    m_lobbyCanSend = {!game->isOver() && (myTurn || moveReady), canSendPlan};
+    // What a click with nothing to send asked for, while the board stays where it was.
+    if (!m_lobbyHint.isEmpty() && m_lobbyHintAt == qMakePair(m_session->ply(), m_session->plyCount()))
+        status += QLatin1Char(' ') + m_lobbyHint;
     else
-        status += QLatin1Char(' ') + tr("Network: %n peer(s) connected.", nullptr, m_lobbyService->peerCount());
+        m_lobbyHint.clear();
     m_lobbyStatus = status;
-    m_enginePanel->setLobby(true, status, !game->isOver() && moveReady, !game->isOver() && !prepared.plan.isEmpty());
+    m_enginePanel->setLobby(true, status, m_lobbyCanSend.first, m_lobbyCanSend.second);
 }
 
 void MainWindow::sendLobby(bool plan)
@@ -4830,8 +4893,11 @@ void MainWindow::sendLobby(bool plan)
         // The plan replaces the one sent before; this computer plays it, the
         // move of now at once, the others as the opponent's replies come.
         const LobbyPlan prepared = LobbyPlans::prepared(m_session->game(), from, link.side).plan;
-        if (prepared.isEmpty())
+        if (prepared.isEmpty()) {
+            showLobbyHint(tr("Nothing to send yet: play your move on the board, and your answers to your "
+                             "opponent's replies after it, then Send Plan."));
             return;
+        }
         m_lobbyService->setPlan(link.room, link.white, link.black, prepared);
         statusBar()->showMessage(tr("Plan sent: %n answer(s), played as the game reaches them.", nullptr,
                                     int(prepared.size())),
@@ -4840,11 +4906,26 @@ void MainWindow::sendLobby(bool plan)
         bool follows = !first.isEmpty();
         for (int ply = 1; follows && ply <= from; ++ply)
             follows = m_session->moveAt(ply).uci == game->moves.at(ply - 1);
-        if (!follows || !m_lobbyService->sendMove(link.room, link.white, link.black, first))
+        if (first.isEmpty()) {
+            showLobbyHint(tr("Nothing to send yet: play your move on the board first, then Send Move."));
+            return;
+        }
+        if (!follows) {
+            showLobbyHint(tr("The move on the board is not after where the game stands: go back to the game's line."));
+            return;
+        }
+        if (!m_lobbyService->sendMove(link.room, link.white, link.black, first))
             return;
         statusBar()->showMessage(tr("Move sent: %1").arg(firstText), 8000);
     }
     lobbyChanged();
+}
+
+void MainWindow::showLobbyHint(const QString &hint)
+{
+    m_lobbyHint = hint;
+    m_lobbyHintAt = qMakePair(m_session->ply(), m_session->plyCount());
+    updateLobbyPanel();
 }
 
 void MainWindow::showLobbyGameOnBoard(int from)
@@ -4882,6 +4963,9 @@ void MainWindow::showLobby()
         m_lobbyDialog = new LobbyDialog(m_lobbyService, this);
         connect(m_lobbyDialog, &LobbyDialog::playRequested, this, &MainWindow::playLobbyGame);
     }
+    // Entering the lobby starts from the list of rooms, wherever it was left
+    // (Play takes it into a room and away).
+    m_lobbyDialog->showLobbyPage();
     m_lobbyDialog->show();
     m_lobbyDialog->raise();
     m_lobbyDialog->activateWindow();

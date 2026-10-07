@@ -26,6 +26,7 @@ public:
     static std::optional<BoardState> fromFen(const QString &fen);
 
     Piece at(int square) const { return m_squares[square]; }
+    bool operator==(const BoardState &) const = default;
     Side sideToMove() const { return m_sideToMove; }
     QString fen() const { return m_fen; }
 

@@ -138,6 +138,18 @@ void BoardWidget::setBorder(BoardBorder border)
 
 void BoardWidget::setBoard(const BoardFrame &frame)
 {
+    // The position shown already, drawn again (something else changed around
+    // it): a piece being dragged or selected stays in the hand, and a slide
+    // under way goes on.
+    if (!m_peeking && !m_sequenceActive && frame.board == m_board && frame.lastMoveFrom == m_lastMoveFrom
+        && frame.lastMoveTo == m_lastMoveTo) {
+        m_markedKing = frame.markedKing;
+        m_kingMark = frame.kingMark;
+        m_arrows.clear();
+        m_lostPieces.clear();
+        update();
+        return;
+    }
     m_peeking = false; // A new position is no longer covered by the peek.
     endSequence();
     m_slide->stop();

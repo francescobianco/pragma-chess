@@ -38,6 +38,7 @@ enum class Shape {
     Eye,
     SendMove,
     SendPlan,
+    Lobby,
 };
 
 /// The square New Game and New Training share: a board, and a face as large.
@@ -158,6 +159,27 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         painter->drawEllipse(globe);
         painter->drawLine(QPointF(globe.left(), 8), QPointF(globe.right(), 8));
         painter->drawEllipse(QRectF(6.6, globe.top(), 2.8, globe.height()));
+        break;
+    }
+    case Shape::Lobby: {
+        // The lobby: the same square as the other games, with a martini glass
+        // inside — tournaments played at leisure, no clock. The cone of the
+        // glass, its stem and foot, and an olive on its pick.
+        painter->drawRoundedRect(kBoardIcon, 1.25, 1.25);
+        painter->setPen(QPen(color, 1.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        QPainterPath glass;
+        glass.moveTo(4.4, 4.9);
+        glass.lineTo(11.6, 4.9);
+        glass.lineTo(8.0, 8.6);
+        glass.closeSubpath();
+        painter->drawPath(glass);
+        painter->drawLine(QPointF(8.0, 8.6), QPointF(8.0, 11.3));
+        painter->drawLine(QPointF(6.2, 11.4), QPointF(9.8, 11.4));
+        painter->drawLine(QPointF(6.9, 6.6), QPointF(9.9, 3.6)); // The pick, out of the glass.
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(color);
+        painter->drawEllipse(QPointF(7.1, 6.4), 0.95, 0.95);
+        painter->setBrush(Qt::NoBrush);
         break;
     }
     case Shape::Sync: {
@@ -447,6 +469,7 @@ QIcon icon(const QString &name)
         {QStringLiteral("pragma-eye"), Shape::Eye},
         {QStringLiteral("pragma-send-move"), Shape::SendMove},
         {QStringLiteral("pragma-send-plan"), Shape::SendPlan},
+        {QStringLiteral("pragma-lobby"), Shape::Lobby},
     };
     const auto it = shapes.constFind(name);
     if (it == shapes.cend())

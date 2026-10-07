@@ -457,8 +457,14 @@ private:
     /// The lobby game as it stands now on the board; the moves from ply
     /// `from` on are new, and the last one slides in.
     void showLobbyGameOnBoard(int from);
+    /// The moves of the lobby game the board has not had yet, into its tree.
+    void mergeLobbyMoves(const LobbyGame &game);
     /// What the Engine panel says in Lobby Mode, and which sends it allows.
     void updateLobbyPanel();
+    /// A send clicked with nothing to send: the panel says what to do, until the board moves.
+    void showLobbyHint(const QString &hint);
+    /// The status bar's word on the lobby's network.
+    void updateLobbyNetwork();
     /// A project's lobby game, when the board holds it: Lobby Mode as it was.
     void restoreLobbyLink(const Project &project);
     /// The board left the lobby game: Lobby Mode goes off.
@@ -513,6 +519,8 @@ private:
     /// The part of the database the list shows, applied again when roles change.
     GameCategory m_category;
     QLabel *m_gameCountLabel;
+    /// The lobby's network in the status bar: relays and peers, or none.
+    QLabel *m_lobbyNetworkLabel;
     QLabel *m_syncLabel;
     SourceSync *m_sourceSync;
     /// Positions and lines of the open database, for Position and Variant.
@@ -684,10 +692,17 @@ private:
         int plies = 0;
     };
     std::optional<LobbyLink> m_lobbyGame;
+    /// Moves of the lobby game going into the board's tree: the board waits.
+    bool m_mergingLobbyMoves = false;
     /// The board is being set to the lobby game: not the user leaving it.
     bool m_settingLobbyGame = false;
     /// What the Engine panel says in Lobby Mode (also for the development API).
     QString m_lobbyStatus;
+    /// What a send with nothing to send asked for, and where the board stood then.
+    QString m_lobbyHint;
+    QPair<int, int> m_lobbyHintAt{-1, -1};
+    /// Whether Send Move and Send Plan are offered (also for the development API).
+    std::pair<bool, bool> m_lobbyCanSend{false, false};
 
     QTimer *m_saveTimer = nullptr;
     bool m_restoringSession = false;

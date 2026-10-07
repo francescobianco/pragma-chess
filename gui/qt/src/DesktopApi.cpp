@@ -299,8 +299,12 @@ void DesktopApi::addRoutes()
     // Game ▸ Enter the Lobby…, then a room entered by its row and a seat taken: the window's picture.
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/lobby"), [w](const Request &request) {
         const QJsonObject body = bodyOf(request).value_or(QJsonObject());
-        w->showLobby();
+        // Opened as the menu does the first time; then step by step, where it is.
+        if (!w->m_lobbyDialog || !w->m_lobbyDialog->isVisible())
+            w->showLobby();
         LobbyDialog *lobby = w->m_lobbyDialog;
+        if (!lobby)
+            return LocalHttpServer::error(503, QStringLiteral("the lobby is not available in this build"));
         if (body.value(QStringLiteral("lobby")).toBool())
             lobby->showLobbyPage();
         if (body.value(QStringLiteral("playNow")).isDouble())
@@ -333,8 +337,11 @@ void DesktopApi::addRoutes()
     // Lobby Mode's sends: {"plan": true} the plan prepared on the board, else the move.
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/lobby/send"), [w](const Request &request) {
         const QJsonObject body = bodyOf(request).value_or(QJsonObject());
-        w->sendLobby(body.value(QStringLiteral("plan")).toBool());
-        return json(QJsonObject{{QStringLiteral("status"), w->m_lobbyStatus}});
+        if (!body.value(QStringLiteral("dry")).toBool()) // {"dry": true}: only what the panel offers.
+            w->sendLobby(body.value(QStringLiteral("plan")).toBool());
+        return json(QJsonObject{{QStringLiteral("status"), w->m_lobbyStatus},
+                                {QStringLiteral("canSendMove"), w->m_lobbyCanSend.first},
+                                {QStringLiteral("canSendPlan"), w->m_lobbyCanSend.second}});
     });
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/flip"), toggle(w->m_flipBoardAction, QStringLiteral("the board")));
     // The engines of this computer and their Computing Power, and what the

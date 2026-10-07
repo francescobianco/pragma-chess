@@ -1,5 +1,7 @@
 #include "PaddedStatusBar.h"
 
+#include <QEvent>
+#include <QFrame>
 #include <QLabel>
 #include <QPainter>
 #include <QStyleOption>
@@ -31,4 +33,37 @@ void PaddedStatusBar::paintEvent(QPaintEvent *)
     QStyleOption option;
     option.initFrom(this);
     style()->drawPrimitive(QStyle::PE_PanelStatusBar, &option, &painter, this);
+}
+
+void PaddedStatusBar::addSection(QWidget *section)
+{
+    auto *separator = new QFrame(this);
+    separator->setFrameShape(QFrame::VLine);
+    separator->setFrameShadow(QFrame::Plain);
+    separator->setForegroundRole(QPalette::Mid); // A hairline, not a groove.
+    separator->setFixedHeight(fontMetrics().height());
+    addPermanentWidget(separator);
+    addPermanentWidget(section);
+    m_separators << separator;
+    m_sections << section;
+    section->installEventFilter(this);
+    updateSeparators();
+}
+
+bool PaddedStatusBar::eventFilter(QObject *watched, QEvent *event)
+{
+    if ((event->type() == QEvent::ShowToParent || event->type() == QEvent::HideToParent)
+        && m_sections.contains(qobject_cast<QWidget *>(watched)))
+        updateSeparators();
+    return QStatusBar::eventFilter(watched, event);
+}
+
+void PaddedStatusBar::updateSeparators()
+{
+    bool before = false;
+    for (int i = 0; i < m_sections.size(); ++i) {
+        const bool shown = !m_sections.at(i)->isHidden();
+        m_separators.at(i)->setVisible(shown && before);
+        before = before || shown;
+    }
 }

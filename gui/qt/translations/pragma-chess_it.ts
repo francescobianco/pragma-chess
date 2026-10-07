@@ -3241,25 +3241,6 @@ non è su questo computer.</translation>
         <source>That is not a valid lobby key: the key of this computer stays.</source>
         <translation>Non è una chiave della lobby valida: resta la chiave di questo computer.</translation>
     </message>
-    <message>
-        <source>Your plan answered: %1</source>
-        <translation>Il tuo piano ha risposto: %1</translation>
-    </message>
-    <message>
-        <source>%1 played: %2</source>
-        <translation>%1 ha giocato: %2</translation>
-    </message>
-    <message>
-        <source>Offline: what you send leaves when the network is reachable.</source>
-        <translation>Non in rete: quello che invii parte appena la rete è raggiungibile.</translation>
-    </message>
-    <message numerus="yes">
-        <source>Network: %n peer(s) connected.</source>
-        <translation>
-            <numerusform>Rete: %n nodo collegato.</numerusform>
-            <numerusform>Rete: %n nodi collegati.</numerusform>
-        </translation>
-    </message>
     <message numerus="yes">
         <source>Plan sent: %n answer(s), played as the game reaches them.</source>
         <translation>
@@ -3270,6 +3251,55 @@ non è su questo computer.</translation>
     <message>
         <source>Move sent: %1</source>
         <translation>Mossa inviata: %1</translation>
+    </message>
+    <message>
+        <source>Lobby: not on the network</source>
+        <translation>Lobby: non in rete</translation>
+    </message>
+    <message>
+        <source>No relay or peer can be reached: what you send leaves when one can</source>
+        <translation>Nessun relay o nodo raggiungibile: quello che invii parte appena se ne raggiunge uno</translation>
+    </message>
+    <message>
+        <source>Lobby: %1, %2</source>
+        <translation>Lobby: %1, %2</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n relay(s)</source>
+        <translation>
+            <numerusform>%n relay</numerusform>
+            <numerusform>%n relay</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n peer(s)</source>
+        <translation>
+            <numerusform>%n nodo</numerusform>
+            <numerusform>%n nodi</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The lobby&apos;s network: the relays that keep its moves, and the other players&apos; computers connected directly</source>
+        <translation>La rete della lobby: i relay che ne conservano le mosse, e i computer degli altri giocatori collegati direttamente</translation>
+    </message>
+    <message numerus="yes">
+        <source>Plan sent: %n answer(s) ready, played as soon as the game reaches them.</source>
+        <translation>
+            <numerusform>Piano inviato: %n risposta pronta, giocata appena la partita ci arriva.</numerusform>
+            <numerusform>Piano inviato: %n risposte pronte, giocate appena la partita ci arriva.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Nothing to send yet: play your move on the board, and your answers to your opponent&apos;s replies after it, then Send Plan.</source>
+        <translation>Ancora niente da inviare: gioca la tua mossa sulla scacchiera, e dopo di essa le tue risposte alle mosse dell&apos;avversario, poi Invia piano.</translation>
+    </message>
+    <message>
+        <source>Nothing to send yet: play your move on the board first, then Send Move.</source>
+        <translation>Ancora niente da inviare: gioca prima la tua mossa sulla scacchiera, poi Invia mossa.</translation>
+    </message>
+    <message>
+        <source>The move on the board is not after where the game stands: go back to the game&apos;s line.</source>
+        <translation>La mossa sulla scacchiera non segue il punto in cui è arrivata la partita: torna sulla linea della partita.</translation>
     </message>
 </context>
 <context>

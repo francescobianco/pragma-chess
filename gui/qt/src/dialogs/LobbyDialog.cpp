@@ -12,10 +12,12 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QMenu>
+#include <QPainter>
 #include <QPushButton>
 #include <QStackedWidget>
 #include <QStyle>
 #include <QTreeWidget>
+#include <QVariantAnimation>
 #include <QVBoxLayout>
 
 #include <numeric>
@@ -23,6 +25,34 @@
 namespace {
 
 constexpr int kRoomRole = Qt::UserRole;
+/// The room's id on a row of the list.
+constexpr int kRoomIdRole = Qt::UserRole + 1;
+/// How strongly a cell glows, 0 to 1 (GlowDelegate).
+constexpr int kGlowRole = Qt::UserRole + 2;
+
+/// The cells of the lobby's tables, padded as the games list, with the glow
+/// of a game that turned to the user's move painted over them: over the
+/// selection too, which a background would leave hidden.
+class GlowDelegate : public PaddedItemDelegate {
+public:
+    GlowDelegate(int vertical, int horizontal, QObject *parent)
+        : PaddedItemDelegate(vertical, horizontal, parent)
+    {
+    }
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        PaddedItemDelegate::paint(painter, option, index);
+        const qreal strength = index.data(kGlowRole).toReal();
+        if (strength <= 0)
+            return;
+        const bool selected = option.state & QStyle::State_Selected;
+        QColor glow = option.palette.color(QPalette::Highlight);
+        glow = selected ? glow.lighter(170) : glow;
+        glow.setAlphaF(float((selected ? 0.55 : 0.45) * strength));
+        painter->fillRect(option.rect, glow);
+    }
+};
 constexpr int kGameRole = Qt::UserRole;
 
 /// The position after `moves`, and the last move's squares.
@@ -49,7 +79,7 @@ void padTable(QTreeWidget *view)
 {
     PaddedHeaderView::install(view);
     const int textMargin = view->style()->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, view) + 1;
-    view->setItemDelegate(new PaddedItemDelegate(CellPadding::vertical, CellPadding::horizontal - textMargin, view));
+    view->setItemDelegate(new GlowDelegate(CellPadding::vertical, CellPadding::horizontal - textMargin, view));
 }
 
 QLabel *noteLabel(const QString &text, QWidget *parent)
@@ -117,6 +147,9 @@ LobbyDialog::LobbyDialog(LobbyService *service, QWidget *parent)
     top->addWidget(m_roomTitle, 1);
     roomLayout->addLayout(top);
 
+    // The board first: the tables are lined up with its frame.
+    m_board = new BoardWidget(roomPage);
+    m_board->setFixedSize(BoardWidget::sideForAvailable(280), BoardWidget::sideForAvailable(280));
     auto *columns = new QHBoxLayout;
     auto *seatsColumn = new QVBoxLayout;
     seatsColumn->addWidget(new QLabel(tr("Standings"), roomPage));
@@ -139,6 +172,9 @@ LobbyDialog::LobbyDialog(LobbyService *service, QWidget *parent)
     m_standings->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     m_standings->header()->setSectionResizeMode(1, QHeaderView::Stretch);
     m_standings->setFixedWidth(290);
+    // The tables start where the board's frame does, not its widget: one top line for all three.
+    const int boardTop = m_board->boardArea().top() - BoardWidget::kFrameWidth;
+    seatsColumn->addSpacing(boardTop);
     seatsColumn->addWidget(m_standings, 1);
     m_joinButton = new QPushButton(tr("&Take a Seat"), roomPage);
     seatsColumn->addWidget(m_joinButton);
@@ -156,14 +192,23 @@ LobbyDialog::LobbyDialog(LobbyService *service, QWidget *parent)
     m_games->setRootIsDecorated(false);
     m_games->setUniformRowHeights(true);
     m_games->header()->setStretchLastSection(true);
+    gamesColumn->addSpacing(boardTop);
     gamesColumn->addWidget(m_games, 1);
     columns->addLayout(gamesColumn, 1);
 
     auto *boardColumn = new QVBoxLayout;
-    m_board = new BoardWidget(roomPage);
-    m_board->setFixedSize(BoardWidget::sideForAvailable(280), BoardWidget::sideForAvailable(280));
+    // The players over the board, centred, on the line of the tables' titles.
+    m_gameNames = new QLabel(roomPage);
+    QFont namesFont = m_gameNames->font();
+    namesFont.setBold(true);
+    m_gameNames->setFont(namesFont);
+    m_gameNames->setAlignment(Qt::AlignCenter);
+    m_gameNames->setFixedWidth(m_board->width());
+    m_gameNames->setTextFormat(Qt::PlainText);
+    boardColumn->addWidget(m_gameNames);
     boardColumn->addWidget(m_board);
     m_gameLine = new QLabel(roomPage);
+    m_gameLine->setTextFormat(Qt::PlainText);
     m_gameLine->setWordWrap(true);
     m_gameLine->setFont(FigurineFont::apply(m_gameLine->font()));
     m_gameLine->setMaximumWidth(m_board->width());
@@ -199,12 +244,68 @@ LobbyDialog::LobbyDialog(LobbyService *service, QWidget *parent)
 
     connect(m_service, &LobbyService::networkChanged, this, &LobbyDialog::showNetwork);
     showNetwork();
-    // Events come in from the network while the window is open.
-    connect(m_service, &LobbyService::changed, this, [this] {
-        if (isVisible())
-            refresh();
-    });
+    m_glow = new QVariantAnimation(this);
+    m_glow->setDuration(2500);
+    m_glow->setStartValue(0.0);
+    m_glow->setEndValue(1.0);
+    connect(m_glow, &QVariantAnimation::valueChanged, this, &LobbyDialog::paintGlow);
+    connect(m_glow, &QVariantAnimation::finished, this, &LobbyDialog::paintGlow);
+    // Events come in from the network while the window is open: it is live.
+    m_waiting = waitingGames();
+    connect(m_service, &LobbyService::changed, this, &LobbyDialog::lobbyChanged);
     fillLobby();
+}
+
+QSet<QString> LobbyDialog::waitingGames() const
+{
+    QSet<QString> waiting;
+    for (const LobbyRoom &room : lobby().rooms()) {
+        for (const LobbyGame &game : room.games) {
+            if (game.waitsFor(m_me))
+                waiting.insert(room.id + QLatin1Char('|') + game.white + QLatin1Char('|') + game.black);
+        }
+    }
+    return waiting;
+}
+
+void LobbyDialog::lobbyChanged()
+{
+    const QSet<QString> now = waitingGames();
+    const QSet<QString> turned = now - m_waiting;
+    m_waiting = now;
+    if (!isVisible())
+        return; // What happened meanwhile is shown when it opens, without glowing: nothing is pressed on the user.
+    refresh();
+    if (turned.isEmpty())
+        return;
+    m_glowGames = turned;
+    m_glowRooms.clear();
+    for (const QString &game : turned)
+        m_glowRooms.insert(game.section(QLatin1Char('|'), 0, 0));
+    m_glow->stop();
+    m_glow->start();
+}
+
+void LobbyDialog::paintGlow()
+{
+    const bool running = m_glow->state() == QAbstractAnimation::Running;
+    const qreal strength = running ? 1.0 - qreal(m_glow->currentTime()) / qreal(m_glow->duration()) : 0.0;
+    for (int row = 0; row < m_rooms->topLevelItemCount(); ++row) {
+        QTreeWidgetItem *item = m_rooms->topLevelItem(row);
+        const bool glows = m_glowRooms.contains(item->data(0, kRoomIdRole).toString());
+        for (int column = 0; column < m_rooms->columnCount(); ++column)
+            item->setData(column, kGlowRole, glows ? strength : 0.0);
+    }
+    for (int row = 0; row < m_games->topLevelItemCount(); ++row) {
+        QTreeWidgetItem *item = m_games->topLevelItem(row);
+        const bool glows = m_glowGames.contains(m_roomId + QLatin1Char('|') + item->data(1, kGameRole).toString());
+        for (int column = 0; column < m_games->columnCount(); ++column)
+            item->setData(column, kGlowRole, glows ? strength : 0.0);
+    }
+    if (!running) {
+        m_glowGames.clear();
+        m_glowRooms.clear();
+    }
 }
 
 void LobbyDialog::showNetwork()
@@ -263,6 +364,7 @@ void LobbyDialog::fillLobby()
                                                                      : tr("Full"),
                                                    tr("%n going on", nullptr, going)});
         item->setData(0, kRoomRole, index);
+        item->setData(0, kRoomIdRole, room.id);
         centre(item);
         if (room.isSeated(m_me)) {
             QFont font = item->font(0);
@@ -300,6 +402,7 @@ void LobbyDialog::fillLobby()
     m_rooms->header()->resizeSection(4, std::max(m_rooms->header()->sectionSize(4), buttonWidth + 8));
     const QList<QTreeWidgetItem *> same = m_rooms->findItems(selectedText, Qt::MatchExactly);
     m_rooms->setCurrentItem(same.isEmpty() ? m_rooms->topLevelItem(0) : same.constFirst());
+    paintGlow(); // Rows made again while it fades.
 }
 
 void LobbyDialog::playNow(int row)
@@ -355,6 +458,7 @@ LobbyRoom LobbyDialog::shownRoom() const
 void LobbyDialog::showEvent(QShowEvent *event)
 {
     QDialog::showEvent(event);
+    m_waiting = waitingGames(); // From now on what turns to the user's move glows.
     refresh();
 }
 
@@ -486,6 +590,7 @@ void LobbyDialog::showRoom()
     }
     m_games->setCurrentItem(current);
     showSelectedGame();
+    paintGlow();
 }
 
 void LobbyDialog::showSelectedGame()
@@ -495,6 +600,7 @@ void LobbyDialog::showSelectedGame()
     if (!item || index < 0) {
         m_board->setFlipped(false);
         m_board->setBoard(BoardFrame{ChessPosition::startingPosition().boardState()});
+        m_gameNames->clear();
         m_gameLine->setText(index < 0 ? QString() : tr("No games yet: they begin when two players sit."));
         m_playButton->setEnabled(false);
         m_playButton->setText(tr("&Play"));
@@ -508,9 +614,8 @@ void LobbyDialog::showSelectedGame()
     m_board->setFlipped(game.black == m_me);
     m_board->setBoard(BoardFrame{position.boardState(), from, to});
     const QString line = ChessPosition::startingPosition().lineText(game.moves, -1, SanStyle::Figurines);
-    m_gameLine->setText(QStringLiteral("<b>%1 – %2</b><br>%3")
-                            .arg(room.displayName(game.white).toHtmlEscaped(), room.displayName(game.black).toHtmlEscaped(),
-                                 line.isEmpty() ? tr("No moves yet.") : line.toHtmlEscaped()));
+    m_gameNames->setText(QStringLiteral("%1 – %2").arg(room.displayName(game.white), room.displayName(game.black)));
+    m_gameLine->setText(line.isEmpty() ? tr("No moves yet.") : line);
     m_playButton->setEnabled(game.involves(m_me) && !game.isOver());
     m_playButton->setText(game.involves(m_me) && !game.isOver() && game.toMove() == m_me ? tr("&Play Your Move")
                                                                                        : tr("&Play"));

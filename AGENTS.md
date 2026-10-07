@@ -365,7 +365,8 @@ modal, so it stays open while the user tries things.
 (Save Project, the floppy; more will come), then New Game, New Training
 and New Online Game (the board-sized square with a globe, `pragma-online`;
 like New Training it skips the dialog once "Remember for this session" was
-ticked, `m_rememberedOnline`, while the menu always asks), then the three
+ticked, `m_rememberedOnline`, while the menu always asks), then Enter the Lobby (the same square with a martini glass,
+`pragma-lobby`), then the three
 resources in use — book, engine, database
 (`m_bookButton`, `m_engineButton`, `m_databaseButton`). Each of these is an
 icon only (the user found the names in the toolbar ugly) that drops down the
@@ -1378,8 +1379,17 @@ it**: the rules of the ledger are a protocol every client must apply alike.
 - **The window**: the list shows the user's rooms first (those with games
   waiting for them first, with Play Now), then the joinable ones, the full
   ones and the new rooms, with the network as it is at the bottom (IDEA.md
-  §38). A room shows its standings, its games (those waiting for the user
-  first) and the selected one on a small board. Play brings the game to the
+  §38) — and in the status bar while the lobby is on
+  (`MainWindow::updateLobbyNetwork`), not in the Engine panel. The status
+  bar's sections on the right are added with `PaddedStatusBar::addSection`,
+  which draws a thin line between two visible ones: add new ones that way. A room shows its standings, its games (those waiting for the user
+  first) and the selected one on a small board, its players centred over it
+  on the row of the tables' titles; the tables are lowered by the board's
+  inner margin so the three start on one top line. On the user's turn both sends are offered,
+  ready or not — their lighting up says the turn came back; a click with
+  nothing to send says in the panel what to do (`showLobbyHint`, until the
+  board moves) —, and while waiting only Send Plan, for a plan that changed
+  since it was sent. Play brings the game to the
   board (`MainWindow::playLobbyGame`, asking about an unsaved board game
   first) in **Lobby Mode** (Engine ▸ Lobby Mode; nothing is turned off:
   correspondence play allows engines). In it a move off the line becomes a
@@ -1387,13 +1397,27 @@ it**: the rules of the ledger are a protocol every client must apply alike.
   at its bottom: Send Move and Send Plan, two fixed-width buttons with the
   icons `pragma-send-move` and `pragma-send-plan`, then the text) sends the
   next move or the plan (`MainWindow::sendLobby`). Moves arriving from the
-  network update the board (`lobbyChanged`: kept when the board's line
-  already goes that way, otherwise replaced with the last move sliding in).
+  network go into the board's own tree (`mergeLobbyMoves`: replayed from the
+  root with the session's `playMove`, so through the user's prepared moves
+  when they are there and as a new variation otherwise — nothing prepared is
+  lost); the board moves to the game's new position, the last move sliding
+  in, only when it stood at the game's position, and otherwise stays where
+  the user is. `BoardWidget::setBoard` with the position already shown keeps
+  a piece in the hand: drawing again never drops a drag. Entering the lobby
+  from the menu always opens on the list of rooms.
   The project keeps `lobby: room, white, black, mode` (`restoreLobbyLink`);
   a client with a ledger joins the network at startup, so plans answer with
   the lobby window closed.
+- **Do not disturb**: the application pops nothing up about the lobby. Its
+  window (list and room) is the one live place: it follows `changed`, and
+  what turned to the user's move since it was opened glows over 2.5 s
+  (`LobbyDialog::lobbyChanged`, `GlowDelegate` paints over the selection
+  too); what happened while it was closed is shown when it opens, without
+  glowing. The board in Lobby Mode follows its game; no status message.
 - Development API: `POST /api/lobby {"lobby", "playNow", "room", "join",
-  "game", "play"}` (the window's picture), `POST /api/lobby/send {"plan"}`.
+  "game", "play"}` (the window's picture), `POST /api/lobby/send {"plan",
+  "dry"}` (sends, or with `dry` only says what the panel offers: status,
+  canSendMove, canSendPlan).
   Two instances and a local relay are how it is tried end to end
   (`tst_phonelink` runs two nodes, then two networks on a relay of its own).
 

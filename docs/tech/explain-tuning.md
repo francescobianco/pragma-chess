@@ -484,3 +484,17 @@ lands (`ghostPlies`, ARROW's piece), when moves come between it and the
 capture (20.Qe6 … 24…Nxe6); taken at once (the Evergreen's 20…Nxe5
 21.Rxe5) the next arrow already lands there. Test:
 `drawsTheFallingPieceFaintWhereItIsTaken`.
+
+### 22.Be3??: a discovered check, and the queen behind the knight (7 October)
+
+"It says Black wins the queen but the board does not show how." First,
+Explain stopped on a mistake of its program: `GuardDriven` played on
+`PASS` of a position in check, which is NOTHING. Then it said "wins a
+knight" — 24…Bxc3 was enough to be the realization, and 25…Rxd5 two plies
+later is the queen. `BiggerSoon` carries a realization on to a gain bigger
+by a minor piece within HOLD_PLIES when the exchanges stop there too. The
+victim's sender may be a check (23…Ng5+: the threats cannot be read with
+the defender in check) and may have come during the line (22…Nf3+, traced
+back); a discovered check's line is drawn dashed from the piece uncovered
+to the king (`DiscoveredChecker`, the king found with SIDEAT: a king with no
+legal move cannot be found among the moves).

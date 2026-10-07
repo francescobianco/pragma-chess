@@ -430,3 +430,21 @@ expect arrows e2f4 alternative, e7f5 refutation 1, e3e6 reply 2, f5d4 refutation
 expect lost e3
 expect summary Blunder (−0.7 → −5.0). Black wins the queen, a bishop and a pawn for a rook and a knight: 17…Nf5 18.e6+ Ke8 19.e7 Bxe7 20.Qe6 Nd4 21.Bf4 Nf3+ 22.Kh1 Rxf4 23.Nxf4 Nd4+ 24.Kg1 Nxe6 25.Nxe6. Better was 17.Nf4.
 end
+
+# 22.Be3?? in training (White): 22…Nf3+ 23.Kg2 Ng5+, a discovered check
+# of the bishop of c6 with the knight on the queen; 24.Qd5 is put in the way
+# and falls at 25…Rxd5. Explain stopped on a mistake (PASS in check), then
+# said only "wins a knight" (24…Bxc3). Now: the queen, the knight's walk,
+# the queen's arrival and the discovered check's line c6→g2.
+explain
+before 3r3k/p1q3b1/2b1Q3/7p/5Nrn/2N3P1/PPP2P2/R1B2RK1 w - - 0 22
+played c1e3
+before-eval depth 30 cp -150 pv f4h5
+after 3r3k/p1q3b1/2b1Q3/7p/5Nrn/2N1B1P1/PPP2P2/R4RK1 b - - 1 22
+viewer white
+tick depth 29 cp -811 pv h4f3 g1g2 f3g5 e6d5 g7c3 f1h1 d8d5 g2f1 c6b5 f1g1 d5e5 a2a4 g5f3 g1g2 b5c6 b2c3 h5h4 g2f1 h8g8 h1h4 f3h4 g3h4 c7g7 a1b1 g4h4 b1b8 g8f7
+expect verdict blunder
+expect arrows c6g2 threat, f4h5 alternative, h4f3 refutation 1, g1g2 reply 2, f3g5 refutation 3, e6d5 reply 4, g7c3 refutation 5, f1h1 reply 6, d8d5 refutation 7
+expect lost c3, e6
+expect summary Blunder (−1.5 → −8.1). Black wins the queen and a knight: 22…Nf3+ 23.Kg2 Ng5+ 24.Qd5 Bxc3 25.Rh1 Rxd5. Better was 22.Nxh5.
+end

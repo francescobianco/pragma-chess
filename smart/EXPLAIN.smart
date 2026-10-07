@@ -22,6 +22,7 @@
 '     INCHECK(p), CHECKMATE(p), STALEMATE(p)
 '     CAPTURED(p, move)               the piece the move takes (en passant too), or 0
 '     PIECE(p, square)                the piece on a square (0 to 63, a1 to h8), or 0
+'     SIDEAT(p, square)               the side of the piece on a square, or 0
 '     COUNT(p, side, piece)           how many of that piece the side has
 '     LINETEXT(p, moves, plies)       "14…Bxf2+ 15.Kxf2 Ng4+": at most `plies` moves
 '     MOVES(p)                        the legal moves, in UCI, in no particular order
@@ -178,6 +179,19 @@ FUNCTION MoveText(position, move)
     RETURN LINETEXT(position, [move], 1)
 END FUNCTION
 
+' A realization at ply k, carried on to a much bigger gain a few plies on
+' when the exchanges stop there too: 24...Bxc3 takes a knight, 25...Rxd5
+' the queen that was driven to d5 — the queen is what is won. Within
+' HOLD_PLIES, settled, at least a minor piece more; the latest such.
+FUNCTION BiggerSoon(line, k, beneficiary, baseline)
+    best = k
+    FOR later = k + 1 TO MIN(Plies(line), k + HOLD_PLIES)
+        IF IsSettled(line, later) AND Gain(line, later, beneficiary, baseline) >= Gain(line, best, beneficiary, baseline) + 300 THEN best = later
+    NEXT
+    IF best > k THEN NOTE "    carried on to ply " + STR(best) + ": gain +" + STR(Gain(line, best, beneficiary, baseline))
+    RETURN best
+END FUNCTION
+
 ' First ply from `firstPly` at which `beneficiary` is up at least `needed`
 ' centipawns of material compared with `baseline` — past LONG_PLIES, at
 ' least LONG_SHARE of `swing` —, the exchanges are over, and the gain holds
@@ -208,7 +222,7 @@ FUNCTION FindRealization(line, firstPly, beneficiary, baseline, needed, swing)
         plus = ""
         IF gained >= 0 THEN plus = "+"
         NOTE "    ply " + STR(k) + " " + MoveText(line[1][k - 1], line[0][k - 1]) + " gain " + plus + STR(gained) + mark
-        IF holds THEN RETURN k
+        IF holds THEN RETURN BiggerSoon(line, k, beneficiary, baseline)
     NEXT
     ' Exchanges that run on to the end of the line (11.Re1?: 11...Qb6 and
     ' Bxf2+, Bxe1, Rxe1, Bxe2+, Rxe2, ... at depth 45) never hold still for
@@ -355,7 +369,10 @@ FUNCTION GuardDriven(line, k, first)
     IF k - 1 <= first THEN RETURN []
     IF CAPTURED(positions[k], moves[k]) = 0 THEN RETURN []
     guard = FROMSQ(moves[k - 1])
-    stayed = PLAY(PASS(positions[k - 1]), moves[k])
+    ' In check the guard had to move (PASS gives NOTHING): no guard taken away.
+    passed = PASS(positions[k - 1])
+    IF passed = NOTHING THEN RETURN []
+    stayed = PLAY(passed, moves[k])
     IF stayed = NOTHING THEN RETURN []
     guarded = FALSE
     answers = MOVES(stayed)
@@ -386,10 +403,13 @@ FUNCTION GuardDriven(line, k, first)
             NEXT
         END IF
         attacked = FALSE
-        threats = MOVES(PASS(positions[start + 1]))
-        FOR i = 0 TO LEN(threats) - 1
-            IF TOSQ(threats[i]) = source AND CAPTURED(PASS(positions[start + 1]), threats[i]) <> 0 AND FROMSQ(threats[i]) = TOSQ(moves[start]) THEN attacked = TRUE
-        NEXT
+        passed = PASS(positions[start + 1])
+        IF passed <> NOTHING THEN
+            threats = MOVES(passed)
+            FOR i = 0 TO LEN(threats) - 1
+                IF TOSQ(threats[i]) = source AND CAPTURED(passed, threats[i]) <> 0 AND FROMSQ(threats[i]) = TOSQ(moves[start]) THEN attacked = TRUE
+            NEXT
+        END IF
         IF bait OR attacked THEN plies = [start] + plies
     END IF
     RETURN plies
@@ -531,11 +551,31 @@ FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
             start = arrived
             IF arrived - 1 >= first THEN
                 sent = NewThreats(positions, arrived - 1, beneficiary, THREAT_GAIN, moves)
-                IF LEN(sent) > 0 THEN
+                ' A check sends it too (23...Ng5+, the queen put in the way at
+                ' d5): the reply was forced, whatever the threats.
+                checked = INCHECK(positions[arrived])
+                IF LEN(sent) > 0 OR checked THEN
                     start = arrived - 1
-                    Draw FROMSQ(sent[0][0]), TOSQ(sent[0][0]), "threat", 0
-                    ' In line with the king behind: the line goes on to it, and is said.
-                    king = KingInLine(positions[arrived], FROMSQ(sent[0][0]), TOSQ(sent[0][0]))
+                    ' The piece that sent it may have come during the line too
+                    ' (22...Nf3+ before 23...Ng5+): its way from where it stands.
+                    source = FROMSQ(moves[start])
+                    FOR j = start - 2 TO first STEP -2
+                        IF TOSQ(moves[j]) = source THEN
+                            source = FROMSQ(moves[j])
+                            start = j
+                        END IF
+                    NEXT
+                    ' A discovered check: its line, dashed, from the piece uncovered to the king.
+                    IF checked THEN
+                        checker = DiscoveredChecker(positions[arrived], TOSQ(moves[arrived - 1]))
+                        IF checker >= 0 THEN Draw checker, KingOf(positions[arrived], SIDETOMOVE(positions[arrived])), "threat", 0
+                    END IF
+                    king = -1
+                    IF LEN(sent) > 0 THEN
+                        Draw FROMSQ(sent[0][0]), TOSQ(sent[0][0]), "threat", 0
+                        ' In line with the king behind: the line goes on to it, and is said.
+                        king = KingInLine(positions[arrived], FROMSQ(sent[0][0]), TOSQ(sent[0][0]))
+                    END IF
                     IF king >= 0 THEN
                         Draw TOSQ(sent[0][0]), king, "threat", 0
                         lineNote = " " + TEXT("%1 attacks %2 on %3, in line with the king on %4.", MoveText(positions[arrived - 1], moves[arrived - 1]), PieceName(PIECE(positions[arrived], TOSQ(sent[0][0]))), SquareName(TOSQ(sent[0][0])), SquareName(king))
@@ -747,21 +787,43 @@ FUNCTION KingInLine(position, source, target)
     RETURN -1
 END FUNCTION
 
-' Which side the piece on `square` of `position` belongs to: the side whose
-' turn, passed if need be, lets it move or take from there; 0 if empty.
-FUNCTION SideOf(position, square)
-    IF PIECE(position, square) = 0 THEN RETURN 0
-    FOR turn = 0 TO 1
-        probe = position
-        IF turn = 1 THEN probe = PASS(position)
-        IF probe <> NOTHING THEN
-            moves = MOVES(probe)
-            FOR i = 0 TO LEN(moves) - 1
-                IF FROMSQ(moves[i]) = square THEN RETURN SIDETOMOVE(probe)
-            NEXT
+' The square of a line piece that gives check in `position` (the side to
+' move is in check) other than the one on `moved` — a discovered check:
+' 23...Ng5+ uncovers the bishop of c6 on the king of g2. -1 if none.
+FUNCTION DiscoveredChecker(position, moved)
+    IF NOT INCHECK(position) THEN RETURN -1
+    king = KingOf(position, SIDETOMOVE(position))
+    IF king < 0 THEN RETURN -1
+    steps = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]
+    FOR d = 0 TO 7
+        file = king MOD 8 + steps[d][0]
+        rank = INT(king / 8) + steps[d][1]
+        found = -1
+        WHILE found < 0 AND file >= 0 AND file <= 7 AND rank >= 0 AND rank <= 7
+            IF PIECE(position, rank * 8 + file) <> 0 THEN found = rank * 8 + file
+            file = file + steps[d][0]
+            rank = rank + steps[d][1]
+        WEND
+        IF found >= 0 AND found <> moved AND SideOf(position, found) <> SIDETOMOVE(position) THEN
+            piece = PIECE(position, found)
+            straight = steps[d][0] = 0 OR steps[d][1] = 0
+            IF piece = QUEEN OR (piece = ROOK AND straight) OR (piece = BISHOP AND NOT straight) THEN RETURN found
         END IF
     NEXT
-    RETURN 0
+    RETURN -1
+END FUNCTION
+
+' Which side the piece on `square` of `position` belongs to, 0 if empty.
+FUNCTION SideOf(position, square)
+    RETURN SIDEAT(position, square)
+END FUNCTION
+
+' The square of `side`'s king in `position`, -1 if it has none.
+FUNCTION KingOf(position, side)
+    FOR square = 0 TO 63
+        IF PIECE(position, square) = KING AND SIDEAT(position, square) = side THEN RETURN square
+    NEXT
+    RETURN -1
 END FUNCTION
 
 ' Whether the king of the side to move in `position` stands next to `square`.

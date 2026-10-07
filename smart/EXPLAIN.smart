@@ -305,32 +305,58 @@ FUNCTION IsBetween(square, source, target)
     RETURN FALSE
 END FUNCTION
 
-' Whether the capture moves[k] of `line` takes what a piece of the losing
-' side defended until the two moves before it drove it away: moves[k - 2]
-' attacks that piece, moves[k - 1] moves it, and where it stood it could
-' have taken back. 10...Nf5 attacks the queen of g3, 11.Qd3 leaves, and
-' 11...Bxg2 takes a pawn the queen no longer guards.
-FUNCTION Deflects(line, k)
+' The moves that took the guard away from what moves[k] of `line` captures:
+' the losing side's piece that, had it stayed where it stood before
+' moves[k - 1], could have taken back — its way there from the start of the
+' line (from `first`), and the winning side's move that set it going: the
+' attack it fled (10...Nf5, 11.Qd3: the queen of g3 no longer guards g2),
+' or the bait it took (10...Nf5 11.Qh3 Bc5 12.Qxf5: the queen leaves g2
+' to take the knight). Their plies, in order; empty when moves[k] took
+' nothing guarded.
+FUNCTION GuardDriven(line, k, first)
     moves = line[0]
     positions = line[1]
-    IF k < 2 THEN RETURN FALSE
-    IF CAPTURED(positions[k], moves[k]) = 0 THEN RETURN FALSE
+    IF k - 1 <= first THEN RETURN []
+    IF CAPTURED(positions[k], moves[k]) = 0 THEN RETURN []
     guard = FROMSQ(moves[k - 1])
-    ' The attack: after moves[k - 2], the winning side could take on the guard's square.
-    attacked = FALSE
-    threats = MOVES(PASS(positions[k - 1]))
-    FOR i = 0 TO LEN(threats) - 1
-        IF TOSQ(threats[i]) = guard AND CAPTURED(PASS(positions[k - 1]), threats[i]) <> 0 THEN attacked = TRUE
-    NEXT
-    IF NOT attacked THEN RETURN FALSE
-    ' The guard: had it stayed, it could have taken back on the square of the capture.
     stayed = PLAY(PASS(positions[k - 1]), moves[k])
-    IF stayed = NOTHING THEN RETURN FALSE
+    IF stayed = NOTHING THEN RETURN []
+    guarded = FALSE
     answers = MOVES(stayed)
     FOR i = 0 TO LEN(answers) - 1
-        IF FROMSQ(answers[i]) = guard AND TOSQ(answers[i]) = TOSQ(moves[k]) THEN RETURN TRUE
+        IF FROMSQ(answers[i]) = guard AND TOSQ(answers[i]) = TOSQ(moves[k]) THEN guarded = TRUE
     NEXT
-    RETURN FALSE
+    IF NOT guarded THEN RETURN []
+    ' The guard's way, back to the square it stands on at `first`.
+    plies = [k - 1]
+    source = guard
+    FOR j = k - 3 TO first STEP -2
+        IF TOSQ(moves[j]) = source THEN
+            source = FROMSQ(moves[j])
+            plies = [j] + plies
+        END IF
+    NEXT
+    ' What set it going: the winning side's move before its first step,
+    ' when it attacks the guard or puts the bait it takes.
+    start = plies[0] - 1
+    IF start >= first THEN
+        bait = CAPTURED(positions[k - 1], moves[k - 1]) <> 0 AND TOSQ(moves[start]) = TOSQ(moves[k - 1])
+        IF NOT bait THEN
+            ' The bait may have come earlier: the winning side's move that put it there.
+            FOR j = k - 2 TO first STEP -2
+                IF TOSQ(moves[j]) = TOSQ(moves[k - 1]) AND CAPTURED(positions[k - 1], moves[k - 1]) <> 0 THEN
+                    IF j = start THEN bait = TRUE
+                END IF
+            NEXT
+        END IF
+        attacked = FALSE
+        threats = MOVES(PASS(positions[start + 1]))
+        FOR i = 0 TO LEN(threats) - 1
+            IF TOSQ(threats[i]) = source AND CAPTURED(PASS(positions[start + 1]), threats[i]) <> 0 AND FROMSQ(threats[i]) = TOSQ(moves[start]) THEN attacked = TRUE
+        NEXT
+        IF bait OR attacked THEN plies = [start] + plies
+    END IF
+    RETURN plies
 END FUNCTION
 
 ' Whether `move` uncovers an attack: once the piece has left its square, a
@@ -415,22 +441,34 @@ FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
         window = [first, window[1]]
         firstAdded = TRUE
     END IF
-    ' A capture of something its guard was driven from: the attack on the
-    ' guard and its flight are drawn before it, or the board seems to say
-    ' the piece can be taken back (11...Bxg2, and the queen of g3 is gone).
+    ' A capture of something whose guard was taken away — chased, or lured
+    ' by a bait —: the guard's way and what set it going are drawn before
+    ' it, or the board seems to say the piece can be taken back (11...Bxg2,
+    ' and the queen of g3 is gone).
     capture = window[0]
     IF LEN(drawOnly) > 0 THEN capture = drawOnly[0]
-    IF capture - 2 >= first THEN
-        IF SIDETOMOVE(positions[capture]) = beneficiary AND Deflects(line, capture) THEN
+    IF SIDETOMOVE(positions[capture]) = beneficiary THEN
+        driven = GuardDriven(line, capture, first)
+        IF LEN(driven) > 0 THEN
             IF LEN(drawOnly) = 0 THEN
                 FOR k = window[0] TO window[1] - 1
                     drawOnly = drawOnly + [k]
                 NEXT
             END IF
-            drawOnly = [capture - 2, capture - 1] + drawOnly
-            NOTE "  and " + MoveText(positions[capture - 2], moves[capture - 2]) + " " + MoveText(positions[capture - 1], moves[capture - 1]) + ": the guard of " + SquareName(TOSQ(moves[capture])) + " driven away"
-            Draw TOSQ(moves[capture - 2]), FROMSQ(moves[capture - 1]), "threat", 0
-            window = [MIN(window[0], capture - 2), window[1]]
+            keep = []
+            FOR i = 0 TO LEN(driven) - 1
+                IF NOT CONTAINS(drawOnly, driven[i]) THEN keep = keep + [driven[i]]
+            NEXT
+            drawOnly = keep + drawOnly
+            NOTE "  and the guard of " + SquareName(TOSQ(moves[capture])) + " taken away: plies " + STR(driven[0] + 1) + "-" + STR(capture)
+            ' The attack that chased it, dashed.
+            starter = driven[0]
+            IF SIDETOMOVE(positions[starter]) = beneficiary AND LEN(driven) > 1 THEN
+                guardSquare = FROMSQ(moves[driven[1]])
+                IF TOSQ(moves[starter]) <> TOSQ(moves[capture - 1]) THEN Draw TOSQ(moves[starter]), guardSquare, "threat", 0
+                IF TOSQ(moves[starter]) = TOSQ(moves[capture - 1]) AND LEN(driven) > 2 THEN Draw TOSQ(moves[starter]), guardSquare, "threat", 0
+            END IF
+            window = [MIN(window[0], driven[0]), window[1]]
         END IF
     END IF
     RETURN window + [firstAdded]

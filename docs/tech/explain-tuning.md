@@ -402,8 +402,11 @@ The user, White in training, after 10.d4 (+0.4 → −2.5): Explain drew only
 11…Bxg2 and 12…Bxh1, and "the queen can take back on g2". It cannot: the
 line is 10…Nf5 11.Qd3 Bxg2 12.Qxf5 Bxh1, the knight drives the queen of g3
 away first. FocusWindow drew the biggest jump traced back to the bishop,
-not the deflection. `Deflects(line, k)`: the capture moves[k] takes what a
-piece of the losing side guarded until moves[k - 2] attacked it and
-moves[k - 1] moved it (had it stayed, it could take back on that square).
-Then both moves are drawn before the capture, with the threat on the guard
-dashed. Recorded: user-feedback.ticks.
+not the deflection. `GuardDriven(line, k, first)`: the capture moves[k]
+takes what a piece of the losing side guarded until moves[k - 1] moved it
+(had it stayed, it could take back on that square). Its way there from the
+start of the line is drawn before the capture, with the winning side's
+move that set it going: an attack it fled (10.d4: 10…Nf5 11.Qd3, the threat
+on g3 dashed) or a bait it took (10.d3: 10…Nf5 11.Qh3 Bc5 12.Qxf5 — the
+queen still guarded g2 from h3, and left it for the knight). Recorded:
+user-feedback.ticks.

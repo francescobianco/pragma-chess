@@ -7,6 +7,7 @@
 #include "app/EnginePower.h"
 #include "app/GameDatabase.h"
 #include "app/UciEngine.h"
+#include "dialogs/LobbyDialog.h"
 #include "widgets/BoardWidget.h"
 
 #include <QAction>
@@ -292,6 +293,29 @@ void DesktopApi::addRoutes()
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/explain"), toggle(w->m_explainAction, QStringLiteral("Explain")));
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/analysis"),
                     toggle(w->m_startEngineAction, QStringLiteral("the analysis")));
+    // Game ▸ Enter the Lobby…, then a room entered by its row and a seat taken: the window's picture.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/lobby"), [w](const Request &request) {
+        const QJsonObject body = bodyOf(request).value_or(QJsonObject());
+        w->showLobby();
+        LobbyDialog *lobby = w->m_lobbyDialog;
+        if (body.value(QStringLiteral("lobby")).toBool())
+            lobby->showLobbyPage();
+        if (body.value(QStringLiteral("playNow")).isDouble())
+            lobby->playNow(body.value(QStringLiteral("playNow")).toInt());
+        if (body.value(QStringLiteral("room")).isDouble())
+            lobby->enterRoomAt(body.value(QStringLiteral("room")).toInt());
+        if (body.value(QStringLiteral("join")).toBool())
+            lobby->join();
+        if (body.value(QStringLiteral("game")).isDouble())
+            lobby->selectGame(body.value(QStringLiteral("game")).toInt());
+        if (body.value(QStringLiteral("play")).toBool())
+            lobby->play();
+        QByteArray png;
+        QBuffer buffer(&png);
+        buffer.open(QIODevice::WriteOnly);
+        lobby->grab().save(&buffer, "PNG");
+        return Response{200, "image/png", png};
+    });
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/flip"), toggle(w->m_flipBoardAction, QStringLiteral("the board")));
     // The engines of this computer and their Computing Power, and what the
     // engine running takes of the processor since the last call.

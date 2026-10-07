@@ -321,6 +321,10 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   the end of the chapter), `/api/explain`, `/api/analysis`, `/api/flip`,
   `/api/peek` (the Engine panel's eye held) `{"on": bool}`; each answers
   with the state.
+- `POST /api/lobby {"lobby": bool, "playNow": row, "room": row, "join": bool,
+  "game": row, "play": bool}` opens Game ▸ Enter the Lobby…, does those steps in that
+  order (back to the list, the Play Now of that row, enter the room on that row, take a seat, select
+  a game, play it) and answers with the lobby window as a PNG.
 - **To see what the user sees**, call it on their `make start` instance
   (state, screenshot) instead of guessing. A test instance of your own:
   `PRAGMA_DEV_API=1 PRAGMA_DEV_API_PORT=…` with a scratch
@@ -1323,6 +1327,30 @@ a platform; lichess.org for now, through its Board API, more to come.
   on (`keepOnlineGame`: Switch Database, New Database, the sync opening the
   file again) leaves the game on the board; it is saved to the database open
   when it ends.
+
+## Lobby
+
+Game ▸ Enter the Lobby… (`dialogs/LobbyDialog`, not modal, kept while the
+application runs) is the user experience of IDEA.md's asynchronous
+tournaments, before any network: `app/lobby/Lobby` (pure, unit-tested) holds
+rooms of four seats, where every pair plays two games, one with each colour,
+added as players sit (`LobbyRoom::seat`), and keeps `kMinJoinableRooms` rooms
+with a free seat by offering new ones that exist once someone sits there
+— offered with their seed, so named before anyone sits (`offeredRooms`).
+Rooms with games waiting for the user (`gamesWaitingFor`) come first and
+have Play Now (one game: straight there; several: a menu); in a room
+those games come first, then the user's others, then the rest.
+A room is named by a seed (`app/lobby/RoomName`, pure, unit-tested): a
+chess term and a champion, "Capablanca's Fortress", each term a whole
+phrase translated with its article ("La fortezza di %1"), so the seed
+travels and each client names the room in its own language; a new room
+draws a seed whose name is not in use. The lists are append only — a seed
+must keep its name. The rooms are `Lobby::sample()` (two with free seats,
+two full); Play only says it is not ready. The tables use
+`PaddedHeaderView::install`, as the games list does. The list
+shows the user's rooms first (full or not), then the joinable ones, the
+full ones, then the new rooms; a room shows its standings (`LobbyRoom::standings`: points, then wins, then name; level players share a place; then the free seats), its games and the selected game's
+position on a small `BoardWidget`.
 
 ## Web site
 

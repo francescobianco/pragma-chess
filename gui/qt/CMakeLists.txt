@@ -210,6 +210,10 @@ qt_add_library(pragma-chess-core STATIC
     src/app/online/LichessBoardClient.h
     src/app/online/OnlineAccount.cpp
     src/app/online/OnlineAccount.h
+    src/app/lobby/Lobby.cpp
+    src/app/lobby/Lobby.h
+    src/app/lobby/RoomName.cpp
+    src/app/lobby/RoomName.h
     src/app/online/OnlineGame.cpp
     src/app/online/OnlineGame.h
     src/app/sources/ChessComFetch.cpp
@@ -359,6 +363,8 @@ qt_add_executable(pragma-chess
     src/dialogs/NewTrainingDialog.h
     src/dialogs/PersonalSettingsDialog.cpp
     src/dialogs/PersonalSettingsDialog.h
+    src/dialogs/LobbyDialog.cpp
+    src/dialogs/LobbyDialog.h
     src/dialogs/PlayOnlineDialog.cpp
     src/dialogs/PlayOnlineDialog.h
     src/dialogs/ProjectSettingsDialog.cpp

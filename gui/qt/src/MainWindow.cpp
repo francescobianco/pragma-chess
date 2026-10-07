@@ -17,6 +17,7 @@
 #include "dialogs/ConnectSourceWizard.h"
 #include "dialogs/GameInfoDialog.h"
 #include "dialogs/HelpDialog.h"
+#include "dialogs/LobbyDialog.h"
 #include "dialogs/ManageChaptersDialog.h"
 #include "dialogs/ManageEnginesDialog.h"
 #include "dialogs/ManageSourcesDialog.h"
@@ -798,6 +799,9 @@ void MainWindow::createActions()
     m_playOnlineAction = new QAction(themeIcon("pragma-online", QStyle::SP_ComputerIcon), tr("New &Online Game…"), this);
     m_playOnlineAction->setToolTip(tr("Play a game against a person on lichess.org, with one of your accounts"));
     connect(m_playOnlineAction, &QAction::triggered, this, [this] { playOnline(true); });
+    m_lobbyAction = new QAction(tr("Enter the &Lobby…"), this);
+    m_lobbyAction->setToolTip(tr("Tournaments of four players without a clock: sit at a table with a free seat"));
+    connect(m_lobbyAction, &QAction::triggered, this, &MainWindow::showLobby);
     // The toolbar's button skips the question once an answer was remembered.
     m_quickOnlineAction = new QAction(m_playOnlineAction->icon(), m_playOnlineAction->text(), this);
     m_quickOnlineAction->setToolTip(m_playOnlineAction->toolTip());
@@ -951,6 +955,7 @@ void MainWindow::createMenus()
     game->addAction(m_newGameAction);
     game->addAction(m_newTrainingAction);
     game->addAction(m_playOnlineAction);
+    game->addAction(m_lobbyAction);
     game->addAction(m_setUpPositionAction);
     game->addAction(m_saveGameAction);
     game->addAction(m_saveGameElsewhereAction);
@@ -4517,6 +4522,16 @@ void MainWindow::showGuide()
     m_guideDialog->show();
     m_guideDialog->raise();
     m_guideDialog->activateWindow();
+}
+
+void MainWindow::showLobby()
+{
+    // Not modal: the lobby stays open beside the board.
+    if (!m_lobbyDialog)
+        m_lobbyDialog = new LobbyDialog(myName(), this);
+    m_lobbyDialog->show();
+    m_lobbyDialog->raise();
+    m_lobbyDialog->activateWindow();
 }
 
 void MainWindow::restoreSession()

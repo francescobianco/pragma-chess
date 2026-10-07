@@ -1,5 +1,7 @@
 #include "app/AdvantageProbe.h"
 #include "app/BookWeights.h"
+#include "app/lobby/Lobby.h"
+#include "app/lobby/RoomName.h"
 #include "app/online/OnlineGame.h"
 #include "app/ChessPosition.h"
 #include "app/DatabaseDedupe.h"
@@ -881,6 +883,100 @@ QString writeChessBaseFixture(const QString &dir)
         }
         qInfo("compared %d games with their .cbh twin; %d variations read", compared, variations);
         QVERIFY(compared > 0);
+    }
+
+    void seatsPlayersInLobbyRooms()
+    {
+        // Every pair plays twice, once with each colour: twelve games with four players.
+        LobbyRoom room;
+        QVERIFY(room.seat(QStringLiteral("A")));
+        QVERIFY(room.games.isEmpty());
+        QVERIFY(room.seat(QStringLiteral("B")));
+        QCOMPARE(room.games.size(), 2);
+        QCOMPARE(room.games.first().white, QStringLiteral("B"));
+        QVERIFY(!room.seat(QStringLiteral("B")));
+        QVERIFY(room.seat(QStringLiteral("C")));
+        QVERIFY(room.seat(QStringLiteral("D")));
+        QCOMPARE(room.games.size(), 12);
+        QVERIFY(!room.isJoinable());
+        QVERIFY(!room.seat(QStringLiteral("E")));
+        for (const QString &player : room.seats) {
+            const auto as = [&](bool white) {
+                return std::count_if(room.games.cbegin(), room.games.cend(), [&](const LobbyGame &game) {
+                    return (white ? game.white : game.black) == player;
+                });
+            };
+            QCOMPARE(as(true), 3);
+            QCOMPARE(as(false), 3);
+        }
+
+        // The standings: finished games only, points then wins, level players share a place.
+        room.games[0].result = QStringLiteral("1-0"); // B beats A.
+        room.games[1].result = QStringLiteral("1/2-1/2"); // A–B.
+        room.games[2].result = QStringLiteral("0-1"); // A beats C.
+        const QList<LobbyStanding> table = room.standings();
+        QCOMPARE(table.size(), 4);
+        QCOMPARE(table.at(0).player, QStringLiteral("A")); // Level with B: by name.
+        QCOMPARE(table.at(0).halfPoints, 3);
+        QCOMPARE(table.at(0).wins, 1);
+        QCOMPARE(table.at(0).draws, 1);
+        QCOMPARE(table.at(0).losses, 1);
+        QCOMPARE(table.at(1).player, QStringLiteral("B"));
+        QCOMPARE(table.at(1).halfPoints, 3);
+        QCOMPARE(table.at(1).place, 1); // Level on points and wins: the same place.
+        QCOMPARE(table.at(2).player, QStringLiteral("C"));
+        QCOMPARE(table.at(2).place, 3);
+        QCOMPARE(table.at(2).losses, 1);
+        QCOMPARE(table.at(3).player, QStringLiteral("D")); // No game finished yet.
+        QCOMPARE(table.at(3).place, 3);
+        QCOMPARE(table.at(3).played, 0);
+
+        // The sample's games are legal, and the lobby keeps two rooms open.
+        Lobby lobby = Lobby::sample();
+        for (const LobbyRoom &sample : lobby.rooms()) {
+            for (const LobbyGame &game : sample.games) {
+                ChessPosition position = ChessPosition::startingPosition();
+                for (const QString &uci : game.moves) {
+                    const std::optional<ChessMove> move = position.moveFromUci(uci);
+                    QVERIFY2(move, qPrintable(sample.name() + QLatin1Char(' ') + uci));
+                    position.play(*move);
+                }
+            }
+        }
+        QCOMPARE(lobby.joinableRooms().size(), 2);
+        QCOMPARE(lobby.newRooms(), 0);
+        const int full = lobby.joinableRooms().first();
+        QCOMPARE(lobby.join(full, QStringLiteral("Me")), full);
+        QCOMPARE(lobby.newRooms(), 1); // A room filled up: a new one is offered.
+        QCOMPARE(lobby.rooms().size(), 4);
+        QCOMPARE(lobby.rooms().at(2).name(), QStringLiteral("Tal's Sacrifice")); // No translation loaded.
+        const quint32 offered = lobby.offeredRooms().constFirst(); // Named before anyone sits.
+        QVERIFY(RoomName::englishText(offered) != lobby.rooms().at(0).name());
+        const int opened = lobby.join(-1, QStringLiteral("Me"));
+        QCOMPARE(opened, lobby.rooms().size() - 1);
+        QCOMPARE(lobby.rooms().at(opened).players(), 1);
+        QCOMPARE(lobby.newRooms(), 0);
+        QCOMPARE(lobby.rooms().at(opened).seed, offered); // The room keeps the name it was offered with.
+        QCOMPARE(Lobby().newRooms(), 2);
+        // The user's games waiting for them: the sample seats them in two rooms.
+        const Lobby mine = Lobby::sample(QStringLiteral("Me"));
+        QCOMPARE(mine.rooms().at(1).gamesWaitingFor(QStringLiteral("Me")).size(), 2);
+        QCOMPARE(mine.rooms().at(3).gamesWaitingFor(QStringLiteral("Me")).size(), 1);
+        QCOMPARE(mine.rooms().at(0).gamesWaitingFor(QStringLiteral("Me")).size(), 0);
+
+        // A room's name is its seed's: a term and a champion, the same on every device.
+        QCOMPARE(RoomName::englishText(1 + 2 * RoomName::termCount()), QStringLiteral("Capablanca's Fortress"));
+        QCOMPARE(RoomName::englishText(1 + 2 * RoomName::termCount() + quint32(RoomName::termCount())
+                                                                            * RoomName::championCount()),
+                 QStringLiteral("Capablanca's Fortress"));
+        QSet<quint32> taken;
+        QSet<QString> names;
+        for (int i = 0; i < 200; ++i) {
+            const quint32 seed = RoomName::newSeed(taken);
+            taken.insert(seed);
+            names.insert(RoomName::englishText(seed));
+        }
+        QCOMPARE(names.size(), 200); // A new room never takes a name in use.
     }
 
     void readsAndSearchesTheGuide()

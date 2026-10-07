@@ -41,6 +41,7 @@ class GameDatabase;
 class GameListModel;
 class GameSession;
 class HelpDialog;
+class LobbyDialog;
 class MoveTreeView;
 class BookPanel;
 struct ChessMove;
@@ -428,6 +429,7 @@ private:
     void showAbout();
     /// Help ▸ Pragma Chess Guide (F1).
     void showGuide();
+    void showLobby();
 
     // Session persistence: the current project state (saved or not) and the
     // window geometry are stored per user (QSettings) shortly after they change
@@ -599,6 +601,7 @@ private:
     QAction *m_newGameAction;
     QAction *m_newTrainingAction;
     QAction *m_playOnlineAction;
+    QAction *m_lobbyAction;
     QAction *m_setUpPositionAction;
     QAction *m_quickOnlineAction;
     std::optional<LichessBoardClient::Seek> m_rememberedOnline; // "Remember for this session", never saved.
@@ -627,6 +630,8 @@ private:
     QAction *m_aboutAction;
     QAction *m_guideAction;
     HelpDialog *m_guideDialog = nullptr;
+    /// Game ▸ Enter the Lobby…: one window, kept with its rooms while the application runs.
+    LobbyDialog *m_lobbyDialog = nullptr;
 
     QTimer *m_saveTimer = nullptr;
     bool m_restoringSession = false;

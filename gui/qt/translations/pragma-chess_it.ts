@@ -1277,6 +1277,253 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>LobbyDialog</name>
+    <message>
+        <source>Me</source>
+        <translation>Io</translation>
+    </message>
+    <message>
+        <source>Lobby</source>
+        <translation>Lobby</translation>
+    </message>
+    <message>
+        <source>Tournaments</source>
+        <translation>Tornei</translation>
+    </message>
+    <message>
+        <source>Room</source>
+        <translation>Stanza</translation>
+    </message>
+    <message>
+        <source>Players</source>
+        <translation>Giocatori</translation>
+    </message>
+    <message>
+        <source>Free Seats</source>
+        <translation>Posti liberi</translation>
+    </message>
+    <message>
+        <source>Games</source>
+        <translation>Partite</translation>
+    </message>
+    <message>
+        <source>&amp;Enter Room</source>
+        <translation>&amp;Entra nella stanza</translation>
+    </message>
+    <message>
+        <source>‹ &amp;Lobby</source>
+        <translation>‹ &amp;Lobby</translation>
+    </message>
+    <message>
+        <source>&amp;Take a Seat</source>
+        <translation>&amp;Siediti al tavolo</translation>
+    </message>
+    <message>
+        <source>White</source>
+        <translation>Bianco</translation>
+    </message>
+    <message>
+        <source>Black</source>
+        <translation>Nero</translation>
+    </message>
+    <message>
+        <source>Moves</source>
+        <translation>Mosse</translation>
+    </message>
+    <message>
+        <source>State</source>
+        <translation>Stato</translation>
+    </message>
+    <message>
+        <source>&amp;Play</source>
+        <translation>&amp;Gioca</translation>
+    </message>
+    <message>
+        <source>%1 / %2</source>
+        <translation>%1 / %2</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n going on</source>
+        <translation>
+            <numerusform>%n in corso</numerusform>
+            <numerusform>%n in corso</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>You sit in this room</source>
+        <translation>Sei seduto in questa stanza</translation>
+    </message>
+    <message>
+        <source>0 / %1</source>
+        <translation>0 / %1</translation>
+    </message>
+    <message>
+        <source>Free seat</source>
+        <translation>Posto libero</translation>
+    </message>
+    <message>
+        <source>You sit here: your games are in bold.</source>
+        <translation>Sei seduto qui: le tue partite sono in grassetto.</translation>
+    </message>
+    <message>
+        <source>The room is full: you can follow its games.</source>
+        <translation>La stanza è piena: puoi seguirne le partite.</translation>
+    </message>
+    <message>
+        <source>Sit first: the room opens, and your games begin as the others come.</source>
+        <translation>Siediti per primo: la stanza si apre, e le tue partite cominciano man mano che arrivano gli altri.</translation>
+    </message>
+    <message numerus="yes">
+        <source>Take a seat and you play two games with each of the %n player(s) here, one with each colour.</source>
+        <translation>
+            <numerusform>Siediti e giochi due partite con il giocatore che c&apos;è, una per colore.</numerusform>
+            <numerusform>Siediti e giochi due partite con ciascuno dei %n giocatori che ci sono, una per colore.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Your move: it starts with you</source>
+        <translation>Tocca a te: comincia da te</translation>
+    </message>
+    <message>
+        <source>Not started</source>
+        <translation>Non iniziata</translation>
+    </message>
+    <message>
+        <source>Your move</source>
+        <translation>Tocca a te</translation>
+    </message>
+    <message>
+        <source>%1 to move</source>
+        <translation>Tocca a %1</translation>
+    </message>
+    <message>
+        <source>No games yet: they begin when two players sit.</source>
+        <translation>Ancora nessuna partita: cominciano quando si siedono due giocatori.</translation>
+    </message>
+    <message>
+        <source>No moves yet.</source>
+        <translation>Ancora nessuna mossa.</translation>
+    </message>
+    <message>
+        <source>&amp;Play Your Move</source>
+        <translation>&amp;Gioca la tua mossa</translation>
+    </message>
+    <message>
+        <source>Here the game will open on the board, to play your move whenever you like. Playing in the lobby is not ready yet.</source>
+        <translation>Qui la partita si aprirà sulla scacchiera, per giocare la tua mossa quando vuoi. Il gioco nella lobby non è ancora pronto.</translation>
+    </message>
+    <message>
+        <source>Each room is a tournament of four players: everyone plays everyone twice, once with White and once with Black. It starts as soon as two sit down, and there is no clock. Yours come first, in bold, then the rooms with a free seat, then the full ones, whose games you can follow. Enter a room to see its games.</source>
+        <translation>Ogni stanza è un torneo di quattro giocatori: tutti giocano contro tutti due volte, una col Bianco e una col Nero. Comincia appena due si siedono, e non c&apos;è orologio. Le tue vengono prima, in grassetto, poi le stanze con un posto libero, poi quelle piene, di cui puoi seguire le partite. Entra in una stanza per vederne le partite.</translation>
+    </message>
+    <message>
+        <source>Full</source>
+        <translation>Piena</translation>
+    </message>
+    <message>
+        <source>%1 — %2 / %3 players</source>
+        <translation>%1 — %2 / %3 giocatori</translation>
+    </message>
+    <message>
+        <source>You sat in %1. Your games are in bold: the ones where you have White start with your move.</source>
+        <translation>Ti sei seduto in «%1». Le tue partite sono in grassetto: quelle in cui hai il Bianco cominciano con la tua mossa.</translation>
+    </message>
+    <message>
+        <source>Standings</source>
+        <translation>Classifica</translation>
+    </message>
+    <message>
+        <source>#</source>
+        <translation>#</translation>
+    </message>
+    <message>
+        <source>Player</source>
+        <translation>Giocatore</translation>
+    </message>
+    <message>
+        <source>W</source>
+        <translation>V</translation>
+    </message>
+    <message>
+        <source>D</source>
+        <translation>P</translation>
+    </message>
+    <message>
+        <source>L</source>
+        <translation>S</translation>
+    </message>
+    <message>
+        <source>Pts</source>
+        <translation>Punti</translation>
+    </message>
+    <message>
+        <source>Wins</source>
+        <translation>Vittorie</translation>
+    </message>
+    <message>
+        <source>Draws</source>
+        <translation>Patte</translation>
+    </message>
+    <message>
+        <source>Losses</source>
+        <translation>Sconfitte</translation>
+    </message>
+    <message>
+        <source>Points: 1 a win, ½ a draw</source>
+        <translation>Punti: 1 per una vittoria, ½ per una patta</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n game(s) finished</source>
+        <translation>
+            <numerusform>%n partita finita</numerusform>
+            <numerusform>%n partite finite</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Your Move</source>
+        <translation>Tocca a te</translation>
+    </message>
+    <message>
+        <source>Play Now</source>
+        <translation>Gioca ora</translation>
+    </message>
+    <message>
+        <source>Play Now (%1)</source>
+        <translation>Gioca ora (%1)</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n game(s) waiting for your move</source>
+        <translation>
+            <numerusform>%n partita aspetta la tua mossa</numerusform>
+            <numerusform>%n partite aspettano la tua mossa</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>New</source>
+        <translation>Nuova</translation>
+    </message>
+    <message>
+        <source>A new room: nobody sits here yet, and it opens when you take a seat</source>
+        <translation>Una stanza nuova: non è ancora seduto nessuno, e si apre quando ti siedi</translation>
+    </message>
+    <message>
+        <source>first move</source>
+        <translation>prima mossa</translation>
+    </message>
+    <message>
+        <source>With White against %1 — %2</source>
+        <translation>Col Bianco contro %1 — %2</translation>
+    </message>
+    <message>
+        <source>With Black against %1 — %2</source>
+        <translation>Col Nero contro %1 — %2</translation>
+    </message>
+    <message>
+        <source>%1 — a new room</source>
+        <translation>%1 — stanza nuova</translation>
+    </message>
+</context>
+<context>
     <name>MainWindow</name>
     <message>
         <source>The engine stopped: %1</source>
@@ -2817,6 +3064,14 @@ non è su questo computer.</translation>
         <source>Don&apos;t Save</source>
         <translation>Non salvare</translation>
     </message>
+    <message>
+        <source>Enter the &amp;Lobby…</source>
+        <translation>Entra nella &amp;lobby…</translation>
+    </message>
+    <message>
+        <source>Tournaments of four players without a clock: sit at a table with a free seat</source>
+        <translation>Tornei di quattro giocatori senza orologio: siediti a un tavolo con un posto libero</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>
@@ -4060,6 +4315,169 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>“%1” was created by a newer version of Pragma Chess: update Pragma Chess to open it.</source>
         <translation>“%1” è stato creato con una versione più recente di Pragma Chess: aggiorna Pragma Chess per aprirlo.</translation>
+    </message>
+</context>
+<context>
+    <name>RoomName</name>
+    <message>
+        <source>%1&apos;s Gambit</source>
+        <translation>Il gambetto di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Fortress</source>
+        <translation>La fortezza di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Zugzwang</source>
+        <translation>Lo zugzwang di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Fianchetto</source>
+        <translation>Il fianchetto di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Outpost</source>
+        <translation>L&apos;avamposto di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Pin</source>
+        <translation>L&apos;inchiodatura di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Fork</source>
+        <translation>La forchetta di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Skewer</source>
+        <translation>L&apos;infilata di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Battery</source>
+        <translation>La batteria di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Castle</source>
+        <translation>L&apos;arrocco di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Endgame</source>
+        <translation>Il finale di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Opening</source>
+        <translation>L&apos;apertura di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Combination</source>
+        <translation>La combinazione di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Sacrifice</source>
+        <translation>Il sacrificio di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Attack</source>
+        <translation>L&apos;attacco di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Defence</source>
+        <translation>La difesa di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Breakthrough</source>
+        <translation>Lo sfondamento di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Blockade</source>
+        <translation>Il blocco di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Tempo</source>
+        <translation>Il tempo di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Diagonal</source>
+        <translation>La diagonale di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Open File</source>
+        <translation>La colonna aperta di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Seventh Rank</source>
+        <translation>La settima traversa di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Passed Pawn</source>
+        <translation>Il pedone passato di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Bishop Pair</source>
+        <translation>La coppia degli alfieri di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Knight</source>
+        <translation>Il cavallo di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Rook</source>
+        <translation>La torre di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Queen</source>
+        <translation>La donna di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s King March</source>
+        <translation>La marcia del re di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Swindle</source>
+        <translation>Il tranello di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Stalemate</source>
+        <translation>Lo stallo di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Mating Net</source>
+        <translation>La rete di matto di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Isolated Pawn</source>
+        <translation>Il pedone isolato di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Novelty</source>
+        <translation>La novità di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Initiative</source>
+        <translation>L&apos;iniziativa di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Counterattack</source>
+        <translation>Il contrattacco di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Opposition</source>
+        <translation>L&apos;opposizione di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Exchange</source>
+        <translation>Il cambio di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Desperado</source>
+        <translation>Il desperado di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Windmill</source>
+        <translation>Il mulino di %1</translation>
+    </message>
+    <message>
+        <source>%1&apos;s Brilliancy</source>
+        <translation>La mossa brillante di %1</translation>
     </message>
 </context>
 <context>

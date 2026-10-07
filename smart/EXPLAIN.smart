@@ -87,6 +87,9 @@ lostSquares = []
 ' A line piece's attack in line with the king behind its target, said
 ' after the explanation's sentence (FocusWindow sets it).
 lineNote = ""
+' Plies whose arrow carries the piece it moves, drawn small where it lands
+' (FocusWindow: the piece that falls, going to where it is taken).
+ghostPlies = []
 ' How many plies of the line the threats said reach: the main line is shown
 ' at least that far, so the move of a double attack can be read in it.
 threatReach = 0
@@ -266,7 +269,13 @@ FUNCTION AddArrows(line, first, last, ideaSide, ideaKind, focusFirst, focusLast)
         IF drawn THEN
             kind = "reply"
             IF mover = ideaSide THEN kind = KindFor(mover, ideaKind)
-            Draw source, target, kind, number
+            IF CONTAINS(ghostPlies, k) THEN
+                ' The piece drawn faint where it lands: it is taken there later.
+                drawnArrows = drawnArrows + [[source, target, kind]]
+                ARROW source, target, kind, number, PIECE(position, source), mover
+            ELSE
+                Draw source, target, kind, number
+            END IF
             number = number + 1
         END IF
         IF CAPTURED(position, move) <> 0 THEN
@@ -416,7 +425,7 @@ END FUNCTION
 ' 14.Nb5, a knight stepping aside so that the bishop behind it attacks the
 ' queen — is what the user has to see first, however far the jump.
 FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
-    SHARED drawOnly, lineNote
+    SHARED drawOnly, lineNote, ghostPlies
     IF last - first <= FOCUS_ABOVE THEN RETURN WithoutLoserTail(line, [first, last], beneficiary) + [FALSE]
     moves = line[0]
     positions = line[1]
@@ -556,6 +565,10 @@ FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
                 IF CONTAINS(keep, k) OR CONTAINS(drawOnly, k) THEN merged = merged + [k]
             NEXT
             drawOnly = merged
+            ' Its arrival carries it, faint, to where it will be taken (the queen
+            ' on e6), when other moves come between: taken at once, the next
+            ' arrow already lands there.
+            IF capture - arrived > 1 THEN ghostPlies = ghostPlies + [arrived]
             NOTE "  and how " + SquareName(TOSQ(moves[capture])) + " got its victim: plies " + STR(start + 1) + "-" + STR(capture)
             window = [MIN(window[0], start), window[1]]
         END IF
@@ -1033,11 +1046,12 @@ END FUNCTION
 ' advantage shows on the board); `note` says, for the trace, why `afterEval`
 ' is not the explanation's own search ("" if it is).
 FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note)
-    SHARED lostSquares, drawnArrows, ringing, judged, lineNote
+    SHARED lostSquares, drawnArrows, ringing, judged, lineNote, ghostPlies
     lostSquares = []
     drawnArrows = []
     ringing = TRUE
     lineNote = ""
+    ghostPlies = []
 
     IF CHECKMATE(after) THEN
         SAY TEXT("Checkmate.")

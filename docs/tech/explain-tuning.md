@@ -478,3 +478,9 @@ on e6 a queen still on e3 ("the final gain is not shown"). The victim is
 now the decisive capture's (FocusWindow's biggest jump), not the first
 drawn; when filling every move between would pass MAX_ARROWS, only the
 victim's arrival (20.Qe6) and what sent it are added, in the line's order.
+Then: "the queen, if it has no squares, show where it moves with a ghost
+queen". The victim's arrival now carries the piece, drawn faint where it
+lands (`ghostPlies`, ARROW's piece), when moves come between it and the
+capture (20.Qe6 … 24…Nxe6); taken at once (the Evergreen's 20…Nxe5
+21.Rxe5) the next arrow already lands there. Test:
+`drawsTheFallingPieceFaintWhereItIsTaken`.

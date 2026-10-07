@@ -459,6 +459,28 @@ private Q_SLOTS:
         QVERIFY(found);
     }
 
+    void drawsTheFallingPieceFaintWhereItIsTaken()
+    {
+        // 17.Bd2??: the knight's walk ends taking the queen on e6, where it
+        // goes at 20.Qe6 — still on e3 on the board: its arrival carries a
+        // faint queen to e6.
+        QFile file(QStringLiteral(PRAGMA_SMART_TESTS_DIR) + QStringLiteral("/user-feedback.ticks"));
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        const std::optional<QList<ExplainTicks>> records = ExplainTicks::fromText(QString::fromUtf8(file.readAll()));
+        QVERIFY(records);
+        const auto bishop = std::find_if(records->cbegin(), records->cend(), [](const ExplainTicks &record) {
+            return record.played && record.played->uci() == QLatin1String("c1d2");
+        });
+        QVERIFY(bishop != records->cend());
+        const std::optional<MoveExplanation> shown = ExplainTicks::lastShown(bishop->replay());
+        QVERIFY(shown);
+        const auto arrival = std::find_if(shown->arrows.cbegin(), shown->arrows.cend(), [](const BoardArrow &arrow) {
+            return arrow.from == BoardState::squareFromName(u"e3") && arrow.to == BoardState::squareFromName(u"e6");
+        });
+        QVERIFY(arrival != shown->arrows.cend());
+        QCOMPARE(arrival->piece, (Piece{PieceType::Queen, Side::White}));
+    }
+
     void replaysRecordedTicks()
     {
         // The records of smart/tests: ticks of real searches and what the

@@ -182,7 +182,9 @@ playing a move turns it off, and the user asks again at the next move.
   piece and side) only when it moves the piece the played move moved: that
   square is empty on the board, so the piece is drawn small and faint where
   it should have landed (12.Bxe5: the bishop on e3); otherwise the piece
-  still stands where the arrow starts. Explain is part of the project (`explain`, written only
+  still stands where the arrow starts. The same faint piece rides the
+  arrival of a piece that is taken later on that square (`ghostPlies`:
+  20.Qe6, taken at 24…Nxe6, while the board shows the queen on e3). Explain is part of the project (`explain`, written only
   when on): a client closed with Explain on opens with it on, on that move.
 - The board's two-pixel border says where Explain is: it breathes between the
   plain colour and the blue of the reply arrows while the engine is searching

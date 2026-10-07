@@ -410,3 +410,26 @@ move that set it going: an attack it fled (10.d4: 10…Nf5 11.Qd3, the threat
 on g3 dashed) or a bait it took (10.d3: 10…Nf5 11.Qh3 Bc5 12.Qxf5 — the
 queen still guarded g2 from h3, and left it for the knight). Recorded:
 user-feedback.ticks.
+
+### 10.d3: a far win is no win when the loser grabbed a piece (7 October)
+
+The user, after 10.d3 (+0.4 → −1.2): "why should the queen take the
+knight, if it does not pay? Where is the evidence it is forced?" There is
+none. After 10…Nf5 11.Qh3 Bc5, MultiPV at depth 22: 12.Qxf5 −1.06, 12.Kd1
+−1.17, 12.Nge2 −1.27, 12.Kf1 −1.40: 12.Qxf5 is one choice among equals,
+and Explain told the line through it ("Black wins a rook and a pawn",
+13 plies on) as what 10.d3 lost. Now a realization past LONG_PLIES is a
+win only if the losing side grabs no piece by choice on the way
+(`IsForced`: a capture worth THREAT_GAIN that is no recapture and not out
+of check); quiet moves are its best defence and do not count (the
+Evergreen's 17…O-O). Otherwise the move is explained by its threats.
+`Threats` counts a capture with check that cannot be taken back as a
+threat (`ChecksUntaken`: 11…Bc5 and Bxf2+, the queen of b6 covering f2),
+said "threatens Bxf2+, and the king cannot take back" when the king stands
+beside (`KingBeside`); `ThreatText` says up to two single threats of the
+same side, the second from a move that takes nothing, and draws a
+threatening move no arrow shows yet. 10.d3 now: "10…Nf5 attacks the
+queen on g3: 11.Qh3 parries it. 11…Bc5 threatens 12…Bxf2+, and the king
+cannot take back." 3.a4 gains "4…Qe7 threatens 5…Qxe4+". `PASS` now
+counts Black's pass as the end of a move in both clients (a White threat
+after Black's move read "7.Qxb8+" for 8.Qxb8+).

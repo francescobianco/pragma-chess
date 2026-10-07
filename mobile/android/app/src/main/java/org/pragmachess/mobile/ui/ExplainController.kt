@@ -45,6 +45,8 @@ class ExplainStrings(private val context: Context) : ExplainText {
         "%1: %2 takes the attacker." to R.string.explain_takes_attacker,
         "%1: %2 moves it again, and %3 gains time." to R.string.explain_gains_time,
         "%1 attacks %2 on %3 and %4 on %5." to R.string.explain_double_attack,
+        "%1 threatens %2, and the king cannot take back." to R.string.explain_threatens_king,
+        "%1 threatens %2." to R.string.explain_threatens,
         " No material is lost: the evaluation is positional." to R.string.explain_no_material,
     )
 

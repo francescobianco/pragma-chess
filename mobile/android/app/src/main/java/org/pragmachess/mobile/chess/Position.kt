@@ -92,8 +92,11 @@ class Position private constructor(
      * passed: what it would face if it did nothing (threats). Null when it is
      * in check, which cannot pass.
      */
+    // Black's pass ends the move, as a move of Black's would.
     fun passed(): Position? =
-        if (isCheck) null else Position(board, sideToMove.opponent, castling, -1, halfmoveClock, fullmoveNumber)
+        if (isCheck) null
+        else Position(board, sideToMove.opponent, castling, -1, halfmoveClock,
+            if (sideToMove == Side.Black) fullmoveNumber + 1 else fullmoveNumber)
 
     fun kingSquare(side: Side): Int {
         val king = Piece.of(Piece.KING, side)

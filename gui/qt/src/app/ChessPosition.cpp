@@ -272,6 +272,8 @@ std::optional<ChessPosition> ChessPosition::passed() const
     ChessPosition position = *this;
     position.m_sideToMove = opposite(m_sideToMove);
     position.m_enPassant = -1; // A pass is no pawn move.
+    if (m_sideToMove == Side::Black)
+        ++position.m_fullMove; // Black's pass ends the move, as a move of Black's would.
     return position;
 }
 

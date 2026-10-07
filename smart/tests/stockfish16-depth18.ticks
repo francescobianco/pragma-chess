@@ -50,7 +50,7 @@ tick depth 16 cp -209 pv b8c6 f1b5 g7g6 f5g5 h7h6 g5e3 c6d4 b5a4 b7b5 c2c3 f8c5 
 tick depth 17 cp -218 pv b8c6 f5f3 d7d5 e4d5 c8g4 f3g3 d8d5 b1c3 d5e6 f1b5 e8c8 b5c6 e6c6 g1f3
 tick depth 18 cp -208 pv b8c6 f5f3 c6d4 f3d1 f6e4 d2d3 e4f6 f1e2 d7d5 g1f3 d4f3 e2f3 h7h6
 expect verdict inaccuracy
-expect arrows g4g3 alternative, b8c6 reply 1, g6f5 threat, c6d4 reply, d4b5 threat, d4c2 threat
+expect arrows g4g3 alternative, b8c6 reply 1, g7g6 reply, g6f5 threat, c6d4 reply, d4b5 threat, d4c2 threat
 expect summary Inaccuracy (−0.8 → −2.1). Better was 3.Qg3. 4…g6 attacks the queen on f5: 5.Qg5 parries it. 6…Nd4 attacks the bishop on b5 and the pawn on c2. No material is lost: the evaluation is positional. Main line: 3…Nc6 4.Bb5 g6 5.Qg5 h6 6.Qe3 Nd4.
 end
 explain
@@ -105,8 +105,8 @@ tick depth 16 cp -195 pv d8h4 e1e2 h4e7 e2f2 g8f6 f1d3 b8c6 b1c3 g7g5 h2h4 g5g4 
 tick depth 17 cp -211 pv d8h4 e1e2 h4e7 e2f2 g8f6 f1d3 b8c6 b1c3 g7g5 h2h4 g5g4 c3d5 f6d5 e4d5 c6e5 d3e4 f8h6 d2d4 e5c4 e4f5 c4e3 c1e3 f4e3 f2f1
 tick depth 18 cp -200 pv d8h4 e1e2 h4e7 e2f2 g8f6 f1d3 b8c6 b1c3 e7d8 f2f1 f8c5 d3c4 e8g8 g1f3 d7d5 e4d5 c6d4 b2b4 d4f3 b4c5 f3d4 d2d3 c8g4
 expect verdict inaccuracy
-expect arrows b1c3 alternative, d8h4 reply 1
-expect summary Inaccuracy (−0.6 → −2.0). Better was 3.Nc3. No material is lost: the evaluation is positional. Main line: 3…Qh4+ 4.Ke2 Qe7 5.Kf2.
+expect arrows b1c3 alternative, d8h4 reply 1, h4e7 reply, e7e4 threat
+expect summary Inaccuracy (−0.6 → −2.0). Better was 3.Nc3. 4…Qe7 threatens 5…Qxe4+. No material is lost: the evaluation is positional. Main line: 3…Qh4+ 4.Ke2 Qe7 5.Kf2.
 end
 explain
 before r1bqkbnr/pppp1ppp/8/4p3/2BnP3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4

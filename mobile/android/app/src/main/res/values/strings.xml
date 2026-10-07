@@ -169,5 +169,7 @@
     <string name="explain_takes_attacker" formatted="false">%1: %2 takes the attacker.</string>
     <string name="explain_gains_time" formatted="false">%1: %2 moves it again, and %3 gains time.</string>
     <string name="explain_double_attack" formatted="false">%1 attacks %2 on %3 and %4 on %5.</string>
+    <string name="explain_threatens_king" formatted="false">%1 threatens %2, and the king cannot take back.</string>
+    <string name="explain_threatens" formatted="false">%1 threatens %2.</string>
     <string name="explain_no_material" formatted="false">" No material is lost: the evaluation is positional."</string>
 </resources>

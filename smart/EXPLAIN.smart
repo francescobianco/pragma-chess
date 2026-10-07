@@ -305,6 +305,29 @@ FUNCTION IsBetween(square, source, target)
     RETURN FALSE
 END FUNCTION
 
+' Whether the losing side's way through `line` in [first, last) is its
+' defence, not a choice of its own: it takes no piece on the way unless it
+' takes back what was just taken or gets out of check. A piece grabbed by
+' choice (12.Qxf5, when 12.Kd1 was as good) makes a far realization the
+' price of that grab, one line among others — not what the move lost.
+' Quiet moves are the best defence the engine found (the Evergreen's
+' 17...O-O) and do not count.
+FUNCTION IsForced(line, first, last, winner)
+    moves = line[0]
+    positions = line[1]
+    FOR k = first TO last - 1
+        IF SIDETOMOVE(positions[k]) <> winner AND Value(CAPTURED(positions[k], moves[k])) >= THREAT_GAIN THEN
+            forced = INCHECK(positions[k])
+            IF NOT forced AND k > 0 THEN forced = CAPTURED(positions[k - 1], moves[k - 1]) <> 0 AND TOSQ(moves[k]) = TOSQ(moves[k - 1])
+            IF NOT forced THEN
+                NOTE "  not forced: " + MoveText(positions[k], moves[k]) + " takes a piece by choice, the material comes " + STR(last - first) + " plies on"
+                RETURN FALSE
+            END IF
+        END IF
+    NEXT
+    RETURN TRUE
+END FUNCTION
+
 ' The moves that took the guard away from what moves[k] of `line` captures:
 ' the losing side's piece that, had it stayed where it stood before
 ' moves[k - 1], could have taken back — its way there from the start of the
@@ -599,10 +622,37 @@ FUNCTION CaptureGain(position, capture)
     RETURN Value(taken)
 END FUNCTION
 
+' Whether `capture` in `position` takes with check something the other
+' side cannot take back: 11...Bc5 and Bxf2+, the king unable to take the
+' bishop the queen of b6 covers. A pawn won that way, and the king driven
+' out of its castling, is a threat like a piece.
+FUNCTION ChecksUntaken(position, capture)
+    IF CAPTURED(position, capture) = 0 THEN RETURN FALSE
+    after = PLAY(position, capture)
+    IF after = NOTHING THEN RETURN FALSE
+    IF NOT INCHECK(after) THEN RETURN FALSE
+    replies = MOVES(after)
+    FOR i = 0 TO LEN(replies) - 1
+        IF TOSQ(replies[i]) = TOSQ(capture) THEN RETURN FALSE
+    NEXT
+    RETURN TRUE
+END FUNCTION
+
+' Whether the king of the side to move in `position` stands next to `square`.
+FUNCTION KingBeside(position, square)
+    replies = MOVES(position)
+    FOR i = 0 TO LEN(replies) - 1
+        source = FROMSQ(replies[i])
+        IF PIECE(position, source) = KING AND ABS(source MOD 8 - square MOD 8) <= 1 AND ABS(INT(source / 8) - INT(square / 8)) <= 1 THEN RETURN TRUE
+    NEXT
+    RETURN FALSE
+END FUNCTION
+
 ' The captures worth a threat that `side` would have in `position` if it
 ' were its move: [[capture, gain], …], each target square once, its best
 ' capture (on equal gains the first in UCI order, so that every client,
-' whatever the order of its moves, picks the same).
+' whatever the order of its moves, picks the same). A capture with check
+' that cannot be taken back counts at least as THREAT_GAIN.
 FUNCTION Threats(position, side, minimum)
     IF SIDETOMOVE(position) <> side THEN position = PASS(position)
     IF position = NOTHING THEN RETURN []
@@ -610,6 +660,9 @@ FUNCTION Threats(position, side, minimum)
     found = []
     FOR i = 0 TO LEN(moves) - 1
         gain = CaptureGain(position, moves[i])
+        IF gain > 0 AND gain < THREAT_GAIN THEN
+            IF ChecksUntaken(position, moves[i]) THEN gain = THREAT_GAIN
+        END IF
         IF gain >= minimum THEN
             known = -1
             FOR j = 0 TO LEN(found) - 1
@@ -686,11 +739,23 @@ END FUNCTION
 ' attacked is the one `played` (the move explained) just moved and the
 ' answer moves it again, the time it loses is said instead; when the answer
 ' takes the attacker, so is that.
-FUNCTION SingleThreatText(positions, moves, k, side, threat, played)
+FUNCTION SingleThreatText(positions, moves, k, side, threat, played, moveKind)
     target = TOSQ(threat[0])
+    ' The move that makes the threat, when no arrow shows it yet: the
+    ' threat's arrow would start from a square nothing stands on (11...Bc5).
+    IF k > 0 AND NOT IsDrawn(FROMSQ(moves[k]), TOSQ(moves[k])) THEN Draw FROMSQ(moves[k]), TOSQ(moves[k]), moveKind, 0
     NOTE "threat: " + MoveText(positions[k], moves[k]) + " attacks " + SquareName(target) + " (+" + STR(threat[1]) + ")"
     Draw FROMSQ(threat[0]), target, "threat", 0
     attack = TEXT("%1 attacks %2 on %3", MoveText(positions[k], moves[k]), PieceName(PIECE(positions[k + 1], target)), SquareName(target))
+    ' A capture with check that cannot be taken back: said as the capture,
+    ' and when the king stands next to it, that the king cannot take it.
+    threatened = PASS(positions[k + 1])
+    IF threatened <> NOTHING THEN
+        IF ChecksUntaken(threatened, threat[0]) THEN
+            IF KingBeside(PLAY(threatened, threat[0]), target) THEN RETURN " " + TEXT("%1 threatens %2, and the king cannot take back.", MoveText(positions[k], moves[k]), MoveText(threatened, threat[0]))
+            RETURN " " + TEXT("%1 threatens %2.", MoveText(positions[k], moves[k]), MoveText(threatened, threat[0]))
+        END IF
+    END IF
     IF k + 1 < LEN(moves) THEN
         answer = MoveText(positions[k + 1], moves[k + 1])
         ' Taking the piece that attacks is no parry (9...Bxb4 takes the pawn).
@@ -720,6 +785,8 @@ END FUNCTION
 FUNCTION ThreatText(line, played, moveKind)
     SHARED threatReach
     threatReach = 0
+    singles = 0
+    threatSide = 0
     moves = line[0]
     positions = line[1]
     text = ""
@@ -741,8 +808,17 @@ FUNCTION ThreatText(line, played, moveKind)
             threatReach = k + 1
             RETURN text + " " + TEXT("%1 attacks %2 on %3 and %4 on %5.", MoveText(positions[k], moves[k]), PieceName(PIECE(positions[k + 1], first)), SquareName(first), PieceName(PIECE(positions[k + 1], second)), SquareName(second))
         END IF
-        IF text = "" AND LEN(threats) >= 1 AND k < THREAT_PLIES THEN
-            IF threats[0][1] >= THREAT_GAIN THEN text = SingleThreatText(positions, moves, k, side, threats[0], played)
+        ' Up to two single threats of the same side: 10...Nf5 on the queen,
+        ' then 11...Bc5 on f2.
+        IF singles < 2 AND LEN(threats) >= 1 AND k < THREAT_PLIES THEN
+            ' A second one only from a move that takes nothing: a capture says its material.
+            second = singles = 0
+            IF NOT second THEN second = side = threatSide AND CAPTURED(positions[k], moves[k]) = 0
+            IF threats[0][1] >= THREAT_GAIN AND second THEN
+                text = text + SingleThreatText(positions, moves, k, side, threats[0], played, moveKind)
+                singles = singles + 1
+                threatSide = side
+            END IF
         END IF
     NEXT
     RETURN text
@@ -896,6 +972,12 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
             line = Replay(before, [played] + pv, MAX_SEARCH_PLIES + 1)
             needed = MAX(MINIMUM_MATERIAL, INT(drop * REALIZED_SHARE))
             ply = FindRealization(line, 2, toMove, MATERIAL(before), needed, drop)
+            ' Far away, the material is a win only if the losing side had no
+            ' choice on the way: a free move (12.Qxf5, when 12.Kd1 was as
+            ' good) makes it one line among others, not what the move lost.
+            IF ply >= 0 AND ply - 2 >= LONG_PLIES THEN
+                IF NOT IsForced(line, 1, ply, toMove) THEN ply = -1
+            END IF
             IF ply >= 0 THEN
                 NOTE "branch: the move loses material"
                 focus = FocusWindow(line, 1, ply, toMove, TRUE)

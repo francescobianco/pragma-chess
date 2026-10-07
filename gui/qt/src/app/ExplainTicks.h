@@ -40,6 +40,8 @@ struct ExplainTicks {
     std::optional<ChessMove> played;
     std::optional<EngineEvaluation> beforeEvaluation;
     ChessPosition after = ChessPosition::startingPosition();
+    /// Who asked (`viewer white`/`viewer black`), when known.
+    std::optional<Side> viewer;
     QList<EngineEvaluation> ticks;
     /// The `expect` lines.
     QStringList expected;

@@ -443,3 +443,13 @@ the piece that makes a threat back through the line, as FocusWindow does
 for the piece that captures, and draws each of its moves no arrow shows
 yet; single threats and double attacks use it. Recorded:
 user-feedback.ticks.
+
+### Who asks: the other side's plan is not an idea (7 October)
+
+The user, White: the h-pawn's walk h7–h5–h4 was green, an "idea", right
+for the side that plays it but hostile to whoever asks. The clients now say
+who asks — `VIEWER()`: the side played in training, otherwise the one seen
+from below (desktop: `Explainer::setViewer` from `updateExplainer`; phone:
+the board's orientation) — and `KindFor` draws an idea of the other side
+as a reply. Records carry it as `viewer white|black`; a record without it
+explains as before.

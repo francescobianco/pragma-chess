@@ -202,6 +202,10 @@ void define(SmartInterpreter &smart, Output &output)
         expect("DEPTH", args, 1);
         return SmartValue(evaluationArgument("DEPTH", args, 0).depth);
     });
+    smart.define(QStringLiteral("VIEWER"), [&output](const std::vector<SmartValue> &args) {
+        expect("VIEWER", args, 0);
+        return SmartValue(output.viewer);
+    });
     smart.define(QStringLiteral("EVALTEXT"), [](const std::vector<SmartValue> &args) {
         expect("EVALTEXT", args, 1);
         return SmartValue(evaluationArgument("EVALTEXT", args, 0).text());

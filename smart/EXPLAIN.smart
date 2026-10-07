@@ -34,6 +34,7 @@
 '     CPFOR(e, side)                  centipawns for a side, mates as a big bounded score
 '     PV(e)                           the engine's line, a list of moves
 '     EVALTEXT(e)                     "+1.3", "M3"
+'   VIEWER()                          who asked: WHITE or BLACK, 0 when unknown
 '   CLASSIFY(before, after, mover, move, start)   TUTOR.smart's Classify
 '   TEXT(sentence, args…)             the sentence translated, %1, %2… replaced
 '   Commands, what the explanation shows:
@@ -261,7 +262,7 @@ FUNCTION AddArrows(line, first, last, ideaSide, ideaKind, focusFirst, focusLast)
         IF LEN(drawOnly) > 0 THEN drawn = drawn AND CONTAINS(drawOnly, k)
         IF drawn THEN
             kind = "reply"
-            IF mover = ideaSide THEN kind = ideaKind
+            IF mover = ideaSide THEN kind = KindFor(mover, ideaKind)
             Draw source, target, kind, number
             number = number + 1
         END IF
@@ -743,6 +744,15 @@ END FUNCTION
 ' the start of the line: its earlier moves in the line, then moves[k],
 ' each one no arrow shows yet — the threat's arrow must not start from a
 ' square nothing stands on (10...h5 11.d3 h4: h7–h5, h5–h4, then h4→g3).
+' An arrow's kind as the one who asked sees it (VIEWER): the plan of the
+' other side is no idea of theirs — 9...f6, and Black's h-pawn walking up
+' to the queen is drawn as the other side's moves for White, not as a
+' good idea. Unknown viewer: as before.
+FUNCTION KindFor(side, kind)
+    IF kind = "idea" AND VIEWER() <> 0 AND side <> VIEWER() THEN RETURN "reply"
+    RETURN kind
+END FUNCTION
+
 FUNCTION DrawWay(positions, moves, k, kind)
     way = [k]
     source = FROMSQ(moves[k])
@@ -753,7 +763,7 @@ FUNCTION DrawWay(positions, moves, k, kind)
         END IF
     NEXT
     FOR i = 0 TO LEN(way) - 1
-        IF NOT IsDrawn(FROMSQ(moves[way[i]]), TOSQ(moves[way[i]])) THEN Draw FROMSQ(moves[way[i]]), TOSQ(moves[way[i]]), kind, 0
+        IF NOT IsDrawn(FROMSQ(moves[way[i]]), TOSQ(moves[way[i]])) THEN Draw FROMSQ(moves[way[i]]), TOSQ(moves[way[i]]), KindFor(SIDETOMOVE(positions[way[i]]), kind), 0
     NEXT
 END FUNCTION
 

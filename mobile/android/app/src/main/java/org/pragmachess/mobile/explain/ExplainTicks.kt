@@ -19,6 +19,8 @@ data class ExplainTicks(
     val played: Move? = null,
     val beforeEvaluation: EngineEvaluation? = null,
     val after: Position,
+    /** Who asked (`viewer white`/`viewer black`), when known. */
+    val viewer: Side? = null,
     val ticks: List<EngineEvaluation> = emptyList(),
     val expected: List<String> = emptyList(),
 ) {
@@ -27,7 +29,7 @@ data class ExplainTicks(
         startExplanation()
         return ticks.map { tick ->
             explainTick(ExplanationInput(before = before, played = played, beforeEvaluation = beforeEvaluation,
-                after = after, afterEvaluation = tick, figurines = figurines), text)
+                after = after, afterEvaluation = tick, viewer = viewer, figurines = figurines), text)
         }
     }
 
@@ -70,6 +72,7 @@ data class ExplainTicks(
             var after: Position? = null
             var played = ""
             var beforeEvaluation: EngineEvaluation? = null
+            var viewer: Side? = null
             val ticks = ArrayList<EngineEvaluation>()
             val expected = ArrayList<String>()
             for ((n, raw) in text.split('\n').withIndex()) {
@@ -81,7 +84,7 @@ data class ExplainTicks(
                 if (field == "explain") {
                     if (open) fail("\"explain\" before the \"end\" of the record before")
                     open = true
-                    before = null; after = null; played = ""; beforeEvaluation = null
+                    before = null; after = null; played = ""; beforeEvaluation = null; viewer = null
                     ticks.clear(); expected.clear()
                     continue
                 }
@@ -90,6 +93,11 @@ data class ExplainTicks(
                     "before" -> before = Position.fromFen(value) ?: fail("not a FEN: $value")
                     "after" -> after = Position.fromFen(value) ?: fail("not a FEN: $value")
                     "played" -> played = value
+                    "viewer" -> viewer = when (value) {
+                        "white" -> Side.White
+                        "black" -> Side.Black
+                        else -> fail("not a side: $value")
+                    }
                     "before-eval" -> beforeEvaluation = parseEvaluation(value) ?: fail("not an evaluation: $value")
                     "tick" -> ticks += parseEvaluation(value) ?: fail("not an evaluation: $value")
                     "expect" -> expected += value
@@ -100,7 +108,7 @@ data class ExplainTicks(
                             val from = before ?: fail("\"played\" without \"before\"")
                             move = from.parseUci(played) ?: fail("$played is not a legal move before")
                         }
-                        records += ExplainTicks(before, move, beforeEvaluation, position, ticks.toList(), expected.toList())
+                        records += ExplainTicks(before, move, beforeEvaluation, position, viewer, ticks.toList(), expected.toList())
                         open = false
                     }
                     else -> fail("unknown field \"$field\"")

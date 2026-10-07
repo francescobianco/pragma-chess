@@ -129,6 +129,7 @@ ExplanationTick explainTick(const ExplanationInput &input)
     explain->output.clear();
     explain->output.sanStyle = input.sanStyle;
     explain->output.trace = input.trace;
+    explain->output.viewer = input.viewer ? (*input.viewer == Side::White ? 1 : -1) : 0;
     // The move is given even when its position before has no evaluation:
     // it cannot be judged, but the explanation is still about it.
     const bool moved = input.before && input.played;
@@ -162,6 +163,7 @@ MoveExplanation explainPosition(const ExplanationInput &input)
     explain->output.clear();
     explain->output.sanStyle = input.sanStyle;
     explain->output.trace = input.trace;
+    explain->output.viewer = input.viewer ? (*input.viewer == Side::White ? 1 : -1) : 0;
     const bool moved = input.before && input.played;
     QString error;
     const std::optional<SmartValue> done = explain->interpreter.call(

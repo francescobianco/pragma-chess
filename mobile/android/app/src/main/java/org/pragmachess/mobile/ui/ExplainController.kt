@@ -67,6 +67,13 @@ class ExplainController(private val text: ExplainText) {
         private set
     var explanation by mutableStateOf<MoveExplanation?>(null)
         private set
+    /** Who asks: the side seen from below; a change redraws the explanation. */
+    var viewer: Side = Side.White
+        set(value) {
+            if (field == value) return
+            field = value
+            if (enabled) tick()
+        }
     /** Waiting for the engine to be deep enough for a first answer. */
     var thinking by mutableStateOf(false)
         private set
@@ -122,7 +129,7 @@ class ExplainController(private val text: ExplainText) {
         val previous = before
         val tick = explainTick(ExplanationInput(before = previous, played = played,
             beforeEvaluation = previous?.let { evaluations[key(it.fen())] }, after = position,
-            afterEvaluation = evaluation, figurines = true), text)
+            afterEvaluation = evaluation, viewer = viewer, figurines = true), text)
         if (!tick.shown) return
         thinking = false
         if (tick.explanation != explanation) explanation = tick.explanation

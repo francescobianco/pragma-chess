@@ -85,6 +85,15 @@ void Explainer::start()
     tick(); // A position searched before is explained at once.
 }
 
+void Explainer::setViewer(std::optional<Side> viewer)
+{
+    if (viewer == m_viewer)
+        return;
+    m_viewer = viewer;
+    if (m_enabled)
+        tick();
+}
+
 void Explainer::tick()
 {
     const std::optional<EngineEvaluation> evaluation = known(m_position);
@@ -97,6 +106,7 @@ void Explainer::tick()
     input.after = m_position;
     input.afterEvaluation = *evaluation;
     input.sanStyle = SanStyle::Figurines;
+    input.viewer = m_viewer;
     record(input);
     const ExplanationTick tick = explainTick(input);
     if (tick.shown)
@@ -120,6 +130,7 @@ void Explainer::record(const ExplanationInput &input)
     recording.played = input.played;
     recording.beforeEvaluation = input.beforeEvaluation;
     recording.after = input.after;
+    recording.viewer = input.viewer;
     const auto same = [](const EngineEvaluation &a, const EngineEvaluation &b) {
         return a.depth == b.depth && a.isMate == b.isMate && a.centipawns == b.centipawns && a.mateIn == b.mateIn
             && a.mating == b.mating && a.pv == b.pv;

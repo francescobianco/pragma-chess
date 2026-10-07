@@ -102,7 +102,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** The game on the board is stored as it is (opened from a database or just saved). */
     var stored by mutableStateOf(false)
         private set
-    var flipped by mutableStateOf(false)
+    private var flippedState by mutableStateOf(false)
+    /** The board seen from Black's side; who sees it from below asks Explain. */
+    var flipped: Boolean
+        get() = flippedState
+        set(value) {
+            flippedState = value
+            explainer.viewer = if (value) org.pragmachess.mobile.chess.Side.Black else org.pragmachess.mobile.chess.Side.White
+        }
 
     /** Something that would drop an unsaved game, waiting for the user to confirm. */
     var pendingDiscard by mutableStateOf<(() -> Unit)?>(null)

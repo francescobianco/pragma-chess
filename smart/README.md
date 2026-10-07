@@ -173,6 +173,8 @@ statements is stopped too: a loop that never ends must not freeze a client.
 The chess itself — positions, legal moves, material, the notation, the
 engine's evaluations — and the commands that collect what a program shows
 (arrows, texts) belong to the clients; `EXPLAIN.smart` and `TUTOR.smart` say
-at their top which ones they use. Texts a program says are English and
+at their top which ones they use. `VIEWER()` says who asked — the side
+the user plays, or sees from below —, so that a program can draw the other
+side's plan as theirs rather than as a good idea. Texts a program says are English and
 written whole (`"%1 mates in %2: %3."`): each client translates them with
 the rest of its interface, `%1`, `%2`… replaced by the arguments.

@@ -82,6 +82,10 @@ struct ExplanationInput {
     /// Why `afterEvaluation` is not the explanation's own search, for the trace.
     QString evaluationNote;
 
+    /// Who asks: the side the user plays (training) or sees from below.
+    /// The other side's plan is drawn as theirs, not as a good idea.
+    std::optional<Side> viewer;
+
     /// How moves are written in the summary.
     SanStyle sanStyle = SanStyle::Letters;
 

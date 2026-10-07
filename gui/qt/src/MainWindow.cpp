@@ -3360,6 +3360,10 @@ void MainWindow::updateBoardBorder()
 
 void MainWindow::updateExplainer()
 {
+    // Who asks: the side played in training, otherwise the one seen from below.
+    m_explainer->setViewer(m_trainingModeAction->isChecked() ? m_trainingSide
+                           : m_flipBoardAction->isChecked() ? Side::Black
+                                                            : Side::White);
     const int ply = m_session->ply();
     // A null move is no move to explain: the position is explained as a start.
     const std::optional<ChessMove> played = m_session->lastMove();

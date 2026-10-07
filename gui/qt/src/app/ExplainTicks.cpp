@@ -57,6 +57,8 @@ QString ExplainTicks::toText() const
     if (beforeEvaluation)
         lines << QStringLiteral("before-eval ") + evaluationText(*beforeEvaluation);
     lines << QStringLiteral("after ") + after.fen();
+    if (viewer)
+        lines << (*viewer == Side::White ? QStringLiteral("viewer white") : QStringLiteral("viewer black"));
     for (const EngineEvaluation &tick : ticks)
         lines << QStringLiteral("tick ") + evaluationText(tick);
     for (const QString &expectation : expected)
@@ -106,6 +108,10 @@ std::optional<QList<ExplainTicks>> ExplainTicks::fromText(const QString &text, Q
             }
         } else if (field == QLatin1String("played")) {
             playedText = value;
+        } else if (field == QLatin1String("viewer")) {
+            if (value != QLatin1String("white") && value != QLatin1String("black"))
+                return fail(number, QStringLiteral("not a side: %1").arg(value));
+            current->viewer = value == QLatin1String("white") ? Side::White : Side::Black;
         } else if (field == QLatin1String("before-eval") || field == QLatin1String("tick")) {
             const std::optional<EngineEvaluation> evaluation = parseEvaluation(value);
             if (!evaluation)
@@ -146,6 +152,7 @@ QList<ExplanationTick> ExplainTicks::replay(SanStyle style, bool trace) const
     input.played = played;
     input.beforeEvaluation = beforeEvaluation;
     input.after = after;
+    input.viewer = viewer;
     input.sanStyle = style;
     input.trace = trace;
     for (const EngineEvaluation &tick : ticks) {

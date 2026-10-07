@@ -172,6 +172,11 @@ playing a move turns it off, and the user asks again at the next move.
   probe) with `ExplainSettings`; only `pragma-explain` uses them now.
 - `app/AdvantageProbe.*` — pure: where an advantage becomes concrete, from
   shallow searches along the principal variation and searches by depth.
+- **Who asks** (`ExplanationInput::viewer`, SMART's `VIEWER()`): the side
+  played in training, otherwise the one seen from below (`updateExplainer`
+  sets `Explainer::setViewer`; the phone, its board's orientation). An
+  `idea` arrow of the other side is drawn as a `reply` (`KindFor`): its
+  plan is no good idea to the one who asked. Records: `viewer white|black`.
 - The better move's arrow (`Alternative`) carries the piece it moves
   (`BoardArrow::piece`, EXPLAIN.smart's `DrawBetter`: ARROW's optional
   piece and side) only when it moves the piece the played move moved: that

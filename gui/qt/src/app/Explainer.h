@@ -35,6 +35,8 @@ public:
 
     /// A line of the live analysis of the position on the board.
     void setLiveEvaluation(const EngineEvaluation &evaluation);
+    /// Who asks (ExplanationInput::viewer); a change redraws the explanation.
+    void setViewer(std::optional<Side> viewer);
     /// A line of an analysis of `position`, which need not be on the board:
     /// the position before the move, searched so that the move can be judged.
     void setEvaluation(const ChessPosition &position, const EngineEvaluation &evaluation);
@@ -58,6 +60,7 @@ private:
     void record(const ExplanationInput &input);
 
     bool m_enabled = false;
+    std::optional<Side> m_viewer;
     ChessPosition m_position = ChessPosition::startingPosition();
     std::optional<ChessPosition> m_before;
     std::optional<ChessMove> m_played;

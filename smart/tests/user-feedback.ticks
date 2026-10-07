@@ -356,3 +356,43 @@ expect verdict good
 expect arrows g1e2 idea 1, h7h5 idea, h5h4 idea, h4g3 threat
 expect summary Good move (+0.4). The position is balanced. 11…h4 attacks the queen on g3: 12.Qh3 parries it. Main line: 10.Nge2 h5 11.d3 h4.
 end
+
+# The same 9…f6 asked by White (viewer white): Black's h-pawn is the other
+# side's plan, drawn as replies, not as a good idea; White's 10.Nge2 stays
+# the idea. Without a viewer the record before is unchanged.
+explain
+before r3kb1r/p3nppp/1qb5/4p3/8/2N3Q1/PPPP1PPP/R1B1K1NR b KQkq - 3 9
+played f7f6
+before-eval depth 26 cp 3 pv e7g6 g1e2 f7f5 h2h4 f5f4 g3g4 f8c5 g4e6 c5e7 f2f3 c6b7 e6b6 a7b6 h4h5 g6h4 e1f1 g7g5 h5g6 h7g6 c3e4 g6g5 d2d3 e8c8 e4f2 d8g8 c1d2 g5g4 f2g4 h4f3 h1h8 f3d2 f1e1 g8h8 e1d2 b7g2 g4e5 f4f3
+viewer white
+after r3kb1r/p3n1pp/1qb2p2/4p3/8/2N3Q1/PPPP1PPP/R1B1K1NR w KQkq - 0 10
+tick depth 1 cp 1 pv g1e2
+tick depth 2 cp 1 pv g1e2
+tick depth 3 cp 4 pv g3h3
+tick depth 4 cp 14 pv g3h3
+tick depth 5 cp 205 pv g3h3
+tick depth 6 cp 51 pv g1e2 h7h5
+tick depth 7 cp 40 pv g1e2 h7h5 e1g1 h5h4 g3h3
+tick depth 8 cp 129 pv g1e2 h7h5 d2d3
+tick depth 9 cp 48 pv g1e2 h7h5 d2d3 h5h4 g3h3 b6b7
+tick depth 10 cp 55 pv g1e2 h7h5 h2h4 e8f7 e1g1 h8h6
+tick depth 11 cp 31 pv g1e2 h7h5 h2h4 e8f7 e1g1 h8h6 d2d4 h6g6
+tick depth 12 cp 21 pv g1e2 h7h5 d2d3 h5h4 g3h3 c6d7 g2g4 a8c8 h1g1 b6b7 h3e3 g7g5 c3e4 e7d5 e3f3
+tick depth 13 cp 21 pv g1e2 h7h5 d2d3 h5h4 g3h3 c6d7 g2g4 a8c8 h1g1 b6b7 h3e3 g7g5 c3e4 e7d5 e3f3
+tick depth 14 cp 19 pv g1e2 h7h5 d2d3 h5h4 g3h3 c6d7 g2g4 a8c8 h3f3 d7c6 c3e4
+tick depth 15 cp 14 pv g1e2 h7h5 d2d3 h5h4 g3h3 c6d7 g2g4 h4g3 h3h8 b6f2 e1d2 g3g2 h1g1 d7g4 h8h7 g4f3
+tick depth 16 cp 14 pv g1e2 h7h5 d2d3 h5h4 g3h3 c6d7 g2g4 h4g3 h3h8 b6f2 e1d2 g3g2 h1g1 d7g4 h8h7 g4f3 h7h3 g7g6
+tick depth 17 cp 20 pv g1e2 h7h5 e1g1 h8h6 g3h3 g7g5 f1d1 a8d8 d2d3 g5g4 h3e3 b6b7 d3d4 c6g2
+tick depth 18 cp 22 pv g1e2 h7h5 e1g1 h5h4 g3h3 c6d7 h3e3 h4h3 e3b6 a7b6 g2g3 e7c6 c3d5 a8d8 d2d3 d7g4 f2f3 f8c5 d5e3 c6b4 f3g4 b4c2 d3d4 e5d4
+tick depth 19 cp 34 pv g1e2 h7h5 d2d3 h5h4 g3h3 c6d7 h3e3 b6b7 c3e4 e7d5 e3f3 e8c8 c1d2 d5b4 d2b4 f8b4 c2c3 b4e7 e1c1 h4h3
+tick depth 20 cp 26 pv g1e2 h7h5 e1g1 h5h4 g3h3 c6d7 h3e3 h4h3 e3b6 a7b6 g2g3 d7c6 f2f3 a8c8 a2a3 e7f5 b2b4 f8e7
+tick depth 21 cp 30 pv g1e2 h7h5 d2d3 h5h4 g3h3 c6d7 h3e3 b6b7 c3e4 e7c6 f2f3 c6b4 e1d1 a8c8 e2c3 b7a6 a2a3 f8e7 a1b1 b4c6 c3e2 e8g8 b2b4 f6f5 e4c5
+tick depth 22 cp 32 pv g1e2 h7h5 d2d3 b6b7 e1g1 h5h4 g3h3 c6d7 c3e4 e7c6 h3f3 h4h3 c1e3 h3g2 f1d1 e8c8 d3d4 f6f5 e4g5 f5f4 e3f4 e5f4 g5f7 h8h4
+tick depth 23 cp 42 pv g1e2 h7h5 d2d3 h5h4 g3h3 c6d7 h3e3 b6b7 c3e4 e7d5 e3f3 d7c6 c1d2 f8e7 f3g4 e8f7 h2h3 d5b4
+tick depth 24 cp 35 pv g1e2 h7h5 d2d3 h5h4 g3h3 c6d7 h3e3 b6b7 c3e4 e7d5 e3f3 d7c6 c1d2 a8d8 e1g1 h4h3 g2g4 d5e7 e2g3 e7g6 a1c1 g6h4 f3e2 f8e7 f2f4
+tick depth 25 cp 34 pv g1e2 h7h5 d2d3 h5h4 g3h3 c6d7 h3e3 b6b7 c3e4 e7d5 e3f3 d7c6 a2a3 a8d8 e1g1 b7d7 f1e1 d5e7 f3h3 d7h3 g2h3 e8f7 b2b4 e7f5 f2f4 f5d4 e2d4 e5d4
+tick depth 26 cp 35 pv g1e2 h7h5 d2d3 h5h4 g3h3 c6d7 h3e3 b6b7 c3e4 e7d5 e3f3 d7c6 a2a3 a8d8 e1g1 b7d7 f1e1 d5e7 f3h3 d7h3 g2h3 e8f7 b2b4 e7f5 f2f3 h8g8 g1f2 f8e7 f3f4 e5f4 c1f4
+expect verdict good
+expect arrows g1e2 idea 1, h7h5 reply, h5h4 reply, h4g3 threat
+expect summary Good move (+0.4). The position is balanced. 11…h4 attacks the queen on g3: 12.Qh3 parries it. Main line: 10.Nge2 h5 11.d3 h4.
+end

@@ -113,7 +113,8 @@ Double-click a comment to write in it, right there, as a paragraph is written (E
 The engine looks at the position before and after the move and draws arrows:
 
 - **red** arrows: material is about to fall, and the pieces that are lost are ringed;
-- **blue** arrows: the reply that makes the difference, when nothing is lost yet;
+- **green** arrows: your side's ideas, the moves that make the evaluation;
+- **blue** arrows: the other side's moves — the reply that makes the difference when nothing is lost yet, or its plan; *your side* is the one you play in training, otherwise the one at the bottom of the board;
 - **dashed red** arrows: a threat, a piece left attacked — "5.Qxf3 attacks the rook on a8", or the one your move did not answer, "5…Qh4+ leaves the rook on a8 attacked: 7.Qxa8";
 - a **dashed green** arrow: the better move you had instead. When it moves the same piece you moved — so the square it leaves is empty now, that piece having gone elsewhere — the piece is drawn small and faint where it should have landed.
 

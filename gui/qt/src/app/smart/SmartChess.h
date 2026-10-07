@@ -43,6 +43,8 @@ struct Output {
     SanStyle sanStyle = SanStyle::Letters;
     /// Keep the NOTEs in `explanation.trace`.
     bool trace = false;
+    /// VIEWER(): who asked, WHITE (1), BLACK (-1) or 0.
+    int viewer = 0;
     MoveExplanation explanation;
 
     void clear() { explanation = MoveExplanation(); }

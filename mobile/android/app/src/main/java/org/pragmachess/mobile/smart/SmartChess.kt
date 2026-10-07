@@ -39,6 +39,8 @@ object SmartChess {
         var figurines = false
         /** Keep the NOTEs. */
         var trace = false
+        /** VIEWER(): who asked, WHITE (1), BLACK (-1) or 0. */
+        var viewer = 0
         var text: ExplainText = ExplainText.English
         var verdict = MoveExplanation.Verdict.None
         val arrows = ArrayList<BoardArrow>()
@@ -160,6 +162,10 @@ object SmartChess {
         smart.define("DEPTH") { args ->
             expectArguments("DEPTH", args, 1)
             SmartValue.of(evaluationArgument("DEPTH", args, 0).depth)
+        }
+        smart.define("VIEWER") { args ->
+            expectArguments("VIEWER", args, 0)
+            SmartValue.of(output.viewer)
         }
         smart.define("EVALTEXT") { args ->
             expectArguments("EVALTEXT", args, 1)

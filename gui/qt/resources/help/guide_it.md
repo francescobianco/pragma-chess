@@ -113,7 +113,8 @@ Fai doppio clic su un commento per scriverci, lì dov'è, come si scrive un para
 Il motore guarda la posizione prima e dopo la mossa e disegna delle frecce:
 
 - frecce **rosse**: sta per cadere del materiale, e i pezzi che si perdono sono cerchiati;
-- frecce **blu**: la risposta che fa la differenza, quando ancora non si perde niente;
+- frecce **verdi**: le idee della tua parte, le mosse che fanno la valutazione;
+- frecce **blu**: le mosse dell'altra parte — la risposta che fa la differenza quando ancora non si perde niente, o il suo piano; *la tua parte* è quella che giochi in allenamento, altrimenti quella in basso sulla scacchiera;
 - frecce **rosse tratteggiate**: una minaccia, un pezzo lasciato sotto attacco — «5.Dxf3 attacca la torre in a8», o quella a cui la tua mossa non ha risposto, «5…Dh4+ lascia la torre in a8 sotto attacco: 7.Dxa8»;
 - una freccia **verde tratteggiata**: la mossa migliore che avevi al posto della tua. Quando muove lo stesso pezzo che hai mosso tu — e quindi la casa da cui parte ora è vuota, perché quel pezzo è andato altrove — il pezzo è disegnato piccolo e trasparente dove doveva arrivare.
 

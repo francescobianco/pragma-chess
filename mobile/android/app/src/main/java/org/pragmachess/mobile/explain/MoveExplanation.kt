@@ -77,6 +77,8 @@ data class ExplanationInput(
     val concretePly: Int? = null,
     /** Why [afterEvaluation] is not the explanation's own search, for the trace. */
     val evaluationNote: String = "",
+    /** Who asks: the side the user sees from below. The other side's plan is drawn as theirs. */
+    val viewer: Side? = null,
     /** Moves in the summary with figurines (♘f3) or letters (Nf3). */
     val figurines: Boolean = false,
     val trace: Boolean = false,
@@ -173,6 +175,7 @@ private fun prepare(program: SmartProgram, input: ExplanationInput, text: Explai
     program.output.figurines = input.figurines
     program.output.trace = input.trace
     program.output.text = text
+    program.output.viewer = when (input.viewer) { Side.White -> 1; Side.Black -> -1; null -> 0 }
 }
 
 /**

@@ -433,3 +433,13 @@ queen on g3: 11.Qh3 parries it. 11…Bc5 threatens 12…Bxf2+, and the king
 cannot take back." 3.a4 gains "4…Qe7 threatens 5…Qxe4+". `PASS` now
 counts Black's pass as the end of a move in both clients (a White threat
 after Black's move read "7.Qxb8+" for 8.Qxb8+).
+
+### 9…f6: the threatening piece's whole way (7 October)
+
+The user asked for the h-pawn's double arrow, h7–h5 and h5–h4, before its
+threat on the queen of g3 (10.Nge2 h5 11.d3 h4): Explain drew h5–h4 and
+h4→g3 only, from a square the pawn does not stand on yet. `DrawWay` traces
+the piece that makes a threat back through the line, as FocusWindow does
+for the piece that captures, and draws each of its moves no arrow shows
+yet; single threats and double attacks use it. Recorded:
+user-feedback.ticks.

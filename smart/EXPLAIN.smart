@@ -739,11 +739,28 @@ END FUNCTION
 ' attacked is the one `played` (the move explained) just moved and the
 ' answer moves it again, the time it loses is said instead; when the answer
 ' takes the attacker, so is that.
+' Draws the way of the piece that moves[k] moves, from where it stands at
+' the start of the line: its earlier moves in the line, then moves[k],
+' each one no arrow shows yet — the threat's arrow must not start from a
+' square nothing stands on (10...h5 11.d3 h4: h7–h5, h5–h4, then h4→g3).
+FUNCTION DrawWay(positions, moves, k, kind)
+    way = [k]
+    source = FROMSQ(moves[k])
+    FOR j = k - 2 TO 0 STEP -2
+        IF TOSQ(moves[j]) = source THEN
+            source = FROMSQ(moves[j])
+            way = [j] + way
+        END IF
+    NEXT
+    FOR i = 0 TO LEN(way) - 1
+        IF NOT IsDrawn(FROMSQ(moves[way[i]]), TOSQ(moves[way[i]])) THEN Draw FROMSQ(moves[way[i]]), TOSQ(moves[way[i]]), kind, 0
+    NEXT
+END FUNCTION
+
 FUNCTION SingleThreatText(positions, moves, k, side, threat, played, moveKind)
     target = TOSQ(threat[0])
-    ' The move that makes the threat, when no arrow shows it yet: the
-    ' threat's arrow would start from a square nothing stands on (11...Bc5).
-    IF k > 0 AND NOT IsDrawn(FROMSQ(moves[k]), TOSQ(moves[k])) THEN Draw FROMSQ(moves[k]), TOSQ(moves[k]), moveKind, 0
+    ' The piece that makes the threat, on its way there, when no arrow shows it yet.
+    IF k > 0 THEN DrawWay positions, moves, k, moveKind
     NOTE "threat: " + MoveText(positions[k], moves[k]) + " attacks " + SquareName(target) + " (+" + STR(threat[1]) + ")"
     Draw FROMSQ(threat[0]), target, "threat", 0
     attack = TEXT("%1 attacks %2 on %3", MoveText(positions[k], moves[k]), PieceName(PIECE(positions[k + 1], target)), SquareName(target))
@@ -802,7 +819,7 @@ FUNCTION ThreatText(line, played, moveKind)
             first = TOSQ(threats[0][0])
             second = TOSQ(threats[1][0])
             NOTE "double attack: " + MoveText(positions[k], moves[k]) + " attacks " + SquareName(first) + " and " + SquareName(second)
-            IF NOT IsDrawn(FROMSQ(moves[k]), TOSQ(moves[k])) THEN Draw FROMSQ(moves[k]), TOSQ(moves[k]), moveKind, 0
+            DrawWay positions, moves, k, moveKind
             Draw FROMSQ(threats[0][0]), first, "threat", 0
             Draw FROMSQ(threats[1][0]), second, "threat", 0
             threatReach = k + 1

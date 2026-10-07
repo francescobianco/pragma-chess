@@ -48,6 +48,8 @@ class ExplainStrings(private val context: Context) : ExplainText {
         "%1 threatens %2, and the king cannot take back." to R.string.explain_threatens_king,
         "%1 threatens %2." to R.string.explain_threatens,
         "%1 attacks %2 on %3, in line with the king on %4." to R.string.explain_in_line,
+        "%1 clears %2 for %3" to R.string.explain_clears,
+        "%1 and clears %2 for %3" to R.string.explain_and_clears,
         " No material is lost: the evaluation is positional." to R.string.explain_no_material,
     )
 

@@ -253,25 +253,36 @@ FUNCTION FindRealization(line, firstPly, beneficiary, baseline, needed, swing)
     RETURN -1
 END FUNCTION
 
-' The moves of `side` in [1, last) of `line`, at most MAX_ARROWS: the plan
-' a missed move began.
-FUNCTION DrawPlan(line, last, side)
-    SHARED drawOnly, ringing, lostSquares
-    drawOnly = []
-    FOR k = 1 TO last - 1
-        IF SIDETOMOVE(line[1][k]) = side AND LEN(drawOnly) < MAX_ARROWS THEN drawOnly = drawOnly + [k]
-    NEXT
-    NOTE "  the plan: " + STR(LEN(drawOnly)) + " moves of the side that missed it"
-    ' Only what the plan wins is ringed, not what it exchanges on the way.
-    ringing = FALSE
-    AddArrows line, 1, last, side, "idea", 1, last
-    ringing = TRUE
-    final = line[0][last - 1]
-    square = TOSQ(final)
-    IF CAPTURED(line[1][last - 1], final) <> 0 AND PIECE(line[1][1], square) = CAPTURED(line[1][last - 1], final) THEN
-        lostSquares = lostSquares + [square]
-        LOST square
+' What the first move of `line` does at once, drawn and said: the pieces
+' it attacks (dashed), and the square it leaves when a piece of the same
+' side comes there before `last` (that move drawn). " 19.e5 attacks the
+' knight on f6 and clears e4 for 21.Ne4." Empty when it does neither.
+FUNCTION MoveIdea(line, last, side)
+    moves = line[0]
+    positions = line[1]
+    text = ""
+    first = MoveText(positions[0], moves[0])
+    threats = NewThreats(positions, 0, side, THREAT_GAIN, moves)
+    IF LEN(threats) > 0 THEN
+        target = TOSQ(threats[0][0])
+        Draw FROMSQ(threats[0][0]), target, "threat", 0
+        text = TEXT("%1 attacks %2 on %3", first, PieceName(PIECE(positions[1], target)), SquareName(target))
     END IF
+    vacated = FROMSQ(moves[0])
+    FOR k = 2 TO MIN(last, LEN(moves)) - 1 STEP 2
+        IF TOSQ(moves[k]) = vacated AND SIDETOMOVE(positions[k]) = side THEN
+            DrawWay positions, moves, k, "idea"
+            IF text = "" THEN
+                text = TEXT("%1 clears %2 for %3", first, SquareName(vacated), MoveText(positions[k], moves[k]))
+            ELSE
+                text = TEXT("%1 and clears %2 for %3", text, SquareName(vacated), MoveText(positions[k], moves[k]))
+            END IF
+            EXIT FOR
+        END IF
+    NEXT
+    IF text = "" THEN RETURN ""
+    NOTE "  the idea of " + first + ": " + text
+    RETURN " " + text + "."
 END FUNCTION
 
 ' Arrows for moves [first, last) of `line`, or only for [focusFirst,
@@ -1252,12 +1263,11 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
             IF ply >= 0 THEN
                 NOTE "branch: the move misses a win of material"
                 DrawBetter before, best[0][0], played
-                ' The plan the better move began: the mover's own moves of the
-                ' line up to the gain, numbered, the piece it wins ringed
-                ' (19.e5!, then 20.Qg5, 21.Ne4, … 24.Bxg7); the other side's
-                ' answers are in the text.
-                IF ply > 1 THEN DrawPlan best, ply, mover
-                SAY prefix + TEXT("Missed: %1 %2.", LINETEXT(before, PV(beforeEval), ply), MaterialPhrase(before, best[1][ply], mover))
+                ' What the better move does at once — the point of it, rather
+                ' than the whole line: what it attacks, the square it clears
+                ' for a piece that comes there later (19.e5!: the knight of
+                ' f6 attacked, e4 cleared for 21.Ne4).
+                SAY prefix + TEXT("Missed: %1 %2.", LINETEXT(before, PV(beforeEval), ply), MaterialPhrase(before, best[1][ply], mover)) + MoveIdea(best, ply, mover)
                 RETURN
             END IF
         END IF

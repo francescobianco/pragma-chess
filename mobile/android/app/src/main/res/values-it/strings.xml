@@ -170,5 +170,7 @@
     <string name="explain_threatens_king" formatted="false">%1 minaccia %2, e il re non può riprendere.</string>
     <string name="explain_threatens" formatted="false">%1 minaccia %2.</string>
     <string name="explain_in_line" formatted="false">%1 attacca %2 in %3, in linea con il re in %4.</string>
+    <string name="explain_clears" formatted="false">%1 libera %2 per %3</string>
+    <string name="explain_and_clears" formatted="false">%1 e libera %2 per %3</string>
     <string name="explain_no_material" formatted="false">" Non si perde materiale: la valutazione è posizionale."</string>
 </resources>

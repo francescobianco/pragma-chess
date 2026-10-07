@@ -3970,6 +3970,14 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>%1 attacks %2 on %3, in line with the king on %4.</source>
         <translation>%1 attacca %2 in %3, in linea con il re in %4.</translation>
     </message>
+    <message>
+        <source>%1 clears %2 for %3</source>
+        <translation>%1 libera %2 per %3</translation>
+    </message>
+    <message>
+        <source>%1 and clears %2 for %3</source>
+        <translation>%1 e libera %2 per %3</translation>
+    </message>
 </context>
 <context>
     <name>MoveTreeView</name>

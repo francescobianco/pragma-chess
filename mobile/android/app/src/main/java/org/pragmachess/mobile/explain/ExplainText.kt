@@ -29,7 +29,7 @@ fun interface ExplainText {
             "%1 leaves %2 on %3 attacked: %4.", "%1: %2 takes the attacker.",
             "%1: %2 moves it again, and %3 gains time.", "%1 attacks %2 on %3 and %4 on %5.",
             "%1 threatens %2, and the king cannot take back.", "%1 threatens %2.",
-            "%1 attacks %2 on %3, in line with the king on %4.",
+            "%1 attacks %2 on %3, in line with the king on %4.", "%1 clears %2 for %3", "%1 and clears %2 for %3",
             " No material is lost: the evaluation is positional.",
         )
     }

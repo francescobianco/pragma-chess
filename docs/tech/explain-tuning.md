@@ -502,10 +502,13 @@ legal move cannot be found among the moves).
 ### 19.Bh5??: the plan of the missed move (7 October)
 
 "It gives the missed move, but details on the plan it implied would be
-nice." The missed-win branch drew 19.e5 alone. `DrawPlan` now draws the
-mover's own moves of the better line up to the gain (at most MAX_ARROWS,
-numbered; the other side's answers stay in the text) and rings only the
-piece the plan wins (24.Bxg7), not what it exchanges on the way. And
+nice." The missed-win branch drew 19.e5 alone. Drawing the whole plan
+(the mover's moves up to the gain) was "not clean at all, just developed":
+the user meant the point of the move itself, why 19.e5 rather than another
+attacking move. `MoveIdea` says and draws what the missed move does at
+once: what it attacks (dashed, NewThreats) and the square it clears when
+a piece of the same side comes there in the line (DrawWay): "19.e5 attacks
+the knight on f6 and clears e4 for 21.Ne4". And
 FocusWindow's decisive capture is now measured net of an exchange: a
 capture taken back at once, or a recapture, counts what the exchange
 leaves (23.Qxd8 Rxd8, 21…Rxf1+ 22.Kxf1 are no gain).

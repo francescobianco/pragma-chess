@@ -48,9 +48,12 @@ struct ChapterGame {
 struct Chapter {
     QString title;
     QList<ChapterGame> games{ChapterGame()};
-    /// Where the user was in it: the game, and the ply on its main line.
+    /// Where the user was in it: the game, the line (the variation taken at
+    /// each branch, GameSession::path; empty for the main line) and the ply
+    /// on that line.
     int currentGame = 0;
     int ply = 0;
+    QList<int> path;
 };
 
 /// The chapters of a project and the one open. A new, empty project has no

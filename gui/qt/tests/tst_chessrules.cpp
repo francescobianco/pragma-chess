@@ -4091,6 +4091,7 @@ END FUNCTION
         opening.games = {game, stored};
         opening.currentGame = 1;
         opening.ply = 3;
+        opening.path = {1, 0}; // A move inside a variation of a variation.
         Chapter endings;
         endings.title = QStringLiteral("Endings");
         project.chapters = {opening, endings};
@@ -4105,6 +4106,8 @@ END FUNCTION
         QCOMPARE(back.title, QStringLiteral("The Italian"));
         QCOMPARE(back.currentGame, 1);
         QCOMPARE(back.ply, 3);
+        QCOMPARE(back.path, (QList<int>{1, 0}));
+        QVERIFY(read->chapters.at(1).path.isEmpty()); // The main line writes no path.
         QCOMPARE(back.games.size(), 2);
         QCOMPARE(back.games.first().game.white, QStringLiteral("Anna"));
         QCOMPARE(back.games.first().game.moves.size(), 2);

@@ -208,6 +208,12 @@ QString Project::toYaml(const QDir &baseDir) const
         out << YAML::Key << "title" << YAML::Value << toStd(entry.title);
         out << YAML::Key << "game" << YAML::Value << entry.currentGame;
         out << YAML::Key << "ply" << YAML::Value << entry.ply;
+        if (!entry.path.isEmpty()) {
+            out << YAML::Key << "path" << YAML::Value << YAML::Flow << YAML::BeginSeq;
+            for (int index : entry.path)
+                out << index;
+            out << YAML::EndSeq;
+        }
         out << YAML::Key << "games" << YAML::Value << YAML::BeginSeq;
         for (const ChapterGame &game : entry.games)
             writeGame(out, game);
@@ -319,6 +325,10 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
                 entry.games << ChapterGame();
             entry.currentGame = qBound(0, valueOf<int>(node["game"], 0), int(entry.games.size()) - 1);
             entry.ply = qMax(0, valueOf<int>(node["ply"], 0));
+            if (node["path"] && node["path"].IsSequence()) {
+                for (const YAML::Node &index : node["path"])
+                    entry.path << qMax(0, index.as<int>(0));
+            }
             env.chapters << entry;
         }
         env.noChapters = valueOf<bool>(chapters["none"], false);

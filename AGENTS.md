@@ -807,7 +807,7 @@ a chapter always has a game. In other tools this is a study or a chess book.
   project has chapters, and no more when it is back without:
   "Name* - Chapter - Pragma Chess").
 - In the `.pch` (format 2) `chapters` holds `current` and the `list`:
-  each chapter its `title`, `game`, `ply` and `games`, each game its uid
+  each chapter its `title`, `game`, `ply`, `path` (the variation the board is in, GameSession::path, written only off the main line: the project opens again on a move inside a variation) and `games`, each game its uid
   when stored plus its content (header, `fen`, `moves`, `annotations`,
   `variations`) and `paragraphs` (`ply`, `text`, and `kind` for a title or a subtitle). A format 1 project has no chapters: its
   one game (`game:` section) becomes the first chapter when it is opened.

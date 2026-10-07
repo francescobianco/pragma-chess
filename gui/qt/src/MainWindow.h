@@ -200,6 +200,10 @@ private:
     // their moves (ChapterBook). The session is the chapter's current game.
     /// The game on the board goes into the chapter as it is now.
     void syncChapterGame();
+    /// The chapter remembers where the board is — the line, variations
+    /// included, and the ply on it —, and the board goes back there.
+    void rememberPlace();
+    void returnToPlace();
     /// Puts the chapter's current game on the board: from the database when
     /// it is stored there, else as the chapter keeps it.
     void loadChapterGame();

@@ -3465,6 +3465,17 @@ void MainWindow::syncChapterGame()
     m_chapters.settle(); // Something on the board: a project without chapters has its first.
 }
 
+void MainWindow::rememberPlace()
+{
+    m_chapters.chapter().ply = m_session->ply();
+    m_chapters.chapter().path = m_session->path();
+}
+
+void MainWindow::returnToPlace()
+{
+    m_session->goToLine(m_chapters.chapter().path, m_chapters.chapter().ply);
+}
+
 void MainWindow::loadChapterGame()
 {
     const ChapterGame &entry = m_chapters.game();
@@ -3603,14 +3614,14 @@ void MainWindow::deleteChapterGame(int index, const QString &title)
     }
     if (current) {
         m_trainingModeAction->setChecked(false);
-        m_chapters.chapter().ply = m_session->ply();
+        rememberPlace();
     }
     if (!m_chapters.removeGame(index))
         return;
     if (current) {
         // The board goes to the game before (or, for the first, the next).
         loadChapterGame();
-        m_session->goToPly(m_chapters.chapter().ply);
+        returnToPlace();
     }
     chapterChanged();
 }
@@ -3623,7 +3634,7 @@ void MainWindow::insertGameBreak(int after)
     // Always a new game, right under the one the user is in; it stays,
     // empty, until something is entered in it or it is deleted.
     syncChapterGame();
-    m_chapters.chapter().ply = m_session->ply();
+    rememberPlace();
     m_chapters.insertGame(after < 0 ? m_chapters.chapter().currentGame : after);
     GameRecord game;
     game.result = QStringLiteral("*");
@@ -3646,7 +3657,7 @@ void MainWindow::newChapter()
     if (!ok)
         return;
     m_trainingModeAction->setChecked(false);
-    m_chapters.chapter().ply = m_session->ply();
+    rememberPlace();
     m_chapters.addChapter(title);
     loadChapterGame();
     chapterChanged();
@@ -3657,10 +3668,10 @@ void MainWindow::switchChapter(int index)
     if (index == m_chapters.current || index < 0 || index >= m_chapters.chapters.size() || !canLeaveGame())
         return;
     m_trainingModeAction->setChecked(false);
-    m_chapters.chapter().ply = m_session->ply();
+    rememberPlace();
     m_chapters.current = index;
     loadChapterGame();
-    m_session->goToPly(m_chapters.chapter().ply);
+    returnToPlace();
     chapterChanged();
 }
 
@@ -3698,7 +3709,7 @@ void MainWindow::manageChapters()
     if (dialog.exec() != QDialog::Accepted)
         return;
     const QList<ManageChaptersDialog::Entry> chosen = dialog.entries();
-    m_chapters.chapter().ply = m_session->ply();
+    rememberPlace();
     syncChapterGame();
     QList<Chapter> chapters;
     int current = -1;
@@ -3723,7 +3734,7 @@ void MainWindow::manageChapters()
     if (!sameChapter) {
         m_trainingModeAction->setChecked(false);
         loadChapterGame();
-        m_session->goToPly(m_chapters.chapter().ply);
+        returnToPlace();
     }
     chapterChanged();
 }
@@ -5067,7 +5078,8 @@ Project MainWindow::captureProject()
     project.chapter = m_chapters.current;
     Chapter &open = project.chapters[m_chapters.current];
     open.games[open.currentGame].game = m_session->game();
-    open.ply = m_session->path().isEmpty() ? m_session->ply() : m_session->branchPly();
+    open.ply = m_session->ply();
+    open.path = m_session->path(); // A move inside a variation is where the project opens again.
     project.noChapters = !m_chapters.hasChapters();
     project.automaticChapters = m_chapters.isAutomatic();
     project.boardFlipped = m_flipBoardAction->isChecked();
@@ -5140,7 +5152,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         }
         m_moveView->refresh();
         loadChapterGame();
-        m_session->goToPly(m_chapters.chapter().ply);
+        returnToPlace();
         m_startEngineAction->setChecked(project.engineAnalyzing);
         if (project.training) {
             m_trainingSide = project.trainingSide;

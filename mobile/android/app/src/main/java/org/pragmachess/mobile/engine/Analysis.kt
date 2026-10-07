@@ -29,11 +29,12 @@ data class Analysis(
     val text: String
         get() {
             if (mate != null) return if (mate == 0) "#" else "M${abs(mate)}"
-            val pawns = centipawns / 100.0
-            val number = if (abs(pawns) >= 10) "%.0f".format(java.util.Locale.ROOT, abs(pawns))
-            else "%.1f".format(java.util.Locale.ROOT, abs(pawns))
+            // In whole numbers, half away from zero, as every client writes it (−115 is −1.2).
+            val magnitude = abs(centipawns)
+            val tenths = (magnitude + 5) / 10
+            val number = if (tenths >= 100) "${(magnitude + 50) / 100}" else "${tenths / 10}.${tenths % 10}"
             if (number == "0.0") return number
-            return (if (pawns > 0) "+" else "−") + number
+            return (if (centipawns > 0) "+" else "−") + number
         }
 
     companion object {

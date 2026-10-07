@@ -314,5 +314,5 @@ tick depth 34 cp -115 pv e7f5 g3h3 f8c5 h3f5 c6g2 c1d2 e8g8 c3a4 b6c6 g1e2 g2h1 
 expect verdict inaccuracy
 expect arrows f5g3 threat, g1e2 alternative, e7f5 refutation 1, g3h3 reply 2, h3f5 reply 3, c6g2 refutation 4, g2h1 refutation 5
 expect lost g2, h1
-expect summary Inaccuracy (+0.4 → −1.1). Black wins a rook and a pawn for a bishop: 10…Nf5 11.Qh3 Bc5 12.Qxf5 Bxg2 13.Bd2 O-O 14.Na4 Qc6 15.Ne2 Bxh1 16.Nxc5 Qxc5. Better was 10.Nge2.
+expect summary Inaccuracy (+0.4 → −1.2). Black wins a rook and a pawn for a bishop: 10…Nf5 11.Qh3 Bc5 12.Qxf5 Bxg2 13.Bd2 O-O 14.Na4 Qc6 15.Ne2 Bxh1 16.Nxc5 Qxc5. Better was 10.Nge2.
 end

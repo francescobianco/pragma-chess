@@ -22,10 +22,13 @@ QString EngineEvaluation::text() const
 {
     if (isMate)
         return mateIn == 0 ? QStringLiteral("#") : QStringLiteral("M%1").arg(mateIn);
-    const double pawns = centipawns / 100.0;
-    const QString number = std::abs(pawns) >= 10 ? QString::number(std::abs(pawns), 'f', 0)
-                                                 : QString::number(std::abs(pawns), 'f', 1);
+    // In whole numbers, half away from zero, as every client writes it
+    // (−115 is −1.2): doubles round 1.15 down here and up in Java.
+    const int magnitude = std::abs(centipawns);
+    const int tenths = (magnitude + 5) / 10;
+    const QString number = tenths >= 100 ? QString::number((magnitude + 50) / 100)
+                                         : QStringLiteral("%1.%2").arg(tenths / 10).arg(tenths % 10);
     if (number == QLatin1String("0.0"))
         return number;
-    return (pawns > 0 ? QStringLiteral("+") : QStringLiteral("−")) + number;
+    return (centipawns > 0 ? QStringLiteral("+") : QStringLiteral("−")) + number;
 }

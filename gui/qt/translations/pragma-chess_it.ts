@@ -3966,6 +3966,10 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>%1 threatens %2.</source>
         <translation>%1 minaccia %2.</translation>
     </message>
+    <message>
+        <source>%1 attacks %2 on %3, in line with the king on %4.</source>
+        <translation>%1 attacca %2 in %3, in linea con il re in %4.</translation>
+    </message>
 </context>
 <context>
     <name>MoveTreeView</name>

@@ -171,5 +171,6 @@
     <string name="explain_double_attack" formatted="false">%1 attacks %2 on %3 and %4 on %5.</string>
     <string name="explain_threatens_king" formatted="false">%1 threatens %2, and the king cannot take back.</string>
     <string name="explain_threatens" formatted="false">%1 threatens %2.</string>
+    <string name="explain_in_line" formatted="false">%1 attacks %2 on %3, in line with the king on %4.</string>
     <string name="explain_no_material" formatted="false">" No material is lost: the evaluation is positional."</string>
 </resources>

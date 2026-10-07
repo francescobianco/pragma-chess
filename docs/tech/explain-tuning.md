@@ -463,3 +463,12 @@ FocusWindow now also draws how the captured piece came to its square: its
 arrival in the line, the winning side's move before it when that move
 attacks something (the threat dashed), and every move up to the capture.
 Recorded: user-feedback.ticks.
+
+The user, on the same position: the rook of g6 is in line with the king of
+g1 — "alignments should be marked": the queen cannot just leave g3 (14.Qh2
+Rxg2+ 15.Qxg2 Bxg2 16.Kxg2, −4.8 against 14.Bg5's −2.35), which is why the
+bishop is given. When the attack that sends the victim is a line piece's
+with the target's king behind it, at most one piece between
+(`KingInLine`), the threat's arrow goes on to the king (g3→g1, dashed) and
+the summary says "13…Rg6 attacks the queen on g3, in line with the king on
+g1" (`lineNote`).

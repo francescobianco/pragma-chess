@@ -84,6 +84,9 @@ CONST LONG_SHARE = 0.8
 ' explains the evaluation: a ring is red, the colour of material falling).
 drawnArrows = []
 lostSquares = []
+' A line piece's attack in line with the king behind its target, said
+' after the explanation's sentence (FocusWindow sets it).
+lineNote = ""
 ' How many plies of the line the threats said reach: the main line is shown
 ' at least that far, so the move of a double attack can be read in it.
 threatReach = 0
@@ -413,7 +416,7 @@ END FUNCTION
 ' 14.Nb5, a knight stepping aside so that the bishop behind it attacks the
 ' queen — is what the user has to see first, however far the jump.
 FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
-    SHARED drawOnly
+    SHARED drawOnly, lineNote
     IF last - first <= FOCUS_ABOVE THEN RETURN WithoutLoserTail(line, [first, last], beneficiary) + [FALSE]
     moves = line[0]
     positions = line[1]
@@ -517,6 +520,13 @@ FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
                 IF LEN(sent) > 0 THEN
                     start = arrived - 1
                     Draw FROMSQ(sent[0][0]), TOSQ(sent[0][0]), "threat", 0
+                    ' In line with the king behind: the line goes on to it, and is said.
+                    king = KingInLine(positions[arrived], FROMSQ(sent[0][0]), TOSQ(sent[0][0]))
+                    IF king >= 0 THEN
+                        Draw TOSQ(sent[0][0]), king, "threat", 0
+                        lineNote = " " + TEXT("%1 attacks %2 on %3, in line with the king on %4.", MoveText(positions[arrived - 1], moves[arrived - 1]), PieceName(PIECE(positions[arrived], TOSQ(sent[0][0]))), SquareName(TOSQ(sent[0][0])), SquareName(king))
+                        NOTE "  in line: " + SquareName(FROMSQ(sent[0][0])) + "-" + SquareName(TOSQ(sent[0][0])) + "-" + SquareName(king)
+                    END IF
                 END IF
             END IF
             IF LEN(drawOnly) = 0 THEN
@@ -672,6 +682,56 @@ FUNCTION ChecksUntaken(position, capture)
         IF TOSQ(replies[i]) = TOSQ(capture) THEN RETURN FALSE
     NEXT
     RETURN TRUE
+END FUNCTION
+
+' The king a line piece's attack from `source` on `target` points at:
+' going on along that line past the target, at most one piece in between
+' (13...Rg6 on the queen of g3, the pawn of g2, the king of g1), the square
+' of a king of the target's side; -1 when there is none. The target cannot
+' just leave: the line opens on what is behind it.
+FUNCTION KingInLine(position, source, target)
+    piece = PIECE(position, source)
+    fileStep = Sign(target MOD 8 - source MOD 8)
+    rankStep = Sign(INT(target / 8) - INT(source / 8))
+    straight = fileStep = 0 OR rankStep = 0
+    diagonal = ABS(target MOD 8 - source MOD 8) = ABS(INT(target / 8) - INT(source / 8))
+    IF NOT straight AND NOT diagonal THEN RETURN -1
+    IF piece = ROOK AND NOT straight THEN RETURN -1
+    IF piece = BISHOP AND NOT diagonal THEN RETURN -1
+    IF piece <> ROOK AND piece <> BISHOP AND piece <> QUEEN THEN RETURN -1
+    between = 0
+    file = target MOD 8 + fileStep
+    rank = INT(target / 8) + rankStep
+    WHILE file >= 0 AND file <= 7 AND rank >= 0 AND rank <= 7
+        square = rank * 8 + file
+        IF PIECE(position, square) = KING THEN
+            ' The target's king, not the attacker's: the target's side has it.
+            IF SideOf(position, square) = SideOf(position, target) THEN RETURN square
+            RETURN -1
+        END IF
+        IF PIECE(position, square) <> 0 THEN between = between + 1
+        IF between > 1 THEN RETURN -1
+        file = file + fileStep
+        rank = rank + rankStep
+    WEND
+    RETURN -1
+END FUNCTION
+
+' Which side the piece on `square` of `position` belongs to: the side whose
+' turn, passed if need be, lets it move or take from there; 0 if empty.
+FUNCTION SideOf(position, square)
+    IF PIECE(position, square) = 0 THEN RETURN 0
+    FOR turn = 0 TO 1
+        probe = position
+        IF turn = 1 THEN probe = PASS(position)
+        IF probe <> NOTHING THEN
+            moves = MOVES(probe)
+            FOR i = 0 TO LEN(moves) - 1
+                IF FROMSQ(moves[i]) = square THEN RETURN SIDETOMOVE(probe)
+            NEXT
+        END IF
+    NEXT
+    RETURN 0
 END FUNCTION
 
 ' Whether the king of the side to move in `position` stands next to `square`.
@@ -956,10 +1016,11 @@ END FUNCTION
 ' advantage shows on the board); `note` says, for the trace, why `afterEval`
 ' is not the explanation's own search ("" if it is).
 FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note)
-    SHARED lostSquares, drawnArrows, ringing, judged
+    SHARED lostSquares, drawnArrows, ringing, judged, lineNote
     lostSquares = []
     drawnArrows = []
     ringing = TRUE
+    lineNote = ""
 
     IF CHECKMATE(after) THEN
         SAY TEXT("Checkmate.")
@@ -1047,7 +1108,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
                 ' (focus[2]: it starts at the reply only because that is drawn too).
                 IF NOT focus[2] AND focus[0] = 1 AND betterExists THEN DrawBetter before, best[0][0], played
                 AddArrows line, 1, ply, toMove, "refutation", focus[0], focus[1]
-                SAY prefix + TEXT("%1 %2: %3.", SideName(toMove), MaterialPhrase(before, line[1][ply], toMove), LINETEXT(after, pv, ply - 1)) + better
+                SAY prefix + TEXT("%1 %2: %3.", SideName(toMove), MaterialPhrase(before, line[1][ply], toMove), LINETEXT(after, pv, ply - 1)) + lineNote + better
                 RETURN
             END IF
         END IF

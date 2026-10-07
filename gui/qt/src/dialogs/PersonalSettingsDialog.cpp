@@ -3,16 +3,22 @@
 #include "widgets/BoardTheme.h"
 #include "widgets/PieceRenderer.h"
 
+#include <QClipboard>
 #include <QComboBox>
 #include <QDate>
 #include <QDialogButtonBox>
+#include <QFontDatabase>
 #include <QFormLayout>
+#include <QGuiApplication>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QPainter>
 #include <QPixmap>
 #include <QRegularExpressionValidator>
 #include <QSpinBox>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 namespace {
@@ -40,7 +46,8 @@ QIcon themePreview(const BoardTheme &theme, qreal devicePixelRatio)
 
 } // namespace
 
-PersonalSettingsDialog::PersonalSettingsDialog(const PersonalSettings &settings, QWidget *parent)
+PersonalSettingsDialog::PersonalSettingsDialog(const PersonalSettings &settings, const QString &lobbyKey,
+                                               QWidget *parent)
     : QDialog(parent)
     , m_name(new QLineEdit(settings.name, this))
     , m_birthYear(new QSpinBox(this))
@@ -78,15 +85,84 @@ PersonalSettingsDialog::PersonalSettingsDialog(const PersonalSettings &settings,
     note->setWordWrap(true);
     note->setEnabled(false); // Greyed: a remark, not a setting.
 
+    // The lobby key: who the user is in the lobby, kept on this computer only.
+    QWidget *lobby = nullptr;
+    if (!lobbyKey.isEmpty()) {
+        m_originalLobbyKey = lobbyKey;
+        lobby = new QWidget(this);
+        auto *lobbyLayout = new QVBoxLayout(lobby);
+        lobbyLayout->setContentsMargins(0, 0, 0, 0);
+        auto *keyRow = new QHBoxLayout;
+        m_lobbyKey = new QLineEdit(lobbyKey, lobby);
+        m_lobbyKey->setEchoMode(QLineEdit::Password); // A secret: shown only when asked.
+        m_lobbyKey->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+        m_lobbyKey->setValidator(
+            new QRegularExpressionValidator(QRegularExpression(QStringLiteral("[0-9a-fA-F]{0,64}")), m_lobbyKey));
+        auto *show = new QToolButton(lobby);
+        show->setText(tr("Show"));
+        show->setCheckable(true);
+        connect(show, &QToolButton::toggled, this, [this, show](bool on) {
+            m_lobbyKey->setEchoMode(on ? QLineEdit::Normal : QLineEdit::Password);
+            show->setText(on ? tr("Hide") : tr("Show"));
+        });
+        auto *copy = new QToolButton(lobby);
+        copy->setText(tr("Copy"));
+        connect(copy, &QToolButton::clicked, this, [this] { QGuiApplication::clipboard()->setText(m_lobbyKey->text()); });
+        keyRow->addWidget(m_lobbyKey, 1);
+        keyRow->addWidget(show);
+        keyRow->addWidget(copy);
+        auto *keyForm = new QFormLayout;
+        keyForm->addRow(tr("&Lobby key:"), keyRow);
+        m_lobbyKey->setAccessibleName(tr("Lobby key"));
+        lobbyLayout->addLayout(keyForm);
+        auto *keyNote = new QLabel(tr("This key is who you are in the lobby: it signs your moves. For security it is "
+                                      "not synced with your other settings and stays on this computer only. To play "
+                                      "as yourself from another computer, copy it here and paste it into the same "
+                                      "field there: you have to carry it yourself. Anyone who has it can play as "
+                                      "you, so keep it to yourself."),
+                                   lobby);
+        keyNote->setWordWrap(true);
+        keyNote->setEnabled(false);
+        lobbyLayout->addWidget(keyNote);
+    }
+
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::accepted, this, &PersonalSettingsDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     auto *layout = new QVBoxLayout(this);
     layout->addLayout(form);
     layout->addWidget(note);
+    if (lobby) {
+        layout->addSpacing(layout->spacing());
+        layout->addWidget(lobby);
+    }
     layout->addStretch();
     layout->addWidget(buttons);
+}
+
+QString PersonalSettingsDialog::lobbyKey() const
+{
+    return m_lobbyKey ? m_lobbyKey->text().trimmed().toLower() : QString();
+}
+
+void PersonalSettingsDialog::accept()
+{
+    if (m_lobbyKey && lobbyKey() != m_originalLobbyKey) {
+        if (lobbyKey().size() != 64) {
+            QMessageBox::warning(this, tr("Lobby Key"), tr("A lobby key is 64 hexadecimal digits: paste it whole."));
+            return;
+        }
+        // The key of this computer goes: unless it was copied, who it was in the lobby is gone with it.
+        const auto answer = QMessageBox::question(
+            this, tr("Lobby Key"),
+            tr("This computer will be the player of the new key in the lobby. Its present key is replaced: if you "
+               "have not copied it, you can no longer play as that player. Replace it?"),
+            QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
+        if (answer != QMessageBox::Yes)
+            return;
+    }
+    QDialog::accept();
 }
 
 PersonalSettings PersonalSettingsDialog::settings() const

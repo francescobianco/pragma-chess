@@ -9,7 +9,7 @@
 #include "app/WorkspaceLayout.h"
 #include "app/PlayerRole.h"
 #include "app/TrainingTutor.h"
-#include "app/lobby/Lobby.h"
+#include "app/lobby/LobbyService.h"
 #include "dialogs/NewGameChoiceDialog.h"
 #include "dialogs/NewTrainingDialog.h"
 #include "widgets/BoardWidget.h"
@@ -43,6 +43,7 @@ class GameListModel;
 class GameSession;
 class HelpDialog;
 class LobbyDialog;
+class LobbyNetwork;
 class MoveTreeView;
 class BookPanel;
 struct ChessMove;
@@ -431,27 +432,33 @@ private:
     /// Help ▸ Pragma Chess Guide (F1).
     void showGuide();
     void showLobby();
-    /// The lobby's Play: game `game` of room `room` on the board, after
-    /// asking about a game on the board that is not saved, seen from the
-    /// user's side, in Lobby Mode.
-    void playLobbyGame(int room, int game);
-    /// The lobby, made with its example rooms the first time it is needed.
-    Lobby &lobby();
+    /// The lobby's Play: the game `white` plays against `black` in room
+    /// `roomId` on the board, after asking about a game on the board that
+    /// is not saved, seen from the user's side, in Lobby Mode.
+    void playLobbyGame(const QString &roomId, const QString &white, const QString &black);
+    /// The lobby on the network, made the first time it is needed; nothing
+    /// in a build without the network (no Phone Link libraries).
+    LobbyService *lobbyService();
+    /// The lobby key changed: the node goes, and comes back with the new one.
+    void resetLobbyService();
+    /// The ledger of this computer, kept between runs.
+    static QString lobbyDirectory();
     /// The name the user sits with in the lobby.
     QString lobbyName() const;
+    /// The lobby game on the board as the ledger has it now, if any.
+    const LobbyRoom *linkedRoom();
+    const LobbyGame *linkedGame();
     /// Lobby Mode's sends: the move after where the game stands, or the
     /// whole plan prepared on the board (`plan`).
     void sendLobby(bool plan);
+    /// The lobby changed (the network, or the user): the board follows the
+    /// game it holds, and the panel says where it stands.
+    void lobbyChanged();
     /// The lobby game as it stands now on the board; the moves from ply
     /// `from` on are new, and the last one slides in.
     void showLobbyGameOnBoard(int from);
-    /// For the preview: an opponent with no answer ready plays a book move
-    /// a moment later, so the game goes on.
-    void simulateLobbyOpponent(int room, int game);
     /// What the Engine panel says in Lobby Mode, and which sends it allows.
     void updateLobbyPanel();
-    /// Keeps the lobby between runs (QSettings `lobby/state`) until the network comes.
-    void saveLobby();
     /// A project's lobby game, when the board holds it: Lobby Mode as it was.
     void restoreLobbyLink(const Project &project);
     /// The board left the lobby game: Lobby Mode goes off.
@@ -661,15 +668,20 @@ private:
     HelpDialog *m_guideDialog = nullptr;
     /// Game ▸ Enter the Lobby…: one window, kept with its rooms while the application runs.
     LobbyDialog *m_lobbyDialog = nullptr;
-    /// The lobby of Game ▸ Enter the Lobby… (Lobby::sample until the network comes).
-    Lobby m_lobby;
-    bool m_lobbyMade = false;
-    /// The lobby game on the board: its room and index, the user's side and the board game's uid.
+    /// The lobby of Game ▸ Enter the Lobby…, on the network (LobbyNode).
+    LobbyService *m_lobbyService = nullptr;
+    /// Its ledger on the network: the relays and the peers (LobbyNetwork).
+    LobbyNetwork *m_lobbyNetwork = nullptr;
+    /// The lobby game on the board: its room, its players, the user's side,
+    /// the board game's uid and how many of the game's moves the board was
+    /// last given (more in the ledger: the opponent moved).
     struct LobbyLink {
-        int room = -1;
-        int game = -1;
+        QString room;
+        QString white;
+        QString black;
         Side side = Side::White;
         QString uid;
+        int plies = 0;
     };
     std::optional<LobbyLink> m_lobbyGame;
     /// The board is being set to the lobby game: not the user leaving it.

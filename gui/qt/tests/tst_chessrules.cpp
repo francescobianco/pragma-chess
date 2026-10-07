@@ -1,6 +1,7 @@
 #include "app/AdvantageProbe.h"
 #include "app/BookWeights.h"
 #include "app/lobby/Lobby.h"
+#include "app/lobby/LobbyLedger.h"
 #include "app/lobby/LobbyPlans.h"
 #include "app/lobby/RoomName.h"
 #include "app/online/OnlineGame.h"
@@ -887,6 +888,87 @@ QString writeChessBaseFixture(const QString &dir)
         QVERIFY(compared > 0);
     }
 
+    void foldsTheLobbyLedger()
+    {
+        // Events as peers sign them, here unsigned: the fold reads what they say.
+        int serial = 0;
+        const auto key = [](char c) { return QString(64, QLatin1Char(c)); };
+        const QString alice = key('a'), bob = key('b'), carol = key('c'), dave = key('d'), erin = key('e');
+        const auto event = [&](const QString &author, qint64 at, const QJsonObject &content) {
+            LedgerEvent e;
+            e.id = QStringLiteral("%1").arg(++serial, 64, 10, QLatin1Char('0'));
+            e.author = author;
+            e.createdAt = at;
+            e.content = content;
+            return e;
+        };
+        QList<LedgerEvent> events;
+        const LedgerEvent open = event(alice, 100, LobbyLedger::openContent(81, QStringLiteral("Alice")));
+        const QString room = open.id;
+        events << open;
+        events << event(bob, 110, LobbyLedger::joinContent(room, QStringLiteral("Bob")));
+        events << event(carol, 120, LobbyLedger::joinContent(room, QStringLiteral("Carol")));
+        events << event(dave, 130, LobbyLedger::joinContent(room, QStringLiteral("Dave")));
+        events << event(erin, 140, LobbyLedger::joinContent(room, QStringLiteral("Erin"))); // The room is full.
+        events << event(bob, 150, LobbyLedger::joinContent(room, QString())); // Seated already.
+        // Another room, joined by Erin at a time before its opening (clocks apart).
+        const LedgerEvent second = event(bob, 160, LobbyLedger::openContent(402, QStringLiteral("Bob")));
+        events << second << event(erin, 90, LobbyLedger::joinContent(second.id, QStringLiteral("Erin")));
+        // Bob–Alice: 1.e4 e5 2.Nf3, with what must be left out around it.
+        events << event(bob, 200, LobbyLedger::moveContent(room, bob, alice, 1, QStringLiteral("e2e4")));
+        events << event(alice, 201, LobbyLedger::moveContent(room, bob, alice, 1, QStringLiteral("e7e5"))); // Not her ply.
+        events << event(alice, 210, LobbyLedger::moveContent(room, bob, alice, 2, QStringLiteral("e7e4"))); // Illegal.
+        events << event(alice, 211, LobbyLedger::moveContent(room, bob, alice, 2, QStringLiteral("e7e5")));
+        events << event(alice, 212, LobbyLedger::moveContent(room, bob, alice, 2, QStringLiteral("d7d5"))); // Second device: later.
+        events << event(carol, 220, LobbyLedger::moveContent(room, bob, alice, 3, QStringLiteral("g1f3"))); // Not hers.
+        events << event(bob, 221, LobbyLedger::moveContent(room, bob, alice, 3, QStringLiteral("g1f3")));
+        events << event(bob, 222, LobbyLedger::moveContent(room, bob, alice, 5, QStringLiteral("f1c4"))); // A ply ahead.
+        // Alice–Bob: Bob resigns. Carol–Dave: a fool's mate.
+        events << event(bob, 230, LobbyLedger::resignContent(room, alice, bob));
+        events << event(erin, 231, LobbyLedger::resignContent(room, carol, dave)); // Not her game.
+        int ply = 0;
+        for (const char *uci : {"f2f3", "e7e5", "g2g4", "d8h4"}) {
+            const QString mover = ply % 2 == 0 ? dave : carol;
+            events << event(mover, 300 + ply, LobbyLedger::moveContent(room, dave, carol, ply + 1, QString::fromLatin1(uci)));
+            ++ply;
+        }
+        events << event(alice, 400, QJsonObject{{QStringLiteral("t"), QStringLiteral("join")},
+                                               {QStringLiteral("room"), room},
+                                               {QStringLiteral("name"), QStringLiteral("Alice B.")}}); // A later name.
+
+        // In any order the events arrive, the same lobby.
+        for (int round = 0; round < 3; ++round) {
+            LobbyLedger ledger;
+            QList<LedgerEvent> shuffled = events;
+            if (round == 1)
+                std::reverse(shuffled.begin(), shuffled.end());
+            if (round == 2)
+                std::rotate(shuffled.begin(), shuffled.begin() + 7, shuffled.end());
+            for (const LedgerEvent &e : std::as_const(shuffled))
+                QVERIFY(ledger.add(e));
+            QVERIFY(!ledger.add(events.first())); // Known already.
+
+            const QList<LobbyRoom> rooms = ledger.rooms();
+            QCOMPARE(rooms.size(), 2);
+            QCOMPARE(rooms.at(1).seats.mid(0, 2), (QStringList{bob, erin}));
+            const LobbyRoom &r = rooms.first();
+            QCOMPARE(r.id, room);
+            QCOMPARE(r.seed, quint32(81));
+            QCOMPARE(r.seats, (QStringList{alice, bob, carol, dave}));
+            QCOMPARE(r.games.size(), 12);
+            QCOMPARE(r.displayName(alice), QStringLiteral("Alice B."));
+            QCOMPARE(r.displayName(bob), QStringLiteral("Bob"));
+            const LobbyGame &bobAlice = r.games.at(r.indexOfGame(bob, alice));
+            QCOMPARE(bobAlice.moves, (QStringList{QStringLiteral("e2e4"), QStringLiteral("e7e5"), QStringLiteral("g1f3")}));
+            QVERIFY(bobAlice.waitsFor(alice));
+            QCOMPARE(r.games.at(r.indexOfGame(alice, bob)).result, QStringLiteral("1-0"));
+            const LobbyGame &mate = r.games.at(r.indexOfGame(dave, carol));
+            QCOMPARE(mate.moves.size(), 4);
+            QCOMPARE(mate.result, QStringLiteral("0-1"));
+            QCOMPARE(r.games.at(r.indexOfGame(carol, dave)).result, QStringLiteral("*"));
+        }
+    }
+
     void playsLobbyPlans()
     {
         // On the board after 1.e4 e5 (the game's moves), White prepared:
@@ -940,37 +1022,19 @@ QString writeChessBaseFixture(const QString &dir)
         QCOMPARE(shown.white, QStringLiteral("Me"));
         QVERIFY(shown.uid.startsWith(QStringLiteral("lobby:")));
 
-        // Kept between runs: moves, results, plans, seats, seeds and offers.
-        lobby.room(3).games[10].plans[QStringLiteral("Me")].insert(QStringLiteral("a b"), QStringLiteral("c"));
-        const std::optional<Lobby> kept = Lobby::fromJson(lobby.toJson());
-        QVERIFY(kept);
-        QCOMPARE(kept->rooms().size(), lobby.rooms().size());
-        for (int i = 0; i < lobby.rooms().size(); ++i) {
-            QCOMPARE(kept->rooms().at(i).seed, lobby.rooms().at(i).seed);
-            QCOMPARE(kept->rooms().at(i).seats, lobby.rooms().at(i).seats);
-            QCOMPARE(kept->rooms().at(i).games.size(), lobby.rooms().at(i).games.size());
-            for (int g = 0; g < lobby.rooms().at(i).games.size(); ++g) {
-                const LobbyGame &a = kept->rooms().at(i).games.at(g);
-                const LobbyGame &b = lobby.rooms().at(i).games.at(g);
-                QCOMPARE(a.moves, b.moves);
-                QCOMPARE(a.result, b.result);
-                QCOMPARE(a.plans, b.plans);
-            }
-        }
-        QCOMPARE(kept->offeredRooms(), lobby.offeredRooms());
-        QVERIFY(!Lobby::fromJson("not json"));
-
         // The project keeps which lobby game is on the board.
         Project project;
         QVERIFY(!project.toYaml().contains(QStringLiteral("lobby")));
-        project.lobbyRoom = 3;
-        project.lobbyGame = 10;
+        project.lobbyRoom = QStringLiteral("room-id");
+        project.lobbyWhite = QStringLiteral("white-key");
+        project.lobbyBlack = QStringLiteral("black-key");
         project.lobbyMode = true;
         QString error;
         const std::optional<Project> read = Project::fromYaml(project.toYaml(), QDir(), &error);
         QVERIFY2(read, qPrintable(error));
-        QCOMPARE(read->lobbyRoom, 3);
-        QCOMPARE(read->lobbyGame, 10);
+        QCOMPARE(read->lobbyRoom, QStringLiteral("room-id"));
+        QCOMPARE(read->lobbyWhite, QStringLiteral("white-key"));
+        QCOMPARE(read->lobbyBlack, QStringLiteral("black-key"));
         QVERIFY(read->lobbyMode);
     }
 

@@ -212,8 +212,11 @@ qt_add_library(pragma-chess-core STATIC
     src/app/online/OnlineAccount.h
     src/app/lobby/Lobby.cpp
     src/app/lobby/Lobby.h
+    src/app/lobby/LobbyLedger.cpp
+    src/app/lobby/LobbyLedger.h
     src/app/lobby/LobbyPlans.cpp
     src/app/lobby/LobbyPlans.h
+    src/app/lobby/LobbyService.h
     src/app/lobby/RoomName.cpp
     src/app/lobby/RoomName.h
     src/app/online/OnlineGame.cpp
@@ -322,6 +325,12 @@ if(PRAGMA_HAS_PHONE_LINK)
         src/app/phone/PhoneLinkSession.h
         src/app/phone/WebRtcPeer.cpp
         src/app/phone/WebRtcPeer.h
+        src/app/lobby/net/LobbyIdentity.cpp
+        src/app/lobby/net/LobbyIdentity.h
+        src/app/lobby/net/LobbyNetwork.cpp
+        src/app/lobby/net/LobbyNetwork.h
+        src/app/lobby/net/LobbyNode.cpp
+        src/app/lobby/net/LobbyNode.h
     )
     target_link_libraries(pragma-phone-link PUBLIC pragma-chess-core PRIVATE ${PRAGMA_DATACHANNEL} ${PRAGMA_SECP256K1})
     target_compile_definitions(pragma-phone-link PUBLIC PRAGMA_HAS_PHONE_LINK)

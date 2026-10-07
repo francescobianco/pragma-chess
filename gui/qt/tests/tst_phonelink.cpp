@@ -1,4 +1,7 @@
 #include "app/SqliteGameDatabase.h"
+#include "app/lobby/LobbyLedger.h"
+#include "app/lobby/net/LobbyNetwork.h"
+#include "app/lobby/net/LobbyNode.h"
 #include "app/phone/DatabaseFolderStore.h"
 #include "app/phone/Nip44.h"
 #include "app/phone/NostrEvent.h"
@@ -84,22 +87,33 @@ public:
     QString url() const { return QStringLiteral("ws://127.0.0.1:%1").arg(m_server->port()); }
 
 private:
+    QList<QJsonObject> m_stored;
+    QSet<QString> m_storedIds;
     struct Client {
         std::shared_ptr<rtc::WebSocket> socket;
         QHash<QString, QJsonObject> subscriptions;
     };
 
+    /// NIP-01 filters: the kinds, and every "#x" tag filter.
     static bool matches(const QJsonObject &filter, const QJsonObject &event)
     {
         if (!filter.value(QStringLiteral("kinds")).toArray().contains(event.value(QStringLiteral("kind"))))
             return false;
-        const QJsonArray wanted = filter.value(QStringLiteral("#p")).toArray();
-        for (const QJsonValue &tag : event.value(QStringLiteral("tags")).toArray()) {
-            const QJsonArray values = tag.toArray();
-            if (values.size() >= 2 && values.at(0).toString() == QLatin1String("p") && wanted.contains(values.at(1)))
-                return true;
+        for (auto it = filter.constBegin(); it != filter.constEnd(); ++it) {
+            if (!it.key().startsWith(QLatin1Char('#')))
+                continue;
+            const QString name = it.key().mid(1);
+            const QJsonArray wanted = it.value().toArray();
+            bool found = false;
+            for (const QJsonValue &tag : event.value(QStringLiteral("tags")).toArray()) {
+                const QJsonArray values = tag.toArray();
+                if (values.size() >= 2 && values.at(0).toString() == name && wanted.contains(values.at(1)))
+                    found = true;
+            }
+            if (!found)
+                return false;
         }
-        return false;
+        return true;
     }
 
     void onMessage(Client &from, const QByteArray &text)
@@ -109,12 +123,23 @@ private:
         std::lock_guard lock(m_mutex);
         if (type == QLatin1String("REQ")) {
             from.subscriptions.insert(message.at(1).toString(), message.at(2).toObject());
+            // What it keeps first, as relays do with regular events.
+            for (const QJsonObject &stored : std::as_const(m_stored)) {
+                if (matches(message.at(2).toObject(), stored))
+                    send(from, {QStringLiteral("EVENT"), message.at(1), stored});
+            }
             send(from, {QStringLiteral("EOSE"), message.at(1)});
         } else if (type == QLatin1String("CLOSE")) {
             from.subscriptions.remove(message.at(1).toString());
         } else if (type == QLatin1String("EVENT")) {
             const QJsonObject event = message.at(1).toObject();
             send(from, {QStringLiteral("OK"), event.value(QStringLiteral("id")), true, QString()});
+            const int kind = event.value(QStringLiteral("kind")).toInt();
+            const QString id = event.value(QStringLiteral("id")).toString();
+            if (kind < 20000 && !m_storedIds.contains(id)) { // Regular: kept. Ephemeral (20000–29999): handed on only.
+                m_storedIds.insert(id);
+                m_stored << event;
+            }
             for (const auto &client : m_clients) {
                 for (auto it = client->subscriptions.cbegin(); it != client->subscriptions.cend(); ++it) {
                     if (matches(it.value(), event))
@@ -188,6 +213,8 @@ private Q_SLOTS:
     void findsWhereAPutGoes();
     void describesDatabasesWithAnId();
     void pairsListsGetsAndPutsEndToEnd();
+    void playsTheLobbyBetweenTwoNodes();
+    void replicatesTheLobbyLedgerOverTheNetwork();
 };
 
 void PhoneLinkTest::nip44ConversationKeys()
@@ -642,6 +669,140 @@ void PhoneLinkTest::pairsListsGetsAndPutsEndToEnd()
     QVERIFY(link.isListening());
     link.removeDevice(link.devices().first().key);
     QVERIFY(!link.isListening());
+}
+
+void PhoneLinkTest::playsTheLobbyBetweenTwoNodes()
+{
+    QTemporaryDir dir;
+    const auto node = [&](const char *name) {
+        auto *made = new LobbyNode(NostrKey::generate(), dir.filePath(QStringLiteral("%1/ledger.jsonl").arg(QLatin1String(name))),
+                                   dir.filePath(QStringLiteral("%1/plans.json").arg(QLatin1String(name))), this);
+        made->setName(QString::fromLatin1(name));
+        return made;
+    };
+    LobbyNode *alice = node("Alice");
+    LobbyNode *bob = node("Bob");
+    // Gossip, by hand: every new event of one goes to the other.
+    connect(alice, &LobbyNode::eventAdded, bob, [bob](const QJsonObject &event) { bob->receive(event); });
+    connect(bob, &LobbyNode::eventAdded, alice, [alice](const QJsonObject &event) { alice->receive(event); });
+
+    const QString room = alice->openRoom(81);
+    QVERIFY(!room.isEmpty());
+    QCOMPARE(bob->lobby().rooms().size(), 1);
+    QVERIFY(bob->joinRoom(room));
+    const LobbyRoom &seen = alice->lobby().rooms().constFirst();
+    QCOMPARE(seen.players(), 2);
+    QCOMPARE(seen.displayName(bob->me()), QStringLiteral("Bob"));
+    QCOMPARE(seen.games.size(), 2);
+
+    // Bob has White in the first game (the newcomer's White game first).
+    const QString white = bob->me();
+    const QString black = alice->me();
+    // Alice prepares: if 1.e4 then 1...c5; if 1.d4 then 1...Nf6.
+    alice->setPlan(room, white, black, {{QStringLiteral("e2e4"), QStringLiteral("c7c5")},
+                                        {QStringLiteral("d2d4"), QStringLiteral("g8f6")}});
+    QVERIFY(!alice->sendMove(room, white, black, QStringLiteral("e7e5"))); // Not her turn.
+    QVERIFY(bob->sendMove(room, white, black, QStringLiteral("e2e4")));
+    // Alice's node answered by itself, and Bob has it.
+    const auto movesOf = [&](LobbyNode *at) {
+        const LobbyRoom &r = at->lobby().rooms().constFirst();
+        return r.games.at(r.indexOfGame(white, black)).moves;
+    };
+    QCOMPARE(movesOf(bob), (QStringList{QStringLiteral("e2e4"), QStringLiteral("c7c5")}));
+    QCOMPARE(movesOf(alice), movesOf(bob));
+    QVERIFY(!bob->sendMove(room, white, black, QStringLiteral("e1e3"))); // Illegal: refused here already.
+    QCOMPARE(movesOf(alice).size(), 2);
+
+    // A forged event (signature broken) is left out; a known one is not new.
+    QJsonObject forged = alice->ledger().events().constLast().signedEvent;
+    forged.insert(QStringLiteral("content"), QStringLiteral("{\"t\":\"resign\"}"));
+    QVERIFY(!bob->receive(forged));
+    QVERIFY(!bob->receive(alice->ledger().events().constFirst().signedEvent));
+
+    // A third node that comes later gets the whole ledger and sees the same lobby.
+    LobbyNode *carol = node("Carol");
+    for (const LedgerEvent &event : alice->ledger().events())
+        QVERIFY(carol->receive(event.signedEvent));
+    QCOMPARE(carol->ledger().ids(), alice->ledger().ids());
+    QCOMPARE(movesOf(carol), movesOf(alice));
+
+    // Each node keeps its ledger and its plans: opened again, the same.
+    const QString aliceLedger = dir.filePath(QStringLiteral("Alice/ledger.jsonl"));
+    LobbyNode again(NostrKey::generate(), aliceLedger, dir.filePath(QStringLiteral("Alice/plans.json")));
+    QCOMPARE(again.ledger().ids(), alice->ledger().ids());
+    QCOMPARE(again.plan(room, white, black).size(), 2);
+
+    // Resigning ends the game for everyone.
+    QVERIFY(bob->resign(room, white, black));
+    const LobbyRoom &end = alice->lobby().rooms().constFirst();
+    QCOMPARE(end.games.at(end.indexOfGame(white, black)).result, QStringLiteral("0-1"));
+}
+
+void PhoneLinkTest::replicatesTheLobbyLedgerOverTheNetwork()
+{
+    QTemporaryDir dir;
+    LocalRelay relay;
+    struct Player {
+        LobbyNode *node;
+        LobbyNetwork *network;
+    };
+    const auto player = [&](const char *name) {
+        auto *node = new LobbyNode(NostrKey::generate(), dir.filePath(QStringLiteral("%1/ledger.jsonl").arg(QLatin1String(name))),
+                                   dir.filePath(QStringLiteral("%1/plans.json").arg(QLatin1String(name))), this);
+        node->setName(QString::fromLatin1(name));
+        auto *network = new LobbyNetwork(node, this);
+        network->setRelays({relay.url()});
+        network->setIceServers({}); // On this computer: host candidates are enough.
+        network->setAnnounceInterval(500);
+        return Player{node, network};
+    };
+
+    // Alice opens a room before anyone else is on: the relay keeps it.
+    Player alice = player("Alice");
+    alice.network->start();
+    QTRY_VERIFY_WITH_TIMEOUT(alice.network->relayCount() == 1, 10000);
+    const QString room = alice.node->openRoom(402);
+    QVERIFY(!room.isEmpty());
+
+    // Bob comes later: he finds the room on the relay, and the two connect directly.
+    Player bob = player("Bob");
+    bob.network->start();
+    QTRY_COMPARE_WITH_TIMEOUT(bob.node->lobby().rooms().size(), 1, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(alice.network->peerCount() == 1 && bob.network->peerCount() == 1, 30000);
+    QVERIFY(alice.node->isOnline());
+    QCOMPARE(bob.node->peerCount(), 1);
+
+    // Bob sits and moves; Alice sees it, and her plan answers by itself.
+    QVERIFY(bob.node->joinRoom(room));
+    const QString white = bob.node->me();
+    const QString black = alice.node->me();
+    QTRY_COMPARE_WITH_TIMEOUT(alice.node->lobby().rooms().constFirst().players(), 2, 10000);
+    alice.node->setPlan(room, white, black, {{QStringLiteral("d2d4"), QStringLiteral("d7d5")}});
+    QVERIFY(bob.node->sendMove(room, white, black, QStringLiteral("d2d4")));
+    const auto movesOf = [&](LobbyNode *node) {
+        const LobbyRoom &r = node->lobby().rooms().constFirst();
+        const int game = r.indexOfGame(white, black);
+        return game < 0 ? QStringList() : r.games.at(game).moves;
+    };
+    QTRY_COMPARE_WITH_TIMEOUT(movesOf(bob.node), (QStringList{QStringLiteral("d2d4"), QStringLiteral("d7d5")}), 10000);
+
+    // Directly too: with the relay's copy aside, an event goes peer to peer.
+    alice.network->setRelays({});
+    bob.network->setRelays({});
+    QVERIFY(bob.node->sendMove(room, white, black, QStringLiteral("c2c4")));
+    QTRY_COMPARE_WITH_TIMEOUT(movesOf(alice.node).size(), 3, 10000);
+
+    // A third player, alone with the relay later, gets the whole ledger.
+    alice.network->stop();
+    bob.network->stop();
+    Player carol = player("Carol");
+    carol.network->start();
+    QTRY_VERIFY_WITH_TIMEOUT(carol.node->ledger().size() >= 4, 10000);
+    QCOMPARE(movesOf(carol.node).size(), 2); // c4 went only peer to peer.
+    for (const Player &each : {alice, bob, carol}) {
+        delete each.network;
+        delete each.node;
+    }
 }
 
 QTEST_GUILESS_MAIN(PhoneLinkTest)

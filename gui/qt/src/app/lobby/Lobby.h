@@ -63,14 +63,24 @@ struct LobbyStanding {
 struct LobbyRoom {
     static constexpr int kSeats = 4;
 
+    /// The room on the network: the id of the event that opened it.
+    QString id;
     /// Names the room in every language (RoomName).
     quint32 seed = 0;
-    /// The seats in order, an empty name a free one.
+    /// The seats in order, each a player — on the network their public
+    /// key —, an empty one free.
     QStringList seats = QStringList(kSeats, QString());
     QList<LobbyGame> games;
+    /// The names the players go by, by player; a player without one is
+    /// shown as they are.
+    QHash<QString, QString> names;
 
     /// The room's name in the interface language.
     QString name() const;
+    /// The name `player` goes by.
+    QString displayName(const QString &player) const;
+    /// The index of the game `white` plays against `black`, -1 if none.
+    int indexOfGame(const QString &white, const QString &black) const;
     int players() const;
     bool isJoinable() const { return players() < kSeats; }
     bool isSeated(const QString &player) const { return seats.contains(player); }
@@ -84,8 +94,8 @@ struct LobbyRoom {
     bool seat(const QString &player);
 };
 
-/// The rooms of the lobby, for now the user experience only: the rooms are
-/// examples and live in memory (`sample()`); the network comes later.
+/// The rooms of the lobby, as the ledger of the network makes them
+/// (LobbyLedger), or examples (`sample()`, for the tests).
 ///
 /// The lobby keeps at least kMinJoinableRooms rooms open to newcomers: when
 /// fewer have a free seat, it offers new rooms, which exist only once
@@ -100,10 +110,15 @@ public:
     static Lobby sample(const QString &me = QString());
 
     Lobby();
+    /// A lobby of `rooms`, keeping the new rooms of `offered` it still needs
+    /// (offers stay the same between two looks at the network).
+    static Lobby withRooms(const QList<LobbyRoom> &rooms, const QList<quint32> &offered = {});
 
     const QList<LobbyRoom> &rooms() const { return m_rooms; }
     /// Room `index`, to play in it.
     LobbyRoom &room(int index) { return m_rooms[index]; }
+    /// The index of the room with that id, -1 if none.
+    int indexOfRoom(const QString &id) const;
     void addRoom(const LobbyRoom &room);
     /// The indexes of the rooms with a free seat.
     QList<int> joinableRooms() const;
@@ -112,12 +127,6 @@ public:
     /// same until taken or no longer needed.
     const QList<quint32> &offeredRooms() const { return m_offered; }
     int newRooms() const { return int(m_offered.size()); }
-    /// The whole lobby as JSON, and back: until the network comes, the
-    /// client keeps it between runs. fromJson gives nothing for text it
-    /// cannot read.
-    QByteArray toJson() const;
-    static std::optional<Lobby> fromJson(const QByteArray &json);
-
     /// Sits `player` in room `index`; a negative index, -1 - k, opens
     /// offered room k for them. Returns the room's index, or -1 when they
     /// could not sit.

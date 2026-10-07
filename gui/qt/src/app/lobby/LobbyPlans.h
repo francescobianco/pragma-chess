@@ -22,6 +22,10 @@ struct Prepared {
 /// moves — the line's and its variations — are the cases they answer.
 Prepared prepared(const GameRecord &game, int fromPly, Side me);
 
+/// The uid of the board's game for the lobby game `white` plays against
+/// `black` in room `roomId`: it tells the board holds that game.
+QString uid(const QString &roomId, const QString &white, const QString &black);
+
 /// Game `index` of `room` as a game for the board: players, the room as
 /// its event, the moves, and a uid that tells it is that game.
 GameRecord record(const LobbyRoom &room, int index);

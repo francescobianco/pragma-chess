@@ -252,10 +252,11 @@ QString Project::toYaml(const QDir &baseDir) const
     }
     if (explain)
         out << YAML::Key << "explain" << YAML::Value << true;
-    if (lobbyRoom >= 0 && lobbyGame >= 0) {
+    if (!lobbyRoom.isEmpty()) {
         out << YAML::Key << "lobby" << YAML::Value << YAML::BeginMap;
-        out << YAML::Key << "room" << YAML::Value << lobbyRoom;
-        out << YAML::Key << "game" << YAML::Value << lobbyGame;
+        out << YAML::Key << "room" << YAML::Value << toStd(lobbyRoom);
+        out << YAML::Key << "white" << YAML::Value << toStd(lobbyWhite);
+        out << YAML::Key << "black" << YAML::Value << toStd(lobbyBlack);
         out << YAML::Key << "mode" << YAML::Value << lobbyMode;
         out << YAML::EndMap;
     }
@@ -358,8 +359,9 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     }
     env.explain = valueOf<bool>(root["explain"], false);
     if (const YAML::Node lobby = root["lobby"]; lobby && lobby.IsMap()) {
-        env.lobbyRoom = valueOf<int>(lobby["room"], -1);
-        env.lobbyGame = valueOf<int>(lobby["game"], -1);
+        env.lobbyRoom = fromNode(lobby["room"]);
+        env.lobbyWhite = fromNode(lobby["white"]);
+        env.lobbyBlack = fromNode(lobby["black"]);
         env.lobbyMode = valueOf<bool>(lobby["mode"], false);
     }
 

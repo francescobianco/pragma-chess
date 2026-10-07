@@ -1588,6 +1588,28 @@ Il Nero ha catturato: %2</translation>
         <source>%1 — a new room</source>
         <translation>%1 — stanza nuova</translation>
     </message>
+    <message>
+        <source>Not on the network: no relay or peer can be reached. What you do leaves when one can.</source>
+        <translation>Non in rete: nessun relay o nodo raggiungibile. Quello che fai parte appena se ne raggiunge uno.</translation>
+    </message>
+    <message>
+        <source>On the network: %1, %2.</source>
+        <translation>In rete: %1, %2.</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n relay(s)</source>
+        <translation>
+            <numerusform>%n relay</numerusform>
+            <numerusform>%n relay</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n peer(s) connected</source>
+        <translation>
+            <numerusform>%n nodo collegato</numerusform>
+            <numerusform>%n nodi collegati</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>LobbyPlans</name>
@@ -3208,20 +3230,46 @@ non è su questo computer.</translation>
         </translation>
     </message>
     <message>
-        <source>Plan sent: it answers as soon as %1 moves.</source>
-        <translation>Piano inviato: risponde appena %1 muove.</translation>
+        <source>This build has no network: the lobby needs the libraries the mobile app connects with</source>
+        <translation>Questa build non ha la rete: la lobby ha bisogno delle librerie con cui si collega l&apos;app mobile</translation>
     </message>
     <message>
-        <source>Plan sent. Played: %1</source>
-        <translation>Piano inviato. Giocate: %1</translation>
+        <source>Lobby Key</source>
+        <translation>Chiave della lobby</translation>
     </message>
     <message>
-        <source>Move sent. Played: %1</source>
-        <translation>Mossa inviata. Giocate: %1</translation>
+        <source>That is not a valid lobby key: the key of this computer stays.</source>
+        <translation>Non è una chiave della lobby valida: resta la chiave di questo computer.</translation>
     </message>
     <message>
-        <source>%1 answered: %2</source>
-        <translation>%1 ha risposto: %2</translation>
+        <source>Your plan answered: %1</source>
+        <translation>Il tuo piano ha risposto: %1</translation>
+    </message>
+    <message>
+        <source>%1 played: %2</source>
+        <translation>%1 ha giocato: %2</translation>
+    </message>
+    <message>
+        <source>Offline: what you send leaves when the network is reachable.</source>
+        <translation>Non in rete: quello che invii parte appena la rete è raggiungibile.</translation>
+    </message>
+    <message numerus="yes">
+        <source>Network: %n peer(s) connected.</source>
+        <translation>
+            <numerusform>Rete: %n nodo collegato.</numerusform>
+            <numerusform>Rete: %n nodi collegati.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Plan sent: %n answer(s), played as the game reaches them.</source>
+        <translation>
+            <numerusform>Piano inviato: %n risposta, giocata quando la partita ci arriva.</numerusform>
+            <numerusform>Piano inviato: %n risposte, giocate quando la partita ci arriva.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Move sent: %1</source>
+        <translation>Mossa inviata: %1</translation>
     </message>
 </context>
 <context>
@@ -4051,6 +4099,42 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>Board &amp;style:</source>
         <translation>&amp;Stile della scacchiera:</translation>
+    </message>
+    <message>
+        <source>Show</source>
+        <translation>Mostra</translation>
+    </message>
+    <message>
+        <source>Hide</source>
+        <translation>Nascondi</translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation>Copia</translation>
+    </message>
+    <message>
+        <source>&amp;Lobby key:</source>
+        <translation>Chiave della &amp;lobby:</translation>
+    </message>
+    <message>
+        <source>Lobby key</source>
+        <translation>Chiave della lobby</translation>
+    </message>
+    <message>
+        <source>This key is who you are in the lobby: it signs your moves. For security it is not synced with your other settings and stays on this computer only. To play as yourself from another computer, copy it here and paste it into the same field there: you have to carry it yourself. Anyone who has it can play as you, so keep it to yourself.</source>
+        <translation>Questa chiave è chi sei nella lobby: firma le tue mosse. Per sicurezza non viene sincronizzata con le altre impostazioni e resta solo su questo computer. Per giocare come te da un altro computer, copiala qui e incollala nello stesso campo laggiù: devi portarla tu. Chi la possiede può giocare al posto tuo, quindi tienila per te.</translation>
+    </message>
+    <message>
+        <source>Lobby Key</source>
+        <translation>Chiave della lobby</translation>
+    </message>
+    <message>
+        <source>A lobby key is 64 hexadecimal digits: paste it whole.</source>
+        <translation>Una chiave della lobby è fatta di 64 cifre esadecimali: incollala intera.</translation>
+    </message>
+    <message>
+        <source>This computer will be the player of the new key in the lobby. Its present key is replaced: if you have not copied it, you can no longer play as that player. Replace it?</source>
+        <translation>Questo computer sarà nella lobby il giocatore della nuova chiave. La chiave attuale viene sostituita: se non l&apos;hai copiata, non potrai più giocare come quel giocatore. Sostituirla?</translation>
     </message>
 </context>
 <context>

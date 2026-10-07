@@ -1341,56 +1341,61 @@ a platform; lichess.org for now, through its Board API, more to come.
 
 ## Lobby
 
-Game ▸ Enter the Lobby… (`dialogs/LobbyDialog`, not modal, kept while the
-application runs) is the user experience of IDEA.md's asynchronous
-tournaments, before any network: `app/lobby/Lobby` (pure, unit-tested) holds
-rooms of four seats, where every pair plays two games, one with each colour,
-added as players sit (`LobbyRoom::seat`), and keeps `kMinJoinableRooms` rooms
-with a free seat by offering new ones that exist once someone sits there
-— offered with their seed, so named before anyone sits (`offeredRooms`).
-Rooms with games waiting for the user (`gamesWaitingFor`) come first and
-have Play Now (one game: straight there; several: a menu); in a room
-those games come first, then the user's others, then the rest.
-A room is named by a seed (`app/lobby/RoomName`, pure, unit-tested): a
-chess term and a champion, "Capablanca's Fortress", each term a whole
-phrase translated with its article ("La fortezza di %1"), so the seed
-travels and each client names the room in its own language; a new room
-draws a seed whose name is not in use. The lists are append only — a seed
-must keep its name. The rooms are `Lobby::sample()` (two with free seats,
-two full). Play emits `LobbyDialog::playRequested`: `MainWindow::playLobbyGame`
-leaves an online game first, asks about an unsaved board game
-(`mayReplaceBoardGame`, as New Training), turns training off, turns the
-board to the user's side, `startGame`s it at its end (the room is the
-event) and hides the lobby, in Lobby Mode (Engine ▸ Lobby Mode,
-`m_lobbyModeAction`; nothing is turned off: correspondence play allows
-engines). The lobby is the main window's (`MainWindow::lobby()`), linked to
-the board by `m_lobbyGame` (room, game, side, the board game's uid
-`lobby:<seed>:<index>`: another game on the board leaves the mode). A
-`LobbyGame` holds each player's plan (`LobbyPlan`: line key → move) and
-`advance()` plays prepared answers until the one to move has none.
-`LobbyPlans::prepared` reads the user's plan off the board's tree after the
-game's moves: the user's moves are answers, the opponent's (line and
-variations) the cases; a second answer to a position is left out. The
-Engine panel's Send Move / Send Plan (at the bottom of the panel, over the
-opening and the book: two large buttons of one fixed width with their
-icons, `pragma-send-move` a paper plane and `pragma-send-plan` a small
-decision tree, then the text; `EnginePanel::setLobby`,
-`MainWindow::sendLobby`) play into the lobby game, then the board shows its
-moves (`showLobbyGameOnBoard`, the last one sliding in). For the preview an
-opponent with no answer ready replies 2.5 s later from the book, the
-engine's line or any legal move (`simulateLobbyOpponent`). In Lobby Mode a
-move off the line becomes a variation without asking.
-`POST /api/lobby/send {"plan": bool}` sends. A client closed in Lobby Mode
-opens in it: the project keeps `lobby: room, game, mode`
-(`restoreLobbyLink`, only when the board holds that game's uid; the board's
-game, plan variations and ply are the project's as always), and the lobby
-itself is kept per computer until the network comes (`Lobby::toJson`,
-QSettings `lobby/state`, `saveLobby` after each change and with the
-session). The tables use
-`PaddedHeaderView::install`, as the games list does. The list
-shows the user's rooms first (full or not), then the joinable ones, the
-full ones, then the new rooms; a room shows its standings (`LobbyRoom::standings`: points, then wins, then name; level players share a place; then the free seats), its games and the selected game's
-position on a small `BoardWidget`.
+Game ▸ Enter the Lobby… (`dialogs/LobbyDialog`, not modal) is IDEA.md's
+asynchronous tournaments on a peer-to-peer network: a replicated ledger of
+signed events, shared the way eMule shares a file. **Read
+[docs/tech/lobby-network.md](docs/tech/lobby-network.md) before changing
+it**: the rules of the ledger are a protocol every client must apply alike.
+
+- **Model** (`app/lobby/`, core, pure, unit-tested): `Lobby` (rooms, the
+  `kMinJoinableRooms` new rooms offered by seed, so named before anyone
+  sits), `LobbyRoom` (id, seed, four seats of players' public keys, the two
+  games of every pair as they sit, `names`, `standings`), `LobbyGame` (white
+  and black keys, UCI moves, result). `RoomName`: a seed names a room in
+  every language (a chess term, a whole translated phrase, and a champion;
+  the lists are append only). `LobbyLedger`: the events and the **fold**
+  that makes the rooms — a function of the set of events, not of their
+  order (opens, then joins in (created_at, id) order, moves by ply with the
+  first legal one of the player to move counting, resignations, mate and
+  stalemate). `LobbyPlans`: the user's plan read off the board's tree (their
+  moves are answers, the opponent's moves and variations the cases), and
+  the board's game for a lobby game (uid `lobby:<room>:<white>:<black>`).
+  `LobbyService` is what the window knows.
+- **Node and network** (`app/lobby/net/`, in the `pragma-phone-link`
+  library: it needs its keys and WebRTC; without it the menu entry is off):
+  `LobbyIdentity` (the user's key, QSettings `lobby/key`, **never synced**;
+  shown in Personal Settings to be carried by hand), `LobbyNode` (signs the
+  user's events, checks and keeps every event in
+  `AppLocalData/lobby/ledger.jsonl`, keeps the user's private plans in
+  `plans.json` and plays them when a game reaches a position they answer,
+  refuses illegal moves before signing), `LobbyNetwork` (the relays as a
+  store-and-forward source, kind 7457 tagged `t=pragma-lobby`; peers announce
+  themselves with a session key, kind 25051, and connect over WebRTC with
+  NIP-44 offers, kind 25052; two peers compare ids and send what the other
+  lacks, then gossip each new event). `PRAGMA_LOBBY_RELAYS=ws://…` points a
+  client at a relay of its own: **never test on the public relays**, the
+  events stay there and every user would see the test rooms.
+- **The window**: the list shows the user's rooms first (those with games
+  waiting for them first, with Play Now), then the joinable ones, the full
+  ones and the new rooms, with the network as it is at the bottom (IDEA.md
+  §38). A room shows its standings, its games (those waiting for the user
+  first) and the selected one on a small board. Play brings the game to the
+  board (`MainWindow::playLobbyGame`, asking about an unsaved board game
+  first) in **Lobby Mode** (Engine ▸ Lobby Mode; nothing is turned off:
+  correspondence play allows engines). In it a move off the line becomes a
+  variation without asking, and the Engine panel (`EnginePanel::setLobby`,
+  at its bottom: Send Move and Send Plan, two fixed-width buttons with the
+  icons `pragma-send-move` and `pragma-send-plan`, then the text) sends the
+  next move or the plan (`MainWindow::sendLobby`). Moves arriving from the
+  network update the board (`lobbyChanged`: kept when the board's line
+  already goes that way, otherwise replaced with the last move sliding in).
+  The project keeps `lobby: room, white, black, mode` (`restoreLobbyLink`);
+  a client with a ledger joins the network at startup, so plans answer with
+  the lobby window closed.
+- Development API: `POST /api/lobby {"lobby", "playNow", "room", "join",
+  "game", "play"}` (the window's picture), `POST /api/lobby/send {"plan"}`.
+  Two instances and a local relay are how it is tried end to end
+  (`tst_phonelink` runs two nodes, then two networks on a relay of its own).
 
 ## Web site
 

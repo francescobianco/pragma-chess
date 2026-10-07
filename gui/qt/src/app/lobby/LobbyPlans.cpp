@@ -59,13 +59,18 @@ Prepared prepared(const GameRecord &game, int fromPly, Side me)
     return walk.result;
 }
 
+QString uid(const QString &roomId, const QString &white, const QString &black)
+{
+    return QStringLiteral("lobby:%1:%2:%3").arg(roomId, white, black);
+}
+
 GameRecord record(const LobbyRoom &room, int index)
 {
     const LobbyGame &game = room.games.at(index);
     GameRecord record;
-    record.uid = QStringLiteral("lobby:%1:%2").arg(room.seed).arg(index);
-    record.white = game.white;
-    record.black = game.black;
+    record.uid = uid(room.id, game.white, game.black);
+    record.white = room.displayName(game.white);
+    record.black = room.displayName(game.black);
     record.event = room.name();
     record.site = Text::tr("Pragma Chess Lobby");
     record.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));

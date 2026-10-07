@@ -3362,9 +3362,12 @@ void MainWindow::updateBoardBorder()
 void MainWindow::updateExplainer()
 {
     const int ply = m_session->ply();
+    // A null move is no move to explain: the position is explained as a start.
+    const std::optional<ChessMove> played = m_session->lastMove();
+    const bool moved = played && !played->isNull();
     m_explainer->setPosition(m_session->position(),
-                             ply > 0 ? std::optional<ChessPosition>(m_session->positionAt(ply - 1)) : std::nullopt,
-                             m_session->lastMove());
+                             moved ? std::optional<ChessPosition>(m_session->positionAt(ply - 1)) : std::nullopt,
+                             moved ? played : std::nullopt);
 }
 
 void MainWindow::newGame()
@@ -4571,7 +4574,7 @@ void MainWindow::pasteLineFromCurrentPosition()
     // As if played on the board: steps along moves the game has, adds the others.
     bool added = false;
     for (const MoveRecord &record : line->moves) {
-        const std::optional<ChessMove> move = m_session->position().moveFromUci(record.uci);
+        const std::optional<ChessMove> move = m_session->position().moveFromUci(record.uci, ChessPosition::NullMoves::Allowed);
         if (!move)
             break;
         added = !m_session->isNextMove(*move) || added;

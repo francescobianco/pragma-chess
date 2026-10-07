@@ -32,8 +32,14 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   their own name. A chapter that came by itself, from things put in a
   project without chapters, goes away again when they are deleted.
 - The ChessBase files source reads the databases of **ChessBase 17 and
-  later** too (`.2cbh`), with their variations: choose the `.2cbh` file as
-  you would a `.cbh`.
+  later** too (`.2cbh`), with their variations and **annotations**:
+  comments (in your language, when ChessBase has them in several), symbols
+  such as `!` and `+/=`, coloured squares and arrows drawn on the board, and
+  the engine's evaluation of each move. Choose the `.2cbh` file as you would
+  a `.cbh`.
+- **Null moves** (`--`): a game written by hand, in ChessBase or in PGN,
+  where a side passes is read whole instead of stopping there; the move
+  list and PGN show `--`, and the engine analyses the position after it.
 - **Computing Power** for each engine (Engine ▸ Manage Engines…): how much
   of the processor it may use while it analyzes, from Minimum (3%) to
   Full (no limit), Medium (10%) by default, so the fans stay quiet and the

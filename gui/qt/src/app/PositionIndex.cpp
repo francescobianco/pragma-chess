@@ -60,7 +60,7 @@ PositionIndex PositionIndex::build(const QList<GameLine> &games, const std::atom
         index.m_positions.emplace_back(PolyglotBook::key(position), game.id);
         index.m_lines.emplace_back(line, game.id);
         for (const QStringView uci : QStringView(game.movesUci).split(QLatin1Char(' '), Qt::SkipEmptyParts)) {
-            const std::optional<ChessMove> move = position.moveFromUci(uci);
+            const std::optional<ChessMove> move = position.moveFromUci(uci, ChessPosition::NullMoves::Allowed);
             if (!move)
                 break;
             position.play(*move);

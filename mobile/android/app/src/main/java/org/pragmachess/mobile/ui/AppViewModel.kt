@@ -391,7 +391,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
         if (!engineOn) toggleEngine()
         if (engineBinary == null) return // The analysis area offers to install one.
-        explainer.start(if (ply > 0) line.positionAt(ply - 1) else null, line.moves.getOrNull(ply - 1)?.move, position,
+        // A null move is no move to explain: the position is explained as a start.
+        val played = line.moves.getOrNull(ply - 1)?.move?.takeUnless { it.isNull }
+        explainer.start(if (played != null) line.positionAt(ply - 1) else null, played, position,
             app.getString(R.string.explain_analyzing))
     }
 

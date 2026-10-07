@@ -372,9 +372,9 @@ struct Reader {
     }
 
     /// Reads a line from `state` to its end code (or the record's end) into
-    /// `moves`, with the alternatives to its moves into `variations`. Null
-    /// moves end what is recorded of a line, but it is played on to keep the
-    /// pieces in step. Returns an error message, or nothing.
+    /// `moves`, with the alternatives to its moves into `variations`. A null
+    /// move is recorded as UCI writes it, "0000". Returns an error message,
+    /// or nothing.
     QString readLine(State &state, QList<MoveRecord> &moves, QList<Variation> &variations, bool recording)
     {
         while (i < end) {
@@ -404,8 +404,9 @@ struct Reader {
             if (const QString error = moveOf(code, state, from, to, promotion); !error.isEmpty())
                 return error;
             if (from < 0) {
-                state.sideToMove = 1 - state.sideToMove; // A null move: nothing of ours.
-                recording = false;
+                state.sideToMove = 1 - state.sideToMove; // A null move: the side passes.
+                if (recording)
+                    moves << MoveRecord{QString(), QStringLiteral("0000"), {}};
             } else {
                 if (state.board[from].piece == None)
                     return Text::tr("Move %1: there is no piece on %2.").arg(decodedMoves + 1).arg(Square::at(from).uci());

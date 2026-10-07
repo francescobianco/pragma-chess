@@ -61,9 +61,17 @@ object Square {
 
 /** A move; [promotion] is a piece type, 0 when none. Castling is the king's move of two squares. */
 data class Move(val from: Int, val to: Int, val promotion: Int = Piece.NONE) {
+    /** The null move: the side passes, as a game written by hand may do ("--" in PGN). */
+    val isNull: Boolean get() = from < 0 && to < 0
+
     val uci: String
-        get() = Square.name(from) + Square.name(to) +
+        get() = if (isNull) "0000" else Square.name(from) + Square.name(to) +
             if (promotion != Piece.NONE) Piece.letter(promotion).lowercase() else ""
+
+    companion object {
+        /** A game's own moves only: an engine or a player never passes. */
+        val NULL = Move(-1, -1)
+    }
 }
 
 /** An immutable chess position with the rules: legal moves, SAN, FEN. */
@@ -266,8 +274,11 @@ class Position private constructor(
 
     fun isLegal(move: Move): Boolean = move in legalMoves()
 
-    /** The position after [move], which must at least be pseudo-legal. */
+    /** The position after [move], which must at least be pseudo-legal; the null move passes. */
     fun play(move: Move): Position {
+        if (move.isNull)
+            return Position(board, sideToMove.opponent, castling, -1, halfmoveClock + 1,
+                if (sideToMove == Side.Black) fullmoveNumber + 1 else fullmoveNumber)
         val next = board.copyOf()
         val piece = next[move.from]
         val type = Piece.type(piece)
@@ -314,6 +325,7 @@ class Position private constructor(
 
     /** Standard Algebraic Notation of a legal [move], with + or #. */
     fun san(move: Move): String {
+        if (move.isNull) return "--"
         val piece = board[move.from]
         val type = Piece.type(piece)
         val text = StringBuilder()

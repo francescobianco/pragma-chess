@@ -21,7 +21,7 @@ OpeningNames::OpeningNames(const QList<GameRecord> &games)
             if (const auto known = replayed.constFind(prefix); known != replayed.cend()) {
                 *position = *known;
             } else {
-                const std::optional<ChessMove> move = position->moveFromUci(record.uci);
+                const std::optional<ChessMove> move = position->moveFromUci(record.uci, ChessPosition::NullMoves::Allowed);
                 if (!move)
                     break;
                 position->play(*move);

@@ -179,7 +179,8 @@ GameRecord ChessBaseDatabase::game(int index, QString *errorMessage) const
     return game;
 }
 
-void ChessBaseDatabase::fillMoves(GameRecord &game, const CbgDecoder::Decoded &decoded, QString *errorMessage)
+void ChessBaseDatabase::fillMoves(GameRecord &game, const CbgDecoder::Decoded &decoded, QString *errorMessage,
+                                  const Cba2Decoder::Decoded *notes)
 {
     if (!decoded.error.isEmpty() && errorMessage)
         *errorMessage = decoded.error;
@@ -194,18 +195,25 @@ void ChessBaseDatabase::fillMoves(GameRecord &game, const CbgDecoder::Decoded &d
         return;
     }
     const ChessPosition start = *position;
-    for (const QString &uci : decoded.uciMoves) {
-        const std::optional<ChessMove> move = position->moveFromUci(uci);
+    // The annotations go on the tree as decoded: they count its moves.
+    QList<MoveRecord> line;
+    for (const QString &uci : decoded.uciMoves)
+        line << MoveRecord{QString(), uci, {}};
+    game.variations = decoded.variations;
+    if (notes)
+        Cba2Decoder::apply(line, game.variations, game.startComment, *notes);
+    for (MoveRecord &record : line) {
+        const std::optional<ChessMove> move = position->moveFromUci(record.uci, ChessPosition::NullMoves::Allowed);
         if (!move) {
             if (errorMessage && errorMessage->isEmpty())
-                *errorMessage = Text::tr("Move %1 (%2) is not legal.").arg(game.moves.size() + 1).arg(uci);
+                *errorMessage = Text::tr("Move %1 (%2) is not legal.").arg(game.moves.size() + 1).arg(record.uci);
             break;
         }
-        game.moves << MoveRecord{position->san(*move), uci, {}};
+        record.san = position->san(*move);
+        game.moves << record;
         position->play(*move);
     }
     game.plyCount = int(game.moves.size());
     // The variations: SAN filled in, illegal tails cut, with the rules.
-    game.variations = decoded.variations;
     GameVariations::resolve(game, start);
 }

@@ -65,7 +65,8 @@ public:
     /// Plays a legal move at the current ply: steps forward if it is the next
     /// move of the line, takes the variation that begins with it if there is
     /// one, appends it at the end of the line, or else starts a variation
-    /// with it. Returns false if the move is illegal.
+    /// with it. Returns false if the move is illegal. A null move is played
+    /// wherever the side to move may pass.
     bool playMove(const ChessMove &move);
     /// Whether playMove() would start a new variation with `move`: a legal
     /// move other than the next one, in the middle of a line, that no
@@ -104,6 +105,9 @@ Q_SIGNALS:
     void plyChanged(int ply);
 
 private:
+    /// Whether `move` can be played from `position`: legal, or a null move
+    /// where the side may pass.
+    static bool isPlayable(const ChessPosition &position, const ChessMove &move);
     /// Replays the line `path` leads to and makes it the one followed.
     void followLine(const QList<int> &path);
     /// The variations hanging off the line followed.

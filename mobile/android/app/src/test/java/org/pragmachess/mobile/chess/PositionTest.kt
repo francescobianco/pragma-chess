@@ -98,6 +98,20 @@ class PositionTest {
     }
 
     @Test
+    fun replaysNullMoves() {
+        // A game written by hand passes ("--", UCI "0000"): the other side moves again.
+        val line = GameLine.replay(null, "e2e4 0000 d2d4", "")
+        assertEquals(3, line.plyCount)
+        assertEquals("e4 -- d4", line.sanText)
+        assertEquals("e2e4 0000 d2d4", line.uciText)
+        assertEquals(Side.White, line.positionAt(2).sideToMove)
+        assertEquals("rnbqkbnr/pppppppp/8/8/3PP3/8/PPP2PPP/RNBQKBNR b KQkq d3 0 2", line.last.fen())
+        // Never in check: the line stops there.
+        val checked = GameLine.replay(null, "e2e4 f7f6 d1h5 0000", "")
+        assertEquals(3, checked.plyCount)
+    }
+
+    @Test
     fun replaysUciWithCastlingEnPassantAndPromotion() {
         // Castling both sides, en passant (exd6) and a promotion with capture (gxh8=Q).
         val uci = "e2e4 d7d5 e4e5 f7f5 e5f6 g8f6 g1f3 e7e6 f1d3 f8e7 e1g1 e8g8 " +

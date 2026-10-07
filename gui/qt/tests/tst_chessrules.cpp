@@ -33,6 +33,7 @@
 #include "app/ShippedOpeningNames.h"
 #include "app/SqliteGameDatabase.h"
 #include "app/TrainingTutor.h"
+#include "app/chessbase/Cba2Decoder.h"
 #include "app/chessbase/Cbg2Decoder.h"
 #include "app/chessbase/CbgDecoder.h"
 #include "app/chessbase/ChessBaseDatabase.h"
@@ -131,6 +132,56 @@ ExplanationInput inputFor(const QStringList &movesBefore, const QString &played,
 } // namespace
 
 using namespace Qt::StringLiterals;
+
+/// Annotations of a ChessBase 17+ game, as the `.2cba` stores them: each a
+/// type and its data, put in blocks by position, then the end.
+namespace Cba2 {
+QByteArray le16(int value)
+{
+    QByteArray bytes(2, '\0');
+    qToLittleEndian(quint16(value), bytes.data());
+    return bytes;
+}
+QByteArray le32(qint32 value)
+{
+    QByteArray bytes(4, '\0');
+    qToLittleEndian(value, bytes.data());
+    return bytes;
+}
+QByteArray text(int type, int language, const QByteArray &bytes)
+{
+    return le16(type) + le16(0) + le16(language) + le32(qint32(bytes.size())) + bytes;
+}
+QByteArray bytes(std::initializer_list<int> values)
+{
+    QByteArray result;
+    for (const int value : values)
+        result += char(value);
+    return result;
+}
+QByteArray symbols(int move, int position, int prefix)
+{
+    return le16(0x03) + bytes({move, position, prefix});
+}
+QByteArray marks(int type, const QByteArray &bytes)
+{
+    return le16(type) + le32(qint32(bytes.size())) + bytes;
+}
+QByteArray evaluation(int value, int kind, int depth)
+{
+    return le16(0x21) + le16(value) + le16(kind) + le16(depth);
+}
+QByteArray content(const QList<std::pair<int, QList<QByteArray>>> &blocks)
+{
+    QByteArray bytes;
+    for (const auto &[position, annotations] : blocks) {
+        bytes += le32(position) + le32(qint32(annotations.size()));
+        for (const QByteArray &annotation : annotations)
+            bytes += annotation;
+    }
+    return bytes + le32(0x7FFFFFFF);
+}
+} // namespace Cba2
 
 class TestChessRules : public QObject {
     Q_OBJECT
@@ -513,6 +564,131 @@ private Q_SLOTS:
                  qPrintable(explanation.summary));
     }
 
+    void playsNullMoves()
+    {
+        // A side may pass in a game written by hand: "--", UCI "0000".
+        const ChessPosition start = ChessPosition::startingPosition();
+        QVERIFY(!start.moveFromUci(u"0000")); // Engines and players never pass.
+        QVERIFY(!start.moveFromSan(u"--"));
+        const std::optional<ChessMove> pass = start.moveFromUci(u"0000", ChessPosition::NullMoves::Allowed);
+        QVERIFY(pass && pass->isNull());
+        QCOMPARE(pass->uci(), QStringLiteral("0000"));
+        QCOMPARE(start.san(*pass), QStringLiteral("--"));
+        QVERIFY(start.moveFromSan(u"Z0", ChessPosition::NullMoves::Allowed));
+        ChessPosition position = start;
+        position.play(*position.moveFromUci(u"e2e4"));
+        position.play(*pass);
+        QCOMPARE(position.fen(), QStringLiteral("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 1 2"));
+        // Not out of check.
+        const ChessPosition checked = *ChessPosition::fromFen(QStringLiteral("4k3/8/8/8/8/8/8/4K2r w - - 0 1"));
+        QVERIFY(!checked.moveFromUci(u"0000", ChessPosition::NullMoves::Allowed));
+
+        // PGN reads and writes them, in the main line and in variations.
+        QString error;
+        const std::optional<Pgn::ParsedLine> parsed =
+            Pgn::parseLine(QStringLiteral("1.e4 -- 2.d4 (2.Nf3 -- 3.Bc4) 2...d5"), QString(), &error);
+        QVERIFY2(parsed, qPrintable(error));
+        QCOMPARE(parsed->moves.size(), 4);
+        QCOMPARE(parsed->moves.at(1).uci, QStringLiteral("0000"));
+        QCOMPARE(parsed->moves.at(1).san, QStringLiteral("--"));
+        GameRecord game;
+        game.moves = parsed->moves;
+        game.variations = parsed->variations;
+        QCOMPARE(Pgn::moveText(game), QStringLiteral("1.e4 -- 2.d4 ( 2.Nf3 -- 3.Bc4 ) 2…d5"));
+
+        // The session replays them and plays one where the side may pass.
+        GameSession session;
+        session.setGame(game);
+        QCOMPARE(session.plyCount(), 4);
+        session.goToEnd();
+        QCOMPARE(session.position().fen(),
+                 QStringLiteral("rnbqkbnr/ppp1pppp/8/3p4/3PP3/8/PPP2PPP/RNBQKBNR w KQkq - 0 3"));
+        QVERIFY(session.playMove(ChessMove::null()));
+        QCOMPARE(session.moveAt(5).san, QStringLiteral("--"));
+        QCOMPARE(session.position().sideToMove(), Side::Black);
+
+        // ChessBase's null move (0xFFFA) is one, not the end of the line.
+        const auto word = [](const QString &uci) {
+            for (int w = 1; w <= Cbg2Decoder::lastMoveWord(); ++w)
+                if (Cbg2Decoder::moveOf(quint16(w)) == uci)
+                    return quint16(w);
+            return quint16(0);
+        };
+        QByteArray content;
+        for (const quint16 w : {quint16(0xFFFC), word("e2e4"), quint16(0xFFFA), word("d2d4"), word("d7d5"), quint16(0xFFFF)}) {
+            content.append(char(w & 0xFF));
+            content.append(char(w >> 8));
+        }
+        const CbgDecoder::Decoded decoded = Cbg2Decoder::decode(content);
+        QVERIFY2(decoded.error.isEmpty(), qPrintable(decoded.error));
+        QCOMPARE(decoded.uciMoves, (QStringList{"e2e4", "0000", "d2d4", "d7d5"}));
+    }
+
+    void readsChessBase2Annotations()
+    {
+        // Two alternatives to one move are sisters, in the order PGN lists
+        // them: 1.e4 c5 (1...c6 2.d4) (1...Nf6 2.e5) 2.Nf3 d6 (2...Nc6 3.Bb5) 3.d4.
+        const auto word = [](const QString &uci) {
+            for (int w = 1; w <= Cbg2Decoder::lastMoveWord(); ++w)
+                if (Cbg2Decoder::moveOf(quint16(w)) == uci)
+                    return quint16(w);
+            return quint16(0);
+        };
+        QByteArray content;
+        for (const quint16 w : {quint16(0xFFFC), word("e2e4"), word("c7c5"), quint16(0xFFFD), word("g1f3"), word("d7d6"),
+                                quint16(0xFFFD), word("d2d4"), quint16(0xFFFF), word("b8c6"), word("f1b5"), quint16(0xFFFF),
+                                word("c7c6"), quint16(0xFFFD), word("d2d4"), quint16(0xFFFF), word("g8f6"), word("e4e5"),
+                                quint16(0xFFFF)})
+            content += Cba2::le16(w);
+        const CbgDecoder::Decoded moves = Cbg2Decoder::decode(content);
+        QVERIFY2(moves.error.isEmpty(), qPrintable(moves.error));
+        QCOMPARE(moves.uciMoves, (QStringList{"e2e4", "c7c5", "g1f3", "d7d6", "d2d4"}));
+        QCOMPARE(moves.variations.size(), 3);
+        QCOMPARE(moves.variations.at(0).atPly, 4);
+        QCOMPARE(moves.variations.at(1).atPly, 2);
+        QCOMPARE(moves.variations.at(1).moves.first().uci, QStringLiteral("c7c6"));
+        QCOMPARE(moves.variations.at(2).atPly, 2);
+        QCOMPARE(moves.variations.at(2).moves.first().uci, QStringLiteral("g8f6"));
+        QVERIFY(moves.variations.at(1).variations.isEmpty());
+
+        // Positions as PGN counts them: e4 0, c5 1, c6 2, d4 3, Nf6 4, e5 5,
+        // Nf3 6, d6 7, Nc6 8, Bb5 9, d4 10. A comment in several languages
+        // keeps the interface's, else English; "any language" always.
+        const QByteArray notes = Cba2::content(
+            {{2, {Cba2::text(0x02, 0, "Solid."), Cba2::text(0x02, 1, "Solide."), Cba2::text(0x02, 7, "!")}},
+             {4, {Cba2::symbols(5, 0, 0)}},
+             {8,
+              {Cba2::le16(0x1C) + QByteArray(1, '\x01') + Cba2::le32(4) + "http" + Cba2::le32(0), // A web link, stepped over.
+               Cba2::le16(0x07) + Cba2::bytes({0, 5, 1, 0}), Cba2::evaluation(-3, 1, 0)}},
+             {10, {Cba2::text(0x82, 7, "Then")}}});
+        Cba2Decoder::Decoded decoded = Cba2Decoder::decode(notes, QStringLiteral("de"));
+        QVERIFY2(decoded.error.isEmpty(), qPrintable(decoded.error));
+        QCOMPARE(decoded.positions.value(2).after, QStringLiteral("Solide. !"));
+        decoded = Cba2Decoder::decode(notes, QStringLiteral("it"));
+        QCOMPARE(decoded.positions.value(2).after, QStringLiteral("Solid. !"));
+        QCOMPARE(decoded.positions.value(8).after, QStringLiteral("[%emt 0:01:05] [%eval #-3]"));
+
+        GameRecord game;
+        for (const QString &uci : moves.uciMoves)
+            game.moves << MoveRecord{QString(), uci};
+        game.variations = moves.variations;
+        Cba2Decoder::apply(game.moves, game.variations, game.startComment, decoded);
+        QCOMPARE(game.variations.at(1).moves.at(0).comment, QStringLiteral("Solid. !"));
+        QCOMPARE(game.variations.at(2).moves.at(0).nags, QList<int>{5});
+        QCOMPARE(game.variations.at(0).moves.at(0).comment, QStringLiteral("[%emt 0:01:05] [%eval #-3]"));
+        QCOMPARE(game.moves.at(3).comment, QStringLiteral("Then")); // Before 3.d4: after 2...d6.
+
+        // A type not known has no length: the rest is lost, what came before stays.
+        decoded = Cba2Decoder::decode(Cba2::content({{0, {Cba2::text(0x02, 7, "Good")}}, {1, {Cba2::le16(0x7E)}}}),
+                                      QStringLiteral("en"));
+        QVERIFY(!decoded.error.isEmpty());
+        QCOMPARE(decoded.positions.value(0).after, QStringLiteral("Good"));
+
+        // Texts: UTF-8 or Windows-1252, figurines as letters.
+        QCOMPARE(Cba2Decoder::text("\x93" "Caf\xe9\x94"), QStringLiteral("“Café”"));
+        QCOMPARE(Cba2Decoder::text("\xee\x80\xa4" "e2 \xee\x80\xa5" "d1\r\nnext"), QStringLiteral("Ke2 Qd1\nnext"));
+    }
+
     void pgn()
     {
         GameRecord game;
@@ -572,6 +748,26 @@ QString writeChessBase2Fixture(const QString &folder)
     moves += frame + content + total;
     put64(moves, 0, moves.size());
 
+    // Its annotations, counted as PGN lists the moves: e4 0, e5 1, Nf3 2,
+    // Nc6 3, d6 4, d4 5, Bb5 6; -1 for the game.
+    const QByteArray notes = Cba2::content(
+        {{-1, {Cba2::text(0x02, 7, "A model game.")}},
+         {3, {Cba2::symbols(1, 14, 0), Cba2::text(0x02, 0, "Develops."),
+              Cba2::marks(0x05, Cba2::bytes({2, 41, 13})), Cba2::evaluation(25, 0, 18)}},
+         {4, {Cba2::text(0x82, 7, "Or")}},
+         {5, {Cba2::text(0x02, 7, "Tr\xe8s bien")}},
+         {6, {Cba2::marks(0x04, Cba2::bytes({4, 37})), Cba2::text(0x02, 7, "\xee\x80\xa8" "c6 is pinned [#]")}}});
+    QByteArray annotations(12, '\0');
+    put16(annotations, 0x08, 12);
+    const int notesAt = int(annotations.size());
+    QByteArray notesFrame(0x1A, '\0');
+    notesFrame.replace(0, 8, QByteArray("\x88\x77\x66\x55\x44\x33\x22\x11", 8));
+    put32(notesFrame, 8, quint32(notes.size()));
+    notesFrame[0x19] = 0x20;
+    put64(total, 0, notes.size() + 34);
+    annotations += notesFrame + notes + total;
+    put64(annotations, 0, annotations.size());
+
     QByteArray headers(192 * 4, '\0');
     put16(headers, 0x08, 38);
     put16(headers, 0x0A, 192);
@@ -581,6 +777,7 @@ QString writeChessBase2Fixture(const QString &folder)
     headers[game] = 0x01;
     headers[game + 2] = 1;
     put64(headers, game + 0x08, gameAt);
+    put64(headers, game + 0x10, notesAt);
     put64(headers, game + 0x18, 0);
     put64(headers, game + 0x20, 1);
     put64(headers, game + 0x28, 0);
@@ -634,6 +831,7 @@ QString writeChessBase2Fixture(const QString &folder)
     const QDir dir(folder);
     for (const auto &[name, bytes] : {std::pair{QStringLiteral("Modern.2cbh"), headers},
                                      std::pair{QStringLiteral("Modern.2cbg"), moves},
+                                     std::pair{QStringLiteral("Modern.2cba"), annotations},
                                      std::pair{QStringLiteral("Modern.2lid"), lid}}) {
         QFile file(dir.filePath(name));
         if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size())
@@ -847,6 +1045,14 @@ QString writeChessBaseFixture(const QString &dir)
         QCOMPARE(game.variations.first().atPly, 4);
         QCOMPARE(game.variations.first().moves.size(), 2);
         QCOMPARE(game.variations.first().moves.first().san, QStringLiteral("d6"));
+        // Its annotations, from the .2cba: on the move they count, the text
+        // before a variation's first move before the variation.
+        QCOMPARE(game.startComment, QStringLiteral("A model game."));
+        QCOMPARE(game.moves.at(3).nags, (QList<int>{1, 14}));
+        QCOMPARE(game.moves.at(3).comment, QStringLiteral("Develops. [%cal Gf1b5] [%eval 0.25,18]"));
+        QCOMPARE(game.variations.first().startComment, QStringLiteral("Or"));
+        QCOMPARE(game.variations.first().moves.at(1).comment, QStringLiteral("Très bien"));
+        QCOMPARE(game.moves.at(4).comment, QStringLiteral("Nc6 is pinned [%csl Re5]"));
         QVERIFY(!ChessBaseDatabase::open(dir.filePath(QStringLiteral("missing.2cbh")), &error));
 
         // A real database and the same one as a .cbh, when given

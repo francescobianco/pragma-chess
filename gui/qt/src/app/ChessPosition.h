@@ -32,7 +32,14 @@ struct ChessMove {
 
     bool operator==(const ChessMove &) const = default;
 
-    /// "e2e4", "e7e8q".
+    /// A null move: the side to move passes, as a game written by hand may
+    /// do ("--" in PGN, ChessBase's null move) where a move was not known or
+    /// a plan is shown. It has no squares. Only a game's own moves are read
+    /// with them (NullMoves::Allowed): an engine or a player never passes.
+    static ChessMove null() { return {}; }
+    bool isNull() const { return from < 0 && to < 0; }
+
+    /// "e2e4", "e7e8q"; "0000" for the null move, as UCI writes it.
     QString uci() const;
 };
 
@@ -77,16 +84,23 @@ public:
 
     QList<ChessMove> legalMoves() const;
     bool isLegal(const ChessMove &move) const;
-    /// The legal move written in UCI notation, if any.
-    std::optional<ChessMove> moveFromUci(QStringView uci) const;
+    /// Whether a null move is read: in a game's moves only.
+    enum class NullMoves { Refused, Allowed };
+    /// Whether the side to move may pass: not in check, and with both kings.
+    bool canPass() const;
+    /// The legal move written in UCI notation, if any; "0000" is the null
+    /// move when `nullMoves` allows it.
+    std::optional<ChessMove> moveFromUci(QStringView uci, NullMoves nullMoves = NullMoves::Refused) const;
     /// The legal move written in SAN, if exactly one matches. Lenient like
     /// people write: check marks, annotations, "x" and "=" are optional,
-    /// "0-0" means castling and extra disambiguation is accepted.
-    std::optional<ChessMove> moveFromSan(QStringView san) const;
+    /// "0-0" means castling and extra disambiguation is accepted. "--" (and
+    /// "Z0", as some programs write it) is the null move when allowed.
+    std::optional<ChessMove> moveFromSan(QStringView san, NullMoves nullMoves = NullMoves::Refused) const;
 
-    /// Plays a legal move.
+    /// Plays a legal move, or the null move when the side may pass.
     void play(const ChessMove &move);
-    /// Standard algebraic notation of a legal move, with check and mate marks.
+    /// Standard algebraic notation of a legal move, with check and mate
+    /// marks; "--" for the null move.
     QString san(const ChessMove &move) const;
     /// Piece captured by a legal move (en passant included), or a null piece.
     Piece capturedPiece(const ChessMove &move) const;

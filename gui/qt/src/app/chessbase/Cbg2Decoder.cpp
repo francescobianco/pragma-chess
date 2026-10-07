@@ -149,8 +149,12 @@ struct Reader {
     }
 
     /// Reads a line to its end into `moves`, the alternatives to its moves
-    /// into `variations`. A null move ends what is recorded of a line.
-    QString readLine(QList<MoveRecord> &moves, QList<Variation> &variations, bool recording)
+    /// into `variations`. A null move is recorded as "0000". In a variation
+    /// (`sisters` given), an alternative to its first move is not a line of
+    /// its own: it is a sister, an alternative to the same move, and goes to
+    /// `sisters` — the order PGN lists them in, and ChessBase counts.
+    QString readLine(QList<MoveRecord> &moves, QList<Variation> &variations, bool recording,
+                     QList<Variation> *sisters = nullptr)
     {
         while (!atEnd()) {
             const quint16 code = word();
@@ -160,18 +164,26 @@ struct Reader {
                 // The move just read has an alternative: the line goes on to
                 // its end, then the alternative follows, from before that move.
                 const int branch = int(moves.size()) - 1;
-                if (const QString error = readLine(moves, variations, recording); !error.isEmpty())
+                if (const QString error = readLine(moves, variations, recording, sisters); !error.isEmpty())
                     return error;
                 Variation alternative;
-                alternative.atPly = branch + 1;
-                const bool keep = recording && branch >= 0;
-                const QString error = readLine(alternative.moves, alternative.variations, keep);
-                if (keep && !alternative.moves.isEmpty())
-                    variations << alternative;
+                QList<Variation> more;
+                const QString error = readLine(alternative.moves, alternative.variations, recording, &more);
+                more.prepend(alternative);
+                more.removeIf([](const Variation &line) { return line.moves.isEmpty(); });
+                if (branch == 0 && sisters) {
+                    *sisters << more;
+                    return error;
+                }
+                for (Variation &line : more)
+                    line.atPly = branch + 1;
+                if (recording && branch >= 0)
+                    variations << more;
                 return error;
             }
             if (code == kNullMove) {
-                recording = false;
+                if (recording)
+                    moves << MoveRecord{QString(), QStringLiteral("0000"), {}};
                 continue;
             }
             if (code == kSetUp || code == kMoves)

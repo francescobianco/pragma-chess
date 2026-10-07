@@ -49,9 +49,9 @@ void resolveLine(QList<MoveRecord> &moves, QList<Variation> &variations, const C
     for (qsizetype i = 0; i < moves.size(); ++i) {
         MoveRecord &move = moves[i];
         const ChessPosition &current = positions.last();
-        std::optional<ChessMove> played = move.uci.isEmpty() ? std::nullopt : current.moveFromUci(move.uci);
+        std::optional<ChessMove> played = move.uci.isEmpty() ? std::nullopt : current.moveFromUci(move.uci, ChessPosition::NullMoves::Allowed);
         if (!played && !move.san.isEmpty())
-            played = current.moveFromSan(move.san);
+            played = current.moveFromSan(move.san, ChessPosition::NullMoves::Allowed);
         if (!played) {
             if (cutMain)
                 moves.resize(i);

@@ -233,6 +233,17 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>Cba2Decoder</name>
+    <message>
+        <source>The annotations run past their record.</source>
+        <translation>Le annotazioni vanno oltre il loro record.</translation>
+    </message>
+    <message>
+        <source>Unknown annotation %1.</source>
+        <translation>Annotazione sconosciuta %1.</translation>
+    </message>
+</context>
+<context>
     <name>Cbg2Decoder</name>
     <message>
         <source>Unexpected marker %1 among the moves.</source>

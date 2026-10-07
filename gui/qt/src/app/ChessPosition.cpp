@@ -100,6 +100,8 @@ QString figurineSan(const QString &san)
 
 QString ChessMove::uci() const
 {
+    if (isNull())
+        return QStringLiteral("0000");
     QString text = BoardState::squareName(from) + BoardState::squareName(to);
     if (promotion != PieceType::None)
         text += letterFor(promotion).toLower();
@@ -271,6 +273,11 @@ std::optional<ChessPosition> ChessPosition::passed() const
     position.m_sideToMove = opposite(m_sideToMove);
     position.m_enPassant = -1; // A pass is no pawn move.
     return position;
+}
+
+bool ChessPosition::canPass() const
+{
+    return hasKings() && !inCheck();
 }
 
 bool ChessPosition::hasKings() const
@@ -511,8 +518,13 @@ bool ChessPosition::isLegal(const ChessMove &move) const
     return moves.contains(move) && leavesKingSafe(move);
 }
 
-std::optional<ChessMove> ChessPosition::moveFromUci(QStringView uci) const
+std::optional<ChessMove> ChessPosition::moveFromUci(QStringView uci, NullMoves nullMoves) const
 {
+    if (uci == u"0000") {
+        if (nullMoves == NullMoves::Allowed && canPass())
+            return ChessMove::null();
+        return std::nullopt;
+    }
     if (uci.size() != 4 && uci.size() != 5)
         return std::nullopt;
     ChessMove move{BoardState::squareFromName(uci.mid(0, 2)), BoardState::squareFromName(uci.mid(2, 2))};
@@ -526,8 +538,13 @@ std::optional<ChessMove> ChessPosition::moveFromUci(QStringView uci) const
     return move;
 }
 
-std::optional<ChessMove> ChessPosition::moveFromSan(QStringView san) const
+std::optional<ChessMove> ChessPosition::moveFromSan(QStringView san, NullMoves nullMoves) const
 {
+    if (san == u"--" || san == u"Z0") {
+        if (nullMoves == NullMoves::Allowed && canPass())
+            return ChessMove::null();
+        return std::nullopt;
+    }
     QString text;
     for (QChar c : san) {
         if (!QStringView(u"+#!?x=").contains(c))
@@ -590,6 +607,8 @@ std::optional<ChessMove> ChessPosition::moveFromSan(QStringView san) const
 
 Piece ChessPosition::capturedPiece(const ChessMove &move) const
 {
+    if (move.isNull())
+        return {};
     const Piece mover = m_squares[move.from];
     if (mover.type == PieceType::Pawn && move.to == m_enPassant && m_squares[move.to].isNull())
         return {PieceType::Pawn, opposite(mover.side)};
@@ -598,6 +617,15 @@ Piece ChessPosition::capturedPiece(const ChessMove &move) const
 
 void ChessPosition::play(const ChessMove &move)
 {
+    if (move.isNull()) {
+        // The side passes: nothing moves, the clocks go on, no en passant.
+        m_enPassant = -1;
+        ++m_halfMoveClock;
+        if (m_sideToMove == Side::Black)
+            ++m_fullMove;
+        m_sideToMove = opposite(m_sideToMove);
+        return;
+    }
     Piece piece = m_squares[move.from];
     const bool capture = !m_squares[move.to].isNull();
     const int fileDelta = move.to % 8 - move.from % 8;
@@ -638,6 +666,8 @@ void ChessPosition::play(const ChessMove &move)
 
 QString ChessPosition::san(const ChessMove &move) const
 {
+    if (move.isNull())
+        return QStringLiteral("--");
     const Piece piece = m_squares[move.from];
     QString text;
 
@@ -743,7 +773,7 @@ QString ChessPosition::lineText(const QStringList &uciMoves, int maxPlies, SanSt
     QStringList parts;
     ChessPosition position = *this;
     for (qsizetype i = 0; i < uciMoves.size() && (maxPlies < 0 || i < maxPlies); ++i) {
-        const std::optional<ChessMove> move = position.moveFromUci(uciMoves.at(i));
+        const std::optional<ChessMove> move = position.moveFromUci(uciMoves.at(i), NullMoves::Allowed);
         if (!move)
             break;
         const QString san = style == SanStyle::Figurines ? figurineSan(position.san(*move)) : position.san(*move);

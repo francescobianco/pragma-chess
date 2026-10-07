@@ -39,8 +39,11 @@ class GameLine(val start: Position, val moves: List<PlayedMove> = emptyList()) {
             val sanMoves = san.split(' ').filter { it.isNotBlank() }
             val count = maxOf(uciMoves.size, sanMoves.size)
             for (i in 0 until count) {
-                val move = uciMoves.getOrNull(i)?.let { position.parseUci(it) }
-                    ?: sanMoves.getOrNull(i)?.let { position.parseSan(it) }
+                // A null move ("0000", "--") passes where the side is not in check.
+                val pass = (uciMoves.getOrNull(i) ?: sanMoves.getOrNull(i)) in setOf("0000", "--")
+                val move = (if (pass) Move.NULL.takeIf { position.passed() != null }
+                else uciMoves.getOrNull(i)?.let { position.parseUci(it) }
+                    ?: sanMoves.getOrNull(i)?.let { position.parseSan(it) })
                     ?: break
                 val next = position.play(move)
                 played.add(PlayedMove(move, position.san(move), next))

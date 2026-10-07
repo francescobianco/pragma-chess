@@ -190,6 +190,22 @@ void UciEngine::analyze(const QString &startFen, const QStringList &uciMoves, Si
         return;
     }
     m_pending = Request{startFen, uciMoves, sideToMove, limit};
+    if (const qsizetype pass = uciMoves.lastIndexOf(QStringLiteral("0000")); pass >= 0) {
+        // A null move in the line: UCI has none (an engine stops reading the
+        // moves there), so the engine gets the position after the last one.
+        std::optional<ChessPosition> position = startFen.isEmpty() ? ChessPosition::startingPosition()
+                                                                   : ChessPosition::fromFen(startFen);
+        for (qsizetype i = 0; position && i <= pass; ++i) {
+            const std::optional<ChessMove> move =
+                position->moveFromUci(uciMoves.at(i), ChessPosition::NullMoves::Allowed);
+            if (move)
+                position->play(*move);
+            else
+                position.reset();
+        }
+        if (position)
+            m_pending = Request{position->fen(), uciMoves.mid(pass + 1), sideToMove, limit};
+    }
     switch (m_state) {
     case State::Idle:
         startPendingSearch();

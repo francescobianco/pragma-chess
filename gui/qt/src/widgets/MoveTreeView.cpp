@@ -231,7 +231,7 @@ struct Writer {
                 text = before.moveNumberText().toHtmlEscaped() + text;
             numbered = true;
             parts << link(path, ply, text);
-            const std::optional<ChessMove> played = before.moveFromUci(move.uci);
+            const std::optional<ChessMove> played = before.moveFromUci(move.uci, ChessPosition::NullMoves::Allowed);
             if (!played)
                 break;
             line << before;
@@ -920,7 +920,7 @@ void MoveTreeView::rebuild()
                 html += QStringLiteral("<td class=\"dots\">…</td>"); // Black moves first here.
             }
             moveCell(ply, white, move);
-            if (const std::optional<ChessMove> played = position.moveFromUci(move.uci))
+            if (const std::optional<ChessMove> played = position.moveFromUci(move.uci, ChessPosition::NullMoves::Allowed))
                 position.play(*played);
             else
                 break;

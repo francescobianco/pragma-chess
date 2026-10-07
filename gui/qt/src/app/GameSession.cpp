@@ -24,9 +24,9 @@ GameRecord GameSession::resolved(const GameRecord &game)
     ChessPosition position = initial;
     qsizetype legal = 0;
     for (MoveRecord &record : result.moves) {
-        std::optional<ChessMove> move = position.moveFromUci(record.uci);
+        std::optional<ChessMove> move = position.moveFromUci(record.uci, ChessPosition::NullMoves::Allowed);
         if (!move && !record.san.isEmpty())
-            move = position.moveFromSan(record.san);
+            move = position.moveFromSan(record.san, ChessPosition::NullMoves::Allowed);
         if (!move)
             break;
         record.uci = move->uci();
@@ -84,7 +84,7 @@ void GameSession::followLine(const QList<int> &path)
     m_positions = {start.value_or(ChessPosition::startingPosition())};
     m_moves.clear();
     for (qsizetype i = 0; i < m_line.size(); ++i) {
-        const std::optional<ChessMove> move = m_positions.last().moveFromUci(m_line.at(i).uci);
+        const std::optional<ChessMove> move = m_positions.last().moveFromUci(m_line.at(i).uci, ChessPosition::NullMoves::Allowed);
         if (!move) {
             m_line.resize(i); // Resolved lines are legal; this is only a guard.
             break;
@@ -134,6 +134,11 @@ bool GameSession::isNextMove(const ChessMove &move) const
     return m_ply < plyCount() && m_moves.at(m_ply) == move;
 }
 
+bool GameSession::isPlayable(const ChessPosition &position, const ChessMove &move)
+{
+    return move.isNull() ? position.canPass() : position.isLegal(move);
+}
+
 bool GameSession::playMove(const ChessMove &move)
 {
     if (isNextMove(move)) {
@@ -141,7 +146,7 @@ bool GameSession::playMove(const ChessMove &move)
         return true;
     }
     const ChessPosition &current = position();
-    if (!current.isLegal(move))
+    if (!isPlayable(current, move))
         return false;
     const int ply = m_ply;
     const MoveRecord record{current.san(move), move.uci(), {}};
@@ -197,7 +202,7 @@ bool GameSession::playMove(const ChessMove &move)
 
 bool GameSession::wouldBranch(const ChessMove &move) const
 {
-    if (isNextMove(move) || !position().isLegal(move))
+    if (isNextMove(move) || !isPlayable(position(), move))
         return false;
     const QString uci = move.uci();
     // At the very branch of a variation: the parent's move and the siblings.
@@ -225,7 +230,7 @@ bool GameSession::wouldBranch(const ChessMove &move) const
 
 bool GameSession::replaceLine(const ChessMove &move)
 {
-    if (!position().isLegal(move))
+    if (!isPlayable(position(), move))
         return false;
     const int ply = m_ply;
     // At the very branch of a variation the line going on is the parent's.

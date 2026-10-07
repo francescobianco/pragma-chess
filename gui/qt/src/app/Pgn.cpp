@@ -67,9 +67,9 @@ void writeLine(const QList<MoveRecord> &moves, const QList<Variation> &variation
         writeComment(startComment, parts);
     for (qsizetype i = 0; i < moves.size() && (maxPlies < 0 || i < maxPlies); ++i) {
         const MoveRecord &record = moves.at(i);
-        std::optional<ChessMove> move = position.moveFromUci(record.uci);
+        std::optional<ChessMove> move = position.moveFromUci(record.uci, ChessPosition::NullMoves::Allowed);
         if (!move && !record.san.isEmpty())
-            move = position.moveFromSan(record.san);
+            move = position.moveFromSan(record.san, ChessPosition::NullMoves::Allowed);
         if (!move)
             break;
         const QString san = position.san(*move) + MoveAnnotation::pgnSuffix(record.nags);
@@ -198,9 +198,9 @@ bool readLine(const QStringList &tokens, qsizetype &i, const ChessPosition &star
         QList<int> nags;
         const QString bare = MoveAnnotation::split(token, &nags);
         ChessPosition &position = positions.last();
-        std::optional<ChessMove> move = position.moveFromSan(bare);
+        std::optional<ChessMove> move = position.moveFromSan(bare, ChessPosition::NullMoves::Allowed);
         if (!move)
-            move = position.moveFromUci(bare);
+            move = position.moveFromUci(bare, ChessPosition::NullMoves::Allowed);
         if (!move) {
             if (!strict) {
                 stopped = true;

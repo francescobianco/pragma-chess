@@ -90,7 +90,7 @@ std::optional<QList<ImportedGame>> parse(const QJsonArray &games, QString *error
             return std::nullopt;
         }
         for (const QString &text : uci) {
-            const std::optional<ChessMove> move = position->moveFromUci(text);
+            const std::optional<ChessMove> move = position->moveFromUci(text, ChessPosition::NullMoves::Allowed);
             if (!move) {
                 setError(errorMessage, QStringLiteral("game %1: illegal move %2").arg(i).arg(text));
                 return std::nullopt;

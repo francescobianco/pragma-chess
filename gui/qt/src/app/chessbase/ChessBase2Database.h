@@ -13,8 +13,9 @@
 /// players and tournaments (`.2lid`). The files are mapped, not read: in a
 /// big database each is gigabytes, and a batch of the import reads a few
 /// hundred records of them. Little-endian throughout, but for the header of
-/// the `.2lid`; texts are UTF-8 with their length in front. Annotations
-/// (`.2cba`) are not read yet. The layout is in TODO.md, "Formato ChessBase".
+/// the `.2lid`; texts are UTF-8 with their length in front. The annotations
+/// (`.2cba`, through Cba2Decoder) come with the moves, as PGN comments,
+/// symbols and commands. The layout is in TODO.md, "Formato ChessBase".
 class ChessBase2Database : public ChessBaseDatabase {
 public:
     static std::unique_ptr<ChessBaseDatabase> open(const QString &path, QString *errorMessage);
@@ -43,6 +44,7 @@ private:
 
     Mapped m_headers;
     Mapped m_moves;
+    Mapped m_annotations;
     Mapped m_entities;
     int m_count = 0;
     int m_recordSize = 0;

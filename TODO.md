@@ -15,14 +15,21 @@ ChessBase 17+"). Verificato sulle due basi vere che avevamo: `wch2` (1 025
 partite, identiche partita per partita alla sua gemella `.cbh`, 8 138
 varianti) e 53 partite di Mega Database 2026 (379 varianti). Resta:
 
-- **Una base vera dell'utente**: provarlo con un `.2cbh` suo (ChessBase 17
-  o 18), dall'interfaccia (Collega sorgente… ▸ File ChessBase).
+- **Una base vera dell'utente**: fatto il 7/10/2026 con "Tutte le mie
+  partite" (ChessBase 18, 185 partite) attraverso la sincronizzazione vera
+  in un database di prova: tutte, con varianti, mosse nulle e annotazioni.
+  Resta da provarla dall'interfaccia (Collega sorgente… ▸ File ChessBase).
 - **Posizioni iniziali** (`0xFFFB`): oggi la partita arriva con la sola
   intestazione e un errore. Nessun campione le ha: servirebbe una base con
   partite da posizione.
 - **Chess960** (tag 2 nel record del `.2cbg`): idem.
-- **Annotazioni** (`.2cba`): commenti e simboli, come per il `.cbh` (che
-  non legge nemmeno il suo `.cba`).
+- **Annotazioni** (`.2cba`): lette (sopra). Restano fuori, scavalcate:
+  orologi (`16`/`17`, della partita), controllo del tempo (`24`), partite
+  citate (`13`), allenamento (`09`), link (`1c`), medaglie, colore della
+  variante, struttura pedonale, percorso del pezzo, posizione critica. I
+  simboli di prefisso ("meglio è", "con l'idea") e quelli che
+  `MoveAnnotation` non conosce si perdono. Il `.cba` del `.cbh` classico
+  non è ancora letto.
 - **Una revisione più vecchia del formato** (byte 0x08 del `.2cbh` = 0x22,
   `.2cbg` versione 3, vista da altri): mai vista qui; se arriva, controllare
   se le parole delle mosse sono le stesse.
@@ -387,6 +394,51 @@ alfiere, torre (ogni casa di partenza, a1 = 0, a2 = 1…, ogni direzione,
 verso l'esterno, 6 parole per arrivo: tranquilla e le 5 catture), fino a
 `ABF0`; poi i pedoni bianchi (`ABF1` = a2-a4) e neri fino a `B128`, poi
 l'arrocco (`B129` O-O-O bianco, `B12A` O-O bianco, `B12B`/`B12C` nero).
+`FFFA` è una mossa come le altre (chi ha il tratto passa), non la fine
+della linea: la base dell'utente ne ha tre di fila nella linea principale
+(Serra – Malu, 17.-- Nb5 18.-- Na3 19.-- Nxc2), e la partita va avanti fino
+alla 74ª. Si legge come `0000` (anche il `.cbg` classico). Due alternative
+alla stessa mossa sono **sorelle**: `c5 fffd … ffff c6 fffd d4 ffff Nf6 e5
+ffff` dà `c5 (c6 d4) (Nf6 e5)`; l'alternativa alla prima mossa di una
+variante non è una variante della variante, o l'ordine PGN (e le posizioni
+del `.2cba`) non torna.
+
+**.2cba** — stessa intestazione di 12 byte e stessa cornice del `.2cbg`
+(tag `00 20`); il record della partita è all'offset 0x10 del suo record
+`.2cbh`, e ogni partita ne ha uno (vuota: solo `ff ff ff 7f`). Contenuto:
+blocchi per posizione in ordine crescente — int32 posizione (−1 la
+partita; poi l'indice della mossa **nell'ordine in cui il PGN le elenca**,
+ogni variante subito dopo la mossa che sostituisce), int32 numero di
+annotazioni, ciascuna short tipo + dati — e int32 `7fffffff` in fondo.
+**Nessuna lunghezza**: ogni tipo va capito. `02` testo dopo / `82` prima
+(short 0, short lingua: 0 en, 1 de, 2 fr, 3 es, 4 it?, 5 nl, 6 pt, 7
+qualsiasi, 12 pl, 18 el; int32 lunghezza; testo UTF-8 **o Windows-1252**,
+senza dirlo: 5 062 testi di wch2 non sono UTF-8). Figurine U+E024–E029 =
+R D T A C P (KQRBNP, ricavate dal contesto: "15.\ue026g1", "den \ue029c3");
+`\r` va a capo, `[#]` chiede un diagramma. `03` simboli: 3 byte, NAG della
+mossa, della posizione, prefisso. `04` case / `05` frecce: int32 lunghezza,
+coppie (colore, casa) / terne (colore, da, a), case **da 1** (a1 1, a2 2,
+b1 9), colori 2 verde, 3 giallo, 4 rosso (altri visti: 7). `07` tempo
+speso: 4 byte, ?, secondi, minuti, ore. `21` valutazione della mossa:
+short valore (centesimi, dal punto di vista del Bianco; mosse al matto se
+tipo 1), short tipo, short profondità. `26` (a −1) valutazioni della linea
+principale: `01`, int32 lunghezza, …: un'analisi più vecchia, non
+coincide con le `21`, saltata. Lunghezza fissa: `08` `16` `17` `22` `23`
+`25` 4 byte, `14` `18` 1, `24` 38; `15` int32 lunghezza. `1c` link: `01`,
+due testi int32 + byte (indirizzo, didascalia). `13` partita citata: 10
+byte, sei nomi (un byte di lunghezza che conta lo zero finale), **79**
+byte fissi, due liste di rating (`01 00 01 00 00` + testo int32), 29 byte,
+int32 mosse, 5 byte per mossa, int32 0. `09` allenamento: 12 byte, quattro
+liste (short conteggio, per voce short tipo + testo int32), byte soluzioni,
+per soluzione 4 byte e una lista. Con questi si leggono fino in fondo tutti
+i record di wch2 (1 025), delle 53 di Mega e della base dell'utente (185).
+
+Verificato sulla base dell'utente ("Tutte le mie partite", analisi di
+lichess importate: 14 451 valutazioni, 2 415 testi): 2 272 dei 2 273
+commenti "X was best." stanno sulla mossa la cui variante comincia con X
+(l'unico no: la variante non c'è nel file); 90% delle frecce di wch2 e Mega
+partono da una casa con un pezzo. La lingua: si tengono i testi "qualsiasi"
+e quelli della lingua dell'interfaccia, se no inglese, se no la prima.
 
 **.2lid** — giocatori, tornei, fonti, …, squadre, tag. Intestazione
 big-endian: int32 sua lunghezza (184, ma altrove 216/228/236: usare il

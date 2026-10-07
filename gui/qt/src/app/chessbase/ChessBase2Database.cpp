@@ -1,6 +1,7 @@
 #include "ChessBase2Database.h"
 
 #include "Cbg2Decoder.h"
+#include "app/UiLanguage.h"
 
 #include <QCoreApplication>
 #include <QFileInfo>
@@ -20,6 +21,7 @@ constexpr int kMinimumRecord = 0xC0;
 
 /// Fields of a game record.
 constexpr int kMovesAt = 0x08;
+constexpr int kAnnotationsAt = 0x10;
 constexpr int kWhiteAt = 0x18;
 constexpr int kBlackAt = 0x20;
 constexpr int kTournamentAt = 0x28;
@@ -90,6 +92,9 @@ std::unique_ptr<ChessBaseDatabase> ChessBase2Database::open(const QString &path,
 
     if (!database->m_moves.open(sibling(path, QStringLiteral("2cbg"))))
         return fail(Text::tr("The moves file (.2cbg) is missing beside %1.").arg(name));
+
+    // The annotations: without them the games still come, unannotated.
+    database->m_annotations.open(sibling(path, QStringLiteral("2cba")));
 
     // Players and tournaments: without them the games still come, unnamed.
     if (database->m_entities.open(sibling(path, QStringLiteral("2lid"))) && database->m_entities.size >= 8) {
@@ -203,6 +208,16 @@ GameRecord ChessBase2Database::game(int index, QString *errorMessage) const
             *errorMessage = Text::tr("Chess960 games are not read yet.");
         return game;
     }
-    fillMoves(game, Cbg2Decoder::decode(content), errorMessage);
+    // Every game has a record of annotations, if only their end.
+    std::optional<Cba2Decoder::Decoded> notes;
+    if (m_annotations.data) {
+        QString missing;
+        const QByteArray annotations = Cbg2Decoder::contentAt(m_annotations.bytes(0, m_annotations.size),
+                                                              qFromLittleEndian<qint64>(record(index) + kAnnotationsAt),
+                                                              nullptr, &missing);
+        if (missing.isEmpty())
+            notes = Cba2Decoder::decode(annotations, UiLanguage::effective());
+    }
+    fillMoves(game, Cbg2Decoder::decode(content), errorMessage, notes ? &*notes : nullptr);
     return game;
 }

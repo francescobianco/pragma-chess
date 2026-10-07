@@ -640,6 +640,15 @@ painted as a menu item, since QMenu draws an item in one font).
   `replaceGame`, which moves `modified`, so the other copies get it); in a
   game not yet saved the annotations travel with the project (`annotations`
   in the `.pch`).
+- **Null moves** ("--" in SAN and PGN, "0000" in UCI, `ChessMove::null()`):
+  a side passes in a game written by hand (ChessBase, PGN). Only a game's
+  own moves are read with them — `moveFromUci`/`moveFromSan` take
+  `ChessPosition::NullMoves::Allowed` on the paths that replay a game
+  (session, variations, PGN, the indexes, the ChessBase readers, the
+  phone's `GameLine`); engines, SMART, the lobby and online play keep the
+  default and refuse them, since an engine may answer `bestmove 0000`. Not
+  in check (`canPass`). UCI has none: `UciEngine::analyze` sends the
+  position after the last one as a FEN; Explain treats one as no move.
 - A game may start from a diagram without kings (lichess studies' chapters
   of text on an empty board): game start positions are read with
   `ChessPosition::fromFen(fen, Kings::Optional)`, such a position has no
@@ -1005,8 +1014,14 @@ while one of them is selected.
   `ChessBase2Database` behind the same interface (`ChessBaseDatabase::open`
   chooses by suffix), its files mapped rather than read (a big base is
   gigabytes); its moves are `Cbg2Decoder`: words that name a move whatever
-  the position, so the variations come with them. Set-up positions,
-  Chess960 and annotations (`.2cba`) are not read yet. A real base and its
+  the position, so the variations come with them. Its annotations
+  (`.2cba`) are `Cba2Decoder`: blocks by position, counted as PGN lists
+  the moves (variations right after the move they replace), put on the
+  moves as comments, NAGs and lichess's commands (`[%eval]`, `[%csl]`,
+  `[%cal]`, `[%emt]`), the comment in the interface's language when there
+  are several. Two alternatives to one move are sisters, as PGN has them,
+  or the positions would not match. Set-up positions and Chess960 are not
+  read yet. A real base and its
   `.cbh` twin can be compared game by game (`readsChessBase2Databases`,
   `PRAGMA_2CBH_SAMPLE`/`PRAGMA_2CBH_TWIN`). `ChessBaseFetch` reads from where the last sync
   stopped (`state.read` = records read; external id = record index) in

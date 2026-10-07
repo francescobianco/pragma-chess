@@ -10,6 +10,7 @@
 #include <memory>
 #include <optional>
 
+#include "Cba2Decoder.h"
 #include "CbgDecoder.h"
 
 /// A ChessBase database — the family of files named after its `.cbh` —
@@ -53,7 +54,8 @@ protected:
 
     /// Puts the decoded moves into `game`: SAN filled in, the main line cut
     /// at its first move that is not legal, the variations resolved.
-    static void fillMoves(GameRecord &game, const CbgDecoder::Decoded &decoded, QString *errorMessage);
+    static void fillMoves(GameRecord &game, const CbgDecoder::Decoded &decoded, QString *errorMessage,
+                          const Cba2Decoder::Decoded *notes = nullptr);
     /// The file beside `path` with another suffix, whatever its case.
     static QString sibling(const QString &path, const QString &suffix);
 

@@ -29,8 +29,9 @@ QString moveOf(quint16 word);
 int lastMoveWord();
 
 /// The framed record at `offset` of the `.2cbg` file `data`: its content
-/// (the words), and whether the game is Chess960. Empty with `error` set
-/// when the frame is not there.
+/// (the words), and whether the game is Chess960 (`chess960` may be null).
+/// Empty with `error` set when the frame is not there. The `.2cba`'s
+/// records have the same frame.
 QByteArray contentAt(const QByteArray &data, qint64 offset, bool *chess960, QString *error);
 
 /// Decodes the words of a record's content: the main line and its

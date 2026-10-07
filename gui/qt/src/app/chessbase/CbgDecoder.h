@@ -21,7 +21,7 @@ namespace CbgDecoder {
 struct Decoded {
     /// Empty for the initial position.
     QString startFen;
-    /// The main line, UCI; cut before a null move.
+    /// The main line, UCI; a null move is "0000".
     QStringList uciMoves;
     /// The variations, UCI only (SAN empty), as GameRecord holds them.
     QList<Variation> variations;

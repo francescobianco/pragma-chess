@@ -472,3 +472,9 @@ with the target's king behind it, at most one piece between
 (`KingInLine`), the threat's arrow goes on to the king (g3→g1, dashed) and
 the summary says "13…Rg6 attacks the queen on g3, in line with the king on
 g1" (`lineNote`).
+
+17.Bd2??: the knight's walk to the queen was drawn, but its last arrow took
+on e6 a queen still on e3 ("the final gain is not shown"). The victim is
+now the decisive capture's (FocusWindow's biggest jump), not the first
+drawn; when filling every move between would pass MAX_ARROWS, only the
+victim's arrival (20.Qe6) and what sent it are added, in the line's order.

@@ -506,8 +506,13 @@ FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
     ' 15...fxg5): an arrow taking nothing on the board says nothing. Its
     ' arrival is drawn, with the attack that sent it there, and every move
     ' between them and the capture.
-    capture = window[0]
-    IF LEN(drawOnly) > 0 THEN capture = drawOnly[0]
+    ' The decisive capture's victim (24...Nxe6, the queen that came to e6 at
+    ' 20.Qe6), else the first capture drawn.
+    capture = decisive
+    IF SIDETOMOVE(positions[capture]) <> beneficiary OR CAPTURED(positions[capture], moves[capture]) = 0 THEN
+        capture = window[0]
+        IF LEN(drawOnly) > 0 THEN capture = drawOnly[0]
+    END IF
     IF SIDETOMOVE(positions[capture]) = beneficiary AND CAPTURED(positions[capture], moves[capture]) <> 0 THEN
         arrived = -1
         FOR j = capture - 1 TO first STEP -2
@@ -538,7 +543,19 @@ FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
             FOR k = start TO capture - 1
                 IF NOT CONTAINS(drawOnly, k) THEN keep = keep + [k]
             NEXT
-            drawOnly = keep + drawOnly
+            ' Too many arrows: only the victim's arrival (and what sent it).
+            IF LEN(keep) + LEN(drawOnly) > MAX_ARROWS THEN
+                keep = []
+                FOR k = start TO arrived
+                    IF NOT CONTAINS(drawOnly, k) AND (k = arrived OR k = start) THEN keep = keep + [k]
+                NEXT
+            END IF
+            ' In the order of the line.
+            merged = []
+            FOR k = first TO last - 1
+                IF CONTAINS(keep, k) OR CONTAINS(drawOnly, k) THEN merged = merged + [k]
+            NEXT
+            drawOnly = merged
             NOTE "  and how " + SquareName(TOSQ(moves[capture])) + " got its victim: plies " + STR(start + 1) + "-" + STR(capture)
             window = [MIN(window[0], start), window[1]]
         END IF

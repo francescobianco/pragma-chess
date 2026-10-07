@@ -413,3 +413,20 @@ expect arrows g6g3 threat, g3g1 threat, g3e3 alternative, h6g6 refutation 1, c1g
 expect lost c1
 expect summary Mistake (−0.4 → −2.8). Black wins a bishop: 13…Rg6 14.Bg5 Kg8 15.Ne4 fxg5 16.hxg5 Qxb2. 13…Rg6 attacks the queen on g3, in line with the king on g1. Better was 13.Qe3.
 end
+
+# 17.Bd2?? in training (White): the knight's long walk e7–f5–d4–f3+–d4+
+# ends taking the queen on e6, where it went at 20.Qe6; the queen is still
+# on e3. The decisive capture's victim, not the first capture drawn, is
+# traced: its arrival e3–e6 is drawn (only it, the gap being too long).
+explain
+before 3r1b2/p1q1nkp1/2b2p2/4P2p/6rP/2N1Q1P1/PPP1NP2/R1B2RK1 w - - 1 17
+played c1d2
+before-eval depth 30 cp -70 pv e2f4
+after 3r1b2/p1q1nkp1/2b2p2/4P2p/6rP/2N1Q1P1/PPPBNP2/R4RK1 b - - 2 17
+viewer white
+tick depth 34 cp -500 pv e7f5 e5e6 f7e8 e6e7 f8e7 e3e6 f5d4 d2f4 d4f3 g1h1 g4f4 e2f4 f3d4 h1g1 d4e6 f4e6 c7c8 f1e1 e8f7 e1e2 d8e8 a1e1 e7d8 e6d4 e8e2 c3e2 c6a8 e2f4 d8b6 c2c3 b6d4 c3d4 g7g5
+expect verdict blunder
+expect arrows e2f4 alternative, e7f5 refutation 1, e3e6 reply 2, f5d4 refutation 3, d4f3 refutation 4, f3d4 refutation 5, d4e6 refutation 6
+expect lost e3
+expect summary Blunder (−0.7 → −5.0). Black wins the queen, a bishop and a pawn for a rook and a knight: 17…Nf5 18.e6+ Ke8 19.e7 Bxe7 20.Qe6 Nd4 21.Bf4 Nf3+ 22.Kh1 Rxf4 23.Nxf4 Nd4+ 24.Kg1 Nxe6 25.Nxe6. Better was 17.Nf4.
+end

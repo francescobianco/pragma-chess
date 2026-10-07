@@ -20,23 +20,36 @@ struct DatabaseProperties {
     DatabaseType type = DatabaseType::GameCollection;
     /// Free text shown in Database Settings.
     QString description;
-    /// Display name, stored as `name`; empty to show the file name.
+    /// The name the user gave the database, stored as `name`; empty to show
+    /// the file name, or the distributed name. Any database may have one, and
+    /// when it does it is the one shown.
     QString name;
-    /// The name in other languages, stored as `name.<code>` (e.g. "name.it").
+    /// The name in every language, stored as `name.<code>` ("name.en",
+    /// "name.it"): what makes a database one we distribute (isDistributed).
+    /// It is a separate carrier from `name`: one read with `name` and no
+    /// `name.en` (written before they were told apart) takes `name` as its
+    /// English name.
     QHash<QString, QString> localizedNames;
     /// The columns of the games list this database hides, by their key
     /// (GameListModel::columnKey: "result", "site"…), stored as
     /// `columns.hidden`, comma separated: each database opens with its own.
     QStringList hiddenColumns;
 
+    /// A database we distribute (Classic Games, the training sets, the
+    /// opening names): it is named in every language, not by the user.
+    bool isDistributed() const { return !localizedNames.isEmpty(); }
+
     /// The name to show in the interface language `languageCode` ("it", "en"
-    /// or "it_IT"): that translation, else the default name, else `fileBaseName`.
+    /// or "it_IT"): the name the user gave it; else, for a distributed
+    /// database, that translation or the English one; else `fileBaseName`.
     QString displayName(const QString &languageCode, const QString &fileBaseName) const;
     /// The name given in Database Settings (displayName), or empty when the
     /// database has none but its file's: the interface then shows the file.
     QString givenName(const QString &languageCode, const QString &fileBaseName) const;
     /// How the menus name the database file `path`: "My Games (games.pdb)"
-    /// when it has a name of its own, else the file's base name.
+    /// when the user named it; a distributed database not renamed, by its
+    /// name in the language alone ("Finali per l'allenamento"); else the
+    /// file's base name.
     QString label(const QString &languageCode, const QString &path) const;
 
     /// Reads the stored key/value rows; missing or unknown values are defaults.

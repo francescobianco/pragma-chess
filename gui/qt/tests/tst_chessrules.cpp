@@ -460,6 +460,39 @@ private Q_SLOTS:
         QVERIFY(found);
     }
 
+    void readsTheClassicGames()
+    {
+        // The famous games we distribute: every one read whole, every move
+        // legal, and the ones that end in mate end in mate.
+        QFile file(QStringLiteral(PRAGMA_CLASSICS_PGN));
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        const QByteArray bytes = file.readAll();
+        int games = 0;
+        for (const PgnFile::Entry &entry : PgnFile::scan(bytes)) {
+            if (!entry.isGame)
+                continue;
+            const QByteArray text = bytes.mid(entry.offset, entry.length);
+            QString error;
+            const std::optional<GameRecord> game = PgnFile::read(text, &error);
+            QVERIFY2(game, qPrintable(error));
+            // As many moves as the text has: none cut by an illegal one.
+            const QString moves = QString::fromUtf8(text).section(QStringLiteral("\n\n"), 1);
+            int sans = 0;
+            for (const QString &word : moves.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts)) {
+                if (!word.endsWith(QLatin1Char('.')) && !word.contains(QLatin1Char('-')) ? true : word.startsWith(QLatin1String("O-O")))
+                    ++sans;
+            }
+            QVERIFY2(game->moves.size() == sans, qPrintable(game->white + QStringLiteral(" - ") + game->black));
+            ChessPosition position = ChessPosition::startingPosition();
+            for (const MoveRecord &move : game->moves)
+                position.play(*position.moveFromUci(move.uci));
+            if (game->moves.last().san.endsWith(QLatin1Char('#')))
+                QVERIFY2(position.isCheckmate(), qPrintable(game->white + QStringLiteral(" - ") + game->black));
+            ++games;
+        }
+        QCOMPARE(games, 20);
+    }
+
     void classifiesTrainingSets()
     {
         // Endgames by the material they start from, stronger side first, pawns once.
@@ -4288,27 +4321,47 @@ END FUNCTION
 
     void namesDatabasesInEveryLanguage()
     {
+        // A user's database: its name, with the file in brackets in the menus;
+        // without a name, the file alone.
+        DatabaseProperties mine;
+        QCOMPARE(mine.displayName(QStringLiteral("it"), QStringLiteral("file")), QStringLiteral("file"));
+        QCOMPARE(mine.label(QStringLiteral("it"), QStringLiteral("/x/My Games.pdb")), QStringLiteral("My Games"));
+        QCOMPARE(mine.givenName(QStringLiteral("it"), QStringLiteral("file")), QString());
+        mine.name = QStringLiteral("Club");
+        QVERIFY(!mine.isDistributed());
+        QCOMPARE(mine.label(QStringLiteral("it"), QStringLiteral("/x/games.pdb")), QStringLiteral("Club (games.pdb)"));
+        QCOMPARE(mine.values().value(QStringLiteral("name")), QStringLiteral("Club"));
+
+        // A distributed one: named in every language, English as the fallback,
+        // and in the menus by that name alone.
         DatabaseProperties properties;
-        QCOMPARE(properties.displayName(QStringLiteral("it"), QStringLiteral("file")), QStringLiteral("file"));
-        properties.name = QStringLiteral("English");
-        properties.localizedNames.insert(QStringLiteral("it"), QStringLiteral("Inglese"));
+        properties.localizedNames = {{QStringLiteral("en"), QStringLiteral("English")}, {QStringLiteral("it"), QStringLiteral("Inglese")}};
+        QVERIFY(properties.isDistributed());
         QCOMPARE(properties.displayName(QStringLiteral("it"), QStringLiteral("file")), QStringLiteral("Inglese"));
         QCOMPARE(properties.displayName(QStringLiteral("it_IT"), QStringLiteral("file")), QStringLiteral("Inglese"));
         QCOMPARE(properties.displayName(QStringLiteral("en"), QStringLiteral("file")), QStringLiteral("English"));
         QCOMPARE(properties.displayName(QStringLiteral("de"), QStringLiteral("file")), QStringLiteral("English"));
-        // Menus show the name with the file in brackets; a database without
-        // a name of its own, the file alone.
         QCOMPARE(properties.givenName(QStringLiteral("it"), QStringLiteral("file")), QStringLiteral("Inglese"));
-        QCOMPARE(properties.label(QStringLiteral("it"), QStringLiteral("/x/My Games.pdb")),
-                 QStringLiteral("Inglese (My Games.pdb)"));
-        QCOMPARE(DatabaseProperties().label(QStringLiteral("it"), QStringLiteral("/x/My Games.pdb")), QStringLiteral("My Games"));
-        QCOMPARE(DatabaseProperties().givenName(QStringLiteral("it"), QStringLiteral("file")), QString());
+        QCOMPARE(properties.label(QStringLiteral("it"), QStringLiteral("/x/English.pdb")), QStringLiteral("Inglese"));
 
-        // Stored as name and name.<code>, and read back.
+        // Stored as name.<code>, and read back.
         const QHash<QString, QString> values = properties.values();
-        QCOMPARE(values.value(QStringLiteral("name")), QStringLiteral("English"));
+        QVERIFY(!values.contains(QStringLiteral("name")));
+        QCOMPARE(values.value(QStringLiteral("name.en")), QStringLiteral("English"));
         QCOMPARE(values.value(QStringLiteral("name.it")), QStringLiteral("Inglese"));
         QCOMPARE(DatabaseProperties::fromValues(values), properties);
+        // Renamed by the user, a distributed database shows the user's name: it commands.
+        DatabaseProperties renamed = properties;
+        renamed.name = QStringLiteral("My Openings");
+        QVERIFY(renamed.isDistributed());
+        QCOMPARE(renamed.displayName(QStringLiteral("it"), QStringLiteral("English")), QStringLiteral("My Openings"));
+        QCOMPARE(renamed.label(QStringLiteral("it"), QStringLiteral("/x/English.pdb")), QStringLiteral("My Openings (English.pdb)"));
+        QCOMPARE(DatabaseProperties::fromValues(renamed.values()), renamed);
+        // Written before the two were told apart (name and name.it): name is the English one.
+        const DatabaseProperties older = DatabaseProperties::fromValues(
+            {{QStringLiteral("name"), QStringLiteral("Classic Games")}, {QStringLiteral("name.it"), QStringLiteral("Partite classiche")}});
+        QVERIFY(older.name.isEmpty());
+        QCOMPARE(older.localizedNames.value(QStringLiteral("en")), QStringLiteral("Classic Games"));
 
         // The columns a database hides are stored too, and so is showing them all again.
         properties.hiddenColumns = {QStringLiteral("result"), QStringLiteral("site")};

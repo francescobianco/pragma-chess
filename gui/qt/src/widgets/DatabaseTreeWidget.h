@@ -62,6 +62,8 @@ Q_SIGNALS:
     /// A node was opened, closed or selected by the user.
     void stateChanged();
     void categorySelected(const GameCategory &category);
+    /// A node without children was double-clicked (its games are the list's).
+    void leafActivated();
     void connectSourceRequested();
     /// Database Settings…, from the root's menu.
     void settingsRequested();

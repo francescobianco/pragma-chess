@@ -1,5 +1,9 @@
 #include "ClassicGames.h"
 
+#include "sources/PgnFile.h"
+
+#include <QFile>
+
 namespace {
 
 GameRecord makeGame(const char *white, const char *black, const char *event, const char *site,
@@ -68,5 +72,17 @@ QList<GameRecord> classicGames()
                        {"Qxd7+", "a4d7"}, {"Kxd7", "e8d7"}, {"Bf5+", "d3f5"}, {"Ke8", "d7e8"},
                        {"Bd7+", "f5d7"}, {"Kf8", "e8f8"}, {"Bxe7#", "a3e7"}});
 
+    // More famous games, as PGN (resources/classics): a new version that adds
+    // some brings them to every copy of the database (its lineage).
+    QFile file(QStringLiteral(":/classics/classic-games.pgn"));
+    if (file.open(QIODevice::ReadOnly)) {
+        const QByteArray bytes = file.readAll();
+        for (const PgnFile::Entry &entry : PgnFile::scan(bytes)) {
+            if (!entry.isGame)
+                continue;
+            if (std::optional<GameRecord> game = PgnFile::read(bytes.mid(entry.offset, entry.length), nullptr))
+                games << *game;
+        }
+    }
     return games;
 }

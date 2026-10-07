@@ -414,6 +414,10 @@ bool SqliteGameDatabase::loadProperties(QString *errorMessage)
     while (query.next())
         values.insert(query.value(0).toString(), query.value(1).toString());
     m_properties = DatabaseProperties::fromValues(values);
+    // Written before the two names were told apart: the file is set right.
+    if (m_properties.isDistributed() && values.contains(QStringLiteral("name"))
+        && !values.contains(QStringLiteral("name.en")))
+        setProperties(m_properties, nullptr);
     return true;
 }
 
@@ -422,6 +426,13 @@ bool SqliteGameDatabase::setProperties(const DatabaseProperties &properties, QSt
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     db.transaction();
     QSqlQuery query(db);
+    // A distributed database's name may be taken away again (its own comes back).
+    if (properties.isDistributed() && properties.name.isEmpty()
+        && !query.exec(QStringLiteral("DELETE FROM properties WHERE key = 'name'"))) {
+        setError(errorMessage, query.lastError().text());
+        db.rollback();
+        return false;
+    }
     query.prepare(QStringLiteral("INSERT OR REPLACE INTO properties (key, value) VALUES (?, ?)"));
     const QHash<QString, QString> values = properties.values();
     for (auto it = values.cbegin(); it != values.cend(); ++it) {

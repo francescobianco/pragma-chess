@@ -1,6 +1,9 @@
 #include "TrainingSets.h"
 
+#include "GameIdentity.h"
+
 #include <QCoreApplication>
+#include <QUuid>
 
 #include <algorithm>
 #include <array>
@@ -10,6 +13,15 @@ namespace {
 struct Text {
     Q_DECLARE_TR_FUNCTIONS(TrainingSets)
 };
+
+/// The uids of the games we distribute come from what they are, not from
+/// their texts, which are in the language of the install: the same puzzle
+/// or position is the same game everywhere, and an update finds it.
+QString stableUid(const QString &key)
+{
+    static const QUuid nameSpace(QStringLiteral("7b0c5a1e-3f0d-4a55-9e3c-6f1d0a9b4c00"));
+    return GameIdentity::uuidV5(nameSpace, key.toUtf8());
+}
 
 QString tagValue(const GameRecord &game, const QString &name)
 {
@@ -207,6 +219,7 @@ QList<GameRecord> puzzleGames(const QString &tsv)
         if (!solution)
             continue;
         GameRecord game;
+        game.uid = stableUid(QStringLiteral("lichess-puzzle/") + fields.at(0));
         // One event for them all (the tree lists events), the puzzle's id as the round.
         game.event = Text::tr("lichess.org puzzles");
         game.round = fields.at(0);
@@ -228,6 +241,7 @@ QList<GameRecord> theoryEndgames()
     QList<GameRecord> games;
     for (const Theory &theory : kTheory) {
         GameRecord game;
+        game.uid = stableUid(QStringLiteral("theory/") + QLatin1String(theory.fen));
         game.event = Text::tr(theory.name);
         game.result = QLatin1String(theory.result);
         game.startFen = QLatin1String(theory.fen);

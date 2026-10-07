@@ -356,8 +356,9 @@ private:
     void rebuildOpeningNamesMenu();
     /// Gives the seeded Classic Games its fixed universal id.
     void adoptShippedLineages();
-    /// Adds the training databases we ship (endgames, tactics) once.
-    void seedTrainingDatabases();
+    /// Brings the databases we distribute up to this version, by lineage:
+    /// adds the games they bring, creates the training sets once.
+    void updateDistributedDatabases();
     /// Makes sure the database at `path` is typed Opening Book; false if it cannot be opened.
     bool markAsOpeningBook(const QString &path);
     /// Reads the names again when their database changed since they were read.

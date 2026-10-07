@@ -17,7 +17,8 @@ namespace TrainingSets {
 /// Puzzles of a training TSV (make-training.py: id, FEN, UCI moves, rating,
 /// themes, URL) as games: each starts after the opponent's first move, so the
 /// side to move is the one to find the solution, which follows as the moves.
-/// Rows that do not replay are skipped.
+/// Rows that do not replay are skipped. Their uids come from the puzzle's id,
+/// the same in every language (an update recognises them).
 QList<GameRecord> puzzleGames(const QString &tsv);
 
 /// The classic theoretical endgames — the basic mates, the opposition, the

@@ -24,6 +24,7 @@ DatabaseSettingsDialog::DatabaseSettingsDialog(const QString &databaseName, cons
     m_name = new QLineEdit(properties.name, this);
     m_name->setPlaceholderText(databaseName);
     m_name->setToolTip(tr("The name shown for this database; empty to show the file name"));
+
     form->addRow(tr("&Name:"), m_name);
     if (!properties.localizedNames.isEmpty()) {
         // Translations of the name are shown, not edited: they come with the

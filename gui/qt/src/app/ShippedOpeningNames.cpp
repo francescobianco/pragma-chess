@@ -33,8 +33,10 @@ QList<Names> all()
 
 void Names::applyNames(DatabaseProperties &properties) const
 {
-    properties.name = name;
+    // Distributed: named in every language, English among them; a name the
+    // user gave it stays theirs.
     properties.localizedNames = localizedNames;
+    properties.localizedNames.insert(QStringLiteral("en"), name);
 }
 
 const Names *byLineage(const QString &lineage)

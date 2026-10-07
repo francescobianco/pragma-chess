@@ -1141,19 +1141,35 @@ while one of them is selected.
 
 ## Training databases
 
-We ship two databases to train on, seeded once into the Databases folder
-(`MainWindow::seedTrainingDatabases`, QSettings `training/seeded/<key>`: one
-the user deleted is not brought back): **Endgames.pdb** (Endgame Training —
+**The databases we distribute are updated through their lineage**
+(`MainWindow::updateDistributedDatabases`, at every start): the copy in the
+Databases folder with that lineage, whatever its file is called, gets the
+games a new version brings (by uid — stable, language-independent uids for
+the training sets, `TrainingSets` — or by start position), never touching
+what the user changed and never bringing back a game the user threw away
+(its uid among `gameStates()`); a hash of what this version distributes
+(QSettings `distributed/<key>/content`) skips the work when nothing changed.
+Classic Games (its 3 games in code, the rest PGN in
+`resources/classics/classic-games.pgn`, tested by `readsTheClassicGames`) is
+created on the first run; the training sets when missing, once
+(`distributed/<key>/seeded`: one the user deleted is not brought back):
+**Endgames.pdb** (Endgame Training —
 the theoretical endgames of `app/TrainingSets::theoryEndgames`, checked with
 Stockfish, plus endgame puzzles) and **Tactics.pdb** (Tactics Training).
 The puzzles are the lichess puzzle database's (CC0), picked by
 `resources/training/make-training.py` into `endgames.tsv`/`tactics.tsv`
 (`:/training`); `TrainingSets::puzzleGames` starts each once the opponent
 has moved, the solution as the moves, the themes in the `Themes` tag.
-**Every database we ship is named in every language** (`name` and
-`name.<code>` in its properties, `nameShippedDatabase`; Classic Games too),
-with a fixed lineage (`GameIdentity`); the file keeps one name on every
-device.
+**Every database we distribute is named in every language**
+(`name.<code>`, English included, `nameShippedDatabase`; Classic Games and
+the opening names too), with a fixed lineage (`GameIdentity`); the file keeps
+one name on every device. The translated names are what makes a database
+distributed (`DatabaseProperties::isDistributed`); `name` is a separate
+carrier, the user's: any database may be renamed in Database Settings, and
+then that name commands (menus show "Name (file.pdb)"); not renamed, a
+distributed database shows its name in the user's language, without the
+file. A file with `name` and no `name.en` was written before the two were
+told apart: its `name` is read as the English one.
 
 The tree classifies any database's games for training (`DatabaseOutline`,
 `TrainingSets`, pure, unit-tested): **Endgames** — games starting from a

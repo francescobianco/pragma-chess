@@ -101,6 +101,10 @@ DatabaseTreeWidget::DatabaseTreeWidget(QWidget *parent)
         if (!m_refreshing)
             Q_EMIT stateChanged();
     };
+    connect(this, &QTreeWidget::itemDoubleClicked, this, [this](QTreeWidgetItem *item) {
+        if (item && item->childCount() == 0)
+            Q_EMIT leafActivated();
+    });
     connect(this, &QTreeWidget::itemExpanded, this, changed);
     connect(this, &QTreeWidget::itemCollapsed, this, changed);
     connect(this, &QTreeWidget::currentItemChanged, this, changed);

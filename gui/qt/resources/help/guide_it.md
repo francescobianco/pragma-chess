@@ -65,7 +65,7 @@ A sinistra della lista delle partite, l'albero mostra che cosa contiene il datab
 - **Tattica**: i problemi per tema — *Inchiodatura*, *Infilata*, *Forchetta*, *Attacco di scoperta*, *Deviazione*…
 - **Cestino**: le partite che hai buttato.
 
-Posizione e Variante seguono la scacchiera: scorri una partita e i loro conteggi cambiano.
+Posizione e Variante seguono la scacchiera: scorri una partita e i loro conteggi cambiano. Fai doppio clic su un nodo con una sola partita, e quella partita si apre.
 
 # La scacchiera {#board}
 

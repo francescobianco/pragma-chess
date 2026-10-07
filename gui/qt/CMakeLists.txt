@@ -527,6 +527,8 @@ qt_add_resources(pragma-chess openings PREFIX /openings BASE resources/openings
     FILES resources/openings/opening-names.pdb resources/openings/lichess-openings.tsv
           resources/openings/opening-names-it.pdb resources/openings/lichess-openings-it.tsv)
 # The guide (Help ▸ Pragma Chess Guide), one Markdown file per language.
+qt_add_resources(pragma-chess classics PREFIX /classics BASE resources/classics
+    FILES resources/classics/classic-games.pgn)
 qt_add_resources(pragma-chess training PREFIX /training BASE resources/training
     FILES resources/training/endgames.tsv resources/training/tactics.tsv)
 qt_add_resources(pragma-chess help PREFIX /help BASE resources/help
@@ -621,7 +623,8 @@ if(TARGET Qt6::Test)
     target_link_libraries(tst_chessrules PRIVATE pragma-chess-core Qt6::Sql Qt6::Test yaml-cpp::yaml-cpp)
     target_compile_definitions(tst_chessrules PRIVATE
         PRAGMA_SMART_TESTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../../smart/tests"
-        PRAGMA_HELP_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/help")
+        PRAGMA_HELP_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/help"
+        PRAGMA_CLASSICS_PGN="${CMAKE_CURRENT_SOURCE_DIR}/resources/classics/classic-games.pgn")
     target_compile_options(tst_chessrules PRIVATE ${PRAGMA_WARNINGS})
     set_target_properties(tst_chessrules PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
     add_test(NAME chessrules COMMAND tst_chessrules)

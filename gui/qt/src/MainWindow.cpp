@@ -92,6 +92,7 @@
 #include <QCheckBox>
 #include <QClipboard>
 #include <QCryptographicHash>
+#include <QSet>
 #include <QDataStream>
 #include <QActionGroup>
 #include <QDesktopServices>
@@ -128,7 +129,9 @@
 #include <QVBoxLayout>
 
 #include <algorithm>
+#include <functional>
 #include <utility>
+#include <vector>
 
 namespace {
 
@@ -465,7 +468,7 @@ MainWindow::MainWindow(QWidget *parent)
         lobbyService();
     resumeOnlineGame(); // After the session: the online game takes the board.
     adoptShippedLineages();
-    seedTrainingDatabases();
+    updateDistributedDatabases();
     restoreOpeningNames(); // After the session, so the first launch still seeds Classic Games first.
     applySyncSettings();
     createPhoneLink();
@@ -1348,6 +1351,11 @@ void MainWindow::createDocks()
 
     m_databaseTree = new DatabaseTreeWidget;
     connect(m_databaseTree, &DatabaseTreeWidget::categorySelected, this, &MainWindow::showCategory);
+    // A leaf with one game: double-clicking it opens that game, as double-clicking it in the list.
+    connect(m_databaseTree, &DatabaseTreeWidget::leafActivated, this, [this] {
+        if (m_gameListProxy->rowCount() == 1)
+            openGame(m_gameListProxy->index(0, 0));
+    });
     connect(m_databaseTree, &DatabaseTreeWidget::stateChanged, this, &MainWindow::saveTreeState);
     connect(m_databaseTree, &DatabaseTreeWidget::connectSourceRequested, this, &MainWindow::connectSource);
     connect(m_databaseTree, &DatabaseTreeWidget::settingsRequested, this, &MainWindow::editDatabaseSettings);
@@ -2345,9 +2353,9 @@ namespace {
 void nameShippedDatabase(GameDatabase &database, const QString &english, const QString &italian)
 {
     DatabaseProperties properties = database.properties();
-    if (!properties.name.isEmpty())
+    if (properties.isDistributed())
         return;
-    properties.name = english;
+    properties.localizedNames.insert(QStringLiteral("en"), english);
     properties.localizedNames.insert(QStringLiteral("it"), italian);
     database.setProperties(properties, nullptr);
 }
@@ -2784,7 +2792,7 @@ void MainWindow::migrateOpeningNames()
             continue;
         // Shipped names from before they had a display name get theirs.
         QString error;
-        if (properties.name.isEmpty()) {
+        if (!properties.isDistributed()) {
             if (const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(place, &error)) {
                 DatabaseProperties updated = database->properties();
                 names.applyNames(updated);
@@ -2867,43 +2875,68 @@ void MainWindow::rebuildOpeningNamesMenu()
 }
 
 
-void MainWindow::seedTrainingDatabases()
+void MainWindow::updateDistributedDatabases()
 {
-    // The training sets we ship (resources/training): added once to the
-    // databases folder, with fixed lineages so that every device has the same
-    // database; one the user deleted is not brought back.
-    struct Shipped {
+    // The databases we distribute are known by their lineage, whatever their
+    // file is called on this device: a new version adds the games it brings
+    // to the copy the user has (by uid, or by start position for the training
+    // sets), never touching what the user changed, and never bringing back a
+    // game the user threw away. The training sets are created when missing,
+    // once: one the user deleted is not brought back. Classic Games is
+    // created on the first run (openInitialDatabase).
+    struct Distributed {
         const char *key;
         const char *file;
         QString lineage;
         const char *english;
         const char *italian;
         const char *description;
-        const char *resource;
-        bool theory;
+        bool createWhenMissing;
+        std::function<QList<GameRecord>()> games;
     };
-    const Shipped shipped[] = {
+    const auto puzzles = [](const char *resource) {
+        QFile file{QString::fromLatin1(resource)};
+        return file.open(QIODevice::ReadOnly) ? TrainingSets::puzzleGames(QString::fromUtf8(file.readAll()))
+                                              : QList<GameRecord>();
+    };
+    const std::vector<Distributed> distributed{
+        {"classic", "Classic Games", GameIdentity::kClassicGamesLineage, "Classic Games", "Partite classiche",
+         "Famous games of chess history.", false, [] { return classicGames(); }},
         {"endgames", "Endgames", GameIdentity::kEndgamesLineage, "Endgame Training", "Finali per l'allenamento",
-         "Theoretical endgames and endgame puzzles from the lichess.org puzzle database (CC0).",
-         ":/training/endgames.tsv", true},
+         "Theoretical endgames and endgame puzzles from the lichess.org puzzle database (CC0).", true,
+         [puzzles] { return TrainingSets::theoryEndgames() + puzzles(":/training/endgames.tsv"); }},
         {"tactics", "Tactics", GameIdentity::kTacticsLineage, "Tactics Training", "Tattica per l'allenamento",
-         "Tactical puzzles by theme from the lichess.org puzzle database (CC0).", ":/training/tactics.tsv", false},
+         "Tactical puzzles by theme from the lichess.org puzzle database (CC0).", true,
+         [puzzles] { return puzzles(":/training/tactics.tsv"); }},
     };
+    const QDir folder(UserFolders::databasesDir());
+    QHash<QString, QString> byLineage;
+    for (const QString &file : folder.entryList({QStringLiteral("*.") + QLatin1String(UserFolders::databaseSuffix)}, QDir::Files)) {
+        const QString id = SqliteGameDatabase::readProperties(folder.filePath(file)).id;
+        if (!id.isEmpty() && !byLineage.contains(id))
+            byLineage.insert(id, folder.filePath(file));
+    }
     QSettings settings;
-    for (const Shipped &set : shipped) {
-        const QString seededKey = QStringLiteral("training/seeded/") + QLatin1String(set.key);
-        if (settings.value(seededKey, false).toBool())
-            continue;
-        if (!UserFolders::ensureDatabasesDir())
-            return;
-        const QString path = QDir(UserFolders::databasesDir())
-                                 .filePath(QLatin1String(set.file) + QLatin1Char('.') + QLatin1String(UserFolders::databaseSuffix));
-        if (!QFileInfo::exists(path)) {
-            QFile resource(QLatin1String(set.resource));
-            if (!resource.open(QIODevice::ReadOnly))
+    for (const Distributed &set : distributed) {
+        const QString seededKey = QStringLiteral("distributed/%1/seeded").arg(QLatin1String(set.key));
+        const QString contentKey = QStringLiteral("distributed/%1/content").arg(QLatin1String(set.key));
+        const QList<GameRecord> games = set.games();
+        // What this version distributes, to skip the work when nothing changed.
+        QCryptographicHash hash(QCryptographicHash::Sha1);
+        for (const GameRecord &game : games)
+            hash.addData((game.uid.isEmpty() ? GameIdentity::uid(game) : game.uid).toUtf8());
+        const QString content = QString::fromLatin1(hash.result().toHex());
+
+        // Seeded under the earlier key: still seeded.
+        if (settings.value(QStringLiteral("training/seeded/") + QLatin1String(set.key)).toBool())
+            settings.setValue(seededKey, true);
+        QString path = byLineage.value(set.lineage);
+        if (path.isEmpty()) {
+            if (!set.createWhenMissing || settings.value(seededKey, false).toBool() || !UserFolders::ensureDatabasesDir())
                 continue;
-            QList<GameRecord> games = set.theory ? TrainingSets::theoryEndgames() : QList<GameRecord>();
-            games += TrainingSets::puzzleGames(QString::fromUtf8(resource.readAll()));
+            path = folder.filePath(QLatin1String(set.file) + QLatin1Char('.') + QLatin1String(UserFolders::databaseSuffix));
+            if (QFileInfo::exists(path))
+                continue; // A file of the user's under that name: left alone.
             QString error;
             const std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::create(path, games, &error);
             if (!database) {
@@ -2915,8 +2948,51 @@ void MainWindow::seedTrainingDatabases()
             properties.description = QLatin1String(set.description);
             database->setProperties(properties, nullptr);
             nameShippedDatabase(*database, QLatin1String(set.english), QString::fromUtf8(set.italian));
+            settings.setValue(seededKey, true);
+            settings.setValue(contentKey, content);
+            continue;
         }
         settings.setValue(seededKey, true);
+        if (settings.value(contentKey).toString() == content)
+            continue;
+        // The open database is updated through itself, any other opened here.
+        QString error;
+        std::unique_ptr<SqliteGameDatabase> opened;
+        GameDatabase *database = nullptr;
+        if (m_database && QFileInfo(m_database->location()) == QFileInfo(path)) {
+            database = m_database.get();
+        } else {
+            opened = SqliteGameDatabase::open(path, &error);
+            database = opened.get();
+        }
+        if (!database)
+            continue;
+        QSet<QString> present;
+        QSet<QString> positions;
+        for (qint64 i = 0; i < database->gameCount(); ++i) {
+            const GameRecord header = database->header(i);
+            present.insert(header.uid);
+            if (!header.startFen.isEmpty())
+                positions.insert(header.startFen);
+        }
+        for (const GameStateRecord &state : database->gameStates())
+            present.insert(state.uid); // Thrown away, even for good: not brought back.
+        int added = 0;
+        for (const GameRecord &game : games) {
+            const QString uid = game.uid.isEmpty() ? GameIdentity::uid(game) : game.uid;
+            if (present.contains(uid) || (!game.startFen.isEmpty() && positions.contains(game.startFen)))
+                continue;
+            if (database->addGame(game, &error) >= 0)
+                ++added;
+        }
+        nameShippedDatabase(*database, QLatin1String(set.english), QString::fromUtf8(set.italian));
+        settings.setValue(contentKey, content);
+        if (added > 0 && database == m_database.get()) {
+            m_gameListModel->setDatabase(m_database.get());
+            updateGameCount();
+            m_databaseTree->scheduleRefresh();
+            rebuildPositionIndex();
+        }
     }
 }
 
@@ -2931,7 +3007,7 @@ void MainWindow::adoptShippedLineages()
     if (QFile::exists(path)) {
         SqliteGameDatabase::adoptLineage(path, GameIdentity::kClassicGamesLineage);
         // Named in every language, like every database we ship.
-        if (SqliteGameDatabase::readProperties(path).name.isEmpty()) {
+        if (!SqliteGameDatabase::readProperties(path).isDistributed()) {
             QString error;
             if (m_database && QFileInfo(m_database->location()) == QFileInfo(path))
                 nameShippedDatabase(*m_database, QStringLiteral("Classic Games"), QStringLiteral("Partite classiche"));

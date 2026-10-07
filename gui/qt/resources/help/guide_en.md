@@ -65,7 +65,7 @@ Left of the games list, the tree shows what the open database contains. Select a
 - **Tactics**: the puzzles by theme — *Pin*, *Skewer*, *Fork*, *Discovered Attack*, *Deflection*…
 - **Trash**: the games you threw away.
 
-Position and Variant follow the board: move through a game and their counts change.
+Position and Variant follow the board: move through a game and their counts change. Double-click a node with a single game, and that game opens.
 
 # The board {#board}
 

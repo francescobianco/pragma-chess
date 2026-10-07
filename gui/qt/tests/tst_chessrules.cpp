@@ -3635,6 +3635,37 @@ END FUNCTION
         project.explain = true;
         QVERIFY(Project::fromYaml(project.toYaml(), QDir(), &error)->explain);
         project.explain = false;
+        // The tutor's alert travels with training, and only with it.
+        Project::TutorHold hold;
+        hold.ply = 5;
+        hold.reply = QStringLiteral("d8h4");
+        hold.alert = QStringLiteral("blunder");
+        hold.before.centipawns = -40;
+        hold.before.depth = 14;
+        hold.before.pv = {QStringLiteral("g1f3"), QStringLiteral("d7d6")};
+        hold.after.isMate = true;
+        hold.after.mateIn = 1;
+        hold.after.mating = Side::Black;
+        hold.after.depth = 12;
+        project.tutorHold = hold;
+        QVERIFY(!Project::fromYaml(project.toYaml(), QDir(), &error)->tutorHold);
+        project.training = true;
+        project.tutorHold.reset();
+        QVERIFY(!Project::fromYaml(project.toYaml(), QDir(), &error)->tutorHold); // Training without an alert.
+        project.tutorHold = hold;
+        const std::optional<Project> held = Project::fromYaml(project.toYaml(), QDir(), &error);
+        QVERIFY(held->tutorHold);
+        QCOMPARE(held->tutorHold->ply, 5);
+        QCOMPARE(held->tutorHold->reply, QStringLiteral("d8h4"));
+        QCOMPARE(held->tutorHold->alert, QStringLiteral("blunder"));
+        QCOMPARE(held->tutorHold->before.centipawns, -40);
+        QCOMPARE(held->tutorHold->before.depth, 14);
+        QCOMPARE(held->tutorHold->before.pv, hold.before.pv);
+        QVERIFY(held->tutorHold->after.isMate);
+        QCOMPARE(held->tutorHold->after.mateIn, 1);
+        QCOMPARE(held->tutorHold->after.mating, Side::Black);
+        project.training = false;
+        project.tutorHold.reset();
         project.noChapters = true;
         QVERIFY(Project::fromYaml(project.toYaml(), QDir(), &error)->noChapters);
 

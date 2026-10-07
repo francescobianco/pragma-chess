@@ -280,6 +280,9 @@ private:
     /// while the Engine panel offers to take the move back, explain it or go on.
     void holdEngineReply(const ChessMove &reply, const EngineEvaluation &evaluation, TrainingTutor::Alert alert);
     void clearTutor();
+    /// Puts the tutor's alert of a project back up, if it is still about the
+    /// move on the board; before training is turned on, so the engine waits.
+    void restoreTutorHold(const Project &project);
     /// The board's border: what Explain says while it is on (thinking,
     /// explained), else red while the tutor's alert is up, else plain.
     void updateBoardBorder();
@@ -561,6 +564,7 @@ private:
     std::optional<ChessMove> m_tutorReply;
     EngineEvaluation m_tutorEvaluation;
     int m_tutorPly = -1;
+    TrainingTutor::Alert m_tutorAlert = TrainingTutor::Alert::None;
     /// The next board update is the engine's move: show it slowly.
     bool m_animateNextBoard = false;
     bool m_moveSound = true;

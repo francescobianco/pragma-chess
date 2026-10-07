@@ -1256,7 +1256,11 @@ while the menu entry and its shortcut always ask. Everything lives in `MainWindo
   database through `saveGameToDatabase`, which is a no-op once it is stored.
 - The flag and the user's colour are part of `Project` (`training` with
   `side`, written only while training): a client closed while training opens
-  training, and the engine answers at once if the move is its own. An unsaved
+  training, and the engine answers at once if the move is its own.
+  The tutor's alert goes with it (`training: tutor:` ply, the held reply,
+  the alert, the evaluations before and after: `Project::TutorHold`,
+  `restoreTutorHold`): a client closed with the alert up opens with it up
+  and the engine waiting. An unsaved
   training game comes back as its moves, so `trainingHeader()` names the
   players again.
 - The engine's move is shown with `BoardWidget::setBoardAnimated` over

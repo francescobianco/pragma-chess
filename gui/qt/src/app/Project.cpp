@@ -37,6 +37,39 @@ T valueOf(const YAML::Node &node, T fallback)
     }
 }
 
+/// An engine evaluation, as the tutor's alert keeps it: centipawns or the
+/// mate, the depth and the line.
+void writeEvaluation(YAML::Emitter &out, const EngineEvaluation &evaluation)
+{
+    out << YAML::BeginMap;
+    if (evaluation.isMate) {
+        out << YAML::Key << "mate" << YAML::Value << evaluation.mateIn;
+        out << YAML::Key << "mating" << YAML::Value << (evaluation.mating == Side::Black ? "black" : "white");
+    } else {
+        out << YAML::Key << "cp" << YAML::Value << evaluation.centipawns;
+    }
+    out << YAML::Key << "depth" << YAML::Value << evaluation.depth;
+    out << YAML::Key << "pv" << YAML::Value << toStd(evaluation.pv.join(QLatin1Char(' ')));
+    out << YAML::EndMap;
+}
+
+EngineEvaluation readEvaluation(const YAML::Node &node)
+{
+    EngineEvaluation evaluation;
+    if (!node || !node.IsMap())
+        return evaluation;
+    if (node["mate"]) {
+        evaluation.isMate = true;
+        evaluation.mateIn = valueOf<int>(node["mate"], 0);
+        evaluation.mating = fromNode(node["mating"]) == QLatin1String("black") ? Side::Black : Side::White;
+    } else {
+        evaluation.centipawns = valueOf<int>(node["cp"], 0);
+    }
+    evaluation.depth = valueOf<int>(node["depth"], 0);
+    evaluation.pv = fromNode(node["pv"]).split(QLatin1Char(' '), Qt::SkipEmptyParts);
+    return evaluation;
+}
+
 /// A game of a chapter: its uid when it is stored, and its content in any
 /// case, so the chapter can be shown without the database.
 void writeGame(YAML::Emitter &out, const ChapterGame &entry)
@@ -204,6 +237,17 @@ QString Project::toYaml(const QDir &baseDir) const
     if (training) {
         out << YAML::Key << "training" << YAML::Value << YAML::BeginMap;
         out << YAML::Key << "side" << YAML::Value << (trainingSide == Side::Black ? "black" : "white");
+        if (tutorHold) {
+            out << YAML::Key << "tutor" << YAML::Value << YAML::BeginMap;
+            out << YAML::Key << "ply" << YAML::Value << tutorHold->ply;
+            out << YAML::Key << "reply" << YAML::Value << toStd(tutorHold->reply);
+            out << YAML::Key << "alert" << YAML::Value << toStd(tutorHold->alert);
+            out << YAML::Key << "before" << YAML::Value;
+            writeEvaluation(out, tutorHold->before);
+            out << YAML::Key << "after" << YAML::Value;
+            writeEvaluation(out, tutorHold->after);
+            out << YAML::EndMap;
+        }
         out << YAML::EndMap;
     }
     if (explain)
@@ -295,6 +339,16 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     const YAML::Node training = root["training"];
     env.training = training.IsMap();
     env.trainingSide = fromNode(training["side"]) == QLatin1String("black") ? Side::Black : Side::White;
+    if (const YAML::Node tutor = env.training ? training["tutor"] : YAML::Node(); tutor && tutor.IsMap()) {
+        Project::TutorHold hold;
+        hold.ply = valueOf<int>(tutor["ply"], 0);
+        hold.reply = fromNode(tutor["reply"]);
+        hold.alert = fromNode(tutor["alert"]);
+        hold.before = readEvaluation(tutor["before"]);
+        hold.after = readEvaluation(tutor["after"]);
+        if (hold.ply > 0 && !hold.reply.isEmpty() && !hold.alert.isEmpty())
+            env.tutorHold = hold;
+    }
     env.explain = valueOf<bool>(root["explain"], false);
 
     // Looked up through non-const nodes, as the rest of the file does: a

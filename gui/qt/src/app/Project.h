@@ -2,6 +2,7 @@
 
 #include "BoardState.h"
 #include "Chapters.h"
+#include "EngineEvaluation.h"
 #include "WorkspaceLayout.h"
 
 #include <QByteArray>
@@ -66,6 +67,19 @@ struct Project {
     /// while training opens training, with the user on `trainingSide`.
     bool training = false;
     Side trainingSide = Side::White;
+    /// The tutor stopped the game on the user's move at `ply`: the engine's
+    /// answer it holds back (`reply`, UCI), the alert (`alert`: blunder,
+    /// mistake, inaccuracy, missed-chance), the evaluation the move was
+    /// judged from (`before`) and the search for the answer (`after`). A
+    /// project closed with the alert up opens with it up, the engine waiting.
+    struct TutorHold {
+        int ply = 0;
+        QString reply;
+        QString alert;
+        EngineEvaluation before;
+        EngineEvaluation after;
+    };
+    std::optional<TutorHold> tutorHold;
     /// Explain was on for the move on the board: it comes back on with the
     /// project. Written only when on.
     bool explain = false;

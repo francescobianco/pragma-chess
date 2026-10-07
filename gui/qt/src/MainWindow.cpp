@@ -4150,9 +4150,12 @@ void MainWindow::playEngineReply(const ChessMove &move, const EngineEvaluation &
 
 void MainWindow::holdEngineReply(const ChessMove &reply, const EngineEvaluation &evaluation, TrainingTutor::Alert alert)
 {
+    if (alert == TrainingTutor::Alert::None)
+        return;
     m_tutorReply = reply;
     m_tutorEvaluation = evaluation;
     m_tutorPly = m_session->ply();
+    m_tutorAlert = alert;
     const QString move = m_session->positionAt(m_tutorPly - 1)
                              .lineText({m_session->moveAt(m_tutorPly).uci}, 1, SanStyle::Figurines);
     const QString before = m_trainingBaseline.text();
@@ -4170,13 +4173,48 @@ void MainWindow::holdEngineReply(const ChessMove &reply, const EngineEvaluation 
     m_enginePanel->setTutorAlert(message + QLatin1Char(' ') + tr("The engine has not answered yet."));
     m_engineDock->show();
     updateBoardBorder(); // Red: the game stopped on this move.
+    scheduleSaveSession(); // A client closed now opens with the alert up.
 }
 
 void MainWindow::clearTutor()
 {
+    if (!m_tutorReply)
+        return;
     m_tutorReply.reset();
+    m_tutorAlert = TrainingTutor::Alert::None;
     m_enginePanel->setTutorAlert(QString());
     updateBoardBorder();
+    scheduleSaveSession();
+}
+
+namespace {
+
+const std::pair<TrainingTutor::Alert, QLatin1String> kTutorAlertNames[] = {
+    {TrainingTutor::Alert::MissedChance, QLatin1String("missed-chance")},
+    {TrainingTutor::Alert::Inaccuracy, QLatin1String("inaccuracy")},
+    {TrainingTutor::Alert::Mistake, QLatin1String("mistake")},
+    {TrainingTutor::Alert::Blunder, QLatin1String("blunder")},
+};
+
+} // namespace
+
+void MainWindow::restoreTutorHold(const Project &project)
+{
+    if (!project.tutorHold || project.tutorHold->ply != m_session->ply() || m_session->ply() < 1)
+        return;
+    const Project::TutorHold &hold = *project.tutorHold;
+    TrainingTutor::Alert alert = TrainingTutor::Alert::None;
+    for (const auto &[value, name] : kTutorAlertNames) {
+        if (hold.alert == name)
+            alert = value;
+    }
+    const std::optional<ChessMove> reply = m_session->position().moveFromUci(hold.reply);
+    if (!reply || alert == TrainingTutor::Alert::None)
+        return;
+    // Judged from the position the move was played from: Take Back judges the next try against it too.
+    m_trainingBaseline = hold.before;
+    m_trainingBaselineFen = m_session->positionAt(m_session->ply() - 1).fen();
+    holdEngineReply(*reply, hold.after, alert);
 }
 
 void MainWindow::takeBackTutorMove()
@@ -4584,6 +4622,18 @@ Project MainWindow::captureProject()
     project.engineAnalyzing = m_startEngineAction->isChecked();
     project.training = m_trainingModeAction->isChecked();
     project.trainingSide = m_trainingSide;
+    if (project.training && m_tutorReply) {
+        Project::TutorHold hold;
+        hold.ply = m_tutorPly;
+        hold.reply = m_tutorReply->uci();
+        for (const auto &[value, name] : kTutorAlertNames) {
+            if (value == m_tutorAlert)
+                hold.alert = name;
+        }
+        hold.before = m_trainingBaseline;
+        hold.after = m_tutorEvaluation;
+        project.tutorHold = hold;
+    }
     project.explain = m_explainAction->isChecked();
     project.workspace = captureLayout();
     return project;
@@ -4632,6 +4682,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         m_startEngineAction->setChecked(project.engineAnalyzing);
         if (project.training) {
             m_trainingSide = project.trainingSide;
+            restoreTutorHold(project);
             m_trainingModeAction->setChecked(true);
         }
         // Explain comes back on for the move it was explaining (moving to it turned it off).
@@ -4700,6 +4751,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         // An unsaved game comes back as its moves only: say again who plays.
         if (m_openGameIndex < 0)
             m_session->setHeader(trainingHeader());
+        restoreTutorHold(project);
         m_trainingModeAction->setChecked(true);
     }
     m_explainAction->setChecked(project.explain);

@@ -453,3 +453,13 @@ from below (desktop: `Explainer::setViewer` from `updateExplainer`; phone:
 the board's orientation) — and `KindFor` draws an idea of the other side
 as a reply. Records carry it as `viewer white|black`; a record without it
 explains as before.
+
+### 13.d3?: the victim that arrives during the line (7 October)
+
+The user, White: Explain drew only 15…fxg5, taking on g5 a bishop that
+is still on c1 ("only a pawn taking something, what happens?"). The line
+is 13…Rg6 (on the queen of g3) 14.Bg5 (put in the way) Kg8 15.Ne4 fxg5.
+FocusWindow now also draws how the captured piece came to its square: its
+arrival in the line, the winning side's move before it when that move
+attacks something (the threat dashed), and every move up to the capture.
+Recorded: user-feedback.ticks.

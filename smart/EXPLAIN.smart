@@ -498,6 +498,41 @@ FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
             window = [MIN(window[0], driven[0]), window[1]]
         END IF
     END IF
+    ' The piece that falls may have come to its square during the line
+    ' (14.Bg5, put in the way of 13...Rg6's attack on the queen, then
+    ' 15...fxg5): an arrow taking nothing on the board says nothing. Its
+    ' arrival is drawn, with the attack that sent it there, and every move
+    ' between them and the capture.
+    capture = window[0]
+    IF LEN(drawOnly) > 0 THEN capture = drawOnly[0]
+    IF SIDETOMOVE(positions[capture]) = beneficiary AND CAPTURED(positions[capture], moves[capture]) <> 0 THEN
+        arrived = -1
+        FOR j = capture - 1 TO first STEP -2
+            IF arrived < 0 AND TOSQ(moves[j]) = TOSQ(moves[capture]) THEN arrived = j
+        NEXT
+        IF arrived >= 0 THEN
+            start = arrived
+            IF arrived - 1 >= first THEN
+                sent = NewThreats(positions, arrived - 1, beneficiary, THREAT_GAIN, moves)
+                IF LEN(sent) > 0 THEN
+                    start = arrived - 1
+                    Draw FROMSQ(sent[0][0]), TOSQ(sent[0][0]), "threat", 0
+                END IF
+            END IF
+            IF LEN(drawOnly) = 0 THEN
+                FOR k = window[0] TO window[1] - 1
+                    drawOnly = drawOnly + [k]
+                NEXT
+            END IF
+            keep = []
+            FOR k = start TO capture - 1
+                IF NOT CONTAINS(drawOnly, k) THEN keep = keep + [k]
+            NEXT
+            drawOnly = keep + drawOnly
+            NOTE "  and how " + SquareName(TOSQ(moves[capture])) + " got its victim: plies " + STR(start + 1) + "-" + STR(capture)
+            window = [MIN(window[0], start), window[1]]
+        END IF
+    END IF
     RETURN window + [firstAdded]
 END FUNCTION
 

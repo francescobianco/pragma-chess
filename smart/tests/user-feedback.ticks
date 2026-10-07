@@ -396,3 +396,20 @@ expect verdict good
 expect arrows g1e2 idea 1, h7h5 reply, h5h4 reply, h4g3 threat
 expect summary Good move (+0.4). The position is balanced. 11…h4 attacks the queen on g3: 12.Qh3 parries it. Main line: 10.Nge2 h5 11.d3 h4.
 end
+
+# 13.d3? in training (White): 13…Rg6 attacks the queen, 14.Bg5 is put in
+# the way and falls to 15…fxg5. Only f6xg5 was drawn, taking a bishop that
+# is still on c1: now the bishop's arrival, the attack that sent it and
+# the moves between are drawn.
+explain
+before r4b2/p3nkp1/1qb2p1r/4p2p/7P/2N3Q1/PPPPNPP1/R1B2RK1 w - - 4 13
+played d2d3
+before-eval depth 30 cp -40 pv g3e3
+after r4b2/p3nkp1/1qb2p1r/4p2p/7P/2NP2Q1/PPP1NPP1/R1B2RK1 b - - 0 13
+viewer white
+tick depth 33 cp -277 pv h6g6 c1g5 f7g8 c3e4 f6g5 h4g5 b6b2 f1b1 b2c2 e2c3 c6e4 c3e4 a8d8 g3e5 c2c8 e5h2 c8g4 f2f3 g4f5 b1b8 d8b8 h2b8 f5d7 a1b1 d7d3 g1h2 g6e6 b1b7 e7g6 b8a7 f8d6 h2h3 d6e7 b7b6 e6b6 a7b6 g8h7 h3h2 e7d8 b6b7
+expect verdict mistake
+expect arrows g6g3 threat, g3e3 alternative, h6g6 refutation 1, c1g5 reply 2, f7g8 refutation 3, c3e4 reply 4, f6g5 refutation 5
+expect lost c1
+expect summary Mistake (−0.4 → −2.8). Black wins a bishop: 13…Rg6 14.Bg5 Kg8 15.Ne4 fxg5 16.hxg5 Qxb2. Better was 13.Qe3.
+end

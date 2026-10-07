@@ -312,7 +312,7 @@ before-eval depth 30 cp 40 pv g1e2
 after r3kb1r/p3n1pp/1qb2p2/4p3/8/2NP2Q1/PPP2PPP/R1B1K1NR b KQkq - 0 10
 tick depth 34 cp -115 pv e7f5 g3h3 f8c5 h3f5 c6g2 c1d2 e8g8 c3a4 b6c6 g1e2 g2h1 a4c5 c6c5 e2c3 f8f7 e1c1 h1c6 d1e1 a8d8 d2e3 c5d6 e1g1 c6d7 f5e4 d8c8 a2a3 f6f5 e4b4 d6b4 a3b4
 expect verdict inaccuracy
-expect arrows f5g3 threat, g1e2 alternative, e7f5 refutation 1, g3h3 reply 2, h3f5 reply 3, c6g2 refutation 4, g2h1 refutation 5
+expect arrows f5g3 threat, g1e2 alternative, e7f5 refutation 1, g3h3 reply 2, f8c5 refutation 3, h3f5 reply 4, c6g2 refutation 5, g2h1 refutation 6
 expect lost g2, h1
 expect summary Inaccuracy (+0.4 → −1.2). Black wins a rook and a pawn for a bishop: 10…Nf5 11.Qh3 Bc5 12.Qxf5 Bxg2 13.Bd2 O-O 14.Na4 Qc6 15.Ne2 Bxh1 16.Nxc5 Qxc5. Better was 10.Nge2.
 end

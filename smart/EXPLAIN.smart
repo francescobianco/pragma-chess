@@ -455,9 +455,12 @@ FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
                     drawOnly = drawOnly + [k]
                 NEXT
             END IF
+            ' Every move from what set it going to the capture, both sides':
+            ' a gap would read as one side moving twice (11.Qh3, 12.Qxf5
+            ' without 11...Bc5 between them).
             keep = []
-            FOR i = 0 TO LEN(driven) - 1
-                IF NOT CONTAINS(drawOnly, driven[i]) THEN keep = keep + [driven[i]]
+            FOR k = driven[0] TO capture - 1
+                IF NOT CONTAINS(drawOnly, k) THEN keep = keep + [k]
             NEXT
             drawOnly = keep + drawOnly
             NOTE "  and the guard of " + SquareName(TOSQ(moves[capture])) + " taken away: plies " + STR(driven[0] + 1) + "-" + STR(capture)

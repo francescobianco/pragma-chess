@@ -1,8 +1,18 @@
 #pragma once
 
+#include <QByteArray>
+#include <QHash>
 #include <QList>
 #include <QString>
 #include <QStringList>
+
+#include <optional>
+
+/// A player's plan in a game: conditional moves, the move to play (UCI) in
+/// the position each line leads to (LobbyGame::lineKey: the UCI moves from
+/// the start). A player may only answer for themselves: a plan never holds
+/// the opponent's moves, only the lines they might choose.
+using LobbyPlan = QHash<QString, QString>;
 
 /// A game of a tournament room: its players and the moves played so far.
 struct LobbyGame {
@@ -17,6 +27,18 @@ struct LobbyGame {
     /// Whose move it is, while the game goes on.
     QString toMove() const { return moves.size() % 2 == 0 ? white : black; }
     bool involves(const QString &player) const { return white == player || black == player; }
+    QString opponentOf(const QString &player) const { return white == player ? black : white; }
+
+    /// The plans the players sent, by player.
+    QHash<QString, LobbyPlan> plans;
+
+    /// The key of the position `moves` lead to, in a plan.
+    static QString lineKey(const QStringList &moves) { return moves.join(QLatin1Char(' ')); }
+    /// `player` plays `uci`, when it is their move; false otherwise.
+    bool play(const QString &player, const QString &uci);
+    /// Plays the answers the players prepared, from where the game stands,
+    /// until the one to move has none ready. Returns how many were played.
+    int advance();
     /// The game waits for `player`'s move.
     bool waitsFor(const QString &player) const { return !isOver() && toMove() == player; }
 };
@@ -80,6 +102,8 @@ public:
     Lobby();
 
     const QList<LobbyRoom> &rooms() const { return m_rooms; }
+    /// Room `index`, to play in it.
+    LobbyRoom &room(int index) { return m_rooms[index]; }
     void addRoom(const LobbyRoom &room);
     /// The indexes of the rooms with a free seat.
     QList<int> joinableRooms() const;
@@ -88,6 +112,12 @@ public:
     /// same until taken or no longer needed.
     const QList<quint32> &offeredRooms() const { return m_offered; }
     int newRooms() const { return int(m_offered.size()); }
+    /// The whole lobby as JSON, and back: until the network comes, the
+    /// client keeps it between runs. fromJson gives nothing for text it
+    /// cannot read.
+    QByteArray toJson() const;
+    static std::optional<Lobby> fromJson(const QByteArray &json);
+
     /// Sits `player` in room `index`; a negative index, -1 - k, opens
     /// offered room k for them. Returns the room's index, or -1 when they
     /// could not sit.

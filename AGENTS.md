@@ -683,6 +683,17 @@ painted as a menu item, since QMenu draws an item in one font).
   `GameListModel::columnKey`): right-click a column title to Hide it or Show
   a hidden one. The order and widths of the columns stay in the session.
 
+## Drawers
+
+Edit ▸ Drawers… (Italian "Appunti", `dialogs/DrawersDialog`, modal) edits
+the user's drawers: each a name and its content (moves, a variation, a
+position, a note), `app/Drawers` (pure, unit-tested), kept under `drawers`
+in `.pragma-chess.conf` beside `PersonalSettings` — each writer keeps the
+other's keys — so they are synced with the personal settings. Names are
+required and unique whatever the case (`Drawers::problem`): drawers will be
+called by name. Putting things in and taking them out quickly comes next.
+`POST /api/drawers` answers with the dialog's picture.
+
 ## Set Up Position
 
 Game ▸ Set Up Position… (`dialogs/PositionSetupDialog`, the board is
@@ -1346,7 +1357,36 @@ phrase translated with its article ("La fortezza di %1"), so the seed
 travels and each client names the room in its own language; a new room
 draws a seed whose name is not in use. The lists are append only — a seed
 must keep its name. The rooms are `Lobby::sample()` (two with free seats,
-two full); Play only says it is not ready. The tables use
+two full). Play emits `LobbyDialog::playRequested`: `MainWindow::playLobbyGame`
+leaves an online game first, asks about an unsaved board game
+(`mayReplaceBoardGame`, as New Training), turns training off, turns the
+board to the user's side, `startGame`s it at its end (the room is the
+event) and hides the lobby, in Lobby Mode (Engine ▸ Lobby Mode,
+`m_lobbyModeAction`; nothing is turned off: correspondence play allows
+engines). The lobby is the main window's (`MainWindow::lobby()`), linked to
+the board by `m_lobbyGame` (room, game, side, the board game's uid
+`lobby:<seed>:<index>`: another game on the board leaves the mode). A
+`LobbyGame` holds each player's plan (`LobbyPlan`: line key → move) and
+`advance()` plays prepared answers until the one to move has none.
+`LobbyPlans::prepared` reads the user's plan off the board's tree after the
+game's moves: the user's moves are answers, the opponent's (line and
+variations) the cases; a second answer to a position is left out. The
+Engine panel's Send Move / Send Plan (at the bottom of the panel, over the
+opening and the book: two large buttons of one fixed width with their
+icons, `pragma-send-move` a paper plane and `pragma-send-plan` a small
+decision tree, then the text; `EnginePanel::setLobby`,
+`MainWindow::sendLobby`) play into the lobby game, then the board shows its
+moves (`showLobbyGameOnBoard`, the last one sliding in). For the preview an
+opponent with no answer ready replies 2.5 s later from the book, the
+engine's line or any legal move (`simulateLobbyOpponent`). In Lobby Mode a
+move off the line becomes a variation without asking.
+`POST /api/lobby/send {"plan": bool}` sends. A client closed in Lobby Mode
+opens in it: the project keeps `lobby: room, game, mode`
+(`restoreLobbyLink`, only when the board holds that game's uid; the board's
+game, plan variations and ply are the project's as always), and the lobby
+itself is kept per computer until the network comes (`Lobby::toJson`,
+QSettings `lobby/state`, `saveLobby` after each change and with the
+session). The tables use
 `PaddedHeaderView::install`, as the games list does. The list
 shows the user's rooms first (full or not), then the joinable ones, the
 full ones, then the new rooms; a room shows its standings (`LobbyRoom::standings`: points, then wins, then name; level players share a place; then the free seats), its games and the selected game's

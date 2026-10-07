@@ -9,6 +9,7 @@
 #include "app/WorkspaceLayout.h"
 #include "app/PlayerRole.h"
 #include "app/TrainingTutor.h"
+#include "app/lobby/Lobby.h"
 #include "dialogs/NewGameChoiceDialog.h"
 #include "dialogs/NewTrainingDialog.h"
 #include "widgets/BoardWidget.h"
@@ -430,6 +431,33 @@ private:
     /// Help ▸ Pragma Chess Guide (F1).
     void showGuide();
     void showLobby();
+    /// The lobby's Play: game `game` of room `room` on the board, after
+    /// asking about a game on the board that is not saved, seen from the
+    /// user's side, in Lobby Mode.
+    void playLobbyGame(int room, int game);
+    /// The lobby, made with its example rooms the first time it is needed.
+    Lobby &lobby();
+    /// The name the user sits with in the lobby.
+    QString lobbyName() const;
+    /// Lobby Mode's sends: the move after where the game stands, or the
+    /// whole plan prepared on the board (`plan`).
+    void sendLobby(bool plan);
+    /// The lobby game as it stands now on the board; the moves from ply
+    /// `from` on are new, and the last one slides in.
+    void showLobbyGameOnBoard(int from);
+    /// For the preview: an opponent with no answer ready plays a book move
+    /// a moment later, so the game goes on.
+    void simulateLobbyOpponent(int room, int game);
+    /// What the Engine panel says in Lobby Mode, and which sends it allows.
+    void updateLobbyPanel();
+    /// Keeps the lobby between runs (QSettings `lobby/state`) until the network comes.
+    void saveLobby();
+    /// A project's lobby game, when the board holds it: Lobby Mode as it was.
+    void restoreLobbyLink(const Project &project);
+    /// The board left the lobby game: Lobby Mode goes off.
+    void leaveLobbyGame();
+    /// Edit ▸ Drawers…, kept in the file of the personal settings.
+    void manageDrawers();
 
     // Session persistence: the current project state (saved or not) and the
     // window geometry are stored per user (QSettings) shortly after they change
@@ -627,11 +655,27 @@ private:
     QAction *m_startEngineAction;
     QAction *m_analysisAction;   // Engine ▸ Analysis: the same switch, one name, a check mark.
     QAction *m_onlineModeAction; // Engine ▸ Online Play Mode: checked while playing online.
+    QAction *m_lobbyModeAction; // Engine ▸ Lobby Mode: a lobby game on the board, the sends in the Engine panel.
     QAction *m_aboutAction;
     QAction *m_guideAction;
     HelpDialog *m_guideDialog = nullptr;
     /// Game ▸ Enter the Lobby…: one window, kept with its rooms while the application runs.
     LobbyDialog *m_lobbyDialog = nullptr;
+    /// The lobby of Game ▸ Enter the Lobby… (Lobby::sample until the network comes).
+    Lobby m_lobby;
+    bool m_lobbyMade = false;
+    /// The lobby game on the board: its room and index, the user's side and the board game's uid.
+    struct LobbyLink {
+        int room = -1;
+        int game = -1;
+        Side side = Side::White;
+        QString uid;
+    };
+    std::optional<LobbyLink> m_lobbyGame;
+    /// The board is being set to the lobby game: not the user leaving it.
+    bool m_settingLobbyGame = false;
+    /// What the Engine panel says in Lobby Mode (also for the development API).
+    QString m_lobbyStatus;
 
     QTimer *m_saveTimer = nullptr;
     bool m_restoringSession = false;

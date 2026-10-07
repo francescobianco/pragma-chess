@@ -36,6 +36,8 @@ enum class Shape {
     Book,
     Engine,
     Eye,
+    SendMove,
+    SendPlan,
 };
 
 /// The square New Game and New Training share: a board, and a face as large.
@@ -188,6 +190,40 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
             painter->drawPath(head);
             painter->restore();
         }
+        break;
+    }
+    case Shape::SendMove: {
+        // Send Move: a paper plane, flying up and right, with the fold of its wing.
+        QPainterPath plane;
+        plane.moveTo(1.75, 7.25);
+        plane.lineTo(14.25, 1.75);
+        plane.lineTo(9.75, 14.25);
+        plane.lineTo(7.25, 8.75);
+        plane.closeSubpath();
+        painter->drawPath(plane);
+        painter->drawLine(QPointF(7.25, 8.75), QPointF(14.25, 1.75));
+        break;
+    }
+    case Shape::SendPlan: {
+        // Send Plan: a small decision tree — the move on the left, and the
+        // two answers prepared for the opponent's replies, square nodes
+        // joined at right angles, like a chart of the plan.
+        const QRectF move(1.75, 6, 4, 4);
+        const QRectF upper(10.25, 1.75, 4, 4);
+        const QRectF lower(10.25, 10.25, 4, 4);
+        painter->setBrush(color);
+        painter->drawRoundedRect(move, 0.75, 0.75);
+        painter->setBrush(Qt::NoBrush);
+        painter->drawRoundedRect(upper, 0.75, 0.75);
+        painter->drawRoundedRect(lower, 0.75, 0.75);
+        QPainterPath links;
+        links.moveTo(move.right(), 8);
+        links.lineTo(8, 8);
+        links.moveTo(upper.left(), upper.center().y());
+        links.lineTo(8, upper.center().y());
+        links.lineTo(8, lower.center().y());
+        links.lineTo(lower.left(), lower.center().y());
+        painter->drawPath(links);
         break;
     }
     case Shape::Play: {
@@ -409,6 +445,8 @@ QIcon icon(const QString &name)
         {QStringLiteral("pragma-book"), Shape::Book},
         {QStringLiteral("pragma-engine"), Shape::Engine},
         {QStringLiteral("pragma-eye"), Shape::Eye},
+        {QStringLiteral("pragma-send-move"), Shape::SendMove},
+        {QStringLiteral("pragma-send-plan"), Shape::SendPlan},
     };
     const auto it = shapes.constFind(name);
     if (it == shapes.cend())

@@ -252,6 +252,13 @@ QString Project::toYaml(const QDir &baseDir) const
     }
     if (explain)
         out << YAML::Key << "explain" << YAML::Value << true;
+    if (lobbyRoom >= 0 && lobbyGame >= 0) {
+        out << YAML::Key << "lobby" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "room" << YAML::Value << lobbyRoom;
+        out << YAML::Key << "game" << YAML::Value << lobbyGame;
+        out << YAML::Key << "mode" << YAML::Value << lobbyMode;
+        out << YAML::EndMap;
+    }
 
     // The panels: which are shown, and the shares of the usable area, in per cent.
     out << YAML::Key << "workspace" << YAML::Value << YAML::BeginMap;
@@ -350,6 +357,11 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
             env.tutorHold = hold;
     }
     env.explain = valueOf<bool>(root["explain"], false);
+    if (const YAML::Node lobby = root["lobby"]; lobby && lobby.IsMap()) {
+        env.lobbyRoom = valueOf<int>(lobby["room"], -1);
+        env.lobbyGame = valueOf<int>(lobby["game"], -1);
+        env.lobbyMode = valueOf<bool>(lobby["mode"], false);
+    }
 
     // Looked up through non-const nodes, as the rest of the file does: a
     // const lookup of a missing key gives a node that throws when read.

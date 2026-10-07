@@ -17,7 +17,9 @@
 #include "dialogs/ConnectSourceWizard.h"
 #include "dialogs/GameInfoDialog.h"
 #include "dialogs/HelpDialog.h"
+#include "dialogs/DrawersDialog.h"
 #include "dialogs/LobbyDialog.h"
+#include "app/lobby/LobbyPlans.h"
 #include "dialogs/ManageChaptersDialog.h"
 #include "dialogs/ManageEnginesDialog.h"
 #include "dialogs/ManageSourcesDialog.h"
@@ -216,6 +218,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     // The chapter keeps the game on the board as it changes.
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::syncChapterGame);
+    // Another game on the board leaves Lobby Mode; moves played on it are a plan in the making.
+    connect(m_session, &GameSession::gameChanged, this, [this] {
+        if (m_lobbyGame && !m_settingLobbyGame && m_session->game().uid != m_lobbyGame->uid)
+            leaveLobbyGame();
+        updateLobbyPanel();
+    });
+    connect(m_session, &GameSession::plyChanged, this, &MainWindow::updateLobbyPanel);
     connect(m_session, &GameSession::headerChanged, this, &MainWindow::syncChapterGame);
     connect(m_session, &GameSession::annotationsChanged, this, &MainWindow::syncChapterGame);
     connect(m_session, &GameSession::commentsChanged, this, &MainWindow::syncChapterGame);
@@ -856,6 +865,15 @@ void MainWindow::createActions()
             playOnline(true);
     });
 
+    // Checked while a lobby game is on the board: the Engine panel sends its moves.
+    // Nothing is turned off: correspondence play welcomes engines and preparation.
+    m_lobbyModeAction = new QAction(tr("&Lobby Mode"), this);
+    m_lobbyModeAction->setCheckable(true);
+    m_lobbyModeAction->setEnabled(false);
+    m_lobbyModeAction->setToolTip(tr("A game of the lobby on the board: send your move, or the plan you prepared, "
+                                     "from the Engine panel"));
+    connect(m_lobbyModeAction, &QAction::toggled, this, &MainWindow::updateLobbyPanel);
+
     m_aboutAction = new QAction(themeIcon("help-about", QStyle::SP_MessageBoxInformation),
                                 tr("&About Pragma Chess"), this);
     m_aboutAction->setMenuRole(QAction::AboutRole);
@@ -939,6 +957,9 @@ void MainWindow::createMenus()
     pasteHere->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_V)); // As Copy ▸ Moves up to Current Position.
     // Online the moves are the platform's: none are played from the clipboard.
     connect(paste, &QMenu::aboutToShow, this, [this, pasteHere] { pasteHere->setEnabled(!m_onlinePlay); });
+    edit->addSeparator();
+    QAction *drawers = edit->addAction(tr("&Drawers…"), this, &MainWindow::manageDrawers);
+    drawers->setToolTip(tr("Named drawers for moves, variations, positions and notes, the same on every synced computer"));
 
     m_viewMenu = menuBar()->addMenu(tr("&View"));
     m_viewMenu->addAction(m_flipBoardAction);
@@ -980,6 +1001,7 @@ void MainWindow::createMenus()
     engine->addAction(m_explainAction);
     engine->addAction(m_trainingModeAction);
     engine->addAction(m_onlineModeAction);
+    engine->addAction(m_lobbyModeAction);
     engine->addSeparator();
     m_engineChoiceMenu = engine->addMenu(tr("S&witch Engine"));
     connect(m_engineChoiceMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildEngineChoiceMenu);
@@ -1238,6 +1260,8 @@ void MainWindow::createDocks()
     connect(m_enginePanel, &EnginePanel::takeBackRequested, this, &MainWindow::takeBackTutorMove);
     connect(m_enginePanel, &EnginePanel::explainRequested, this, [this] { m_explainAction->setChecked(true); });
     connect(m_enginePanel, &EnginePanel::ignoreRequested, this, &MainWindow::ignoreTutorAlert);
+    connect(m_enginePanel, &EnginePanel::sendMoveRequested, this, [this] { sendLobby(false); });
+    connect(m_enginePanel, &EnginePanel::sendPlanRequested, this, [this] { sendLobby(true); });
     connect(m_enginePanel, &EnginePanel::peekHeld, this, &MainWindow::peekAtEngineLine);
     m_engineDock = addDock(m_sidebar, QStringLiteral("engineDock"), tr("Engine"), m_enginePanel, Qt::RightDockWidgetArea);
 
@@ -4296,7 +4320,8 @@ void MainWindow::playUserMove(const ChessMove &move)
     // A move other than the one the game goes on with, in the middle of a
     // line: the user says whether it is a variation or replaces the rest.
     // Not while playing (training, online): the game goes on as it is.
-    if (m_onlinePlay || m_trainingModeAction->isChecked() || !m_session->wouldBranch(move)) {
+    // Nor in Lobby Mode: another move of the opponent's is another case of the plan.
+    if (m_onlinePlay || m_trainingModeAction->isChecked() || m_lobbyGame || !m_session->wouldBranch(move)) {
         playMove(move);
         return;
     }
@@ -4524,11 +4549,276 @@ void MainWindow::showGuide()
     m_guideDialog->activateWindow();
 }
 
+void MainWindow::manageDrawers()
+{
+    // Read each time: a sync may have brought another computer's drawers.
+    const QString path = PersonalSettings::path();
+    DrawersDialog dialog(Drawers::read(path), this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+    QString error;
+    if (!Drawers::write(path, dialog.drawers(), &error))
+        QMessageBox::warning(this, tr("Drawers"), tr("The drawers could not be saved: %1").arg(error));
+}
+
+Lobby &MainWindow::lobby()
+{
+    if (!m_lobbyMade) {
+        // As it was left, moves sent and plans included; the examples the first time.
+        const std::optional<Lobby> kept = Lobby::fromJson(QSettings().value(QStringLiteral("lobby/state")).toByteArray());
+        m_lobby = kept.value_or(Lobby::sample(lobbyName()));
+        m_lobbyMade = true;
+    }
+    return m_lobby;
+}
+
+void MainWindow::saveLobby()
+{
+    if (m_lobbyMade)
+        QSettings().setValue(QStringLiteral("lobby/state"), m_lobby.toJson());
+}
+
+void MainWindow::restoreLobbyLink(const Project &project)
+{
+    if (project.lobbyRoom < 0 || project.lobbyRoom >= lobby().rooms().size())
+        return;
+    const LobbyRoom &room = lobby().rooms().at(project.lobbyRoom);
+    if (project.lobbyGame < 0 || project.lobbyGame >= room.games.size())
+        return;
+    // Only if the board holds that game: the project may have moved on.
+    const QString uid = LobbyPlans::record(room, project.lobbyGame).uid;
+    if (m_session->game().uid != uid)
+        return;
+    const LobbyGame &game = room.games.at(project.lobbyGame);
+    m_lobbyGame = LobbyLink{project.lobbyRoom, project.lobbyGame,
+                            game.white == lobbyName() ? Side::White : Side::Black, uid};
+    m_lobbyModeAction->setEnabled(true);
+    m_lobbyModeAction->setChecked(project.lobbyMode);
+    updateLobbyPanel();
+    // An opponent who was about to answer when the client closed answers now.
+    if (!game.isOver() && game.waitsFor(game.opponentOf(lobbyName())))
+        simulateLobbyOpponent(project.lobbyRoom, project.lobbyGame);
+}
+
+QString MainWindow::lobbyName() const
+{
+    const QString me = myName();
+    return me.isEmpty() ? tr("Me") : me;
+}
+
+void MainWindow::playLobbyGame(int room, int game)
+{
+    // An online game in progress is kept or resigned first, as for any new game.
+    if (m_onlinePlay) {
+        leaveOnlineThen([this, room, game] { playLobbyGame(room, game); });
+        return;
+    }
+    // A game not saved anywhere: saved, let go, or the lobby game is not brought.
+    if (!mayReplaceBoardGame())
+        return;
+    const LobbyRoom &entry = lobby().rooms().at(room);
+    const Side side = entry.games.at(game).white == lobbyName() ? Side::White : Side::Black;
+    const GameRecord record = LobbyPlans::record(entry, game);
+    m_trainingModeAction->setChecked(false); // A person is on the other side, not the engine.
+    m_flipBoardAction->setChecked(side == Side::Black); // Played from the bottom.
+    m_settingLobbyGame = true;
+    startGame(record);
+    m_session->goToEnd(); // Where the game stands: the move to play.
+    m_settingLobbyGame = false;
+    m_lobbyGame = LobbyLink{room, game, side, record.uid};
+    m_lobbyModeAction->setEnabled(true);
+    m_lobbyModeAction->setChecked(true);
+    updateLobbyPanel();
+    m_engineDock->show();
+    if (m_lobbyDialog)
+        m_lobbyDialog->hide(); // The board is where the move is played; the lobby opens again as it was.
+    const QString opponent = side == Side::White ? record.black : record.white;
+    statusBar()->showMessage(tr("%1: your game against %2").arg(record.event, opponent), 8000);
+}
+
+void MainWindow::leaveLobbyGame()
+{
+    m_lobbyGame.reset();
+    m_lobbyModeAction->setChecked(false);
+    m_lobbyModeAction->setEnabled(false);
+    updateLobbyPanel();
+}
+
+void MainWindow::updateLobbyPanel()
+{
+    if (!m_lobbyGame || !m_lobbyModeAction->isChecked()) {
+        m_lobbyStatus.clear();
+        m_enginePanel->setLobby(false);
+        return;
+    }
+    const LobbyGame &game = lobby().rooms().at(m_lobbyGame->room).games.at(m_lobbyGame->game);
+    const QString me = lobbyName();
+    const QString opponent = game.opponentOf(me);
+    const int official = int(game.moves.size());
+
+    // The line on the board must go through the game's moves.
+    bool follows = m_session->plyCount() >= official;
+    for (int ply = 1; follows && ply <= official; ++ply)
+        follows = m_session->moveAt(ply).uci == game.moves.at(ply - 1);
+    const LobbyPlans::Prepared prepared = LobbyPlans::prepared(m_session->game(), official, m_lobbyGame->side);
+    const bool myTurn = game.waitsFor(me);
+    const bool moveReady = follows && myTurn && m_session->plyCount() > official;
+
+    QString status;
+    if (game.isOver()) {
+        status = tr("The game is over: %1.").arg(game.result);
+    } else if (!follows && m_session->plyCount() >= official) {
+        status = tr("The line on the board leaves the game's moves: go back to it to send a move.");
+    } else if (myTurn) {
+        status = moveReady
+            ? tr("Your move: %1 is ready to send.")
+                  .arg(m_session->positionAt(official).lineText({m_session->moveAt(official + 1).uci}, 1,
+                                                                 SanStyle::Figurines))
+            : tr("Your move: play it on the board. You can move %1's pieces too, to prepare your answers.")
+                  .arg(opponent);
+    } else {
+        status = tr("Waiting for %1's move. You can prepare your answers on the board, moving their pieces too.")
+                     .arg(opponent);
+    }
+    if (!game.isOver() && !prepared.plan.isEmpty()) {
+        status += QLatin1Char(' ') + tr("Your plan: %n answer(s) prepared.", nullptr, int(prepared.plan.size()));
+        if (prepared.ignored > 0)
+            status += QLatin1Char(' ')
+                + tr("%n other move(s) of yours left out: a plan has one answer for each position, the line's.",
+                     nullptr, prepared.ignored);
+    }
+    m_lobbyStatus = status;
+    m_enginePanel->setLobby(true, status, !game.isOver() && moveReady, !game.isOver() && !prepared.plan.isEmpty());
+}
+
+void MainWindow::sendLobby(bool plan)
+{
+    if (!m_lobbyGame)
+        return;
+    const int room = m_lobbyGame->room;
+    const int index = m_lobbyGame->game;
+    LobbyGame &game = lobby().room(room).games[index];
+    const QString me = lobbyName();
+    const int from = int(game.moves.size());
+    // As the panel offers them: only in Lobby Mode, and a send with nothing to send does nothing.
+    if (!m_lobbyModeAction->isChecked() || game.isOver())
+        return;
+    if (plan) {
+        // The plan replaces the one sent before: it is played as far as it answers.
+        const LobbyPlan prepared = LobbyPlans::prepared(m_session->game(), from, m_lobbyGame->side).plan;
+        if (prepared.isEmpty())
+            return;
+        game.plans[me] = prepared;
+    } else {
+        bool follows = m_session->plyCount() > from;
+        for (int ply = 1; follows && ply <= from; ++ply)
+            follows = m_session->moveAt(ply).uci == game.moves.at(ply - 1);
+        if (!follows || !game.play(me, m_session->moveAt(from + 1).uci))
+            return;
+    }
+    game.advance(); // The answers both prepared, as far as they go.
+    saveLobby();
+
+    const QStringList played = game.moves.mid(from);
+    ChessPosition position = ChessPosition::startingPosition();
+    for (int ply = 0; ply < from; ++ply) {
+        if (const std::optional<ChessMove> move = position.moveFromUci(game.moves.at(ply)))
+            position.play(*move);
+    }
+    const QString line = position.lineText(played, -1, SanStyle::Letters);
+    if (plan && played.isEmpty())
+        statusBar()->showMessage(tr("Plan sent: it answers as soon as %1 moves.").arg(game.opponentOf(me)), 8000);
+    else if (plan)
+        statusBar()->showMessage(tr("Plan sent. Played: %1").arg(line), 10000);
+    else
+        statusBar()->showMessage(tr("Move sent. Played: %1").arg(line), 10000);
+    if (!played.isEmpty())
+        showLobbyGameOnBoard(from);
+    updateLobbyPanel();
+    if (m_lobbyDialog && m_lobbyDialog->isVisible())
+        m_lobbyDialog->refresh(); // Shows the room as it is now.
+    if (!game.isOver() && game.waitsFor(game.opponentOf(me)))
+        simulateLobbyOpponent(room, index);
+}
+
+void MainWindow::showLobbyGameOnBoard(int from)
+{
+    if (!m_lobbyGame)
+        return;
+    const GameRecord record = LobbyPlans::record(lobby().rooms().at(m_lobbyGame->room), m_lobbyGame->game);
+    // The game's moves are the truth: the board shows them, the last one sliding in.
+    GameRecord before = record;
+    std::optional<MoveRecord> last;
+    if (before.moves.size() > from)
+        last = before.moves.takeLast();
+    m_settingLobbyGame = true;
+    m_session->setGame(before);
+    m_session->goToEnd();
+    if (last) {
+        if (const std::optional<ChessMove> move = m_session->position().moveFromUci(last->uci)) {
+            m_animateNextBoard = true;
+            m_session->playMove(*move);
+        }
+    }
+    m_settingLobbyGame = false;
+    updateLobbyPanel();
+}
+
+void MainWindow::simulateLobbyOpponent(int room, int index)
+{
+    // For the preview only: no network yet, so the opponent answers here, a
+    // moment later, with a move of the book in use — or not at all.
+    QTimer::singleShot(2500, this, [this, room, index] {
+        LobbyGame &game = lobby().room(room).games[index];
+        const QString opponent = game.opponentOf(lobbyName());
+        if (game.isOver() || !game.waitsFor(opponent))
+            return;
+        ChessPosition position = ChessPosition::startingPosition();
+        for (const QString &uci : std::as_const(game.moves)) {
+            if (const std::optional<ChessMove> move = position.moveFromUci(uci))
+                position.play(*move);
+        }
+        // The book in use, else the engine's line when it is analysing that
+        // very position, else any legal move: a stand-in, not an opponent.
+        QString reply;
+        const QList<PolyglotBook::Move> moves = m_book ? m_book->moves(position) : QList<PolyglotBook::Move>();
+        if (const quint32 total = PolyglotBook::totalWeight(moves); total > 0) {
+            const int pick = PolyglotBook::pick(moves, QRandomGenerator::global()->bounded(total));
+            if (pick >= 0)
+                reply = moves.at(pick).move.uci();
+        }
+        if (reply.isEmpty() && m_startEngineAction->isChecked() && !m_lastEvaluation.pv.isEmpty()
+            && m_session->position().fen() == position.fen())
+            reply = m_lastEvaluation.pv.constFirst();
+        const QList<ChessMove> legal = position.legalMoves();
+        if (reply.isEmpty() && !legal.isEmpty())
+            reply = legal.at(QRandomGenerator::global()->bounded(int(legal.size()))).uci();
+        const bool onBoard = m_lobbyGame && m_lobbyGame->room == room && m_lobbyGame->game == index;
+        if (reply.isEmpty())
+            return; // Checkmate or stalemate: nothing to answer.
+        const int from = int(game.moves.size());
+        game.play(opponent, reply);
+        game.advance(); // The user's plan may answer at once.
+        saveLobby();
+        if (onBoard) {
+            statusBar()->showMessage(tr("%1 answered: %2").arg(opponent, position.lineText(game.moves.mid(from), -1,
+                                                                                           SanStyle::Letters)),
+                                     10000);
+            showLobbyGameOnBoard(from);
+        }
+        if (m_lobbyDialog && m_lobbyDialog->isVisible())
+            m_lobbyDialog->refresh();
+    });
+}
+
 void MainWindow::showLobby()
 {
     // Not modal: the lobby stays open beside the board.
-    if (!m_lobbyDialog)
-        m_lobbyDialog = new LobbyDialog(myName(), this);
+    if (!m_lobbyDialog) {
+        m_lobbyDialog = new LobbyDialog(&lobby(), lobbyName(), this);
+        connect(m_lobbyDialog, &LobbyDialog::playRequested, this, &MainWindow::playLobbyGame);
+        connect(m_lobbyDialog, &LobbyDialog::lobbyChanged, this, &MainWindow::saveLobby);
+    }
     m_lobbyDialog->show();
     m_lobbyDialog->raise();
     m_lobbyDialog->activateWindow();
@@ -4596,6 +4886,7 @@ void MainWindow::saveSession()
     if (m_restoringSession)
         return;
     m_saveTimer->stop();
+    saveLobby();
 
     QSettings settings;
     // Once closed, the window manager may have dropped the maximized state:
@@ -4650,6 +4941,11 @@ Project MainWindow::captureProject()
         project.tutorHold = hold;
     }
     project.explain = m_explainAction->isChecked();
+    if (m_lobbyGame) {
+        project.lobbyRoom = m_lobbyGame->room;
+        project.lobbyGame = m_lobbyGame->game;
+        project.lobbyMode = m_lobbyModeAction->isChecked();
+    }
     project.workspace = captureLayout();
     return project;
 }
@@ -4660,6 +4956,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
     m_restoringSession = true;
     // Off while the game changes, or the engine would answer in the one being opened.
     m_trainingModeAction->setChecked(false);
+    leaveLobbyGame(); // The project says whether a lobby game is on the board.
 
     if (!project.legacyLayout.isEmpty()) {
         restoreLegacyLayout(project.legacyLayout); // Written before the shares: honoured once, saved as shares.
@@ -4702,6 +4999,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         }
         // Explain comes back on for the move it was explaining (moving to it turned it off).
         m_explainAction->setChecked(project.explain);
+        restoreLobbyLink(project);
         m_restoringSession = wasRestoring;
         return;
     }
@@ -4770,6 +5068,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         m_trainingModeAction->setChecked(true);
     }
     m_explainAction->setChecked(project.explain);
+    restoreLobbyLink(project);
 
     m_restoringSession = wasRestoring;
 }
@@ -4795,6 +5094,7 @@ void MainWindow::newProject()
     project.boardFlipped = false;
     project.training = false;
     project.explain = false;
+    project.lobbyRoom = project.lobbyGame = -1;
     applyProject(project, false);
 
     m_projectPath.clear();

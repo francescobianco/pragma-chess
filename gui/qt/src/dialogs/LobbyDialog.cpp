@@ -62,12 +62,12 @@ QLabel *noteLabel(const QString &text, QWidget *parent)
 
 } // namespace
 
-LobbyDialog::LobbyDialog(const QString &me, QWidget *parent)
+LobbyDialog::LobbyDialog(Lobby *lobby, const QString &me, QWidget *parent)
     : QDialog(parent)
-    , m_me(me.isEmpty() ? tr("Me") : me)
+    , m_lobby(lobby)
+    , m_me(me)
     , m_pages(new QStackedWidget(this))
 {
-    m_lobby = Lobby::sample(m_me);
     setWindowTitle(tr("Lobby"));
     resize(900, 560);
 
@@ -200,7 +200,7 @@ void LobbyDialog::fillLobby()
 {
     m_notice->clear();
     m_rooms->clear();
-    const QList<LobbyRoom> &rooms = m_lobby.rooms();
+    const QList<LobbyRoom> &rooms = m_lobby->rooms();
     // The user's rooms first, full or not — those with games waiting for
     // their move before the others: the lobby is also the way back to them.
     QList<int> shown;
@@ -211,7 +211,7 @@ void LobbyDialog::fillLobby()
     std::stable_sort(shown.begin(), shown.end(), [&](int a, int b) {
         return rooms.at(a).gamesWaitingFor(m_me).size() > rooms.at(b).gamesWaitingFor(m_me).size();
     });
-    for (int index : m_lobby.joinableRooms()) {
+    for (int index : m_lobby->joinableRooms()) {
         if (!shown.contains(index))
             shown << index;
     }
@@ -256,8 +256,8 @@ void LobbyDialog::fillLobby()
     }
     // The lobby keeps rooms open to newcomers: a new one exists once someone
     // sits in it, but it has its name already.
-    for (int i = 0; i < m_lobby.newRooms(); ++i) {
-        auto *item = new QTreeWidgetItem(m_rooms, {RoomName::text(m_lobby.offeredRooms().at(i)),
+    for (int i = 0; i < m_lobby->newRooms(); ++i) {
+        auto *item = new QTreeWidgetItem(m_rooms, {RoomName::text(m_lobby->offeredRooms().at(i)),
                                                    tr("0 / %1").arg(LobbyRoom::kSeats),
                                                    QString::number(LobbyRoom::kSeats), tr("New")});
         item->setData(0, kRoomRole, -1 - i);
@@ -279,7 +279,7 @@ void LobbyDialog::playNow(int row)
     const int index = item ? item->data(0, kRoomRole).toInt() : -1;
     if (index < 0)
         return;
-    const LobbyRoom &room = m_lobby.rooms().at(index);
+    const LobbyRoom &room = m_lobby->rooms().at(index);
     const QList<int> waiting = room.gamesWaitingFor(m_me);
     if (waiting.size() == 1) {
         playGame(index, waiting.constFirst());
@@ -316,11 +316,25 @@ void LobbyDialog::playGame(int room, int game)
 LobbyRoom LobbyDialog::shownRoom() const
 {
     if (m_room >= 0)
-        return m_lobby.rooms().at(m_room);
+        return m_lobby->rooms().at(m_room);
     LobbyRoom room;
-    if (-1 - m_room < m_lobby.newRooms())
-        room.seed = m_lobby.offeredRooms().at(-1 - m_room);
+    if (-1 - m_room < m_lobby->newRooms())
+        room.seed = m_lobby->offeredRooms().at(-1 - m_room);
     return room;
+}
+
+void LobbyDialog::showEvent(QShowEvent *event)
+{
+    QDialog::showEvent(event);
+    refresh();
+}
+
+void LobbyDialog::refresh()
+{
+    if (m_pages->currentIndex() == 0)
+        fillLobby();
+    else
+        showRoom();
 }
 
 void LobbyDialog::showLobbyPage()
@@ -446,7 +460,7 @@ void LobbyDialog::showSelectedGame()
         m_playButton->setText(tr("&Play"));
         return;
     }
-    const LobbyGame &game = m_lobby.rooms().at(m_room).games.at(item->data(0, kGameRole).toInt());
+    const LobbyGame &game = m_lobby->rooms().at(m_room).games.at(item->data(0, kGameRole).toInt());
     int from = -1;
     int to = -1;
     const ChessPosition position = positionAfter(game.moves, &from, &to);
@@ -463,13 +477,14 @@ void LobbyDialog::showSelectedGame()
 
 void LobbyDialog::join()
 {
-    const int index = m_lobby.join(m_room, m_me);
+    const int index = m_lobby->join(m_room, m_me);
     if (index < 0)
         return;
     m_room = index;
+    Q_EMIT lobbyChanged();
     showRoom();
     m_notice->setText(tr("You sat in %1. Your games are in bold: the ones where you have White start with your move.")
-                          .arg(m_lobby.rooms().at(m_room).name()));
+                          .arg(m_lobby->rooms().at(m_room).name()));
 }
 
 void LobbyDialog::play()
@@ -477,10 +492,8 @@ void LobbyDialog::play()
     const QTreeWidgetItem *item = m_games->currentItem();
     if (!item || m_room < 0)
         return;
-    const LobbyGame &game = m_lobby.rooms().at(m_room).games.at(item->data(0, kGameRole).toInt());
+    const LobbyGame &game = m_lobby->rooms().at(m_room).games.at(item->data(0, kGameRole).toInt());
     if (!game.involves(m_me) || game.isOver())
         return;
-    // The user experience only, for now: the game is not played anywhere yet.
-    m_notice->setText(tr("Here the game will open on the board, to play your move whenever you like. "
-                         "Playing in the lobby is not ready yet."));
+    Q_EMIT playRequested(m_room, item->data(0, kGameRole).toInt());
 }

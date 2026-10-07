@@ -9,6 +9,7 @@
 
 class QAction;
 class QLabel;
+class QPushButton;
 class QToolButton;
 
 /// Contents of the Engine dock: engine name, score, depth and best line, and
@@ -30,6 +31,10 @@ public:
     /// and offers to take it back, to have it explained or to go on. Empty
     /// hides it.
     void setTutorAlert(const QString &message);
+    /// Lobby Mode: what the lobby game waits for, and its two sends — the
+    /// one move after where the game stands, or the whole plan prepared on
+    /// the board. Hidden when not `shown`.
+    void setLobby(bool shown, const QString &status = QString(), bool canSendMove = false, bool canSendPlan = false);
     /// Summary of the "Explain" command; empty hides it.
     void setExplanation(const QString &text);
     /// The opening the game is in and the chosen opening book; empty values show a dash.
@@ -45,6 +50,9 @@ Q_SIGNALS:
     void takeBackRequested();
     void explainRequested();
     void ignoreRequested();
+    /// The sends of Lobby Mode.
+    void sendMoveRequested();
+    void sendPlanRequested();
     /// The eye is held down (true) or let go (false): the board shows the
     /// end of the best line meanwhile, and follows it as the engine changes it.
     void peekHeld(bool held);
@@ -55,6 +63,10 @@ protected:
 private:
     QWidget *m_tutor;
     QLabel *m_tutorMessage;
+    QWidget *m_lobby;
+    QLabel *m_lobbyStatus;
+    QPushButton *m_sendMove;
+    QPushButton *m_sendPlan;
     QLabel *m_name;
     QLabel *m_score;
     QLabel *m_depth;

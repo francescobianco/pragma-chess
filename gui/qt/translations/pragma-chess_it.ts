@@ -646,6 +646,60 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>Drawers</name>
+    <message>
+        <source>Every drawer needs a name.</source>
+        <translation>Ogni cassetto ha bisogno di un nome.</translation>
+    </message>
+    <message>
+        <source>Two drawers are called &quot;%1&quot;: each needs a name of its own.</source>
+        <translation>Due cassetti si chiamano «%1»: ognuno ha bisogno di un nome suo.</translation>
+    </message>
+</context>
+<context>
+    <name>DrawersDialog</name>
+    <message>
+        <source>Drawers</source>
+        <translation>Appunti</translation>
+    </message>
+    <message>
+        <source>Each drawer keeps something under a name — moves, a variation, a position, a note — to take it out again when you need it. The drawers are yours: they go with you to every synced computer.</source>
+        <translation>Ogni cassetto degli appunti tiene qualcosa sotto un nome — mosse, una variante, una posizione, una nota — per tirarlo fuori quando ti serve. Gli appunti sono tuoi: vengono con te su ogni computer sincronizzato.</translation>
+    </message>
+    <message>
+        <source>&amp;New Drawer</source>
+        <translation>&amp;Nuovo cassetto</translation>
+    </message>
+    <message>
+        <source>&amp;Delete</source>
+        <translation>&amp;Elimina</translation>
+    </message>
+    <message>
+        <source>The name you will call it by</source>
+        <translation>Il nome con cui lo richiamerai</translation>
+    </message>
+    <message>
+        <source>&amp;Name:</source>
+        <translation>&amp;Nome:</translation>
+    </message>
+    <message>
+        <source>Moves, a variation, a FEN position, a note…</source>
+        <translation>Mosse, una variante, una posizione FEN, una nota…</translation>
+    </message>
+    <message>
+        <source>&amp;Content:</source>
+        <translation>&amp;Contenuto:</translation>
+    </message>
+    <message>
+        <source>(no name)</source>
+        <translation>(senza nome)</translation>
+    </message>
+    <message>
+        <source>No drawers yet: New Drawer makes the first.</source>
+        <translation>Ancora nessun cassetto: Nuovo cassetto crea il primo.</translation>
+    </message>
+</context>
+<context>
     <name>EnginePanel</name>
     <message>
         <source>Explanation</source>
@@ -698,6 +752,26 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>Hold: where the line ends</source>
         <translation>Tieni premuto: dove finisce la linea</translation>
+    </message>
+    <message>
+        <source>Send Move</source>
+        <translation>Invia mossa</translation>
+    </message>
+    <message>
+        <source>Send Plan</source>
+        <translation>Invia piano</translation>
+    </message>
+    <message>
+        <source>Lobby</source>
+        <translation>Lobby</translation>
+    </message>
+    <message>
+        <source>Send your next move, the one after where the game stands</source>
+        <translation>Invia la tua prossima mossa, quella dopo il punto in cui è arrivata la partita</translation>
+    </message>
+    <message>
+        <source>Send your move and the answers you prepared on the board to your opponent&apos;s replies: they are played at once when your opponent plays one of them</source>
+        <translation>Invia la tua mossa e le risposte che hai preparato sulla scacchiera alle mosse del tuo avversario: vengono giocate subito quando l&apos;avversario ne gioca una</translation>
     </message>
 </context>
 <context>
@@ -1279,10 +1353,6 @@ Il Nero ha catturato: %2</translation>
 <context>
     <name>LobbyDialog</name>
     <message>
-        <source>Me</source>
-        <translation>Io</translation>
-    </message>
-    <message>
         <source>Lobby</source>
         <translation>Lobby</translation>
     </message>
@@ -1409,10 +1479,6 @@ Il Nero ha catturato: %2</translation>
         <translation>&amp;Gioca la tua mossa</translation>
     </message>
     <message>
-        <source>Here the game will open on the board, to play your move whenever you like. Playing in the lobby is not ready yet.</source>
-        <translation>Qui la partita si aprirà sulla scacchiera, per giocare la tua mossa quando vuoi. Il gioco nella lobby non è ancora pronto.</translation>
-    </message>
-    <message>
         <source>Each room is a tournament of four players: everyone plays everyone twice, once with White and once with Black. It starts as soon as two sit down, and there is no clock. Yours come first, in bold, then the rooms with a free seat, then the full ones, whose games you can follow. Enter a room to see its games.</source>
         <translation>Ogni stanza è un torneo di quattro giocatori: tutti giocano contro tutti due volte, una col Bianco e una col Nero. Comincia appena due si siedono, e non c&apos;è orologio. Le tue vengono prima, in grassetto, poi le stanze con un posto libero, poi quelle piene, di cui puoi seguire le partite. Entra in una stanza per vederne le partite.</translation>
     </message>
@@ -1521,6 +1587,13 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>%1 — a new room</source>
         <translation>%1 — stanza nuova</translation>
+    </message>
+</context>
+<context>
+    <name>LobbyPlans</name>
+    <message>
+        <source>Pragma Chess Lobby</source>
+        <translation>Lobby di Pragma Chess</translation>
     </message>
 </context>
 <context>
@@ -3071,6 +3144,84 @@ non è su questo computer.</translation>
     <message>
         <source>Tournaments of four players without a clock: sit at a table with a free seat</source>
         <translation>Tornei di quattro giocatori senza orologio: siediti a un tavolo con un posto libero</translation>
+    </message>
+    <message>
+        <source>&amp;Drawers…</source>
+        <translation>&amp;Appunti…</translation>
+    </message>
+    <message>
+        <source>Named drawers for moves, variations, positions and notes, the same on every synced computer</source>
+        <translation>Cassetti con un nome per mosse, varianti, posizioni e note, gli stessi su ogni computer sincronizzato</translation>
+    </message>
+    <message>
+        <source>Drawers</source>
+        <translation>Appunti</translation>
+    </message>
+    <message>
+        <source>The drawers could not be saved: %1</source>
+        <translation>Non è stato possibile salvare gli appunti: %1</translation>
+    </message>
+    <message>
+        <source>&amp;Lobby Mode</source>
+        <translation>Modalità &amp;lobby</translation>
+    </message>
+    <message>
+        <source>A game of the lobby on the board: send your move, or the plan you prepared, from the Engine panel</source>
+        <translation>Una partita della lobby sulla scacchiera: invia la tua mossa, o il piano che hai preparato, dal pannello Motore</translation>
+    </message>
+    <message>
+        <source>%1: your game against %2</source>
+        <translation>%1: la tua partita contro %2</translation>
+    </message>
+    <message>
+        <source>The game is over: %1.</source>
+        <translation>La partita è finita: %1.</translation>
+    </message>
+    <message>
+        <source>The line on the board leaves the game&apos;s moves: go back to it to send a move.</source>
+        <translation>La linea sulla scacchiera esce dalle mosse della partita: tornaci per inviare una mossa.</translation>
+    </message>
+    <message>
+        <source>Your move: %1 is ready to send.</source>
+        <translation>Tocca a te: %1 è pronta da inviare.</translation>
+    </message>
+    <message>
+        <source>Your move: play it on the board. You can move %1&apos;s pieces too, to prepare your answers.</source>
+        <translation>Tocca a te: gioca la mossa sulla scacchiera. Puoi muovere anche i pezzi di %1, per preparare le tue risposte.</translation>
+    </message>
+    <message>
+        <source>Waiting for %1&apos;s move. You can prepare your answers on the board, moving their pieces too.</source>
+        <translation>In attesa della mossa di %1. Puoi preparare le tue risposte sulla scacchiera, muovendo anche i suoi pezzi.</translation>
+    </message>
+    <message numerus="yes">
+        <source>Your plan: %n answer(s) prepared.</source>
+        <translation>
+            <numerusform>Il tuo piano: %n risposta preparata.</numerusform>
+            <numerusform>Il tuo piano: %n risposte preparate.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n other move(s) of yours left out: a plan has one answer for each position, the line&apos;s.</source>
+        <translation>
+            <numerusform>%n altra tua mossa lasciata fuori: un piano ha una risposta per ogni posizione, quella della linea.</numerusform>
+            <numerusform>%n altre tue mosse lasciate fuori: un piano ha una risposta per ogni posizione, quella della linea.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Plan sent: it answers as soon as %1 moves.</source>
+        <translation>Piano inviato: risponde appena %1 muove.</translation>
+    </message>
+    <message>
+        <source>Plan sent. Played: %1</source>
+        <translation>Piano inviato. Giocate: %1</translation>
+    </message>
+    <message>
+        <source>Move sent. Played: %1</source>
+        <translation>Mossa inviata. Giocate: %1</translation>
+    </message>
+    <message>
+        <source>%1 answered: %2</source>
+        <translation>%1 ha risposto: %2</translation>
     </message>
 </context>
 <context>

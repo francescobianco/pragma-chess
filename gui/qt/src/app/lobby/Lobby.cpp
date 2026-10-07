@@ -1,6 +1,10 @@
 #include "Lobby.h"
 #include "RoomName.h"
 
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+
 #include <algorithm>
 
 QString LobbyRoom::name() const
@@ -11,6 +15,28 @@ QString LobbyRoom::name() const
 int LobbyRoom::players() const
 {
     return int(std::count_if(seats.cbegin(), seats.cend(), [](const QString &seat) { return !seat.isEmpty(); }));
+}
+
+bool LobbyGame::play(const QString &player, const QString &uci)
+{
+    if (isOver() || toMove() != player || uci.isEmpty())
+        return false;
+    moves << uci;
+    return true;
+}
+
+int LobbyGame::advance()
+{
+    int played = 0;
+    // A plan answers each position once, so a cascade ends; the bound only guards a broken plan.
+    while (!isOver() && played < 1000) {
+        const QString move = plans.value(toMove()).value(lineKey(moves));
+        if (move.isEmpty())
+            break;
+        moves << move;
+        ++played;
+    }
+    return played;
 }
 
 QList<int> LobbyRoom::gamesWaitingFor(const QString &player) const
@@ -71,8 +97,12 @@ bool LobbyRoom::seat(const QString &player)
     for (const QString &other : std::as_const(seats)) {
         if (other.isEmpty())
             continue;
-        games << LobbyGame{player, other, {}, QStringLiteral("*")};
-        games << LobbyGame{other, player, {}, QStringLiteral("*")};
+        LobbyGame game;
+        game.white = player;
+        game.black = other;
+        games << game;
+        std::swap(game.white, game.black);
+        games << game;
     }
     seats[free] = player;
     return true;
@@ -146,6 +176,11 @@ Lobby Lobby::sample(const QString &me)
     d.games[10].moves = moves("g1f3 d7d5 g2g3 g8f6 f1g2 e7e6 e1g1 f8e7");
     d.games[6].moves = moves("c2c4 e7e5 b1c3");
     d.games[8].moves = moves("e2e4 c7c5 g1f3");
+    // Nadia prepared her answers to the user's next move: whichever of these
+    // they play, she castles at once.
+    const QString afterBe7 = QStringLiteral("g1f3 d7d5 g2g3 g8f6 f1g2 e7e6 e1g1 f8e7 ");
+    for (const char *move : {"d2d3", "c2c4", "d2d4", "b2b3"})
+        d.games[10].plans[QStringLiteral("Nadia")].insert(afterBe7 + QLatin1String(move), QStringLiteral("e8g8"));
     d.games[4].result = QStringLiteral("1/2-1/2");
     d.games[7].result = QStringLiteral("1-0");
     lobby.m_rooms << d;
@@ -208,4 +243,74 @@ int Lobby::join(int index, const QString &player)
         return -1;
     offer();
     return index;
+}
+
+QByteArray Lobby::toJson() const
+{
+    QJsonArray rooms;
+    for (const LobbyRoom &room : m_rooms) {
+        QJsonArray games;
+        for (const LobbyGame &game : room.games) {
+            QJsonObject plans;
+            for (auto plan = game.plans.cbegin(); plan != game.plans.cend(); ++plan) {
+                QJsonObject answers;
+                for (auto answer = plan->cbegin(); answer != plan->cend(); ++answer)
+                    answers.insert(answer.key(), answer.value());
+                plans.insert(plan.key(), answers);
+            }
+            games.append(QJsonObject{{QStringLiteral("white"), game.white},
+                                     {QStringLiteral("black"), game.black},
+                                     {QStringLiteral("moves"), LobbyGame::lineKey(game.moves)},
+                                     {QStringLiteral("result"), game.result},
+                                     {QStringLiteral("plans"), plans}});
+        }
+        rooms.append(QJsonObject{{QStringLiteral("seed"), double(room.seed)},
+                                 {QStringLiteral("seats"), QJsonArray::fromStringList(room.seats)},
+                                 {QStringLiteral("games"), games}});
+    }
+    QJsonArray offered;
+    for (quint32 seed : m_offered)
+        offered.append(double(seed));
+    return QJsonDocument(QJsonObject{{QStringLiteral("rooms"), rooms}, {QStringLiteral("offered"), offered}})
+        .toJson(QJsonDocument::Compact);
+}
+
+std::optional<Lobby> Lobby::fromJson(const QByteArray &json)
+{
+    const QJsonDocument document = QJsonDocument::fromJson(json);
+    if (!document.isObject() || !document.object().value(QStringLiteral("rooms")).isArray())
+        return std::nullopt;
+    Lobby lobby;
+    lobby.m_offered.clear();
+    for (const QJsonValue &value : document.object().value(QStringLiteral("rooms")).toArray()) {
+        const QJsonObject object = value.toObject();
+        LobbyRoom room;
+        room.seed = quint32(object.value(QStringLiteral("seed")).toDouble());
+        QStringList seats;
+        for (const QJsonValue &seat : object.value(QStringLiteral("seats")).toArray())
+            seats << seat.toString();
+        if (seats.size() != LobbyRoom::kSeats)
+            return std::nullopt;
+        room.seats = seats;
+        for (const QJsonValue &entry : object.value(QStringLiteral("games")).toArray()) {
+            const QJsonObject gameObject = entry.toObject();
+            LobbyGame game;
+            game.white = gameObject.value(QStringLiteral("white")).toString();
+            game.black = gameObject.value(QStringLiteral("black")).toString();
+            game.moves = gameObject.value(QStringLiteral("moves")).toString().split(QLatin1Char(' '), Qt::SkipEmptyParts);
+            game.result = gameObject.value(QStringLiteral("result")).toString(QStringLiteral("*"));
+            const QJsonObject plans = gameObject.value(QStringLiteral("plans")).toObject();
+            for (auto plan = plans.constBegin(); plan != plans.constEnd(); ++plan) {
+                const QJsonObject answers = plan.value().toObject();
+                for (auto answer = answers.constBegin(); answer != answers.constEnd(); ++answer)
+                    game.plans[plan.key()].insert(answer.key(), answer.value().toString());
+            }
+            room.games << game;
+        }
+        lobby.m_rooms << room;
+    }
+    for (const QJsonValue &seed : document.object().value(QStringLiteral("offered")).toArray())
+        lobby.m_offered << quint32(seed.toDouble());
+    lobby.offer(); // As many offers as the rooms now need.
+    return lobby;
 }

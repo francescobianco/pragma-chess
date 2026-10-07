@@ -212,6 +212,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/online/OnlineAccount.h
     src/app/lobby/Lobby.cpp
     src/app/lobby/Lobby.h
+    src/app/lobby/LobbyPlans.cpp
+    src/app/lobby/LobbyPlans.h
     src/app/lobby/RoomName.cpp
     src/app/lobby/RoomName.h
     src/app/online/OnlineGame.cpp
@@ -363,6 +365,8 @@ qt_add_executable(pragma-chess
     src/dialogs/NewTrainingDialog.h
     src/dialogs/PersonalSettingsDialog.cpp
     src/dialogs/PersonalSettingsDialog.h
+    src/dialogs/DrawersDialog.cpp
+    src/dialogs/DrawersDialog.h
     src/dialogs/LobbyDialog.cpp
     src/dialogs/LobbyDialog.h
     src/dialogs/PlayOnlineDialog.cpp
@@ -381,6 +385,8 @@ qt_add_executable(pragma-chess
     src/app/ClassicGames.h
     src/app/GameDatabase.h
     src/app/GameRecord.h
+    src/app/Drawers.cpp
+    src/app/Drawers.h
     src/app/PersonalSettings.cpp
     src/app/PersonalSettings.h
     src/app/Project.cpp
@@ -592,6 +598,7 @@ if(TARGET Qt6::Test)
         src/app/SqliteGameDatabase.h
         src/app/UserFolders.cpp
         src/app/UserFolders.h
+        src/app/Drawers.cpp
         src/app/PersonalSettings.cpp
         src/app/PersonalSettings.h
         src/app/Project.cpp

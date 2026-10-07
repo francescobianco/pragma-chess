@@ -7,7 +7,10 @@
 #include "app/EnginePower.h"
 #include "app/GameDatabase.h"
 #include "app/UciEngine.h"
+#include "dialogs/DrawersDialog.h"
 #include "dialogs/LobbyDialog.h"
+#include "app/Drawers.h"
+#include "app/PersonalSettings.h"
 #include "widgets/BoardWidget.h"
 
 #include <QAction>
@@ -315,6 +318,23 @@ void DesktopApi::addRoutes()
         buffer.open(QIODevice::WriteOnly);
         lobby->grab().save(&buffer, "PNG");
         return Response{200, "image/png", png};
+    });
+    // Edit ▸ Drawers… as it would open, drawn without being shown (it is modal): its picture.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/drawers"), [w](const Request &) {
+        DrawersDialog dialog(Drawers::read(PersonalSettings::path()), w);
+        dialog.adjustSize();
+        dialog.resize(720, 460);
+        QByteArray png;
+        QBuffer buffer(&png);
+        buffer.open(QIODevice::WriteOnly);
+        dialog.grab().save(&buffer, "PNG");
+        return Response{200, "image/png", png};
+    });
+    // Lobby Mode's sends: {"plan": true} the plan prepared on the board, else the move.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/lobby/send"), [w](const Request &request) {
+        const QJsonObject body = bodyOf(request).value_or(QJsonObject());
+        w->sendLobby(body.value(QStringLiteral("plan")).toBool());
+        return json(QJsonObject{{QStringLiteral("status"), w->m_lobbyStatus}});
     });
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/flip"), toggle(w->m_flipBoardAction, QStringLiteral("the board")));
     // The engines of this computer and their Computing Power, and what the

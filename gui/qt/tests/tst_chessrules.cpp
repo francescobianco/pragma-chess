@@ -1,6 +1,7 @@
 #include "app/AdvantageProbe.h"
 #include "app/BookWeights.h"
 #include "app/lobby/Lobby.h"
+#include "app/lobby/LobbyPlans.h"
 #include "app/lobby/RoomName.h"
 #include "app/online/OnlineGame.h"
 #include "app/ChessPosition.h"
@@ -54,6 +55,7 @@
 #include "app/sync/SyncManifest.h"
 #include "app/Chapters.h"
 #include "app/PersonalSettings.h"
+#include "app/Drawers.h"
 #include "app/Project.h"
 #include "app/PositionSetup.h"
 #include "app/UserFolders.h"
@@ -883,6 +885,93 @@ QString writeChessBaseFixture(const QString &dir)
         }
         qInfo("compared %d games with their .cbh twin; %d variations read", compared, variations);
         QVERIFY(compared > 0);
+    }
+
+    void playsLobbyPlans()
+    {
+        // On the board after 1.e4 e5 (the game's moves), White prepared:
+        // 2.Nf3, and if 2...Nc6 3.Bb5, if 2...d6 3.d4 (a variation of
+        // Black's move), and as a variation of their own 3.Bb5, 3.Bc4.
+        const auto record = [](const char *uci) { return MoveRecord{QString(), QString::fromLatin1(uci)}; };
+        GameRecord board;
+        board.moves = {record("e2e4"), record("e7e5"), record("g1f3"), record("b8c6"), record("f1b5")};
+        Variation philidor;
+        philidor.atPly = 4;
+        philidor.moves = {record("d7d6"), record("d2d4")};
+        Variation italian;
+        italian.atPly = 5;
+        italian.moves = {record("f1c4")};
+        board.variations = {philidor, italian};
+
+        const LobbyPlans::Prepared prepared = LobbyPlans::prepared(board, 2, Side::White);
+        QCOMPARE(prepared.plan.size(), 3);
+        QCOMPARE(prepared.plan.value(QStringLiteral("e2e4 e7e5")), QStringLiteral("g1f3"));
+        QCOMPARE(prepared.plan.value(QStringLiteral("e2e4 e7e5 g1f3 b8c6")), QStringLiteral("f1b5")); // The line's.
+        QCOMPARE(prepared.plan.value(QStringLiteral("e2e4 e7e5 g1f3 d7d6")), QStringLiteral("d2d4"));
+        QCOMPARE(prepared.ignored, 1); // 3.Bc4, a second answer to the same position.
+        // From Black's side the same board is Black's answers, White's moves the cases.
+        const LobbyPlans::Prepared black = LobbyPlans::prepared(board, 2, Side::Black);
+        QCOMPARE(black.plan.size(), 1);
+        QCOMPARE(black.plan.value(QStringLiteral("e2e4 e7e5 g1f3")), QStringLiteral("b8c6"));
+        QCOMPARE(black.ignored, 1); // 2...d6.
+
+        // The game plays what each prepared, until one has no answer ready.
+        LobbyGame game;
+        game.white = QStringLiteral("W");
+        game.black = QStringLiteral("B");
+        game.moves = {QStringLiteral("e2e4"), QStringLiteral("e7e5")};
+        game.plans[QStringLiteral("W")] = prepared.plan;
+        game.plans[QStringLiteral("B")].insert(QStringLiteral("e2e4 e7e5 g1f3"), QStringLiteral("d7d6"));
+        QCOMPARE(game.advance(), 3); // 2.Nf3 d6 3.d4
+        QCOMPARE(game.moves.last(), QStringLiteral("d2d4"));
+        QCOMPARE(game.toMove(), QStringLiteral("B"));
+        QVERIFY(!game.play(QStringLiteral("W"), QStringLiteral("a2a3"))); // Not White's move.
+        QVERIFY(game.play(QStringLiteral("B"), QStringLiteral("e5d4")));
+        QCOMPARE(game.advance(), 0); // Nothing prepared for that.
+
+        // The example lobby: Nadia answers the user's fifth move at once.
+        Lobby lobby = Lobby::sample(QStringLiteral("Me"));
+        LobbyGame &nadia = lobby.room(3).games[10];
+        QVERIFY(nadia.play(QStringLiteral("Me"), QStringLiteral("d2d3")));
+        QCOMPARE(nadia.advance(), 1);
+        QCOMPARE(nadia.moves.last(), QStringLiteral("e8g8"));
+        const GameRecord shown = LobbyPlans::record(lobby.rooms().at(3), 10);
+        QCOMPARE(shown.moves.size(), nadia.moves.size());
+        QCOMPARE(shown.white, QStringLiteral("Me"));
+        QVERIFY(shown.uid.startsWith(QStringLiteral("lobby:")));
+
+        // Kept between runs: moves, results, plans, seats, seeds and offers.
+        lobby.room(3).games[10].plans[QStringLiteral("Me")].insert(QStringLiteral("a b"), QStringLiteral("c"));
+        const std::optional<Lobby> kept = Lobby::fromJson(lobby.toJson());
+        QVERIFY(kept);
+        QCOMPARE(kept->rooms().size(), lobby.rooms().size());
+        for (int i = 0; i < lobby.rooms().size(); ++i) {
+            QCOMPARE(kept->rooms().at(i).seed, lobby.rooms().at(i).seed);
+            QCOMPARE(kept->rooms().at(i).seats, lobby.rooms().at(i).seats);
+            QCOMPARE(kept->rooms().at(i).games.size(), lobby.rooms().at(i).games.size());
+            for (int g = 0; g < lobby.rooms().at(i).games.size(); ++g) {
+                const LobbyGame &a = kept->rooms().at(i).games.at(g);
+                const LobbyGame &b = lobby.rooms().at(i).games.at(g);
+                QCOMPARE(a.moves, b.moves);
+                QCOMPARE(a.result, b.result);
+                QCOMPARE(a.plans, b.plans);
+            }
+        }
+        QCOMPARE(kept->offeredRooms(), lobby.offeredRooms());
+        QVERIFY(!Lobby::fromJson("not json"));
+
+        // The project keeps which lobby game is on the board.
+        Project project;
+        QVERIFY(!project.toYaml().contains(QStringLiteral("lobby")));
+        project.lobbyRoom = 3;
+        project.lobbyGame = 10;
+        project.lobbyMode = true;
+        QString error;
+        const std::optional<Project> read = Project::fromYaml(project.toYaml(), QDir(), &error);
+        QVERIFY2(read, qPrintable(error));
+        QCOMPARE(read->lobbyRoom, 3);
+        QCOMPARE(read->lobbyGame, 10);
+        QVERIFY(read->lobbyMode);
     }
 
     void seatsPlayersInLobbyRooms()
@@ -2320,6 +2409,34 @@ END FUNCTION
         QCOMPARE(read(laptop.folder + QLatin1Char('/') + conf), QByteArray("name: Anna D\n"));
         QCOMPARE(read(desktop.folder + QLatin1Char('/') + conf), QByteArray("name: Anna D\n"));
         QCOMPARE(QDir(desktop.folder).entryList(QDir::Files | QDir::Hidden).filter(QStringLiteral("conflict")).size(), 0);
+    }
+
+    void keepsDrawersBesideThePersonalSettings()
+    {
+        Drawers drawers;
+        drawers.list << Drawer{QStringLiteral("Najdorf"), QStringLiteral("1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6")};
+        drawers.list << Drawer{QStringLiteral("Lucena"), QStringLiteral("1K6/1P1k4/8/8/8/8/r7/2R5 w - - 0 1")};
+        drawers.list << Drawer{QStringLiteral("Note"), QStringLiteral("Two lines:\n  the second indented\n")};
+        drawers.list << Drawer{QStringLiteral("Empty"), QString()};
+
+        // In the personal settings' file, each keeping the other's keys.
+        PersonalSettings personal;
+        personal.name = QStringLiteral("Francesco");
+        const QByteArray withDrawers = drawers.toYaml(personal.toYaml());
+        QCOMPARE(Drawers::fromYaml(withDrawers), drawers);
+        QCOMPARE(PersonalSettings::fromYaml(withDrawers), personal);
+        personal.fideId = QStringLiteral("123");
+        const QByteArray rewritten = personal.toYaml(withDrawers);
+        QCOMPARE(Drawers::fromYaml(rewritten), drawers);
+        QCOMPARE(PersonalSettings::fromYaml(rewritten), personal);
+        QVERIFY(Drawers().toYaml(rewritten).indexOf("drawers") < 0);
+        QCOMPARE(PersonalSettings::fromYaml(Drawers().toYaml(rewritten)), personal);
+
+        QVERIFY(drawers.problem().isEmpty());
+        drawers.list << Drawer{QStringLiteral(" najdorf "), QString()};
+        QVERIFY(!drawers.problem().isEmpty()); // The same name, whatever the case and spaces.
+        drawers.list.last().name = QStringLiteral("  ");
+        QVERIFY(!drawers.problem().isEmpty());
     }
 
     void keepsPersonalSettings()

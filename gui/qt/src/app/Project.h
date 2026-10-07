@@ -80,6 +80,12 @@ struct Project {
         EngineEvaluation after;
     };
     std::optional<TutorHold> tutorHold;
+    /// A game of the lobby on the board (Lobby Mode): its room and its
+    /// index in the room, -1 when there is none; `lobbyMode` whether the
+    /// mode was on. Written only with a lobby game.
+    int lobbyRoom = -1;
+    int lobbyGame = -1;
+    bool lobbyMode = false;
     /// Explain was on for the move on the board: it comes back on with the
     /// project. Written only when on.
     bool explain = false;

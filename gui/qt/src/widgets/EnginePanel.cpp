@@ -9,6 +9,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMouseEvent>
+#include <QPushButton>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -16,6 +17,10 @@ EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
     : QWidget(parent)
     , m_tutor(new QWidget)
     , m_tutorMessage(new QLabel)
+    , m_lobby(new QWidget)
+    , m_lobbyStatus(new QLabel)
+    , m_sendMove(new QPushButton(tr("Send Move")))
+    , m_sendPlan(new QPushButton(tr("Send Plan")))
     , m_name(new QLabel)
     , m_score(new QLabel)
     , m_depth(new QLabel)
@@ -87,6 +92,7 @@ EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
     m_tutor->hide();
     layout->addWidget(m_tutor);
 
+
     m_explanation->setWordWrap(true);
     m_explanation->setTextInteractionFlags(Qt::TextSelectableByMouse);
     m_explanation->setAccessibleName(tr("Explanation"));
@@ -99,6 +105,43 @@ EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
     m_line->setTextInteractionFlags(Qt::TextSelectableByMouse);
     m_line->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     layout->addWidget(m_line, 1);
+
+    // Lobby Mode, at the bottom of the panel over the opening and the book:
+    // the two sends, large, then what the game waits for.
+    auto *lobby = new QVBoxLayout(m_lobby);
+    lobby->setContentsMargins(0, 0, 0, 0);
+    auto *sends = new QHBoxLayout;
+    m_sendMove->setToolTip(tr("Send your next move, the one after where the game stands"));
+    m_sendPlan->setToolTip(tr("Send your move and the answers you prepared on the board to your opponent's replies: "
+                              "they are played at once when your opponent plays one of them"));
+    m_sendMove->setIcon(SymbolicIcons::icon(QStringLiteral("pragma-send-move")));
+    m_sendPlan->setIcon(SymbolicIcons::icon(QStringLiteral("pragma-send-plan")));
+    for (QPushButton *button : {m_sendMove, m_sendPlan}) {
+        const int side = button->fontMetrics().height() + 4;
+        button->setIconSize(QSize(side, side));
+        button->setMinimumHeight(2 * side + 4); // Room around icon and text: the panel's main action.
+        QFont font = button->font();
+        font.setBold(true);
+        button->setFont(font);
+        button->setFocusPolicy(Qt::NoFocus);
+        sends->addWidget(button);
+    }
+    // One width for both, the larger one's with room around: they do not fill the panel.
+    const int width = qMax(m_sendMove->sizeHint().width(), m_sendPlan->sizeHint().width()) + 2 * m_sendMove->fontMetrics().height();
+    for (QPushButton *button : {m_sendMove, m_sendPlan})
+        button->setFixedWidth(width);
+    sends->addStretch();
+    lobby->addLayout(sends);
+    m_lobbyStatus->setFont(FigurineFont::apply(m_lobbyStatus->font()));
+    m_lobbyStatus->setWordWrap(true);
+    // All its lines, however narrow the panel: a wrapped label is otherwise squeezed under the buttons.
+    m_lobbyStatus->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+    m_lobbyStatus->setAccessibleName(tr("Lobby"));
+    lobby->addWidget(m_lobbyStatus);
+    connect(m_sendMove, &QPushButton::clicked, this, &EnginePanel::sendMoveRequested);
+    connect(m_sendPlan, &QPushButton::clicked, this, &EnginePanel::sendPlanRequested);
+    m_lobby->hide();
+    layout->addWidget(m_lobby);
 
     // The opening and the book stay at the bottom while the line above changes length.
     auto *separator = new QFrame;
@@ -152,6 +195,14 @@ void EnginePanel::setTutorAlert(const QString &message)
 {
     m_tutorMessage->setText(message);
     m_tutor->setVisible(!message.isEmpty());
+}
+
+void EnginePanel::setLobby(bool shown, const QString &status, bool canSendMove, bool canSendPlan)
+{
+    m_lobbyStatus->setText(status);
+    m_sendMove->setEnabled(canSendMove);
+    m_sendPlan->setEnabled(canSendPlan);
+    m_lobby->setVisible(shown);
 }
 
 void EnginePanel::setExplanation(const QString &text)

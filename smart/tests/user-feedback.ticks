@@ -448,3 +448,19 @@ expect arrows c6g2 threat, f4h5 alternative, h4f3 refutation 1, g1g2 reply 2, f3
 expect lost c3, e6
 expect summary Blunder (−1.5 → −8.1). Black wins the queen and a knight: 22…Nf3+ 23.Kg2 Ng5+ 24.Qd5 Bxc3 25.Rh1 Rxd5. Better was 22.Nxh5.
 end
+
+# 19.Bh5?? in training (White), 19.e5! missed: only its dashed arrow was
+# drawn; "details on the plan that move implied". The plan is drawn now:
+# White's own moves up to the gain, numbered, only the piece won ringed.
+explain
+before r5k1/1b1n1rb1/1qpppnQB/1p6/1p1PP3/2N5/P1P1B1PP/3R1RK1 w - - 1 19
+played e2h5
+before-eval depth 30 cp -10 pv e4e5 d7e5 g6g5 f6e8 c3e4 f7f1 g1f1 b6d8 g5d8 a8d8 h6g7
+after r5k1/1b1n1rb1/1qpppnQB/1p5B/1p1PP3/2N5/P1P3PP/3R1RK1 b - - 2 19
+viewer white
+tick depth 32 cp -396 pv a8f8 c3e2 c6c5 g6g5 f6h5 g5h5 b7e4 f1f7 f8f7 e2g3 d7f6 h5g5 f6h7 g5g4 e4f5 g3f5 e6f5 g4g3 b6c6 d1e1 h7f8 h2h3 g8h7 h6g7 f7g7 g3h4 h7g8 e1e2
+expect verdict blunder
+expect arrows e4e5 alternative, g6g5 idea 1, c3e4 idea 2, g1f1 idea 3, g5d8 idea 4, h6g7 idea 5
+expect lost g7
+expect summary Blunder (−0.1 → −4.0). Missed: 19.e5 Nxe5 20.Qg5 Ne8 21.Ne4 Rxf1+ 22.Kxf1 Qd8 23.Qxd8 Rxd8 24.Bxg7 wins a bishop for a pawn.
+end

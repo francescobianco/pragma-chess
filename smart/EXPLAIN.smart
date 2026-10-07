@@ -253,6 +253,27 @@ FUNCTION FindRealization(line, firstPly, beneficiary, baseline, needed, swing)
     RETURN -1
 END FUNCTION
 
+' The moves of `side` in [1, last) of `line`, at most MAX_ARROWS: the plan
+' a missed move began.
+FUNCTION DrawPlan(line, last, side)
+    SHARED drawOnly, ringing, lostSquares
+    drawOnly = []
+    FOR k = 1 TO last - 1
+        IF SIDETOMOVE(line[1][k]) = side AND LEN(drawOnly) < MAX_ARROWS THEN drawOnly = drawOnly + [k]
+    NEXT
+    NOTE "  the plan: " + STR(LEN(drawOnly)) + " moves of the side that missed it"
+    ' Only what the plan wins is ringed, not what it exchanges on the way.
+    ringing = FALSE
+    AddArrows line, 1, last, side, "idea", 1, last
+    ringing = TRUE
+    final = line[0][last - 1]
+    square = TOSQ(final)
+    IF CAPTURED(line[1][last - 1], final) <> 0 AND PIECE(line[1][1], square) = CAPTURED(line[1][last - 1], final) THEN
+        lostSquares = lostSquares + [square]
+        LOST square
+    END IF
+END FUNCTION
+
 ' Arrows for moves [first, last) of `line`, or only for [focusFirst,
 ' focusLast) when focusFirst is not -1. Moves of `ideaSide` get `ideaKind`,
 ' the others are replies. Pieces taken by `ideaSide` in the drawn moves are
@@ -453,6 +474,16 @@ FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
     biggest = -2147483648
     FOR k = first TO last - 1
         jump = (MATERIAL(positions[k + 1]) - MATERIAL(positions[k])) * beneficiary
+        ' A capture taken back at once on the same square is an exchange:
+        ' what it wins is what is left after the recapture (23.Qxd8 Rxd8).
+        IF k + 1 < last AND jump > 0 THEN
+            IF TOSQ(moves[k + 1]) = TOSQ(moves[k]) AND CAPTURED(positions[k + 1], moves[k + 1]) <> 0 THEN jump = (MATERIAL(positions[k + 2]) - MATERIAL(positions[k])) * beneficiary
+        END IF
+        ' And taking back what was just taken wins only the balance of the
+        ' exchange (21...Rxf1+ 22.Kxf1).
+        IF k > first AND jump > 0 THEN
+            IF TOSQ(moves[k - 1]) = TOSQ(moves[k]) AND CAPTURED(positions[k - 1], moves[k - 1]) <> 0 THEN jump = (MATERIAL(positions[k + 1]) - MATERIAL(positions[k - 1])) * beneficiary
+        END IF
         IF jump >= biggest THEN biggest = jump : decisive = k
     NEXT
     focusFirst = decisive
@@ -1221,6 +1252,11 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
             IF ply >= 0 THEN
                 NOTE "branch: the move misses a win of material"
                 DrawBetter before, best[0][0], played
+                ' The plan the better move began: the mover's own moves of the
+                ' line up to the gain, numbered, the piece it wins ringed
+                ' (19.e5!, then 20.Qg5, 21.Ne4, … 24.Bxg7); the other side's
+                ' answers are in the text.
+                IF ply > 1 THEN DrawPlan best, ply, mover
                 SAY prefix + TEXT("Missed: %1 %2.", LINETEXT(before, PV(beforeEval), ply), MaterialPhrase(before, best[1][ply], mover))
                 RETURN
             END IF

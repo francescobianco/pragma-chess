@@ -498,3 +498,14 @@ the defender in check) and may have come during the line (22…Nf3+, traced
 back); a discovered check's line is drawn dashed from the piece uncovered
 to the king (`DiscoveredChecker`, the king found with SIDEAT: a king with no
 legal move cannot be found among the moves).
+
+### 19.Bh5??: the plan of the missed move (7 October)
+
+"It gives the missed move, but details on the plan it implied would be
+nice." The missed-win branch drew 19.e5 alone. `DrawPlan` now draws the
+mover's own moves of the better line up to the gain (at most MAX_ARROWS,
+numbered; the other side's answers stay in the text) and rings only the
+piece the plan wins (24.Bxg7), not what it exchanges on the way. And
+FocusWindow's decisive capture is now measured net of an exchange: a
+capture taken back at once, or a recapture, counts what the exchange
+leaves (23.Qxd8 Rxd8, 21…Rxf1+ 22.Kxf1 are no gain).

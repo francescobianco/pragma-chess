@@ -13,6 +13,13 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+namespace {
+
+/// Room around the text of the tutor's three choices.
+constexpr int kChoicePadding = 10;
+
+} // namespace
+
 EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidget *parent)
     : QWidget(parent)
     , m_tutor(new QWidget)
@@ -76,13 +83,15 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     m_tutorMessage->setAccessibleName(tr("Tutor"));
     tutor->addWidget(m_tutorMessage);
     auto *choices = new QHBoxLayout;
-    const auto addChoice = [this, choices](const QString &text, const QString &toolTip, void (EnginePanel::*chosen)()) {
+    QList<QToolButton *> buttons;
+    const auto addChoice = [this, choices, &buttons](const QString &text, const QString &toolTip, void (EnginePanel::*chosen)()) {
         auto *button = new QToolButton;
         button->setText(text);
         button->setToolTip(toolTip);
         button->setFocusPolicy(Qt::NoFocus);
         connect(button, &QToolButton::clicked, this, chosen);
         choices->addWidget(button);
+        buttons << button;
     };
     addChoice(tr("Take Back"), tr("Take the move back and play another one"), &EnginePanel::takeBackRequested);
     // Explain is the board's own Explain, not another one: the same action,
@@ -92,7 +101,14 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     explain->setToolButtonStyle(Qt::ToolButtonTextOnly);
     explain->setFocusPolicy(Qt::NoFocus);
     choices->addWidget(explain);
+    buttons << explain;
     addChoice(tr("Ignore"), tr("Keep the move: the engine answers"), &EnginePanel::ignoreRequested);
+    // One set of three: the same width, the widest text's, with room around it.
+    QSize choice;
+    for (QToolButton *button : std::as_const(buttons))
+        choice = choice.expandedTo(button->sizeHint());
+    for (QToolButton *button : std::as_const(buttons))
+        button->setFixedSize(choice.width() + 2 * kChoicePadding, choice.height() + kChoicePadding);
     choices->addStretch();
     tutor->addLayout(choices);
     m_tutor->hide();

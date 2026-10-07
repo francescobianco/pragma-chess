@@ -147,7 +147,7 @@ Finché la posizione è nel **libro di aperture**, il motore risponde con una mo
 
 Il **tutor** guarda le tue mosse. Quando una è un'**imprecisione**, un **errore**, un **errore grave** o un'**occasione mancata**, il motore non risponde; il bordo della scacchiera diventa rosso, il pannello Motore dice che cosa è successo e offre:
 
-- **Ritira la mossa**: torni alla posizione e provi un'altra mossa;
+- **Ritira**: torni alla posizione e provi un'altra mossa;
 - **Spiega**: lo stesso Spiega del pulsante sotto la scacchiera, che si accende e si spegne insieme a lui: mostra sulla scacchiera perché la mossa è un errore;
 - **Ignora**: tieni la mossa, e il motore risponde.
 

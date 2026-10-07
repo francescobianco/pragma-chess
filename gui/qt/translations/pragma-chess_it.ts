@@ -738,7 +738,7 @@ Il Nero ha catturato: %2</translation>
     </message>
     <message>
         <source>Take Back</source>
-        <translation>Ritira la mossa</translation>
+        <translation>Ritira</translation>
     </message>
     <message>
         <source>Take the move back and play another one</source>

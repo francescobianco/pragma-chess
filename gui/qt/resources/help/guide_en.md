@@ -148,7 +148,7 @@ As long as the position is in the **opening book**, the engine answers with a bo
 The **tutor** watches your moves. When one is an **inaccuracy**, a **mistake**, a **blunder** or a **missed chance**, the engine does not answer; the border of the board turns red, the Engine panel says what happened and offers:
 
 - **Take Back**: return to the position and try another move;
-- **Explain**: show on the board why it is an error;
+- **Explain**: the same Explain as the button under the board, turned on and off together with it: it shows on the board why the move is an error;
 - **Ignore**: keep the move, and the engine answers.
 
 You can go back in a training game and play a move again, even where the game goes on after it: a move you play on the board is your turn, so the engine answers and the tutor judges it (an answer other than the one already there starts a variation). Going through the moves with the arrows is only looking.

@@ -1274,7 +1274,7 @@ while the menu entry and its shortcut always ask. Everything lives in `MainWindo
   same names — or a Missed Chance (the user was better and no longer is,
   without being worse) holds the answer back (`holdEngineReply`) and the
   Engine panel offers Take Back (`goBack`, so the next try is judged too),
-  Explain (the board's Explain, on the move just played) and Ignore (the
+  Explain (the board's Explain action itself, `m_explainAction` given to `EnginePanel`: a toggle, on and off with the button under the board) and Ignore (the
   engine answers). An inaccuracy is already a jump of a pawn or more near
   equality (3.a4 in the King's Gambit, −0.5 → −2.1), which is why it does
   not pass. Navigating away drops the alert.

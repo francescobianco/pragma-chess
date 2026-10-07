@@ -745,14 +745,6 @@ Il Nero ha catturato: %2</translation>
         <translation>Ritira la mossa e giocane un’altra</translation>
     </message>
     <message>
-        <source>Explain</source>
-        <translation>Spiega</translation>
-    </message>
-    <message>
-        <source>Show on the board why the move is an error</source>
-        <translation>Mostra sulla scacchiera perché la mossa è un errore</translation>
-    </message>
-    <message>
         <source>Ignore</source>
         <translation>Ignora</translation>
     </message>

@@ -1264,14 +1264,13 @@ void MainWindow::createDocks()
     connect(m_moveView, &QWidget::customContextMenuRequested, this, &MainWindow::showMoveListMenu);
     m_movesDock = addDock(m_sidebar, QStringLiteral("movesDock"), tr("Moves"), m_moveView, Qt::RightDockWidgetArea);
 
-    m_enginePanel = new EnginePanel(m_startEngineAction);
+    m_enginePanel = new EnginePanel(m_startEngineAction, m_explainAction);
     {
         QSettings settings;
         m_engines = EngineCatalog::load(settings);
     }
     m_enginePanel->setEngineName(m_engines.resolve(m_engineId, m_engineName).name);
     connect(m_enginePanel, &EnginePanel::takeBackRequested, this, &MainWindow::takeBackTutorMove);
-    connect(m_enginePanel, &EnginePanel::explainRequested, this, [this] { m_explainAction->setChecked(true); });
     connect(m_enginePanel, &EnginePanel::ignoreRequested, this, &MainWindow::ignoreTutorAlert);
     connect(m_enginePanel, &EnginePanel::sendMoveRequested, this, [this] { sendLobby(false); });
     connect(m_enginePanel, &EnginePanel::sendPlanRequested, this, [this] { sendLobby(true); });

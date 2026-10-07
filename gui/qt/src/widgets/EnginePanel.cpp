@@ -13,7 +13,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
+EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidget *parent)
     : QWidget(parent)
     , m_tutor(new QWidget)
     , m_tutorMessage(new QLabel)
@@ -85,7 +85,13 @@ EnginePanel::EnginePanel(QAction *analysisAction, QWidget *parent)
         choices->addWidget(button);
     };
     addChoice(tr("Take Back"), tr("Take the move back and play another one"), &EnginePanel::takeBackRequested);
-    addChoice(tr("Explain"), tr("Show on the board why the move is an error"), &EnginePanel::explainRequested);
+    // Explain is the board's own Explain, not another one: the same action,
+    // on and off together with the button under the board.
+    auto *explain = new QToolButton;
+    explain->setDefaultAction(explainAction);
+    explain->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    explain->setFocusPolicy(Qt::NoFocus);
+    choices->addWidget(explain);
     addChoice(tr("Ignore"), tr("Keep the move: the engine answers"), &EnginePanel::ignoreRequested);
     choices->addStretch();
     tutor->addLayout(choices);

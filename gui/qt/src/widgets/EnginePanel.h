@@ -18,7 +18,8 @@ class EnginePanel : public QWidget {
     Q_OBJECT
 
 public:
-    EnginePanel(QAction *analysisAction, QWidget *parent = nullptr);
+    /// `explainAction` is the board's Explain, offered again by the tutor's alert.
+    EnginePanel(QAction *analysisAction, QAction *explainAction, QWidget *parent = nullptr);
 
     void setEngineName(const QString &name);
     void setStatus(const QString &status);
@@ -48,7 +49,6 @@ public:
 Q_SIGNALS:
     /// The choices of the tutor's alert.
     void takeBackRequested();
-    void explainRequested();
     void ignoreRequested();
     /// The sends of Lobby Mode.
     void sendMoveRequested();

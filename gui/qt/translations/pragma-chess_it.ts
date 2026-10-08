@@ -4072,6 +4072,14 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>%1 and clears %2 for %3</source>
         <translation>%1 e libera %2 per %3</translation>
     </message>
+    <message>
+        <source>%1 loses time: after %2, %3 goes back, %4.</source>
+        <translation>%1 perde tempo: dopo %2, %3 torna indietro, %4.</translation>
+    </message>
+    <message>
+        <source>%1 loses time: %2 goes back, %3.</source>
+        <translation>%1 perde tempo: %2 torna indietro, %3.</translation>
+    </message>
 </context>
 <context>
     <name>MoveTreeView</name>

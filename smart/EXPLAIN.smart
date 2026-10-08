@@ -95,6 +95,8 @@ ghostPlies = []
 ' How many plies of the line the threats said reach: the main line is shown
 ' at least that far, so the move of a double attack can be read in it.
 threatReach = 0
+' The ply of the line whose threat ReturnText said (it chased the piece back).
+returnChase = -1
 ringing = TRUE
 ' The plies to draw when not every move of the window is (a tactic traced
 ' back along the piece that takes, FocusWindow); [] for all. Reset by each
@@ -1071,7 +1073,7 @@ END FUNCTION
 ' it yet, so its threats do not start from a square nothing stands on.
 ' Empty when there is none.
 FUNCTION ThreatText(line, played, moveKind)
-    SHARED threatReach
+    SHARED threatReach, returnChase
     threatReach = 0
     singles = 0
     threatSide = 0
@@ -1098,7 +1100,7 @@ FUNCTION ThreatText(line, played, moveKind)
         END IF
         ' Up to two single threats of the same side: 10...Nf5 on the queen,
         ' then 11...Bc5 on f2.
-        IF singles < 2 AND LEN(threats) >= 1 AND k < THREAT_PLIES THEN
+        IF singles < 2 AND LEN(threats) >= 1 AND k < THREAT_PLIES AND k <> returnChase THEN
             ' A second one only from a move that takes nothing: a capture says its material.
             second = singles = 0
             IF NOT second THEN second = side = threatSide AND CAPTURED(positions[k], moves[k]) = 0
@@ -1117,6 +1119,48 @@ END FUNCTION
 ' 5...Qh4+ checks, but the rook on a8 stays attacked and 7.Qxa8 takes it.
 ' Drawn, and said: " 5…Qh4+ leaves the rook on a8 attacked: 7.Qxa8."
 ' Empty when there is none.
+' The move played undone: the piece it moved goes back to the square it
+' came from within the first LONG_PLIES of the line, chased or not —
+' 11.Ng5 12.Qh4 h6 13.Nf3: " 11.Ng5 loses time: after 12…h6, the knight
+' goes back, 13.Nf3." The chasing move, its attack and the way back are
+' drawn. Empty when the piece stays, is taken, or is the king.
+FUNCTION ReturnText(before, played, line)
+    SHARED returnChase
+    returnChase = -1
+    moves = line[0]
+    positions = line[1]
+    IF played = NOTHING THEN RETURN ""
+    IF PIECE(before, FROMSQ(played)) = KING OR PIECE(before, FROMSQ(played)) = PAWN THEN RETURN ""
+    square = TOSQ(played)
+    FOR k = 1 TO MIN(LONG_PLIES, LEN(moves)) - 1 STEP 2
+        ' Taken on the way: no going back to speak of.
+        IF TOSQ(moves[k - 1]) = square THEN RETURN ""
+        IF FROMSQ(moves[k]) = square THEN
+            ' Going back taking something is no time lost (9...Bxb4).
+            IF TOSQ(moves[k]) <> FROMSQ(played) OR CAPTURED(positions[k], moves[k]) <> 0 THEN RETURN ""
+            first = MoveText(before, played)
+            back = MoveText(positions[k], moves[k])
+            piece = PieceName(PIECE(before, FROMSQ(played)))
+            NOTE "goes back: " + first + " then " + back
+            ' The move before it chased it, when it attacks the piece.
+            chased = FALSE
+            threats = NewThreats(positions, k - 1, SIDETOMOVE(positions[k - 1]), THREAT_GAIN, moves)
+            FOR i = 0 TO LEN(threats) - 1
+                IF TOSQ(threats[i][0]) = square THEN
+                    chased = TRUE
+                    returnChase = k - 1 ' Said here: ThreatText does not say it again.
+                    DrawWay positions, moves, k - 1, "reply"
+                    Draw FROMSQ(threats[i][0]), square, "threat", 0
+                END IF
+            NEXT
+            IF NOT IsDrawn(FROMSQ(moves[k]), TOSQ(moves[k])) THEN Draw FROMSQ(moves[k]), TOSQ(moves[k]), "reply", 0
+            IF chased THEN RETURN " " + TEXT("%1 loses time: after %2, %3 goes back, %4.", first, MoveText(positions[k - 1], moves[k - 1]), piece, back)
+            RETURN " " + TEXT("%1 loses time: %2 goes back, %3.", first, piece, back)
+        END IF
+    NEXT
+    RETURN ""
+END FUNCTION
+
 FUNCTION IgnoredThreatText(before, played, line, side)
     threats = Threats(before, side, THREAT_GAIN)
     moves = line[0]
@@ -1182,7 +1226,8 @@ END FUNCTION
 ' advantage shows on the board); `note` says, for the trace, why `afterEval`
 ' is not the explanation's own search ("" if it is).
 FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note)
-    SHARED lostSquares, drawnArrows, ringing, judged, lineNote, ghostPlies
+    SHARED lostSquares, drawnArrows, ringing, judged, lineNote, ghostPlies, returnChase
+    returnChase = -1
     lostSquares = []
     drawnArrows = []
     ringing = TRUE
@@ -1316,7 +1361,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         ' the queen going back): the text says them.
         drawn = WithoutLoserTail(current, [0, fallbackPlies], toMove)
         AddArrows current, 0, fallbackPlies, toMove, "reply", drawn[0], drawn[1]
-        summary = prefix + TRIM(better) + IgnoredThreatText(before, played, current, toMove) + ThreatText(current, played, "reply")
+        summary = prefix + TRIM(better) + IgnoredThreatText(before, played, current, toMove) + ReturnText(before, played, current) + ThreatText(current, played, "reply")
         ' Arrows and threats may suggest a piece falls: say that none does,
         ' when the line really keeps the material.
         IF concreteText = "" AND KeepsMaterial(before, current, mover) THEN summary = summary + TEXT(" No material is lost: the evaluation is positional.")

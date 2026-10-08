@@ -515,3 +515,46 @@ expect lost b5
 expect threatened e2
 expect summary Blunder (−0.7 → −5.4). Black wins a bishop: 10…Nd4 11.Qf2 Nxb5 12.Nxb5 Bxb5. Better was 10.Bxc6.
 end
+
+# 11.Ng5?! in training (White): "f4 is defended by queen and rook, where
+# is the gain?" There is none: 11…Qc7 12.Qh4 h6 13.Nf3, the knight goes
+# back where it came from. A move undone in the line is said and drawn.
+explain
+before r2q1rk1/pp1b1ppp/2nb1n2/1Bpp4/5P2/2NP1N2/PPP2QPP/R1B2RK1 w - - 7 11
+played f3g5
+before-eval depth 22 cp -61 pv b5c6 d7c6 f3e5 d8b6 h2h3 f8e8 c3e2 d6e5 f4e5 e8e5 c1h6 e5e6 e2f4 f6g4 h3g4 e6h6 g4g5 h6d6 f4h5 a8f8 a1e1 b6b2 f2c5
+after r2q1rk1/pp1b1ppp/2nb1n2/1Bpp2N1/5P2/2NP4/PPP2QPP/R1B2RK1 b - - 8 11
+viewer white
+tick depth 12 cp -161 pv d8b6 a2a4 a7a6 b5c6 d7c6 a4a5 b6c7 h2h3 a8e8 c3e2 f6h5 c1d2 h7h6 g5f3 d5d4 a1e1
+tick depth 12 cp -150 pv d8b6 h2h3 a8e8 b5a4 h7h6 g5f3 d5d4 c3e2 f6d5 a4b3 d5e3 c1e3 d4e3 f2h4 c6d4 f3d4 c5d4
+tick depth 13 cp -146 pv a7a6 b5c6 d7c6 c1d2 h7h6 g5f3 d5d4 c3e2 f8e8 f3e5 d6e5 f4e5
+tick depth 14 cp -145 pv f8e8 g5f3 d8c7 c1d2 a7a6 b5c6 d7c6 f3e5 d5d4 c3e2 d6e5 f4e5 c7e5 e2g3
+tick depth 15 cp -146 pv d8b6 h2h3 a8e8 b5a4 h7h6 g5f3 d5d4 c3e2 f6d5 a4b3 d5e3 c1e3 d4e3 f2g3 c6e7 f3e5 e7f5
+tick depth 16 cp -140 pv d8b6 h2h3 a8e8 b5a4 h7h6 g5f3 d5d4 c3e2 f6d5 a4b3 d5e3 c1e3 d4e3 f2h4 c6e7 f3e5 d6e5 f4e5 e7g6 h4g3 e8e5
+tick depth 17 cp -141 pv d8b6 h2h3 a7a6 b5c6 d7c6 c3e2 d5d4 e2g3 a8e8 g5f3 b6c7 f3h4 f6d5 g3f5
+tick depth 18 cp -146 pv d8c7 c1d2 a8e8 h2h3 a7a6 b5c6 d7c6 c3e2 d5d4 a1e1 h7h6 g5f3 f6d5 f3e5 d6e5 f4e5 f7f6 f2g3 e8e5
+tick depth 19 cp -146 pv d8c7 c1d2 h7h6 g5f3 a8e8 a1e1 d5d4 c3e4 f6e4 d3e4 d6f4 d2f4 c7f4 c2c3 d4c3 b2c3 e8e4 g2g3 f4g4
+tick depth 20 cp -148 pv d8c7 f2h4 h7h6 g5f3 f8e8 c1d2 c6d4 b5d7 c7d7 f3e5 d7c8 a1c1 b7b5 f1e1 b5b4 c3e2
+tick depth 21 cp -139 pv a7a6 b5c6 d7c6 c1d2 f8e8 a1e1 d8c7 c3e2 d5d4 b2b3 h7h6 g5f3 f6d5 f3e5 d6e5 f4e5 e8e5 e2f4 d5f6 e1e5 c7e5 h2h3 a8e8 f1e1 e5d6 e1e8 f6e8
+tick depth 22 cp -154 pv d8c7 c1d2 a8e8 h2h3 a7a6 b5c6 d7c6 c3e2 d5d4 a1e1 h7h6 g5f3 f6d5 f3h4 g7g6 e2g3 e8e1 f2e1 d6f4 d2f4 d5f4 e1f2 f4e6 b2b3 g8h7 h4f5 f8g8 f5h4
+tick depth 23 cp -147 pv d8c7 f2h4 h7h6 g5f3 f8e8 f4f5 c7d8 c1f4 d7f5 b5c6 b7c6 f4d6 d8d6 a1e1 c5c4 d3c4 f5c2 c4d5 c6d5 h4f2 c2e4 h2h3 d6b8 f3d4 b8b6
+tick depth 24 cp -159 pv d8c7 c1d2 f8e8 h2h3 a7a6 b5c6 d7c6 c3e2 d5d4 a1e1 h7h6 g5f3 f6d5 f3e5 d5e3 d2e3 d4e3 f2g3 d6e5 f4e5 c7e5 b2b3 e5b2 f1f4 b2c2 f4g4 g7g5 h3h4 f7f6
+tick depth 25 cp -168 pv d8c7 f2h4 h7h6 g5f3 f8e8 f4f5 c7d8 c1f4 d7f5 b5c6 b7c6 b2b3 f5g4 f4d6 d8d6 h4g3 d6g3 h2g3 f6d7 f3h2 h6h5 f1f4 g4e6 f4a4 g8f8
+tick depth 26 cp -157 pv d8c7 f2h4 h7h6 g5f3 f8e8 f4f5 c7d8 c1f4 d7f5 b5c6 b7c6 h2h3 c5c4 f4d6 d8d6 d3c4 f5c2 c4d5 c6d5 h4d4 d6b8 b2b3 c2e4 f3d2 e8e6 a1e1 b8b7
+tick depth 27 cp -150 pv d8c7 f2h4 h7h6 g5f3 f8e8 f4f5 c7d8 c1f4 d7f5 b5c6 b7c6 h2h3 d5d4 c3a4 d6e7 f3e5 f6g4 h4g3 e7h4 e5f7 g8f7 g3g4 f5g4 f4g5 f7g8 g5d8 a8d8 h3g4 c5c4 d3c4 e8e2 a4c5 e2c2 c5d3 c2c4
+tick depth 28 cp -147 pv d8c7 f2h4 h7h6 g5f3 f8e8 g2g4 d7g4 c3d5 f6d5 h4g4 d6f4 c1f4 d5f4 a1e1 e8e1 f1e1 a8d8 b5c6 b7c6 b2b3 f4e6 h2h4 e6d4 f3d4 c5d4 e1e4 c6c5
+tick depth 29 cp -154 pv d8c7 f2h4 h7h6 g5f3 f8e8 g2g4 d7g4 c3d5 f6d5 h4g4 d6f4 c1f4 d5f4 a1e1 a8d8 b5c6 b7c6 f3h4 e8e1 f1e1 f4e6 g4g3 c7d7 h4f5 g8h7 b2b3 g7g6 f5e3 h6h5 e3c4 d7d5
+tick depth 30 cp -155 pv d8c7 f2h4 h7h6 g5f3 f8e8 g2g4 d7g4 c3d5 f6d5 h4g4 d6f4 c1f4 d5f4 a1e1 a8d8 b5c6 b7c6 f3h4 e8e1 f1e1 f4e6 g4g3 c7d7 h4f5 g8h7 b2b3 g7g6 f5e3 h6h5 g3f2 d7e7 e3c4
+tick depth 31 cp -165 pv d8c7 f2h4 h7h6 g5f3 f8e8 f4f5 c7d8 c1f4 d7f5 b5c6 b7c6 f4d6 d8d6 a1e1 e8e1 f1e1 f5g4 h4g3 d6g3 h2g3 f6d7 g1f2 g8f8 f3e5 d7e5 e1e5 f7f6 e5e1 g4f5 b2b3 a8b8 c3a4 b8b5 e1c1 c5c4 d3c4 d5c4 a4b2 c4c3
+tick depth 32 cp -169 pv d8c7 f2h4 h7h6 g5f3 f8e8 f4f5 c7d8 c1f4 d7f5 b5c6 b7c6 f4d6 d8d6 a1e1 e8e1 f1e1 f5g4 h4g3 d6g3 h2g3 f6d7 g1f2 g8f8 f3e5 d7e5 e1e5 f7f6 e5e1 g4f5 c3a4 c5c4 d3c4 d5c4 e1e2 a8d8 b2b3 d8d5
+tick depth 33 cp -171 pv d8c7 f2h4 h7h6 g5f3 f8e8 f4f5 c7d8 c1f4 d7f5 b5c6 b7c6 f4d6 d8d6 a1e1 e8e1 f1e1 f5g4 h4g3 d6g3 h2g3 f6d7 g1f2 g8f8 f3e5 d7e5 e1e5 f7f6 e5e1 g4f5 b2b3 c5c4 d3c4 d5c4 e1c1 a8d8 f2e3 c4b3 a2b3 d8e8 e3d4
+tick depth 34 cp -162 pv d8c7 f2h4 h7h6 g5f3 f8e8 f4f5 c7d8 c1f4 d7f5 b5c6 b7c6 f4d6 d8d6 a1e1 e8e1 f1e1 f5g4 h4g3 d6g3 h2g3 f6d7 g1f2 g8f8 f3e5 d7e5 e1e5 f7f6 e5e1 g4f5 b2b3 c5c4 d3c4 d5c4 e1c1 a8d8 f2e3 c4b3 a2b3 d8d7 c3e2 c6c5 e2f4 f8e7 f4d3 f5d3 c2d3 e7d6 c1a1 d7e7 e3d2
+tick depth 35 cp -172 pv d8c7 g5f3 a8e8 b5c6 c7c6 a2a4 a7a6 f2g3 c6c7 f3e5 d5d4 c3e4 f6e4 d3e4 f7f6 e5d7 c7d7 g3d3 d7c6 d3c4 f8f7 e4e5 b7b5 a4b5 a6b5 c4a2 d6c7 c1d2 c5c4 e5f6 f7f6 a1e1
+tick depth 36 cp -173 pv d8c7 h2h3 a8e8 c1d2 a7a6 b5c6 d7c6 c3e2 d5d4 g5f3 f6d5 c2c3 d5e3 f1c1 d4c3 b2c3 e3f5 c1e1 f7f6 e2g3 c7d7 g3f5 d7f5 d2e3 f8f7 a1d1 c6a4 d1d2 f7e7 g2g4 f5d7 d3d4
+tick depth 37 cp -171 pv d8c7 h2h3 a8e8 c1d2 a7a6 b5c6 d7c6 c3e2 d5d4 g5f3 f6d5 c2c3 d5e3 f1c1 d4c3 b2c3 e3f5 c1e1 f7f6 e2g3 c7d7 g3f5 e8e1 a1e1 d7f5 d3d4 f8e8 e1e8 c6e8 d4c5 d6c5 d2e3 c5f8 f3d4 f5b1 g1h2 e8f7 d4b3 b1d3 f2d2 d3d2 e3d2 f8d6 d2e3
+tick depth 38 cp -175 pv d8c7 f2h4 h7h6 g5f3 f8e8 f4f5 c7d8 c1f4 d7f5 b5c6 b7c6 a1e1 e8e1 f1e1 d6f8 f4e5 f6d7 h4d8 a8d8 e5g3 f7f6 f3d2 h6h5 d2b3 d8c8 c3a4 g8f7 e1f1 f5e6 g3f2 d5d4 f2g3 g7g5 h2h4 g5h4 g3h4
+tick depth 39 cp -167 pv d8c7 f2h4 h7h6 g5f3 f8e8 f4f5 c7d8 c1f4 d7f5 b5c6 b7c6 f4d6 d8d6 a1c1 f5g6 b2b3 e8e7 c3a4 a8e8 h4g3 d6g3 h2g3 f6d7 g3g4 f7f6 f1e1 e7e1 f3e1 g8f8 e1f3 f8e7
+expect verdict inaccuracy
+expect arrows b5c6 alternative, d8c7 reply 1, h7h6 reply, h6g5 threat, g5f3 reply
+expect summary Inaccuracy (−0.6 → −1.7). Better was 11.Bxc6. 11.Ng5 loses time: after 12…h6, the knight goes back, 13.Nf3. No material is lost: the evaluation is positional. Main line: 11…Qc7 12.Qh4 h6 13.Nf3.
+end

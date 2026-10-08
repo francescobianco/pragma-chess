@@ -523,3 +523,15 @@ that ends worth what its first capture took is that capture and an even
 exchange: the first (11…Nxb5) is now the decisive one, the bishop ringed,
 the trade left to the text. Recorded: user-feedback.ticks (the first case
 copied with Engine ▸ Copy Explain's Ticks).
+
+### 11.Ng5?!: the move undone (8 October)
+
+"f4 is defended by queen and rook: where is the gain?" None: the line is
+11…Qc7 12.Qh4 h6 13.Nf3, the knight back where it came from, while the
+queen and the bishop of d6 bear on f4. `ReturnText`: the piece the move
+played moved goes back to its square within LONG_PLIES (not a king or a
+pawn, not taking something on the way back, not taken before) — " 11.Ng5
+loses time: after 12…h6, the knight goes back, 13.Nf3", the chasing move,
+its attack and the way back drawn; ThreatText does not say that threat
+again. Recorded: user-feedback.ticks. Still unsaid: the pressure of a
+battery on a piece defended as many times (Qc7 behind Bd6 on f4).

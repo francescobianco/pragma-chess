@@ -467,6 +467,66 @@ private Q_SLOTS:
         QVERIFY(found);
     }
 
+    void editsVariations()
+    {
+        // 1.e4 e5 2.Nf3 Nc6 3.Bb5, with (2…d6 3.d4 (3.Bc4) exd4) and (3.Bc4 Bc5).
+        QString error;
+        const std::optional<Pgn::ParsedLine> line = Pgn::parseLine(
+            QStringLiteral("1.e4 e5 2.Nf3 Nc6 (2...d6 3.d4 (3.Bc4) exd4) 3.Bb5 (3.Bc4 Bc5) a6"), QString(), &error);
+        QVERIFY2(line, qPrintable(error));
+        GameRecord game;
+        game.moves = line->moves;
+        game.variations = line->variations;
+        game.moves[4].nags = {1}; // 3.Bb5!
+        GameVariations::resolve(game, ChessPosition::startingPosition());
+        const auto sans = [](const QList<MoveRecord> &moves) {
+            QStringList list;
+            for (const MoveRecord &move : moves)
+                list << move.san;
+            return list.join(QLatin1Char(' '));
+        };
+        QCOMPARE(game.variations.size(), 2);
+
+        // Promote 2…d6: it becomes the main line; 2…Nc6 3.Bb5 a6 its variation,
+        // with 3.Bc4 hanging off it; 3.Bc4 of the old variation follows d6.
+        std::optional<GameVariations::Edit> promoted = GameVariations::promote(game, {0}, 5);
+        QVERIFY(promoted);
+        QCOMPARE(sans(promoted->game.moves), QStringLiteral("e4 e5 Nf3 d6 d4 exd4"));
+        QCOMPARE(promoted->path, QList<int>());
+        QCOMPARE(promoted->ply, 5);
+        QCOMPARE(promoted->game.variations.size(), 2);
+        const Variation &tail = promoted->game.variations.at(0);
+        QCOMPARE(tail.atPly, 4);
+        QCOMPARE(sans(tail.moves), QStringLiteral("Nc6 Bb5 a6"));
+        QCOMPARE(tail.moves.at(1).nags, QList<int>{1}); // The annotation went with its move.
+        QCOMPARE(tail.variations.size(), 1);
+        QCOMPARE(tail.variations.first().atPly, 2); // 3.Bc4 against 3.Bb5, renumbered from Nc6.
+        const Variation &own = promoted->game.variations.at(1);
+        QCOMPARE(own.atPly, 5); // 3.Bc4 against 3.d4, now on the main line.
+        QCOMPARE(sans(GameVariations::lineMoves(promoted->game, {0})), QStringLiteral("e4 e5 Nf3 Nc6 Bb5 a6"));
+        // Promoted back, it is the game it was.
+        std::optional<GameVariations::Edit> back = GameVariations::promote(promoted->game, {0}, 5);
+        QVERIFY(back);
+        QCOMPARE(sans(back->game.moves), sans(game.moves));
+        QCOMPARE(GameVariations::toText(back->game.variations).size(), GameVariations::toText(game.variations).size());
+
+        // Delete a variation: the board goes where it branched.
+        std::optional<GameVariations::Edit> removed = GameVariations::removeVariation(game, {1});
+        QVERIFY(removed);
+        QCOMPARE(removed->game.variations.size(), 1);
+        QCOMPARE(removed->ply, 4);
+
+        // Cut the main line from 3.Bb5: the variation against it goes too.
+        std::optional<GameVariations::Edit> cut = GameVariations::truncate(game, {}, 5);
+        QVERIFY(cut);
+        QCOMPARE(sans(cut->game.moves), QStringLiteral("e4 e5 Nf3 Nc6"));
+        QCOMPARE(cut->game.variations.size(), 1);
+        QCOMPARE(cut->ply, 4);
+        // From a variation's first move, the cut is the variation.
+        QCOMPARE(GameVariations::truncate(game, {0}, 4)->game.variations.size(), 1);
+        QVERIFY(!GameVariations::promote(game, {}, 3)); // The main line has nothing to be promoted over.
+    }
+
     void decodesChessBaseTexts()
     {
         // Windows-1252: Latin-1 but for 0x80–0x9F.

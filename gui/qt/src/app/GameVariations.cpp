@@ -159,4 +159,105 @@ int branchPly(const GameRecord &game, const QList<int> &path)
     return ply;
 }
 
+namespace {
+
+/// The moves and the variations of the line `path` leads to, to change them;
+/// nothing for an invalid path.
+struct Line {
+    QList<MoveRecord> *moves = nullptr;
+    QList<Variation> *variations = nullptr;
+};
+
+Line lineAt(GameRecord &game, const QList<int> &path)
+{
+    Line line{&game.moves, &game.variations};
+    for (const int index : path) {
+        if (index < 0 || index >= line.variations->size())
+            return {};
+        Variation &variation = (*line.variations)[index];
+        line = {&variation.moves, &variation.variations};
+    }
+    return line;
+}
+
+} // namespace
+
+std::optional<Edit> promote(const GameRecord &game, const QList<int> &path, int ply)
+{
+    if (path.isEmpty())
+        return std::nullopt;
+    Edit edit{game, path.first(path.size() - 1), ply};
+    const Line parent = lineAt(edit.game, edit.path);
+    const int index = path.last();
+    if (!parent.moves || index < 0 || index >= parent.variations->size())
+        return std::nullopt;
+    const Variation variation = parent.variations->at(index);
+    const int at = variation.atPly; // The parent's move it is an alternative to (1-based).
+    if (at < 1 || at > parent.moves->size())
+        return std::nullopt;
+    // The parent's moves from `at` on become a variation in the promoted one's
+    // place, taking along the variations that hung off them (renumbered from it).
+    Variation tail;
+    tail.atPly = at;
+    tail.moves = parent.moves->mid(at - 1);
+    tail.startComment = variation.startComment;
+    QList<Variation> kept;
+    for (int i = 0; i < parent.variations->size(); ++i) {
+        const Variation &other = parent.variations->at(i);
+        if (i == index) {
+            kept << tail; // Filled below with what hangs off it.
+        } else if (other.atPly > at) {
+            Variation moved = other;
+            moved.atPly = other.atPly - at + 1;
+            tail.variations << moved;
+        } else {
+            kept << other;
+        }
+    }
+    // The tail is the entry at the promoted variation's old index among those kept.
+    int tailIndex = 0;
+    for (int i = 0; i < index; ++i) {
+        if (parent.variations->at(i).atPly <= at)
+            ++tailIndex;
+    }
+    kept[tailIndex].variations = tail.variations;
+    // The promoted moves, and their own variations, renumbered from the parent's first move.
+    *parent.moves = parent.moves->first(at - 1) + variation.moves;
+    for (Variation own : variation.variations) {
+        own.atPly += at - 1;
+        kept << own;
+    }
+    *parent.variations = kept;
+    return edit;
+}
+
+std::optional<Edit> removeVariation(const GameRecord &game, const QList<int> &path)
+{
+    if (path.isEmpty())
+        return std::nullopt;
+    Edit edit{game, path.first(path.size() - 1), branchPly(game, path)};
+    const Line parent = lineAt(edit.game, edit.path);
+    const int index = path.last();
+    if (!parent.moves || index < 0 || index >= parent.variations->size())
+        return std::nullopt;
+    parent.variations->removeAt(index);
+    return edit;
+}
+
+std::optional<Edit> truncate(const GameRecord &game, const QList<int> &path, int ply)
+{
+    const int first = ply - branchPly(game, path); // 1-based among the line's own moves.
+    if (first <= 1 && !path.isEmpty())
+        return removeVariation(game, path);
+    Edit edit{game, path, ply - 1};
+    const Line line = lineAt(edit.game, path);
+    if (!line.moves || first < 1 || first > line.moves->size())
+        return std::nullopt;
+    line.moves->resize(first - 1);
+    line.variations->removeIf([first](const Variation &variation) { return variation.atPly >= first; });
+    if (path.isEmpty())
+        edit.game.plyCount = int(edit.game.moves.size());
+    return edit;
+}
+
 } // namespace GameVariations

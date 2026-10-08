@@ -127,9 +127,6 @@ priorità; se non basta, l'unica via è sospendere il processo a intermittenza
 - **Import delle varianti da ChessBase**: `CbgDecoder` si ferma al primo
   codice di fine linea; con la regola del formato (sotto) può costruire
   l'albero intero. Verificare sulla base di esempio (253 partite annotate).
-- **Comandi sulle varianti**: promuovere una variante a linea principale,
-  eliminarla, tagliare la coda di una linea. Oggi non c'è modo di toglierle
-  se non con un editor del PGN.
 - **Allenamento con una partita del database aperta**: le risposte del
   motore ora finiscono nelle varianti della partita salvata (prima la
   partita si staccava). Decidere se va bene.

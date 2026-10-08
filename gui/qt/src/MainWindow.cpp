@@ -1834,6 +1834,24 @@ void MainWindow::showMoveListMenu(const QPoint &position)
         copyText(Pgn::moveText(m_session->game(), ply), tr("Line copied"));
     });
 
+    // The lines of the game: a variation promoted or deleted, a line cut short.
+    QMenu *lines = menu.addMenu(tr("&Variations"));
+    lines->setEnabled(!m_onlinePlay);
+    const QList<int> path = place.path;
+    if (!path.isEmpty()) {
+        lines->addAction(tr("&Promote Variation"), this, [this, path, ply] {
+            applyGameEdit(GameVariations::promote(m_session->game(), path, ply), QString());
+        });
+        lines->addAction(tr("&Delete Variation"), this, [this, path] {
+            applyGameEdit(GameVariations::removeVariation(m_session->game(), path),
+                          tr("Delete this variation, with the variations inside it?"));
+        });
+    }
+    lines->addAction(tr("Delete from &Here"), this, [this, path, ply] {
+        applyGameEdit(GameVariations::truncate(m_session->game(), path, ply),
+                      tr("Delete this move and the ones after it on this line, with their variations?"));
+    });
+
     // Every glyph with what it means; choosing the one the move has takes it off.
     QMenu *annotations = menu.addMenu(tr("&Annotations"));
     const QList<int> current = m_session->moveAt(ply).nags;
@@ -1919,6 +1937,29 @@ void MainWindow::annotateMove(int ply, const QList<int> &nags)
     if (!storeOpenGame(&error)) {
         m_session->setAnnotations(ply, before);
         QMessageBox::warning(this, tr("Annotations"), tr("Could not save the annotation: %1").arg(error));
+    }
+}
+
+void MainWindow::applyGameEdit(const std::optional<GameVariations::Edit> &edit, const QString &question)
+{
+    if (!edit)
+        return;
+    // Deleting moves cannot be undone: asked first.
+    if (!question.isEmpty()
+        && QMessageBox::question(this, tr("Delete Moves"), question, QMessageBox::Yes | QMessageBox::Cancel,
+                                 QMessageBox::Cancel)
+               != QMessageBox::Yes)
+        return;
+    const GameRecord before = m_session->game();
+    const QList<int> path = m_session->path();
+    const int ply = m_session->ply();
+    m_session->setGame(edit->game);
+    m_session->goToLine(edit->path, edit->ply);
+    QString error;
+    if (!storeOpenGame(&error)) {
+        m_session->setGame(before);
+        m_session->goToLine(path, ply);
+        QMessageBox::warning(this, tr("Variations"), tr("Could not save the game: %1").arg(error));
     }
 }
 

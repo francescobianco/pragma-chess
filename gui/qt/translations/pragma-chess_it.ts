@@ -3326,6 +3326,38 @@ non è su questo computer.</translation>
         <source>The move on the board is not after where the game stands: go back to the game&apos;s line.</source>
         <translation>La mossa sulla scacchiera non segue il punto in cui è arrivata la partita: torna sulla linea della partita.</translation>
     </message>
+    <message>
+        <source>&amp;Variations</source>
+        <translation>&amp;Varianti</translation>
+    </message>
+    <message>
+        <source>&amp;Promote Variation</source>
+        <translation>&amp;Promuovi variante</translation>
+    </message>
+    <message>
+        <source>&amp;Delete Variation</source>
+        <translation>&amp;Elimina variante</translation>
+    </message>
+    <message>
+        <source>Delete this variation, with the variations inside it?</source>
+        <translation>Eliminare questa variante, con le varianti al suo interno?</translation>
+    </message>
+    <message>
+        <source>Delete from &amp;Here</source>
+        <translation>Elimina da &amp;qui</translation>
+    </message>
+    <message>
+        <source>Delete this move and the ones after it on this line, with their variations?</source>
+        <translation>Eliminare questa mossa e quelle dopo di lei su questa linea, con le loro varianti?</translation>
+    </message>
+    <message>
+        <source>Delete Moves</source>
+        <translation>Elimina mosse</translation>
+    </message>
+    <message>
+        <source>Variations</source>
+        <translation>Varianti</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

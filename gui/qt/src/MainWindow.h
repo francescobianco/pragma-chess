@@ -4,6 +4,7 @@
 #include "app/Chapters.h"
 #include "app/EngineCatalog.h"
 #include "app/EngineEvaluation.h"
+#include "app/GameVariations.h"
 #include "app/online/LichessBoardClient.h"
 #include "app/online/OnlineAccount.h"
 #include "app/WorkspaceLayout.h"
@@ -147,6 +148,9 @@ private:
     /// Annotates the move leading to `ply` ("!", "±"…, as NAGs), in the
     /// database too when the game is stored.
     void annotateMove(int ply, const QList<int> &nags);
+    /// Puts a game changed by a variation command on the board and stores it,
+    /// after `question` (empty: none) is answered Yes.
+    void applyGameEdit(const std::optional<GameVariations::Edit> &edit, const QString &question);
     /// Writes the text of a comment of the game on the board (MoveComment::at)
     /// and saves the game, keeping the comment's commands.
     void writeComment(const QList<int> &path, int index, const QString &text);

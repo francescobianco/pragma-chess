@@ -634,6 +634,11 @@ branch, empty for the main line.
   It rebuilds the document on every change — fine for games of a few hundred
   moves. `placeAt()` serves the context menu, which first follows the line
   of a move clicked in another variation.
+- The move list's Variations ▸ Promote Variation, Delete Variation and
+  Delete from Here are `GameVariations::promote`, `removeVariation` and
+  `truncate` (pure, unit-tested: moves keep their annotations and comments,
+  the variations hanging off moved moves move with them), applied by
+  `MainWindow::applyGameEdit`, which asks before deleting and stores the game.
 - `Pgn::moveText` writes variations in parentheses after the move each
   replaces (a cut line, `plies >= 0`, has none); `Pgn::parseLine` reads them
   (an illegal move in a variation cuts that variation only). The project

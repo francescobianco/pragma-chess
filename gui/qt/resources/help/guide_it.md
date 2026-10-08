@@ -98,6 +98,7 @@ Clic destro su una mossa per il suo menu:
 
 - **Copia ▸ Copia mossa** e **Copia ▸ Copia linea fino a qui** mettono negli appunti la mossa, o la partita fino a lì.
 - **Annotazioni** elenca i simboli con il significato di ciascuno.
+- **Varianti**: su una mossa di una variante, **Promuovi variante** la fa diventare la linea da cui parte (le mosse che sostituiva diventano la sua variante, con le loro) e **Elimina variante** la toglie; su qualunque mossa, **Elimina da qui** toglie lei e le mosse dopo di lei sulla sua linea, con le loro varianti. Eliminare chiede prima conferma: non si può annullare.
 
 Una mossa può avere un giudizio sulla mossa e una valutazione della posizione:
 

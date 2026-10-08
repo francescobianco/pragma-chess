@@ -3,6 +3,8 @@
 #include "GameRecord.h"
 
 #include <QList>
+
+#include <optional>
 #include <QString>
 
 class ChessPosition;
@@ -41,5 +43,29 @@ const QList<Variation> *variationsOf(const GameRecord &game, const QList<int> &p
 /// The ply of the line `path` leads to at which its last variation branches
 /// off its parent, counted from the game's first move; 0 for the main line.
 int branchPly(const GameRecord &game, const QList<int> &path);
+
+/// A game changed by one of the commands below, and where the board goes:
+/// the line (`path`) and the ply on it, from the game's first move.
+struct Edit {
+    GameRecord game;
+    QList<int> path;
+    int ply = 0;
+};
+
+/// Makes the variation `path` (not the main line) the line it hangs off: its
+/// moves take the place of the moves they were an alternative to, which
+/// become a variation in its place, with the variations that hung off them;
+/// the variation's own variations follow it. Moves keep their annotations and
+/// comments. `ply` (on the variation) is where the board stays, now on the
+/// parent line.
+std::optional<Edit> promote(const GameRecord &game, const QList<int> &path, int ply);
+/// Deletes the variation `path` (not the main line) with all it holds; the
+/// board goes to the position it branched from.
+std::optional<Edit> removeVariation(const GameRecord &game, const QList<int> &path);
+/// Deletes the moves of the line `path` from `ply` on (counted from the
+/// game's first move), and the variations that hung off them; from a
+/// variation's first move, that is the variation. The board goes to the
+/// position before `ply`.
+std::optional<Edit> truncate(const GameRecord &game, const QList<int> &path, int ply);
 
 } // namespace GameVariations

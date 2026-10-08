@@ -98,6 +98,7 @@ Right-click a move for its menu:
 
 - **Copy ▸ Copy Move** and **Copy ▸ Copy Line up to Here** put the move, or the game up to it, on the clipboard.
 - **Annotations** lists the symbols with what each one means.
+- **Variations**: on a move of a variation, **Promote Variation** makes it the line it hangs off (the moves it replaced become its variation, with their own) and **Delete Variation** removes it; on any move, **Delete from Here** removes it and the moves after it on its line, with their variations. Deleting asks first: it cannot be undone.
 
 A move can carry one judgement of the move and one assessment of the position:
 

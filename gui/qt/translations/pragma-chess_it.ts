@@ -4080,6 +4080,10 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>%1 loses time: %2 goes back, %3.</source>
         <translation>%1 perde tempo: %2 torna indietro, %3.</translation>
     </message>
+    <message>
+        <source>Then %1 goes back to %2: %3.</source>
+        <translation>Poi %1 torna in %2: %3.</translation>
+    </message>
 </context>
 <context>
     <name>MoveTreeView</name>

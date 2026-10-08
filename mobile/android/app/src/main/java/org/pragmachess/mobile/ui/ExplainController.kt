@@ -56,6 +56,7 @@ class ExplainStrings(private val context: Context) : ExplainText {
         "%1 and clears %2 for %3" to R.string.explain_and_clears,
         "%1 loses time: after %2, %3 goes back, %4." to R.string.explain_goes_back_chased,
         "%1 loses time: %2 goes back, %3." to R.string.explain_goes_back,
+        "Then %1 goes back to %2: %3." to R.string.explain_then_goes_back,
         " No material is lost: the evaluation is positional." to R.string.explain_no_material,
         )
     }

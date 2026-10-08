@@ -1122,10 +1122,12 @@ END FUNCTION
 ' The move played undone: the piece it moved goes back to the square it
 ' came from within the first LONG_PLIES of the line, chased or not —
 ' 11.Ng5 12.Qh4 h6 13.Nf3: " 11.Ng5 loses time: after 12…h6, the knight
-' goes back, 13.Nf3." The chasing move, its attack and the way back are
-' drawn. Empty when the piece stays, is taken, or is the king.
-FUNCTION ReturnText(before, played, line)
-    SHARED returnChase
+' goes back, 13.Nf3." When the move is no error (`lost` false) only that
+' the piece goes back is said. The chasing move, its attack and the way
+' back are drawn, the piece drawn faint where it lands: the square it
+' started from. Empty when the piece stays, is taken, or is the king.
+FUNCTION ReturnText(before, played, line, lost)
+    SHARED returnChase, drawnArrows
     returnChase = -1
     moves = line[0]
     positions = line[1]
@@ -1153,7 +1155,12 @@ FUNCTION ReturnText(before, played, line)
                     Draw FROMSQ(threats[i][0]), square, "threat", 0
                 END IF
             NEXT
-            IF NOT IsDrawn(FROMSQ(moves[k]), TOSQ(moves[k])) THEN Draw FROMSQ(moves[k]), TOSQ(moves[k]), "reply", 0
+            ' The way back, the piece faint where it lands: where it started.
+            IF NOT IsDrawn(FROMSQ(moves[k]), TOSQ(moves[k])) THEN
+                drawnArrows = drawnArrows + [[FROMSQ(moves[k]), TOSQ(moves[k]), "reply"]]
+                ARROW FROMSQ(moves[k]), TOSQ(moves[k]), "reply", 0, PIECE(positions[k], FROMSQ(moves[k])), SIDETOMOVE(positions[k])
+            END IF
+            IF NOT lost THEN RETURN " " + TEXT("Then %1 goes back to %2: %3.", piece, SquareName(FROMSQ(played)), back)
             IF chased THEN RETURN " " + TEXT("%1 loses time: after %2, %3 goes back, %4.", first, MoveText(positions[k - 1], moves[k - 1]), piece, back)
             RETURN " " + TEXT("%1 loses time: %2 goes back, %3.", first, piece, back)
         END IF
@@ -1361,7 +1368,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         ' the queen going back): the text says them.
         drawn = WithoutLoserTail(current, [0, fallbackPlies], toMove)
         AddArrows current, 0, fallbackPlies, toMove, "reply", drawn[0], drawn[1]
-        summary = prefix + TRIM(better) + IgnoredThreatText(before, played, current, toMove) + ReturnText(before, played, current) + ThreatText(current, played, "reply")
+        summary = prefix + TRIM(better) + IgnoredThreatText(before, played, current, toMove) + ReturnText(before, played, current, TRUE) + ThreatText(current, played, "reply")
         ' Arrows and threats may suggest a piece falls: say that none does,
         ' when the line really keeps the material.
         IF concreteText = "" AND KeepsMaterial(before, current, mover) THEN summary = summary + TEXT(" No material is lost: the evaluation is positional.")
@@ -1440,7 +1447,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
     ELSE
         AddArrows current, 0, fallbackPlies, toMove, "idea", -1, -1
     END IF
-    summary = prefix + Assessment(afterEval) + ThreatText(current, played, "idea")
+    summary = prefix + Assessment(afterEval) + ReturnText(before, played, current, FALSE) + ThreatText(current, played, "idea")
     IF concreteText <> "" THEN
         summary = summary + concreteText
     ELSEIF Plies(current) > 0 THEN

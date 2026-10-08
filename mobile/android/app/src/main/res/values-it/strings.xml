@@ -174,5 +174,6 @@
     <string name="explain_and_clears" formatted="false">%1 e libera %2 per %3</string>
     <string name="explain_goes_back_chased" formatted="false">%1 perde tempo: dopo %2, %3 torna indietro, %4.</string>
     <string name="explain_goes_back" formatted="false">%1 perde tempo: %2 torna indietro, %3.</string>
+    <string name="explain_then_goes_back" formatted="false">Poi %1 torna in %2: %3.</string>
     <string name="explain_no_material" formatted="false">" Non si perde materiale: la valutazione è posizionale."</string>
 </resources>

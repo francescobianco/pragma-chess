@@ -679,6 +679,21 @@ private Q_SLOTS:
         });
         QVERIFY(arrival != shown->arrows.cend());
         QCOMPARE(arrival->piece, (Piece{PieceType::Queen, Side::White}));
+
+        // 11.Ng5?! 12.Qh4 h6 13.Nf3: the knight's way back carries it, faint, to
+        // the square it started from.
+        const auto knight = std::find_if(records->cbegin(), records->cend(), [](const ExplainTicks &record) {
+            return record.played && record.played->uci() == QLatin1String("f3g5")
+                && record.expected.join(QLatin1Char('\n')).contains(QLatin1String("goes back"));
+        });
+        QVERIFY(knight != records->cend());
+        const std::optional<MoveExplanation> back = ExplainTicks::lastShown(knight->replay());
+        QVERIFY(back);
+        const auto home = std::find_if(back->arrows.cbegin(), back->arrows.cend(), [](const BoardArrow &arrow) {
+            return arrow.from == BoardState::squareFromName(u"g5") && arrow.to == BoardState::squareFromName(u"f3");
+        });
+        QVERIFY(home != back->arrows.cend());
+        QCOMPARE(home->piece, (Piece{PieceType::Knight, Side::White}));
     }
 
     void replaysRecordedTicks()

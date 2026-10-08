@@ -535,3 +535,8 @@ loses time: after 12…h6, the knight goes back, 13.Nf3", the chasing move,
 its attack and the way back drawn; ThreatText does not say that threat
 again. Recorded: user-feedback.ticks. Still unsaid: the pressure of a
 battery on a piece defended as many times (Qc7 behind Bd6 on f4).
+Then: "an arrow showing the knight going back to its square, to show the
+mistake". The way back carries the piece faint where it lands, the square
+it started from, and the piece going back is said also when the move is no
+error ("Then the knight goes back to f3: 13.Nf3"): with a deeper search
+before the move, 11.Ng5 became a good move on the user's board.

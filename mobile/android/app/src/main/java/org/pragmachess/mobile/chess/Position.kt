@@ -154,7 +154,14 @@ class Position private constructor(
 
     val isCheckmate: Boolean get() = isCheck && legalMoves().isEmpty()
 
-    val isStalemate: Boolean get() = !isCheck && legalMoves().isEmpty()
+    val isStalemate: Boolean get() = hasKings && !isCheck && legalMoves().isEmpty()
+
+    /**
+     * Both kings are on the board. A diagram without them (a text chapter of
+     * a lichess study) can be a game's start, as on the desktop, but has no
+     * legal move and is never given to an engine.
+     */
+    val hasKings: Boolean get() = kingSquare(Side.White) >= 0 && kingSquare(Side.Black) >= 0
 
     /** Pseudo-legal moves: follow the piece rules, may leave the own king in check. */
     private fun pseudoLegalMoves(): List<Move> {
@@ -266,6 +273,7 @@ class Position private constructor(
 
     fun legalMoves(): List<Move> {
         legalCache?.let { return it }
+        if (!hasKings) return emptyList<Move>().also { legalCache = it }
         val legal = pseudoLegalMoves().filter { move ->
             val next = play(move)
             val king = next.kingSquare(sideToMove)

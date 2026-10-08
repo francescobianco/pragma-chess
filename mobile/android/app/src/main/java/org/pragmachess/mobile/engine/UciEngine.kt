@@ -89,6 +89,8 @@ class UciEngine : AutoCloseable {
 
     /** Starts an infinite analysis of [fen] with [executable]; false if it cannot run. */
     fun analyse(executable: File, fen: String): Boolean {
+        // A diagram without both kings is no position an engine can search.
+        if (org.pragmachess.mobile.chess.Position.fromFen(fen)?.hasKings != true) return false
         if (!start(executable)) return false
         stopSearch()
         search = Search(fen, fen.split(' ').getOrNull(1) != "b")

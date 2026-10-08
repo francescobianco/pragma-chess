@@ -215,10 +215,6 @@ tre soglie, rifare la taratura sui casi del documento, aggiornare la guida.
   variabile `PRAGMA_EXPLAIN_RECORD`; un comando (es. nel menu del pannello
   Motore: "Copia i tick di Spiega") porterebbe un caso sbagliato a
   `pragma-explain --replay` senza riavviare.
-- **Android: posizioni senza re.** Il desktop ora accetta come posizione di
-  partenza un diagramma senza re (i capitoli di testo degli studi lichess,
-  `ChessPosition::Kings::Optional`); la `Position` Kotlin no, quindi quei
-  capitoli sul telefono non si aprono. Portare la stessa regola.
 - **Non provato a mano:** Spiega reattivo sul desktop vero (visto solo nei
   test e nella CLI: frecce che cambiano solo quando reggono, matto che non
   riparte) e sul telefono vero (solo test JVM e APK compilate).

@@ -141,4 +141,15 @@ class PositionTest {
         assertEquals("♘xe5+", figurineSan("Nxe5+"))
         assertEquals("e8=♕", figurineSan("e8=Q"))
     }
+
+    /** A diagram without kings opens, as on the desktop, but has no move, no stalemate. */
+    @Test
+    fun readsADiagramWithoutKings() {
+        val diagram = Position.fromFen("8/8/8/3p4/4P3/8/8/8 w - - 0 1")!!
+        assertFalse(diagram.hasKings)
+        assertTrue(diagram.legalMoves().isEmpty())
+        assertFalse(diagram.isStalemate)
+        assertFalse(diagram.isCheckmate)
+        assertTrue(Position.starting().hasKings)
+    }
 }

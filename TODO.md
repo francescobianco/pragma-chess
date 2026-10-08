@@ -202,10 +202,6 @@ tre soglie, rifare la taratura sui casi del documento, aggiornare la guida.
 - **Il tutor reattivo.** `TrainingTutor::judge` chiama ancora `Judge` una
   volta, a fine ricerca della risposta del motore. Con `Tick` anche lì
   l'avviso arriverebbe appena la ricerca mostra il crollo.
-- **Salvare i tick dall'interfaccia.** Oggi si registrano solo con la
-  variabile `PRAGMA_EXPLAIN_RECORD`; un comando (es. nel menu del pannello
-  Motore: "Copia i tick di Spiega") porterebbe un caso sbagliato a
-  `pragma-explain --replay` senza riavviare.
 - **Non provato a mano:** Spiega reattivo sul desktop vero (visto solo nei
   test e nella CLI: frecce che cambiano solo quando reggono, matto che non
   riparte) e sul telefono vero (solo test JVM e APK compilate), compresa la

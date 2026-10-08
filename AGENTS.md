@@ -272,7 +272,8 @@ fixed once, in SMART.
 - **Ticks are recorded and replayed** (`app/ExplainTicks`, pure: one record
   per move, text, with `expect` lines for what must be shown):
   `pragma-explain --record`/`--replay`/`--ticks`, the desktop client with
-  `PRAGMA_EXPLAIN_RECORD=<folder>`. `smart/tests/*.ticks` are cases every
+  `PRAGMA_EXPLAIN_RECORD=<folder>` or Engine ▸ Copy Explain's Ticks (the
+  move explained last, what was shown in comments: `Explainer::recordedTicks`). `smart/tests/*.ticks` are cases every
   client replays (`tst_chessrules::replaysRecordedTicks`, and the Android
   `SmartTest`).
 - **Android** runs the same files with its own interpreter
@@ -315,7 +316,9 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   the line in SAN), Explain (on, verdict, arrows with from/to/kind/number/
   piece, lost pieces, summary, playback), the eye (`peek`: on, the plan
   arrows with `via`), the game's players, the database;
-  `GET /api/explanation`; `GET /api/screenshot` the window as a PNG, taken
+  `GET /api/explanation`; `GET /api/ticks` Explain's ticks of the move
+  explained last (a `.ticks` record, as Engine ▸ Copy Explain's Ticks
+  copies it); `GET /api/screenshot` the window as a PNG, taken
   from inside (`QWidget::grab`: no compositor permission needed — GNOME
   refuses screenshots to other programs).
 - `GET /api/engines` the engines of this computer with their Computing

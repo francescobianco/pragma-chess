@@ -1025,6 +1025,17 @@ void MainWindow::createMenus()
     connect(m_engineChoiceMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildEngineChoiceMenu);
     rebuildEngineChoiceMenu();
     engine->addAction(tr("&Manage Engines…"), this, &MainWindow::manageEngines);
+    engine->addSeparator();
+    // A wrong explanation as a case for pragma-explain --replay and smart/tests.
+    QAction *copyTicks = engine->addAction(tr("&Copy Explain's Ticks"), this, [this] {
+        const QString ticks = m_explainer->recordedTicks();
+        if (ticks.isEmpty())
+            statusBar()->showMessage(tr("Explain has not explained a move yet"), 4000);
+        else
+            copyText(ticks, tr("Explain's ticks copied: paste them into a .ticks file to replay them"));
+    });
+    copyTicks->setToolTip(tr("Copy what the engine told Explain about the move, to replay it with pragma-explain --replay"));
+    engine->setToolTipsVisible(true);
 
     QMenu *database = menuBar()->addMenu(tr("&Database"));
     database->addAction(m_newDatabaseAction);

@@ -1,6 +1,7 @@
 #include "DesktopApi.h"
 
 #include "MainWindow.h"
+#include "app/Explainer.h"
 #include "app/GameSession.h"
 #include "app/Pgn.h"
 #include "app/api/LocalHttpServer.h"
@@ -420,6 +421,10 @@ void DesktopApi::addRoutes()
             w->selectEngine(id);
         }
         return json(engines());
+    });
+    m_server->route(QStringLiteral("GET"), QStringLiteral("/api/ticks"), [w](const Request &) {
+        // Explain's ticks of the move explained last, as pragma-explain --replay reads them.
+        return Response{200, "text/plain; charset=utf-8", w->m_explainer->recordedTicks().toUtf8()};
     });
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/database"), [w, state](const Request &request) {
         // Opens a database file, as Database ▸ Open Database.

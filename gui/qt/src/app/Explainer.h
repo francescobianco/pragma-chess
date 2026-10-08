@@ -37,6 +37,9 @@ public:
     void setLiveEvaluation(const EngineEvaluation &evaluation);
     /// Who asks (ExplanationInput::viewer); a change redraws the explanation.
     void setViewer(std::optional<Side> viewer);
+    /// The ticks of the move explained last, as `pragma-explain --replay`
+    /// reads them, what was shown in comments above; empty when none.
+    QString recordedTicks() const;
     /// A line of an analysis of `position`, which need not be on the board:
     /// the position before the move, searched so that the move can be judged.
     void setEvaluation(const ChessPosition &position, const EngineEvaluation &evaluation);
@@ -58,6 +61,8 @@ private:
     void show(const MoveExplanation &explanation);
     /// Writes the ticks of the move explained into PRAGMA_EXPLAIN_RECORD, if set.
     void record(const ExplanationInput &input);
+    /// The key of the move recorded last (recordedTicks).
+    QString m_recordingKey;
 
     bool m_enabled = false;
     std::optional<Side> m_viewer;

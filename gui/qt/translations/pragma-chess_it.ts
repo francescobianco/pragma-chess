@@ -3358,6 +3358,22 @@ non è su questo computer.</translation>
         <source>Variations</source>
         <translation>Varianti</translation>
     </message>
+    <message>
+        <source>&amp;Copy Explain&apos;s Ticks</source>
+        <translation>&amp;Copia i tick di Spiega</translation>
+    </message>
+    <message>
+        <source>Explain has not explained a move yet</source>
+        <translation>Spiega non ha ancora spiegato una mossa</translation>
+    </message>
+    <message>
+        <source>Explain&apos;s ticks copied: paste them into a .ticks file to replay them</source>
+        <translation>Tick di Spiega copiati: incollali in un file .ticks per rigiocarli</translation>
+    </message>
+    <message>
+        <source>Copy what the engine told Explain about the move, to replay it with pragma-explain --replay</source>
+        <translation>Copia quello che il motore ha detto a Spiega sulla mossa, per rigiocarlo con pragma-explain --replay</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

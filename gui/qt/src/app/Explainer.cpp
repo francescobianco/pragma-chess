@@ -115,16 +115,16 @@ void Explainer::tick()
 
 void Explainer::record(const ExplanationInput &input)
 {
-    // PRAGMA_EXPLAIN_RECORD=<folder>: every move explained leaves its ticks
+    // The ticks of every move explained are kept (Engine ▸ Copy Explain's
+    // Ticks); with PRAGMA_EXPLAIN_RECORD=<folder> they are also written
     // there, to replay with pragma-explain --replay (docs/tech/explain-tuning.md).
     const QString folder = qEnvironmentVariable("PRAGMA_EXPLAIN_RECORD");
-    if (folder.isEmpty())
-        return;
     const QString key = (input.before ? input.before->positionKey() : QString()) + QLatin1Char('|')
         + input.after.positionKey();
     // One record per move, kept when the board leaves it and comes back.
     if (m_recordings.size() >= kMaxRememberedEvaluations && !m_recordings.contains(key))
         m_recordings.clear();
+    m_recordingKey = key;
     ExplainTicks &recording = m_recordings[key];
     recording.before = input.before;
     recording.played = input.played;
@@ -137,11 +137,28 @@ void Explainer::record(const ExplanationInput &input)
     };
     if (recording.ticks.isEmpty() || !same(recording.ticks.last(), input.afterEvaluation))
         recording.ticks << input.afterEvaluation;
+    if (folder.isEmpty())
+        return;
     const QString name = QString::fromLatin1(QCryptographicHash::hash(key.toUtf8(), QCryptographicHash::Sha1).toHex().left(12));
     QDir().mkpath(folder);
     QFile file(QDir(folder).filePath(name + QStringLiteral(".ticks")));
     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate))
         file.write(recording.toText().toUtf8());
+}
+
+QString Explainer::recordedTicks() const
+{
+    const auto found = m_recordings.constFind(m_recordingKey);
+    if (found == m_recordings.cend())
+        return {};
+    // What was shown, as comments (in the interface's language: the record's
+    // expectations are written in English, once the right answer is known).
+    QString shown;
+    if (m_shown) {
+        for (const QString &line : ExplainTicks::outcome(*m_shown))
+            shown += QStringLiteral("# shown: ") + line + QLatin1Char('\n');
+    }
+    return shown + found->toText();
 }
 
 void Explainer::show(const MoveExplanation &explanation)

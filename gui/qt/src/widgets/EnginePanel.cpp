@@ -260,8 +260,10 @@ void EnginePanel::setLineHidden(bool hidden)
 bool EnginePanel::eventFilter(QObject *watched, QEvent *event)
 {
     if (watched == m_peek && m_peek->isEnabled()) {
-        const auto *mouse = static_cast<QMouseEvent *>(event);
-        const bool left = event->isPointerEvent() && mouse->button() == Qt::LeftButton;
+        // Only a mouse event is read as one.
+        const bool mouseEvent = event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonRelease
+            || event->type() == QEvent::MouseButtonDblClick;
+        const bool left = mouseEvent && static_cast<QMouseEvent *>(event)->button() == Qt::LeftButton;
         // Held down, the board shows the end of the line; let go, it comes
         // back. A quick second press comes as a double click: a press too.
         const bool press = event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonDblClick;

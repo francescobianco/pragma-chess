@@ -502,6 +502,14 @@ and passes CMake its prefix and its keg-only OpenSSL; `dev-watch.sh` watches
 with fswatch there, and the app is a bundle
 (`build/gui/qt/pragma-chess.app/Contents/MacOS/pragma-chess`).
 
+A crash (SIGSEGV, SIGABRT — glibc's "corrupted size vs. prev_size" —, SIGBUS,
+SIGFPE, SIGILL) prints its backtrace on the terminal before the process goes
+(`main.cpp`, `installCrashHandler`; function names in Debug builds, linked
+`-rdynamic`; an offset `pragma-chess(+0x8fb0d)` resolves with
+`addr2line -f -C -e build/gui/qt/pragma-chess 0x8fb0d`). To hunt memory
+errors, configure a build with `-fsanitize=address` and drive it through
+the development API.
+
 `make start` never exits — don't run it from an agent unless it is backgrounded.
 To verify a change compiles, use `make build` (or `cmake --build build`).
 While the user's `make start` is running it rebuilds `build/` on every change:

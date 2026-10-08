@@ -11,12 +11,41 @@
 #include <QSocketNotifier>
 
 #include <csignal>
+#ifdef __GLIBC__
+#include <execinfo.h>
+#endif
 #include <sys/socket.h>
 #include <unistd.h>
 
 namespace {
 
 int signalFds[2];
+
+#ifdef __GLIBC__
+// A crash (a bad access, or glibc aborting on a corrupted heap: "corrupted
+// size vs. prev_size") prints where it happened on the terminal before the
+// process goes, so it can be found without a core dump.
+void onCrash(int signal)
+{
+    static const char header[] = "\nPragma Chess crashed, signal ";
+    [[maybe_unused]] ssize_t written = ::write(STDERR_FILENO, header, sizeof(header) - 1);
+    char number[4] = {char('0' + signal / 10), char('0' + signal % 10), '\n', 0};
+    written = ::write(STDERR_FILENO, number, 3);
+    void *frames[64];
+    const int count = ::backtrace(frames, 64);
+    ::backtrace_symbols_fd(frames, count, STDERR_FILENO);
+    std::signal(signal, SIG_DFL);
+    std::raise(signal);
+}
+
+void installCrashHandler()
+{
+    void *warm[1];
+    ::backtrace(warm, 1); // Loads what backtrace() needs now, not in the handler.
+    for (int signal : {SIGSEGV, SIGABRT, SIGBUS, SIGFPE, SIGILL})
+        std::signal(signal, onCrash);
+}
+#endif
 
 void onTerminationSignal(int)
 {
@@ -56,6 +85,9 @@ int main(int argc, char *argv[])
 {
     // Menu entries are text only, as in GNOME and macOS; icons stay in toolbars.
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
+#if defined(Q_OS_UNIX) && defined(__GLIBC__)
+    installCrashHandler();
+#endif
     QApplication app(argc, argv);
     // Qt 6.4's Wayland plugin asks the compositor to activate the focus window
     // every time the focus object changes, so also for every menu that opens.

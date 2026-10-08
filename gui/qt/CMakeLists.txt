@@ -579,6 +579,8 @@ target_compile_definitions(pragma-chess PRIVATE
 )
 
 target_compile_options(pragma-chess PRIVATE ${PRAGMA_WARNINGS})
+# A crash prints its backtrace (main.cpp): with the app's own function names in Debug builds.
+target_link_options(pragma-chess PRIVATE $<$<AND:$<PLATFORM_ID:Linux>,$<CONFIG:Debug>>:-rdynamic>)
 
 set_target_properties(pragma-chess PROPERTIES
     WIN32_EXECUTABLE ON

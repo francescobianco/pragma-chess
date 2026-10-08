@@ -28,6 +28,14 @@ data class GameRecord(
     val movesUci: String = "",
     val uid: String? = null,
     val modified: String = "",
+    /**
+     * The desktop's columns the phone does not read — the variations, the
+     * other PGN tags, the comments — carried as they are, so that a game
+     * merged here keeps them; null when not loaded, and then not written.
+     */
+    val variations: String? = null,
+    val tags: String? = null,
+    val comments: String? = null,
 ) {
     val plyCount: Int get() = movesUci.split(' ').count { it.isNotBlank() }
 
@@ -48,6 +56,11 @@ data class GameRecord(
         .put("start_fen", startFen)
         .put("moves_san", movesSan)
         .put("moves_uci", movesUci)
+        .apply {
+            variations?.let { put("variations", it) }
+            tags?.let { put("tags", it) }
+            comments?.let { put("comments", it) }
+        }
 
     companion object {
         val RESULTS = listOf("*", "1-0", "0-1", "1/2-1/2")
@@ -70,6 +83,9 @@ data class GameRecord(
             movesUci = json.optString("moves_uci"),
             uid = json.optString("uid").ifEmpty { null },
             modified = json.optString("modified"),
+            variations = if (json.has("variations")) json.optString("variations") else null,
+            tags = if (json.has("tags")) json.optString("tags") else null,
+            comments = if (json.has("comments")) json.optString("comments") else null,
         )
     }
 }

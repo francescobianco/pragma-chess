@@ -3,6 +3,9 @@
 #include "app/ChessPosition.h"
 #include "app/GameDatabase.h"
 #include "app/GameIdentity.h"
+#include "app/GameVariations.h"
+#include "app/MoveComment.h"
+#include "app/Pgn.h"
 #include "app/Reconcile.h"
 
 #include <QDateTime>
@@ -99,6 +102,11 @@ std::optional<QList<ImportedGame>> parse(const QJsonArray &games, QString *error
             position->play(*move);
         }
         game.plyCount = int(game.moves.size());
+        // What the phone carries without reading it (the desktop's columns):
+        // the variations, the other tags and, on the moves, the comments.
+        game.variations = GameVariations::fromText(object.value(QStringLiteral("variations")).toString());
+        game.tags = Pgn::tagsFromText(object.value(QStringLiteral("tags")).toString());
+        MoveComment::fromJson(game, object.value(QStringLiteral("comments")).toString());
         if (game.uid.isEmpty())
             game.uid = GameIdentity::uid(game);
         if (imported.externalId.isEmpty())

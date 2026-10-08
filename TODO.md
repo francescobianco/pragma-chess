@@ -133,9 +133,6 @@ priorità; se non basta, l'unica via è sospendere il processo a intermittenza
 - **Allenamento con una partita del database aperta**: le risposte del
   motore ora finiscono nelle varianti della partita salvata (prima la
   partita si staccava). Decidere se va bene.
-- **Il telefono** mostra la linea principale e, se riscrive una partita,
-  perde le varianti (`PdbDatabase.kt`, `put("moves_san", …)` senza
-  `variations`): da sistemare quando si tocca l'app Android.
 - Riferimento visivo indicato dall'utente: la vista mosse degli studi lichess
   (blocchi `interrupt` sotto la mossa, varianti `inline` tra parentesi,
   `move.empty` per riprendere la numerazione del nero). La nostra vista fa la

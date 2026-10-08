@@ -46,4 +46,19 @@ class GameIdentityTest {
         assertTrue(Regex("""\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z""").matches(now))
         assertTrue("" < now)
     }
+
+    /** The desktop's columns the phone does not read travel through it as they are. */
+    @Test
+    fun carriesTheDesktopsColumns() {
+        val game = GameRecord(GameHeaders(white = "A", black = "B"), movesUci = "e2e4", uid = "u",
+            variations = "(1 d4 )", tags = "[StudyName \"S\"]", comments = "{}")
+        val back = GameRecord.fromJson(game.toJson())
+        assertEquals(game.variations, back.variations)
+        assertEquals(game.tags, back.tags)
+        assertEquals(game.comments, back.comments)
+        // Not loaded: not sent, and not written over what the file has.
+        val bare = GameRecord.fromJson(GameRecord(GameHeaders(white = "A")).toJson())
+        assertEquals(null, bare.variations)
+        assertEquals(GameIdentity.uid(game), GameIdentity.uid(game.copy(variations = null))) // Not part of the uid.
+    }
 }

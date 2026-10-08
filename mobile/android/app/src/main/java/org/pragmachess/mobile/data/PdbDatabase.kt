@@ -117,6 +117,10 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
         put("moves_san", game.movesSan)
         put("moves_uci", game.movesUci)
         put("modified", game.modified)
+        // Written only when loaded: a game edited on the phone keeps the desktop's.
+        game.variations?.let { put("variations", it) }
+        game.tags?.let { put("tags", it) }
+        game.comments?.let { put("comments", it) }
     }
 
     private fun uidTaken(uid: String): Boolean =
@@ -272,7 +276,7 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
     /** Every game, whole, with uid and revision: what a merge compares. */
     fun allGames(): List<GameRecord> {
         val sql = "SELECT w.name, b.name, e.name, s.name, g.date, g.round, g.result, g.white_elo, g.black_elo," +
-            " g.eco, g.start_fen, g.moves_san, g.moves_uci, g.uid, g.modified FROM games g" +
+            " g.eco, g.start_fen, g.moves_san, g.moves_uci, g.uid, g.modified, g.variations, g.tags, g.comments FROM games g" +
             " LEFT JOIN players w ON w.id = g.white_id LEFT JOIN players b ON b.id = g.black_id" +
             " LEFT JOIN events e ON e.id = g.event_id LEFT JOIN sites s ON s.id = g.site_id ORDER BY g.id"
         return db.rawQuery(sql, null).use { c ->
@@ -284,6 +288,7 @@ class PdbDatabase private constructor(val file: File, private val db: SQLiteData
                             if (c.isNull(7)) 0 else c.getInt(7), if (c.isNull(8)) 0 else c.getInt(8), text(9)),
                         startFen = text(10), movesSan = text(11), movesUci = text(12),
                         uid = text(13).ifEmpty { null }, modified = text(14),
+                        variations = text(15), tags = text(16), comments = text(17),
                     ))
                 }
             }

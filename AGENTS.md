@@ -582,13 +582,14 @@ cargo run -p chessdb-cli -- <args>
   "Trash" below. Version 7 added `games.variations`, the variations of the
   game as `GameVariations::toText` writes them; the main line stays in
   `moves_san`/`moves_uci`, so the indexes and the phone read it as before
-  (the phone shows the main line and drops the variations of a game it
-  rewrites). Version 8 added `games.tags`, the PGN tags with no column of
+  (the phone shows the main line; it carries `variations`, `tags` and
+  `comments` unread — `GameRecord`'s nullable fields, written only when loaded
+  — through its merges and the phone link, so none is lost). Version 8 added `games.tags`, the PGN tags with no column of
   their own as PGN writes them (`[StudyName "…"]` one per line,
   `Pgn::tagsText`, `GameRecord::tags`), and `games.comments`, every comment
   of the game as JSON by line path and ply (`MoveComment::toJson`:
   `MoveRecord::comment`, the `startComment` of the game and of each
-  variation). The phone keeps both columns and ignores them.
+  variation). The phone carries both columns unread (see variations above).
 
 ## Moves, variations, annotations and the games list
 

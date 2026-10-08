@@ -30,6 +30,24 @@ int LobbyRoom::players() const
     return int(std::count_if(seats.cbegin(), seats.cend(), [](const QString &seat) { return !seat.isEmpty(); }));
 }
 
+bool LobbyRoom::isFinished() const
+{
+    return !isJoinable()
+           && std::all_of(games.cbegin(), games.cend(), [](const LobbyGame &game) { return game.isOver(); });
+}
+
+QStringList LobbyRoom::winners() const
+{
+    QStringList winners;
+    if (!isFinished())
+        return winners;
+    for (const LobbyStanding &line : standings()) {
+        if (line.place == 1)
+            winners << line.player;
+    }
+    return winners;
+}
+
 bool LobbyGame::play(const QString &player, const QString &uci)
 {
     if (isOver() || toMove() != player || uci.isEmpty())
@@ -263,8 +281,27 @@ void Lobby::offer()
     }
 }
 
+QHash<QString, int> Lobby::medals() const
+{
+    QHash<QString, int> medals;
+    for (const LobbyRoom &room : m_rooms) {
+        for (const QString &winner : room.winners())
+            ++medals[winner];
+    }
+    return medals;
+}
+
+int Lobby::roomsInPlay(const QString &player) const
+{
+    return int(std::count_if(m_rooms.cbegin(), m_rooms.cend(), [&](const LobbyRoom &room) {
+        return room.isSeated(player) && !room.isFinished();
+    }));
+}
+
 int Lobby::join(int index, const QString &player)
 {
+    if (!mayJoin(player))
+        return -1;
     if (index < 0) {
         const qsizetype offered = -1 - qsizetype(index);
         if (offered >= m_offered.size())

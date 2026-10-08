@@ -121,7 +121,7 @@ QString headingStyle(Paragraph::Kind kind)
 /// A paragraph's text as the view shows it: each line a paragraph of a book,
 /// justified, its first line indented, a quarter of a line apart. A title's
 /// and a subtitle's lines are centred, not indented.
-QString paragraphHtml(const Paragraph &paragraph, const QFont &book)
+QString paragraphHtml(const Paragraph &paragraph, const QString &language, const QFont &book)
 {
     const QFont font = kindFont(book, paragraph.kind);
     const bool heading = paragraph.kind != Paragraph::Kind::Text;
@@ -130,7 +130,7 @@ QString paragraphHtml(const Paragraph &paragraph, const QFont &book)
     const QString face = heading ? QStringLiteral(" font-size: %1pt; font-weight: 700;").arg(font.pointSizeF()) : QString();
     QString html;
     // An empty paragraph (one just inserted) still has a line to write on.
-    const QString &text = paragraph.text;
+    const QString text = paragraph.text.text(language);
     for (const QString &line : (text.isEmpty() ? QStringList{QString()} : text.split(QLatin1Char('\n')))) {
         html += QStringLiteral("<p align=\"%1\" style=\"margin: 0; text-indent: %2px; line-height: %3%;%4\">%5</p>")
                     .arg(align)
@@ -611,7 +611,7 @@ void MoveTreeView::editParagraph(int game, int index)
         finishEditing();
     m_editing = Editing{game, index, {}, -1};
     const Paragraph &paragraph = m_book->chapter().games.at(game).paragraphs.at(index);
-    m_editText = paragraph.text;
+    m_editText = paragraph.text.text(m_book->language); // Another language's, to translate, when this one has none.
     // The editor takes the face of what it writes: a title, a subtitle, a paragraph.
     auto *editor = static_cast<ParagraphEditor *>(m_editor);
     editor->kind = paragraph.kind;
@@ -808,7 +808,7 @@ void MoveTreeView::rebuild()
         const GameRecord &game = g == current ? m_session->game() : m_book->chapter().games.at(g).game;
         QList<Paragraph> paragraphs = m_book ? m_book->chapter().games.at(g).paragraphs : QList<Paragraph>();
         if (m_editing.game == g && !m_editing.isComment() && m_editing.paragraph < paragraphs.size())
-            paragraphs[m_editing.paragraph].text = m_editText; // As it is being written.
+            paragraphs[m_editing.paragraph].text.set(m_book->language, m_editText); // As it is being written.
         // The comment being written, if it is in this game's main line.
         const int editedComment = m_editing.game == g && m_editing.isComment() && m_editing.path.isEmpty()
             ? m_editing.comment
@@ -861,7 +861,7 @@ void MoveTreeView::rebuild()
                 if (m_editing.game == g && m_editing.paragraph == p)
                     m_editRow = row;
                 html += QStringLiteral("<tr><td colspan=\"3\" class=\"par\" style=\"%1\">%2</td></tr>")
-                            .arg(bookStyle + headingStyle(paragraphs.at(p).kind), paragraphHtml(paragraphs.at(p), book));
+                            .arg(bookStyle + headingStyle(paragraphs.at(p).kind), paragraphHtml(paragraphs.at(p), m_book->language, book));
             }
         };
         // A comment of the main line: a row under its move, in italics,
@@ -965,7 +965,7 @@ void MoveTreeView::rebuild()
                 ++row;
                 m_paragraphRows.insert(row, {g, p});
                 html += QStringLiteral("<tr><td colspan=\"3\" class=\"par\" style=\"%1\">%2</td></tr>")
-                            .arg(bookStyle + headingStyle(paragraphs.at(p).kind), paragraphHtml(paragraphs.at(p), book));
+                            .arg(bookStyle + headingStyle(paragraphs.at(p).kind), paragraphHtml(paragraphs.at(p), m_book->language, book));
             }
         }
     }

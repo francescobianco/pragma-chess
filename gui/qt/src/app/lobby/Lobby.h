@@ -84,10 +84,16 @@ struct LobbyRoom {
     int players() const;
     bool isJoinable() const { return players() < kSeats; }
     bool isSeated(const QString &player) const { return seats.contains(player); }
+    /// The tournament is over: every seat taken and every game finished.
+    /// Until then a player seated here plays in it, their own games over or not.
+    bool isFinished() const;
     /// The indexes of the games waiting for `player`'s move.
     QList<int> gamesWaitingFor(const QString &player) const;
     /// The seated players by points, then wins, then name; finished games only.
     QList<LobbyStanding> standings() const;
+    /// Who won the tournament: the first of the standings once it is
+    /// finished, all of them when they share the first place; none before.
+    QStringList winners() const;
     /// Seats `player` at the first free seat and adds their games with each
     /// player already there, the newcomer's White game first. False when the
     /// room is full or they sit there already.
@@ -103,6 +109,10 @@ struct LobbyRoom {
 class Lobby {
 public:
     static constexpr int kMinJoinableRooms = 2;
+    /// The tournaments a player may play in at once: one more seat waits
+    /// until one of them is finished (LobbyRoom::isFinished). The ledger's
+    /// fold applies it to every join and open (LobbyLedger).
+    static constexpr int kMaxRoomsInPlay = 2;
 
     /// Example rooms with games under way: two with free seats, two full.
     /// `me`, when given, sits in two of them, one with two games waiting for
@@ -127,9 +137,17 @@ public:
     /// same until taken or no longer needed.
     const QList<quint32> &offeredRooms() const { return m_offered; }
     int newRooms() const { return int(m_offered.size()); }
+    /// The tournaments each player won (LobbyRoom::winners), by player: their
+    /// medal, shown by their name for good, since the ledger keeps the rooms.
+    QHash<QString, int> medals() const;
+    /// The rooms `player` sits in that are not finished.
+    int roomsInPlay(const QString &player) const;
+    /// `player` may take a seat somewhere: they play in fewer than
+    /// kMaxRoomsInPlay tournaments.
+    bool mayJoin(const QString &player) const { return roomsInPlay(player) < kMaxRoomsInPlay; }
     /// Sits `player` in room `index`; a negative index, -1 - k, opens
     /// offered room k for them. Returns the room's index, or -1 when they
-    /// could not sit.
+    /// could not sit (the room is full, or they may not join, `mayJoin`).
     int join(int index, const QString &player);
 
 private:

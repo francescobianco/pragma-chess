@@ -1625,6 +1625,20 @@ Il Nero ha catturato: %2</translation>
             <numerusform>%n nodi collegati</numerusform>
         </translation>
     </message>
+    <message numerus="yes">
+        <source>You already play in %n tournament(s): you can take a seat here once one of them is over.</source>
+        <translation>
+            <numerusform>Giochi già %n torneo: potrai sederti qui quando uno dei due sarà finito.</numerusform>
+            <numerusform>Giochi già %n tornei: potrai sederti qui quando uno di essi sarà finito.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Won %n tournament(s)</source>
+        <translation>
+            <numerusform>Ha vinto %n torneo</numerusform>
+            <numerusform>Ha vinto %n tornei</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>LobbyPlans</name>
@@ -4492,6 +4506,26 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>Shown in the title bar in place of the file&apos;s name, followed by the chapter when the project has more than one. Empty, the file&apos;s name is shown.</source>
         <translation>Compare nella barra del titolo al posto del nome del file, seguito dal capitolo quando il progetto ne ha più di uno. Se è vuoto, si vede il nome del file.</translation>
+    </message>
+    <message>
+        <source>&amp;Multilingual project</source>
+        <translation>Progetto &amp;multilingua</translation>
+    </message>
+    <message>
+        <source>&amp;Language of the texts:</source>
+        <translation>&amp;Lingua dei testi:</translation>
+    </message>
+    <message>
+        <source>A multilingual project has its name, titles, subtitles and paragraphs in several languages, its chapters and games the same in all: they are shown and written in the language chosen here. A text not written in it is shown in English, or in another language that has it. A project opens in the language of the interface; one that is not multilingual stays in it.</source>
+        <translation>Un progetto multilingua ha il nome, i titoli, i sottotitoli e i paragrafi in più lingue, con gli stessi capitoli e le stesse partite in tutte: si vedono e si scrivono nella lingua scelta qui. Un testo non scritto in questa lingua si vede in inglese, o in un&apos;altra lingua che lo ha. Un progetto si apre nella lingua dell&apos;interfaccia; uno che non è multilingua resta in quella.</translation>
+    </message>
+    <message>
+        <source>Not saved yet</source>
+        <translation>Non ancora salvato</translation>
+    </message>
+    <message>
+        <source>File:</source>
+        <translation>File:</translation>
     </message>
 </context>
 <context>

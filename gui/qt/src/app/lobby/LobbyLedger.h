@@ -38,8 +38,12 @@ struct LedgerEvent {
 /// - `open` {seed, name}: a room, named by the seed, with its author in the
 ///   first seat; its id is the event's id.
 /// - `join` {room, name}: the author takes the next free seat, if they do
-///   not sit there already; later joins of a full room are left out. Joins
-///   are read after every opening, whatever their times.
+///   not sit there already; later joins of a full room are left out. A join
+///   is read after its room's opening, whatever their times.
+/// - A player sits in at most Lobby::kMaxRoomsInPlay rooms not finished at
+///   once: an `open` or `join` beyond that is left out (a refused `open`
+///   makes no room). A room is finished for a seat taken later than the
+///   events that filled it and ended its last game.
 /// - `move` {room, white, black, ply, uci}: the move of that ply in the game
 ///   white plays against black there, when it is its author's turn and the
 ///   move is legal; of two such moves for one ply (two devices of the same

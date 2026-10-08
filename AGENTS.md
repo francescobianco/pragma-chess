@@ -818,12 +818,29 @@ a chapter always has a game. In other tools this is a study or a chess book.
   Links are `mv:game:path/ply` (a scheme of their own: "0:…" is no URL, and the click would come empty); another game's moves emit `gameMoveActivated`.
 - File ▸ New Chapter…, Switch Chapter (with Manage Chapters… under its list)
   (`dialogs/ManageChaptersDialog`) and Project Settings…
-  (`dialogs/ProjectSettingsDialog`: the project's `name`, shown in the
+  (`dialogs/ProjectSettingsDialog`: the file's absolute path, read-only; the project's `name`, shown in the
   title bar in place of the file's, then the chapter open as soon as the
   project has chapters, and no more when it is back without:
   "Name* - Chapter - Pragma Chess").
-- In the `.pch` (format 2) `chapters` holds `current` and the `list`:
-  each chapter its `title`, `game`, `ply`, `path` (the variation the board is in, GameSession::path, written only off the main line: the project opens again on a move inside a variation) and `games`, each game its uid
+- **Multilingual projects** (`app/LocalizedText`, pure, unit-tested): the
+  project's name, the chapters' titles and the paragraphs (`Paragraph::text`,
+  `Chapter::title`, `Project::name`) are a `LocalizedText`, a text per
+  language (`LocalizedText::languages()`: en, it), the structure one for
+  all. `ChapterBook::language` is the one shown and written: the
+  interface's when a project opens (`MainWindow::contentLanguage`); another
+  can be chosen in Project Settings only when the project is flagged
+  Multilingual project (`Project::multilingual`, `multilingual: true`). A
+  text missing in it is shown in English, then in another language that has
+  it; a text shown from another language and left unchanged is not written
+  as a translation. Emptying a paragraph removes it in every language.
+- **Projects we distribute** are `resources/projects/*.pch` (`:/projects`),
+  copied once into the Projects folder at start
+  (`MainWindow::seedDistributedProjects`, `distributed/project/<name>/seeded`:
+  one the user deleted is not brought back). They name no database: a
+  project without one keeps the database open (`applyProject`).
+- In the `.pch` (format 3; 2 had the texts as plain strings, read in the
+  interface's language) `chapters` holds `current` and the `list`:
+  each chapter its `title` (by language, `{en: …, it: …}`, as `name` and a paragraph's `text`), `game`, `ply`, `path` (the variation the board is in, GameSession::path, written only off the main line: the project opens again on a move inside a variation) and `games`, each game its uid
   when stored plus its content (header, `fen`, `moves`, `annotations`,
   `variations`) and `paragraphs` (`ply`, `text`, and `kind` for a title or a subtitle). A format 1 project has no chapters: its
   one game (`game:` section) becomes the first chapter when it is opened.
@@ -1435,7 +1452,12 @@ it**: the rules of the ledger are a protocol every client must apply alike.
   that makes the rooms — a function of the set of events, not of their
   order (opens, then joins in (created_at, id) order, moves by ply with the
   first legal one of the player to move counting, resignations, mate and
-  stalemate). `LobbyPlans`: the user's plan read off the board's tree (their
+  stalemate; a player sits in at most `Lobby::kMaxRoomsInPlay`, two, rooms
+  not finished — full, every game over — at once: refused in the fold, by
+  the node before signing and in the window, `Lobby::mayJoin`); whoever is
+  first in a finished room (`LobbyRoom::winners`, level players share it)
+  has a medal for good, a yellow dot after their name in the lobby window
+  (`Lobby::medals`, the tables' `kMedalRole`). `LobbyPlans`: the user's plan read off the board's tree (their
   moves are answers, the opponent's moves and variations the cases), and
   the board's game for a lobby game (uid `lobby:<room>:<white>:<black>`).
   `LobbyService` is what the window knows.

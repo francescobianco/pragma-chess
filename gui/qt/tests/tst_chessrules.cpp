@@ -84,6 +84,12 @@
 
 namespace {
 
+/// A project's text written in English.
+LocalizedText en(const QString &text)
+{
+    return LocalizedText(QStringLiteral("en"), text);
+}
+
 qint64 perft(const ChessPosition &position, int depth)
 {
     if (depth == 0)
@@ -1272,6 +1278,93 @@ QString writeChessBaseFixture(const QString &dir)
             QCOMPARE(mate.result, QStringLiteral("0-1"));
             QCOMPARE(r.games.at(r.indexOfGame(carol, dave)).result, QStringLiteral("*"));
         }
+    }
+
+    void limitsTheTournamentsAPlayerPlaysIn()
+    {
+        int serial = 0;
+        const auto key = [](char c) { return QString(64, QLatin1Char(c)); };
+        const QString alice = key('a'), bob = key('b'), carol = key('c'), dave = key('d'), erin = key('e');
+        const auto event = [&](const QString &author, qint64 at, const QJsonObject &content) {
+            LedgerEvent e;
+            e.id = QStringLiteral("%1").arg(++serial, 64, 10, QLatin1Char('0'));
+            e.author = author;
+            e.createdAt = at;
+            e.content = content;
+            return e;
+        };
+        QList<LedgerEvent> events;
+        const LedgerEvent first = event(alice, 100, LobbyLedger::openContent(1, QString()));
+        events << first << event(bob, 101, LobbyLedger::joinContent(first.id, QString()))
+               << event(carol, 102, LobbyLedger::joinContent(first.id, QString()))
+               << event(dave, 103, LobbyLedger::joinContent(first.id, QString()));
+        const LedgerEvent second = event(alice, 110, LobbyLedger::openContent(2, QString()));
+        // Dave's join bears a time before the opening: it is read right after it.
+        events << second << event(dave, 105, LobbyLedger::joinContent(second.id, QString()));
+        const LedgerEvent third = event(alice, 120, LobbyLedger::openContent(3, QString())); // A third: refused.
+        events << third << event(erin, 125, LobbyLedger::joinContent(third.id, QString())); // No such room.
+        const LedgerEvent fourth = event(erin, 130, LobbyLedger::openContent(4, QString()));
+        events << fourth << event(alice, 140, LobbyLedger::joinContent(fourth.id, QString())); // Two in play.
+        events << event(bob, 150, LobbyLedger::joinContent(second.id, QString()));
+        events << event(bob, 160, LobbyLedger::joinContent(fourth.id, QString())); // Refused, whatever ends later.
+        // Every game of the first room ends: its white resigns.
+        const QStringList players{alice, bob, carol, dave};
+        qint64 at = 200;
+        for (const QString &white : players) {
+            for (const QString &black : players) {
+                if (white != black)
+                    events << event(white, at++, LobbyLedger::resignContent(first.id, white, black));
+            }
+        }
+        events << event(alice, 300, LobbyLedger::joinContent(fourth.id, QString())); // The first one is over.
+
+        for (int round = 0; round < 2; ++round) {
+            LobbyLedger ledger;
+            QList<LedgerEvent> shuffled = events;
+            if (round == 1)
+                std::reverse(shuffled.begin(), shuffled.end());
+            for (const LedgerEvent &e : std::as_const(shuffled))
+                QVERIFY(ledger.add(e));
+            const QList<LobbyRoom> rooms = ledger.rooms();
+            QCOMPARE(rooms.size(), 3);
+            QCOMPARE(rooms.at(0).id, first.id);
+            QVERIFY(rooms.at(0).isFinished());
+            QCOMPARE(rooms.at(1).id, second.id);
+            QCOMPARE(rooms.at(1).seats.mid(0, 3), (QStringList{alice, dave, bob}));
+            QCOMPARE(rooms.at(2).id, fourth.id);
+            QCOMPARE(rooms.at(2).seats.mid(0, 2), (QStringList{erin, alice}));
+            QCOMPARE(rooms.at(2).players(), 2);
+
+            const Lobby lobby = Lobby::withRooms(rooms);
+            QCOMPARE(lobby.roomsInPlay(alice), 2);
+            QVERIFY(!lobby.mayJoin(alice));
+            QVERIFY(lobby.mayJoin(carol));
+        }
+
+        // The winner of a finished tournament keeps a medal; level players share it.
+        LobbyRoom won;
+        for (const char *player : {"A", "B", "C", "D"})
+            won.seat(QString::fromLatin1(player));
+        for (LobbyGame &game : won.games)
+            game.result = game.involves(QStringLiteral("A")) ? (game.white == QStringLiteral("A") ? QStringLiteral("1-0") : QStringLiteral("0-1"))
+                                                             : QStringLiteral("1/2-1/2");
+        won.games[0].result = QStringLiteral("*");
+        QVERIFY(won.winners().isEmpty()); // Not finished: no medal yet.
+        won.games[0].result = won.games[0].white == QStringLiteral("A") ? QStringLiteral("1-0") : QStringLiteral("0-1");
+        QCOMPARE(won.winners(), QStringList{QStringLiteral("A")});
+        LobbyRoom shared = won;
+        for (LobbyGame &game : shared.games)
+            game.result = QStringLiteral("1/2-1/2");
+        QCOMPARE(shared.winners().size(), 4);
+        const Lobby medals = Lobby::withRooms({won, shared});
+        QCOMPARE(medals.medals().value(QStringLiteral("A")), 2);
+        QCOMPARE(medals.medals().value(QStringLiteral("B")), 1);
+
+        // The model refuses a third seat too.
+        Lobby mine = Lobby::sample(QStringLiteral("Me"));
+        QVERIFY(!mine.mayJoin(QStringLiteral("Me")));
+        QCOMPARE(mine.join(-1, QStringLiteral("Me")), -1);
+        QCOMPARE(mine.join(mine.joinableRooms().constFirst(), QStringLiteral("Me")), -1);
     }
 
     void playsLobbyPlans()
@@ -3973,7 +4066,7 @@ END FUNCTION
         QVERIFY(book.game().holdsWork()); // …but they are kept nowhere else.
         book.insertParagraph(0, 0); // A paragraph is something put in.
         QVERIFY(book.hasChapters());
-        QCOMPARE(book.chapter().title, ChapterBook::defaultTitle(1));
+        QCOMPARE(book.chapter().title.text(QStringLiteral("en")), ChapterBook::defaultTitle(1));
         book.clear();
         // A game of the database only opened is not put in: the next one replaces it.
         book.game().game.uid = QStringLiteral("stored");
@@ -3987,7 +4080,7 @@ END FUNCTION
         book.clear();
         QCOMPARE(book.addChapter(QStringLiteral("Openings")), 0); // New Chapter: what is there becomes it.
         QCOMPARE(book.chapters.size(), 1);
-        QCOMPARE(book.chapter().title, QStringLiteral("Openings"));
+        QCOMPARE(book.chapter().title.text(QStringLiteral("en")), QStringLiteral("Openings"));
         book.setChapters({}, 0);
         QVERIFY(!book.hasChapters());
 
@@ -4001,21 +4094,21 @@ END FUNCTION
         const int between = book.insertParagraph(0, 0, intro); // Right after the intro.
         book.setParagraph(0, between, QStringLiteral("Then this"));
         QCOMPARE(book.game().paragraphs,
-                 (QList<Paragraph>{{0, QStringLiteral("Before the moves")}, {0, QStringLiteral("Then this")},
-                                   {2, QStringLiteral("After 2")}, {2, QStringLiteral("Also after 2")}}));
+                 (QList<Paragraph>{{0, en(QStringLiteral("Before the moves"))}, {0, en(QStringLiteral("Then this"))},
+                                   {2, en(QStringLiteral("After 2"))}, {2, en(QStringLiteral("Also after 2"))}}));
         book.setParagraph(0, 1, QStringLiteral("  "));
         QCOMPARE(book.game().paragraphs.size(), 3);
 
         // Moved by half-moves: arriving from above it goes first among the
         // paragraphs of that move, from below last.
         QCOMPARE(book.moveParagraph(0, 2, 2, true), 1); // "Also after 2" before "After 2".
-        QCOMPARE(book.game().paragraphs.at(1).text, QStringLiteral("Also after 2"));
+        QCOMPARE(book.game().paragraphs.at(1).text.text(QStringLiteral("en")), QStringLiteral("Also after 2"));
         QCOMPARE(book.moveParagraph(0, 1, 3, true), 2);
         QCOMPARE(book.game().paragraphs.at(2).ply, 3);
         QCOMPARE(book.moveParagraph(0, 2, 0, false), 1); // To the top, after the intro.
         QCOMPARE(book.game().paragraphs,
-                 (QList<Paragraph>{{0, QStringLiteral("Before the moves")}, {0, QStringLiteral("Also after 2")},
-                                   {2, QStringLiteral("After 2")}}));
+                 (QList<Paragraph>{{0, en(QStringLiteral("Before the moves"))}, {0, en(QStringLiteral("Also after 2"))},
+                                   {2, en(QStringLiteral("After 2"))}}));
 
         // Titles and subtitles are paragraphs set as headings.
         const int title = book.insertParagraph(0, 0, -1, Paragraph::Kind::Title);
@@ -4071,12 +4164,12 @@ END FUNCTION
 
         // Chapters: added at the end, moved with the open one followed.
         QCOMPARE(book.addChapter(QString()), 1);
-        QCOMPARE(book.chapter().title, ChapterBook::defaultTitle(2));
+        QCOMPARE(book.chapter().title.text(QStringLiteral("en")), ChapterBook::defaultTitle(2));
         book.addChapter(QStringLiteral("Endings"));
         book.current = 0;
         book.moveChapter(0, 2);
         QCOMPARE(book.current, 2);
-        QCOMPARE(book.chapters.at(1).title, QStringLiteral("Endings"));
+        QCOMPARE(book.chapters.at(1).title.text(QStringLiteral("en")), QStringLiteral("Endings"));
         QVERIFY(book.removeChapter(0));
         QVERIFY(book.removeChapter(0));
         QCOMPARE(book.chapters.size(), 1);
@@ -4161,7 +4254,7 @@ END FUNCTION
         // Whether they came by themselves travels with the project.
         Project project;
         Chapter only;
-        only.title = QStringLiteral("Chapter One");
+        only.title = en(QStringLiteral("Chapter One"));
         project.chapters = {only};
         project.automaticChapters = true;
         QString error;
@@ -4173,18 +4266,125 @@ END FUNCTION
         QVERIFY(!read->automaticChapters);
     }
 
+    void readsTheDistributedProjects()
+    {
+        // The projects we distribute: each read, in English and Italian
+        // throughout, every move of its games legal.
+        const QDir folder(QStringLiteral(PRAGMA_PROJECTS_DIR));
+        const QStringList files = folder.entryList({QStringLiteral("*.pch")}, QDir::Files);
+        QVERIFY(!files.isEmpty());
+        for (const QString &file : files) {
+            QString error;
+            const std::optional<Project> project = Project::loadFromFile(folder.filePath(file), &error);
+            QVERIFY2(project, qPrintable(file + QLatin1String(": ") + error));
+            QVERIFY(project->multilingual);
+            QVERIFY(project->databasePath.isEmpty()); // It keeps the database open.
+            const auto bothLanguages = [](const LocalizedText &text) {
+                return text.has(QStringLiteral("en")) && text.has(QStringLiteral("it"));
+            };
+            QVERIFY(bothLanguages(project->name));
+            QVERIFY(!project->chapters.isEmpty());
+            for (const Chapter &chapter : project->chapters) {
+                QVERIFY(bothLanguages(chapter.title));
+                for (const ChapterGame &entry : chapter.games) {
+                    ChessPosition position = entry.game.startFen.isEmpty()
+                        ? ChessPosition::startingPosition()
+                        : *ChessPosition::fromFen(entry.game.startFen);
+                    const ChessPosition start = position;
+                    for (const MoveRecord &move : entry.game.moves) {
+                        const std::optional<ChessMove> played = position.moveFromUci(move.uci);
+                        QVERIFY2(played, qPrintable(chapter.title.text(QStringLiteral("en")) + QLatin1Char(' ') + move.uci));
+                        position.play(*played);
+                    }
+                    GameRecord game = entry.game;
+                    const QString variations = GameVariations::toText(game.variations);
+                    GameVariations::resolve(game, start);
+                    QCOMPARE(GameVariations::toText(game.variations), variations); // Nothing cut as illegal.
+                    for (const Paragraph &paragraph : entry.paragraphs) {
+                        QVERIFY(bothLanguages(paragraph.text));
+                        QVERIFY(paragraph.ply >= 0 && paragraph.ply <= entry.game.moves.size());
+                    }
+                }
+            }
+        }
+    }
+
+    void localizesProjectTexts()
+    {
+        // Shown in the language asked for, else in English, else in another one.
+        LocalizedText title(QStringLiteral("it"), QStringLiteral("I finali di torre"));
+        QCOMPARE(title.text(QStringLiteral("en")), QStringLiteral("I finali di torre"));
+        title.set(QStringLiteral("en"), QStringLiteral("Rook Endgames"));
+        QCOMPARE(title.text(QStringLiteral("it")), QStringLiteral("I finali di torre"));
+        QCOMPARE(title.text(QStringLiteral("de")), QStringLiteral("Rook Endgames"));
+        title.set(QStringLiteral("it"), QString());
+        QCOMPARE(title.text(QStringLiteral("it")), QStringLiteral("Rook Endgames"));
+        QCOMPARE(LocalizedText::supported(QStringLiteral("it_IT")), QStringLiteral("it"));
+        QCOMPARE(LocalizedText::supported(QStringLiteral("de")), QStringLiteral("en"));
+
+        // One structure, the words in the language being written.
+        ChapterBook book;
+        book.language = QStringLiteral("en");
+        book.addChapter(QStringLiteral("Bridge"));
+        const int paragraph = book.insertParagraph(0, 0);
+        book.setParagraph(0, paragraph, QStringLiteral("Build a bridge."));
+        book.language = QStringLiteral("it");
+        QCOMPARE(book.game().paragraphs.at(paragraph).text.text(book.language), QStringLiteral("Build a bridge."));
+        book.setParagraph(0, paragraph, QStringLiteral("Costruisci il ponte."));
+        QCOMPARE(book.game().paragraphs.size(), 1);
+        QCOMPARE(book.game().paragraphs.at(paragraph).text.text(QStringLiteral("en")), QStringLiteral("Build a bridge."));
+        QCOMPARE(book.game().paragraphs.at(paragraph).text.text(QStringLiteral("it")), QStringLiteral("Costruisci il ponte."));
+        book.setParagraph(0, paragraph, QString()); // Emptied: the paragraph goes, in every language.
+        QVERIFY(book.game().paragraphs.isEmpty());
+
+        // Every language travels with the project.
+        Project project;
+        project.name = title;
+        project.name.set(QStringLiteral("it"), QStringLiteral("I finali di torre"));
+        Chapter chapter;
+        chapter.title = en(QStringLiteral("The Bridge"));
+        chapter.title.set(QStringLiteral("it"), QStringLiteral("Il ponte"));
+        ChapterGame game;
+        Paragraph text{3, en(QStringLiteral("Two lines\nin English"))};
+        text.text.set(QStringLiteral("it"), QStringLiteral("Due righe\nin italiano"));
+        game.paragraphs = {text};
+        chapter.games = {game};
+        project.chapters = {chapter};
+        QString error;
+        const std::optional<Project> read = Project::fromYaml(project.toYaml(), QDir(), &error);
+        QVERIFY2(read, qPrintable(error));
+        QCOMPARE(read->name, project.name);
+        QVERIFY(!read->multilingual);
+        QVERIFY(!project.toYaml().contains(QStringLiteral("multilingual"))); // Written only when on.
+        project.multilingual = true;
+        QVERIFY(Project::fromYaml(project.toYaml(), QDir(), &error)->multilingual);
+        QCOMPARE(read->chapters.first().title, chapter.title);
+        QCOMPARE(read->chapters.first().games.first().paragraphs, game.paragraphs);
+
+        // A project written before languages: its texts are in the language given.
+        const QString legacy = QStringLiteral(
+            "pragma-chess: 2\nname: Aperture\nchapters:\n  current: 0\n  list:\n    - title: Italiana\n"
+            "      games:\n        - paragraphs:\n            - ply: 0\n              text: |\n                Testo\n");
+        const std::optional<Project> old = Project::fromYaml(legacy, QDir(), &error, QStringLiteral("it"));
+        QVERIFY2(old, qPrintable(error));
+        QCOMPARE(old->name.exact(QStringLiteral("it")), QStringLiteral("Aperture"));
+        QCOMPARE(old->chapters.first().title.exact(QStringLiteral("it")), QStringLiteral("Italiana"));
+        QCOMPARE(old->chapters.first().games.first().paragraphs.first().text.exact(QStringLiteral("it")),
+                 QStringLiteral("Testo"));
+    }
+
     void savesChaptersInProjects()
     {
         Project project;
         Chapter opening;
-        opening.title = QStringLiteral("The Italian");
+        opening.title = en(QStringLiteral("The Italian"));
         ChapterGame game;
         game.game.white = QStringLiteral("Anna");
         game.game.result = QStringLiteral("1-0");
         game.game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4"), {1}}, {QStringLiteral("e5"), QStringLiteral("e7e5")}};
-        game.paragraphs = {{0, QStringLiteral("King's Pawn"), Paragraph::Kind::Title},
-                           {0, QStringLiteral("Open games"), Paragraph::Kind::Subtitle},
-                           {0, QStringLiteral("The oldest opening.")}, {2, QStringLiteral("Two lines\nof text: \"quoted\"")}};
+        game.paragraphs = {{0, en(QStringLiteral("King's Pawn")), Paragraph::Kind::Title},
+                           {0, en(QStringLiteral("Open games")), Paragraph::Kind::Subtitle},
+                           {0, en(QStringLiteral("The oldest opening."))}, {2, en(QStringLiteral("Two lines\nof text: \"quoted\""))}};
         ChapterGame stored;
         stored.game.uid = QStringLiteral("u-1");
         opening.games = {game, stored};
@@ -4192,7 +4392,7 @@ END FUNCTION
         opening.ply = 3;
         opening.path = {1, 0}; // A move inside a variation of a variation.
         Chapter endings;
-        endings.title = QStringLiteral("Endings");
+        endings.title = en(QStringLiteral("Endings"));
         project.chapters = {opening, endings};
         project.chapter = 1;
 
@@ -4202,7 +4402,7 @@ END FUNCTION
         QCOMPARE(read->chapter, 1);
         QCOMPARE(read->chapters.size(), 2);
         const Chapter &back = read->chapters.first();
-        QCOMPARE(back.title, QStringLiteral("The Italian"));
+        QCOMPARE(back.title.text(QStringLiteral("en")), QStringLiteral("The Italian"));
         QCOMPARE(back.currentGame, 1);
         QCOMPARE(back.ply, 3);
         QCOMPARE(back.path, (QList<int>{1, 0}));

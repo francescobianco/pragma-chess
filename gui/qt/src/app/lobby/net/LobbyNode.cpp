@@ -140,6 +140,8 @@ void LobbyNode::rebuild()
 
 QString LobbyNode::openRoom(quint32 seed)
 {
+    if (!m_lobby.mayJoin(me()))
+        return QString(); // Every peer would refuse the room.
     const int before = m_ledger.size();
     if (!publish(LobbyLedger::openContent(seed, m_name), QString()) || m_ledger.size() == before)
         return QString();
@@ -155,7 +157,8 @@ QString LobbyNode::openRoom(quint32 seed)
 bool LobbyNode::joinRoom(const QString &roomId)
 {
     const int index = m_lobby.indexOfRoom(roomId);
-    if (index < 0 || !m_lobby.rooms().at(index).isJoinable() || m_lobby.rooms().at(index).isSeated(me()))
+    if (index < 0 || !m_lobby.rooms().at(index).isJoinable() || m_lobby.rooms().at(index).isSeated(me())
+        || !m_lobby.mayJoin(me()))
         return false;
     return publish(LobbyLedger::joinContent(roomId, m_name), roomId);
 }

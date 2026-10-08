@@ -197,6 +197,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/PlayerRole.h
     src/app/PolyglotBook.cpp
     src/app/Chapters.cpp
+    src/app/LocalizedText.cpp
+    src/app/LocalizedText.h
     src/app/Chapters.h
     src/app/PositionSetup.cpp
     src/app/PositionSetup.h
@@ -539,6 +541,9 @@ qt_add_resources(pragma-chess classics PREFIX /classics BASE resources/classics
     FILES resources/classics/classic-games.pgn)
 qt_add_resources(pragma-chess training PREFIX /training BASE resources/training
     FILES resources/training/endgames.tsv resources/training/tactics.tsv)
+# The projects we distribute, seeded into the Projects folder (MainWindow::seedDistributedProjects).
+file(GLOB DISTRIBUTED_PROJECTS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/projects/*.pch)
+qt_add_resources(pragma-chess projects PREFIX /projects BASE resources/projects FILES ${DISTRIBUTED_PROJECTS})
 qt_add_resources(pragma-chess help PREFIX /help BASE resources/help
     FILES resources/help/guide_en.md resources/help/guide_it.md)
 # Logos of the clubs that support Pragma Chess, shown in About.
@@ -632,7 +637,8 @@ if(TARGET Qt6::Test)
     target_compile_definitions(tst_chessrules PRIVATE
         PRAGMA_SMART_TESTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../../smart/tests"
         PRAGMA_HELP_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/help"
-        PRAGMA_CLASSICS_PGN="${CMAKE_CURRENT_SOURCE_DIR}/resources/classics/classic-games.pgn")
+        PRAGMA_CLASSICS_PGN="${CMAKE_CURRENT_SOURCE_DIR}/resources/classics/classic-games.pgn"
+        PRAGMA_PROJECTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/projects")
     target_compile_options(tst_chessrules PRIVATE ${PRAGMA_WARNINGS})
     set_target_properties(tst_chessrules PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
     add_test(NAME chessrules COMMAND tst_chessrules)

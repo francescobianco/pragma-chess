@@ -37,6 +37,44 @@ T valueOf(const YAML::Node &node, T fallback)
     }
 }
 
+/// A text in several languages, as a map by language: {en: …, it: …}.
+/// `literal`: each written as a block, for paragraphs.
+void writeLocalized(YAML::Emitter &out, const char *key, const LocalizedText &text, bool literal = false)
+{
+    if (text.isEmpty())
+        return;
+    out << YAML::Key << key << YAML::Value << YAML::BeginMap;
+    for (auto entry = text.texts().cbegin(); entry != text.texts().cend(); ++entry) {
+        out << YAML::Key << toStd(entry.key()) << YAML::Value;
+        if (literal)
+            out << YAML::Literal;
+        out << toStd(entry.value());
+    }
+    out << YAML::EndMap;
+}
+
+/// A text by language; a plain text, as projects before languages wrote
+/// it, is in `legacyLanguage`. A literal block's own line end is dropped.
+LocalizedText readLocalized(const YAML::Node &node, const QString &legacyLanguage)
+{
+    const auto clean = [](QString text) {
+        while (text.endsWith(QLatin1Char('\n')))
+            text.chop(1);
+        return text.trimmed().isEmpty() ? QString() : text;
+    };
+    LocalizedText text;
+    if (node && node.IsMap()) {
+        for (auto entry = node.begin(); entry != node.end(); ++entry) {
+            const QString language = QString::fromStdString(entry->first.as<std::string>(std::string()));
+            if (!language.isEmpty())
+                text.set(language, clean(fromNode(entry->second)));
+        }
+    } else {
+        text.set(legacyLanguage, clean(fromNode(node)));
+    }
+    return text;
+}
+
 /// An engine evaluation, as the tutor's alert keeps it: centipawns or the
 /// mate, the depth and the line.
 void writeEvaluation(YAML::Emitter &out, const EngineEvaluation &evaluation)
@@ -113,7 +151,7 @@ void writeGame(YAML::Emitter &out, const ChapterGame &entry)
             out << YAML::Key << "ply" << YAML::Value << paragraph.ply;
             if (paragraph.kind != Paragraph::Kind::Text)
                 out << YAML::Key << "kind" << YAML::Value << toStd(Paragraph::kindKey(paragraph.kind));
-            out << YAML::Key << "text" << YAML::Value << YAML::Literal << toStd(paragraph.text);
+            writeLocalized(out, "text", paragraph.text, true);
             out << YAML::EndMap;
         }
         out << YAML::EndSeq;
@@ -127,7 +165,7 @@ void setError(QString *errorMessage, const QString &message)
         *errorMessage = message;
 }
 
-ChapterGame readGame(YAML::Node node)
+ChapterGame readGame(YAML::Node node, const QString &legacyLanguage)
 {
     ChapterGame entry;
     GameRecord &game = entry.game;
@@ -157,10 +195,8 @@ ChapterGame readGame(YAML::Node node)
     YAML::Node paragraphs = node["paragraphs"];
     if (paragraphs.IsSequence()) {
         for (YAML::Node paragraph : paragraphs) {
-            QString text = fromNode(paragraph["text"]);
-            while (text.endsWith(QLatin1Char('\n'))) // The literal block's own line end.
-                text.chop(1);
-            if (!text.trimmed().isEmpty())
+            const LocalizedText text = readLocalized(paragraph["text"], legacyLanguage);
+            if (!text.isEmpty())
                 entry.paragraphs << Paragraph{qMax(0, valueOf<int>(paragraph["ply"], 0)), text,
                                               Paragraph::kindFromKey(fromNode(paragraph["kind"]))};
         }
@@ -184,8 +220,9 @@ QString Project::toYaml(const QDir &baseDir) const
     out << YAML::Comment("Pragma Chess project");
     out << YAML::BeginMap;
     out << YAML::Key << "pragma-chess" << YAML::Value << formatVersion;
-    if (!name.isEmpty())
-        out << YAML::Key << "name" << YAML::Value << toStd(name);
+    writeLocalized(out, "name", name);
+    if (multilingual)
+        out << YAML::Key << "multilingual" << YAML::Value << true;
 
     out << YAML::Key << "database" << YAML::Value << YAML::BeginMap;
     out << YAML::Key << "path" << YAML::Value;
@@ -205,7 +242,7 @@ QString Project::toYaml(const QDir &baseDir) const
     out << YAML::Key << "list" << YAML::Value << YAML::BeginSeq;
     for (const Chapter &entry : chapters) {
         out << YAML::BeginMap;
-        out << YAML::Key << "title" << YAML::Value << toStd(entry.title);
+        writeLocalized(out, "title", entry.title);
         out << YAML::Key << "game" << YAML::Value << entry.currentGame;
         out << YAML::Key << "ply" << YAML::Value << entry.ply;
         if (!entry.path.isEmpty()) {
@@ -286,8 +323,8 @@ QString Project::toYaml(const QDir &baseDir) const
     return QString::fromStdString(out.c_str()) + QLatin1Char('\n');
 }
 
-std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDir,
-                                                 QString *errorMessage)
+std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDir, QString *errorMessage,
+                                         const QString &legacyLanguage)
 {
     YAML::Node root;
     try {
@@ -306,7 +343,8 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     }
 
     Project env;
-    env.name = fromNode(root["name"]).trimmed();
+    env.name = readLocalized(root["name"], legacyLanguage);
+    env.multilingual = valueOf<bool>(root["multilingual"], false);
     const QString database = fromNode(root["database"]["path"]);
     if (!database.isEmpty())
         env.databasePath = QDir::cleanPath(baseDir.absoluteFilePath(database));
@@ -315,11 +353,11 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     if (chapters.IsMap() && chapters["list"].IsSequence()) {
         for (YAML::Node node : chapters["list"]) {
             Chapter entry;
-            entry.title = fromNode(node["title"]);
+            entry.title = readLocalized(node["title"], legacyLanguage);
             entry.games.clear();
             if (node["games"].IsSequence()) {
                 for (YAML::Node game : node["games"])
-                    entry.games << readGame(game);
+                    entry.games << readGame(game, legacyLanguage);
             }
             if (entry.games.isEmpty())
                 entry.games << ChapterGame();
@@ -332,7 +370,8 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
             env.chapters << entry;
         }
         env.noChapters = valueOf<bool>(chapters["none"], false);
-        const bool defaultOnly = env.chapters.size() == 1 && env.chapters.first().title == ChapterBook::defaultTitle(1);
+        const bool defaultOnly = env.chapters.size() == 1 && env.chapters.first().title.texts().size() == 1
+                                 && env.chapters.first().title.texts().first() == ChapterBook::defaultTitle(1);
         env.automaticChapters = valueOf<bool>(chapters["automatic"], defaultOnly);
         env.chapter = env.chapters.isEmpty() ? 0 : qBound(0, valueOf<int>(chapters["current"], 0), int(env.chapters.size()) - 1);
     }
@@ -411,12 +450,13 @@ bool Project::saveToFile(const QString &path, QString *errorMessage) const
     return true;
 }
 
-std::optional<Project> Project::loadFromFile(const QString &path, QString *errorMessage)
+std::optional<Project> Project::loadFromFile(const QString &path, QString *errorMessage,
+                                             const QString &legacyLanguage)
 {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         setError(errorMessage, file.errorString());
         return std::nullopt;
     }
-    return fromYaml(QString::fromUtf8(file.readAll()), QFileInfo(path).absoluteDir(), errorMessage);
+    return fromYaml(QString::fromUtf8(file.readAll()), QFileInfo(path).absoluteDir(), errorMessage, legacyLanguage);
 }

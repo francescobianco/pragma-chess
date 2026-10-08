@@ -1,0 +1,516 @@
+# Pragma Chess project
+pragma-chess: 3
+name:
+  en: Rook Endgames
+  it: I finali di torre
+multilingual: true
+database:
+  path: ~
+chapters:
+  current: 0
+  list:
+    - title:
+        en: Rook against Pawn
+        it: Torre contro pedone
+      game: 0
+      ply: 0
+      games:
+        - result: 1-0
+          fen: 8/8/5KP1/7r/8/8/8/3k4 w - - 0 1
+          moves: g6g7 h5h6 f6f5 h6h5 f5f4 h5h4 f4f3 h4h3 f3g2
+          variations: (6 Rh1 g8=Q )
+          paragraphs:
+            - ply: 0
+              kind: title
+              text:
+                en: |
+                  Rook Endgames
+                it: |
+                  I finali di torre
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  A short tour
+                it: |
+                  Una breve panoramica
+            - ply: 0
+              text:
+                en: |
+                  Rook endgames are the endings met most often over the board: something like half of all tournament games that reach an ending reach one with rooks. They cannot be played on instinct. Many positions are won or saved only by moves that look strange — a king that walks away from its pawn, a pawn promoted to a rook, a rook offered for nothing — and they have to be known before the game.
+                it: |
+                  I finali di torre sono i finali che si incontrano più spesso alla scacchiera: più o meno metà delle partite di torneo che arrivano a un finale ci arrivano con le torri. Non si giocano a istinto. Molte posizioni si vincono o si salvano solo con mosse che sembrano strane — un re che si allontana dal suo pedone, un pedone promosso a torre, una torre offerta per niente — e vanno conosciute prima della partita.
+            - ply: 0
+              text:
+                en: |
+                  Capablanca advised beginners to start chess from the endings, the simplest first; Nimzowitsch saw in endgame play what sets good players apart; Smyslov wrote that a player's logic shows most clearly in the endgame. A few rules hold through every chapter of this project: the pawn is what the ending is about, and promoting it is the goal; the king is a fighting piece, which attacks and captures, as long as it does not walk into a mate; rooks want open files, where they work best; and an ending is judged by the activity of the rooks, the places of the kings and the passed pawns.
+                it: |
+                  Capablanca consigliava ai principianti di cominciare gli scacchi dai finali, dai più semplici; Nimzowitsch vedeva nel gioco dei finali ciò che distingue i buoni giocatori; Smyslov scrisse che la logica di un giocatore si vede più chiaramente nel finale. Alcune regole valgono in ogni capitolo di questo progetto: il finale ruota attorno al pedone, e promuoverlo è lo scopo; il re è un pezzo che combatte, attacca e cattura, purché non vada incontro al matto; le torri vogliono le colonne aperte, dove rendono di più; e un finale si giudica dall'attività delle torri, dalla posizione dei re e dai pedoni passati.
+            - ply: 0
+              text:
+                en: |
+                  This project follows “I finali di torre: una brevissima panoramica”, the thesis Benedetto Piero Arnetta wrote for the SNAQ course for Chief Instructors (Palermo, April 2018): its examples and lines, checked with an engine and told in our words. Every chapter is a game you can play through, explain with E and try against the engine in training.
+                it: |
+                  Questo progetto segue «I finali di torre: una brevissima panoramica», la tesi scritta da Benedetto Piero Arnetta per il corso SNAQ per Istruttore Capo (Palermo, aprile 2018): i suoi esempi e le sue linee, verificati con un motore e raccontati con parole nostre. Ogni capitolo è una partita da scorrere, da spiegare con E e da provare contro il motore in allenamento.
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  The king keeps off the pawn's file
+                it: |
+                  Il re resta fuori dalla colonna del pedone
+            - ply: 0
+              text:
+                en: |
+                  Only one rook on the board, Black's, against White's pawn. White to move wins, but only if the king goes to the right square. The pawn runs at once, and the rook starts checking from the side.
+                it: |
+                  Una sola torre sulla scacchiera, quella del Nero, contro il pedone del Bianco. Il Bianco muove e vince, ma solo se porta il re nella casa giusta. Il pedone parte subito, e la torre comincia a dare scacco di lato.
+            - ply: 3
+              text:
+                en: |
+                  The king must never step onto g6, g5, g4 or g3. On the pawn's file it no longer stands between the pawn and the rook: the rook drops to the first rank and climbs the g-file behind the pawn (…Rh1 and …Rg1), and the pawn is lost. So the king goes down the f-file, one check at a time.
+                it: |
+                  Il re non deve mai entrare in g6, g5, g4 o g3. Sulla colonna del pedone non sta più fra il pedone e la torre: la torre scende in prima traversa e risale la colonna g dietro al pedone (…Th1 e …Tg1), e il pedone è perso. Così il re scende lungo la colonna f, uno scacco alla volta.
+            - ply: 9
+              text:
+                en: |
+                  On g2 the king covers the g-file and the checks are over: the pawn queens. The game is not over with it — queen against rook still has to be won, and a good defence makes it hard.
+                it: |
+                  In g2 il re copre la colonna g e gli scacchi finiscono: il pedone va a Donna. La partita non finisce lì — Donna contro Torre va ancora vinto, e una buona difesa lo rende difficile.
+        - result: 1-0
+          fen: 8/8/1KP5/3r4/8/8/8/k7 w - - 0 1
+          moves: c6c7 d5d6 b6b5 d6d5 b5b4 d5d4 b4b3 d4d3 b3c2 d3d4 c7c8r d4a4 c2b3 a4b4 b3b4
+          variations: (11 c8=Q Rc4+ Qxc4 )
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  The same technique, and a trap
+                it: |
+                  La stessa tecnica, e una trappola
+            - ply: 0
+              text:
+                en: |
+                  It looks like the example before: the king has to keep the rook off the c-file, staying away from c6, c5, c4 and c3, and reach c2. The difference is where Black's king stands, in the corner: it has no moves of its own.
+                it: |
+                  Sembra l'esempio di prima: il re deve tenere la torre lontana dalla colonna c, evitando c6, c5, c4 e c3, e arrivare in c2. La differenza è dove sta il re nero, nell'angolo: non ha mosse sue.
+            - ply: 9
+              text:
+                en: |
+                  White's king is on c2 and the pawn is free. Black has one hope left: a rook that gives itself up into stalemate.
+                it: |
+                  Il re bianco è in c2 e il pedone è libero. Al Nero resta una speranza: una torre che si sacrifica per lo stallo.
+            - ply: 11
+              text:
+                en: |
+                  Promoting to a queen falls into the trap: 6.c8=Q? Rc4+! and taking the rook leaves Black's king with no move — stalemate, a draw. A rook does not give stalemate: White now threatens Rc1 mate, and Black can only throw the rook away.
+                it: |
+                  Promuovere a Donna cade nella trappola: 6.c8=D? Tc4+! e prendere la torre lascia il re nero senza mosse — stallo, patta. Una torre non dà stallo: il Bianco minaccia Tc1 matto, e il Nero può solo regalare la torre.
+    - title:
+        en: Building the Bridge
+        it: La costruzione del ponte
+      game: 0
+      ply: 0
+      games:
+        - result: 1-0
+          fen: 4K3/2k1P3/8/8/8/8/3R4/5r2 w - - 0 1
+          moves: d2c2 c7b7 c2c4 f1d1 e8f7 d1f1 f7e6 f1e1 e6d6 e1d1 d6e5 d1e1 c4e4
+          variations: (2 Kd6 Kd8 ) (10 Re2 Kc5 )
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  Rook and pawn against rook
+                it: |
+                  Torre e pedone contro torre
+            - ply: 0
+              text:
+                en: |
+                  The most studied of all endings: rook and pawn against rook. Every line of it is known — tablebases give the result of any position — and strong players call it elementary. Against a person mistakes still happen, on both sides, and the more of these endings you know, the more points you take from them.
+                it: |
+                  Il più studiato di tutti i finali: torre e pedone contro torre. Ogni sua linea è nota — le tablebase danno il risultato di qualunque posizione — e i giocatori forti lo chiamano elementare. Contro una persona gli errori capitano ancora, da entrambe le parti, e più di questi finali conosci, più punti ne porti a casa.
+            - ply: 0
+              text:
+                en: |
+                  This is a won position, known as the Lucena position (Salvio wrote it down first). The pawn is on the seventh rank, but White's own king stands on the queening square, and Black's rook on the f-file keeps it there. White's rook on the d-file cuts Black's king off. White wants to promote, or to trade rooks; Black wants to keep checking, avoid the trade, or win the pawn.
+                it: |
+                  È una posizione vinta, nota come posizione di Lucena (fu Salvio a scriverla per primo). Il pedone è in settima, ma il re bianco sta proprio sulla casa di promozione, e la torre nera sulla colonna f ce lo tiene. La torre bianca sulla colonna d taglia fuori il re nero. Il Bianco vuole promuovere, o cambiare le torri; il Nero vuole continuare a dare scacco, evitare il cambio o prendere il pedone.
+            - ply: 1
+              text:
+                en: |
+                  First the black king is pushed one more file away, so White's king can come out on d7. Coming closer with 1…Kd6 loses at once: 2.Kd8 and nothing stops e8=Q.
+                it: |
+                  Prima il re nero viene spinto ancora una colonna più in là, così il re bianco potrà uscire in d7. Avvicinarsi con 1…Rd6 perde subito: 2.Rd8 e niente ferma e8=D.
+            - ply: 3
+              text:
+                en: |
+                  The key move: the rook goes to the fourth rank, where it will block the checks. Black takes the d-file so the king cannot use d7, and the king walks out the other way.
+                it: |
+                  La mossa chiave: la torre va in quarta traversa, dove fermerà gli scacchi. Il Nero prende la colonna d perché il re non usi d7, e il re esce dall'altra parte.
+            - ply: 9
+              text:
+                en: |
+                  Black can only keep checking: 5…Re2 lets the king run to c5 and the pawn queens.
+                it: |
+                  Il Nero può solo continuare con gli scacchi: 5…Te2 lascia andare il re in c5 e il pedone va a Donna.
+            - ply: 13
+              text:
+                en: |
+                  The bridge is built: the rook blocks the last check, and the pawn promotes next. Four things to remember. Drive the enemy king as far from the pawn as you can. Put your rook on the fourth rank, where it keeps the king in its cage and will block the checks. Walk your king out to the fifth rank — three moves. Block the last check with the rook.
+                it: |
+                  Il ponte è costruito: la torre para l'ultimo scacco, e il pedone promuove alla mossa dopo. Quattro cose da ricordare. Allontana il più possibile il re avversario dal pedone. Metti la tua torre in quarta traversa, dove tiene il re nella sua gabbia e fermerà gli scacchi. Porta fuori il tuo re fino alla quinta traversa — tre mosse. Para l'ultimo scacco con la torre.
+            - ply: 13
+              text:
+                en: |
+                  Now practise it: set up this position (Game ▸ Set Up Position…) and play it against the engine in training until it comes by itself. Then move the pawn to the f-, g-, d- and c-files, the other pieces with it, and do it again.
+                it: |
+                  Ora esercitati: imposta questa posizione (Partita ▸ Inserisci posizione…) e giocala contro il motore in allenamento finché non viene da sola. Poi sposta il pedone sulle colonne f, g, d e c, con gli altri pezzi, e rifallo.
+    - title:
+        en: Four Pawns against Three
+        it: Quattro pedoni contro tre
+      game: 0
+      ply: 0
+      games:
+        - white: Lilienthal
+          black: Benko
+          event: Moscow
+          date: 1949.??.??
+          result: 1/2-1/2
+          fen: 8/1R4pp/5pk1/8/4P3/5P2/r5PP/6K1 b - - 0 1
+          moves: h7h5 h2h4 a2e2 g1h2 g6h6 h2g3 h6g6 b7b1 g6f7 b1f1 f7g6 f1f2 e2e1 f2a2 g6h6 g3f4 e1h1 f4g3 h1e1 a2d2 h6g6 g3f2 e1h1 g2g3 h1a1 f3f4 a1a3 d2e2 g6f7 e2e3 a3a4 f2f3 a4a5 e3b3 f7g6 g3g4 h5g4 f3g4 a5a1 h4h5 g6h7 e4e5 f6e5 f4e5 g7g6 b3b7 h7h6 e5e6 a1a4 g4f3 g6h5 e6e7 a4a8 b7d7 a8e8 f3f4 h6g6
+          variations: (18 g3 Kg6 ) (18 Kf5 Rxh4 f4 g6+ ) (34 e5 Ke6 exf6+ Kxf6 ) (42 Kf5 Rf1 ) (46 Kg5 gxh5 Rb7+ Kg8 Kf6 Rf1+ Ke6 )
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  One pawn more, on one wing
+                it: |
+                  Un pedone in più, sullo stesso lato
+            - ply: 0
+              text:
+                en: |
+                  With an extra pawn and all the pawns on the same wing, a rook ending is usually a draw — but not always, and the side with the pawn can press for a long time. The activity of the rooks matters more than the pawn: an active rook makes up for a pawn, and the rule is to force the opponent into passivity, even at the cost of a pawn.
+                it: |
+                  Con un pedone in più e tutti i pedoni sullo stesso lato, un finale di torre di solito è patta — ma non sempre, e chi ha il pedone può premere a lungo. L'attività delle torri conta più del pedone: una torre attiva compensa un pedone, e la regola è costringere l'avversario alla passività, anche a costo di un pedone.
+            - ply: 0
+              text:
+                en: |
+                  What to know. The pawns: the defender wants them on f7, g6, h5 or on f6, g7, h5, and the attacker tries to push g4 and h5 to break them up; but every exchange of pawns helps the defender. The king stays close to its pawns. The rook stays active, at the side, attacking the backward pawn and holding back the others and the king. With doubled pawns the defence is even easier: the attacker cannot advance without trading.
+                it: |
+                  Cosa sapere. I pedoni: chi difende li vuole in f7, g6, h5 oppure in f6, g7, h5, e chi attacca prova a spingere g4 e h5 per scardinarli; ma ogni cambio di pedoni aiuta chi difende. Il re resta vicino ai suoi pedoni. La torre resta attiva, di lato, attacca il pedone arretrato e frena gli altri e il re. Con pedoni doppiati la difesa è ancora più facile: chi attacca non può avanzare senza cambiare.
+            - ply: 0
+              text:
+                en: |
+                  Black has just enough time to set up f6, g7, h5, and keeps the rook active.
+                it: |
+                  Il Nero ha appena il tempo di sistemare f6, g7, h5, e tiene attiva la torre.
+            - ply: 12
+              text:
+                en: |
+                  A typical manoeuvre: the rook defends g2 sideways and frees the king.
+                it: |
+                  Una manovra tipica: la torre difende g2 di lato e libera il re.
+            - ply: 27
+              text:
+                en: |
+                  Black's rook goes back to hitting White's weak pawns.
+                it: |
+                  La torre nera torna a colpire i pedoni deboli del Bianco.
+            - ply: 45
+              text:
+                en: |
+                  One more exchange of pawns, and the draw is near: the attacker is left with too little.
+                it: |
+                  Un altro cambio di pedoni, e la patta è vicina: a chi attacca resta troppo poco.
+            - ply: 57
+              text:
+                en: |
+                  Draw. The rook was active from the first move to the last, and kept hitting White's weaknesses.
+                it: |
+                  Patta. La torre è stata attiva dalla prima mossa all'ultima, e ha continuato a colpire le debolezze del Bianco.
+        - white: Piket
+          black: Kasparov
+          event: Internet
+          date: 2000.??.??
+          result: 1-0
+          fen: 3r4/5ppk/7p/8/4P3/5PP1/2R3KP/8 b - - 0 39
+          moves: h6h5 f3f4 g7g6 e4e5 d8d3 g2h3 d3e3 h3h4 h7g7 h4g5 e3e1 c2c7 e1e2 c7e7 e2a2 f4f5 g6f5 e5e6 h5h4 e7f7 g7g8 g5f6
+          variations: (3 f6 ) (5 Rd7 ) (7 Rd7 ) (9 Kh6 Rc7 Re2 ) (11 Ra3 Rc7 Ra5 ) (15 Re1 e6 Rxe6 Rxe6 fxe6 h3 Kf7 Kh6 Kf6 g4 hxg4 hxg4 Kf7 g5 )
+          paragraphs:
+            - ply: 0
+              text:
+                en: |
+                  The other set-up, f7, g6, h5. Again Black starts with …h5 and soon has the right structure — then a few inaccuracies, and White wins.
+                it: |
+                  L'altra disposizione, f7, g6, h5. Di nuovo il Nero comincia con …h5 e presto ha la struttura giusta — poi alcune imprecisioni, e il Bianco vince.
+            - ply: 3
+              text:
+                en: |
+                  40…f6 would have reached the other correct set-up just as well.
+                it: |
+                  40…f6 avrebbe raggiunto altrettanto bene l'altra disposizione corretta.
+            - ply: 5
+              text:
+                en: |
+                  The start of a wrong plan: 41…Rd7 was more accurate, and 42…Rd7 still was a move later.
+                it: |
+                  L'inizio di un piano sbagliato: 41…Td7 era più precisa, e lo era ancora 42…Td7 una mossa dopo.
+            - ply: 9
+              text:
+                en: |
+                  43…Kh6! was better, keeping White's king out of Black's camp.
+                it: |
+                  43…Rh6! era meglio, e teneva il re bianco fuori dal campo nero.
+            - ply: 11
+              text:
+                en: |
+                  The losing mistake. The rook belonged at the side, attacking e5: 44…Ra3! still held.
+                it: |
+                  L'errore decisivo. Il posto della torre era di lato, ad attaccare e5: 44…Ta3! teneva ancora.
+            - ply: 14
+              text:
+                en: |
+                  Threatening e6, after which the ending is won.
+                it: |
+                  Minaccia e6, dopo la quale il finale è vinto.
+        - white: Capablanca
+          black: Yates
+          event: Hastings
+          date: 1930.??.??
+          result: 1-0
+          fen: 8/5pkp/R5p1/8/2r5/4P1PP/5PK1/8 w - - 0 38
+          moves: g2f3 c4b4 a6a5 b4c4 g3g4 h7h6 f3g3 c4c1 g3g2 c1c4 a5d5 c4a4 f2f4 a4a2 g2g3 a2e2 d5e5 e2e1 g3f2 e1h1 f2g2 h1e1 h3h4 g7f6 h4h5 e1e2 g2f3 e2e1 e5a5 f6g7 h5g6 g7g6 e3e4 e1f1 f3g3 f1g1 g3h3 g1f1 a5f5 f1e1 e4e5 e1e3 h3g2 e3a3 f5f6 g6g7 f6b6 a3e3 b6b4 e3c3 g2f2 c3a3 b4b7 g7g8 b7b8 g8g7 f4f5 a3a2 f2e3 a2a3 e3e4 a3a4 e4d5 a4a5 d5d6 a5a6 d6c7 g7h7 c7d7 a6a7 d7d6 h7g7 b8d8 a7a5 f5f6 g7h7 d8f8 a5a7 d6c6 h7g6 f8g8 g6h7 g8g7 h7h8 c6b6 a7d7 b6c5 d7c7 c5d6 c7a7 e5e6 a7a6 d6e7 a6e6 e7f7 e6e4 g4g5 h6g5 f7g6
+          variations: (24 f6 Re4 h5 gxh5 gxh5 Re7+ Kg6 (4 g5 f5 ) ) (26 gxh5 Kf2 Ra1 Rxh5 ) (32 fxg6 Ra7+ Kf8 f5 ) (40 f6 ) (58 Rc3 f6+ Kg6 Rg8+ (3 Kh7 e6 ) ) (64 Rxg4 f6+ Kh7 Rf8 Kg6 Rg8+ Kf5 Rxg4 Kxg4 e6 )
+          paragraphs:
+            - ply: 0
+              text:
+                en: |
+                  And how the stronger side plays for the win.
+                it: |
+                  E come il lato più forte gioca per vincere.
+            - ply: 5
+              text:
+                en: |
+                  Stops …h5.
+                it: |
+                  Impedisce …h5.
+            - ply: 24
+              text:
+                en: |
+                  49…f6 was needed: with White weak on e3, Black could have traded more pawns and drawn.
+                it: |
+                  Serviva 49…f6: con il Bianco debole in e3, il Nero poteva cambiare altri pedoni e pattare.
+            - ply: 25
+              text:
+                en: |
+                  The structure White was aiming for, the one that gives the best chances.
+                it: |
+                  La struttura che il Bianco cercava, quella che dà più possibilità di vincere.
+            - ply: 40
+              text:
+                en: |
+                  57…f6! was better, stopping White's pawns.
+                it: |
+                  57…f6! era meglio, e fermava i pedoni bianchi.
+            - ply: 63
+              text:
+                en: |
+                  The king walks up to support the pawns; taking on g4 does not save Black either.
+                it: |
+                  Il re sale a sostenere i pedoni; prendere in g4 non salva il Nero comunque.
+            - ply: 99
+              text:
+                en: |
+                  As these games show, this ending is not easy to play: it asks for care from both sides.
+                it: |
+                  Come mostrano queste partite, il finale non è facile da giocare: richiede attenzione da entrambe le parti.
+    - title:
+        en: Six Positions to Know
+        it: Sei posizioni da conoscere
+      game: 0
+      ply: 0
+      games:
+        - result: 1/2-1/2
+          fen: 7R/4k1r1/8/3KP3/8/8/8/8 b - - 0 1
+          moves: g7g6 h8h7 e7e8 e5e6 g6g1 d5d6 g1d1
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  Six typical positions
+                it: |
+                  Sei posizioni tipiche
+            - ply: 0
+              text:
+                en: |
+                  Six more rook endings that come up again and again.
+                it: |
+                  Altri sei finali di torre che tornano di continuo.
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  1. Pawn on the sixth rank
+                it: |
+                  1. Pedone sulla sesta traversa
+            - ply: 0
+              text:
+                en: |
+                  To draw, Black's rook must hold the sixth rank.
+                it: |
+                  Per pattare, la torre nera deve tenere la sesta traversa.
+            - ply: 4
+              text:
+                en: |
+                  The point of …Rg6: White's king cannot reach the sixth rank to threaten mate, so the pawn has to go there itself. Then the rook drops to the first rank and checks from behind.
+                it: |
+                  Il senso di …Tg6: il re bianco non può arrivare in sesta traversa a minacciare matto, così deve andarci il pedone. Allora la torre scende in prima traversa e dà scacco da dietro.
+            - ply: 7
+              text:
+                en: |
+                  A draw: White's king has nowhere to hide from the checks.
+                it: |
+                  Patta: il re bianco non ha dove nascondersi dagli scacchi.
+        - result: 1/2-1/2
+          fen: K7/P3k3/8/8/8/8/3R4/1r6 w - - 0 1
+          moves: d2h2 e7d7 h2h8 d7c7 h8b8 b1c1 b8b7 c7c8
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  2. Pawn on the seventh rank, the king in front
+                it: |
+                  2. Pedone in settima, il re davanti
+            - ply: 0
+              text:
+                en: |
+                  A draw: White's king cannot get out of its cage.
+                it: |
+                  Patta: il re bianco non riesce a uscire dalla gabbia.
+            - ply: 8
+              text:
+                en: |
+                  And White cannot drive Black's king away.
+                it: |
+                  E il Bianco non può scacciare il re nero.
+        - result: 1/2-1/2
+          fen: R7/P5k1/8/2K5/8/8/8/r7 w - - 0 1
+          moves: c5b6 a1b1 b6c7 b1c1 c7b6 c1b1
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  3. Pawn on the seventh rank, the rook in front
+                it: |
+                  3. Pedone in settima, la torre davanti
+            - ply: 0
+              text:
+                en: |
+                  White's king wants to reach the pawn, to free its rook and the way to promotion. Black's rook keeps checking, and White makes no progress. Had White's king gone the long way round to b2, Black's rook would simply stay on the a-file behind the pawn.
+                it: |
+                  Il re bianco vuole raggiungere il pedone, per liberare la sua torre e la strada della promozione. La torre nera continua a dare scacco, e il Bianco non fa progressi. Se il re bianco facesse il giro lungo fino a b2, la torre nera resterebbe semplicemente sulla colonna a, dietro al pedone.
+            - ply: 6
+              text:
+                en: |
+                  A draw.
+                it: |
+                  Patta.
+        - result: 1/2-1/2
+          fen: R7/6k1/P7/8/8/5K2/8/r7 b - - 0 1
+          moves: a1f1 f3e4 f1f6 e4d5 f6b6 d5c5 b6f6 c5b5 f6f5
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  4. Pawn on the sixth rank, the rook in front (1)
+                it: |
+                  4. Pedone in sesta, la torre davanti (1)
+            - ply: 0
+              text:
+                en: |
+                  Another drawn position.
+                it: |
+                  Un'altra posizione patta.
+            - ply: 9
+              text:
+                en: |
+                  A draw: Black will go on checking along the f-file.
+                it: |
+                  Patta: il Nero continuerà a dare scacco lungo la colonna f.
+        - result: 1-0
+          fen: R7/6k1/PK6/8/8/8/8/r7 w - - 0 1
+          moves: b6a7 a1a3 a8b8
+          variations: (1 Rb8 )
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  5. Pawn on the sixth rank, the rook in front (2)
+                it: |
+                  5. Pedone in sesta, la torre davanti (2)
+            - ply: 0
+              text:
+                en: |
+                  A special case of the pawn on the seventh: this time White wins, because of where Black's king stands, too far to help.
+                it: |
+                  Un caso speciale del pedone in settima: questa volta vince il Bianco, per la posizione del re nero, troppo lontano per aiutare.
+            - ply: 3
+              text:
+                en: |
+                  The rook leaves the pawn's way, and the pawn promotes. 1.Rb8 at once is even stronger.
+                it: |
+                  La torre libera la strada al pedone, che promuove. 1.Tb8 subito è ancora più forte.
+        - result: 1-0
+          fen: 2r5/3k4/P7/K7/1R6/8/8/8 b - - 0 1
+          moves: c8a8 b4h4 a8g8 a6a7 d7c7 h4h7 c7c6 a5a6 g8f8 h7h1 f8g8 h1c1 c6d6 a6b7 g8g7 b7b8 g7g8 c1c8
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  6. Pawn on the sixth rank, the king behind
+                it: |
+                  6. Pedone in sesta, il re dietro
+            - ply: 12
+              text:
+                en: |
+                  White puts the pawn on a7 and drives Black's king away with checks along the files.
+                it: |
+                  Il Bianco mette il pedone in a7 e allontana il re nero con scacchi in verticale.
+            - ply: 18
+              text:
+                en: |
+                  The rook blocks the last check, and the pawn promotes next.
+                it: |
+                  La torre para l'ultimo scacco, e il pedone promuove subito dopo.
+            - ply: 18
+              text:
+                en: |
+                  “Even the best masters in the world have had to work hard to acquire the technique of rook endings.” — Paul Keres
+                it: |
+                  «Anche i migliori maestri del mondo hanno dovuto lavorare sodo per acquisire la tecnica dei finali di torre.» — Paul Keres
+board:
+  flipped: false
+  coordinates: true
+engine:
+  name: ~
+  analyzing: false
+workspace:
+  panels:
+    toolbar: true
+    moves: true
+    openingTree: false
+    engine: true
+    games: true
+  gamesHeight: 32
+  movesWidth: 50
+  engineHeight: 25
+  treeWidth: 22

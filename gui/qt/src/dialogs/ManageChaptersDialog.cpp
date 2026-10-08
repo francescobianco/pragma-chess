@@ -16,12 +16,33 @@ constexpr int kSourceRole = Qt::UserRole;
 constexpr int kGamesRole = Qt::UserRole + 1;
 /// The grey "(No Chapter)" row of a list without chapters.
 constexpr int kPlaceholderRole = Qt::UserRole + 2;
+/// The titles of a row by language, as a QVariantMap.
+constexpr int kTitlesRole = Qt::UserRole + 3;
+
+QVariantMap toVariant(const LocalizedText &text)
+{
+    QVariantMap map;
+    for (auto entry = text.texts().cbegin(); entry != text.texts().cend(); ++entry)
+        map.insert(entry.key(), entry.value());
+    return map;
+}
+
+LocalizedText fromVariant(const QVariant &value)
+{
+    LocalizedText text;
+    const QVariantMap map = value.toMap();
+    for (auto entry = map.cbegin(); entry != map.cend(); ++entry)
+        text.set(entry.key(), entry.value().toString());
+    return text;
+}
 
 } // namespace
 
-ManageChaptersDialog::ManageChaptersDialog(const QList<Entry> &chapters, int current, QWidget *parent)
+ManageChaptersDialog::ManageChaptersDialog(const QList<Entry> &chapters, int current, const QString &language,
+                                           QWidget *parent)
     : QDialog(parent)
     , m_list(new QListWidget(this))
+    , m_language(language)
     , m_delete(new QPushButton(tr("&Delete…"), this))
     , m_up(new QPushButton(tr("Move &Up"), this))
     , m_down(new QPushButton(tr("Move D&own"), this))
@@ -33,13 +54,16 @@ ManageChaptersDialog::ManageChaptersDialog(const QList<Entry> &chapters, int cur
     m_list->setDefaultDropAction(Qt::MoveAction);
     m_list->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed);
     for (const Entry &entry : chapters) {
-        auto *item = new QListWidgetItem(entry.title, m_list);
+        auto *item = new QListWidgetItem(entry.title.text(language), m_list);
         item->setFlags(item->flags() | Qt::ItemIsEditable);
+        item->setData(kTitlesRole, toVariant(entry.title));
         item->setData(kSourceRole, entry.source);
         item->setData(kGamesRole, entry.games);
         item->setToolTip(tr("%n game(s)", nullptr, entry.games));
     }
-    m_list->setCurrentRow(qBound(0, current, int(m_list->count()) - 1));
+    // A project without chapters has none to select.
+    if (m_list->count() > 0)
+        m_list->setCurrentRow(qBound(0, current, int(m_list->count()) - 1));
 
     auto *add = new QPushButton(tr("&New"), this);
     auto *rename = new QPushButton(tr("&Rename"), this);
@@ -99,6 +123,7 @@ ManageChaptersDialog::ManageChaptersDialog(const QList<Entry> &chapters, int cur
 
     auto *note = new QLabel(tr("Drag a chapter to move it; double-click it to rename it."), this);
     note->setEnabled(false);
+
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -143,7 +168,16 @@ QList<ManageChaptersDialog::Entry> ManageChaptersDialog::entries() const
         const QListWidgetItem *item = m_list->item(i);
         if (item->data(kPlaceholderRole).toBool())
             continue;
-        result << Entry{item->data(kSourceRole).toInt(), item->text(), item->data(kGamesRole).toInt()};
+        result << Entry{item->data(kSourceRole).toInt(), titles(item, m_language), item->data(kGamesRole).toInt()};
     }
     return result;
+}
+
+LocalizedText ManageChaptersDialog::titles(const QListWidgetItem *item, const QString &language) const
+{
+    LocalizedText titles = fromVariant(item->data(kTitlesRole));
+    // Shown as it was, from this language or another one: nothing written.
+    if (item->text().trimmed() != titles.text(language))
+        titles.set(language, item->text().trimmed());
+    return titles;
 }

@@ -7,6 +7,7 @@
 #include "widgets/PaddedHeaderView.h"
 #include "widgets/PaddedItemDelegate.h"
 
+#include <QApplication>
 #include <QDialogButtonBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -20,6 +21,7 @@
 #include <QVariantAnimation>
 #include <QVBoxLayout>
 
+#include <cmath>
 #include <numeric>
 
 namespace {
@@ -29,20 +31,89 @@ constexpr int kRoomRole = Qt::UserRole;
 constexpr int kRoomIdRole = Qt::UserRole + 1;
 /// How strongly a cell glows, 0 to 1 (GlowDelegate).
 constexpr int kGlowRole = Qt::UserRole + 2;
+/// The tournaments won by the player named in the cell: a medal after the name.
+constexpr int kMedalRole = Qt::UserRole + 3;
+
+/// The medal of a player who won a tournament: a yellow dot.
+const QColor kMedalFill(0xf2, 0xc2, 0x1e);
+const QColor kMedalEdge(0xb8, 0x86, 0x00);
+
+/// The medal's diameter beside text in `metrics`.
+qreal medalSide(const QFontMetrics &metrics)
+{
+    return std::round(metrics.height() * 0.5);
+}
+
+void paintMedal(QPainter *painter, const QRectF &rect)
+{
+    painter->save();
+    painter->setRenderHint(QPainter::Antialiasing);
+    painter->setPen(QPen(kMedalEdge, 1));
+    painter->setBrush(kMedalFill);
+    painter->drawEllipse(rect.adjusted(0.5, 0.5, -0.5, -0.5));
+    painter->restore();
+}
+
+/// The medal as an icon, for a menu.
+QIcon medalIcon(const QFontMetrics &metrics, qreal ratio)
+{
+    const int side = int(medalSide(metrics));
+    QPixmap pixmap(QSize(side, side) * ratio);
+    pixmap.setDevicePixelRatio(ratio);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    paintMedal(&painter, QRectF(0, 0, side, side));
+    return QIcon(pixmap);
+}
+
+/// The name of `player` over the board, as rich text: their medal after it.
+QString nameWithMedal(const LobbyRoom &room, const QString &player, const QHash<QString, int> &medals)
+{
+    QString name = room.displayName(player).toHtmlEscaped();
+    if (medals.value(player) > 0)
+        name += QStringLiteral("&nbsp;<span style=\"color:%1\">●</span>").arg(kMedalFill.name());
+    return name;
+}
 
 /// The cells of the lobby's tables, padded as the games list, with the glow
 /// of a game that turned to the user's move painted over them: over the
-/// selection too, which a background would leave hidden.
+/// selection too, which a background would leave hidden. A player who won a
+/// tournament has their medal after their name (kMedalRole).
 class GlowDelegate : public PaddedItemDelegate {
 public:
     GlowDelegate(int vertical, int horizontal, QObject *parent)
         : PaddedItemDelegate(vertical, horizontal, parent)
+        , m_vertical(vertical)
+        , m_horizontal(horizontal)
     {
+    }
+
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        QSize size = PaddedItemDelegate::sizeHint(option, index);
+        if (index.data(kMedalRole).toInt() > 0)
+            size.rwidth() += int(std::ceil(medalSide(option.fontMetrics) * 1.6));
+        return size;
     }
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
     {
         PaddedItemDelegate::paint(painter, option, index);
+        if (index.data(kMedalRole).toInt() > 0) {
+            // Where the style drew the text, as PaddedItemDelegate laid it out.
+            QStyleOptionViewItem cell = option;
+            initStyleOption(&cell, index);
+            cell.rect.adjust(m_horizontal, m_vertical, -m_horizontal, -m_vertical);
+            const QStyle *style = cell.widget ? cell.widget->style() : QApplication::style();
+            const QRect text = style->subElementRect(QStyle::SE_ItemViewItemText, &cell, cell.widget);
+            const int margin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, cell.widget) + 1;
+            const QFontMetrics metrics(cell.font);
+            const qreal side = medalSide(metrics);
+            const qreal room = text.width() - 2 * margin - side * 1.6;
+            const qreal width = std::min(qreal(metrics.horizontalAdvance(cell.text)), std::max(room, qreal(0)));
+            paintMedal(painter, QRectF(text.left() + margin + width + side * 0.6, text.center().y() + 1 - side / 2,
+                                       side, side));
+        }
         const qreal strength = index.data(kGlowRole).toReal();
         if (strength <= 0)
             return;
@@ -52,6 +123,10 @@ public:
         glow.setAlphaF(float((selected ? 0.55 : 0.45) * strength));
         painter->fillRect(option.rect, glow);
     }
+
+private:
+    int m_vertical;
+    int m_horizontal;
 };
 constexpr int kGameRole = Qt::UserRole;
 
@@ -204,7 +279,7 @@ LobbyDialog::LobbyDialog(LobbyService *service, QWidget *parent)
     m_gameNames->setFont(namesFont);
     m_gameNames->setAlignment(Qt::AlignCenter);
     m_gameNames->setFixedWidth(m_board->width());
-    m_gameNames->setTextFormat(Qt::PlainText);
+    m_gameNames->setTextFormat(Qt::RichText); // The players' medals in their colour.
     boardColumn->addWidget(m_gameNames);
     boardColumn->addWidget(m_board);
     m_gameLine = new QLabel(roomPage);
@@ -429,6 +504,8 @@ void LobbyDialog::playNow(int row)
             : ChessPosition::startingPosition().lineText(entry.moves, -1, SanStyle::Letters).section(QLatin1Char(' '), -2);
         QAction *action = menu->addAction(white ? tr("With White against %1 — %2").arg(opponent, line)
                                                 : tr("With Black against %1 — %2").arg(opponent, line));
+        if (lobby().medals().value(white ? entry.black : entry.white) > 0)
+            action->setIcon(medalIcon(menu->fontMetrics(), devicePixelRatioF()));
         connect(action, &QAction::triggered, this, [this, index, game] { playGame(index, game); });
     }
     const QWidget *button = m_rooms->itemWidget(m_rooms->topLevelItem(row), 4);
@@ -517,11 +594,23 @@ void LobbyDialog::showRoom()
         return halfPoints % 2 ? (halfPoints > 1 ? QString::number(halfPoints / 2) : QString()) + QStringLiteral("½")
                               : QString::number(halfPoints / 2);
     };
+    const QHash<QString, int> medals = lobby().medals();
+    const auto showMedal = [&](QTreeWidgetItem *item, int column, const QString &player) {
+        const int won = medals.value(player);
+        if (won <= 0)
+            return;
+        item->setData(column, kMedalRole, won);
+        item->setToolTip(column, tr("Won %n tournament(s)", nullptr, won));
+    };
     for (const LobbyStanding &line : room.standings()) {
         auto *item = new QTreeWidgetItem(m_standings, {QString::number(line.place), room.displayName(line.player),
                                                        QString::number(line.wins), QString::number(line.draws),
                                                        QString::number(line.losses), points(line.halfPoints)});
         item->setToolTip(1, tr("%n game(s) finished", nullptr, line.played));
+        showMedal(item, 1, line.player);
+        if (medals.value(line.player) > 0)
+            item->setToolTip(1, tr("%n game(s) finished", nullptr, line.played) + QLatin1Char('\n')
+                                    + tr("Won %n tournament(s)", nullptr, medals.value(line.player)));
         for (int column : {0, 2, 3, 4, 5})
             item->setTextAlignment(column, Qt::AlignRight | Qt::AlignVCenter);
         QFont font = item->font(0);
@@ -537,11 +626,14 @@ void LobbyDialog::showRoom()
         item->setForeground(1, palette().brush(QPalette::PlaceholderText));
     }
     m_joinButton->setVisible(!seated);
-    m_joinButton->setEnabled(room.isJoinable());
+    m_joinButton->setEnabled(room.isJoinable() && lobby().mayJoin(m_me));
     if (seated)
         m_joinHint->setText(tr("You sit here: your games are in bold."));
     else if (!room.isJoinable())
         m_joinHint->setText(tr("The room is full: you can follow its games."));
+    else if (!lobby().mayJoin(m_me))
+        m_joinHint->setText(tr("You already play in %n tournament(s): you can take a seat here once one of them "
+                               "is over.", nullptr, Lobby::kMaxRoomsInPlay));
     else if (room.players() == 0)
         m_joinHint->setText(tr("Sit first: the room opens, and your games begin as the others come."));
     else
@@ -573,6 +665,8 @@ void LobbyDialog::showRoom()
                                                    QString::number((game.moves.size() + 1) / 2), state});
         item->setData(0, kGameRole, i);
         item->setData(1, kGameRole, game.white + QLatin1Char('|') + game.black);
+        showMedal(item, 0, game.white);
+        showMedal(item, 1, game.black);
         if (game.involves(m_me)) {
             QFont font = item->font(0);
             font.setBold(true);
@@ -614,7 +708,9 @@ void LobbyDialog::showSelectedGame()
     m_board->setFlipped(game.black == m_me);
     m_board->setBoard(BoardFrame{position.boardState(), from, to});
     const QString line = ChessPosition::startingPosition().lineText(game.moves, -1, SanStyle::Figurines);
-    m_gameNames->setText(QStringLiteral("%1 – %2").arg(room.displayName(game.white), room.displayName(game.black)));
+    const QHash<QString, int> medals = lobby().medals();
+    m_gameNames->setText(QStringLiteral("%1 – %2").arg(nameWithMedal(room, game.white, medals),
+                                                        nameWithMedal(room, game.black, medals)));
     m_gameLine->setText(line.isEmpty() ? tr("No moves yet.") : line);
     m_playButton->setEnabled(game.involves(m_me) && !game.isOver());
     m_playButton->setText(game.involves(m_me) && !game.isOver() && game.toMove() == m_me ? tr("&Play Your Move")

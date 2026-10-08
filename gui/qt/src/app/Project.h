@@ -18,13 +18,18 @@
 /// Projects are saved as `.pch` files (YAML) from the File menu, and the
 /// same representation is used to restore the last session on startup.
 struct Project {
-    /// 2: the chapters.
-    static constexpr int formatVersion = 2;
+    /// 2: the chapters. 3: the texts by language (LocalizedText).
+    static constexpr int formatVersion = 3;
     static constexpr char fileSuffix[] = "pch";
 
     /// The project's own name (File ▸ Project Settings…), shown in the title
-    /// bar in place of the file's; empty for the file's.
-    QString name;
+    /// bar in place of the file's; empty for the file's. Like the chapters'
+    /// titles and the paragraphs, in each language the project is written in.
+    LocalizedText name;
+    /// Its texts are written in several languages, one chosen at a time in
+    /// Project Settings; otherwise they are shown and written in the
+    /// interface's. Written `multilingual: true`, only when on.
+    bool multilingual = false;
     /// Absolute path of the database file.
     QString databasePath;
     /// The chapters, their games and paragraphs, and the one open (where in
@@ -100,9 +105,12 @@ struct Project {
     /// Serializes to YAML. Paths inside `baseDir` are written relative to it,
     /// so a .pch file can travel together with its databases.
     QString toYaml(const QDir &baseDir = QDir()) const;
-    static std::optional<Project> fromYaml(const QString &yaml, const QDir &baseDir,
-                                               QString *errorMessage);
+    /// The texts of a project written before languages (format 2 and
+    /// earlier) are read as written in `legacyLanguage`.
+    static std::optional<Project> fromYaml(const QString &yaml, const QDir &baseDir, QString *errorMessage,
+                                           const QString &legacyLanguage = QStringLiteral("en"));
 
     bool saveToFile(const QString &path, QString *errorMessage) const;
-    static std::optional<Project> loadFromFile(const QString &path, QString *errorMessage);
+    static std::optional<Project> loadFromFile(const QString &path, QString *errorMessage,
+                                               const QString &legacyLanguage = QStringLiteral("en"));
 };

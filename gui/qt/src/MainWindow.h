@@ -232,6 +232,9 @@ private:
     void switchChapter(int index);
     void manageChapters();
     void editProjectSettings();
+    /// The language a project's texts are shown in when it opens: the interface's,
+    /// or English when the project's texts are not written in it (LocalizedText).
+    static QString contentLanguage();
     void fillChapterMenu();
     /// Whether the board may leave its game for another (not while playing online).
     bool canLeaveGame();
@@ -359,6 +362,9 @@ private:
     /// Brings the databases we distribute up to this version, by lineage:
     /// adds the games they bring, creates the training sets once.
     void updateDistributedDatabases();
+    /// The projects we distribute (`:/projects`), copied once into the
+    /// Projects folder: one the user deleted is not brought back.
+    void seedDistributedProjects();
     /// Makes sure the database at `path` is typed Opening Book; false if it cannot be opened.
     bool markAsOpeningBook(const QString &path);
     /// Reads the names again when their database changed since they were read.
@@ -491,7 +497,11 @@ private:
     /// The project's chapters; its current game is the one in m_session.
     ChapterBook m_chapters;
     /// The project's name (Project Settings), empty for the file's.
-    QString m_projectName;
+    /// The project's name, in each language its texts are written in.
+    LocalizedText m_projectName;
+    /// The project's texts are in several languages: the one shown and
+    /// written (m_chapters.language) is chosen in Project Settings.
+    bool m_multilingual = false;
     GameListModel *m_gameListModel;
     GameFilterProxyModel *m_gameListProxy;
 

@@ -45,7 +45,7 @@ bool ChapterGame::holdsWork() const
 ChapterBook::ChapterBook()
 {
     Chapter first;
-    first.title = defaultTitle(1);
+    first.title = LocalizedText(language, defaultTitle(1));
     chapters << first;
 }
 
@@ -61,7 +61,10 @@ bool ChapterBook::hasChapters() const
 
 void ChapterBook::clear()
 {
+    const QString kept = language;
     *this = ChapterBook();
+    language = kept;
+    chapters.first().title = LocalizedText(language, defaultTitle(1));
 }
 
 void ChapterBook::setChapters(const QList<Chapter> &list, int open, bool none, bool automatic)
@@ -108,12 +111,13 @@ int ChapterBook::addChapter(const QString &title)
     if (m_none) {
         // What is there, nothing yet, becomes the first chapter.
         m_none = false;
-        chapters.first().title = title.trimmed().isEmpty() ? defaultTitle(1) : title.trimmed();
+        chapters.first().title = LocalizedText(language, title.trimmed().isEmpty() ? defaultTitle(1) : title.trimmed());
         current = 0;
         return current;
     }
     Chapter chapter;
-    chapter.title = title.trimmed().isEmpty() ? defaultTitle(int(chapters.size()) + 1) : title.trimmed();
+    chapter.title = LocalizedText(language, title.trimmed().isEmpty() ? defaultTitle(int(chapters.size()) + 1)
+                                                                      : title.trimmed());
     chapters << chapter;
     current = int(chapters.size()) - 1;
     return current;
@@ -236,7 +240,7 @@ int ChapterBook::insertParagraph(int game, int ply, int after, Paragraph::Kind k
         while (index < paragraphs.size() && paragraphs.at(index).ply <= ply)
             ++index;
     }
-    paragraphs.insert(index, Paragraph{ply, QString(), kind});
+    paragraphs.insert(index, Paragraph{ply, LocalizedText(), kind});
     m_none = false;
     return index;
 }
@@ -263,7 +267,7 @@ void ChapterBook::setParagraph(int game, int index, const QString &text)
     if (text.trimmed().isEmpty())
         removeParagraph(game, index);
     else
-        paragraphs[index].text = text;
+        paragraphs[index].text.set(language, text);
 }
 
 void ChapterBook::removeParagraph(int game, int index)

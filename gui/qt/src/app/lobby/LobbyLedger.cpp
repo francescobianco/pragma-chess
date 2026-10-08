@@ -6,7 +6,9 @@
 #include <QJsonDocument>
 
 #include <algorithm>
+#include <limits>
 #include <map>
+#include <optional>
 #include <tuple>
 
 namespace {
@@ -72,6 +74,64 @@ QStringList LobbyLedger::ids() const
     return ids;
 }
 
+namespace {
+
+/// Where an event stands in the order the rules read them.
+using EventKey = std::pair<qint64, QString>;
+using GameKey = std::tuple<QString, QString, QString>;
+
+EventKey keyOf(const LedgerEvent &event)
+{
+    return {event.createdAt, event.id};
+}
+
+/// A game played out from its events: the moves by ply (the first legal one
+/// of the player to move counting), then mate, stalemate or a resignation.
+/// `end` is set to the latest of the events that made the game end, when it did.
+LobbyGame playGame(const GameKey &key, QList<LedgerEvent> candidates, const QList<LedgerEvent> &resignations,
+                   std::optional<EventKey> *end)
+{
+    LobbyGame game;
+    game.white = std::get<1>(key);
+    game.black = std::get<2>(key);
+    EventKey last{std::numeric_limits<qint64>::min(), QString()};
+    ChessPosition position = ChessPosition::startingPosition();
+    std::stable_sort(candidates.begin(), candidates.end(), [](const LedgerEvent &a, const LedgerEvent &b) {
+        return a.content.value(QStringLiteral("ply")).toInt() < b.content.value(QStringLiteral("ply")).toInt();
+    });
+    for (const LedgerEvent &event : std::as_const(candidates)) {
+        const int ply = event.content.value(QStringLiteral("ply")).toInt();
+        if (ply != game.moves.size() + 1 || event.author != game.toMove())
+            continue; // Another ply, a ply already played, or not their turn.
+        if (position.legalMoves().isEmpty())
+            break; // Checkmate or stalemate: nothing comes after.
+        const std::optional<ChessMove> move = position.moveFromUci(text(event.content, "uci"));
+        if (!move)
+            continue; // Illegal: left out, as every peer does.
+        position.play(*move);
+        game.moves << move->uci();
+        last = std::max(last, keyOf(event));
+    }
+    if (position.legalMoves().isEmpty()) {
+        if (position.inCheck())
+            game.result = position.sideToMove() == Side::White ? QStringLiteral("0-1") : QStringLiteral("1-0");
+        else
+            game.result = QStringLiteral("1/2-1/2");
+    } else {
+        for (const LedgerEvent &event : resignations) {
+            if (!game.involves(event.author))
+                continue;
+            game.result = event.author == game.white ? QStringLiteral("0-1") : QStringLiteral("1-0");
+            last = std::max(last, keyOf(event));
+            break;
+        }
+    }
+    *end = game.isOver() ? std::optional<EventKey>(last) : std::nullopt;
+    return game;
+}
+
+} // namespace
+
 QList<LobbyRoom> LobbyLedger::rooms() const
 {
     const QList<LedgerEvent> events = this->events();
@@ -84,31 +144,7 @@ QList<LobbyRoom> LobbyLedger::rooms() const
             names.insert(event.author, name.left(40));
     }
 
-    // The rooms, then their seats in the order of the joins: a join may bear
-    // an earlier time than its room's opening (the same second, or clocks
-    // apart), and still names a room that exists.
-    QList<LobbyRoom> rooms;
-    QHash<QString, int> roomIndex;
-    for (const LedgerEvent &event : events) {
-        if (text(event.content, "t") != QLatin1String("open"))
-            continue;
-        LobbyRoom room;
-        room.id = event.id;
-        room.seed = quint32(event.content.value(QStringLiteral("seed")).toDouble());
-        room.seat(event.author);
-        roomIndex.insert(room.id, int(rooms.size()));
-        rooms << room;
-    }
-    for (const LedgerEvent &event : events) {
-        if (text(event.content, "t") != QLatin1String("join"))
-            continue;
-        const auto found = roomIndex.constFind(text(event.content, "room"));
-        if (found != roomIndex.cend())
-            rooms[*found].seat(event.author); // Refused when full or seated already.
-    }
-
-    // The moves of each game, by ply, then in the order of the events.
-    using GameKey = std::tuple<QString, QString, QString>;
+    // The moves and resignations of each game, in the order of the events.
     std::map<GameKey, QList<LedgerEvent>> moves;
     std::map<GameKey, QList<LedgerEvent>> resignations;
     for (const LedgerEvent &event : events) {
@@ -119,47 +155,104 @@ QList<LobbyRoom> LobbyLedger::rooms() const
         else if (kind == QLatin1String("resign"))
             resignations[key] << event;
     }
+    // When each game ended, played out once.
+    std::map<GameKey, std::optional<EventKey>> ends;
+    const auto endOf = [&](const GameKey &key) {
+        auto found = ends.find(key);
+        if (found == ends.end()) {
+            std::optional<EventKey> end;
+            playGame(key, moves[key], resignations[key], &end);
+            found = ends.emplace(key, end).first;
+        }
+        return found->second;
+    };
 
-    for (LobbyRoom &room : rooms) {
+    // The rooms, then the seats in the order they were taken. A join may bear
+    // an earlier time than its room's opening (the same second, or clocks
+    // apart), and still names a room that exists: it is read right after it.
+    QList<LobbyRoom> rooms;
+    QHash<QString, int> roomIndex;
+    for (const LedgerEvent &event : events) {
+        if (text(event.content, "t") != QLatin1String("open"))
+            continue;
+        LobbyRoom room;
+        room.id = event.id;
+        room.seed = quint32(event.content.value(QStringLiteral("seed")).toDouble());
+        roomIndex.insert(room.id, int(rooms.size()));
+        rooms << room;
+    }
+    struct Sitting {
+        EventKey at;
+        bool open = false;
+        LedgerEvent event;
+        int room = -1;
+    };
+    QList<Sitting> sittings;
+    QHash<QString, EventKey> openedAt;
+    for (const LedgerEvent &event : events) {
+        if (text(event.content, "t") == QLatin1String("open")) {
+            openedAt.insert(event.id, keyOf(event));
+            sittings << Sitting{keyOf(event), true, event, roomIndex.value(event.id)};
+        }
+    }
+    for (const LedgerEvent &event : events) {
+        if (text(event.content, "t") != QLatin1String("join"))
+            continue;
+        const QString room = text(event.content, "room");
+        const auto found = roomIndex.constFind(room);
+        if (found != roomIndex.cend())
+            sittings << Sitting{std::max(keyOf(event), openedAt.value(room)), false, event, *found};
+    }
+    std::sort(sittings.begin(), sittings.end(), [](const Sitting &a, const Sitting &b) {
+        return std::tie(a.at, b.open, a.event.id) < std::tie(b.at, a.open, b.event.id);
+    });
+
+    // A player plays in at most Lobby::kMaxRoomsInPlay tournaments at once: a
+    // room counts until it is full and its last game ended before the seat
+    // is taken. A room whose opening is refused is no room.
+    QList<bool> opened(rooms.size(), false);
+    const auto finishedBy = [&](const LobbyRoom &room, const EventKey &at) {
+        if (room.isJoinable())
+            return false;
+        for (const LobbyGame &game : room.games) {
+            const std::optional<EventKey> end = endOf(GameKey{room.id, game.white, game.black});
+            if (!end || *end > at)
+                return false;
+        }
+        return true;
+    };
+    for (const Sitting &sitting : std::as_const(sittings)) {
+        if (!sitting.open && !opened.at(sitting.room))
+            continue; // A room whose opening was refused.
+        const QString &player = sitting.event.author;
+        int inPlay = 0;
+        for (int i = 0; i < rooms.size(); ++i) {
+            if (opened.at(i) && rooms.at(i).isSeated(player) && !finishedBy(rooms.at(i), sitting.at))
+                ++inPlay;
+        }
+        if (inPlay >= Lobby::kMaxRoomsInPlay)
+            continue;
+        if (rooms[sitting.room].seat(player) && sitting.open) // Refused when full or seated already.
+            opened[sitting.room] = true;
+    }
+
+    QList<LobbyRoom> made;
+    for (int i = 0; i < rooms.size(); ++i) {
+        if (!opened.at(i))
+            continue;
+        LobbyRoom room = rooms.at(i);
         for (const QString &player : std::as_const(room.seats)) {
             if (!player.isEmpty() && names.contains(player))
                 room.names.insert(player, names.value(player));
         }
         for (LobbyGame &game : room.games) {
             const GameKey key{room.id, game.white, game.black};
-            ChessPosition position = ChessPosition::startingPosition();
-            QList<LedgerEvent> candidates = moves[key];
-            std::stable_sort(candidates.begin(), candidates.end(), [](const LedgerEvent &a, const LedgerEvent &b) {
-                return a.content.value(QStringLiteral("ply")).toInt() < b.content.value(QStringLiteral("ply")).toInt();
-            });
-            for (const LedgerEvent &event : std::as_const(candidates)) {
-                const int ply = event.content.value(QStringLiteral("ply")).toInt();
-                if (ply != game.moves.size() + 1 || event.author != game.toMove())
-                    continue; // Another ply, a ply already played, or not their turn.
-                if (position.legalMoves().isEmpty())
-                    break; // Checkmate or stalemate: nothing comes after.
-                const std::optional<ChessMove> move = position.moveFromUci(text(event.content, "uci"));
-                if (!move)
-                    continue; // Illegal: left out, as every peer does.
-                position.play(*move);
-                game.moves << move->uci();
-            }
-            if (position.legalMoves().isEmpty()) {
-                if (position.inCheck())
-                    game.result = position.sideToMove() == Side::White ? QStringLiteral("0-1") : QStringLiteral("1-0");
-                else
-                    game.result = QStringLiteral("1/2-1/2");
-            } else {
-                for (const LedgerEvent &event : resignations[key]) {
-                    if (!game.involves(event.author))
-                        continue;
-                    game.result = event.author == game.white ? QStringLiteral("0-1") : QStringLiteral("1-0");
-                    break;
-                }
-            }
+            std::optional<EventKey> end;
+            game = playGame(key, moves[key], resignations[key], &end);
         }
+        made << room;
     }
-    return rooms;
+    return made;
 }
 
 QJsonObject LobbyLedger::openContent(quint32 seed, const QString &name)

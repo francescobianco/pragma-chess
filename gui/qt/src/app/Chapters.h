@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameRecord.h"
+#include "LocalizedText.h"
 
 #include <QList>
 #include <QString>
@@ -13,7 +14,8 @@ struct Paragraph {
     enum class Kind { Text, Title, Subtitle };
 
     int ply = 0;
-    QString text;
+    /// The words, in each language the project is written in.
+    LocalizedText text;
     Kind kind = Kind::Text;
 
     /// "title", "subtitle", "text": the kind as the project file writes it.
@@ -46,7 +48,8 @@ struct ChapterGame {
 /// text between their moves. The project is a list of chapters — a study,
 /// or a book.
 struct Chapter {
-    QString title;
+    /// In each language the project is written in.
+    LocalizedText title;
     QList<ChapterGame> games{ChapterGame()};
     /// Where the user was in it: the game, the line (the variation taken at
     /// each branch, GameSession::path; empty for the main line) and the ply
@@ -68,6 +71,10 @@ public:
 
     QList<Chapter> chapters;
     int current = 0;
+    /// The language the texts are shown and written in (LocalizedText): the
+    /// interface's when the project opens, another chosen in Manage Chapters.
+    /// The project's structure is the same in every language.
+    QString language = LocalizedText::languages().constFirst();
 
     /// Whether the project has chapters, or is still without (the menus say
     /// "(No Chapter)").
@@ -136,7 +143,8 @@ public:
     /// main-line ply `ply` (0: before the first move), first or last among
     /// the paragraphs already there. Returns its new index.
     int moveParagraph(int game, int index, int ply, bool first);
-    /// Sets the text of a paragraph; an empty text removes it.
+    /// Sets the text of a paragraph in `language`; an empty text removes the
+    /// paragraph, in every language.
     void setParagraph(int game, int index, const QString &text);
     /// Takes a paragraph, a title or a subtitle away.
     void removeParagraph(int game, int index);

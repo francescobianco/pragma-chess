@@ -8,6 +8,41 @@ AGENTS.md, nel CHANGELOG e nella storia di git.
 
 ## Da fare, in ordine di priorità
 
+### Lasciato a metà l'8/10/2026 (progetti multilingua, lobby)
+
+- **Provare «Rook Endgames» dall'interfaccia**: `gui/qt/resources/projects/Rook
+  Endgames.pch` è generato e verificato dai test (`readsTheDistributedProjects`:
+  mosse e varianti legali, testi in inglese e italiano), ma non l'ho mai
+  aperto nel client. Da vedere: che venga copiato nella cartella Progetti al
+  primo avvio, che si apra con File ▸ Apri progetto, l'impaginazione dei
+  paragrafi, i titoli, i diagrammi di partenza (17 posizioni trascritte dalla
+  tesi e verificate con Stockfish), il cambio di lingua.
+- **Permesso dell'autore**: il progetto segue la tesi di Benedetto Piero
+  Arnetta («I finali di torre: una brevissima panoramica», SNAQ, Palermo
+  2018, da scacchiascuola.it; copia in `temp/`, non versionata). Posizioni e
+  mosse sono sue, i testi riscritti con parole nostre e la fonte citata nel
+  progetto. Prima di pubblicarlo in una release chiedere il permesso a lui o
+  a scacchiascuola.it.
+- **Linee della tesi da rivedere**: corrette dove il testo aveva errori (numeri
+  di mossa doppi, lettere italiane, varianti mescolate). Senza tablebase
+  Stockfish dà +1.3/+0.8 a posizioni note come patte (figure 10 e 13);
+  preferisce 1…Rh6 a 1…h5 in Lilienthal–Benko e 39…Rd3 a 39…h5 in
+  Piket–Kasparov. Lilienthal–Benko è numerata da 1, non come nella partita.
+- **Progetti multilingua**: provare a mano Impostazioni progetto (il dialogo
+  modale non l'ho visto a schermo: percorso del file in sola lettura, casella
+  Progetto multilingua, Lingua dei testi) e il crash corretto di Gestione
+  capitoli in un progetto senza capitoli. Restano fuori dalle lingue i
+  commenti delle mosse e le intestazioni delle partite (sono dati della
+  partita, nel database). Un aggiornamento del progetto distribuito oggi non
+  arriva a chi l'ha già: si copia una volta sola
+  (`distributed/project/<nome>/seeded`).
+- **Lobby, due tornei e medaglie**: la regola dei due tornei in corso è nuova
+  nel fold e non è versionata (`v`): un client vecchio vedrebbe seduto in una
+  terza stanza chi i nuovi escludono. Se la lobby è già in una release,
+  passare gli eventi a `v: 2`. La medaglia è un pallino solo anche per più
+  vittorie (il numero è nel suggerimento), e il testo del pannello Motore in
+  modalità lobby non la mostra.
+
 ### ChessBase .2cbh: quel che resta
 
 Il lettore c'è (AGENTS.md, "ChessBase files"; il formato è sotto, "Formato

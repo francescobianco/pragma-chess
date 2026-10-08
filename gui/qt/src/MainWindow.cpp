@@ -469,6 +469,7 @@ MainWindow::MainWindow(QWidget *parent)
     resumeOnlineGame(); // After the session: the online game takes the board.
     adoptShippedLineages();
     updateDistributedDatabases();
+    seedDistributedProjects();
     restoreOpeningNames(); // After the session, so the first launch still seeds Classic Games first.
     applySyncSettings();
     createPhoneLink();
@@ -1262,8 +1263,12 @@ void MainWindow::createDocks()
     m_moveView->setBook(&m_chapters);
     connect(m_moveView, &MoveTreeView::gameMoveActivated, this, &MainWindow::switchToChapterGame);
     connect(m_moveView, &MoveTreeView::paragraphEdited, this, [this](int game, int index, const QString &text) {
-        if (game < m_chapters.chapter().games.size())
-            m_chapters.setParagraph(game, index, text);
+        if (game < m_chapters.chapter().games.size()) {
+            // A text shown from another language and left as it was is no translation: nothing is written.
+            const LocalizedText &was = m_chapters.chapter().games.at(game).paragraphs.value(index).text;
+            if (was.has(m_chapters.language) || text != was.text(m_chapters.language))
+                m_chapters.setParagraph(game, index, text);
+        }
         chapterChanged();
     });
     connect(m_moveView, &MoveTreeView::commentEdited, this, &MainWindow::writeComment);
@@ -2889,6 +2894,27 @@ void MainWindow::rebuildOpeningNamesMenu()
 }
 
 
+void MainWindow::seedDistributedProjects()
+{
+    // Examples of what a project is — chapters, games, paragraphs, in every
+    // language they are written in —, to open from File ▸ Open Project.
+    QSettings settings;
+    const QDir resources(QStringLiteral(":/projects"));
+    for (const QString &file : resources.entryList({QStringLiteral("*.pch")}, QDir::Files)) {
+        const QString key = QStringLiteral("distributed/project/%1/seeded").arg(QFileInfo(file).completeBaseName());
+        if (settings.value(key, false).toBool() || !UserFolders::ensureProjectsDir())
+            continue;
+        const QString path = QDir(UserFolders::projectsDir()).filePath(file);
+        if (!QFileInfo::exists(path)) {
+            if (!QFile::copy(resources.filePath(file), path))
+                continue;
+            // A file copied out of the resources is read-only.
+            QFile::setPermissions(path, QFile::permissions(path) | QFileDevice::WriteOwner | QFileDevice::WriteUser);
+        }
+        settings.setValue(key, true);
+    }
+}
+
 void MainWindow::updateDistributedDatabases()
 {
     // The databases we distribute are known by their lineage, whatever their
@@ -3741,14 +3767,30 @@ void MainWindow::chapterChanged()
     scheduleSaveSession();
 }
 
+QString MainWindow::contentLanguage()
+{
+    return LocalizedText::supported(UiLanguage::effective());
+}
+
 void MainWindow::editProjectSettings()
 {
     const QString fileName = m_projectPath.isEmpty() ? tr("Untitled") : QFileInfo(m_projectPath).completeBaseName();
-    ProjectSettingsDialog dialog(m_projectName, fileName, this);
-    if (dialog.exec() != QDialog::Accepted || dialog.name() == m_projectName)
+    ProjectSettingsDialog dialog(m_projectName, m_projectPath.isEmpty() ? QString() : QFileInfo(m_projectPath).absoluteFilePath(),
+                                 fileName, m_multilingual, m_chapters.language, contentLanguage(), this);
+    if (dialog.exec() != QDialog::Accepted)
         return;
+    const bool changed = dialog.name() != m_projectName || dialog.isMultilingual() != m_multilingual;
+    const bool relanguaged = dialog.language() != m_chapters.language;
     m_projectName = dialog.name();
+    m_multilingual = dialog.isMultilingual();
+    // The texts are shown and written in another language: the chapters stay, their words change.
+    m_chapters.language = m_multilingual ? dialog.language() : contentLanguage();
+    if (relanguaged) {
+        m_moveView->refresh();
+    }
     updateWindowTitle();
+    if (!changed)
+        return;
     scheduleSaveSession(); // The project has changes: its name is saved with it.
 }
 
@@ -3896,7 +3938,7 @@ void MainWindow::fillChapterMenu()
     } else {
         auto *group = new QActionGroup(m_switchChapterMenu);
         for (int i = 0; i < m_chapters.chapters.size(); ++i) {
-            QAction *action = m_switchChapterMenu->addAction(m_chapters.chapters.at(i).title);
+            QAction *action = m_switchChapterMenu->addAction(m_chapters.chapters.at(i).title.text(m_chapters.language));
             action->setCheckable(true);
             action->setChecked(i == m_chapters.current);
             action->setActionGroup(group);
@@ -3918,7 +3960,7 @@ void MainWindow::manageChapters()
             games += game.isEmpty() ? 0 : 1;
         entries << ManageChaptersDialog::Entry{i, chapter.title, games};
     }
-    ManageChaptersDialog dialog(entries, m_chapters.current, this);
+    ManageChaptersDialog dialog(entries, m_chapters.current, m_chapters.language, this);
     if (dialog.exec() != QDialog::Accepted)
         return;
     const QList<ManageChaptersDialog::Entry> chosen = dialog.entries();
@@ -3928,8 +3970,9 @@ void MainWindow::manageChapters()
     int current = -1;
     for (const ManageChaptersDialog::Entry &entry : chosen) {
         Chapter chapter = entry.source >= 0 ? m_chapters.chapters.at(entry.source) : Chapter();
-        chapter.title = entry.title.trimmed().isEmpty() ? ChapterBook::defaultTitle(int(chapters.size()) + 1)
-                                                        : entry.title.trimmed();
+        chapter.title = entry.title.isEmpty()
+            ? LocalizedText(m_chapters.language, ChapterBook::defaultTitle(int(chapters.size()) + 1))
+            : entry.title;
         if (m_chapters.hasChapters() && entry.source == m_chapters.current)
             current = int(chapters.size());
         chapters << chapter;
@@ -5226,7 +5269,7 @@ void MainWindow::restoreSession()
     applyGameColumns(); // Which columns are shown is the database's, not the session's.
 
     const QString yaml = settings.value(QStringLiteral("session/project")).toString();
-    std::optional<Project> project = yaml.isEmpty() ? std::nullopt : Project::fromYaml(yaml, QDir(), nullptr);
+    std::optional<Project> project = yaml.isEmpty() ? std::nullopt : Project::fromYaml(yaml, QDir(), nullptr, contentLanguage());
     if (project) {
         applyProject(*project, false);
     } else {
@@ -5237,7 +5280,7 @@ void MainWindow::restoreSession()
     // Reattach to the project file the session belonged to, if it still exists.
     m_projectPath = settings.value(QStringLiteral("session/projectPath")).toString();
     if (!m_projectPath.isEmpty()) {
-        if (std::optional<Project> saved = Project::loadFromFile(m_projectPath, nullptr))
+        if (std::optional<Project> saved = Project::loadFromFile(m_projectPath, nullptr, contentLanguage()))
             m_savedProjectYaml = saved->toYaml();
         else
             m_projectPath.clear();
@@ -5284,6 +5327,7 @@ Project MainWindow::captureProject()
 {
     Project project;
     project.name = m_projectName;
+    project.multilingual = m_multilingual;
     if (m_database)
         project.databasePath = m_database->location();
     // The chapters, with the game on the board as it is and where the user is in it.
@@ -5349,9 +5393,14 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
 
     // A database moved since the project was saved (migrateOpeningNames) is opened where it is now.
     const QString databasePath = m_movedDatabases.value(project.databasePath, project.databasePath);
-    openInitialDatabase(databasePath);
+    // A project that names no database (one we distribute) keeps the one open.
+    if (!databasePath.isEmpty() || !m_database)
+        openInitialDatabase(databasePath);
 
     m_projectName = project.name;
+    m_multilingual = project.multilingual;
+    // A project shows its texts in the interface's language, whatever language it was edited in last.
+    m_chapters.language = contentLanguage();
     if (!project.chapters.isEmpty()) {
         m_chapters.setChapters(project.chapters, project.chapter, project.noChapters, project.automaticChapters);
         // Games stored in the database are shown as it has them now; the
@@ -5459,7 +5508,8 @@ void MainWindow::newProject()
     // arrangement.
     Project project = captureProject();
     project.chapters.clear(); // No chapter, an empty game.
-    project.name.clear();
+    project.name = LocalizedText();
+    project.multilingual = false;
     project.gameId = -1;
     project.ply = 0;
     project.startFen.clear();
@@ -5494,7 +5544,7 @@ void MainWindow::openProject()
 bool MainWindow::openProjectFile(const QString &path)
 {
     QString error;
-    std::optional<Project> project = Project::loadFromFile(path, &error);
+    std::optional<Project> project = Project::loadFromFile(path, &error, contentLanguage());
     if (!project) {
         QMessageBox::warning(this, tr("Open Project"),
                              tr("Could not open “%1”: %2").arg(QFileInfo(path).fileName(), error));
@@ -5622,10 +5672,10 @@ void MainWindow::updateWindowTitle()
     // chapters, the one open follows it: "Openings* - The Italian - Pragma
     // Chess", and it goes again when the project is back without chapters.
     const QString fileName = m_projectPath.isEmpty() ? tr("Untitled") : QFileInfo(m_projectPath).completeBaseName();
-    const QString name = m_projectName.isEmpty() ? fileName : m_projectName;
+    const QString name = m_projectName.isEmpty() ? fileName : m_projectName.text(m_chapters.language);
     if (m_chapters.hasChapters())
         setWindowTitle(QStringLiteral("%1[*] - %2 - %3")
-                           .arg(name, m_chapters.chapter().title, QStringLiteral("Pragma Chess")));
+                           .arg(name, m_chapters.chapter().title.text(m_chapters.language), QStringLiteral("Pragma Chess")));
     else
         setWindowTitle(QStringLiteral("%1[*] - %2").arg(name, QStringLiteral("Pragma Chess")));
 }

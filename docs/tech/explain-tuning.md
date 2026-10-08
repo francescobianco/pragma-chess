@@ -512,3 +512,14 @@ the knight on f6 and clears e4 for 21.Ne4". And
 FocusWindow's decisive capture is now measured net of an exchange: a
 capture taken back at once, or a recapture, counts what the exchange
 leaves (23.Qxd8 Rxd8, 21…Rxf1+ 22.Kxf1 are no gain).
+
+### 10.Ng5??: the piece that falls, not the last one taken (8 October)
+
+The user, White: "the ringed knight and that knight's move seem
+superfluous; the light bishop could have been ringed". 10…Nd4 11.Qf2 Nxb5
+12.Nxb5 Bxb5: FocusWindow took 12…Bxb5 as the decisive capture and ringed
+the knight of c3 the chain ended on. A chain of captures on one square
+that ends worth what its first capture took is that capture and an even
+exchange: the first (11…Nxb5) is now the decisive one, the bishop ringed,
+the trade left to the text. Recorded: user-feedback.ticks (the first case
+copied with Engine ▸ Copy Explain's Ticks).

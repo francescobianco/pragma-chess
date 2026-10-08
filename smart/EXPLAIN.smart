@@ -497,6 +497,23 @@ FUNCTION FocusWindow(line, first, last, beneficiary, keepFirst)
         END IF
         IF jump >= biggest THEN biggest = jump : decisive = k
     NEXT
+    ' A chain of captures on one square that ends worth what its first
+    ' capture took is that capture and an even exchange: 11...Nxb5 takes the
+    ' bishop, 12.Nxb5 Bxb5 trade knights. The first is the decisive one, so
+    ' the piece that falls is the one ringed and the trade is not drawn.
+    chainStart = decisive
+    WHILE chainStart - 1 >= first
+        IF TOSQ(moves[chainStart - 1]) <> TOSQ(moves[decisive]) OR CAPTURED(positions[chainStart - 1], moves[chainStart - 1]) = 0 THEN EXIT WHILE
+        chainStart = chainStart - 1
+    WEND
+    IF chainStart < decisive AND SIDETOMOVE(positions[chainStart]) = beneficiary THEN
+        taken = (MATERIAL(positions[chainStart + 1]) - MATERIAL(positions[chainStart])) * beneficiary
+        net = (MATERIAL(positions[decisive + 1]) - MATERIAL(positions[chainStart])) * beneficiary
+        IF taken = net AND taken > 0 THEN
+            NOTE "  the exchange on " + SquareName(TOSQ(moves[decisive])) + " after " + MoveText(positions[chainStart], moves[chainStart]) + " is even: that capture is the decisive one"
+            decisive = chainStart
+        END IF
+    END IF
     focusFirst = decisive
     IF decisive > first THEN
         previous = moves[decisive - 1]

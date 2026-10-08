@@ -23,6 +23,15 @@ class Explainer : public QObject {
 
 public:
     explicit Explainer(QObject *parent = nullptr);
+    ~Explainer() override;
+
+    /// Keeps the deepest evaluation of every position in `path` too, read
+    /// now and written a few seconds after it changes: a restart (make start
+    /// at every change, or opening the app again) explains with what the
+    /// engine found before, not with a search started over. None by default.
+    void setStorage(const QString &path);
+    /// The deepest evaluation known of `position`.
+    std::optional<EngineEvaluation> known(const ChessPosition &position) const;
 
     bool isEnabled() const { return m_enabled; }
     /// Starts explaining the position on the board, or stops.
@@ -54,8 +63,6 @@ Q_SIGNALS:
     void explanationChanged(const MoveExplanation &explanation);
 
 private:
-    /// The deepest evaluation known of `position`.
-    std::optional<EngineEvaluation> known(const ChessPosition &position) const;
     void start();
     void tick();
     void show(const MoveExplanation &explanation);
@@ -71,6 +78,9 @@ private:
     std::optional<ChessMove> m_played;
 
     QHash<QString, EngineEvaluation> m_evaluations;
+    QString m_storage;
+    class QTimer *m_saveTimer = nullptr;
+    void save() const;
     std::optional<MoveExplanation> m_shown;
     /// The ticks of each move explained, by move (PRAGMA_EXPLAIN_RECORD).
     QHash<QString, ExplainTicks> m_recordings;

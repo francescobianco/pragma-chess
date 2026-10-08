@@ -159,7 +159,10 @@ playing a move turns it off, and the user asks again at the next move.
   (and then at once), other arrows only once they came in 3 of the last 4
   depths (a majority: the engine's line oscillates), an explanation the
   engine stopped giving dropped. The deepest evaluation
-  of each position seen is kept: the position before the move is judged
+  of each position seen is kept — across restarts too, in AppLocalData's
+  `explain-evaluations.txt` (`Explainer::setStorage`): a restart, as `make
+  start` does at every change, explains with what the engine found before,
+  not with a search started over —: the position before the move is judged
   with it, and a position searched before is explained at once. When the
   position before has no evaluation deep enough
   (`Explainer::unjudgedBefore`: the board came straight to the move, or a

@@ -467,6 +467,31 @@ private Q_SLOTS:
         QVERIFY(found);
     }
 
+    void remembersEvaluationsAcrossRestarts()
+    {
+        // What the engine found about a position is kept across a restart:
+        // the deepest search wins, read back by the next Explainer.
+        QTemporaryDir folder;
+        const QString path = folder.filePath(QStringLiteral("explain-evaluations.txt"));
+        const ChessPosition position = afterMoves(QString(), {"e2e4", "e7e5"});
+        {
+            Explainer explainer;
+            explainer.setStorage(path);
+            EngineEvaluation shallow = centipawns(30, {"g1f3"});
+            shallow.depth = 12;
+            EngineEvaluation deep = centipawns(25, {"b1c3", "g8f6"});
+            deep.depth = 40;
+            explainer.setEvaluation(position, deep);
+            explainer.setEvaluation(position, shallow); // Shallower: ignored.
+        } // Saved when it goes.
+        Explainer again;
+        again.setStorage(path);
+        const std::optional<EngineEvaluation> known = again.known(position);
+        QVERIFY(known);
+        QCOMPARE(known->depth, 40);
+        QCOMPARE(known->pv, (QStringList{QStringLiteral("b1c3"), QStringLiteral("g8f6")}));
+    }
+
     void countsCapturedPiecesAgainstTheFullSet()
     {
         // A rook endgame set up by hand: against the full set, each side misses

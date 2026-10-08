@@ -291,6 +291,9 @@ MainWindow::MainWindow(QWidget *parent)
         if (m_enginePanel->isPeeking())
             peekAtEngineLine(true);
     });
+    // What the engine found about every position, kept across restarts.
+    m_explainer->setStorage(QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation))
+                                .filePath(QStringLiteral("explain-evaluations.txt")));
     connect(m_explainer, &Explainer::explanationChanged, this, [this](const MoveExplanation &explanation) {
         m_explanation = explanation;
         m_board->setExplanation(explanation.arrows, explanation.lostPieces, explanation.threatenedPieces);

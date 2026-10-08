@@ -18,7 +18,11 @@ import org.pragmachess.mobile.explain.startExplanation
 
 /** The texts of an explanation in the app's language: the desktop's, as string resources. */
 class ExplainStrings(private val context: Context) : ExplainText {
-    private val ids = mapOf(
+    override fun tr(source: String): String = IDS[source]?.let(context::getString) ?: source
+
+    companion object {
+        /** Every text of [ExplainText.SOURCES] and its resource (a test checks they match). */
+        internal val IDS = mapOf(
         "White" to R.string.white, "Black" to R.string.black,
         "a pawn" to R.string.explain_a_pawn, "two pawns" to R.string.explain_two_pawns, "%1 pawns" to R.string.explain_n_pawns,
         "a knight" to R.string.explain_a_knight, "%1 knights" to R.string.explain_n_knights,
@@ -51,9 +55,8 @@ class ExplainStrings(private val context: Context) : ExplainText {
         "%1 clears %2 for %3" to R.string.explain_clears,
         "%1 and clears %2 for %3" to R.string.explain_and_clears,
         " No material is lost: the evaluation is positional." to R.string.explain_no_material,
-    )
-
-    override fun tr(source: String): String = ids[source]?.let(context::getString) ?: source
+        )
+    }
 }
 
 /**

@@ -218,10 +218,6 @@ tre soglie, rifare la taratura sui casi del documento, aggiornare la guida.
   variabile `PRAGMA_EXPLAIN_RECORD`; un comando (es. nel menu del pannello
   Motore: "Copia i tick di Spiega") porterebbe un caso sbagliato a
   `pragma-explain --replay` senza riavviare.
-- **Android: frasi nuove.** `ExplainStrings` mappa a mano le frasi di
-  EXPLAIN.smart sulle risorse `explain_*`; una frase nuova resta in inglese
-  sul telefono finché non si aggiunge. Serve un test come
-  `tst_chessrules` (ogni `TEXT("…")` di EXPLAIN.smart è nella mappa).
 - **Android: posizioni senza re.** Il desktop ora accetta come posizione di
   partenza un diagramma senza re (i capitoli di testo degli studi lichess,
   `ChessPosition::Kings::Optional`); la `Position` Kotlin no, quindi quei

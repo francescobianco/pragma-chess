@@ -555,6 +555,6 @@ tick depth 37 cp -171 pv d8c7 h2h3 a8e8 c1d2 a7a6 b5c6 d7c6 c3e2 d5d4 g5f3 f6d5 
 tick depth 38 cp -175 pv d8c7 f2h4 h7h6 g5f3 f8e8 f4f5 c7d8 c1f4 d7f5 b5c6 b7c6 a1e1 e8e1 f1e1 d6f8 f4e5 f6d7 h4d8 a8d8 e5g3 f7f6 f3d2 h6h5 d2b3 d8c8 c3a4 g8f7 e1f1 f5e6 g3f2 d5d4 f2g3 g7g5 h2h4 g5h4 g3h4
 tick depth 39 cp -167 pv d8c7 f2h4 h7h6 g5f3 f8e8 f4f5 c7d8 c1f4 d7f5 b5c6 b7c6 f4d6 d8d6 a1c1 f5g6 b2b3 e8e7 c3a4 a8e8 h4g3 d6g3 h2g3 f6d7 g3g4 f7f6 f1e1 e7e1 f3e1 g8f8 e1f3 f8e7
 expect verdict inaccuracy
-expect arrows b5c6 alternative, d8c7 reply 1, h7h6 reply, h6g5 threat, g5f3 reply
-expect summary Inaccuracy (−0.6 → −1.7). Better was 11.Bxc6. 11.Ng5 loses time: after 12…h6, the knight goes back, 13.Nf3. No material is lost: the evaluation is positional. Main line: 11…Qc7 12.Qh4 h6 13.Nf3.
+expect arrows b5c6 alternative, d8c7 reply 1, h7h6 reply, h6g5 threat, g5f3 reply, c7f4 threat
+expect summary Inaccuracy (−0.6 → −1.7). Better was 11.Bxc6. 11.Ng5 loses time: after 12…h6, the knight goes back, 13.Nf3. 11…Qc7 lines up behind the bishop on d6 against the pawn on f4. No material is lost: the evaluation is positional. Main line: 11…Qc7 12.Qh4 h6 13.Nf3.
 end

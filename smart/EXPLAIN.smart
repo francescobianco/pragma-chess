@@ -1119,6 +1119,63 @@ END FUNCTION
 ' 5...Qh4+ checks, but the rook on a8 stays attacked and 7.Qxa8 takes it.
 ' Drawn, and said: " 5…Qh4+ leaves the rook on a8 attacked: 7.Qxa8."
 ' Empty when there is none.
+' A battery the move k of `line` forms: the line piece it moved (a queen,
+' rook or bishop) now stands behind another line piece of its side, on a
+' line both move along, aimed at an enemy piece with nothing between —
+' 11...Qc7 behind the bishop of d6, against the pawn of f4. [front square,
+' target square], or [] when it forms none (a king aimed at is a check,
+' not a battery).
+FUNCTION BatteryOf(line, k)
+    moves = line[0]
+    positions = line[1]
+    position = positions[k + 1]
+    rear = TOSQ(moves[k])
+    piece = PIECE(position, rear)
+    side = SIDEAT(position, rear)
+    IF piece <> QUEEN AND piece <> ROOK AND piece <> BISHOP THEN RETURN []
+    steps = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]
+    FOR d = 0 TO 7
+        straight = steps[d][0] = 0 OR steps[d][1] = 0
+        IF piece = QUEEN OR (piece = ROOK AND straight) OR (piece = BISHOP AND NOT straight) THEN
+            found = []
+            file = rear MOD 8 + steps[d][0]
+            rank = INT(rear / 8) + steps[d][1]
+            WHILE LEN(found) < 2 AND file >= 0 AND file <= 7 AND rank >= 0 AND rank <= 7
+                IF PIECE(position, rank * 8 + file) <> 0 THEN found = found + [rank * 8 + file]
+                file = file + steps[d][0]
+                rank = rank + steps[d][1]
+            WEND
+            IF LEN(found) = 2 THEN
+                front = PIECE(position, found[0])
+                lined = front = QUEEN OR (front = ROOK AND straight) OR (front = BISHOP AND NOT straight)
+                IF lined AND SIDEAT(position, found[0]) = side AND SIDEAT(position, found[1]) = -side AND PIECE(position, found[1]) <> KING THEN
+                    RETURN found
+                END IF
+            END IF
+        END IF
+    NEXT
+    RETURN []
+END FUNCTION
+
+' The first battery a move of the first THREAT_PLIES of `line` forms, drawn
+' (the line, dashed, from the rear piece to the target through the front
+' one) and said: " 11…Qc7 lines up behind the bishop on d6 against the pawn
+' on f4." Empty when none.
+FUNCTION BatteryText(line)
+    moves = line[0]
+    positions = line[1]
+    FOR k = 0 TO MIN(THREAT_PLIES, LEN(moves)) - 1
+        battery = BatteryOf(line, k)
+        IF LEN(battery) = 2 THEN
+            NOTE "battery: " + MoveText(positions[k], moves[k]) + " behind " + SquareName(battery[0]) + " against " + SquareName(battery[1])
+            IF NOT IsDrawn(FROMSQ(moves[k]), TOSQ(moves[k])) THEN DrawWay positions, moves, k, "reply"
+            Draw TOSQ(moves[k]), battery[1], "threat", 0
+            RETURN " " + TEXT("%1 lines up behind %2 on %3 against %4 on %5.", MoveText(positions[k], moves[k]), PieceName(PIECE(positions[k + 1], battery[0])), SquareName(battery[0]), PieceName(PIECE(positions[k + 1], battery[1])), SquareName(battery[1]))
+        END IF
+    NEXT
+    RETURN ""
+END FUNCTION
+
 ' The move played undone: the piece it moved goes back to the square it
 ' came from within the first LONG_PLIES of the line, chased or not —
 ' 11.Ng5 12.Qh4 h6 13.Nf3: " 11.Ng5 loses time: after 12…h6, the knight
@@ -1368,7 +1425,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         ' the queen going back): the text says them.
         drawn = WithoutLoserTail(current, [0, fallbackPlies], toMove)
         AddArrows current, 0, fallbackPlies, toMove, "reply", drawn[0], drawn[1]
-        summary = prefix + TRIM(better) + IgnoredThreatText(before, played, current, toMove) + ReturnText(before, played, current, TRUE) + ThreatText(current, played, "reply")
+        summary = prefix + TRIM(better) + IgnoredThreatText(before, played, current, toMove) + ReturnText(before, played, current, TRUE) + ThreatText(current, played, "reply") + BatteryText(current)
         ' Arrows and threats may suggest a piece falls: say that none does,
         ' when the line really keeps the material.
         IF concreteText = "" AND KeepsMaterial(before, current, mover) THEN summary = summary + TEXT(" No material is lost: the evaluation is positional.")
@@ -1447,7 +1504,7 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
     ELSE
         AddArrows current, 0, fallbackPlies, toMove, "idea", -1, -1
     END IF
-    summary = prefix + Assessment(afterEval) + ReturnText(before, played, current, FALSE) + ThreatText(current, played, "idea")
+    summary = prefix + Assessment(afterEval) + ReturnText(before, played, current, FALSE) + ThreatText(current, played, "idea") + BatteryText(current)
     IF concreteText <> "" THEN
         summary = summary + concreteText
     ELSEIF Plies(current) > 0 THEN

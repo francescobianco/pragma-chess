@@ -540,3 +540,13 @@ mistake". The way back carries the piece faint where it lands, the square
 it started from, and the piece going back is said also when the move is no
 error ("Then the knight goes back to f3: 13.Nf3"): with a deeper search
 before the move, 11.Ng5 became a good move on the user's board.
+
+Then: "if the bishop's capture of f4 is in the line, it could be shown as an
+alignment". It is not in the line (14.f5 moves the pawn away), but the
+alignment is what the line is about: 11…Qc7 behind the bishop of d6 against
+f4. `BatteryOf`/`BatteryText`: a move of the first THREAT_PLIES that puts
+a line piece behind another of its side, on a line both move along, aimed
+at an enemy piece (not the king) — drawn as a dashed line from the rear
+piece to the target, through the front one, and said: "11…Qc7 lines up
+behind the bishop on d6 against the pawn on f4". No other recorded case
+changed.

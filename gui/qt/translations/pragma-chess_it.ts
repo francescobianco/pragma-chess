@@ -4084,6 +4084,10 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>Then %1 goes back to %2: %3.</source>
         <translation>Poi %1 torna in %2: %3.</translation>
     </message>
+    <message>
+        <source>%1 lines up behind %2 on %3 against %4 on %5.</source>
+        <translation>%1 si allinea dietro %2 in %3 contro %4 in %5.</translation>
+    </message>
 </context>
 <context>
     <name>MoveTreeView</name>

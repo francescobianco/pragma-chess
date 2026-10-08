@@ -225,6 +225,10 @@ playing a move turns it off, and the user asks again at the next move.
   crossing on a square stay apart; the strongest is drawn on top. Tuning with `pragma-explain --insight
   [-t] [--ply n] "<moves>"`; `--record` adds a case to
   `smart/tests/*.insight`, which both clients replay.
+- A piece the winning side's drawn moves attack that does not fall gets a
+  dashed ring (`THREATENED square`, `MoveExplanation::threatenedPieces`, in
+  `AddArrows`): 10…Nd4 rings the queen of e2 dashed and the bishop it takes
+  full. Records write it `threatened`.
 - `widgets/BoardWidget` only paints `BoardArrow`s and lost-piece rings, and
   plays `BoardFrame` sequences (a forced mate from `MoveExplanation::playback`)
   with a red frame, restoring the position on `stopSequence()`.

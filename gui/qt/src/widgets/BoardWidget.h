@@ -69,7 +69,9 @@ public:
     void setLegalMoves(const QMultiHash<int, int> &moves);
 
     /// Arrows and lost-piece rings explaining the position.
-    void setExplanation(const QList<BoardArrow> &arrows, const QList<int> &lostPieces);
+    /// `threatenedPieces`: attacked and not falling, ringed dashed.
+    void setExplanation(const QList<BoardArrow> &arrows, const QList<int> &lostPieces,
+                        const QList<int> &threatenedPieces = {});
     /// The circles and arrows the comment of the position draws, under
     /// Explain's (MoveComment::marks).
     void setMarks(const QList<MoveComment::Mark> &marks);
@@ -175,6 +177,7 @@ private:
 
     QList<BoardArrow> m_arrows;
     QList<int> m_lostPieces;
+    QList<int> m_threatenedPieces;
     QList<MoveComment::Mark> m_marks;
 
     QList<BoardFrame> m_frames;

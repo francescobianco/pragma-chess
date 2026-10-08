@@ -147,6 +147,8 @@ void BoardWidget::setBoard(const BoardFrame &frame)
         m_kingMark = frame.kingMark;
         m_arrows.clear();
         m_lostPieces.clear();
+    m_threatenedPieces.clear();
+        m_threatenedPieces.clear();
         update();
         return;
     }
@@ -238,12 +240,14 @@ void BoardWidget::setLegalMoves(const QMultiHash<int, int> &moves)
     update();
 }
 
-void BoardWidget::setExplanation(const QList<BoardArrow> &arrows, const QList<int> &lostPieces)
+void BoardWidget::setExplanation(const QList<BoardArrow> &arrows, const QList<int> &lostPieces,
+                                 const QList<int> &threatenedPieces)
 {
-    if (m_arrows == arrows && m_lostPieces == lostPieces)
+    if (m_arrows == arrows && m_lostPieces == lostPieces && m_threatenedPieces == threatenedPieces)
         return;
     m_arrows = arrows;
     m_lostPieces = lostPieces;
+    m_threatenedPieces = threatenedPieces;
     update();
 }
 
@@ -606,6 +610,15 @@ void BoardWidget::paintEvent(QPaintEvent *)
     // Arrows belong to the position the sequence started from.
     for (int square : (m_sequenceActive || m_peeking) ? QList<int>() : m_lostPieces) {
         painter.setPen(QPen(arrowColor(BoardArrow::Kind::Refutation), qMax(2.0, size * 0.06)));
+        painter.setBrush(Qt::NoBrush);
+        const qreal inset = size * 0.07;
+        painter.drawEllipse(squareRect(square).adjusted(inset, inset, -inset, -inset));
+    }
+    // Attacked, not falling: the same ring, dashed.
+    for (int square : (m_sequenceActive || m_peeking) ? QList<int>() : m_threatenedPieces) {
+        QPen pen(arrowColor(BoardArrow::Kind::Refutation), qMax(2.0, size * 0.05));
+        pen.setDashPattern({2.5, 2.0});
+        painter.setPen(pen);
         painter.setBrush(Qt::NoBrush);
         const qreal inset = size * 0.07;
         painter.drawEllipse(squareRect(square).adjusted(inset, inset, -inset, -inset));

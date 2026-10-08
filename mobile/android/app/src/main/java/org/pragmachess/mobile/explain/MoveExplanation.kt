@@ -60,6 +60,8 @@ data class MoveExplanation(
     val playback: List<String> = emptyList(),
     /** How the explanation was reached, when [ExplanationInput.trace] is set. */
     val trace: List<String> = emptyList(),
+    /** Squares of pieces attacked along the line that do not fall (a dashed ring). */
+    val threatenedPieces: List<Int> = emptyList(),
 ) {
     enum class Verdict { None, Best, Good, Inaccuracy, Mistake, Blunder }
 }

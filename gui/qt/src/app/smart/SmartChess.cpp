@@ -362,6 +362,11 @@ void define(SmartInterpreter &smart, Output &output)
         output.explanation.lostPieces << squareArgument("LOST", args, 0);
         return SmartValue();
     });
+    smart.define(QStringLiteral("THREATENED"), [&output](const std::vector<SmartValue> &args) {
+        expect("THREATENED", args, 1);
+        output.explanation.threatenedPieces << squareArgument("THREATENED", args, 0);
+        return SmartValue();
+    });
     smart.define(QStringLiteral("PLAYBACK"), [&output](const std::vector<SmartValue> &args) {
         expect("PLAYBACK", args, 1);
         output.explanation.playback = movesArgument("PLAYBACK", args, 0);

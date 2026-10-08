@@ -157,6 +157,7 @@ fun BoardScreen(vm: AppViewModel, snackbar: SnackbarHostState, onMenu: () -> Uni
                         modifier = Modifier.size(side),
                         arrows = vm.explainer.explanation?.arrows.orEmpty(),
                         lostPieces = vm.explainer.explanation?.lostPieces.orEmpty(),
+                        threatenedPieces = vm.explainer.explanation?.threatenedPieces.orEmpty(),
                         border = vm.explainer.border,
                     )
                     TurnColumn(position.sideToMove, vm.flipped, Modifier.width(TURN_WIDTH).fillMaxHeight())

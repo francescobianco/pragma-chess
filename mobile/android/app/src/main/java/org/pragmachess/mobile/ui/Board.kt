@@ -104,6 +104,8 @@ fun ChessBoard(
     /** Explain's arrows and the pieces lost along its line (ringed in red). */
     arrows: List<BoardArrow> = emptyList(),
     lostPieces: List<Int> = emptyList(),
+    /** Pieces attacked along its line that do not fall (ringed dashed). */
+    threatenedPieces: List<Int> = emptyList(),
     border: BoardBorder = BoardBorder.Plain,
 ) {
     val pieces = rememberPieceImages()
@@ -255,7 +257,7 @@ fun ChessBoard(
                     }
                 }
             }
-            drawExplanation(arrows, lostPieces, size, ::topLeft, measurer, pieces)
+            drawExplanation(arrows, lostPieces, size, ::topLeft, measurer, pieces, threatenedPieces)
         }
         if (dragFrom >= 0) {
             // The dragged piece is a layer of its own that only moves: the

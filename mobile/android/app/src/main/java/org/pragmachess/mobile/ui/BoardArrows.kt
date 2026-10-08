@@ -75,12 +75,21 @@ fun DrawScope.drawExplanation(
     topLeft: (Int) -> Offset,
     measurer: TextMeasurer,
     pieces: Map<Int, ImageBitmap> = emptyMap(),
+    threatenedPieces: List<Int> = emptyList(),
 ) {
     fun center(square: Int) = topLeft(square) + Offset(squareSize / 2, squareSize / 2)
     for (square in lostPieces) {
         val inset = squareSize * 0.07f
         drawOval(ArrowColors.refutation, topLeft(square) + Offset(inset, inset),
             Size(squareSize - 2 * inset, squareSize - 2 * inset), style = Stroke(max(2f, squareSize * 0.06f)))
+    }
+    // Attacked, not falling: the same ring, dashed.
+    for (square in threatenedPieces) {
+        val inset = squareSize * 0.07f
+        val width = max(2f, squareSize * 0.05f)
+        drawOval(ArrowColors.refutation, topLeft(square) + Offset(inset, inset),
+            Size(squareSize - 2 * inset, squareSize - 2 * inset),
+            style = Stroke(width, pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(width * 1.3f, width))))
     }
     // The strongest plan is drawn last, on top.
     for (arrow in arrows.sortedByDescending { if (it.kind == BoardArrow.Kind.Plan) it.step else 0 }) {

@@ -139,10 +139,14 @@ QJsonObject explanationJson(const MoveExplanation &explanation)
     QJsonArray lost;
     for (int square : explanation.lostPieces)
         lost.append(BoardState::squareName(square));
+    QJsonArray threatened;
+    for (int square : explanation.threatenedPieces)
+        threatened.append(BoardState::squareName(square));
     return {{QStringLiteral("verdict"), verdictName(explanation.verdict)},
             {QStringLiteral("summary"), explanation.summary},
             {QStringLiteral("arrows"), arrows},
             {QStringLiteral("lost"), lost},
+            {QStringLiteral("threatened"), threatened},
             {QStringLiteral("playback"), QJsonArray::fromStringList(explanation.playback)}};
 }
 

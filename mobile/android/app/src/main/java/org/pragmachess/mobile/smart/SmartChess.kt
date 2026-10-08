@@ -45,6 +45,7 @@ object SmartChess {
         var verdict = MoveExplanation.Verdict.None
         val arrows = ArrayList<BoardArrow>()
         val lostPieces = ArrayList<Int>()
+        val threatenedPieces = ArrayList<Int>()
         val summary = StringBuilder()
         var playback: List<String> = emptyList()
         val notes = ArrayList<String>()
@@ -53,13 +54,14 @@ object SmartChess {
             verdict = MoveExplanation.Verdict.None
             arrows.clear()
             lostPieces.clear()
+            threatenedPieces.clear()
             summary.setLength(0)
             playback = emptyList()
             notes.clear()
         }
 
         fun explanation() = MoveExplanation(verdict, arrows.toList(), lostPieces.toList(), summary.toString(), playback,
-            notes.toList())
+            notes.toList(), threatenedPieces = threatenedPieces.toList())
     }
 
     fun side(side: Side): SmartValue = SmartValue.of(if (side == Side.White) 1 else -1)
@@ -294,6 +296,11 @@ object SmartChess {
         smart.define("LOST") { args ->
             expectArguments("LOST", args, 1)
             output.lostPieces += squareArgument("LOST", args, 0)
+            SmartValue.None
+        }
+        smart.define("THREATENED") { args ->
+            expectArguments("THREATENED", args, 1)
+            output.threatenedPieces += squareArgument("THREATENED", args, 0)
             SmartValue.None
         }
         smart.define("PLAYBACK") { args ->

@@ -45,6 +45,7 @@
 '                                     (0: none); the piece it moves, drawn small
 '                                     where it goes, when the board does not show it
 '     LOST square                     a ring on a piece that falls
+'     THREATENED square               a dashed ring on a piece attacked, which does not fall
 '     SAY text                        text added to the summary
 '     VERDICT name                    the move's verdict (TUTOR.smart's names)
 '     PLAYBACK moves                  moves to play on the board: a forced mate
@@ -302,6 +303,10 @@ FUNCTION AddArrows(line, first, last, ideaSide, ideaKind, focusFirst, focusLast)
     FOR square = 0 TO 63
         IF PIECE(positions[first], square) <> 0 THEN origin[square] = square
     NEXT
+    ' The pieces the winning side's drawn moves attack, where they stand:
+    ' those that do not fall get a dashed ring (10...Nd4, on the queen of e2
+    ' as on the bishop it takes).
+    attacked = []
     number = 1
     FOR k = first TO MIN(last, LEN(moves)) - 1
         IF number > MAX_ARROWS THEN EXIT FOR
@@ -323,6 +328,13 @@ FUNCTION AddArrows(line, first, last, ideaSide, ideaKind, focusFirst, focusLast)
                 Draw source, target, kind, number
             END IF
             number = number + 1
+            IF ringing AND mover = ideaSide THEN
+                threats = NewThreats(positions, k, mover, THREAT_GAIN, moves)
+                FOR i = 0 TO LEN(threats) - 1
+                    victim = origin[TOSQ(threats[i][0])]
+                    IF victim >= 0 AND NOT CONTAINS(attacked, victim) THEN attacked = attacked + [victim]
+                NEXT
+            END IF
         END IF
         IF CAPTURED(position, move) <> 0 THEN
             ' En passant takes the pawn beside the target square.
@@ -346,6 +358,9 @@ FUNCTION AddArrows(line, first, last, ideaSide, ideaKind, focusFirst, focusLast)
         END IF
         origin[target] = origin[source]
         origin[source] = -1
+    NEXT
+    FOR i = 0 TO LEN(attacked) - 1
+        IF NOT CONTAINS(lostSquares, attacked[i]) THEN THREATENED attacked[i]
     NEXT
     drawOnly = []
 END FUNCTION

@@ -30,6 +30,7 @@ tick depth 18 cp -403 pv c6d4 f6d4 e8g8 c3c4 b7b6 c5b6 a7b6 a1b1 c8a6 e2e3 a6c4 
 expect verdict blunder
 expect arrows d4e3 alternative, c6d4 refutation 1
 expect lost d4
+expect threatened c2
 expect summary Blunder (−0.8 → −4.0). Black wins the queen for 2 knights: 9…Nxd4 10.Bxd4. Better was 9.Qe3.
 end
 
@@ -283,6 +284,7 @@ tick depth 18 cp 590 pv c3b5 c6b5 d2a5 b5c4 a5b4 d6b4 a3b4 e8g8 h3h4 h7h6 h4h5 g
 expect verdict blunder
 expect arrows c3b5 refutation 1, c6b5 reply 2, d2a5 refutation 3
 expect lost a5
+expect threatened d6
 expect summary Blunder (+0.1 → +5.9). White wins the queen for a bishop and a knight: 14.Nb5 cxb5 15.Bxa5 bxc4 16.Bb4 Bxb4+ 17.axb4. Better was 13…O-O-O.
 end
 
@@ -299,6 +301,7 @@ tick depth 34 cp -254 pv e7f5 g3d3 c6g2 d3f5 g2h1 f2f3 a8d8 c3e2 f8e7 f5d3 f6f5 
 expect verdict mistake
 expect arrows f5g3 threat, g1e2 alternative, e7f5 refutation 1, g3d3 reply 2, c6g2 refutation 3, g2h1 refutation 4
 expect lost g2, h1
+expect threatened g3
 expect summary Mistake (+0.4 → −2.5). Black wins a rook and a pawn for a knight: 10…Nf5 11.Qd3 Bxg2 12.Qxf5 Bxh1. Better was 10.Nge2.
 end
 
@@ -411,6 +414,7 @@ tick depth 33 cp -277 pv h6g6 c1g5 f7g8 c3e4 f6g5 h4g5 b6b2 f1b1 b2c2 e2c3 c6e4 
 expect verdict mistake
 expect arrows g6g3 threat, g3g1 threat, g3e3 alternative, h6g6 refutation 1, c1g5 reply 2, f7g8 refutation 3, c3e4 reply 4, f6g5 refutation 5
 expect lost c1
+expect threatened g3
 expect summary Mistake (−0.4 → −2.8). Black wins a bishop: 13…Rg6 14.Bg5 Kg8 15.Ne4 fxg5 16.hxg5 Qxb2. 13…Rg6 attacks the queen on g3, in line with the king on g1. Better was 13.Qe3.
 end
 
@@ -508,5 +512,6 @@ tick depth 41 cp -539 pv c6d4 e2f2 d4b5 c3b5 d7b5 g5f3 c5c4 a2a4 b5a6 f3e5 a8c8 
 expect verdict blunder
 expect arrows b5c6 alternative, c6d4 refutation 1, d4b5 refutation 2
 expect lost b5
+expect threatened e2
 expect summary Blunder (−0.7 → −5.4). Black wins a bishop: 10…Nd4 11.Qf2 Nxb5 12.Nxb5 Bxb5. Better was 10.Bxc6.
 end

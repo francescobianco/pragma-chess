@@ -914,6 +914,7 @@ void MainWindow::createActions()
                                 tr("&About Pragma Chess"), this);
     m_aboutAction->setMenuRole(QAction::AboutRole);
     connect(m_aboutAction, &QAction::triggered, this, &MainWindow::showAbout);
+    connect(m_board, &BoardWidget::aboutRequested, this, &MainWindow::showAbout);
 
     m_guideAction = new QAction(tr("Pragma Chess &Guide"), this);
     m_guideAction->setShortcut(QKeySequence::HelpContents);

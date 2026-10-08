@@ -4,7 +4,11 @@
 #include "PieceRenderer.h"
 
 #include <QApplication>
+#include <QContextMenuEvent>
+#include <QDateTime>
 #include <QFocusEvent>
+#include <QMenu>
+#include <QRandomGenerator>
 #include <QFont>
 #include <QMouseEvent>
 #include <QPaintEvent>
@@ -37,6 +41,10 @@ constexpr int kSequenceStepMs = 1100;
 constexpr int kSlideMs = 320;
 /// However the time is shared, a piece never crosses the board in a blink.
 constexpr int kMinimumSlideMs = 140;
+/// The falling pieces: how long they may bounce, lie still, and fly back.
+constexpr int kFallMaxMs = 3200;
+constexpr int kFallRestMs = 1300;
+constexpr int kFallReturnMs = 750;
 
 /// `from` at t = 0, `to` at t = 1, alpha included.
 QColor blend(const QColor &from, const QColor &to, qreal t)
@@ -153,6 +161,7 @@ void BoardWidget::setBoard(const BoardFrame &frame)
         return;
     }
     m_peeking = false; // A new position is no longer covered by the peek.
+    stopFall();
     endSequence();
     m_slide->stop();
     m_slideEmphasis = false;
@@ -261,6 +270,7 @@ void BoardWidget::setMarks(const QList<MoveComment::Mark> &marks)
 
 void BoardWidget::playSequence(const QList<BoardFrame> &frames)
 {
+    stopFall();
     if (!m_sequenceActive)
         m_beforeSequence = {m_board, m_lastMoveFrom, m_lastMoveTo, m_markedKing, m_kingMark};
     clearSelection();
@@ -287,6 +297,7 @@ void BoardWidget::stopSequence()
 
 void BoardWidget::peek(const BoardFrame &frame, const QList<BoardArrow> &arrows)
 {
+    stopFall();
     if (!m_peeking)
         m_beforePeek = {m_board, m_lastMoveFrom, m_lastMoveTo, m_markedKing, m_kingMark};
     m_peeking = true;
@@ -463,7 +474,8 @@ void BoardWidget::paintEvent(QPaintEvent *)
         if ((square / 8 + square % 8) % 2 == 1)
             continue;
         darkSquares << squareRect(square);
-        if (const Piece piece = m_board.at(square); !piece.isNull() && !notOnSquare.contains(square))
+        if (const Piece piece = m_board.at(square);
+            !piece.isNull() && !notOnSquare.contains(square) && m_falling.isEmpty())
             piecesOnDark << BoardTheme::PlacedPiece{squareRect(square), piece};
     }
     if (slidingNow) {
@@ -547,7 +559,8 @@ void BoardWidget::paintEvent(QPaintEvent *)
         paintKingGlow(painter);
     for (int square = 0; square < 64; ++square) {
         const Piece piece = m_board.at(square);
-        if (piece.isNull() || (m_dragging && square == m_selected) || arriving.contains(square))
+        if (piece.isNull() || (m_dragging && square == m_selected) || arriving.contains(square)
+            || !m_falling.isEmpty())
             continue;
         paintPiece(painter, piece, squareRect(square));
     }
@@ -658,6 +671,142 @@ void BoardWidget::paintEvent(QPaintEvent *)
         painter.setBrush(Qt::NoBrush);
         painter.drawRoundedRect(board.adjusted(-4, -4, 4, 4), kCornerRadius + 4, kCornerRadius + 4);
     }
+    // The pieces of dropPieces(), over everything else.
+    for (const FallingPiece &falling : m_falling) {
+        painter.save();
+        painter.translate(falling.position);
+        painter.rotate(falling.angle);
+        paintPiece(painter, falling.piece, QRectF(-size / 2, -size / 2, size, size));
+        painter.restore();
+    }
+}
+
+void BoardWidget::contextMenuEvent(QContextMenuEvent *event)
+{
+    // A little homage to the players made with Macromedia Flash, whose
+    // right-click menu ended with their About entry.
+    QMenu menu(this);
+    connect(menu.addAction(tr("About Pragma Chess Player 6…")), &QAction::triggered, this,
+            &BoardWidget::aboutRequested);
+    menu.addSeparator();
+    connect(menu.addAction(tr("Learn More…")), &QAction::triggered, this, &BoardWidget::dropPieces);
+    menu.exec(event->globalPos());
+}
+
+void BoardWidget::dropPieces()
+{
+    if (!m_falling.isEmpty() || m_sequenceActive || m_peeking)
+        return;
+    clearSelection();
+    const qreal size = boardRect().width() / 8;
+    QRandomGenerator *random = QRandomGenerator::global();
+    const auto between = [random](qreal low, qreal high) { return low + (high - low) * random->generateDouble(); };
+    for (int square = 0; square < 64; ++square) {
+        const Piece piece = m_board.at(square);
+        if (piece.isNull())
+            continue;
+        FallingPiece falling;
+        falling.piece = piece;
+        falling.home = squareRect(square).center();
+        falling.position = falling.home;
+        // Unhooked all at once, each with its own little jolt.
+        falling.velocity = QPointF(between(-0.6, 0.6) * size, between(-0.4, 0.0) * size);
+        falling.spin = between(-120, 120);
+        falling.delay = between(0, 0.12);
+        m_falling << falling;
+    }
+    if (m_falling.isEmpty())
+        return;
+    if (!m_fallTimer) {
+        m_fallTimer = new QTimer(this);
+        m_fallTimer->setInterval(16);
+        connect(m_fallTimer, &QTimer::timeout, this, &BoardWidget::stepFall);
+    }
+    m_fallStartMs = m_fallLastMs = QDateTime::currentMSecsSinceEpoch();
+    m_fallSettledMs = m_fallReturnMs = -1;
+    m_fallTimer->start();
+    update();
+}
+
+void BoardWidget::stepFall()
+{
+    const qint64 now = QDateTime::currentMSecsSinceEpoch();
+    const qreal dt = qMin<qreal>(0.05, (now - m_fallLastMs) / 1000.0);
+    m_fallLastMs = now;
+    const qreal size = boardRect().width() / 8;
+    if (m_fallReturnMs >= 0) {
+        // Back to the squares, as if the film ran backwards.
+        const qreal t = qMin<qreal>(1.0, (now - m_fallReturnMs) / qreal(kFallReturnMs));
+        const qreal eased = QEasingCurve(QEasingCurve::InOutCubic).valueForProgress(t);
+        for (FallingPiece &falling : m_falling) {
+            falling.position = falling.restPosition + (falling.home - falling.restPosition) * eased;
+            falling.angle = falling.restAngle * (1 - eased);
+        }
+        if (t >= 1.0)
+            stopFall();
+        update();
+        return;
+    }
+    if (m_fallSettledMs >= 0) {
+        if (now - m_fallSettledMs >= kFallRestMs) {
+            for (FallingPiece &falling : m_falling) {
+                falling.restPosition = falling.position;
+                // The shortest way round to upright.
+                falling.restAngle = std::remainder(falling.angle, 360.0);
+            }
+            m_fallReturnMs = now;
+        }
+        return;
+    }
+    const qreal gravity = size * 22; // A board's height in about 0.6 s.
+    // The board's frame is the box they fall in: they land on its bottom edge.
+    const QRectF box = boardRect();
+    const qreal floor = box.bottom() - size * 0.5;
+    const qreal left = box.left() + size * 0.5;
+    const qreal right = box.right() - size * 0.5;
+    const qreal elapsed = (now - m_fallStartMs) / 1000.0;
+    bool moving = false;
+    for (FallingPiece &falling : m_falling) {
+        if (elapsed < falling.delay) {
+            moving = true;
+            continue;
+        }
+        falling.velocity.ry() += gravity * dt;
+        falling.position += falling.velocity * dt;
+        falling.angle += falling.spin * dt;
+        if (falling.position.x() < left || falling.position.x() > right) {
+            falling.position.setX(qBound(left, falling.position.x(), right));
+            falling.velocity.rx() *= -0.5;
+        }
+        if (falling.position.y() >= floor) {
+            falling.position.setY(floor);
+            if (falling.velocity.y() > size * 1.2) {
+                // A bounce: it loses most of its speed and turns the way it rolls.
+                falling.velocity.ry() *= -0.38;
+                falling.velocity.rx() *= 0.75;
+                falling.spin = falling.velocity.x() / size * 90;
+            } else {
+                falling.velocity.ry() = 0;
+                falling.velocity.rx() *= std::pow(0.02, dt); // Friction on the floor.
+                falling.spin = falling.velocity.x() / size * 90;
+            }
+        }
+        if (falling.position.y() < floor || std::abs(falling.velocity.x()) > size * 0.05)
+            moving = true;
+    }
+    if (!moving || now - m_fallStartMs > kFallMaxMs)
+        m_fallSettledMs = now;
+    update();
+}
+
+void BoardWidget::stopFall()
+{
+    if (m_fallTimer)
+        m_fallTimer->stop();
+    if (m_falling.isEmpty())
+        return;
+    m_falling.clear();
+    update();
 }
 
 void BoardWidget::paintPiece(QPainter &painter, Piece piece, const QRectF &rect) const
@@ -782,6 +931,10 @@ void BoardWidget::paintArrow(QPainter &painter, const BoardArrow &arrow, const Q
 
 void BoardWidget::mousePressEvent(QMouseEvent *event)
 {
+    if (!m_falling.isEmpty()) { // Nothing to take while the pieces are on the floor.
+        event->accept();
+        return;
+    }
     if (m_sequenceActive || m_peeking) {
         QWidget::mousePressEvent(event); // The shown position is not the one to play from.
         return;

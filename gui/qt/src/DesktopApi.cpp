@@ -456,4 +456,9 @@ void DesktopApi::addRoutes()
         w->peekAtEngineLine(body->value(QStringLiteral("on")).toBool());
         return json(state());
     });
+    // The board's easter egg (its right-click menu's Learn More…): the pieces fall.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/drop"), [w, state](const Request &) {
+        w->m_board->dropPieces();
+        return json(state());
+    });
 }

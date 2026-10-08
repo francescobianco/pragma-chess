@@ -232,6 +232,12 @@ playing a move turns it off, and the user asks again at the next move.
   dashed ring (`THREATENED square`, `MoveExplanation::threatenedPieces`, in
   `AddArrows`): 10…Nd4 rings the queen of e2 dashed and the bishop it takes
   full. Records write it `threatened`.
+- Right-clicking the board opens a small homage to the players made with
+  Macromedia Flash (`BoardWidget::contextMenuEvent`): About Pragma Chess
+  Player 6… (the About window) and Learn More…, an easter egg —
+  `dropPieces`: the pieces come unhooked, fall with gravity, bounce on the
+  bottom edge, lie still a moment and fly back; nothing changes in the game,
+  any new position ends it.
 - `widgets/BoardWidget` only paints `BoardArrow`s and lost-piece rings, and
   plays `BoardFrame` sequences (a forced mate from `MoveExplanation::playback`)
   with a red frame, restoring the position on `stopSequence()`.
@@ -339,6 +345,7 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   the board), `/api/line {"moves": "1.e4 …", "fen", "ply"}` (a new game at
   the end of the chapter), `/api/explain`, `/api/analysis`, `/api/flip`,
   `/api/peek` (the Engine panel's eye held) `{"on": bool}`,
+  `/api/drop` (the board's easter egg: the pieces fall),
   `/api/database {"path"}` (opens a database file), `/api/game {"row"}`
   (opens the game on that row of the games list); each answers with the
   state.

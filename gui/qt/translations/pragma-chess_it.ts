@@ -94,6 +94,14 @@ Il Nero ha catturato: %2</translation>
         <source>Chessboard</source>
         <translation>Scacchiera</translation>
     </message>
+    <message>
+        <source>About Pragma Chess Player 6…</source>
+        <translation>Informazioni su Pragma Chess Player 6…</translation>
+    </message>
+    <message>
+        <source>Learn More…</source>
+        <translation>Scopri di più…</translation>
+    </message>
 </context>
 <context>
     <name>BookPanel</name>

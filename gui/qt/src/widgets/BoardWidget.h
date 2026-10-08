@@ -117,6 +117,12 @@ public:
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
 
+    /// The easter egg of the board's right-click menu (Learn More…, as the
+    /// players made with Macromedia Flash had): the pieces come unhooked and
+    /// fall, bounce on the bottom edge, then fly back to their squares.
+    /// Nothing changes in the game; any new position ends it.
+    void dropPieces();
+
 Q_SIGNALS:
     /// Emitted on mouse wheel: negative steps go back, positive go forward.
     void navigateRequested(int steps);
@@ -125,6 +131,8 @@ Q_SIGNALS:
     void moveRequested(int from, int to, const QPoint &globalPosition);
     /// A move shown with setBoardAnimated() has landed (castling: the rook too).
     void animatedMoveLanded();
+    /// The right-click menu's About entry.
+    void aboutRequested();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -132,6 +140,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
     void focusInEvent(QFocusEvent *event) override;
     void focusOutEvent(QFocusEvent *event) override;
 
@@ -156,6 +165,9 @@ private:
     void showNextFrame();
     /// Ends a sequence without restoring the board.
     void endSequence();
+    /// One step of the falling pieces, and their way back.
+    void stepFall();
+    void stopFall();
 
     BoardState m_board;
     int m_lastMoveFrom = -1;
@@ -207,4 +219,24 @@ private:
     QList<SlideStep> m_slideSteps;
     qsizetype m_slideStep = 0;
     int m_slideDurationMs = 0;
+
+    /// A piece of dropPieces(): where it stands, where it is going, how it turns.
+    struct FallingPiece {
+        Piece piece;
+        QPointF home;
+        QPointF position;
+        QPointF velocity;
+        qreal angle = 0;
+        qreal spin = 0;
+        qreal delay = 0;
+        QPointF restPosition;
+        qreal restAngle = 0;
+    };
+    QList<FallingPiece> m_falling;
+    QTimer *m_fallTimer = nullptr;
+    qint64 m_fallStartMs = 0;
+    qint64 m_fallLastMs = 0;
+    /// When the pieces lay still (or gave up bouncing), and the way back began.
+    qint64 m_fallSettledMs = -1;
+    qint64 m_fallReturnMs = -1;
 };

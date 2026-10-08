@@ -31,7 +31,8 @@ fun interface ExplainText {
             "%1 threatens %2, and the king cannot take back.", "%1 threatens %2.",
             "%1 attacks %2 on %3, in line with the king on %4.", "%1 clears %2 for %3", "%1 and clears %2 for %3",
             "%1 loses time: after %2, %3 goes back, %4.", "%1 loses time: %2 goes back, %3.",
-            "Then %1 goes back to %2: %3.", "%1 lines up behind %2 on %3 against %4 on %5.",
+            "Then %1 goes back to %2: %3.", "Then %1 goes back to %2 before %3 chases it: %4.",
+            "%1 loses time: before %2 chases it, %3 goes back, %4.", "%1 lines up behind %2 on %3 against %4 on %5.",
             " No material is lost: the evaluation is positional.",
         )
     }

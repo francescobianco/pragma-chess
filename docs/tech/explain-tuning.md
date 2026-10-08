@@ -550,3 +550,10 @@ at an enemy piece (not the king) — drawn as a dashed line from the rear
 piece to the target, through the front one, and said: "11…Qc7 lines up
 behind the bishop on d6 against the pawn on f4". No other recorded case
 changed.
+
+Then the engine played 11…Qc7 12.Nf3 at once, and the user: "now the h6
+push that gave the knight's move its sense is missing". The knight goes
+back before …h6 comes. When no move of the line chases the piece back,
+`PawnChase` finds the pawn move that would attack it were it the other
+side's turn, drawn dashed and said: "Then the knight goes back to f3
+before 12…h6 chases it: 12.Nf3".

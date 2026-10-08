@@ -1176,6 +1176,35 @@ FUNCTION BatteryText(line)
     RETURN ""
 END FUNCTION
 
+' A pawn move that would attack the piece on `square` of `position` were it
+' the other side's turn (…h6 against a knight on g5); NOTHING when none.
+' The first in UCI order, the same in every client.
+FUNCTION PawnChase(position, square)
+    passed = PASS(position)
+    IF passed = NOTHING THEN RETURN NOTHING
+    best = NOTHING
+    moves = MOVES(passed)
+    FOR i = 0 TO LEN(moves) - 1
+        IF PIECE(passed, FROMSQ(moves[i])) = PAWN AND CAPTURED(passed, moves[i]) = 0 THEN
+            after = PLAY(passed, moves[i])
+            again = PASS(after)
+            IF again <> NOTHING THEN
+                replies = MOVES(again)
+                FOR j = 0 TO LEN(replies) - 1
+                    IF FROMSQ(replies[j]) = TOSQ(moves[i]) AND TOSQ(replies[j]) = square THEN
+                        IF best = NOTHING THEN
+                            best = moves[i]
+                        ELSEIF moves[i] < best THEN
+                            best = moves[i]
+                        END IF
+                    END IF
+                NEXT
+            END IF
+        END IF
+    NEXT
+    RETURN best
+END FUNCTION
+
 ' The move played undone: the piece it moved goes back to the square it
 ' came from within the first LONG_PLIES of the line, chased or not —
 ' 11.Ng5 12.Qh4 h6 13.Nf3: " 11.Ng5 loses time: after 12…h6, the knight
@@ -1212,10 +1241,25 @@ FUNCTION ReturnText(before, played, line, lost)
                     Draw FROMSQ(threats[i][0]), square, "threat", 0
                 END IF
             NEXT
+            ' Not chased by a move of the line: by a pawn that would chase it
+            ' were it the other side's move (…h6 against the knight of g5,
+            ' which goes back before it comes).
+            pawn = NOTHING
+            IF NOT chased THEN pawn = PawnChase(positions[k], square)
+            IF pawn <> NOTHING THEN
+                passed = PASS(positions[k])
+                Draw FROMSQ(pawn), TOSQ(pawn), "threat", 0
+                Draw TOSQ(pawn), square, "threat", 0
+            END IF
             ' The way back, the piece faint where it lands: where it started.
             IF NOT IsDrawn(FROMSQ(moves[k]), TOSQ(moves[k])) THEN
                 drawnArrows = drawnArrows + [[FROMSQ(moves[k]), TOSQ(moves[k]), "reply"]]
                 ARROW FROMSQ(moves[k]), TOSQ(moves[k]), "reply", 0, PIECE(positions[k], FROMSQ(moves[k])), SIDETOMOVE(positions[k])
+            END IF
+            IF pawn <> NOTHING THEN
+                chase = MoveText(passed, pawn)
+                IF NOT lost THEN RETURN " " + TEXT("Then %1 goes back to %2 before %3 chases it: %4.", piece, SquareName(FROMSQ(played)), chase, back)
+                RETURN " " + TEXT("%1 loses time: before %2 chases it, %3 goes back, %4.", first, chase, piece, back)
             END IF
             IF NOT lost THEN RETURN " " + TEXT("Then %1 goes back to %2: %3.", piece, SquareName(FROMSQ(played)), back)
             IF chased THEN RETURN " " + TEXT("%1 loses time: after %2, %3 goes back, %4.", first, MoveText(positions[k - 1], moves[k - 1]), piece, back)

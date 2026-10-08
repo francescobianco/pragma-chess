@@ -4088,6 +4088,14 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>%1 lines up behind %2 on %3 against %4 on %5.</source>
         <translation>%1 si allinea dietro %2 in %3 contro %4 in %5.</translation>
     </message>
+    <message>
+        <source>Then %1 goes back to %2 before %3 chases it: %4.</source>
+        <translation>Poi %1 torna in %2 prima che %3 lo cacci: %4.</translation>
+    </message>
+    <message>
+        <source>%1 loses time: before %2 chases it, %3 goes back, %4.</source>
+        <translation>%1 perde tempo: prima che %2 lo cacci, %3 torna indietro, %4.</translation>
+    </message>
 </context>
 <context>
     <name>MoveTreeView</name>

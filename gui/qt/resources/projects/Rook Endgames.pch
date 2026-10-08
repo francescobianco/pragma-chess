@@ -4,6 +4,7 @@ name:
   en: Rook Endgames
   it: I finali di torre
 multilingual: true
+read-only: true
 database:
   path: ~
 chapters:

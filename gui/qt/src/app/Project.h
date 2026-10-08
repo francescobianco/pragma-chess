@@ -30,6 +30,11 @@ struct Project {
     /// Project Settings; otherwise they are shown and written in the
     /// interface's. Written `multilingual: true`, only when on.
     bool multilingual = false;
+    /// Read-only: a flag against changes made without thinking, not a lock —
+    /// unticked in Project Settings, the project is changed as any other. The
+    /// projects we distribute come with it. Written `read-only: true`, only
+    /// when on.
+    bool readOnly = false;
     /// Absolute path of the database file.
     QString databasePath;
     /// The chapters, their games and paragraphs, and the one open (where in

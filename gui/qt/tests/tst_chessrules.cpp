@@ -4364,6 +4364,12 @@ END FUNCTION
         project.automaticChapters = false;
         read = Project::fromYaml(project.toYaml(), QDir(), &error);
         QVERIFY(!read->automaticChapters);
+
+        // Read-only: written only when on, and read back.
+        QVERIFY(!project.toYaml().contains(QStringLiteral("read-only")));
+        project.readOnly = true;
+        QVERIFY(project.toYaml().contains(QStringLiteral("read-only: true")));
+        QVERIFY(Project::fromYaml(project.toYaml(), QDir(), &error)->readOnly);
     }
 
     void readsTheDistributedProjects()
@@ -4378,6 +4384,7 @@ END FUNCTION
             const std::optional<Project> project = Project::loadFromFile(folder.filePath(file), &error);
             QVERIFY2(project, qPrintable(file + QLatin1String(": ") + error));
             QVERIFY(project->multilingual);
+            QVERIFY(project->readOnly); // Distributed: read-only until the user unticks it.
             QVERIFY(project->databasePath.isEmpty()); // It keeps the database open.
             const auto bothLanguages = [](const LocalizedText &text) {
                 return text.has(QStringLiteral("en")) && text.has(QStringLiteral("it"));

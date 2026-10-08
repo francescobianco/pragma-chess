@@ -12,10 +12,11 @@
 ProjectSettingsDialog::ProjectSettingsDialog(const LocalizedText &name, const QString &filePath, const QString &fileName,
                                              bool multilingual,
                                              const QString &language, const QString &interfaceLanguage,
-                                             QWidget *parent)
+                                             bool readOnly, QWidget *parent)
     : QDialog(parent)
     , m_name(new QLineEdit(name.text(language), this))
     , m_multilingual(new QCheckBox(tr("&Multilingual project"), this))
+    , m_readOnly(new QCheckBox(tr("&Read-only"), this))
     , m_language(new QComboBox(this))
     , m_interfaceLanguage(interfaceLanguage)
     , m_names(name)
@@ -57,6 +58,16 @@ ProjectSettingsDialog::ProjectSettingsDialog(const LocalizedText &name, const QS
     languageNote->setWordWrap(true);
     languageNote->setEnabled(false);
     form->addRow(QString(), languageNote);
+    m_readOnly->setChecked(readOnly);
+    form->addRow(QString(), m_readOnly);
+    auto *readOnlyNote = new QLabel(tr("Keeps the project from changes made without thinking: its chapters, "
+                                       "titles, paragraphs, comments and variations cannot be changed, and it is "
+                                       "not saved. The board can still be explored. Untick it to change the "
+                                       "project; the projects distributed with Pragma Chess come read-only."),
+                                    this);
+    readOnlyNote->setWordWrap(true);
+    readOnlyNote->setEnabled(false);
+    form->addRow(QString(), readOnlyNote);
 
     connect(m_multilingual, &QCheckBox::toggled, this, [this](bool on) {
         m_language->setEnabled(on);
@@ -82,6 +93,11 @@ LocalizedText ProjectSettingsDialog::name() const
     if (m_name->text().trimmed() != names.text(m_shown))
         names.set(m_shown, m_name->text().trimmed());
     return names;
+}
+
+bool ProjectSettingsDialog::isReadOnly() const
+{
+    return m_readOnly->isChecked();
 }
 
 bool ProjectSettingsDialog::isMultilingual() const

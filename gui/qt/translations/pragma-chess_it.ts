@@ -3374,6 +3374,18 @@ non è su questo computer.</translation>
         <source>Copy what the engine told Explain about the move, to replay it with pragma-explain --replay</source>
         <translation>Copia quello che il motore ha detto a Spiega sulla mossa, per rigiocarlo con pragma-explain --replay</translation>
     </message>
+    <message>
+        <source>“%1” is read-only: untick Read-only in File ▸ Project Settings… to change it.</source>
+        <translation>«%1» è in sola lettura: togli la spunta a Sola lettura in File ▸ Impostazioni progetto… per modificarlo.</translation>
+    </message>
+    <message>
+        <source>The project is read-only: untick Read-only in File ▸ Project Settings… to change it</source>
+        <translation>Il progetto è in sola lettura: togli la spunta a Sola lettura in File ▸ Impostazioni progetto… per modificarlo</translation>
+    </message>
+    <message>
+        <source>%1 (Read-Only)</source>
+        <translation>%1 (sola lettura)</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>
@@ -4582,6 +4594,14 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>File:</source>
         <translation>File:</translation>
+    </message>
+    <message>
+        <source>&amp;Read-only</source>
+        <translation>&amp;Sola lettura</translation>
+    </message>
+    <message>
+        <source>Keeps the project from changes made without thinking: its chapters, titles, paragraphs, comments and variations cannot be changed, and it is not saved. The board can still be explored. Untick it to change the project; the projects distributed with Pragma Chess come read-only.</source>
+        <translation>Protegge il progetto da modifiche fatte senza pensarci: i suoi capitoli, titoli, paragrafi, commenti e varianti non si possono cambiare, e non viene salvato. La scacchiera si può comunque esplorare. Togli la spunta per modificare il progetto; i progetti distribuiti con Pragma Chess arrivano in sola lettura.</translation>
     </message>
 </context>
 <context>

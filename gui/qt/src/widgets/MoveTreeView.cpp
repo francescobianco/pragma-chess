@@ -604,6 +604,8 @@ bool MoveTreeView::eventFilter(QObject *watched, QEvent *event)
 
 void MoveTreeView::editParagraph(int game, int index)
 {
+    if (m_editingLocked)
+        return;
     if (!m_book || game < 0 || game >= m_book->chapter().games.size()
         || index < 0 || index >= m_book->chapter().games.at(game).paragraphs.size())
         return;
@@ -630,6 +632,8 @@ void MoveTreeView::editParagraph(int game, int index)
 
 void MoveTreeView::editComment(const QList<int> &path, int index)
 {
+    if (m_editingLocked)
+        return;
     const GameRecord &game = m_session->game();
     if (index < 0 || !GameVariations::variationsOf(game, path)
         || (index > 0 && index > GameVariations::lineMoves(game, path).size() - GameVariations::branchPly(game, path)))

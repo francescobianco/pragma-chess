@@ -237,6 +237,8 @@ Non sei obbligato a salvare: Pragma Chess si riapre come l'hai chiuso.
 
 I pannelli si possono ridimensionare e chiudere; il menu **Visualizza** (Mosse, Albero delle aperture, Motore, Lista partite) li mostra di nuovo, e **Visualizza ▸ Ripristina disposizione dei pannelli** li rimette dove stanno all'inizio.
 
+**File ▸ Impostazioni progetto… ▸ Sola lettura** protegge un progetto da modifiche fatte senza pensarci: i suoi capitoli, titoli, paragrafi, commenti e varianti non si possono cambiare, e non viene salvato — la scacchiera si può comunque esplorare, e la barra del titolo dice *(sola lettura)*. Togli la spunta per modificare il progetto. I progetti che arrivano con Pragma Chess sono in sola lettura.
+
 # Capitoli e paragrafi {#chapters}
 
 Un progetto è una raccolta di **capitoli**, come uno studio o un libro di scacchi, e un capitolo contiene partite una dopo l'altra, con del testo tra le loro mosse. La lista delle mosse mostra tutto il capitolo: una riga leggera segna dove comincia ogni partita, e la numerazione riparte; fai clic su una mossa di un'altra partita e la scacchiera va lì.

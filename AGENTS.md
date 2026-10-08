@@ -833,6 +833,16 @@ a chapter always has a game. In other tools this is a study or a chess book.
   title bar in place of the file's, then the chapter open as soon as the
   project has chapters, and no more when it is back without:
   "Name* - Chapter - Pragma Chess").
+- **Read-only** (Project Settings, `Project::readOnly`, `read-only: true`):
+  a flag against changes made without thinking, not a lock. While it is on
+  the commands that change the project refuse (`MainWindow::projectEditable`,
+  the move list's menu greyed but Copy, `lockForReadOnly`; paragraphs and
+  comments not written in place, `MoveTreeView::setEditingLocked`), nothing
+  is saved and closing asks nothing (`maybeSaveProject`), the title says
+  "(Read-Only)"; the board can still be explored. Ticking it saves the
+  project once, with the flag. The projects we distribute
+  (`resources/projects`) are read-only (`readsTheDistributedProjects`); a
+  copy seeded before, untouched, gets the flag (`seedDistributedProjects`).
 - **Multilingual projects** (`app/LocalizedText`, pure, unit-tested): the
   project's name, the chapters' titles and the paragraphs (`Paragraph::text`,
   `Chapter::title`, `Project::name`) are a `LocalizedText`, a text per

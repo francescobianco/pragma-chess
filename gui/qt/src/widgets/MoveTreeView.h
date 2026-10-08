@@ -67,6 +67,8 @@ public:
 
     /// Opens a paragraph of the game `game` for writing, where it is.
     void editParagraph(int game, int index);
+    /// Paragraphs and comments are not written in place (a read-only project).
+    void setEditingLocked(bool locked) { m_editingLocked = locked; }
     /// Opens a comment of the game on the board for writing (MoveComment::at),
     /// under its move; one the move does not have yet is written there too.
     void editComment(const QList<int> &path, int index);
@@ -161,4 +163,5 @@ private:
     /// The row of the table it is written in, found by rebuild().
     int m_editRow = -1;
     bool m_formatting = false;
+    bool m_editingLocked = false;
 };

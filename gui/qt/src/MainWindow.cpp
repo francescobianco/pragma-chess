@@ -1697,6 +1697,18 @@ QString MainWindow::moveText(int ply) const
     return m_session->positionAt(ply - 1).lineText({move.uci}) + MoveAnnotation::pgnSuffix(move.nags);
 }
 
+void MainWindow::lockForReadOnly(QMenu &menu) const
+{
+    // A read-only project: what would change it is there, greyed, so the user
+    // sees where to untick the flag; copying stays.
+    if (!m_projectReadOnly)
+        return;
+    for (QAction *action : menu.actions()) {
+        if (!action->isSeparator() && !action->property("readOnlySafe").toBool())
+            action->setEnabled(false);
+    }
+}
+
 void MainWindow::showMoveListMenu(const QPoint &position)
 {
     const MoveTreeView::Place place = m_moveView->placeAt(position);
@@ -1827,6 +1839,7 @@ void MainWindow::showMoveListMenu(const QPoint &position)
         });
     }
     if (!place.isMove()) {
+        lockForReadOnly(menu);
         menu.exec(m_moveView->viewport()->mapToGlobal(position));
         return;
     }
@@ -1840,6 +1853,7 @@ void MainWindow::showMoveListMenu(const QPoint &position)
     });
 
     QMenu *copy = menu.addMenu(themeIcon("edit-copy", QStyle::SP_FileIcon), tr("&Copy"));
+    copy->menuAction()->setProperty("readOnlySafe", true); // Copying changes nothing.
     copy->addAction(tr("Copy &Move"), this, [this, ply] { copyText(moveText(ply), tr("Move copied")); });
     copy->addAction(tr("Copy &Line up to Here"), this, [this, ply] {
         copyText(Pgn::moveText(m_session->game(), ply), tr("Line copied"));
@@ -1885,11 +1899,14 @@ void MainWindow::showMoveListMenu(const QPoint &position)
     connect(none, &QAction::triggered, this, [this, ply] { annotateMove(ply, {}); });
     annotations->addAction(none);
 
+    lockForReadOnly(menu);
     menu.exec(m_moveView->viewport()->mapToGlobal(position));
 }
 
 void MainWindow::writeComment(const QList<int> &path, int index, const QString &text)
 {
+    if (!projectEditable())
+        return;
     // What a person reads is replaced; the commands for programs stay.
     const QString before = MoveComment::at(m_session->game(), path, index);
     const QString comment = MoveComment::withText(before, text);
@@ -1940,6 +1957,8 @@ void MainWindow::playCommentLine(int game, const QList<int> &path, int basePly, 
 
 void MainWindow::annotateMove(int ply, const QList<int> &nags)
 {
+    if (!projectEditable())
+        return;
     if (ply < 1 || ply > m_session->plyCount())
         return;
     const QList<int> before = m_session->moveAt(ply).nags;
@@ -1953,6 +1972,8 @@ void MainWindow::annotateMove(int ply, const QList<int> &nags)
 
 void MainWindow::applyGameEdit(const std::optional<GameVariations::Edit> &edit, const QString &question)
 {
+    if (!projectEditable())
+        return;
     if (!edit)
         return;
     // Deleting moves cannot be undone: asked first.
@@ -2954,9 +2975,20 @@ void MainWindow::seedDistributedProjects()
     const QDir resources(QStringLiteral(":/projects"));
     for (const QString &file : resources.entryList({QStringLiteral("*.pch")}, QDir::Files)) {
         const QString key = QStringLiteral("distributed/project/%1/seeded").arg(QFileInfo(file).completeBaseName());
+        const QString path = QDir(UserFolders::projectsDir()).filePath(file);
+        // A copy seeded before the projects we distribute came read-only, and
+        // never changed since, gets the flag (a changed copy is the user's).
+        QFile shipped(resources.filePath(file));
+        QFile copy(path);
+        if (settings.value(key, false).toBool() && shipped.open(QIODevice::ReadOnly) && copy.open(QIODevice::ReadOnly)) {
+            const QByteArray current = shipped.readAll();
+            const QByteArray seeded = copy.readAll();
+            copy.close();
+            if (seeded != current && QByteArray(current).replace("read-only: true\n", "") == seeded && copy.open(QIODevice::WriteOnly | QIODevice::Truncate))
+                copy.write(current);
+        }
         if (settings.value(key, false).toBool() || !UserFolders::ensureProjectsDir())
             continue;
-        const QString path = QDir(UserFolders::projectsDir()).filePath(file);
         if (!QFileInfo::exists(path)) {
             if (!QFile::copy(resources.filePath(file), path))
                 continue;
@@ -3828,9 +3860,20 @@ void MainWindow::editProjectSettings()
 {
     const QString fileName = m_projectPath.isEmpty() ? tr("Untitled") : QFileInfo(m_projectPath).completeBaseName();
     ProjectSettingsDialog dialog(m_projectName, m_projectPath.isEmpty() ? QString() : QFileInfo(m_projectPath).absoluteFilePath(),
-                                 fileName, m_multilingual, m_chapters.language, contentLanguage(), this);
+                                 fileName, m_multilingual, m_chapters.language, contentLanguage(), m_projectReadOnly, this);
     if (dialog.exec() != QDialog::Accepted)
         return;
+    if (dialog.isReadOnly() != m_projectReadOnly) {
+        const bool locking = dialog.isReadOnly();
+        m_projectReadOnly = locking;
+        m_moveView->setEditingLocked(locking);
+        // Made read-only: the project is saved as it is now, with the flag,
+        // and from then on not any more.
+        if (locking && !m_projectPath.isEmpty())
+            writeProject();
+        updateWindowTitle();
+        updateProjectModified();
+    }
     const bool changed = dialog.name() != m_projectName || dialog.isMultilingual() != m_multilingual;
     const bool relanguaged = dialog.language() != m_chapters.language;
     m_projectName = dialog.name();
@@ -3858,6 +3901,8 @@ int MainWindow::chapterGameStartNumber(int index) const
 
 void MainWindow::changeMoveNumber(int index)
 {
+    if (!projectEditable())
+        return;
     if (index < 0 || index >= m_chapters.chapter().games.size())
         return;
     // The number is the start position's: the board goes to that game first.
@@ -3899,6 +3944,8 @@ void MainWindow::changeMoveNumber(int index)
 
 void MainWindow::deleteChapterGame(int index, const QString &title)
 {
+    if (!projectEditable())
+        return;
     if (index < 0 || index >= m_chapters.chapter().games.size())
         return;
     syncChapterGame();
@@ -3935,6 +3982,8 @@ void MainWindow::deleteChapterGame(int index, const QString &title)
 
 void MainWindow::insertGameBreak(int after)
 {
+    if (!projectEditable())
+        return;
     if (!canLeaveGame())
         return;
     m_trainingModeAction->setChecked(false);
@@ -3955,6 +4004,8 @@ void MainWindow::insertGameBreak(int after)
 
 void MainWindow::newChapter()
 {
+    if (!projectEditable())
+        return;
     if (!canLeaveGame())
         return;
     bool ok = false;
@@ -4004,6 +4055,8 @@ void MainWindow::fillChapterMenu()
 
 void MainWindow::manageChapters()
 {
+    if (!projectEditable())
+        return;
     QList<ManageChaptersDialog::Entry> entries;
     for (int i = 0; m_chapters.hasChapters() && i < m_chapters.chapters.size(); ++i) {
         const Chapter &chapter = m_chapters.chapters.at(i);
@@ -5380,6 +5433,7 @@ Project MainWindow::captureProject()
     Project project;
     project.name = m_projectName;
     project.multilingual = m_multilingual;
+    project.readOnly = m_projectReadOnly;
     if (m_database)
         project.databasePath = m_database->location();
     // The chapters, with the game on the board as it is and where the user is in it.
@@ -5451,6 +5505,8 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
 
     m_projectName = project.name;
     m_multilingual = project.multilingual;
+    m_projectReadOnly = project.readOnly;
+    m_moveView->setEditingLocked(m_projectReadOnly);
     // A project shows its texts in the interface's language, whatever language it was edited in last.
     m_chapters.language = contentLanguage();
     if (!project.chapters.isEmpty()) {
@@ -5625,7 +5681,25 @@ bool MainWindow::saveProject()
 {
     if (m_projectPath.isEmpty())
         return saveProjectAs();
+    if (m_projectReadOnly) {
+        QMessageBox::information(this, tr("Save Project"),
+                                 tr("“%1” is read-only: untick Read-only in File ▸ Project Settings… to change it.")
+                                     .arg(QFileInfo(m_projectPath).completeBaseName()));
+        return false;
+    }
+    return writeProject();
+}
 
+bool MainWindow::projectEditable()
+{
+    if (!m_projectReadOnly)
+        return true;
+    statusBar()->showMessage(tr("The project is read-only: untick Read-only in File ▸ Project Settings… to change it"), 5000);
+    return false;
+}
+
+bool MainWindow::writeProject()
+{
     const Project project = captureProject();
     QString error;
     if (!project.saveToFile(m_projectPath, &error)) {
@@ -5667,7 +5741,8 @@ bool MainWindow::saveProjectAs()
 
 bool MainWindow::maybeSaveProject()
 {
-    if (m_projectPath.isEmpty() || !isWindowModified())
+    // A read-only project is never saved: what was explored goes.
+    if (m_projectPath.isEmpty() || !isWindowModified() || m_projectReadOnly)
         return true;
     const QMessageBox::StandardButton answer = QMessageBox::question(
         this, tr("Save Project"),
@@ -5724,7 +5799,9 @@ void MainWindow::updateWindowTitle()
     // chapters, the one open follows it: "Openings* - The Italian - Pragma
     // Chess", and it goes again when the project is back without chapters.
     const QString fileName = m_projectPath.isEmpty() ? tr("Untitled") : QFileInfo(m_projectPath).completeBaseName();
-    const QString name = m_projectName.isEmpty() ? fileName : m_projectName.text(m_chapters.language);
+    QString name = m_projectName.isEmpty() ? fileName : m_projectName.text(m_chapters.language);
+    if (m_projectReadOnly)
+        name = tr("%1 (Read-Only)").arg(name);
     if (m_chapters.hasChapters())
         setWindowTitle(QStringLiteral("%1[*] - %2 - %3")
                            .arg(name, m_chapters.chapter().title.text(m_chapters.language), QStringLiteral("Pragma Chess")));
@@ -5735,8 +5812,9 @@ void MainWindow::updateWindowTitle()
 void MainWindow::updateProjectModified()
 {
     const bool modified = !m_projectPath.isEmpty() && captureProject().toYaml() != m_savedProjectYaml;
-    setWindowModified(m_projectPath.isEmpty() || modified); // A project never saved has the asterisk too.
-    m_saveProjectAction->setEnabled(m_projectPath.isEmpty() || modified);
+    // A read-only project has nothing to save, whatever was explored.
+    setWindowModified(!m_projectReadOnly && (m_projectPath.isEmpty() || modified)); // A project never saved has the asterisk too.
+    m_saveProjectAction->setEnabled(!m_projectReadOnly && (m_projectPath.isEmpty() || modified));
 }
 
 void MainWindow::scheduleSaveSession()

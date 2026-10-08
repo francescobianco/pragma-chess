@@ -237,6 +237,8 @@ You do not have to save: Pragma Chess reopens as you closed it.
 
 Panels can be resized and closed; the **View** menu (Moves, Opening Tree, Engine, Games List) shows them again, and **View ▸ Reset Panel Layout** puts them back where they start.
 
+**File ▸ Project Settings… ▸ Read-only** keeps a project from changes made without thinking: its chapters, titles, paragraphs, comments and variations cannot be changed, and it is not saved — the board can still be explored, and the title bar says *(Read-Only)*. Untick it to change the project. The projects that come with Pragma Chess are read-only.
+
 # Chapters and paragraphs {#chapters}
 
 A project is a collection of **chapters**, as a study or a chess book is, and a chapter holds games one after the other, with text between their moves. The move list shows the whole chapter: a light rule marks where each game begins, and its numbering starts again; click a move of another game and the board goes there.

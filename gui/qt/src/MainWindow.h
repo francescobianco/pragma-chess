@@ -315,6 +315,13 @@ private:
     void newProject();
     void openProject();
     bool saveProject();
+    /// Writes the project to its file, read-only or not (saveProject asks).
+    bool writeProject();
+    /// Whether the project may be changed; when it is read-only, says so in
+    /// the status bar and returns false.
+    bool projectEditable();
+    /// Greys what in `menu` would change a read-only project.
+    void lockForReadOnly(QMenu &menu) const;
     bool saveProjectAs();
     /// Asks to save a modified project. Returns false if the user cancels.
     bool maybeSaveProject();
@@ -506,6 +513,9 @@ private:
     /// The project's texts are in several languages: the one shown and
     /// written (m_chapters.language) is chosen in Project Settings.
     bool m_multilingual = false;
+    /// The project is read-only (Project Settings): nothing in it changes,
+    /// and it is not saved (projectEditable, writeProject).
+    bool m_projectReadOnly = false;
     GameListModel *m_gameListModel;
     GameFilterProxyModel *m_gameListProxy;
 

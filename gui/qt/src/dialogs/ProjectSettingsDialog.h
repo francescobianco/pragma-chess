@@ -24,11 +24,14 @@ public:
     /// language the texts are written in now, `interfaceLanguage` the one a
     /// project that is not multilingual is written in.
     ProjectSettingsDialog(const LocalizedText &name, const QString &filePath, const QString &fileName, bool multilingual,
-                          const QString &language, const QString &interfaceLanguage, QWidget *parent = nullptr);
+                          const QString &language, const QString &interfaceLanguage, bool readOnly,
+                          QWidget *parent = nullptr);
 
     /// The name, with what was written in each language.
     LocalizedText name() const;
     bool isMultilingual() const;
+    /// The project is protected from changes made without thinking.
+    bool isReadOnly() const;
     /// The language the project's texts are shown and written in from now on.
     QString language() const;
 
@@ -38,6 +41,7 @@ private:
 
     QLineEdit *m_name;
     QCheckBox *m_multilingual;
+    QCheckBox *m_readOnly;
     QComboBox *m_language;
     QString m_interfaceLanguage;
     LocalizedText m_names;

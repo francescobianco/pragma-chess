@@ -432,6 +432,10 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     env.workspace.movesWidth = WorkspaceLayout::clamped(valueOf<double>(workspace["movesWidth"], defaults.movesWidth));
     env.workspace.engineHeight = WorkspaceLayout::clamped(valueOf<double>(workspace["engineHeight"], defaults.engineHeight));
     env.workspace.treeWidth = WorkspaceLayout::clamped(valueOf<double>(workspace["treeWidth"], defaults.treeWidth));
+    // Under a tenth of the panel the tree was squeezed by a measure taken at the
+    // wrong moment (since fixed), not narrowed by the user: back to the default.
+    if (env.workspace.treeWidth < 10)
+        env.workspace.treeWidth = defaults.treeWidth;
     // Older projects carry Qt's opaque state instead; it is honoured once.
     if (!hasShares)
         env.legacyLayout = QByteArray::fromBase64(fromNode(workspace["layout"]).toLatin1());

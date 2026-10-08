@@ -1176,7 +1176,11 @@ while one of them is selected.
   the shares (`resizeEvent` applies them again; Qt would give the new room
   to the board alone), and only a separator dragged by the user is measured
   (`separatorReleased`: the release QMainWindow handles its separators in,
-  the sidebar's through `eventFilter`, `splitterMoved` for the tree), never a
+  the sidebar's through `eventFilter`; the tree's share only from its own
+  ruler's `splitterMoved`, never in `captureLayout` — measured when the Games
+  panel was just shown again, a squeezed width stuck —, the panel taking its
+  shares back when shown, the tree with a minimum width, and a share under
+  10% read back as the default), never a
   panel squeezed by a small window, or the project would drift with it. The opaque `layout` blob
   of older projects (QMainWindow::saveState, magic `pragma-layout-N`) is
   still read (`legacyLayout`, `restoreLegacyLayout`) and honoured once,

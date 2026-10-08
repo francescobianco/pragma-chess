@@ -467,6 +467,17 @@ private Q_SLOTS:
         QVERIFY(found);
     }
 
+    void restoresASqueezedGamesTree()
+    {
+        // A tree share under a tenth of the panel was squeezed, not chosen: the default comes back.
+        Project project;
+        project.workspace.treeWidth = 7.52;
+        QString error;
+        QCOMPARE(Project::fromYaml(project.toYaml(), QDir(), &error)->workspace.treeWidth, WorkspaceLayout().treeWidth);
+        project.workspace.treeWidth = 30;
+        QCOMPARE(Project::fromYaml(project.toYaml(), QDir(), &error)->workspace.treeWidth, 30.0);
+    }
+
     void remembersEvaluationsAcrossRestarts()
     {
         // What the engine found about a position is kept across a restart:

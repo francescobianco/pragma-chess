@@ -487,7 +487,22 @@ MainWindow::MainWindow(QWidget *parent)
     connect(gameHeader, &QHeaderView::sectionMoved, this, &MainWindow::scheduleSaveSession);
     connect(gameHeader, &QHeaderView::sectionResized, this, &MainWindow::scheduleSaveSession);
     connect(gameHeader, &QHeaderView::sortIndicatorChanged, this, &MainWindow::scheduleSaveSession);
-    connect(m_gamesSplitter, &QSplitter::splitterMoved, this, &MainWindow::separatorReleased);
+    // The tree's share is the user's drag of its own ruler, and only that: measured
+    // at any other moment (the Games panel just shown again, not yet laid out),
+    // it was a squeezed width that stuck.
+    connect(m_gamesSplitter, &QSplitter::splitterMoved, this, [this] {
+        const QList<int> sizes = m_gamesSplitter->sizes();
+        if (sizes.size() == 2 && sizes.at(0) + sizes.at(1) > 0 && m_gamesDock->isVisible())
+            m_layout.treeWidth = WorkspaceLayout::clamped(100.0 * sizes.at(0) / (sizes.at(0) + sizes.at(1)));
+        separatorReleased();
+    });
+    // Shown again, the panel takes its shares back.
+    connect(m_gamesDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+        if (!visible || !isVisible())
+            return;
+        m_layoutPending = true;
+        QTimer::singleShot(0, this, &MainWindow::applyLayoutShares);
+    });
     m_sidebar->installEventFilter(this);
     for (QDockWidget *dock : findChildren<QDockWidget *>()) {
         connect(dock, &QDockWidget::visibilityChanged, this, &MainWindow::scheduleSaveSession);
@@ -1188,11 +1203,7 @@ WorkspaceLayout MainWindow::captureLayout()
         if (const double share = percent(m_engineDock->height(), m_sidebar->height()); share > 0)
             layout.engineHeight = share;
     }
-    const QList<int> sizes = m_gamesSplitter->sizes();
-    if (sizes.size() == 2 && layout.games) {
-        if (const double share = percent(sizes.at(0), sizes.at(0) + sizes.at(1)); share > 0)
-            layout.treeWidth = share;
-    }
+    layout.treeWidth = m_layout.treeWidth; // Measured only when its ruler is dragged.
     m_layout = layout; // Remembered for when there is nothing to measure.
     return layout;
 }
@@ -1391,6 +1402,8 @@ void MainWindow::createDocks()
     m_gamesSplitter->setChildrenCollapsible(false);
     m_gamesSplitter->addWidget(m_databaseTree);
     m_gamesSplitter->addWidget(m_gameView);
+    // The tree never so narrow that its nodes cannot be read.
+    m_databaseTree->setMinimumWidth(m_databaseTree->fontMetrics().averageCharWidth() * 28);
     m_gamesSplitter->setStretchFactor(0, 0);
     m_gamesSplitter->setStretchFactor(1, 1);
     m_gamesSplitter->setSizes({220, 800});

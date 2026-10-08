@@ -46,6 +46,9 @@ public:
 
     /// The player name as ChessBase writes it: "Lastname, Firstname".
     static QString playerName(const QString &last, const QString &first);
+    /// ChessBase's texts are Windows-1252: Latin-1 but for 0x80–0x9F ("€",
+    /// typographic quotes, "Š"…), which Qt 6 has no codec for.
+    static QString windows1252(const QByteArray &bytes);
     /// A ChessBase date (bits: year, month, day) as PGN writes it.
     static QString dateText(quint32 date);
 

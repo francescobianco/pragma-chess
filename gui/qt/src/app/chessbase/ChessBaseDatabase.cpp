@@ -31,12 +31,12 @@ quint32 bigEndian(const QByteArray &bytes, int offset, int size)
     return value;
 }
 
-/// A fixed-width text field: Latin-1, up to the first NUL.
+/// A fixed-width text field: Windows-1252, up to the first NUL.
 QString field(const QByteArray &bytes, int offset, int size)
 {
     const QByteArray raw = bytes.mid(offset, size);
     const int end = raw.indexOf('\0');
-    return QString::fromLatin1(end < 0 ? raw : raw.left(end)).trimmed();
+    return ChessBaseDatabase::windows1252(end < 0 ? raw : raw.left(end)).trimmed();
 }
 
 /// Where the records of an entity file start: after the header, whose
@@ -99,6 +99,22 @@ std::unique_ptr<ChessBaseDatabase> ChessBaseDatabase::open(const QString &cbhPat
          offset += kTournamentRecord)
         database->m_tournaments << Tournament{field(tournaments, offset + 9, 40), field(tournaments, offset + 49, 30)};
     return database;
+}
+
+QString ChessBaseDatabase::windows1252(const QByteArray &bytes)
+{
+    // 0x80–0x9F; 0 where Windows-1252 has no character (kept as Latin-1's).
+    static constexpr char16_t kHigh[32] = {
+        0x20AC, 0, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021, 0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0, 0x017D, 0,
+        0, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014, 0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0, 0x017E, 0x0178};
+    QString text;
+    text.reserve(bytes.size());
+    for (const char byte : bytes) {
+        const quint8 code = quint8(byte);
+        const char16_t high = code >= 0x80 && code <= 0x9F ? kHigh[code - 0x80] : 0;
+        text += QChar(high ? high : char16_t(code));
+    }
+    return text;
 }
 
 QString ChessBaseDatabase::playerName(const QString &last, const QString &first)

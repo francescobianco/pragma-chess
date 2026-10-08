@@ -252,9 +252,6 @@ Fatte solo fuori schermo o nella sessione GNOME di prova (vedi sotto):
   hanno barra del titolo vuota e nessuna `DockWidgetFloatable`.
 - `ManageSourcesDialog`: lo stato "Ignorata su questo computer" si toglie
   solo modificando la fonte (Modifica… ▸ OK). Manca un comando esplicito.
-- Nomi dei giocatori ChessBase in Latin-1 (`QString::fromLatin1`); ChessBase
-  usa in realtà Windows-1252: differiscono solo per i caratteri 0x80–0x9F
-  (es. "€", virgolette tipografiche). Qt 6 non ha il codec 1252 di serie.
 - `ChessBaseDatabase` legge annotatori (`.cbc`) e fonti (`.cbs`) ancora no;
   commenti testuali (`.cba`) no.
 

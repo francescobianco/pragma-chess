@@ -467,6 +467,14 @@ private Q_SLOTS:
         QVERIFY(found);
     }
 
+    void decodesChessBaseTexts()
+    {
+        // Windows-1252: Latin-1 but for 0x80–0x9F.
+        QCOMPARE(ChessBaseDatabase::windows1252(QByteArray("Ljubojevi\xe8")), QStringLiteral("Ljubojevi\u00e8"));
+        QCOMPARE(ChessBaseDatabase::windows1252(QByteArray("\x8a\x80 \x93Hi\x94")), QStringLiteral("\u0160\u20ac \u201cHi\u201d"));
+        QCOMPARE(ChessBaseDatabase::windows1252(QByteArray("\x81")), QStringLiteral("\u0081")); // No character there: kept.
+    }
+
     void readsSmartProgramsAgainWhenTheyChange()
     {
         // With PRAGMA_SMART_DIR a program saved again is read again at its next use.

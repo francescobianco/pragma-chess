@@ -184,12 +184,6 @@ tre soglie, rifare la taratura sui casi del documento, aggiornare la guida.
   materiale torna pari e il resto è il re nero che non arrocca più; la
   frase "non si perde materiale: è posizionale" è vera ma non dice *quale*
   posizione. Servono i temi del re (arrocco perso, re esposto).
-- **Android: la posizione prima della mossa.** Il desktop, quando Spiega
-  non ha la valutazione della posizione prima (si arriva diretti alla mossa,
-  o dopo un riavvio), la analizza prima per un momento
-  (`unjudgedBefore`, `kExplainBeforeDepth`); il telefono no: lì la mossa
-  resta senza giudizio finché l'utente non è passato dalla posizione prima.
-  Portare lo stesso giro in `AppViewModel.positionChanged`.
 - **La minaccia ignorata (5…Qh4+, 6 ottobre).** Spiega dice "5…Qh4+ leaves
   the rook on a8 attacked: 7.Qxa8" (`IgnoredThreatText`). Resta: nella linea del motore il Nero
   riprende la torre (7…Qxa1) e il vantaggio viene da 8.Qxb8+; la frase non
@@ -217,7 +211,9 @@ tre soglie, rifare la taratura sui casi del documento, aggiornare la guida.
   `pragma-explain --replay` senza riavviare.
 - **Non provato a mano:** Spiega reattivo sul desktop vero (visto solo nei
   test e nella CLI: frecce che cambiano solo quando reggono, matto che non
-  riparte) e sul telefono vero (solo test JVM e APK compilate).
+  riparte) e sul telefono vero (solo test JVM e APK compilate), compresa la
+  ricerca della posizione prima della mossa sul telefono (8/10:
+  `AppViewModel.explainingBefore`, `UciEngine.finished`).
 
 ### 3. Verifiche mancate sull'app vera
 

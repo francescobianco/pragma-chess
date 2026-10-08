@@ -109,6 +109,18 @@ class ExplainController(private val text: ExplainText) {
         tick() // A position analysed before is explained at once.
     }
 
+    /**
+     * The position before the move when Explain is on and it has no
+     * evaluation of at least [depth]: the board came straight to the move, or
+     * the app was restarted. It is searched first, for a moment, as on the
+     * desktop (Explainer::unjudgedBefore); null otherwise.
+     */
+    fun unjudgedBefore(depth: Int): Position? {
+        val position = before ?: return null
+        if (!enabled || played == null || !position.hasKings) return null
+        return position.takeIf { (evaluations[key(it.fen())]?.depth ?: -1) < depth }
+    }
+
     /** Off: the board moved on, or the user asked. */
     fun stop() {
         enabled = false

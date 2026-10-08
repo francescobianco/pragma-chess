@@ -281,7 +281,9 @@ fixed once, in SMART.
   same chess functions on the app's `Position`). The build copies
   `smart/*.smart` into the APK's assets (`assets/smart/`), the JVM tests
   read the folder (`pragma.smart.dir`). Its `ExplainController` reacts to
-  the live analysis like the desktop's `Explainer`; the analysis carries the
+  the live analysis like the desktop's `Explainer` (and, as there, the
+  position before the move is searched first to depth 16 when it has no
+  evaluation: `unjudgedBefore`, `AppViewModel.explainingBefore`); the analysis carries the
   FEN it is about, and the engine drops an old search's lines until its
   `bestmove`. `SmartTest` runs the desktop's language test and replays
   `smart/tests`: a change to either interpreter must keep both suites green.

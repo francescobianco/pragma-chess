@@ -163,8 +163,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             // An engine prints many lines a second; a few are enough to follow it,
             // and the board stays free for the finger.
             engine.analysis.sample(200).collect {
-                analysis = it
+                // The position before the move, searched for Explain only: the
+                // analysis area stays with the board.
+                if (!explainingBefore) analysis = it
                 explainer.liveAnalysis(it)
+            }
+        }
+        viewModelScope.launch {
+            // The position before the move is judged: on to the board's.
+            engine.finished.collect {
+                if (explainingBefore) {
+                    explainingBefore = false
+                    positionChanged()
+                }
             }
         }
         refreshEngines()
@@ -450,7 +461,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         positionChanged()
     }
 
+    /** Searching the position before the move for Explain (unjudgedBefore). */
+    private var explainingBefore = false
+
     private fun positionChanged() {
+        explainingBefore = false
         if (!engineOn || !foreground) {
             // In the background the process goes: no memory held for nothing.
             if (foreground) engine.stop() else engine.close()
@@ -462,6 +477,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         val binary = engineBinary
+        // Explain judges the move against the position before it: never
+        // searched, it is searched first, for a moment, then the board's.
+        val before = explainer.unjudgedBefore(EXPLAIN_BEFORE_DEPTH)
+        if (binary != null && before != null && before.legalMoves().isNotEmpty()
+            && engine.analyse(binary, before.fen(), EXPLAIN_BEFORE_DEPTH)) {
+            explainingBefore = true
+            return
+        }
         if (binary == null || !engine.analyse(binary, position.fen())) {
             // No engine (or its app was removed): end the process; the
             // analysis area says so and offers to install one.
@@ -555,5 +578,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setPhoneName(name: String) {
         identity.name = name
+    }
+
+    companion object {
+        /** How deep the position before the move is searched for Explain, as on the desktop. */
+        const val EXPLAIN_BEFORE_DEPTH = 16
     }
 }

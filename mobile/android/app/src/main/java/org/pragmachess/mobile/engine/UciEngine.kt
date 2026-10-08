@@ -23,7 +23,7 @@ class UciEngine : AutoCloseable {
     private var input: BufferedWriter? = null
     private var reader: Job? = null
     /** The position being searched, or null. */
-    private class Search(val fen: String, val whiteToMove: Boolean)
+    private class Search(val fen: String, val whiteToMove: Boolean, val limited: Boolean)
     @Volatile private var search: Search? = null
     /**
      * Searches stopped whose "bestmove" has not come yet: until it does, the
@@ -34,6 +34,10 @@ class UciEngine : AutoCloseable {
 
     private val _analysis = MutableStateFlow<Analysis?>(null)
     val analysis: StateFlow<Analysis?> = _analysis
+
+    private val _finished = kotlinx.coroutines.flow.MutableSharedFlow<String>(extraBufferCapacity = 4)
+    /** A search limited by depth ended: its position's FEN. */
+    val finished: kotlinx.coroutines.flow.SharedFlow<String> = _finished
 
     private fun start(executable: File): Boolean {
         if (process?.isAlive == true && executable == binary) return true
@@ -57,7 +61,16 @@ class UciEngine : AutoCloseable {
                     for (line in lines) {
                         if (!isActive) break
                         if (line.startsWith("bestmove")) {
-                            stale.updateAndGet { if (it > 0) it - 1 else 0 }
+                            if (stale.get() > 0) {
+                                stale.updateAndGet { if (it > 0) it - 1 else 0 }
+                            } else {
+                                // The end of the search asked for, not of one stopped.
+                                val current = search
+                                if (current != null && current.limited) {
+                                    search = null
+                                    _finished.tryEmit(current.fen)
+                                }
+                            }
                         } else if (line.startsWith("info ") && stale.get() == 0) {
                             val current = search
                             if (current != null) Analysis.parseInfo(line, current.whiteToMove)?.let {
@@ -87,15 +100,18 @@ class UciEngine : AutoCloseable {
         }
     }
 
-    /** Starts an infinite analysis of [fen] with [executable]; false if it cannot run. */
-    fun analyse(executable: File, fen: String): Boolean {
+    /**
+     * Starts an analysis of [fen] with [executable], infinite or to [depth]
+     * (its end comes in [finished]); false if it cannot run.
+     */
+    fun analyse(executable: File, fen: String, depth: Int? = null): Boolean {
         // A diagram without both kings is no position an engine can search.
         if (org.pragmachess.mobile.chess.Position.fromFen(fen)?.hasKings != true) return false
         if (!start(executable)) return false
         stopSearch()
-        search = Search(fen, fen.split(' ').getOrNull(1) != "b")
+        search = Search(fen, fen.split(' ').getOrNull(1) != "b", depth != null)
         send("position fen $fen")
-        send("go infinite")
+        send(if (depth != null) "go depth $depth" else "go infinite")
         return true
     }
 

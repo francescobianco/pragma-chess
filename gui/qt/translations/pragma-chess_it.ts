@@ -3625,6 +3625,14 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>Ignored on this computer</source>
         <translation>Ignorata su questo computer</translation>
     </message>
+    <message>
+        <source>&amp;Use on This Computer</source>
+        <translation>&amp;Usa su questo computer</translation>
+    </message>
+    <message>
+        <source>Stop ignoring this source on this computer and sync it</source>
+        <translation>Smetti di ignorare questa sorgente su questo computer e sincronizzala</translation>
+    </message>
 </context>
 <context>
     <name>ManageSyncFilesDialog</name>

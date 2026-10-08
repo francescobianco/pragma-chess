@@ -34,4 +34,6 @@ private:
     QPushButton *m_editButton;
     QPushButton *m_signInButton;
     QPushButton *m_removeButton;
+    /// Shown for a source ignored on this computer: takes it back here.
+    QPushButton *m_useHereButton;
 };

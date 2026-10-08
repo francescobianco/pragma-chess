@@ -250,8 +250,6 @@ Fatte solo fuori schermo o nella sessione GNOME di prova (vedi sotto):
 - I pannelli staccabili **non esistono e non devono esistere** (decisione
   dell'utente: layout fisso, niente capricci di riorganizzazione). I dock
   hanno barra del titolo vuota e nessuna `DockWidgetFloatable`.
-- `ManageSourcesDialog`: lo stato "Ignorata su questo computer" si toglie
-  solo modificando la fonte (Modifica… ▸ OK). Manca un comando esplicito.
 - `ChessBaseDatabase` legge annotatori (`.cbc`) e fonti (`.cbs`) ancora no;
   commenti testuali (`.cba`) no.
 

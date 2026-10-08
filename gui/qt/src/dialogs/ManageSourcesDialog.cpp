@@ -40,6 +40,7 @@ ManageSourcesDialog::ManageSourcesDialog(GameDatabase *database, SourceSync *syn
     , m_editButton(new QPushButton(tr("&Edit…")))
     , m_signInButton(new QPushButton(tr("Sign &In Again…")))
     , m_removeButton(new QPushButton(tr("&Remove…")))
+    , m_useHereButton(new QPushButton(tr("&Use on This Computer")))
 {
     setWindowTitle(tr("Sources of “%1”").arg(database->name()));
     resize(760, 360);
@@ -55,7 +56,8 @@ ManageSourcesDialog::ManageSourcesDialog(GameDatabase *database, SourceSync *syn
 
     auto *connectButton = new QPushButton(tr("&Connect Source…"));
     auto *buttons = new QVBoxLayout;
-    for (QPushButton *button : {connectButton, m_syncButton, m_editButton, m_signInButton, m_removeButton})
+    m_useHereButton->setToolTip(tr("Stop ignoring this source on this computer and sync it"));
+    for (QPushButton *button : {connectButton, m_syncButton, m_editButton, m_signInButton, m_useHereButton, m_removeButton})
         buttons->addWidget(button);
     buttons->addStretch();
 
@@ -76,6 +78,13 @@ ManageSourcesDialog::ManageSourcesDialog(GameDatabase *database, SourceSync *syn
     connect(m_editButton, &QPushButton::clicked, this, &ManageSourcesDialog::editSource);
     connect(m_signInButton, &QPushButton::clicked, this, &ManageSourcesDialog::signInAgain);
     connect(m_removeButton, &QPushButton::clicked, this, &ManageSourcesDialog::removeSource);
+    connect(m_useHereButton, &QPushButton::clicked, this, [this] {
+        if (const std::optional<GameSource> source = findSource(m_database, selectedSourceId())) {
+            SourceCredentials::setIgnoredHere(source->uuid, false);
+            m_sync->syncSource(source->id);
+            reload();
+        }
+    });
     connect(m_sync, &SourceSync::sourcesChanged, this, &ManageSourcesDialog::reload);
     connect(m_sync, &SourceSync::gamesImported, this, &ManageSourcesDialog::reload);
     connect(m_sync, &SourceSync::activityChanged, this, &ManageSourcesDialog::reload);
@@ -134,6 +143,7 @@ void ManageSourcesDialog::updateButtons()
     m_syncButton->setEnabled(source.has_value());
     m_editButton->setEnabled(source.has_value());
     m_removeButton->setEnabled(source.has_value());
+    m_useHereButton->setVisible(source && SourceCredentials::isIgnoredHere(source->uuid));
     m_signInButton->setEnabled(kind && (kind->needsSignIn || kind->canSignIn));
     m_signInButton->setToolTip(kind && !kind->needsSignIn && !kind->canSignIn
                                    ? tr("%1 does not need signing in.").arg(kind->name)

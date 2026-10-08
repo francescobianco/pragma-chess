@@ -290,8 +290,10 @@ class ComputerSync(
         for ((lineage, games) in toSend) {
             val ref = mine[lineage] ?: continue
             val properties = PdbDatabase.open(library.file(ref)).use { db ->
+                // The type the file says (games, opening-book, training…), else what it is taken for.
                 (db.properties() - PdbDatabase.PROPERTY_ID) + (PdbDatabase.PROPERTY_TYPE to
-                    if (db.isOpeningBook()) PdbDatabase.TYPE_OPENING_BOOK else PdbDatabase.TYPE_GAMES)
+                    (db.properties()[PdbDatabase.PROPERTY_TYPE]
+                        ?: if (db.isOpeningBook()) PdbDatabase.TYPE_OPENING_BOOK else PdbDatabase.TYPE_GAMES))
             }
             // An empty database is created on the computer too: one put with no games.
             for (batch in games.chunked(PUT_BATCH).ifEmpty { listOf(emptyList()) }) {

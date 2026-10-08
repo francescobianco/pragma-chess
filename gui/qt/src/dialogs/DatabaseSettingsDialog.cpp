@@ -44,12 +44,15 @@ DatabaseSettingsDialog::DatabaseSettingsDialog(const QString &databaseName, cons
     m_type = new QComboBox(this);
     m_type->addItem(tr("Game Collection"), QVariant::fromValue(int(DatabaseType::GameCollection)));
     m_type->addItem(tr("Opening Book"), QVariant::fromValue(int(DatabaseType::OpeningBook)));
+    m_type->addItem(tr("Puzzles and Training"), QVariant::fromValue(int(DatabaseType::Training)));
     m_type->setCurrentIndex(m_type->findData(int(properties.type)));
     form->addRow(tr("Database &type:"), m_type);
 
     auto *typeHelp = new QLabel(tr("An opening book names openings and variations: each game is a line, "
                                    "Event is its name and ECO its code. Only opening books are offered "
-                                   "in Options ▸ Opening Names."),
+                                   "in Options ▸ Opening Names. Puzzles and Training hides the moves in the games "
+                                   "list, and a game opened from it is played in Training Mode by the side "
+                                   "to move."),
                                 this);
     typeHelp->setWordWrap(true);
     typeHelp->setForegroundRole(QPalette::PlaceholderText);

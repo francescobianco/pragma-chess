@@ -327,7 +327,8 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   the board), `/api/line {"moves": "1.e4 …", "fen", "ply"}` (a new game at
   the end of the chapter), `/api/explain`, `/api/analysis`, `/api/flip`,
   `/api/peek` (the Engine panel's eye held) `{"on": bool}`,
-  `/api/database {"path"}` (opens a database file); each answers with the
+  `/api/database {"path"}` (opens a database file), `/api/game {"row"}`
+  (opens the game on that row of the games list); each answers with the
   state.
 - `POST /api/lobby {"lobby": bool, "playNow": row, "room": row, "join": bool,
   "game": row, "play": bool}` opens Game ▸ Enter the Lobby…, does those steps in that
@@ -568,7 +569,7 @@ cargo run -p chessdb-cli -- <args>
   Friends and Opponents, and opening a game where "me" plays turns the board to
   my side (`PlayerRole`, `mySide`, unit-tested). Version 4 added
   `properties` (key/value, `DatabaseProperties`): what the database is
-  (`type`: `games` or `opening-book`) and a description, edited in Database ▸
+  (`type`: `games`, `opening-book` or `training`) and a description, edited in Database ▸
   Database Settings… and stored in the file so they travel with it.
   Version 5 made every database and game universally identifiable, so copies
   on several devices are one corpus (docs/phone-link.md, "One corpus"):
@@ -701,7 +702,8 @@ painted as a menu item, since QMenu draws an item in one font).
   after it in brackets ("My Games (games.pdb)", `DatabaseProperties::label`,
   `givenName`), in Switch Database and over the tree, whose root draws the
   name bold and the file in the normal weight (the tree's delegate, role
-  `kAfterRole`); the root's menu has Database Settings… too.
+  `kAfterRole`; a distributed database not renamed shows its translated
+  name alone, as in Switch Database); the root's menu has Database Settings… too.
 - Which columns of the games list are shown belongs to the database
   (`DatabaseProperties::hiddenColumns`, property `columns.hidden`, by
   `GameListModel::columnKey`): right-click a column title to Hide it or Show
@@ -1176,6 +1178,13 @@ then that name commands (menus show "Name (file.pdb)"); not renamed, a
 distributed database shows its name in the user's language, without the
 file. A file with `name` and no `name.en` was written before the two were
 told apart: its `name` is read as the English one.
+
+The training sets are of type Puzzles and Training (`DatabaseType::Training`,
+`training`; given to copies seeded before once per computer,
+`distributed/<key>/typed`): the games list leaves their Line empty
+(`GameListModel::m_hidesLine`), so the solution is not shown, and `openGame`
+starts a game of such a database in Training Mode, the user playing the side
+to move at the start, from below.
 
 The tree classifies any database's games for training (`DatabaseOutline`,
 `TrainingSets`, pure, unit-tested): **Endgames** — games starting from a

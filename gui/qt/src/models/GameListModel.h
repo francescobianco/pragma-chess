@@ -23,7 +23,8 @@ public:
 
     void setDatabase(const GameDatabase *database);
     /// Reads again who the players are (Who Is This?): the names of "me"
-    /// are shown in bold. Called when a role changes.
+    /// are shown in bold, and the database's type (a training database
+    /// shows no Line). Called when a role or the properties change.
     void refreshRoles();
     /// Call after the header of the game in `row` changed in the database.
     void refreshRow(int row);
@@ -38,5 +39,6 @@ public:
 private:
     const GameDatabase *m_database = nullptr;
     QSet<QString> m_me; // The players who are the user, in bold.
+    bool m_hidesLine = false; // A training database: the Line column stays empty.
     int m_rows = 0;
 };

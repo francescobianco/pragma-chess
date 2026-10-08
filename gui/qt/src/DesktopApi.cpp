@@ -9,6 +9,7 @@
 #include "app/UciEngine.h"
 #include "dialogs/DrawersDialog.h"
 #include "dialogs/LobbyDialog.h"
+#include "models/GameFilterProxyModel.h"
 #include "app/Drawers.h"
 #include "app/PersonalSettings.h"
 #include "widgets/BoardWidget.h"
@@ -426,6 +427,16 @@ void DesktopApi::addRoutes()
         if (!body || !body->value(QStringLiteral("path")).isString())
             return LocalHttpServer::error(400, QStringLiteral("expected {\"path\": \"…/Endgames.pdb\"}"));
         w->openDatabaseFile(body->value(QStringLiteral("path")).toString());
+        return json(state());
+    });
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/game"), [w, state](const Request &request) {
+        // Opens the game on that row of the games list, as a double click.
+        const std::optional<QJsonObject> body = bodyOf(request);
+        const QModelIndex index = body ? w->m_gameListProxy->index(body->value(QStringLiteral("row")).toInt(-1), 0)
+                                       : QModelIndex();
+        if (!index.isValid())
+            return LocalHttpServer::error(400, QStringLiteral("expected {\"row\": a row of the games list}"));
+        w->openGame(index);
         return json(state());
     });
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/peek"), [w, state](const Request &request) {

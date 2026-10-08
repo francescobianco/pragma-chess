@@ -1523,13 +1523,24 @@ void MainWindow::openGame(const QModelIndex &proxyIndex)
         if (inChapter < 0 && keepsBoardGame())
             m_chapters.breakGame();
         // A game from the database is to be studied, not played: training
-        // goes off first, or the engine would answer in it.
+        // goes off first, or the engine would answer in it. A puzzle is the
+        // exception: it is played, by the side to move, against the engine.
+        const bool puzzle = m_database->properties().type == DatabaseType::Training;
         m_trainingModeAction->setChecked(false);
         m_gameView->selectRow(proxyIndex.row());
         m_openGameIndex = source.row();
-        orientBoardForMe(*game);
+        if (!puzzle)
+            orientBoardForMe(*game);
         m_session->setGame(*game);
         chapterChanged();
+        if (puzzle) {
+            // The user solves for the side to move at the start, seen from below.
+            m_trainingSide = m_session->position().sideToMove();
+            m_flipBoardAction->setChecked(m_trainingSide == Side::Black);
+            m_startEngineAction->setChecked(true); // The score stays visible throughout.
+            m_trainingModeAction->setChecked(true);
+            updateTraining();
+        }
     }
 }
 
@@ -2894,6 +2905,7 @@ void MainWindow::updateDistributedDatabases()
         const char *english;
         const char *italian;
         const char *description;
+        DatabaseType type;
         bool createWhenMissing;
         std::function<QList<GameRecord>()> games;
     };
@@ -2904,12 +2916,13 @@ void MainWindow::updateDistributedDatabases()
     };
     const std::vector<Distributed> distributed{
         {"classic", "Classic Games", GameIdentity::kClassicGamesLineage, "Classic Games", "Partite classiche",
-         "Famous games of chess history.", false, [] { return classicGames(); }},
+         "Famous games of chess history.", DatabaseType::GameCollection, false, [] { return classicGames(); }},
         {"endgames", "Endgames", GameIdentity::kEndgamesLineage, "Endgame Training", "Finali per l'allenamento",
-         "Theoretical endgames and endgame puzzles from the lichess.org puzzle database (CC0).", true,
+         "Theoretical endgames and endgame puzzles from the lichess.org puzzle database (CC0).",
+         DatabaseType::Training, true,
          [puzzles] { return TrainingSets::theoryEndgames() + puzzles(":/training/endgames.tsv"); }},
         {"tactics", "Tactics", GameIdentity::kTacticsLineage, "Tactics Training", "Tattica per l'allenamento",
-         "Tactical puzzles by theme from the lichess.org puzzle database (CC0).", true,
+         "Tactical puzzles by theme from the lichess.org puzzle database (CC0).", DatabaseType::Training, true,
          [puzzles] { return puzzles(":/training/tactics.tsv"); }},
     };
     const QDir folder(UserFolders::databasesDir());
@@ -2923,6 +2936,7 @@ void MainWindow::updateDistributedDatabases()
     for (const Distributed &set : distributed) {
         const QString seededKey = QStringLiteral("distributed/%1/seeded").arg(QLatin1String(set.key));
         const QString contentKey = QStringLiteral("distributed/%1/content").arg(QLatin1String(set.key));
+        const QString typedKey = QStringLiteral("distributed/%1/typed").arg(QLatin1String(set.key));
         const QList<GameRecord> games = set.games();
         // What this version distributes, to skip the work when nothing changed.
         QCryptographicHash hash(QCryptographicHash::Sha1);
@@ -2949,14 +2963,20 @@ void MainWindow::updateDistributedDatabases()
             DatabaseProperties properties = database->properties();
             properties.id = set.lineage;
             properties.description = QLatin1String(set.description);
+            properties.type = set.type;
             database->setProperties(properties, nullptr);
             nameShippedDatabase(*database, QLatin1String(set.english), QString::fromUtf8(set.italian));
             settings.setValue(seededKey, true);
+            settings.setValue(typedKey, true);
             settings.setValue(contentKey, content);
             continue;
         }
         settings.setValue(seededKey, true);
-        if (settings.value(contentKey).toString() == content)
+        // Its type was given after it was first distributed (the training
+        // sets became Puzzles and Training): given once, so a type the user
+        // chose afterwards in Database Settings stays.
+        const bool retype = set.type != DatabaseType::GameCollection && !settings.value(typedKey, false).toBool();
+        if (!retype && settings.value(contentKey).toString() == content)
             continue;
         // The open database is updated through itself, any other opened here.
         QString error;
@@ -2970,6 +2990,16 @@ void MainWindow::updateDistributedDatabases()
         }
         if (!database)
             continue;
+        if (retype) {
+            DatabaseProperties properties = database->properties();
+            properties.type = set.type;
+            if (database->setProperties(properties, &error))
+                settings.setValue(typedKey, true);
+            if (database == m_database.get())
+                m_gameListModel->refreshRoles();
+            if (settings.value(contentKey).toString() == content)
+                continue;
+        }
         QSet<QString> present;
         QSet<QString> positions;
         for (qint64 i = 0; i < database->gameCount(); ++i) {
@@ -3193,9 +3223,11 @@ void MainWindow::editDatabaseSettings()
         QMessageBox::warning(this, tr("Database Settings"), tr("Could not save the settings: %1").arg(error));
         return;
     }
-    // A new name shows at once in Switch Database and over the tree.
+    // A new name shows at once in Switch Database and over the tree, a new
+    // type in the games list (a training database hides the moves).
     rebuildDatabasesMenu();
     m_databaseTree->refresh();
+    m_gameListModel->refreshRoles();
     // Only opening books name openings: a database that is no longer one stops doing it.
     if (dialog.properties().type != DatabaseType::OpeningBook && !m_openingNamesPath.isEmpty()
         && QFileInfo(m_openingNamesPath) == QFileInfo(m_database->location()))

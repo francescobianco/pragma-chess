@@ -4389,6 +4389,10 @@ END FUNCTION
         book.type = DatabaseType::OpeningBook;
         book.description = QStringLiteral("Named lines");
         QCOMPARE(DatabaseProperties::fromValues(book.values()), book);
+        DatabaseProperties puzzles;
+        puzzles.type = DatabaseType::Training;
+        QCOMPARE(puzzles.values().value(QStringLiteral("type")), QStringLiteral("training"));
+        QCOMPARE(DatabaseProperties::fromValues(puzzles.values()), puzzles);
 
         // A version 3 file, as databases were before properties, is a game collection.
         QTemporaryDir dir;

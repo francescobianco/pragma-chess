@@ -177,7 +177,7 @@ Dependencies, on Debian/Ubuntu or on macOS with [Homebrew](https://brew.sh)
 and the Xcode Command Line Tools:
 
 ```bash
-make deps    # Linux: sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-svg-dev libqt6sql6-sqlite qt6-tools-dev qt6-l10n-tools libssl-dev inotify-tools
+make deps    # Linux: sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-svg-dev libqt6sql6-sqlite qt6-tools-dev qt6-l10n-tools qt6-translations-l10n libssl-dev inotify-tools
              # macOS: brew install cmake ninja pkgconf qtbase qtsvg qttools yaml-cpp openssl@3 fswatch
 ```
 

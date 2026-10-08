@@ -1,6 +1,7 @@
 #include "GameListModel.h"
 
 #include "app/ChessPosition.h"
+#include "app/DatabaseProperties.h"
 #include "app/GameDatabase.h"
 #include "app/PlayerRole.h"
 
@@ -17,6 +18,8 @@ void GameListModel::setDatabase(const GameDatabase *database)
     m_database = database;
     m_rows = database ? int(database->gameCount()) : 0;
     m_me.clear();
+    // Puzzles and exercises: their moves are the solution, not to be shown.
+    m_hidesLine = m_database && m_database->properties().type == DatabaseType::Training;
     if (m_database) {
         const PlayerRoles roles = m_database->playerRoles();
         for (auto it = roles.cbegin(); it != roles.cend(); ++it) {
@@ -107,7 +110,7 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
     case Site: return game.site;
     case Eco: return game.eco;
     case Moves: return (game.plyCount + 1) / 2;
-    case Line: return figurineLine(game.linePreview);
+    case Line: return m_hidesLine ? QVariant() : figurineLine(game.linePreview);
     default: return {};
     }
 }

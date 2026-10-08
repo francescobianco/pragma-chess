@@ -88,6 +88,7 @@ QString DatabaseProperties::typeKey(DatabaseType type)
 {
     switch (type) {
     case DatabaseType::OpeningBook: return QStringLiteral("opening-book");
+    case DatabaseType::Training: return QStringLiteral("training");
     case DatabaseType::GameCollection: break;
     }
     return QStringLiteral("games");
@@ -95,5 +96,9 @@ QString DatabaseProperties::typeKey(DatabaseType type)
 
 DatabaseType DatabaseProperties::typeFromKey(const QString &key)
 {
-    return key == QLatin1String("opening-book") ? DatabaseType::OpeningBook : DatabaseType::GameCollection;
+    if (key == QLatin1String("opening-book"))
+        return DatabaseType::OpeningBook;
+    if (key == QLatin1String("training"))
+        return DatabaseType::Training;
+    return DatabaseType::GameCollection;
 }

@@ -254,12 +254,15 @@ void DatabaseTreeWidget::refresh()
         }
     }
 
-    // The name given in Database Settings, bold, then the file; or the file alone.
+    // The name given in Database Settings, bold, then the file; or the file
+    // alone. A distributed database not renamed is known by its translated
+    // name alone, as in Switch Database (DatabaseProperties::label).
     const QString fileBaseName = QFileInfo(m_database->location()).completeBaseName();
-    const QString given = m_database->properties().givenName(UiLanguage::effective(), fileBaseName);
+    const DatabaseProperties properties = m_database->properties();
+    const QString given = properties.givenName(UiLanguage::effective(), fileBaseName);
     QTreeWidgetItem *root =
         addItem(nullptr, Node::Database, given.isEmpty() ? m_database->name() : given, QVariant(), liveGames);
-    if (!given.isEmpty())
+    if (!given.isEmpty() && !(properties.isDistributed() && properties.name.isEmpty()))
         root->setData(0, kAfterRole, QStringLiteral("(%1)").arg(QFileInfo(m_database->location()).fileName()));
     root->setIcon(0, SymbolicIcons::icon(QStringLiteral("pragma-database")));
     root->setToolTip(0, m_database->location());

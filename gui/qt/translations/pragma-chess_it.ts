@@ -535,16 +535,20 @@ Il Nero ha catturato: %2</translation>
         <translation>Traduzioni:</translation>
     </message>
     <message>
-        <source>An opening book names openings and variations: each game is a line, Event is its name and ECO its code. Only opening books are offered in Options ▸ Opening Names.</source>
-        <translation>Un libro d&apos;aperture dà il nome ad aperture e varianti: ogni partita è una linea, l&apos;Evento è il suo nome e l&apos;ECO il suo codice. In Opzioni ▸ Nomi delle aperture compaiono solo i libri d&apos;aperture.</translation>
-    </message>
-    <message>
         <source>&amp;Optimize Database</source>
         <translation>&amp;Ottimizza database</translation>
     </message>
     <message>
         <source>Remove for good the games deleted from the trash and compact the file</source>
         <translation>Rimuove definitivamente le partite eliminate dal cestino e compatta il file</translation>
+    </message>
+    <message>
+        <source>Puzzles and Training</source>
+        <translation>Puzzle e allenamento</translation>
+    </message>
+    <message>
+        <source>An opening book names openings and variations: each game is a line, Event is its name and ECO its code. Only opening books are offered in Options ▸ Opening Names. Puzzles and Training hides the moves in the games list, and a game opened from it is played in Training Mode by the side to move.</source>
+        <translation>Un libro d&apos;aperture dà il nome ad aperture e varianti: ogni partita è una linea, l&apos;Evento è il suo nome e l&apos;ECO il suo codice. In Opzioni ▸ Nomi delle aperture compaiono solo i libri d&apos;aperture. Puzzle e allenamento nasconde le mosse nella lista partite, e una partita aperta da lì si gioca in Modalità allenamento dalla parte di chi ha il tratto.</translation>
     </message>
 </context>
 <context>

@@ -8,6 +8,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- A new database type, **Puzzles and Training** (Database Settings): its
+  games list does not show the moves, so the solution stays hidden, and a
+  game opened from it starts in Training Mode, the board turned to the side
+  to move. Endgame Training and Tactics Training are of this type now.
 - A move other than the game's next one, played in the middle of a game,
   asks whether to **insert it as a variation** or to **replace the main line**
   (or the variation) from there.

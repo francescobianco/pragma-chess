@@ -1,6 +1,8 @@
 #include "SmartPrograms.h"
 
+#include <QDateTime>
 #include <QDir>
+#include <QFileInfo>
 #include <QFile>
 #include <QHash>
 #include <QtGlobal>
@@ -25,9 +27,17 @@ QString source(const QString &fileName, QString *error)
 SmartProgram *program(const QString &fileName)
 {
     // Interpreters keep their memory and are not shared between threads.
-    thread_local QHash<QString, std::shared_ptr<SmartProgram>> loaded;
-    if (const auto found = loaded.constFind(fileName); found != loaded.constEnd())
-        return found->get();
+    struct Loaded {
+        std::shared_ptr<SmartProgram> program;
+        QDateTime modified;
+    };
+    thread_local QHash<QString, Loaded> loaded;
+    // Read from disk (PRAGMA_SMART_DIR, tuning): a program saved again is read
+    // again at its next use, so a fix shows without restarting.
+    const QString folder = qEnvironmentVariable("PRAGMA_SMART_DIR");
+    const QDateTime modified = folder.isEmpty() ? QDateTime() : QFileInfo(QDir(folder).filePath(fileName)).lastModified();
+    if (const auto found = loaded.constFind(fileName); found != loaded.constEnd() && found->modified == modified)
+        return found->program.get();
     QString error;
     std::shared_ptr<SmartProgram> smart;
     const QString text = source(fileName, &error);
@@ -41,7 +51,10 @@ SmartProgram *program(const QString &fileName)
     }
     if (!smart)
         qWarning("SMART %s: %s", qPrintable(fileName), qPrintable(error));
-    loaded.insert(fileName, smart); // A program that failed is not tried again.
+    else if (!folder.isEmpty())
+        qInfo("SMART %s read from %s", qPrintable(fileName), qPrintable(folder));
+    // A program that failed is not tried again until its file changes.
+    loaded.insert(fileName, {smart, modified});
     return smart.get();
 }
 

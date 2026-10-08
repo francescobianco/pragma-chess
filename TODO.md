@@ -211,9 +211,6 @@ tre soglie, rifare la taratura sui casi del documento, aggiornare la guida.
 - **Il tutor reattivo.** `TrainingTutor::judge` chiama ancora `Judge` una
   volta, a fine ricerca della risposta del motore. Con `Tick` anche lì
   l'avviso arriverebbe appena la ricerca mostra il crollo.
-- **Ricarica a caldo.** Con `PRAGMA_SMART_DIR` i programmi si rileggono solo
-  al riavvio: rileggerli quando il file cambia (QFileSystemWatcher) renderebbe
-  il tuning sul desktop immediato.
 - **Salvare i tick dall'interfaccia.** Oggi si registrano solo con la
   variabile `PRAGMA_EXPLAIN_RECORD`; un comando (es. nel menu del pannello
   Motore: "Copia i tick di Spiega") porterebbe un caso sbagliato a

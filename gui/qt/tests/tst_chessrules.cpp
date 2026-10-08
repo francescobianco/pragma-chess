@@ -77,6 +77,7 @@
 #include <QJsonDocument>
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QScopeGuard>
 #include <QTemporaryDir>
 #include <QtEndian>
 
@@ -464,6 +465,37 @@ private Q_SLOTS:
             }
         }
         QVERIFY(found);
+    }
+
+    void readsSmartProgramsAgainWhenTheyChange()
+    {
+        // With PRAGMA_SMART_DIR a program saved again is read again at its next use.
+        QTemporaryDir folder;
+        QVERIFY(folder.isValid());
+        const QString path = folder.filePath(QStringLiteral("HOT.smart"));
+        const auto write = [&](const char *text, int secondsAgo) {
+            QFile file(path);
+            QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+            file.write(text);
+            file.flush();
+            file.setFileTime(QDateTime::currentDateTime().addSecs(-secondsAgo), QFileDevice::FileModificationTime);
+        };
+        const QByteArray before = qgetenv("PRAGMA_SMART_DIR");
+        qputenv("PRAGMA_SMART_DIR", folder.path().toUtf8());
+        const auto restore = qScopeGuard([&] {
+            if (before.isEmpty())
+                qunsetenv("PRAGMA_SMART_DIR");
+            else
+                qputenv("PRAGMA_SMART_DIR", before);
+        });
+        write("FUNCTION F()\n    RETURN 1\nEND FUNCTION\n", 60);
+        SmartProgram *first = SmartPrograms::program(QStringLiteral("HOT.smart"));
+        QVERIFY(first);
+        QCOMPARE(first->interpreter.call(QStringLiteral("F"))->number(), 1.0);
+        write("FUNCTION F()\n    RETURN 2\nEND FUNCTION\n", 0);
+        SmartProgram *second = SmartPrograms::program(QStringLiteral("HOT.smart"));
+        QVERIFY(second);
+        QCOMPARE(second->interpreter.call(QStringLiteral("F"))->number(), 2.0);
     }
 
     void readsTheClassicGames()

@@ -261,7 +261,7 @@ fixed once, in SMART.
   chess of `SmartChess` defined (the functions each `.smart` file lists at
   its top: every client provides the same), one per thread. The files are
   built into the core library (`:/smart`); **`PRAGMA_SMART_DIR=<checkout>/smart`
-  reads them from disk**, so a fix is tried without building.
+  reads them from disk**, so a fix is tried without building: a program saved again is read again at its next use (`SmartPrograms::program` compares the file's time), without restarting.
 - Done so far: `TUTOR.smart` judges the moves — `classifyMove` (Explain's
   verdict) and `TrainingTutor::judge` only call its `Classify` and `Judge`
   —, and `EXPLAIN.smart`'s `Explain` is the whole explanation

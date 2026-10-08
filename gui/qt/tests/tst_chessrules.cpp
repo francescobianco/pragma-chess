@@ -467,6 +467,23 @@ private Q_SLOTS:
         QVERIFY(found);
     }
 
+    void countsCapturedPiecesAgainstTheFullSet()
+    {
+        // A rook endgame set up by hand: against the full set, each side misses
+        // seven pawns, the minor pieces, a rook and the queen.
+        const ChessPosition lucena = *ChessPosition::fromFen(QStringLiteral("1K1k4/1P6/8/8/8/8/r7/2R5 w - - 0 1"));
+        const PieceCounts captured = lucena.capturedSince(ChessPosition::startingPosition());
+        QCOMPARE(captured[int(Side::White)][int(PieceType::Pawn)], 7);
+        QCOMPARE(captured[int(Side::White)][int(PieceType::Rook)], 1);
+        QCOMPARE(captured[int(Side::White)][int(PieceType::Queen)], 1);
+        QCOMPARE(captured[int(Side::Black)][int(PieceType::Pawn)], 8);
+        QCOMPARE(captured[int(Side::Black)][int(PieceType::Knight)], 2);
+        // A promoted queen is no captured pawn: two queens, seven pawns, none missing.
+        const ChessPosition promoted =
+            *ChessPosition::fromFen(QStringLiteral("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPQ/RNBQKBNR w KQkq - 0 1"));
+        QCOMPARE(promoted.capturedSince(ChessPosition::startingPosition())[int(Side::White)][int(PieceType::Pawn)], 0);
+    }
+
     void editsVariations()
     {
         // 1.e4 e5 2.Nf3 Nc6 3.Bb5, with (2…d6 3.d4 (3.Bc4) exd4) and (3.Bc4 Bc5).

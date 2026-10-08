@@ -2200,7 +2200,9 @@ void MainWindow::syncBoard()
     } else {
         m_board->setBoard(frame);
     }
-    const PieceCounts captured = m_session->position().capturedSince(m_session->initialPosition());
+    // Against each side's full set, whatever the game started from: a game
+    // from a position set up (an endgame) shows what is missing from it too.
+    const PieceCounts captured = m_session->position().capturedSince(ChessPosition::startingPosition());
     m_capturedPieces->setCaptured(captured);
     m_boardSideColumn->setCaptured(captured);
     m_boardSideColumn->setSideToMove(m_session->position().sideToMove());

@@ -117,7 +117,9 @@ public:
     int material() const;
     static int pieceValue(PieceType type);
     /// Pieces of each side taken off the board between `start` and this
-    /// position. A pawn that promoted is not counted as captured.
+    /// position. A pawn that promoted is not counted as captured. Against
+    /// startingPosition(), what each side misses of its full set (the board's
+    /// captured pieces, for a game from any position).
     PieceCounts capturedSince(const ChessPosition &start) const;
 
     /// SAN moves of a UCI line with move numbers ("12.Nf3 Nc6 13.d4", "12…Nc6").

@@ -1077,9 +1077,9 @@ void MainWindow::createMenus()
         options->addAction(m_connectMobileAction);
     options->addAction(m_syncAction);
     options->addSeparator();
+    options->addAction(tr("&Personal Settings…"), this, &MainWindow::editPersonalSettings);
     options->addAction(tr("&Graphics Settings…"), this, &MainWindow::editGraphicsSettings);
     options->addAction(tr("&Folder Settings…"), this, &MainWindow::editFolderSettings);
-    options->addAction(tr("&Personal Settings…"), this, &MainWindow::editPersonalSettings);
     m_openingNamesMenu = options->addMenu(tr("Switch Opening &Names"));
     m_openingNamesMenu->setToolTip(tr("The database whose games name the openings and variations"));
     connect(m_openingNamesMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildOpeningNamesMenu);

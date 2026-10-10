@@ -31,18 +31,27 @@ VersionInfoVersion={#AppVersion}
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
-; Installs for everybody when run as administrator, else only for the user,
-; and lets the user choose.
+; Installs for the user, without asking: /ALLUSERS on the command line (an
+; administrator, a company) installs for everybody.
 PrivilegesRequired=lowest
-PrivilegesRequiredOverridesAllowed=dialog
+PrivilegesRequiredOverridesAllowed=commandline
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
-LicenseFile=..\..\LICENSE
 SetupIconFile=..\..\gui\qt\data\icons\pragma-chess.ico
 UninstallDisplayIcon={app}\{#AppExe}
 UninstallDisplayName={#AppName}
 WizardStyle=modern
+; Few questions: the language is the system's (asked only when it is none of
+; ours), the folder only on the first install, no license to accept (it is
+; MIT, in the program's folder), no summary to confirm. Welcome, the options,
+; the installation, the end.
+ShowLanguageDialog=auto
+DisableWelcomePage=no
+DisableDirPage=auto
+DisableReadyPage=yes
+WizardSizePercent=110
+; The shoulder of every page, the welcome window's (packaging/assets/make-installer-art.py, [Code]).
 WizardImageFile=wizard-image-100.bmp,wizard-image-150.bmp,wizard-image-200.bmp
 WizardSmallImageFile=wizard-small-100.bmp,wizard-small-150.bmp,wizard-small-200.bmp
 Compression=lzma2/ultra64
@@ -61,7 +70,39 @@ Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "portuguese"; MessagesFile: "compiler:Languages\Portuguese.isl"
 
+[Messages]
+english.WelcomeLabel1=Welcome to Pragma Chess
+english.WelcomeLabel2=Pragma Chess keeps your games in databases and your work in projects, and explains the positions you study.%n%nThis will install it on your computer.
+english.FinishedHeadingLabel=Pragma Chess is ready
+english.FinishedLabel=Pragma Chess is installed on your computer: you find it in the Start menu.
+italian.WelcomeLabel1=Ti diamo il benvenuto in Pragma Chess
+italian.WelcomeLabel2=Pragma Chess conserva le tue partite nei database e il tuo lavoro nei progetti, e ti spiega le posizioni che studi.%n%nOra lo installiamo sul computer.
+italian.FinishedHeadingLabel=Pragma Chess è pronto
+italian.FinishedLabel=Pragma Chess è installato sul computer: lo trovi nel menu Start.
+french.WelcomeLabel1=Bienvenue dans Pragma Chess
+french.WelcomeLabel2=Pragma Chess garde vos parties dans des bases et votre travail dans des projets, et vous explique les positions que vous étudiez.%n%nIl va maintenant être installé sur votre ordinateur.
+french.FinishedHeadingLabel=Pragma Chess est prêt
+french.FinishedLabel=Pragma Chess est installé sur votre ordinateur : vous le trouverez dans le menu Démarrer.
+german.WelcomeLabel1=Willkommen bei Pragma Chess
+german.WelcomeLabel2=Pragma Chess bewahrt Ihre Partien in Datenbanken und Ihre Arbeit in Projekten auf und erklärt Ihnen die Stellungen, die Sie studieren.%n%nEs wird jetzt auf Ihrem Computer installiert.
+german.FinishedHeadingLabel=Pragma Chess ist bereit
+german.FinishedLabel=Pragma Chess ist auf Ihrem Computer installiert: Sie finden es im Startmenü.
+spanish.WelcomeLabel1=Te damos la bienvenida a Pragma Chess
+spanish.WelcomeLabel2=Pragma Chess guarda tus partidas en bases de datos y tu trabajo en proyectos, y te explica las posiciones que estudias.%n%nAhora se instalará en tu equipo.
+spanish.FinishedHeadingLabel=Pragma Chess está listo
+spanish.FinishedLabel=Pragma Chess está instalado en tu equipo: lo encontrarás en el menú Inicio.
+portuguese.WelcomeLabel1=Bem-vindo ao Pragma Chess
+portuguese.WelcomeLabel2=O Pragma Chess guarda as suas partidas em bancos de dados e o seu trabalho em projetos, e explica as posições que você estuda.%n%nAgora ele será instalado no seu computador.
+portuguese.FinishedHeadingLabel=O Pragma Chess está pronto
+portuguese.FinishedLabel=O Pragma Chess está instalado no seu computador: você o encontra no menu Iniciar.
+
 [CustomMessages]
+english.FilesGroup=Files of Pragma Chess:
+italian.FilesGroup=File di Pragma Chess:
+french.FilesGroup=Fichiers de Pragma Chess :
+german.FilesGroup=Dateien von Pragma Chess:
+spanish.FilesGroup=Archivos de Pragma Chess:
+portuguese.FilesGroup=Arquivos do Pragma Chess:
 english.AssociateProjects=Open Pragma Chess &projects (.pch) and databases (.pdb) with {#AppName}
 italian.AssociateProjects=Apri i &progetti (.pch) e i database (.pdb) di Pragma Chess con {#AppName}
 french.AssociateProjects=Ouvrir les &projets (.pch) et les bases (.pdb) Pragma Chess avec {#AppName}
@@ -83,10 +124,12 @@ portuguese.DatabaseFile=Banco de dados do Pragma Chess
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
-Name: "associate"; Description: "{cm:AssociateProjects}"; GroupDescription: "{cm:AssocFileExtension,{#AppName},.pch}"
+Name: "associate"; Description: "{cm:AssociateProjects}"; GroupDescription: "{cm:FilesGroup}"
 
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; The license is not to be accepted (MIT): it stays with the program.
+Source: "..\..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"
@@ -108,3 +151,56 @@ Root: HKA; Subkey: "Software\Classes\Applications\{#AppExe}\SupportedTypes"; Val
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+
+[Code]
+{ The shoulder: the picture on the left of the welcome window of Pragma Chess
+  (the wizard image, packaging/assets/make-installer-art.py), on every page —
+  not only on the first and last, as Inno Setup draws it. The window grows by
+  its width and everything else moves right of it; the first and last pages'
+  own picture goes, their texts taking its place, and so does the small
+  logo of the inner pages' header, a duplicate. }
+var
+  Shoulder: TBitmapImage;
+
+procedure Widen(Control: TControl; Amount: Integer);
+begin
+  Control.Left := Control.Left - Amount;
+  Control.Width := Control.Width + Amount;
+end;
+
+procedure InitializeWizard;
+var
+  Side: Integer;
+  Picture: Integer;
+begin
+  Side := WizardForm.WizardBitmapImage.Width;
+  WizardForm.ClientWidth := WizardForm.ClientWidth + Side;
+  WizardForm.OuterNotebook.Left := WizardForm.OuterNotebook.Left + Side;
+  WizardForm.OuterNotebook.Width := WizardForm.OuterNotebook.Width - Side;
+  WizardForm.Bevel.Left := WizardForm.Bevel.Left + Side;
+  WizardForm.Bevel.Width := WizardForm.Bevel.Width - Side;
+
+  Shoulder := TBitmapImage.Create(WizardForm);
+  Shoulder.Parent := WizardForm;
+  Shoulder.SetBounds(0, 0, Side, WizardForm.ClientHeight);
+  Shoulder.Anchors := [akLeft, akTop, akBottom];
+  Shoulder.Stretch := True;
+  Shoulder.Bitmap := WizardForm.WizardBitmapImage.Bitmap;
+
+  { The first and last pages: the shoulder is their picture now. }
+  Picture := WizardForm.WizardBitmapImage.Width;
+  WizardForm.WizardBitmapImage.Visible := False;
+  WizardForm.WizardBitmapImage2.Visible := False;
+  Widen(WizardForm.WelcomeLabel1, Picture);
+  Widen(WizardForm.WelcomeLabel2, Picture);
+  Widen(WizardForm.FinishedHeadingLabel, Picture);
+  Widen(WizardForm.FinishedLabel, Picture);
+  Widen(WizardForm.RunList, Picture);
+  Widen(WizardForm.YesRadio, Picture);
+  Widen(WizardForm.NoRadio, Picture);
+
+  { The inner pages' header: no small logo beside the shoulder. }
+  WizardForm.WizardSmallBitmapImage.Visible := False;
+  WizardForm.PageNameLabel.Width := WizardForm.PageNameLabel.Width + WizardForm.WizardSmallBitmapImage.Width;
+  WizardForm.PageDescriptionLabel.Width := WizardForm.PageDescriptionLabel.Width + WizardForm.WizardSmallBitmapImage.Width;
+end;

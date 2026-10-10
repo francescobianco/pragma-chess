@@ -19,9 +19,14 @@ the top-level `CMakeLists.txt`), builds in Release, runs the tests
 
 - **Windows** and **macOS** ship their own Qt (`windeployqt`, `macdeployqt`),
   keeping only the SQLite driver. The Windows installer (`windows/pragma-chess.iss`)
-  installs per user or for everyone, adds Start menu and optional desktop
-  shortcuts and can associate `.pch` projects; its `AppId` must never change,
-  or upgrades stop finding the installed copy.
+  asks little — the language is the system's, it installs for the user
+  (`/ALLUSERS` for everyone), the folder only on a first install, no license
+  to accept (`LICENSE.txt` goes with the program), no summary: welcome,
+  folder, options (desktop shortcut, `.pch`/`.pdb` associations), the
+  installation, the end, in its own words in its six languages. Every page
+  carries the welcome window's shoulder (`[Code]`: the window grows by the
+  wizard image and the rest moves right of it). Its `AppId` must never
+  change, or upgrades stop finding the installed copy.
 - **Linux** packages use the distribution's Qt; CPack settings are in
   `linux/Packaging.cmake`, and the files installed are those of
   `cmake --install` (binary, `.desktop`, icons, AppStream metainfo).
@@ -119,4 +124,16 @@ packaging without releasing, run the workflow by hand
 ## Artwork
 
 `assets/make-installer-art.py` draws the disk image background and the
-wizard pictures from the application icon; the results are committed.
+wizard pictures — the shoulder of every page is the welcome window's: the
+study's picture, the rich logo, "Pragma Chess" in the book face and the
+motto, in English, the picture being one for every language —; the results
+are committed.
+
+**Trying the Windows installer on Linux.** Inno Setup runs under Wine: in a
+prefix of its own (`WINEPREFIX=…`), install `innosetup-6.x.exe /VERYSILENT
+/DIR=C:\Inno`, unzip a release's portable zip as the program, and compile
+from `packaging/windows`: `wine 'C:\Inno\ISCC.exe' /DAppVersion=x.y.z
+"/DSourceDir=Z:<unzipped>/Pragma Chess" /DOutputDir=Z:<folder>
+pragma-chess.iss`. Run the setup with `LANG=it_IT.UTF-8 wine …` in a fresh
+prefix to see a first install as an Italian user does (Wine's fonts are not
+Windows', so a last look on Windows is still worth it).

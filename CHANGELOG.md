@@ -118,6 +118,13 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- The **Windows installer** asks less and looks like Pragma Chess: the
+  language is taken from Windows, it installs for you without asking (an
+  administrator can use `/ALLUSERS`), there is no license to accept and no
+  summary to confirm; every page carries the welcome window's picture with
+  the logo, the name and the motto, and the welcome and last pages speak in
+  our words. The option to open projects and databases with Pragma Chess is
+  named right.
 - A project in one language **declares** its language in Project
   Information: its texts are written in it whatever the interface's, and
   declaring another relabels them; a multilingual project chooses there the

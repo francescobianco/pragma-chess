@@ -173,6 +173,7 @@ procedure InitializeWizard;
 var
   Side: Integer;
   Margin: Integer;
+  Lower: Integer;
 begin
   Side := WizardForm.WizardBitmapImage.Width;
   WizardForm.ClientWidth := WizardForm.ClientWidth + Side;
@@ -212,4 +213,18 @@ begin
   SetLeft(WizardForm.RunList, Margin);
   SetLeft(WizardForm.YesRadio, Margin);
   SetLeft(WizardForm.NoRadio, Margin);
+
+  { And one top: every page's title where the welcome's is — the inner pages'
+    header grows by what its title moves down, its contents with it. }
+  Lower := WizardForm.WelcomeLabel1.Top - WizardForm.PageNameLabel.Top;
+  if Lower > 0 then
+  begin
+    WizardForm.PageNameLabel.Top := WizardForm.PageNameLabel.Top + Lower;
+    WizardForm.PageDescriptionLabel.Top := WizardForm.PageDescriptionLabel.Top + Lower;
+    WizardForm.MainPanel.Height := WizardForm.MainPanel.Height + Lower;
+    WizardForm.Bevel1.Top := WizardForm.Bevel1.Top + Lower;
+    WizardForm.InnerNotebook.Top := WizardForm.InnerNotebook.Top + Lower;
+    WizardForm.InnerNotebook.Height := WizardForm.InnerNotebook.Height - Lower;
+  end;
+  WizardForm.FinishedHeadingLabel.Top := WizardForm.WelcomeLabel1.Top;
 end;

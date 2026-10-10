@@ -17,12 +17,22 @@ DATA="${XDG_DATA_HOME:-$HOME/.local/share}"
 ENTRY="$DATA/applications/$APP_ID.desktop"
 MARKER="X-Pragma-Development=true"
 
-if [[ -f "$ENTRY" ]] && ! grep -q "^$MARKER$" "$ENTRY"; then
-    exit 0 # Installed for real.
+mkdir -p "$DATA/applications" "$DATA/icons"
+# The icons, and the theme's cache when they changed: GNOME reads the cache.
+if ! diff -rq "$ROOT/gui/qt/data/icons/hicolor" "$DATA/icons/hicolor" 2>/dev/null | grep -q "$APP_ID"; then
+    icons_changed=false
+else
+    icons_changed=true
+fi
+cp -r "$ROOT/gui/qt/data/icons/hicolor" "$DATA/icons/"
+if $icons_changed; then
+    gtk-update-icon-cache -q -t "$DATA/icons/hicolor" 2>/dev/null || true
+    echo "Updated the development build's icons"
 fi
 
-mkdir -p "$DATA/applications" "$DATA/icons"
-cp -r "$ROOT/gui/qt/data/icons/hicolor" "$DATA/icons/"
+if [[ -f "$ENTRY" ]] && ! grep -q "^$MARKER$" "$ENTRY"; then
+    exit 0 # Installed for real: its entry stays, the icons follow the sources.
+fi
 
 APP="$ROOT/$BUILD_DIR/gui/qt/pragma-chess"
 sed -e "s|^Exec=.*|Exec=\"$APP\" %F|" "$ROOT/gui/qt/data/$APP_ID.desktop" > "$ENTRY.tmp"

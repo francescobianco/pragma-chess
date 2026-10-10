@@ -6,7 +6,8 @@
 The source (default gui/qt/data/icons/pragma-chess.png) should be square with
 a transparent background. Writes, next to it:
 
-- hicolor/<size>x<size>/apps/<app id>.png  Linux icon theme (installed by CMake)
+- hicolor/<size>x<size>/apps/<app id>.png  Linux icon theme (installed by CMake):
+                                            the rich logo from 48 pixels up
 - pragma-chess.ico                          Windows executable icon
 - pragma-chess.icns                         macOS bundle icon
 
@@ -22,6 +23,7 @@ from PIL import Image
 APP_ID = "io.github.francescobianco.PragmaChess"
 ICONS = Path(__file__).resolve().parent.parent / "gui" / "qt" / "data" / "icons"
 LINUX_SIZES = [16, 22, 24, 32, 48, 64, 128, 256]
+RICH_FROM = 48
 WINDOWS_SIZES = [16, 20, 24, 32, 40, 48, 64, 128, 256]
 
 
@@ -31,10 +33,15 @@ def main():
     if image.width != image.height:
         sys.exit(f"{source} is not square ({image.width}x{image.height})")
 
+    # The desktop's icon (GNOME's dock, its grid, Alt+Tab) is the rich logo —
+    # pieces on the board (make-rich-logo.py) — where it reads: from
+    # RICH_FROM pixels up; smaller, a pawn would be a dot, and the plain
+    # board is drawn.
+    rich = Image.open(ICONS / "pragma-chess-rich.png").convert("RGBA")
     for size in LINUX_SIZES:
         target = ICONS / "hicolor" / f"{size}x{size}" / "apps" / f"{APP_ID}.png"
         target.parent.mkdir(parents=True, exist_ok=True)
-        image.resize((size, size), Image.LANCZOS).save(target, optimize=True)
+        (rich if size >= RICH_FROM else image).resize((size, size), Image.LANCZOS).save(target, optimize=True)
 
     image.save(ICONS / "pragma-chess.ico", sizes=[(s, s) for s in WINDOWS_SIZES])
     image.save(ICONS / "pragma-chess.icns")

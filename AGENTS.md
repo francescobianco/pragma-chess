@@ -410,8 +410,9 @@ CC0, PNG so no image plugin is needed) with the logo — the rich one,
 (0N00/000P/0N00/0R00: knight, pawn, knight, rook), each centred on its
 whole square (the grid commands, under the frame too) and the negative of
 what lies under it — white on dark squares and on the frame, black on
-light ones —, for where the logo is large; the icons, down to 16 pixels, keep the plain
-board — and the name in the book face; on the right what Pragma Chess does, then the way in: the
+light ones —, for where the logo is large, and the desktop's icon on Linux from 48 pixels up
+(`scripts/make-icons.py`: GNOME's dock, grid, Alt+Tab; smaller ones and the
+Windows and macOS icons keep the plain board) — and the name in the book face; on the right what Pragma Chess does, then the way in: the
 projects of the Projects folder (by their name in the user's language) and
 the databases of the Databases folder (as Switch Database names them), read
 from disk and followed with a `QFileSystemWatcher`, and New Project. A

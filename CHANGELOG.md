@@ -118,6 +118,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- On Linux the application's icon is the rich logo, the pieces on the
+  board, wherever it is shown large enough to read (GNOME's dock, the
+  applications grid, Alt+Tab).
 - The **Windows installer** asks less and looks like Pragma Chess: the
   language is taken from Windows, it installs for you without asking (an
   administrator can use `/ALLUSERS`), there is no license to accept and no

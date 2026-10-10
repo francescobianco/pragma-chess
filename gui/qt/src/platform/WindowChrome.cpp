@@ -469,11 +469,23 @@ void WindowChrome::paint()
     const QString shown = m_window->windowHandle() ? m_window->windowHandle()->title() : m_window->windowTitle();
     painter.drawText(caption, Qt::AlignCenter, painter.fontMetrics().elidedText(shown, Qt::ElideRight, caption.width()));
     if (m_mainWindow) {
-        // The application's logo in the left corner, where desktops put the window's icon.
-        const QIcon icon = m_window->windowIcon().isNull() ? QApplication::windowIcon() : m_window->windowIcon();
+        // The application's logo in the left corner, where desktops put the
+        // window's icon: the rich one, its pieces on the board, scaled down
+        // smoothly (the icon's own small sizes are the plain board).
         const int inset = (kTitleHeight - kButtonSize) / 2;
         const QRect logo(title.left() + inset, title.top() + inset, kButtonSize, kButtonSize);
-        icon.paint(&painter, logo, Qt::AlignCenter, active ? QIcon::Normal : QIcon::Disabled);
+        static const QPixmap rich(QStringLiteral(":/icons/pragma-chess-rich.png"));
+        if (!rich.isNull()) {
+            painter.save();
+            painter.setRenderHint(QPainter::SmoothPixmapTransform);
+            if (!active)
+                painter.setOpacity(0.55);
+            painter.drawPixmap(QRectF(logo), rich, QRectF(rich.rect()));
+            painter.restore();
+        } else {
+            const QIcon icon = m_window->windowIcon().isNull() ? QApplication::windowIcon() : m_window->windowIcon();
+            icon.paint(&painter, logo, Qt::AlignCenter, active ? QIcon::Normal : QIcon::Disabled);
+        }
     }
 
     for (const Button button : {Button::Minimize, Button::Maximize, Button::Close}) {

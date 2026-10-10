@@ -5,7 +5,6 @@
 #include "platform/SymbolicIcons.h"
 
 #include <QAction>
-#include <QFormLayout>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -203,29 +202,26 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     separator->setEnabled(false);
     layout->addWidget(separator);
 
-    auto *context = new QFormLayout;
+    // One row: the opening on the left, the book on the right.
+    auto *context = new QHBoxLayout;
     context->setContentsMargins(0, 0, 0, 0);
-    context->setLabelAlignment(Qt::AlignLeft | Qt::AlignTop);
-    context->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-    const auto addRow = [context](const QString &title, QWidget *field) {
-        auto *label = new QLabel(title);
+    const auto title = [](const QString &text) {
+        auto *label = new QLabel(text);
         label->setEnabled(false);
-        context->addRow(label, field);
+        return label;
     };
     QFont ecoFont = m_eco->font();
     ecoFont.setBold(true);
     m_eco->setFont(ecoFont);
     m_opening->setWordWrap(true);
     m_opening->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    auto *opening = new QHBoxLayout;
-    opening->setContentsMargins(0, 0, 0, 0);
-    opening->addWidget(m_eco, 0, Qt::AlignTop);
-    opening->addWidget(m_opening, 1);
-    auto *openingField = new QWidget;
-    openingField->setLayout(opening);
-    addRow(tr("Opening"), openingField);
     m_book->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    addRow(tr("Book"), m_book);
+    context->addWidget(title(tr("Opening")), 0, Qt::AlignTop);
+    context->addWidget(m_eco, 0, Qt::AlignTop);
+    context->addWidget(m_opening, 1, Qt::AlignTop);
+    context->addSpacing(12);
+    context->addWidget(title(tr("Book")), 0, Qt::AlignTop);
+    context->addWidget(m_book, 0, Qt::AlignTop);
     layout->addLayout(context);
 
     setEvaluation(std::nullopt);

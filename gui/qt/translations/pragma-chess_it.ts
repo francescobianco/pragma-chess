@@ -2082,7 +2082,7 @@ Il Nero ha catturato: %2</translation>
     </message>
     <message>
         <source>Classic Games</source>
-        <translation>Partite classiche</translation>
+        <translation>Partite storiche</translation>
     </message>
     <message>
         <source>Could not create %1: %2</source>

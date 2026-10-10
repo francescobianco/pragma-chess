@@ -50,7 +50,7 @@ struct DatabaseProperties {
     QString givenName(const QString &languageCode, const QString &fileBaseName) const;
     /// How the menus name the database file `path`: "My Games (games.pdb)"
     /// when the user named it; a distributed database not renamed, by its
-    /// name in the language alone ("Finali per l'allenamento"); else the
+    /// name in the language alone ("Allenati sui finali"); else the
     /// file's base name.
     QString label(const QString &languageCode, const QString &path) const;
 

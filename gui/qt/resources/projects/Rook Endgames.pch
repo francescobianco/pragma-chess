@@ -2,7 +2,7 @@
 pragma-chess: 3
 name:
   en: Rook Endgames
-  it: I finali di torre
+  it: Finali di torre
 multilingual: true
 read-only: true
 database:
@@ -27,7 +27,7 @@ chapters:
                 en: |
                   Rook Endgames
                 it: |
-                  I finali di torre
+                  Finali di torre
             - ply: 0
               kind: subtitle
               text:

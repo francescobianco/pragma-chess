@@ -545,7 +545,8 @@ qt_add_resources(pragma-chess training PREFIX /training BASE resources/training
     FILES resources/training/endgames.tsv resources/training/tactics.tsv)
 # The projects we distribute, seeded into the Projects folder (MainWindow::seedDistributedProjects).
 file(GLOB DISTRIBUTED_PROJECTS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/projects/*.pch)
-qt_add_resources(pragma-chess projects PREFIX /projects BASE resources/projects FILES ${DISTRIBUTED_PROJECTS})
+qt_add_resources(pragma-chess projects PREFIX /projects BASE resources/projects
+    FILES ${DISTRIBUTED_PROJECTS} resources/projects/former-versions.txt)
 qt_add_resources(pragma-chess help PREFIX /help BASE resources/help
     FILES resources/help/guide_en.md resources/help/guide_it.md)
 # Logos of the clubs that support Pragma Chess, shown in About.

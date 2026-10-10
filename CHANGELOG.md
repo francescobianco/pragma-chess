@@ -85,6 +85,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- In Italian the databases we distribute are called **Partite storiche**,
+  **Allenati sui finali** and **Allenati sulla tattica**, and the project
+  **Finali di torre**: copies already installed take the new names.
+- The welcome window lists projects and databases in alphabetical order.
 - Variations in the move list start where the moves above them start.
 - The evaluation bar has a hairline edge, the board's own, so White's side
   stands out on a light window.

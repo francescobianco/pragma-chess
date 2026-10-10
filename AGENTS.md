@@ -899,7 +899,11 @@ a chapter always has a game. In other tools this is a study or a chess book.
   copied once into the Projects folder at start
   (`MainWindow::seedDistributedProjects`, `distributed/project/<name>/seeded`:
   one the user deleted is not brought back). They name no database: a
-  project without one keeps the database open (`applyProject`).
+  project without one keeps the database open (`applyProject`). A copy equal
+  to a version distributed before (its SHA-256 in
+  `resources/projects/former-versions.txt`) was never changed and takes the
+  new one: **before changing a distributed project, add the hash of the file
+  as it is there**.
 - In the `.pch` (format 3; 2 had the texts as plain strings, read in the
   interface's language) `chapters` holds `current` and the `list`:
   each chapter its `title` (by language, `{en: …, it: …}`, as `name` and a paragraph's `text`), `game`, `ply`, `path` (the variation the board is in, GameSession::path, written only off the main line: the project opens again on a move inside a variation) and `games`, each game its uid
@@ -1254,7 +1258,8 @@ has moved, the solution as the moves, the themes in the `Themes` tag.
 **Every database we distribute is named in every language**
 (`name.<code>`, English included, `nameShippedDatabase`; Classic Games and
 the opening names too), with a fixed lineage (`GameIdentity`); the file keeps
-one name on every device. The translated names are what makes a database
+one name on every device. The translated names are ours, not the user's (`name`): a version that
+renames one renames the copies (`shippedNamesDiffer`). The translated names are what makes a database
 distributed (`DatabaseProperties::isDistributed`); `name` is a separate
 carrier, the user's: any database may be renamed in Database Settings, and
 then that name commands (menus show "Name (file.pdb)"); not renamed, a

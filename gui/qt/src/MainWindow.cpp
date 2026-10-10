@@ -2464,11 +2464,18 @@ namespace {
 
 /// A database we ship is named in every language we have (DatabaseProperties'
 /// name and name.<code>), not by its file: the file keeps one name on every
-/// device, the interface shows the user's language. A name already given stays.
+/// device, the interface shows the user's language. The translated names are
+/// ours (the user's is `name`): a version that renames one renames the copies.
+bool shippedNamesDiffer(const DatabaseProperties &properties, const QString &english, const QString &italian)
+{
+    return properties.localizedNames.value(QStringLiteral("en")) != english
+        || properties.localizedNames.value(QStringLiteral("it")) != italian;
+}
+
 void nameShippedDatabase(GameDatabase &database, const QString &english, const QString &italian)
 {
     DatabaseProperties properties = database.properties();
-    if (properties.isDistributed())
+    if (!shippedNamesDiffer(properties, english, italian))
         return;
     properties.localizedNames.insert(QStringLiteral("en"), english);
     properties.localizedNames.insert(QStringLiteral("it"), italian);
@@ -2515,7 +2522,7 @@ void MainWindow::openInitialDatabase(const QString &preferredPath)
         DatabaseProperties properties = database->properties();
         properties.id = GameIdentity::kClassicGamesLineage;
         database->setProperties(properties, nullptr);
-        nameShippedDatabase(*database, QStringLiteral("Classic Games"), QStringLiteral("Partite classiche"));
+        nameShippedDatabase(*database, QStringLiteral("Classic Games"), QStringLiteral("Partite storiche"));
         setDatabase(std::move(database));
         return;
     }
@@ -2996,18 +3003,26 @@ void MainWindow::seedDistributedProjects()
     // language they are written in —, to open from File ▸ Open Project.
     QSettings settings;
     const QDir resources(QStringLiteral(":/projects"));
+    // A copy equal to a version we distributed before was never changed: it
+    // takes the version distributed now (a changed copy is the user's).
+    QSet<QByteArray> former;
+    if (QFile list(resources.filePath(QStringLiteral("former-versions.txt"))); list.open(QIODevice::ReadOnly)) {
+        for (const QByteArray &line : list.readAll().split('\n')) {
+            if (!line.startsWith('#') && line.size() >= 64)
+                former.insert(line.left(64));
+        }
+    }
     for (const QString &file : resources.entryList({QStringLiteral("*.pch")}, QDir::Files)) {
         const QString key = QStringLiteral("distributed/project/%1/seeded").arg(QFileInfo(file).completeBaseName());
         const QString path = QDir(UserFolders::projectsDir()).filePath(file);
-        // A copy seeded before the projects we distribute came read-only, and
-        // never changed since, gets the flag (a changed copy is the user's).
         QFile shipped(resources.filePath(file));
         QFile copy(path);
         if (settings.value(key, false).toBool() && shipped.open(QIODevice::ReadOnly) && copy.open(QIODevice::ReadOnly)) {
             const QByteArray current = shipped.readAll();
             const QByteArray seeded = copy.readAll();
             copy.close();
-            if (seeded != current && QByteArray(current).replace("read-only: true\n", "") == seeded && copy.open(QIODevice::WriteOnly | QIODevice::Truncate))
+            if (seeded != current && former.contains(QCryptographicHash::hash(seeded, QCryptographicHash::Sha256).toHex())
+                && copy.open(QIODevice::WriteOnly | QIODevice::Truncate))
                 copy.write(current);
         }
         if (settings.value(key, false).toBool() || !UserFolders::ensureProjectsDir())
@@ -3048,13 +3063,13 @@ void MainWindow::updateDistributedDatabases()
                                               : QList<GameRecord>();
     };
     const std::vector<Distributed> distributed{
-        {"classic", "Classic Games", GameIdentity::kClassicGamesLineage, "Classic Games", "Partite classiche",
+        {"classic", "Classic Games", GameIdentity::kClassicGamesLineage, "Classic Games", "Partite storiche",
          "Famous games of chess history.", DatabaseType::GameCollection, false, [] { return classicGames(); }},
-        {"endgames", "Endgames", GameIdentity::kEndgamesLineage, "Endgame Training", "Finali per l'allenamento",
+        {"endgames", "Endgames", GameIdentity::kEndgamesLineage, "Endgame Training", "Allenati sui finali",
          "Theoretical endgames and endgame puzzles from the lichess.org puzzle database (CC0).",
          DatabaseType::Training, true,
          [puzzles] { return TrainingSets::theoryEndgames() + puzzles(":/training/endgames.tsv"); }},
-        {"tactics", "Tactics", GameIdentity::kTacticsLineage, "Tactics Training", "Tattica per l'allenamento",
+        {"tactics", "Tactics", GameIdentity::kTacticsLineage, "Tactics Training", "Allenati sulla tattica",
          "Tactical puzzles by theme from the lichess.org puzzle database (CC0).", DatabaseType::Training, true,
          [puzzles] { return puzzles(":/training/tactics.tsv"); }},
     };
@@ -3109,7 +3124,10 @@ void MainWindow::updateDistributedDatabases()
         // sets became Puzzles and Training): given once, so a type the user
         // chose afterwards in Database Settings stays.
         const bool retype = set.type != DatabaseType::GameCollection && !settings.value(typedKey, false).toBool();
-        if (!retype && settings.value(contentKey).toString() == content)
+        // A version that renames it (in a language) renames the copy.
+        const bool rename = shippedNamesDiffer(SqliteGameDatabase::readProperties(path), QLatin1String(set.english),
+                                               QString::fromUtf8(set.italian));
+        if (!retype && !rename && settings.value(contentKey).toString() == content)
             continue;
         // The open database is updated through itself, any other opened here.
         QString error;
@@ -3130,8 +3148,14 @@ void MainWindow::updateDistributedDatabases()
                 settings.setValue(typedKey, true);
             if (database == m_database.get())
                 m_gameListModel->refreshRoles();
-            if (settings.value(contentKey).toString() == content)
-                continue;
+        }
+        if (settings.value(contentKey).toString() == content) {
+            nameShippedDatabase(*database, QLatin1String(set.english), QString::fromUtf8(set.italian));
+            if (rename && database == m_database.get()) {
+                rebuildDatabasesMenu();
+                m_databaseTree->refresh();
+            }
+            continue;
         }
         QSet<QString> present;
         QSet<QString> positions;
@@ -3176,9 +3200,9 @@ void MainWindow::adoptShippedLineages()
         if (!SqliteGameDatabase::readProperties(path).isDistributed()) {
             QString error;
             if (m_database && QFileInfo(m_database->location()) == QFileInfo(path))
-                nameShippedDatabase(*m_database, QStringLiteral("Classic Games"), QStringLiteral("Partite classiche"));
+                nameShippedDatabase(*m_database, QStringLiteral("Classic Games"), QStringLiteral("Partite storiche"));
             else if (const std::unique_ptr<SqliteGameDatabase> classic = SqliteGameDatabase::open(path, &error))
-                nameShippedDatabase(*classic, QStringLiteral("Classic Games"), QStringLiteral("Partite classiche"));
+                nameShippedDatabase(*classic, QStringLiteral("Classic Games"), QStringLiteral("Partite storiche"));
         }
     }
 }

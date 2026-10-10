@@ -10,6 +10,7 @@
 
 #include <QApplication>
 #include <QCheckBox>
+#include <QCollator>
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QFileSystemWatcher>
@@ -17,11 +18,14 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLinearGradient>
+#include <QLocale>
 #include <QListWidget>
 #include <QPainter>
 #include <QPushButton>
 #include <QSettings>
 #include <QVBoxLayout>
+
+#include <algorithm>
 
 namespace {
 
@@ -265,46 +269,62 @@ bool WelcomeDialog::showsAtStartup()
     return QSettings().value(kShowKey, true).toBool();
 }
 
+namespace {
+
+/// A file to open, by the name the list shows.
+struct Entry {
+    QString label;
+    QString path;
+};
+
+/// Fills a list in alphabetical order of what it shows, as the user's
+/// language sorts (accents and case aside), not by the files' names.
+void fill(QListWidget *list, QList<Entry> entries, const QIcon &icon, const QString &empty)
+{
+    list->clear();
+    QCollator collator{QLocale(UiLanguage::effective())};
+    collator.setCaseSensitivity(Qt::CaseInsensitive);
+    collator.setNumericMode(true);
+    std::sort(entries.begin(), entries.end(),
+              [&collator](const Entry &a, const Entry &b) { return collator.compare(a.label, b.label) < 0; });
+    for (const Entry &entry : entries) {
+        auto *item = new QListWidgetItem(icon, entry.label, list);
+        item->setData(Qt::UserRole, entry.path);
+        item->setToolTip(QDir::toNativeSeparators(entry.path));
+    }
+    if (entries.isEmpty())
+        (new QListWidgetItem(empty, list))->setFlags(Qt::NoItemFlags);
+}
+
+} // namespace
+
 void WelcomeDialog::fillProjects()
 {
-    m_projects->clear();
     const QString language = LocalizedText::supported(UiLanguage::effective());
+    QList<Entry> entries;
     const QFileInfoList files = QDir(UserFolders::projectsDir())
-                                    .entryInfoList({QStringLiteral("*.") + QLatin1String(Project::fileSuffix)},
-                                                   QDir::Files, QDir::Name | QDir::IgnoreCase);
+                                    .entryInfoList({QStringLiteral("*.") + QLatin1String(Project::fileSuffix)}, QDir::Files);
     for (const QFileInfo &file : files) {
         // By the project's name in the user's language, else the file's.
         const std::optional<Project> project = Project::loadFromFile(file.absoluteFilePath(), nullptr, language);
         const QString name = project ? project->name.text(language) : QString();
-        auto *item = new QListWidgetItem(SymbolicIcons::icon(QStringLiteral("pragma-project")),
-                                         name.isEmpty() ? file.completeBaseName() : name, m_projects);
-        item->setData(Qt::UserRole, file.absoluteFilePath());
-        item->setToolTip(QDir::toNativeSeparators(file.absoluteFilePath()));
+        entries.append({name.isEmpty() ? file.completeBaseName() : name, file.absoluteFilePath()});
     }
-    if (files.isEmpty()) {
-        auto *item = new QListWidgetItem(tr("No projects yet"), m_projects);
-        item->setFlags(Qt::NoItemFlags);
-    }
+    fill(m_projects, entries, SymbolicIcons::icon(QStringLiteral("pragma-project")), tr("No projects yet"));
 }
 
 void WelcomeDialog::fillDatabases()
 {
-    m_databases->clear();
+    QList<Entry> entries;
     const QFileInfoList files = QDir(UserFolders::databasesDir())
-                                    .entryInfoList({QStringLiteral("*.") + QLatin1String(UserFolders::databaseSuffix)},
-                                                   QDir::Files, QDir::Name | QDir::IgnoreCase);
+                                    .entryInfoList({QStringLiteral("*.") + QLatin1String(UserFolders::databaseSuffix)}, QDir::Files);
     for (const QFileInfo &file : files) {
         // As Switch Database names it: the name given in Database Settings.
-        const QString label = SqliteGameDatabase::readProperties(file.absoluteFilePath())
-                                  .label(UiLanguage::effective(), file.absoluteFilePath());
-        auto *item = new QListWidgetItem(SymbolicIcons::icon(QStringLiteral("pragma-database")), label, m_databases);
-        item->setData(Qt::UserRole, file.absoluteFilePath());
-        item->setToolTip(QDir::toNativeSeparators(file.absoluteFilePath()));
+        entries.append({SqliteGameDatabase::readProperties(file.absoluteFilePath())
+                            .label(UiLanguage::effective(), file.absoluteFilePath()),
+                        file.absoluteFilePath()});
     }
-    if (files.isEmpty()) {
-        auto *item = new QListWidgetItem(tr("No databases yet"), m_databases);
-        item->setFlags(Qt::NoItemFlags);
-    }
+    fill(m_databases, entries, SymbolicIcons::icon(QStringLiteral("pragma-database")), tr("No databases yet"));
 }
 
 void WelcomeDialog::choose(QListWidgetItem *item, bool project)

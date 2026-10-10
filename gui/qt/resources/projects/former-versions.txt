@@ -1,0 +1,7 @@
+# SHA-256 of every .pch we distributed before, as it was shipped (and as
+# seeded copies were given the read-only flag later): a copy in the user's
+# Projects folder equal to one of them was never changed, and is replaced by
+# the version distributed now (MainWindow::seedDistributedProjects). Before
+# changing a project here, add the hash of the file as it is: sha256sum.
+f70a0a4e436eef96a5efec0c820e16924bdc25d963cd2b4f588895714765ab12  Rook Endgames.pch, read-only
+216301e650469fa87a1cd355094f2a64b84c30a8d290b39e50659ed23f162f79  Rook Endgames.pch, before the read-only flag

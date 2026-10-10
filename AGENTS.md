@@ -346,8 +346,9 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   copies it); `GET /api/screenshot` the window as a PNG, taken
   from inside (`QWidget::grab`: no compositor permission needed — GNOME
   refuses screenshots to other programs).
-- `POST /api/clocks {"white": ms, "black": ms, "running": "white"|"black"}`
-  shows the online clocks without a game (`{"hide": true}` hides them) and
+- `POST /api/clocks {"white": ms, "black": ms, "running": "white"|"black",
+  "draw": "mine"|"theirs"}` shows the online clocks and the buttons under
+  them without a game (`{"hide": true}` hides them) and
   answers with the Engine panel's picture.
 - `POST /api/convert {"pgn", "pdb"}` starts Tools ▸ Convert ▸ PGN to
   Pragma Database (the window opens) and `GET /api/convert` says how far
@@ -1649,7 +1650,11 @@ a platform; lichess.org for now, through its Board API, more to come.
   (no font), laid out from the left — the user wanted digital, not dials,
   not centred, no names —; the colour at the board's top first, so
   turning the board swaps them (`setClocksFlipped`); running from the second move, ticking on their own between the
-  platform's updates. New Online Game…, New Game and New Training… stay enabled while it is on (New Game first asks, in `NewGameChoiceDialog`: a
+  platform's updates. Under them Offer Draw and Resign
+  (`EnginePanel::setOnlineActions`; the draw button reads Accept Draw on
+  the opponent's offer and Draw Offered, greyed, on the user's, from the
+  stream's `wdraw`/`bdraw`; both are lichess's `draw/yes`,
+  `LichessBoardClient::offerDraw`; Resign asks first). New Online Game…, New Game and New Training… stay enabled while it is on (New Game first asks, in `NewGameChoiceDialog`: a
   new online game, as the toolbar's New Online Game, or one to analyse; "Remember
   for this session" keeps the choice in `m_rememberedNewGame`, never saved): they go through
   `leaveOnlineThen`, which asks to Keep Playing or Resign the game in

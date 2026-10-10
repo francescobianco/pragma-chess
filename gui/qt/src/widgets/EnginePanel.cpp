@@ -77,6 +77,31 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     m_clocks->hide();
     layout->addWidget(m_clocks);
 
+    // Under the clocks, as on a tournament table: draw and resign.
+    m_onlineActions = new QWidget(this);
+    auto *actions = new QHBoxLayout(m_onlineActions);
+    actions->setContentsMargins(0, 0, 0, 0);
+    m_draw = new QPushButton(tr("Offer Draw"), m_onlineActions);
+    m_resign = new QPushButton(tr("Resign"), m_onlineActions);
+    m_draw->setFocusPolicy(Qt::NoFocus);
+    m_resign->setFocusPolicy(Qt::NoFocus);
+    // One width for both, whichever text the draw button shows.
+    int actionWidth = m_resign->sizeHint().width();
+    for (const QString &text : {tr("Offer Draw"), tr("Accept Draw"), tr("Draw Offered")}) {
+        m_draw->setText(text);
+        actionWidth = qMax(actionWidth, m_draw->sizeHint().width());
+    }
+    m_draw->setText(tr("Offer Draw"));
+    m_draw->setFixedWidth(actionWidth + 2 * kChoicePadding);
+    m_resign->setFixedWidth(actionWidth + 2 * kChoicePadding);
+    actions->addWidget(m_draw);
+    actions->addWidget(m_resign);
+    actions->addStretch();
+    connect(m_draw, &QPushButton::clicked, this, &EnginePanel::drawRequested);
+    connect(m_resign, &QPushButton::clicked, this, &EnginePanel::resignRequested);
+    m_onlineActions->hide();
+    layout->addWidget(m_onlineActions);
+
     // The tutor's alert: what went wrong, then what to do about it.
     auto *tutor = new QVBoxLayout(m_tutor);
     tutor->setContentsMargins(0, 0, 0, 0);
@@ -318,6 +343,19 @@ void EnginePanel::setOpening(const OpeningNames::Name &opening)
 void EnginePanel::setBookName(const QString &name)
 {
     m_book->setText(name.isEmpty() ? QStringLiteral("–") : name);
+}
+
+void EnginePanel::setOnlineActions(bool shown, bool enabled, DrawOffer offer)
+{
+    m_onlineActions->setVisible(shown);
+    m_draw->setText(offer == DrawOffer::Theirs ? tr("Accept Draw")
+                    : offer == DrawOffer::Mine ? tr("Draw Offered")
+                                               : tr("Offer Draw"));
+    m_draw->setToolTip(offer == DrawOffer::Theirs ? tr("Your opponent offers a draw: accept it")
+                       : offer == DrawOffer::Mine ? tr("Your offer waits for your opponent's answer")
+                                                  : tr("Offer your opponent a draw"));
+    m_draw->setEnabled(enabled && offer != DrawOffer::Mine);
+    m_resign->setEnabled(enabled);
 }
 
 void EnginePanel::setClocks(bool shown, int whiteMs, int blackMs, std::optional<Side> running)

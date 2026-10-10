@@ -198,6 +198,12 @@ void LichessBoardClient::resign()
         post(QStringLiteral("/api/board/game/%1/resign").arg(m_game.id));
 }
 
+void LichessBoardClient::offerDraw()
+{
+    if (!m_game.id.isEmpty())
+        post(QStringLiteral("/api/board/game/%1/draw/yes").arg(m_game.id));
+}
+
 void LichessBoardClient::abort()
 {
     if (!m_game.id.isEmpty())

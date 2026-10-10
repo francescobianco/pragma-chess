@@ -906,6 +906,34 @@ Il Nero ha catturato: %2</translation>
         <source>Send your move and the answers you prepared on the board to your opponent&apos;s replies: they are played at once when your opponent plays one of them</source>
         <translation>Invia la tua mossa e le risposte che hai preparato sulla scacchiera alle mosse del tuo avversario: vengono giocate subito quando l&apos;avversario ne gioca una</translation>
     </message>
+    <message>
+        <source>Offer Draw</source>
+        <translation>Proponi patta</translation>
+    </message>
+    <message>
+        <source>Resign</source>
+        <translation>Abbandona</translation>
+    </message>
+    <message>
+        <source>Accept Draw</source>
+        <translation>Accetta la patta</translation>
+    </message>
+    <message>
+        <source>Draw Offered</source>
+        <translation>Patta proposta</translation>
+    </message>
+    <message>
+        <source>Your opponent offers a draw: accept it</source>
+        <translation>L&apos;avversario propone la patta: accettala</translation>
+    </message>
+    <message>
+        <source>Your offer waits for your opponent&apos;s answer</source>
+        <translation>La tua proposta aspetta la risposta dell&apos;avversario</translation>
+    </message>
+    <message>
+        <source>Offer your opponent a draw</source>
+        <translation>Proponi la patta all&apos;avversario</translation>
+    </message>
 </context>
 <context>
     <name>EvaluationBar</name>

@@ -26,6 +26,9 @@ struct OnlineGame {
     QString winner;
     int whiteTimeMs = 0;
     int blackTimeMs = 0;
+    /// A draw offered by that side and not answered yet.
+    bool whiteOffersDraw = false;
+    bool blackOffersDraw = false;
     bool rated = false;
     /// As PGN's TimeControl tag writes it: "300+3", "1/259200"; empty if unknown.
     QString timeControl;

@@ -67,6 +67,8 @@ void applyState(const QJsonObject &state, OnlineGame &game)
     game.winner = state.value(QStringLiteral("winner")).toString();
     game.whiteTimeMs = state.value(QStringLiteral("wtime")).toInt();
     game.blackTimeMs = state.value(QStringLiteral("btime")).toInt();
+    game.whiteOffersDraw = state.value(QStringLiteral("wdraw")).toBool();
+    game.blackOffersDraw = state.value(QStringLiteral("bdraw")).toBool();
 }
 
 } // namespace

@@ -42,6 +42,8 @@ public:
     void move(const QString &uci);
     void resign();
     void abort();
+    /// Offers a draw, or accepts the one the opponent offered.
+    void offerDraw();
 
 Q_SIGNALS:
     void seeking();

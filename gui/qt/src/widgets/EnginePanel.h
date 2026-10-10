@@ -39,6 +39,12 @@ public:
     void setLobby(bool shown, const QString &status = QString(), bool canSendMove = false, bool canSendPlan = false);
     /// Online play: the two clocks, large (see ChessClocks); hidden when not `shown`.
     void setClocks(bool shown, int whiteMs = 0, int blackMs = 0, std::optional<Side> running = std::nullopt);
+    /// What the user can do about the online game, under the clocks.
+    enum class DrawOffer { None, Mine, Theirs };
+    /// Offer Draw (Accept Draw when the opponent offered one, greyed while
+    /// the user's offer waits) and Resign; hidden when not `shown`, greyed
+    /// when not `enabled` (the game is over).
+    void setOnlineActions(bool shown, bool enabled = false, DrawOffer offer = DrawOffer::None);
     /// The clocks follow the board: the colour at its top first.
     void setClocksFlipped(bool flipped) { m_clocks->setFlipped(flipped); }
     /// Summary of the "Explain" command; empty hides it.
@@ -58,6 +64,9 @@ Q_SIGNALS:
     /// The sends of Lobby Mode.
     void sendMoveRequested();
     void sendPlanRequested();
+    /// Online play's Offer Draw (or Accept Draw) and Resign.
+    void drawRequested();
+    void resignRequested();
     /// The eye is held down (true) or let go (false): the board shows the
     /// end of the best line meanwhile, and follows it as the engine changes it.
     void peekHeld(bool held);
@@ -67,6 +76,9 @@ protected:
 
 private:
     ChessClocks *m_clocks;
+    QWidget *m_onlineActions;
+    QPushButton *m_draw;
+    QPushButton *m_resign;
     QWidget *m_tutor;
     QLabel *m_tutorMessage;
     QWidget *m_lobby;

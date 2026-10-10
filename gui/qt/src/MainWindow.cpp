@@ -1338,6 +1338,19 @@ void MainWindow::createDocks()
     connect(m_enginePanel, &EnginePanel::takeBackRequested, this, &MainWindow::takeBackTutorMove);
     connect(m_enginePanel, &EnginePanel::ignoreRequested, this, &MainWindow::ignoreTutorAlert);
     connect(m_enginePanel, &EnginePanel::sendMoveRequested, this, [this] { sendLobby(false); });
+    connect(m_enginePanel, &EnginePanel::drawRequested, this, [this] {
+        if (m_online && m_online->isPlaying())
+            m_online->offerDraw(); // The stream says when the opponent answers.
+    });
+    connect(m_enginePanel, &EnginePanel::resignRequested, this, [this] {
+        if (!m_online || !m_online->isPlaying())
+            return;
+        const QString opponent = m_onlineSide == Side::White ? m_session->game().black : m_session->game().white;
+        if (QMessageBox::question(this, tr("Resign"), tr("Resign the game against %1?").arg(opponent),
+                                  QMessageBox::Yes | QMessageBox::No)
+            == QMessageBox::Yes)
+            m_online->resign(); // The stream brings the end, and the game is saved then.
+    });
     connect(m_enginePanel, &EnginePanel::sendPlanRequested, this, [this] { sendLobby(true); });
     connect(m_enginePanel, &EnginePanel::peekHeld, this, &MainWindow::peekAtEngineLine);
     m_engineDock = addDock(m_sidebar, QStringLiteral("engineDock"), tr("Engine"), m_enginePanel, Qt::RightDockWidgetArea);
@@ -4589,8 +4602,10 @@ void MainWindow::setOnlinePlay(bool on)
     m_onlinePlay = on;
     m_onlineModeAction->setChecked(on);
     m_onlineModeAction->setEnabled(on);
-    if (!on)
+    if (!on) {
         m_enginePanel->setClocks(false);
+        m_enginePanel->setOnlineActions(false);
+    }
     // Against cheating: nothing that thinks for the user runs while they play.
     if (on) {
         m_trainingModeAction->setChecked(false);
@@ -4697,6 +4712,16 @@ void MainWindow::updateOnlineStatus(const OnlineGame &game)
     if (!game.isOver() && game.moves.size() >= 2)
         running = toMove;
     m_enginePanel->setClocks(true, game.whiteTimeMs, game.blackTimeMs, running);
+
+    // Draw and resign, under the clocks, while the game goes on.
+    using DrawOffer = EnginePanel::DrawOffer;
+    DrawOffer offer = DrawOffer::None;
+    if (m_onlineSide) {
+        const bool mine = *m_onlineSide == Side::White ? game.whiteOffersDraw : game.blackOffersDraw;
+        const bool theirs = *m_onlineSide == Side::White ? game.blackOffersDraw : game.whiteOffersDraw;
+        offer = theirs ? DrawOffer::Theirs : mine ? DrawOffer::Mine : DrawOffer::None;
+    }
+    m_enginePanel->setOnlineActions(true, !game.isOver() && m_onlineSide.has_value(), offer);
 }
 
 void MainWindow::onlineGameFinished(const OnlineGame &game)

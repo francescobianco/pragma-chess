@@ -1876,8 +1876,14 @@ QString writeChessBaseFixture(const QString &dir)
         QVERIFY(LichessBoard::applyGameLine(
             R"({"type":"gameState","moves":"e2e4 c7c5 g1f3","wtime":590000,"btime":598000,"status":"started"})", game));
         QCOMPARE(game.moves.size(), 3);
+        QVERIFY(!game.whiteOffersDraw && !game.blackOffersDraw);
+        // A draw offered stays until it is answered: the next state drops it.
+        QVERIFY(LichessBoard::applyGameLine(
+            R"({"type":"gameState","moves":"e2e4 c7c5 g1f3","wtime":590000,"btime":598000,"status":"started","bdraw":true})", game));
+        QVERIFY(game.blackOffersDraw && !game.whiteOffersDraw);
         QVERIFY(LichessBoard::applyGameLine(
             R"({"type":"gameState","moves":"e2e4 c7c5 g1f3","wtime":590000,"btime":598000,"status":"resign","winner":"white"})", game));
+        QVERIFY(!game.blackOffersDraw);
         QVERIFY(game.isOver());
         QCOMPARE(game.result(), QStringLiteral("1-0"));
         QVERIFY(game.endText().contains(QStringLiteral("resigned")));

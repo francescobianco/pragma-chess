@@ -458,7 +458,7 @@ void DesktopApi::addRoutes()
                                 {QStringLiteral("canSendPlan"), w->m_lobbyCanSend.second}});
     });
     // The online clocks, shown with the times given, to see them without a game:
-    // {"white": ms, "black": ms, "running": "white"|"black"|""}, {"hide": true}.
+    // {"white": ms, "black": ms, "running": "white"|"black"|"", "draw": "mine"|"theirs"}, {"hide": true}.
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/clocks"), [w](const Request &request) {
         const QJsonObject body = bodyOf(request).value_or(QJsonObject());
         std::optional<Side> running;
@@ -469,6 +469,12 @@ void DesktopApi::addRoutes()
         w->m_enginePanel->setClocks(!body.value(QStringLiteral("hide")).toBool(),
                                     body.value(QStringLiteral("white")).toInt(180000),
                                     body.value(QStringLiteral("black")).toInt(180000), running);
+        // The buttons under them: "draw" says whose offer waits ("mine", "theirs").
+        const QString draw = body.value(QStringLiteral("draw")).toString();
+        w->m_enginePanel->setOnlineActions(!body.value(QStringLiteral("hide")).toBool(), true,
+                                           draw == QLatin1String("mine")     ? EnginePanel::DrawOffer::Mine
+                                           : draw == QLatin1String("theirs") ? EnginePanel::DrawOffer::Theirs
+                                                                             : EnginePanel::DrawOffer::None);
         QApplication::processEvents();
         QByteArray png;
         QBuffer buffer(&png);

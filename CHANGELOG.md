@@ -8,6 +8,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Playing online, **Offer Draw** and **Resign** sit under the clocks; the
+  first becomes **Accept Draw** when your opponent offers one.
 - **Tools ▸ Convert ▸ PGN to Pragma Database…**, the first of the tools:
   a PGN file of any size becomes a new database, read a piece at a time on
   every core but one, while you go on working.

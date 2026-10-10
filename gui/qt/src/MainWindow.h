@@ -198,6 +198,9 @@ private:
     /// (with chapters, or a game saved nowhere that was not let go).
     bool keepsBoardGame();
     /// Set when the user let the game on the board go (mayReplaceBoardGame).
+    /// The games list's widths were set by hand: harmonizeGameColumns leaves them.
+    bool m_columnsByHand = false;
+    bool m_harmonizingColumns = false;
     bool m_replaceBoardGame = false;
     void saveGameToDatabase();
     /// Game ▸ Set Up Position…: draws a position and starts a game from it.
@@ -345,6 +348,9 @@ private:
     /// gives its columns our `names`.
     void giveShippedColumns(const QString &path, const QStringList &hidden,
                             const QHash<QString, QHash<QString, QString>> &names);
+    /// Shares the games list's width among its visible columns, each by
+    /// what it shows, unless the user set widths by hand (m_columnsByHand).
+    void harmonizeGameColumns();
     void updateStandInNames();
     StandInNames standInNames() const;
     /// The name of the personal settings, or the default one.

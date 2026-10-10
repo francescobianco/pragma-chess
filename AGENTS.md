@@ -776,7 +776,12 @@ painted as a menu item, since QMenu draws an item in one font).
   to a copy made before and listed in the file (`columns.shipped`, the
   columns given; "1", the first mark, stands for the first five;
   `MainWindow::giveShippedColumns`), so a column shown again stays shown on
-  every synced computer and one added to the defaults later still arrives. The order and widths of the columns stay in the session.
+  every synced computer and one added to the defaults later still arrives. The order and widths of the columns stay in the session. The visible
+  columns share the list's width (`MainWindow::harmonizeGameColumns`: each
+  as wide as what it shows, the room left over divided in proportion, the
+  number keeping its own) at every resize and change of columns, until the
+  user drags a width (`m_columnsByHand`, QSettings `games/columnsByHand`;
+  another database shares them again).
 
 ## Drawers
 

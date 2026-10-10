@@ -121,6 +121,7 @@
 #include <QPushButton>
 #include <QRandomGenerator>
 #include <QScreen>
+#include <QScopedValueRollback>
 #include <QSettings>
 #include <QSplitter>
 #include <QStandardPaths>
@@ -528,6 +529,8 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::Resize && qobject_cast<QDockWidget *>(watched))
         scheduleSaveSession(); // The panels' shares are part of the project.
+    if (event->type() == QEvent::Resize && watched == m_gameView)
+        harmonizeGameColumns();
     // A separator of the sidebar let go: QMainWindow moves its separators
     // in its own mouse events, so the release is where a drag has ended.
     if (event->type() == QEvent::MouseButtonRelease && watched == m_sidebar)
@@ -1391,6 +1394,13 @@ void MainWindow::createDocks()
     m_gameView->verticalHeader()->hide();
     m_gameView->horizontalHeader()->setStretchLastSection(true);
     m_gameView->horizontalHeader()->setSectionsMovable(true);
+    // The columns share the room (harmonizeGameColumns), until the user sets
+    // a width by hand: a section resized while the mouse is down.
+    m_gameView->installEventFilter(this);
+    connect(m_gameView->horizontalHeader(), &QHeaderView::sectionResized, this, [this] {
+        if (!m_harmonizingColumns && (QGuiApplication::mouseButtons() & Qt::LeftButton))
+            m_columnsByHand = true;
+    });
     connect(m_gameView, &QTableView::activated, this, &MainWindow::openGame);
     m_gameView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_gameView, &QWidget::customContextMenuRequested, this, &MainWindow::showGameListMenu);
@@ -1479,7 +1489,7 @@ void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
     m_database = std::move(database);
     updateStandInNames(); // "Me" of this database may name the user.
     m_gameListModel->setDatabase(m_database.get());
-    m_gameView->resizeColumnsToContents();
+    m_columnsByHand = false; // Another database, other contents: they share the room again.
     applyGameColumns();
     updateResourceButtons();
     m_openGameIndex = -1;
@@ -1671,6 +1681,45 @@ void MainWindow::applyGameColumns()
     const QStringList hidden = m_database ? m_database->properties().hiddenColumns : QStringList();
     for (int column = 0; column < GameListModel::ColumnCount; ++column)
         m_gameView->setColumnHidden(column, hidden.contains(GameListModel::columnKey(column)));
+    harmonizeGameColumns();
+}
+
+void MainWindow::harmonizeGameColumns()
+{
+    // Each column as wide as what it shows; the room left over is shared
+    // among them in proportion to their widths (the number keeps its own),
+    // not given to the last one alone: a few columns would otherwise be two
+    // narrow names and one wide one.
+    if (m_columnsByHand || m_harmonizingColumns)
+        return;
+    QHeaderView *header = m_gameView->horizontalHeader();
+    QList<int> columns;
+    QList<int> natural;
+    int total = 0;
+    int growing = 0;
+    for (int visual = 0; visual < header->count(); ++visual) {
+        const int column = header->logicalIndex(visual);
+        if (header->isSectionHidden(column))
+            continue;
+        // Public in QAbstractItemView, protected in QTableView.
+        const int width = std::max(static_cast<const QAbstractItemView *>(m_gameView)->sizeHintForColumn(column),
+                                   header->sectionSizeHint(column));
+        columns << column;
+        natural << width;
+        total += width;
+        if (column != GameListModel::Number)
+            growing += width;
+    }
+    if (columns.isEmpty())
+        return;
+    const int extra = std::max(0, m_gameView->viewport()->width() - total);
+    const QScopedValueRollback guard(m_harmonizingColumns, true);
+    for (qsizetype i = 0; i < columns.size(); ++i) {
+        int width = natural.at(i);
+        if (columns.at(i) != GameListModel::Number && growing > 0)
+            width += int(qint64(extra) * natural.at(i) / growing);
+        header->resizeSection(columns.at(i), width);
+    }
 }
 
 void MainWindow::setGameColumnsHidden(const QStringList &hidden)
@@ -5548,6 +5597,8 @@ void MainWindow::restoreSession()
     QHeaderView *gameHeader = m_gameView->horizontalHeader();
     if (gameHeader->restoreState(settings.value(QStringLiteral("games/header")).toByteArray()))
         m_gameView->sortByColumn(gameHeader->sortIndicatorSection(), gameHeader->sortIndicatorOrder());
+    // Widths set by hand stay set: otherwise the columns share the room again.
+    m_columnsByHand = settings.value(QStringLiteral("games/columnsByHand"), false).toBool();
     applyGameColumns(); // Which columns are shown is the database's, not the session's.
 
     const QString yaml = settings.value(QStringLiteral("session/project")).toString();
@@ -5592,6 +5643,7 @@ void MainWindow::saveSession()
     if (isVisible())
         settings.setValue(QStringLiteral("window/geometry"), saveGeometry());
     settings.setValue(QStringLiteral("games/header"), m_gameView->horizontalHeader()->saveState());
+    settings.setValue(QStringLiteral("games/columnsByHand"), m_columnsByHand);
     settings.setValue(QStringLiteral("session/project"), captureProject().toYaml());
     settings.setValue(QStringLiteral("session/projectPath"), m_projectPath);
     updateProjectModified(); // The panels may have moved: Save Project comes back if they did.

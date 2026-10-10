@@ -36,40 +36,28 @@ namespace {
 /// (not the antialiasing of an edge drawn a hair differently).
 constexpr int kEmblemDifference = 40;
 
-/// The king, a silhouette in the unit square, in parts with gaps between
-/// them as a figurine has: the cross, the crown, the collar, the body and
-/// the base.
-QPainterPath kingPath()
+/// The pawn, a silhouette in the unit square, in parts with gaps between
+/// them as a figurine has: the head, the collar, the body and the base.
+QPainterPath pawnPath()
 {
-    QPainterPath king;
-    king.setFillRule(Qt::WindingFill);
-    // The cross.
-    king.addRoundedRect(QRectF(0.455, 0.0, 0.09, 0.22), 0.02, 0.02);
-    king.addRoundedRect(QRectF(0.375, 0.065, 0.25, 0.085), 0.02, 0.02);
-    // The crown: wide at the top, narrowing to the collar.
-    QPainterPath crown;
-    crown.moveTo(0.5, 0.27);
-    crown.cubicTo(0.62, 0.23, 0.80, 0.24, 0.80, 0.36);
-    crown.cubicTo(0.80, 0.45, 0.70, 0.53, 0.67, 0.59);
-    crown.lineTo(0.33, 0.59);
-    crown.cubicTo(0.30, 0.53, 0.20, 0.45, 0.20, 0.36);
-    crown.cubicTo(0.20, 0.24, 0.38, 0.23, 0.5, 0.27);
-    crown.closeSubpath();
-    king.addPath(crown);
+    QPainterPath pawn;
+    pawn.setFillRule(Qt::WindingFill);
+    // The head.
+    pawn.addEllipse(QPointF(0.5, 0.17), 0.155, 0.155);
     // The collar.
-    king.addRoundedRect(QRectF(0.30, 0.625, 0.40, 0.07), 0.03, 0.03);
+    pawn.addRoundedRect(QRectF(0.32, 0.36, 0.36, 0.075), 0.035, 0.035);
     // The body, flaring to the base.
     QPainterPath body;
-    body.moveTo(0.36, 0.725);
-    body.lineTo(0.64, 0.725);
-    body.quadTo(0.66, 0.82, 0.73, 0.87);
-    body.lineTo(0.27, 0.87);
-    body.quadTo(0.34, 0.82, 0.36, 0.725);
+    body.moveTo(0.40, 0.465);
+    body.lineTo(0.60, 0.465);
+    body.cubicTo(0.61, 0.66, 0.70, 0.79, 0.77, 0.87);
+    body.lineTo(0.23, 0.87);
+    body.cubicTo(0.30, 0.79, 0.39, 0.66, 0.40, 0.465);
     body.closeSubpath();
-    king.addPath(body);
+    pawn.addPath(body);
     // The base.
-    king.addRoundedRect(QRectF(0.20, 0.90, 0.60, 0.10), 0.035, 0.035);
-    return king;
+    pawn.addRoundedRect(QRectF(0.18, 0.90, 0.64, 0.10), 0.035, 0.035);
+    return pawn;
 }
 
 QImage imageOf(const QIcon &icon, int size)
@@ -337,11 +325,11 @@ QImage compose(const QIcon &folder, const QList<QIcon> &examples, int size)
 
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing);
-    // The king is a little narrower than tall: as tall as the emblems, centred.
+    // As tall as the emblems, centred.
     const QRectF box = emblem.box.adjusted(emblem.box.width() * 0.04, 0, -emblem.box.width() * 0.04, 0);
     painter.translate(box.topLeft());
     painter.scale(box.width(), box.height());
-    painter.fillPath(kingPath(), emblem.color);
+    painter.fillPath(pawnPath(), emblem.color);
     return image;
 }
 

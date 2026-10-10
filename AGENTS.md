@@ -1227,7 +1227,7 @@ while one of them is selected.
   they are, so nothing jumps. The window's own geometry and maximized
   state are per device, in QSettings.
 - Default user folder: `~/Chess/Pragma/{Databases,Projects,Books}`, localized
-  (e.g. `~/Scacchi/Pragma/…`). The chess folder wears a king, as Videos
+  (e.g. `~/Scacchi/Pragma/…`). The chess folder wears a pawn, as Videos
   wears a film (`platform/FolderIcon`, a few seconds after start): the
   system's folder icon, the emblem's place and colour read from its Videos,
   Pictures, Music and Documents icons against the plain one, so it follows

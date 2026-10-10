@@ -1,5 +1,6 @@
 #include "WindowChrome.h"
 
+#include <QCursor>
 #include <QDialog>
 #include <QEvent>
 #include <QMainWindow>
@@ -222,6 +223,11 @@ Qt::Edges WindowChrome::edgesAt(const QPoint &position) const
 bool WindowChrome::eventFilter(QObject *watched, QEvent *event)
 {
     if (watched != m_window) {
+        // Into a child from the edge: the resize cursor goes.
+        if (m_watchingChildren && (event->type() == QEvent::Enter || event->type() == QEvent::MouseMove)) {
+            if (auto *widget = qobject_cast<QWidget *>(watched); widget && m_window->isAncestorOf(widget))
+                hover(m_window->mapFromGlobal(QCursor::pos()));
+        }
         // A wizard's body, moved or resized over the frame by the wizard.
         if ((event->type() == QEvent::Resize || event->type() == QEvent::Move || event->type() == QEvent::LayoutRequest)
             && m_wizardBodies.contains(static_cast<QWidget *>(watched)))
@@ -366,6 +372,14 @@ void WindowChrome::hover(const QPoint &position)
         m_window->setCursor(Qt::SizeVerCursor);
     else
         m_window->unsetCursor();
+    const bool resizing = horizontal || vertical;
+    if (resizing != m_watchingChildren) {
+        m_watchingChildren = resizing;
+        if (resizing)
+            qApp->installEventFilter(this);
+        else
+            qApp->removeEventFilter(this);
+    }
 }
 
 void WindowChrome::paint()

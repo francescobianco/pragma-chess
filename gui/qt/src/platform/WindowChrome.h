@@ -71,6 +71,10 @@ private:
     /// A QWizard lays its own body over the whole window, whatever the
     /// contents margins: the bodies are put back inside the frame.
     QList<QWidget *> m_wizardBodies;
+    /// While an edge's resize cursor is set, the pointer may go straight into
+    /// a child: the window then sees no move to unset it, and the child shows
+    /// it. The application's events are watched until the cursor is unset.
+    bool m_watchingChildren = false;
     Button m_hovered = Button::None;
     Button m_pressed = Button::None;
     std::optional<QPoint> m_dragStart; // A press on the frame, until it moves far enough or lets go.

@@ -245,7 +245,7 @@ private:
     void newChapter();
     void switchChapter(int index);
     void manageChapters();
-    void editProjectSettings();
+    void editProjectInformation();
     /// The language a project's texts are shown in when it opens: the interface's,
     /// or English when the project's texts are not written in it (LocalizedText).
     static QString contentLanguage();
@@ -538,13 +538,13 @@ private:
     GameSession *m_session;
     /// The project's chapters; its current game is the one in m_session.
     ChapterBook m_chapters;
-    /// The project's name (Project Settings), empty for the file's.
+    /// The project's name (Project Information), empty for the file's.
     /// The project's name, in each language its texts are written in.
     LocalizedText m_projectName;
     /// The project's texts are in several languages: the one shown and
-    /// written (m_chapters.language) is chosen in Project Settings.
+    /// written (m_chapters.language) is chosen in Project Information.
     bool m_multilingual = false;
-    /// The project is read-only (Project Settings): nothing in it changes,
+    /// The project is read-only (Project Information): nothing in it changes,
     /// and it is not saved (projectEditable, writeProject).
     bool m_projectReadOnly = false;
     GameListModel *m_gameListModel;

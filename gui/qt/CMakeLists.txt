@@ -396,8 +396,8 @@ qt_add_executable(pragma-chess
     src/dialogs/LobbyDialog.h
     src/dialogs/PlayOnlineDialog.cpp
     src/dialogs/PlayOnlineDialog.h
-    src/dialogs/ProjectSettingsDialog.cpp
-    src/dialogs/ProjectSettingsDialog.h
+    src/dialogs/ProjectInfoDialog.cpp
+    src/dialogs/ProjectInfoDialog.h
     src/dialogs/PositionSetupDialog.cpp
     src/dialogs/PositionSetupDialog.h
     src/dialogs/SyncDialog.cpp
@@ -487,6 +487,8 @@ qt_add_executable(pragma-chess
     src/widgets/GameHeaderWidget.cpp
     src/widgets/GameHeaderWidget.h
     src/widgets/GlyphMenuAction.cpp
+    src/widgets/HelpButton.cpp
+    src/widgets/HelpButton.h
     src/widgets/GlyphMenuAction.h
     src/widgets/MoveTreeView.cpp
     src/widgets/MoveTreeView.h

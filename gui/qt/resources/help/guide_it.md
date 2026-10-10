@@ -229,7 +229,7 @@ Eliminare non rimpicciolisce ancora il file. **Database ▸ Impostazioni databas
 
 # Progetti {#projects}
 
-Un progetto è quello che stai guardando: il database, la partita e la mossa, il lato da cui vedi la scacchiera, il motore, i pannelli e se ti stai allenando. La barra del titolo ne mostra il nome — quello del file, o quello dato in **File ▸ Impostazioni progetto…** — con un asterisco quando ha modifiche non salvate, e, quando il progetto ha dei capitoli, il capitolo aperto (sparisce quando il progetto torna senza capitoli): *Aperture* - L'Italiana - Pragma Chess*.
+Un progetto è quello che stai guardando: il database, la partita e la mossa, il lato da cui vedi la scacchiera, il motore, i pannelli e se ti stai allenando. La barra del titolo ne mostra il nome — quello del file, o quello dato in **File ▸ Informazioni progetto…** — con un asterisco quando ha modifiche non salvate, e, quando il progetto ha dei capitoli, il capitolo aperto (sparisce quando il progetto torna senza capitoli): *Aperture* - L'Italiana - Pragma Chess*.
 
 - **File ▸ Nuovo progetto** tiene quello che vedi — database, motore, pannelli — e comincia una partita nuova, vuota, col Bianco in basso.
 - **File ▸ Apri progetto…** e **File ▸ Apri progetto recente** aprono un file `.pch`. Nel gestore dei file un progetto ha l'icona dei documenti del tuo sistema con un pedone sul foglio, e aprirlo apre Pragma Chess.
@@ -239,7 +239,9 @@ Non sei obbligato a salvare: Pragma Chess si riapre come l'hai chiuso.
 
 I pannelli si possono ridimensionare e chiudere; il menu **Visualizza** (Mosse, Albero delle aperture, Motore, Lista partite) li mostra di nuovo, e **Visualizza ▸ Ripristina disposizione dei pannelli** li rimette dove stanno all'inizio.
 
-**File ▸ Impostazioni progetto… ▸ Sola lettura** protegge un progetto da modifiche fatte senza pensarci: i suoi capitoli, titoli, paragrafi, commenti e varianti non si possono cambiare, e non viene salvato — la scacchiera si può comunque esplorare, e la barra del titolo dice *(sola lettura)*. Togli la spunta per modificare il progetto. I progetti che arrivano con Pragma Chess sono in sola lettura.
+**File ▸ Informazioni progetto…** mostra il file del progetto, il suo nome, le lingue e se è in sola lettura. Cambiarli è l'eccezione, non la regola: i campi si aprono bloccati, e il pulsante **Modifica**, col lucchetto, li sblocca; il nome del file non si cambia lì (lo fa **Salva progetto come…**). Il **?** in fondo a ogni campo spiega a cosa serve.
+
+**Sola lettura**, in **File ▸ Informazioni progetto…**, protegge un progetto da modifiche fatte senza pensarci: i suoi capitoli, titoli, paragrafi, commenti e varianti non si possono cambiare, e non viene salvato — la scacchiera si può comunque esplorare, e la barra del titolo dice *(sola lettura)*. Togli la spunta per modificare il progetto. I progetti che arrivano con Pragma Chess sono in sola lettura.
 
 # Capitoli e paragrafi {#chapters}
 
@@ -256,9 +258,9 @@ Fai clic col tasto destro sulla lista delle mosse — su una mossa, su un paragr
 
 Nuova partita, Nuovo allenamento, Inserisci posizione, gli Incolla e le partite online aggiungono la loro partita in fondo al capitolo, e così una partita aperta dalla lista delle partite (una che il capitolo ha già viene semplicemente mostrata). Le partite salvate in un database vengono salvate lì man mano che cambiano; le altre, e tutti i paragrafi, vengono salvati con il progetto.
 
-Il menu **File** ha i capitoli: **Nuovo capitolo…**, **Cambia capitolo** per scegliere quello aperto, e in fondo al suo elenco **Gestione capitoli…** per riordinarli (trascinando, o con Sposta su e Sposta giù), rinominarli, aggiungerli ed eliminarli. **Impostazioni progetto…** dà al progetto un nome suo.
+Il menu **File** ha i capitoli: **Nuovo capitolo…**, **Cambia capitolo** per scegliere quello aperto, e in fondo al suo elenco **Gestione capitoli…** per riordinarli (trascinando, o con Sposta su e Sposta giù), rinominarli, aggiungerli ed eliminarli. **Informazioni progetto…** dà al progetto un nome suo.
 
-Un progetto può essere **multilingua**: spunta **Progetto multilingua** in **File ▸ Impostazioni progetto…** e scegli la **Lingua dei testi**, English o Italiano. Il progetto resta uno — gli stessi capitoli, partite e mosse —, ma il suo nome, i titoli dei capitoli, i titoli, i sottotitoli e i paragrafi si scrivono in ogni lingua a parte: quello che scrivi va nella lingua scelta, e un testo non ancora scritto in quella lingua si vede in inglese, o nell'altra lingua, così puoi tradurlo lì dov'è. Un progetto si apre sempre nella lingua dell'interfaccia; uno che non è multilingua resta in quella. Così puoi usare Pragma Chess in italiano e curare i testi di un progetto in inglese.
+Un progetto può essere **multilingua**: spunta **Progetto multilingua** in **File ▸ Informazioni progetto…** e scegli la **Lingua dei testi**, English o Italiano. Il progetto resta uno — gli stessi capitoli, partite e mosse —, ma il suo nome, i titoli dei capitoli, i titoli, i sottotitoli e i paragrafi si scrivono in ogni lingua a parte: quello che scrivi va nella lingua scelta, e un testo non ancora scritto in quella lingua si vede in inglese, o nell'altra lingua, così puoi tradurlo lì dov'è. Un progetto si apre sempre nella lingua dell'interfaccia; uno che non è multilingua resta in quella. Così puoi usare Pragma Chess in italiano e curare i testi di un progetto in inglese.
 
 Pragma Chess arriva con alcuni progetti suoi, nella cartella Progetti dal primo avvio, per vedere cosa può essere un progetto: aprili con **File ▸ Apri progetto…**. **Finali di torre** percorre i finali di torre che ogni giocatore incontra, **Finali di pedone** le idee a cui ogni finale si riduce — il quadrato, l’opposizione, le case chiave, il pedone di torre, il pedone passato lontano, lo sfondamento —, e **Fischer – Spassky 1972** commenta la sesta partita del match di Reykjavík; tutti in italiano e in inglese.
 

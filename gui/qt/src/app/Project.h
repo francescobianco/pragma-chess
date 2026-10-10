@@ -22,16 +22,16 @@ struct Project {
     static constexpr int formatVersion = 3;
     static constexpr char fileSuffix[] = "pch";
 
-    /// The project's own name (File ▸ Project Settings…), shown in the title
+    /// The project's own name (File ▸ Project Information…), shown in the title
     /// bar in place of the file's; empty for the file's. Like the chapters'
     /// titles and the paragraphs, in each language the project is written in.
     LocalizedText name;
     /// Its texts are written in several languages, one chosen at a time in
-    /// Project Settings; otherwise they are shown and written in the
+    /// Project Information; otherwise they are shown and written in the
     /// interface's. Written `multilingual: true`, only when on.
     bool multilingual = false;
     /// Read-only: a flag against changes made without thinking, not a lock —
-    /// unticked in Project Settings, the project is changed as any other. The
+    /// unticked in Project Information, the project is changed as any other. The
     /// projects we distribute come with it. Written `read-only: true`, only
     /// when on.
     bool readOnly = false;

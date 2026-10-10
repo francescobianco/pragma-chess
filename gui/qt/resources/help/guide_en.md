@@ -229,7 +229,7 @@ Deleting does not shrink the file yet. **Database ▸ Database Settings… ▸ O
 
 # Projects {#projects}
 
-A project is what you are looking at: the database, the game and the move, the side the board is seen from, the engine, the panels and whether you are training. The title bar shows its name — the file's, or the one given in **File ▸ Project Settings…** — with an asterisk when it has changes not saved, and, once the project has chapters, the chapter open (it goes when the project is back without chapters): *Openings* - The Italian - Pragma Chess*.
+A project is what you are looking at: the database, the game and the move, the side the board is seen from, the engine, the panels and whether you are training. The title bar shows its name — the file's, or the one given in **File ▸ Project Information…** — with an asterisk when it has changes not saved, and, once the project has chapters, the chapter open (it goes when the project is back without chapters): *Openings* - The Italian - Pragma Chess*.
 
 - **File ▸ New Project** keeps what you see — database, engine, panels — and starts a new, empty game, with White below.
 - **File ▸ Open Project…** and **File ▸ Open Recent Project** open a `.pch` file. In your file manager a project has the document icon of your system with a pawn on the page, and opening it opens Pragma Chess.
@@ -239,7 +239,9 @@ You do not have to save: Pragma Chess reopens as you closed it.
 
 Panels can be resized and closed; the **View** menu (Moves, Opening Tree, Engine, Games List) shows them again, and **View ▸ Reset Panel Layout** puts them back where they start.
 
-**File ▸ Project Settings… ▸ Read-only** keeps a project from changes made without thinking: its chapters, titles, paragraphs, comments and variations cannot be changed, and it is not saved — the board can still be explored, and the title bar says *(Read-Only)*. Untick it to change the project. The projects that come with Pragma Chess are read-only.
+**File ▸ Project Information…** shows the project's file, its name, its languages and whether it is read-only. Changing them is the exception, not the rule: the fields open locked, and the **Edit** button, with its padlock, unlocks them; the file's name is not changed there (**Save Project As…** does that). The **?** at the end of each field says what it is for.
+
+**Read-only**, in **File ▸ Project Information…**, keeps a project from changes made without thinking: its chapters, titles, paragraphs, comments and variations cannot be changed, and it is not saved — the board can still be explored, and the title bar says *(Read-Only)*. Untick it to change the project. The projects that come with Pragma Chess are read-only.
 
 # Chapters and paragraphs {#chapters}
 
@@ -256,9 +258,9 @@ Right-click the move list — on a move, on a paragraph, or anywhere, even with 
 
 New Game, New Training, Set Up Position, the pastes and online games all add their game at the end of the chapter, and so does a game opened from the games list (one the chapter has already is simply shown). Games stored in a database are saved there as they change; the others, and every paragraph, are saved with the project.
 
-The **File** menu has the chapters: **New Chapter…**, **Switch Chapter** to choose the one open, and at the end of its list **Manage Chapters…** to reorder (drag, or Move Up and Move Down), rename, add and delete them. **Project Settings…** gives the project a name of its own.
+The **File** menu has the chapters: **New Chapter…**, **Switch Chapter** to choose the one open, and at the end of its list **Manage Chapters…** to reorder (drag, or Move Up and Move Down), rename, add and delete them. **Project Information…** gives the project a name of its own.
 
-A project can be **multilingual**: tick **Multilingual project** in **File ▸ Project Settings…** and choose the **Language of the texts**, English or Italiano. The project stays one — the same chapters, games and moves —, but its name, the chapters' titles, the titles, subtitles and paragraphs are written in each language separately: what you write goes into the language chosen, and a text not written in it yet is shown in English, or in the other language, so you can translate it where it stands. A project always opens in the language of the interface; one that is not multilingual stays in it. So you can use Pragma Chess in Italian and look after a project's texts in English.
+A project can be **multilingual**: tick **Multilingual project** in **File ▸ Project Information…** and choose the **Language of the texts**, English or Italiano. The project stays one — the same chapters, games and moves —, but its name, the chapters' titles, the titles, subtitles and paragraphs are written in each language separately: what you write goes into the language chosen, and a text not written in it yet is shown in English, or in the other language, so you can translate it where it stands. A project always opens in the language of the interface; one that is not multilingual stays in it. So you can use Pragma Chess in Italian and look after a project's texts in English.
 
 Pragma Chess comes with projects of its own, in the Projects folder from the first start, to see what a project can be: open them with **File ▸ Open Project…**. **Rook Endgames** goes through the rook endings every player meets, **Pawn Endgames** through the ideas every ending comes down to — the square, the opposition, the key squares, the rook’s pawn, the outside passed pawn, the breakthrough —, and **Fischer – Spassky 1972** comments the sixth game of the Reykjavik match; all in English and Italian.
 

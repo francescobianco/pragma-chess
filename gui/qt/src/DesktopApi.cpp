@@ -1,4 +1,6 @@
 #include "DesktopApi.h"
+#include "widgets/HelpButton.h"
+#include "dialogs/ProjectInfoDialog.h"
 
 #include "MainWindow.h"
 #include "app/Explainer.h"
@@ -16,6 +18,9 @@
 #include "app/PersonalSettings.h"
 #include "widgets/BoardWidget.h"
 
+#include <QApplication>
+#include <QPushButton>
+#include <QPainter>
 #include <QAction>
 #include <QBuffer>
 #include <QJsonArray>
@@ -343,6 +348,50 @@ void DesktopApi::addRoutes()
         QBuffer buffer(&png);
         buffer.open(QIODevice::WriteOnly);
         dialog.grab().save(&buffer, "PNG");
+        return Response{200, "image/png", png};
+    });
+    // File ▸ Project Information…: its picture, {"unlocked": true} after Edit,
+    // {"help": n} with the balloon of its n-th "?" drawn over it.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/project-info"), [w](const Request &request) {
+        const QJsonObject body = bodyOf(request).value_or(QJsonObject());
+        ProjectInfoDialog dialog(w->m_projectName, w->m_projectPath, QStringLiteral("Untitled"), w->m_multilingual,
+                                 w->m_chapters.language, MainWindow::contentLanguage(), w->m_projectReadOnly, w);
+        if (body.value(QStringLiteral("unlocked")).toBool()) {
+            // Edit, the one checkable button; checked, it replaces the dialog's
+            // other buttons, so the list is not walked any further.
+            for (QPushButton *button : dialog.findChildren<QPushButton *>()) {
+                if (button->isCheckable()) {
+                    button->setChecked(true);
+                    break;
+                }
+            }
+        }
+        dialog.show();
+        dialog.adjustSize();
+        QApplication::processEvents();
+        QImage picture = dialog.grab().toImage();
+        const int help = body.value(QStringLiteral("help")).toInt(-1);
+        const QList<HelpButton *> helps = dialog.findChildren<HelpButton *>();
+        if (help >= 0 && help < helps.size()) {
+            HelpButton *button = helps.at(help);
+            button->showHelp();
+            if (QWidget *bubble = button->bubble()) {
+                // The balloon beside the dialog: one picture holding both.
+                const QPoint at = dialog.mapFromGlobal(bubble->pos());
+                const QRect both = QRect(QPoint(0, 0), picture.size()).united(QRect(at, bubble->size()));
+                QImage combined(both.size(), QImage::Format_ARGB32_Premultiplied);
+                combined.fill(Qt::transparent);
+                QPainter painter(&combined);
+                painter.drawImage(-both.topLeft(), picture);
+                painter.drawImage(at - both.topLeft(), bubble->grab().toImage());
+                painter.end();
+                picture = combined;
+            }
+        }
+        QByteArray png;
+        QBuffer buffer(&png);
+        buffer.open(QIODevice::WriteOnly);
+        picture.save(&buffer, "PNG");
         return Response{200, "image/png", png};
     });
     // Help ▸ Welcome…: opens the welcome window and answers with its picture.

@@ -35,7 +35,7 @@
 #include "dialogs/PositionSetupDialog.h"
 #include "dialogs/PersonalSettingsDialog.h"
 #include "dialogs/PlayOnlineDialog.h"
-#include "dialogs/ProjectSettingsDialog.h"
+#include "dialogs/ProjectInfoDialog.h"
 #include "dialogs/ManageSyncFilesDialog.h"
 #include "dialogs/SyncDialog.h"
 #ifdef PRAGMA_HAS_PHONE_LINK
@@ -954,7 +954,7 @@ void MainWindow::createMenus()
     file->addAction(tr("New C&hapter…"), this, &MainWindow::newChapter);
     m_switchChapterMenu = file->addMenu(tr("S&witch Chapter"));
     connect(m_switchChapterMenu, &QMenu::aboutToShow, this, &MainWindow::fillChapterMenu);
-    file->addAction(tr("Project Se&ttings…"), this, &MainWindow::editProjectSettings);
+    file->addAction(tr("Project &Information…"), this, &MainWindow::editProjectInformation);
     file->addSeparator();
     // The toolbar's first button; its settings are in Options.
     file->addAction(m_syncNowAction);
@@ -4043,11 +4043,11 @@ QString MainWindow::contentLanguage()
     return LocalizedText::supported(UiLanguage::effective());
 }
 
-void MainWindow::editProjectSettings()
+void MainWindow::editProjectInformation()
 {
     const QString fileName = m_projectPath.isEmpty() ? tr("Untitled") : QFileInfo(m_projectPath).completeBaseName();
-    ProjectSettingsDialog dialog(m_projectName, m_projectPath.isEmpty() ? QString() : QFileInfo(m_projectPath).absoluteFilePath(),
-                                 fileName, m_multilingual, m_chapters.language, contentLanguage(), m_projectReadOnly, this);
+    ProjectInfoDialog dialog(m_projectName, m_projectPath.isEmpty() ? QString() : QFileInfo(m_projectPath).absoluteFilePath(),
+                             fileName, m_multilingual, m_chapters.language, contentLanguage(), m_projectReadOnly, this);
     if (dialog.exec() != QDialog::Accepted)
         return;
     if (dialog.isReadOnly() != m_projectReadOnly) {
@@ -5938,7 +5938,7 @@ bool MainWindow::saveProject()
         return saveProjectAs();
     if (m_projectReadOnly) {
         QMessageBox::information(this, tr("Save Project"),
-                                 tr("“%1” is read-only: untick Read-only in File ▸ Project Settings… to change it.")
+                                 tr("“%1” is read-only: untick Read-only in File ▸ Project Information… to change it.")
                                      .arg(QFileInfo(m_projectPath).completeBaseName()));
         return false;
     }
@@ -5949,7 +5949,7 @@ bool MainWindow::projectEditable()
 {
     if (!m_projectReadOnly)
         return true;
-    statusBar()->showMessage(tr("The project is read-only: untick Read-only in File ▸ Project Settings… to change it"), 5000);
+    statusBar()->showMessage(tr("The project is read-only: untick Read-only in File ▸ Project Information… to change it"), 5000);
     return false;
 }
 

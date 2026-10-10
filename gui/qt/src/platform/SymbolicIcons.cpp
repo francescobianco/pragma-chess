@@ -40,6 +40,8 @@ enum class Shape {
     SendMove,
     SendPlan,
     Lobby,
+    Locked,
+    Unlocked,
 };
 
 /// The square New Game and New Training share: a board, and a face as large.
@@ -395,6 +397,27 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         painter->drawPath(middle);
         break;
     }
+    case Shape::Locked:
+    case Shape::Unlocked: {
+        // A padlock: the body, and the shackle closed on it or swung open.
+        painter->drawRoundedRect(QRectF(3.5, 7.5, 9, 6.5), 1.25, 1.25);
+        QPainterPath shackle;
+        if (shape == Shape::Locked) {
+            shackle.moveTo(5.5, 7.5);
+            shackle.lineTo(5.5, 5.25);
+            shackle.arcTo(QRectF(5.5, 2.75, 5, 5), 180, -180);
+            shackle.lineTo(10.5, 7.5);
+        } else {
+            shackle.moveTo(10.5, 7.5);
+            shackle.lineTo(10.5, 4.75);
+            shackle.arcTo(QRectF(10.5, 2.25, 5, 5), 180, -180);
+            shackle.lineTo(15.5, 5.5);
+        }
+        painter->drawPath(shackle);
+        painter->setBrush(color);
+        painter->drawEllipse(QPointF(8, 10.5), 0.6, 0.6); // The keyhole.
+        break;
+    }
     case Shape::About:
         painter->drawEllipse(QPointF(8, 8), 6, 6);
         painter->drawLine(QPointF(8, 7.25), QPointF(8, 11));
@@ -490,6 +513,8 @@ QIcon icon(const QString &name)
         {QStringLiteral("pragma-send-plan"), Shape::SendPlan},
         {QStringLiteral("pragma-lobby"), Shape::Lobby},
         {QStringLiteral("pragma-project"), Shape::Project},
+        {QStringLiteral("pragma-locked"), Shape::Locked},
+        {QStringLiteral("pragma-unlocked"), Shape::Unlocked},
     };
     const auto it = shapes.constFind(name);
     if (it == shapes.cend())

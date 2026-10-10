@@ -118,6 +118,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- File ▸ Project Settings… is now **Project Information…**: it opens
+  locked, and **Edit**, with its padlock, unlocks the fields; what each one
+  means is in a balloon behind its **?**.
 - **Explain** plays a mate on the board only when you can use it: one
   against you within 4 moves, yours within 3, or a combination of checks
   and sacrifices. A long quiet mate, like queen against king, is technique:

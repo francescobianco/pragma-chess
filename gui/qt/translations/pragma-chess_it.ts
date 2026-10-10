@@ -1318,6 +1318,13 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>HelpButton</name>
+    <message>
+        <source>Help</source>
+        <translation>Aiuto</translation>
+    </message>
+</context>
+<context>
     <name>HelpDialog</name>
     <message>
         <source>Pragma Chess Guide</source>
@@ -2927,10 +2934,6 @@ non è su questo computer.</translation>
         <translation>&amp;Gestione capitoli…</translation>
     </message>
     <message>
-        <source>Project Se&amp;ttings…</source>
-        <translation>Impostazioni pro&amp;getto…</translation>
-    </message>
-    <message>
         <source>&amp;Edit Paragraph</source>
         <translation>&amp;Modifica paragrafo</translation>
     </message>
@@ -3398,20 +3401,24 @@ non è su questo computer.</translation>
         <translation>Copia quello che il motore ha detto a Spiega sulla mossa, per rigiocarlo con pragma-explain --replay</translation>
     </message>
     <message>
-        <source>“%1” is read-only: untick Read-only in File ▸ Project Settings… to change it.</source>
-        <translation>«%1» è in sola lettura: togli la spunta a Sola lettura in File ▸ Impostazioni progetto… per modificarlo.</translation>
-    </message>
-    <message>
-        <source>The project is read-only: untick Read-only in File ▸ Project Settings… to change it</source>
-        <translation>Il progetto è in sola lettura: togli la spunta a Sola lettura in File ▸ Impostazioni progetto… per modificarlo</translation>
-    </message>
-    <message>
         <source>%1 (Read-Only)</source>
         <translation>%1 (sola lettura)</translation>
     </message>
     <message>
         <source>&amp;Welcome…</source>
         <translation>&amp;Benvenuto…</translation>
+    </message>
+    <message>
+        <source>Project &amp;Information…</source>
+        <translation>&amp;Informazioni progetto…</translation>
+    </message>
+    <message>
+        <source>“%1” is read-only: untick Read-only in File ▸ Project Information… to change it.</source>
+        <translation>«%1» è in sola lettura: togli la spunta a Sola lettura in File ▸ Informazioni progetto… per modificarlo.</translation>
+    </message>
+    <message>
+        <source>The project is read-only: untick Read-only in File ▸ Project Information… to change it</source>
+        <translation>Il progetto è in sola lettura: togli la spunta a Sola lettura in File ▸ Informazioni progetto… per modificarlo</translation>
     </message>
 </context>
 <context>
@@ -4633,30 +4640,18 @@ Le %n partite già importate restano nel database.</numerusform>
     </message>
 </context>
 <context>
-    <name>ProjectSettingsDialog</name>
-    <message>
-        <source>Project Settings</source>
-        <translation>Impostazioni progetto</translation>
-    </message>
-    <message>
-        <source>Project &amp;name:</source>
-        <translation>&amp;Nome del progetto:</translation>
-    </message>
-    <message>
-        <source>Shown in the title bar in place of the file&apos;s name, followed by the chapter when the project has more than one. Empty, the file&apos;s name is shown.</source>
-        <translation>Compare nella barra del titolo al posto del nome del file, seguito dal capitolo quando il progetto ne ha più di uno. Se è vuoto, si vede il nome del file.</translation>
-    </message>
+    <name>ProjectInfoDialog</name>
     <message>
         <source>&amp;Multilingual project</source>
         <translation>Progetto &amp;multilingua</translation>
     </message>
     <message>
-        <source>&amp;Language of the texts:</source>
-        <translation>&amp;Lingua dei testi:</translation>
+        <source>&amp;Read-only</source>
+        <translation>&amp;Sola lettura</translation>
     </message>
     <message>
-        <source>A multilingual project has its name, titles, subtitles and paragraphs in several languages, its chapters and games the same in all: they are shown and written in the language chosen here. A text not written in it is shown in English, or in another language that has it. A project opens in the language of the interface; one that is not multilingual stays in it.</source>
-        <translation>Un progetto multilingua ha il nome, i titoli, i sottotitoli e i paragrafi in più lingue, con gli stessi capitoli e le stesse partite in tutte: si vedono e si scrivono nella lingua scelta qui. Un testo non scritto in questa lingua si vede in inglese, o in un&apos;altra lingua che lo ha. Un progetto si apre nella lingua dell&apos;interfaccia; uno che non è multilingua resta in quella.</translation>
+        <source>Project Information</source>
+        <translation>Informazioni progetto</translation>
     </message>
     <message>
         <source>Not saved yet</source>
@@ -4667,12 +4662,40 @@ Le %n partite già importate restano nel database.</numerusform>
         <translation>File:</translation>
     </message>
     <message>
-        <source>&amp;Read-only</source>
-        <translation>&amp;Sola lettura</translation>
+        <source>&lt;p&gt;Where the project is kept on this computer. Select it to copy it.&lt;/p&gt;&lt;p&gt;The file is not renamed here: File ▸ Save Project As… saves the project under another name.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Dove il progetto è salvato su questo computer. Selezionalo per copiarlo.&lt;/p&gt;&lt;p&gt;Il file non si rinomina qui: File ▸ Salva progetto come… salva il progetto con un altro nome.&lt;/p&gt;</translation>
     </message>
     <message>
-        <source>Keeps the project from changes made without thinking: its chapters, titles, paragraphs, comments and variations cannot be changed, and it is not saved. The board can still be explored. Untick it to change the project; the projects distributed with Pragma Chess come read-only.</source>
-        <translation>Protegge il progetto da modifiche fatte senza pensarci: i suoi capitoli, titoli, paragrafi, commenti e varianti non si possono cambiare, e non viene salvato. La scacchiera si può comunque esplorare. Togli la spunta per modificare il progetto; i progetti distribuiti con Pragma Chess arrivano in sola lettura.</translation>
+        <source>Project &amp;name:</source>
+        <translation>&amp;Nome del progetto:</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;Shown in the title bar in place of the file&apos;s name, followed by the chapter when the project has chapters.&lt;/p&gt;&lt;p&gt;Empty, the file&apos;s name is shown.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Compare nella barra del titolo al posto del nome del file, seguito dal capitolo quando il progetto ha dei capitoli.&lt;/p&gt;&lt;p&gt;Se è vuoto, si vede il nome del file.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;A multilingual project has its name, titles, subtitles and paragraphs in several languages, its chapters and games the same in all.&lt;/p&gt;&lt;p&gt;They are shown and written in the language chosen below. A text not written in it is shown in English, or in another language that has it.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Un progetto multilingua ha il nome, i titoli, i sottotitoli e i paragrafi in più lingue, con gli stessi capitoli e le stesse partite in tutte.&lt;/p&gt;&lt;p&gt;Si vedono e si scrivono nella lingua scelta qui sotto. Un testo non ancora scritto in quella lingua si vede in inglese, o in un&apos;altra lingua che lo ha.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <source>&amp;Language of the texts:</source>
+        <translation>&amp;Lingua dei testi:</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;The language the project&apos;s texts are shown and written in.&lt;/p&gt;&lt;p&gt;A project opens in the language of the interface; one that is not multilingual stays in it.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;La lingua in cui si vedono e si scrivono i testi del progetto.&lt;/p&gt;&lt;p&gt;Un progetto si apre nella lingua dell&apos;interfaccia; uno che non è multilingua resta in quella.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;Keeps the project from changes made without thinking: its chapters, titles, paragraphs, comments and variations cannot be changed, and it is not saved. The board can still be explored.&lt;/p&gt;&lt;p&gt;Untick it to change the project. The projects distributed with Pragma Chess come read-only.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Protegge il progetto da modifiche fatte senza pensarci: i suoi capitoli, titoli, paragrafi, commenti e varianti non si possono cambiare, e non viene salvato. La scacchiera si può comunque esplorare.&lt;/p&gt;&lt;p&gt;Togli la spunta per modificare il progetto. I progetti distribuiti con Pragma Chess arrivano in sola lettura.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <source>Editing</source>
+        <translation>In modifica</translation>
+    </message>
+    <message>
+        <source>&amp;Edit</source>
+        <translation>&amp;Modifica</translation>
     </message>
 </context>
 <context>

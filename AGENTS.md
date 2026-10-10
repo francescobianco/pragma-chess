@@ -902,12 +902,16 @@ a chapter always has a game. In other tools this is a study or a chess book.
   itself (`setHtml` resizes the view, whose header asks for another).
   Links are `mv:game:path/ply` (a scheme of their own: "0:…" is no URL, and the click would come empty); another game's moves emit `gameMoveActivated`.
 - File ▸ New Chapter…, Switch Chapter (with Manage Chapters… under its list)
-  (`dialogs/ManageChaptersDialog`) and Project Settings…
-  (`dialogs/ProjectSettingsDialog`: the file's absolute path, read-only; the project's `name`, shown in the
+  (`dialogs/ManageChaptersDialog`) and Project Information…
+  (`dialogs/ProjectInfoDialog`: changing it is the exception — the fields
+  open locked, Edit with its padlock (`pragma-locked`/`pragma-unlocked`)
+  unlocks them and brings OK and Cancel, Close otherwise; what each field
+  means is behind its "?", `widgets/HelpButton`: a balloon whose tip comes
+  out of the button, paragraphs at a width that reads; the file's absolute path, read-only; the project's `name`, shown in the
   title bar in place of the file's, then the chapter open as soon as the
   project has chapters, and no more when it is back without:
   "Name* - Chapter - Pragma Chess").
-- **Read-only** (Project Settings, `Project::readOnly`, `read-only: true`):
+- **Read-only** (Project Information, `Project::readOnly`, `read-only: true`):
   a flag against changes made without thinking, not a lock. While it is on
   the commands that change the project refuse (`MainWindow::projectEditable`,
   the move list's menu greyed but Copy, `lockForReadOnly`; paragraphs and
@@ -923,7 +927,7 @@ a chapter always has a game. In other tools this is a study or a chess book.
   language (`LocalizedText::languages()`: en, it), the structure one for
   all. `ChapterBook::language` is the one shown and written: the
   interface's when a project opens (`MainWindow::contentLanguage`); another
-  can be chosen in Project Settings only when the project is flagged
+  can be chosen in Project Information only when the project is flagged
   Multilingual project (`Project::multilingual`, `multilingual: true`). A
   text missing in it is shown in English, then in another language that has
   it; a text shown from another language and left unchanged is not written

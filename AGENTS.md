@@ -65,7 +65,8 @@ gui/qt/
   translations/        interface translations (.ts), built with Qt Linguist tools
 docs/                  the web site, as GitHub Pages serves it (generated: do not
                        edit; `make site`), and docs/tech/ the design and tuning
-                       notes (explain-tuning.md, phone-link.md)
+                       notes (explain-tuning.md, phone-link.md, large-databases.md,
+                       downloads.md)
 site/                  the site's sources: build.py (Python, no dependencies),
                        templates/ (composable HTML partials), content/<lang>.json
                        (the texts, one file per language), assets/ (style, script,

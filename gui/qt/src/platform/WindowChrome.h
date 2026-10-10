@@ -21,6 +21,11 @@ class QWidget;
 /// margin and the rounding go, as they do for every window of the desktop.
 class WindowChrome : public QObject {
 public:
+    /// The window's property with the radius of its contents' bottom corners
+    /// (a qreal; 0 or missing where they are square: maximized, on other
+    /// desktops). A widget painting into those corners clips them by it.
+    static constexpr const char *kContentsCornerRadius = "pragmaContentsCornerRadius";
+
     /// Dresses `window`, a top-level dialog or main window; called when it is
     /// polished, before it is shown.
     static void install(QWidget *window);

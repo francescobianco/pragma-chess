@@ -139,6 +139,11 @@ void WindowChrome::applyMargins()
     const int side = margin();
     const int edge = side > 0 ? 1 : 0;
     m_window->setContentsMargins(side + edge, side + (isFullScreen() ? 0 : kTitleHeight), side + edge, side + edge);
+    // The contents are a rectangle inside a rounded panel: what paints up to
+    // their bottom corners (a picture) rounds them by this much, or covers the
+    // panel's edge there. Kept one pixel inside the edge, as the contents are.
+    const bool rounded = !m_mainWindow && side > 0 && !isMaximized();
+    m_window->setProperty(kContentsCornerRadius, rounded ? kRadius - edge : 0.0);
 }
 
 void WindowChrome::dropSizeGrip()

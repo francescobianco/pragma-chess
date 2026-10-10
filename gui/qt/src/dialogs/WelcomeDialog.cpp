@@ -6,6 +6,7 @@
 #include "../app/UiLanguage.h"
 #include "../app/UserFolders.h"
 #include "../platform/SymbolicIcons.h"
+#include "../platform/WindowChrome.h"
 #include "../widgets/BookFont.h"
 
 #include <QApplication>
@@ -20,7 +21,9 @@
 #include <QLinearGradient>
 #include <QLocale>
 #include <QListWidget>
+#include <QImage>
 #include <QPainter>
+#include <QPainterPath>
 #include <QPushButton>
 #include <QSettings>
 #include <QVBoxLayout>
@@ -50,7 +53,44 @@ public:
 protected:
     void paintEvent(QPaintEvent *) override
     {
+        // In the window's bottom left corner: where the window's frame rounds
+        // that corner (WindowChrome), the picture is rounded with it, or it
+        // would cover the frame's edge there.
+        const QWidget *window = this->window();
+        const qreal radius = window->property(WindowChrome::kContentsCornerRadius).toReal();
+        const QPoint corner = mapTo(window, rect().bottomLeft());
+        if (radius <= 0 || corner != window->contentsRect().bottomLeft()) {
+            QPainter painter(this);
+            paintContents(painter);
+            return;
+        }
+        const qreal ratio = devicePixelRatioF();
+        QImage image(size() * ratio, QImage::Format_ARGB32_Premultiplied);
+        image.setDevicePixelRatio(ratio);
+        image.fill(Qt::transparent);
+        {
+            QPainter painter(&image);
+            paintContents(painter);
+        }
+        // Filled with the picture through an antialiased path: a clip would cut the arc jagged.
+        const QRectF area = rect();
+        QPainterPath shape;
+        shape.moveTo(area.topLeft());
+        shape.lineTo(area.topRight());
+        shape.lineTo(area.bottomRight());
+        shape.lineTo(area.left() + radius, area.bottom());
+        shape.arcTo(QRectF(area.left(), area.bottom() - 2 * radius, 2 * radius, 2 * radius), 270, -90);
+        shape.closeSubpath();
         QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(QBrush(image));
+        painter.drawPath(shape);
+    }
+
+private:
+    void paintContents(QPainter &painter)
+    {
         painter.setRenderHint(QPainter::Antialiasing);
         painter.setRenderHint(QPainter::SmoothPixmapTransform);
         const QRectF area = rect();
@@ -111,7 +151,6 @@ protected:
                          Qt::AlignLeft | Qt::AlignTop, WelcomeDialog::tr("Study · Train · Play"));
     }
 
-private:
     QPixmap m_picture;
     QPixmap m_logo;
 };

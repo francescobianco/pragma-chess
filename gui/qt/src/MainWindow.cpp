@@ -1340,6 +1340,8 @@ void MainWindow::createDocks()
     connect(m_enginePanel, &EnginePanel::takeBackRequested, this, &MainWindow::takeBackTutorMove);
     connect(m_enginePanel, &EnginePanel::ignoreRequested, this, &MainWindow::ignoreTutorAlert);
     connect(m_enginePanel, &EnginePanel::sendMoveRequested, this, [this] { sendLobby(false); });
+    // A dot of the game's course: the board goes to that move of the line.
+    connect(m_enginePanel, &EnginePanel::coursePlyClicked, m_session, &GameSession::goToPly);
     connect(m_enginePanel, &EnginePanel::drawRequested, this, [this] {
         if (m_online && m_online->isPlaying())
             m_online->offerDraw(); // The stream says when the opponent answers.

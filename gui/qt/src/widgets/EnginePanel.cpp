@@ -66,6 +66,7 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     layout->addLayout(header);
 
     // The score and the game's course, in one box.
+    connect(m_score, &EvaluationBox::plyClicked, this, &EnginePanel::coursePlyClicked);
     layout->addWidget(m_score);
 
     m_clocks = new ChessClocks(this);

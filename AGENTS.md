@@ -200,7 +200,9 @@ playing a move turns it off, and the user asks again at the next move.
   comment's `[%eval]` (`MoveComment::evaluation`) — joined by a polyline,
   nothing filled, over a marked midline; White's share towards White's side
   of the board, as the bar; 40 plies fill the width, more share it, never
-  scrolled. Empty while playing online: nothing judges that game.
+  scrolled. A click on a dot goes to that ply (`EnginePanel::coursePlyClicked`,
+  `GameSession::goToPly`); the dot under the pointer lights up. Empty while
+  playing online: nothing judges that game.
 - The Engine panel shows the engine's whole line, and an eye beside Stop
   (`EnginePanel::peekHeld`): held down, the board shows the
   position at the end of the line, and follows it while the engine goes on

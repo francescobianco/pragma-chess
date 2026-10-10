@@ -73,6 +73,8 @@ Q_SIGNALS:
     /// The sends of Lobby Mode.
     void sendMoveRequested();
     void sendPlanRequested();
+    /// A dot of the game's course was clicked: the board goes to that ply.
+    void coursePlyClicked(int ply);
     /// Online play's Offer Draw (or Accept Draw) and Resign.
     void drawRequested();
     void resignRequested();

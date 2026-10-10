@@ -30,15 +30,29 @@ public:
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
 
+Q_SIGNALS:
+    /// A dot was clicked: the board goes to that ply of the line.
+    void plyClicked(int ply);
+
 protected:
     void paintEvent(QPaintEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void leaveEvent(QEvent *event) override;
 
 private:
     int sectionWidth() const;
+    /// Where the graph is drawn.
+    QRectF graphArea() const;
+    /// The dots: each ply known and where it is drawn.
+    QList<std::pair<int, QPointF>> dots() const;
+    /// The ply of the dot under `position`, or -1.
+    int plyAt(const QPointF &position) const;
 
     QString m_score;
     QString m_depth;
     QList<std::optional<double>> m_shares;
     int m_current = 0;
+    int m_hovered = -1;
     bool m_flipped = false;
 };

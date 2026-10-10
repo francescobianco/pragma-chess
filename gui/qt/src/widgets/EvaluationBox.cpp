@@ -1,7 +1,10 @@
 #include "EvaluationBox.h"
 
+#include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
+
+#include <cmath>
 
 namespace {
 
@@ -17,6 +20,7 @@ EvaluationBox::EvaluationBox(QWidget *parent)
 {
     setAccessibleName(tr("Evaluation"));
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    setMouseTracking(true); // The dot under the pointer lights up.
 }
 
 void EvaluationBox::setScore(const QString &score, const QString &depth)
@@ -63,6 +67,78 @@ QFont depthFont(const QFont &base)
 }
 
 } // namespace
+
+QRectF EvaluationBox::graphArea() const
+{
+    const QRectF bounds = QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5);
+    const int section = sectionWidth();
+    return {qreal(section), bounds.top(), bounds.right() - section, bounds.height()};
+}
+
+QList<std::pair<int, QPointF>> EvaluationBox::dots() const
+{
+    const QRectF graph = graphArea();
+    const int plies = int(m_shares.size()) - 1;
+    const qreal step = graph.width() / qMax(kPliesShown, plies);
+    // The dots stay whole at the top and the bottom.
+    const qreal inset = 4;
+    QList<std::pair<int, QPointF>> found;
+    for (int ply = 0; ply <= plies; ++ply) {
+        std::optional<double> share = m_shares.at(ply);
+        if (!share && ply == 0)
+            share = 0.5; // The start is even until known otherwise.
+        if (!share)
+            continue;
+        // White's side is where White's pieces start: the bottom, unless turned.
+        const qreal y = m_flipped ? graph.top() + *share * graph.height() : graph.bottom() - *share * graph.height();
+        found.push_back({ply, QPointF(graph.left() + ply * step, qBound(graph.top() + inset, y, graph.bottom() - inset))});
+    }
+    return found;
+}
+
+int EvaluationBox::plyAt(const QPointF &position) const
+{
+    // The nearest dot across, within reach: crowded dots are still each one's.
+    const QList<std::pair<int, QPointF>> points = dots();
+    if (points.size() < 2 || !graphArea().contains(position))
+        return -1;
+    int nearest = -1;
+    qreal best = 8;
+    for (const auto &[ply, point] : points) {
+        const qreal distance = std::abs(point.x() - position.x());
+        if (distance < best) {
+            best = distance;
+            nearest = ply;
+        }
+    }
+    return nearest;
+}
+
+void EvaluationBox::mouseMoveEvent(QMouseEvent *event)
+{
+    const int ply = plyAt(event->position());
+    if (ply == m_hovered)
+        return;
+    m_hovered = ply;
+    setCursor(ply >= 0 ? Qt::PointingHandCursor : Qt::ArrowCursor);
+    update();
+}
+
+void EvaluationBox::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() != Qt::LeftButton)
+        return QWidget::mousePressEvent(event);
+    if (const int ply = plyAt(event->position()); ply >= 0)
+        Q_EMIT plyClicked(ply);
+}
+
+void EvaluationBox::leaveEvent(QEvent *event)
+{
+    m_hovered = -1;
+    unsetCursor();
+    update();
+    QWidget::leaveEvent(event);
+}
 
 int EvaluationBox::sectionWidth() const
 {
@@ -111,20 +187,15 @@ void EvaluationBox::paintEvent(QPaintEvent *)
     }
 
     // The course of the game, clipped to the box's rounded right end.
-    const QRectF graph(section, bounds.top(), bounds.right() - section, bounds.height());
+    const QRectF graph = graphArea();
     QPainterPath box;
     box.addRoundedRect(bounds, radius, radius);
-    QPainterPath graphArea;
-    graphArea.addRect(graph);
+    QPainterPath clipArea;
+    clipArea.addRect(graph);
     painter.save();
-    painter.setClipPath(box.intersected(graphArea));
+    painter.setClipPath(box.intersected(clipArea));
     const int plies = int(m_shares.size()) - 1;
     const qreal step = graph.width() / qMax(kPliesShown, plies);
-    const auto xAt = [&](int ply) { return graph.left() + ply * step; };
-    // White's side is where White's pieces start: the bottom, unless turned.
-    const auto yAt = [&](double share) {
-        return m_flipped ? graph.top() + share * graph.height() : graph.bottom() - share * graph.height();
-    };
 
     // The midline, the balance, marked: above it one side is better, below it the other.
     QColor midline = palette().color(QPalette::WindowText);
@@ -133,43 +204,32 @@ void EvaluationBox::paintEvent(QPaintEvent *)
     painter.drawLine(QPointF(graph.left(), graph.center().y()), QPointF(graph.right(), graph.center().y()));
     // The move on the board.
     if (m_current >= 0 && m_current <= plies && plies > 0) {
+        const qreal x = graph.left() + m_current * step;
         QColor marker = palette().color(QPalette::Highlight);
         marker.setAlphaF(0.6);
         painter.setPen(QPen(marker, 1.5));
-        painter.drawLine(QPointF(xAt(m_current), graph.top()), QPointF(xAt(m_current), graph.bottom()));
+        painter.drawLine(QPointF(x, graph.top()), QPointF(x, graph.bottom()));
     }
 
     // A dot for each move whose evaluation is known, joined to the next one
     // known by a line: nothing filled.
-    const qreal inset = 4; // The dots stay whole at the top and the bottom.
-    const auto yIn = [&](double share) {
-        const double y = yAt(share);
-        return qBound(graph.top() + inset, y, graph.bottom() - inset);
-    };
-    QList<QPointF> points;
-    QList<int> pointPlies;
-    for (int ply = 0; ply <= plies; ++ply) {
-        std::optional<double> share = m_shares.at(ply);
-        if (!share && ply == 0)
-            share = 0.5; // The start is even until known otherwise.
-        if (share) {
-            points << QPointF(xAt(ply), yIn(*share));
-            pointPlies << ply;
-        }
-    }
+    const QList<std::pair<int, QPointF>> points = dots();
     const QColor ink = palette().color(QPalette::WindowText);
     if (points.size() >= 2) {
+        QList<QPointF> line;
+        for (const auto &[ply, point] : points)
+            line << point;
         painter.setPen(QPen(ink, 1.2));
         painter.setBrush(Qt::NoBrush);
-        painter.drawPolyline(points.constData(), int(points.size()));
+        painter.drawPolyline(line.constData(), int(line.size()));
     }
     // Small enough not to touch when the moves crowd the width.
     const qreal dot = qBound(1.2, step / 3, 2.6);
-    for (qsizetype i = 0; i < points.size(); ++i) {
-        const bool current = pointPlies.at(i) == m_current;
+    for (const auto &[ply, point] : points) {
+        const bool marked = ply == m_current || ply == m_hovered;
         painter.setPen(Qt::NoPen);
-        painter.setBrush(current ? palette().color(QPalette::Highlight) : ink);
-        painter.drawEllipse(points.at(i), current ? dot + 1 : dot, current ? dot + 1 : dot);
+        painter.setBrush(marked ? palette().color(QPalette::Highlight) : ink);
+        painter.drawEllipse(point, marked ? dot + 1.2 : dot, marked ? dot + 1.2 : dot);
     }
     painter.restore();
 

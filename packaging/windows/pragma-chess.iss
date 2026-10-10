@@ -203,4 +203,9 @@ begin
   WizardForm.WizardSmallBitmapImage.Visible := False;
   WizardForm.PageNameLabel.Width := WizardForm.PageNameLabel.Width + WizardForm.WizardSmallBitmapImage.Width;
   WizardForm.PageDescriptionLabel.Width := WizardForm.PageDescriptionLabel.Width + WizardForm.WizardSmallBitmapImage.Width;
+  { Its description at the title's margin, not indented under it as the
+    classic wizard has it: the pages read as the shoulder, aligned left. }
+  WizardForm.PageDescriptionLabel.Width := WizardForm.PageDescriptionLabel.Width
+    + WizardForm.PageDescriptionLabel.Left - WizardForm.PageNameLabel.Left;
+  WizardForm.PageDescriptionLabel.Left := WizardForm.PageNameLabel.Left;
 end;

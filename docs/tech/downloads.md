@@ -88,6 +88,35 @@ migliaia di utenti. Le date dicono che i file vengono aggiornati raramente
 Il PGN dell'utente (anche `.pgn.zst` e `.pgn.bz2`) si converte invece in
 locale, dalla scheda "Local".
 
+## Le licenze
+
+**Motori: niente da ridistribuire.** I binari non stanno sul server di En
+Croissant: il suo catalogo ha solo nome, versione e il link alla fonte
+ufficiale (le release di Stockfish e RubiChess su GitHub, `komodochess.com`),
+e il programma scarica da lì, come farebbe l'utente col browser. Il GPL di
+Stockfish e le condizioni di Komodo restano tra l'utente e l'autore.
+
+**Database: qui sì.** I `.db3` li ospita lui, convertiti: è una
+ridistribuzione di un'opera derivata, e conta la licenza di ciascuna raccolta.
+
+| Raccolta | Condizioni trovate (2026-10-11) | Cosa vorrebbero |
+|---|---|---|
+| Lumbra's GigaBase | CC BY-NC-SA 4.0 dal piè di pagina del sito (il testo annuncia anche CC BY-NC 4.0); i dati di lichess fino al 2022 CC BY-SA 4.0; le partite di TWIC tolte dalla raccolta su richiesta | l'attribuzione all'autore (Michael Jansen), nessun uso commerciale, la versione convertita con la stessa licenza. Il catalogo di En Croissant non ha descrizione, autore né licenza per nessuna voce, e offre la versione di giugno 2025 |
+| Caissabase | nessuna condizione trovata (il sito rifiuta l'accesso automatico) | da chiedere all'autore |
+| MillionBase, Ajedrez Data | nessuna condizione trovata | da chiedere |
+
+"Gratis da scaricare" non vuol dire "ridistribuibile". Le mosse di una partita
+sono fatti, ma in Europa una raccolta può essere protetta dal diritto *sui
+generis* sulle banche dati, e i commenti dal diritto d'autore.
+
+**Per noi:** i motori come fa lui (il catalogo con i link alle fonti
+ufficiali); i database li ospitiamo solo con una licenza chiara che permetta
+la ridistribuzione (i dati di lichess sono CC0), con fonte, autore e licenza
+scritti nel catalogo, nella finestra e nelle proprietà del database
+(`DatabaseProperties`). Dove la licenza non c'è o non lo permette, il catalogo
+indica la fonte originale e il programma converte sul computer dell'utente
+(Strumenti ▸ Converti).
+
 ## Pilotare apt-get sarebbe una porcata?
 
 Sì. Per Pragma Chess sarebbe la strada sbagliata, per molte ragioni insieme:
@@ -150,6 +179,7 @@ stesso spirito: è la distribuzione a installarlo, non il programma.
 - Codice: `src/utils/engines.ts`, `src/utils/db.ts`,
   `src/components/engines/AddEngine.tsx`, `src/components/databases/AddDatabase.tsx`,
   `src-tauri/src/fs.rs` nel repository di En Croissant (ramo master, 2026-10-11)
+- Lumbra's GigaBase: <https://lumbrasgigabase.com/en/> (licenza nel testo e nel piè di pagina)
 - Cataloghi: <https://encroissant.org/engines?os=linux&bmi2=true>,
   <https://encroissant.org/databases>, <https://encroissant.org/puzzle_databases>
 - I file: le intestazioni HTTP di `db.encroissant.org` (server Cloudflare,

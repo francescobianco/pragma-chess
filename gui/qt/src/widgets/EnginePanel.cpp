@@ -324,12 +324,18 @@ void EnginePanel::fitLine()
     const QString text = m_lineHidden ? tr("The best line is hidden: it is your move.") : m_lineText;
     // On as many lines as the room left holds; when it holds fewer, on one
     // line ending in "…", the whole of it in the tooltip.
+    // Wrapped, the rows a little apart: a long line reads better.
+    constexpr int kLineHeight = 118; // Per cent.
     const QFontMetrics metrics = m_line->fontMetrics();
     const int width = qMax(1, m_line->width());
-    const int needed = metrics.boundingRect(QRect(0, 0, width, 1 << 20), Qt::TextWordWrap, text).height();
+    const int rows = metrics.boundingRect(QRect(0, 0, width, 1 << 20), Qt::TextWordWrap, text).height()
+                     / qMax(1, metrics.lineSpacing());
+    const int needed = rows <= 1 ? metrics.height() : rows * metrics.lineSpacing() * kLineHeight / 100;
     const bool fits = needed <= m_line->height();
     m_line->setWordWrap(fits);
-    m_line->setText(fits ? text : metrics.elidedText(text, Qt::ElideRight, width));
+    m_line->setTextFormat(fits ? Qt::RichText : Qt::PlainText);
+    m_line->setText(fits ? QStringLiteral("<div style=\"line-height: %1%\">%2</div>").arg(kLineHeight).arg(text.toHtmlEscaped())
+                         : metrics.elidedText(text, Qt::ElideRight, width));
     m_line->setToolTip(fits ? QString() : text);
 }
 

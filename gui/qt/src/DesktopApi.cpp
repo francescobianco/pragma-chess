@@ -22,6 +22,7 @@
 #include "app/Drawers.h"
 #include "app/PersonalSettings.h"
 #include "widgets/BoardWidget.h"
+#include "widgets/EnginePanel.h"
 
 #include <QApplication>
 #include <QPushButton>
@@ -452,6 +453,25 @@ void DesktopApi::addRoutes()
         return json(QJsonObject{{QStringLiteral("status"), w->m_lobbyStatus},
                                 {QStringLiteral("canSendMove"), w->m_lobbyCanSend.first},
                                 {QStringLiteral("canSendPlan"), w->m_lobbyCanSend.second}});
+    });
+    // The online clocks, shown with the times given, to see them without a game:
+    // {"white": ms, "black": ms, "running": "white"|"black"|""}, {"hide": true}.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/clocks"), [w](const Request &request) {
+        const QJsonObject body = bodyOf(request).value_or(QJsonObject());
+        std::optional<Side> running;
+        if (body.value(QStringLiteral("running")).toString() == QLatin1String("white"))
+            running = Side::White;
+        else if (body.value(QStringLiteral("running")).toString() == QLatin1String("black"))
+            running = Side::Black;
+        w->m_enginePanel->setClocks(!body.value(QStringLiteral("hide")).toBool(),
+                                    body.value(QStringLiteral("white")).toInt(180000),
+                                    body.value(QStringLiteral("black")).toInt(180000), running);
+        QApplication::processEvents();
+        QByteArray png;
+        QBuffer buffer(&png);
+        buffer.open(QIODevice::WriteOnly);
+        w->m_enginePanel->grab().save(&buffer, "PNG");
+        return Response{200, "image/png", png};
     });
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/flip"), toggle(w->m_flipBoardAction, QStringLiteral("the board")));
     // The engines of this computer and their Computing Power, and what the

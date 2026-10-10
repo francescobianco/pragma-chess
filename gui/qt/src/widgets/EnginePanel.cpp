@@ -320,9 +320,9 @@ void EnginePanel::setBookName(const QString &name)
     m_book->setText(name.isEmpty() ? QStringLiteral("–") : name);
 }
 
-void EnginePanel::setClocks(bool shown, const ChessClocks::Face &left, const ChessClocks::Face &right, int running)
+void EnginePanel::setClocks(bool shown, int whiteMs, int blackMs, std::optional<Side> running)
 {
     m_clocks->setVisible(shown);
     if (shown)
-        m_clocks->setClocks(left, right, running);
+        m_clocks->setClocks(whiteMs, blackMs, running);
 }

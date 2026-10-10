@@ -38,8 +38,9 @@ public:
     /// the board. Hidden when not `shown`.
     void setLobby(bool shown, const QString &status = QString(), bool canSendMove = false, bool canSendPlan = false);
     /// Online play: the two clocks, large (see ChessClocks); hidden when not `shown`.
-    void setClocks(bool shown, const ChessClocks::Face &left = {}, const ChessClocks::Face &right = {},
-                   int running = -1);
+    void setClocks(bool shown, int whiteMs = 0, int blackMs = 0, std::optional<Side> running = std::nullopt);
+    /// The clocks follow the board: the colour at its bottom first.
+    void setClocksFlipped(bool flipped) { m_clocks->setFlipped(flipped); }
     /// Summary of the "Explain" command; empty hides it.
     void setExplanation(const QString &text);
     /// The opening the game is in and the chosen opening book; empty values show a dash.

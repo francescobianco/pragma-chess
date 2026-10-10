@@ -1,5 +1,7 @@
 #include "ChessClocks.h"
 
+#include "widgets/PieceRenderer.h"
+
 #include <QPainter>
 #include <QPainterPath>
 #include <QTimer>
@@ -15,6 +17,7 @@ constexpr qreal kGap = kDigitHeight * 0.14;   // Between two figures.
 constexpr qreal kNarrow = kDigitHeight * 0.22; // A colon's or a point's place.
 constexpr qreal kPadding = 12;
 constexpr qreal kSpacing = 14; // Between the two clocks.
+constexpr qreal kKing = kDigitHeight; // The king's square, as tall as the figures.
 
 QString clockText(int ms)
 {
@@ -132,17 +135,23 @@ ChessClocks::ChessClocks(QWidget *parent)
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 
-void ChessClocks::setClocks(const Face &left, const Face &right, int running)
+void ChessClocks::setClocks(int whiteMs, int blackMs, std::optional<Side> running)
 {
-    m_faces[0] = left;
-    m_faces[1] = right;
+    m_ms[int(Side::White)] = whiteMs;
+    m_ms[int(Side::Black)] = blackMs;
     m_running = running;
     m_since.start();
-    if (running >= 0)
+    if (running)
         m_tick->start();
     else
         m_tick->stop();
     updateGeometry();
+    update();
+}
+
+void ChessClocks::setFlipped(bool flipped)
+{
+    m_flipped = flipped;
     update();
 }
 
@@ -151,15 +160,14 @@ qreal ChessClocks::displayWidth() const
     // Wide enough for "8:88.8" — the tenths come under ten seconds — or for
     // hours, so the display never changes width while the time runs down.
     qreal width = textWidth(QStringLiteral("8:88.8"));
-    for (const Face &face : m_faces)
-        width = qMax(width, textWidth(clockText(face.ms).replace(QLatin1Char('.'), QString())));
-    return width + 2 * kPadding;
+    for (int ms : m_ms)
+        width = qMax(width, textWidth(clockText(ms).replace(QLatin1Char('.'), QString())));
+    return width + kKing + 3 * kPadding;
 }
 
 QSize ChessClocks::sizeHint() const
 {
-    const int name = fontMetrics().height() + 6;
-    return {int(2 * displayWidth() + kSpacing) + 2, int(kDigitHeight + 2 * kPadding) + name + 2};
+    return {int(2 * displayWidth() + kSpacing) + 2, int(kDigitHeight + 2 * kPadding) + 2};
 }
 
 QSize ChessClocks::minimumSizeHint() const
@@ -167,10 +175,10 @@ QSize ChessClocks::minimumSizeHint() const
     return sizeHint();
 }
 
-int ChessClocks::remaining(int index) const
+int ChessClocks::remaining(Side side) const
 {
-    const int ms = m_faces[index].ms;
-    return index == m_running ? int(qMax<qint64>(0, ms - m_since.elapsed())) : ms;
+    const int ms = m_ms[int(side)];
+    return side == m_running ? int(qMax<qint64>(0, ms - m_since.elapsed())) : ms;
 }
 
 void ChessClocks::paintEvent(QPaintEvent *)
@@ -178,16 +186,17 @@ void ChessClocks::paintEvent(QPaintEvent *)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     const qreal width = displayWidth();
-    // From the left, as the rest of the panel: the opponent's, then the user's.
+    // From the left, as the rest of the panel: the colour at the board's bottom first.
+    const Side first = m_flipped ? Side::Black : Side::White;
+    const Side sides[2] = {first, first == Side::White ? Side::Black : Side::White};
     for (int i = 0; i < 2; ++i)
-        paintFace(painter, QRectF(1 + i * (width + kSpacing), 1, width, height() - 2), m_faces[i], remaining(i),
-                  i == m_running);
+        paintFace(painter, QRectF(1 + i * (width + kSpacing), 1, width, height() - 2), sides[i], remaining(sides[i]),
+                  sides[i] == m_running);
 }
 
-void ChessClocks::paintFace(QPainter &painter, const QRectF &area, const Face &face, int ms, bool running) const
+void ChessClocks::paintFace(QPainter &painter, const QRectF &area, Side side, int ms, bool running) const
 {
-    const QPalette pal = palette();
-    const QColor accent = pal.color(QPalette::Highlight);
+    const QColor accent = palette().color(QPalette::Highlight);
     const QColor red(0xff, 0x4d, 0x4d);
 
     // The display: dark on any theme, as the clocks are; the running one ringed.
@@ -196,25 +205,17 @@ void ChessClocks::paintFace(QPainter &painter, const QRectF &area, const Face &f
     painter.setBrush(QColor(0x16, 0x16, 0x16));
     painter.drawRoundedRect(display.adjusted(0.5, 0.5, -0.5, -0.5), 6, 6);
 
+    // Its colour: the king, on a square of paper so the black one shows on the dark.
+    const QRectF square(display.left() + kPadding, display.top() + kPadding, kKing, kKing);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(0xee, 0xe8, 0xd8));
+    painter.drawRoundedRect(square, 4, 4);
+    PieceRenderer::paint(painter, Piece{PieceType::King, side}, square.adjusted(2, 2, -2, -2), devicePixelRatioF());
+
     const QColor lit = ms < kLowTimeMs ? red : (running ? QColor(0xf4, 0xf4, 0xf0) : QColor(0xb8, 0xb8, 0xb4));
     const QColor unlit(0xff, 0xff, 0xff, 14);
     // The time right-aligned in the display, as a clock's figures stand.
     const QString text = clockText(ms);
     const qreal x = display.right() - kPadding - textWidth(text);
     paintTime(painter, x, display.top() + kPadding, text, lit, unlit);
-
-    // Who it is, under the display, from its left edge.
-    QFont nameFont = font();
-    nameFont.setBold(running);
-    painter.setFont(nameFont);
-    const QColor ink = pal.color(QPalette::WindowText);
-    const QColor window = pal.color(QPalette::Window);
-    const qreal fade = running ? 0.0 : 0.3;
-    painter.setPen(QColor::fromRgbF(ink.redF() * (1 - fade) + window.redF() * fade,
-                                    ink.greenF() * (1 - fade) + window.greenF() * fade,
-                                    ink.blueF() * (1 - fade) + window.blueF() * fade));
-    const QString label = face.rating > 0 ? QStringLiteral("%1 (%2)").arg(face.name).arg(face.rating) : face.name;
-    const QRectF nameRect(area.left() + 2, display.bottom() + 4, area.width() - 2, area.bottom() - display.bottom() - 4);
-    painter.drawText(nameRect, Qt::AlignLeft | Qt::AlignTop,
-                     QFontMetricsF(nameFont).elidedText(label, Qt::ElideRight, nameRect.width()));
 }

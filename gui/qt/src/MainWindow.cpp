@@ -1323,6 +1323,9 @@ void MainWindow::createDocks()
     m_movesDock = addDock(m_sidebar, QStringLiteral("movesDock"), tr("Moves"), m_moveView, Qt::RightDockWidgetArea);
 
     m_enginePanel = new EnginePanel(m_startEngineAction, m_explainAction);
+    // The online clocks follow the board: the colour at its bottom first.
+    m_enginePanel->setClocksFlipped(m_flipBoardAction->isChecked());
+    connect(m_flipBoardAction, &QAction::toggled, m_enginePanel, &EnginePanel::setClocksFlipped);
     {
         QSettings settings;
         m_engines = EngineCatalog::load(settings);
@@ -4661,21 +4664,18 @@ void MainWindow::updateOnlineStatus(const OnlineGame &game)
     else
         m_enginePanel->setStatus(tr("Your move"));
 
-    // The clocks: the opponent's on the left, the user's on the right, as across a
-    // table; they run from the second move, as on the platforms, while the game goes on.
-    const ChessClocks::Face whiteClock{game.white, game.whiteRating, game.whiteTimeMs, true};
-    const ChessClocks::Face blackClock{game.black, game.blackRating, game.blackTimeMs, false};
-    const bool userWhite = !m_onlineSide || *m_onlineSide == Side::White;
+    // The clocks, from the colour at the board's bottom; they run from the second
+    // move, as on the platforms, while the game goes on.
     Side toMove = Side::White;
     if (!game.initialFen.isEmpty())
         if (const std::optional<ChessPosition> start = ChessPosition::fromFen(game.initialFen, ChessPosition::Kings::Optional))
             toMove = start->sideToMove();
     if (game.moves.size() % 2)
         toMove = toMove == Side::White ? Side::Black : Side::White;
-    int running = -1;
+    std::optional<Side> running;
     if (!game.isOver() && game.moves.size() >= 2)
-        running = (toMove == Side::White) == userWhite ? 1 : 0;
-    m_enginePanel->setClocks(true, userWhite ? blackClock : whiteClock, userWhite ? whiteClock : blackClock, running);
+        running = toMove;
+    m_enginePanel->setClocks(true, game.whiteTimeMs, game.blackTimeMs, running);
 }
 
 void MainWindow::onlineGameFinished(const OnlineGame &game)

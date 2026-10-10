@@ -8,6 +8,11 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Two new projects, in English and Italian: **Pawn Endgames** (the square,
+  the king in front of its pawn, the opposition, the rook’s pawn, the outside
+  passed pawn, the breakthrough; every line checked with an engine) and
+  **Fischer – Spassky 1972**, the sixth game of the Reykjavik match with
+  comments.
 - A **welcome window** at startup, over the main window: what Pragma Chess
   does, your projects and databases (read from their folders) to open with a
   click — a database opens in a new project — and New Project. "Don't show

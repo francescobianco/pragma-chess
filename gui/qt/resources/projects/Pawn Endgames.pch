@@ -1,0 +1,371 @@
+# Pragma Chess project
+pragma-chess: 3
+name:
+  en: Pawn Endgames
+  it: Finali di pedone
+multilingual: true
+read-only: true
+database:
+  path: ~
+chapters:
+  current: 0
+  list:
+    - title:
+        en: The Rule of the Square
+        it: La regola del quadrato
+      game: 0
+      ply: 0
+      games:
+        - result: 1-0
+          fen: 8/8/8/P7/4k3/8/8/7K w - - 0 1
+          moves: a5a6 e4d5 a6a7 d5c6 a7a8q
+          paragraphs:
+            - ply: 0
+              kind: title
+              text:
+                en: |
+                  Pawn Endgames
+                it: |
+                  Finali di pedone
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  A short tour
+                it: |
+                  Una breve panoramica
+            - ply: 0
+              text:
+                en: |
+                  Every ending can turn into a pawn ending: exchange the last pieces and only kings and pawns are left. That is why pawn endings are the ground of all the others — before trading a rook or a knight, a player has to know whether the pawn ending that follows is won, drawn or lost. They look simple, a few pieces on an empty board, and they are the most exact of all: one tempo, one square for the king, decides the game.
+                it: |
+                  Ogni finale può diventare un finale di pedoni: si cambiano gli ultimi pezzi e restano solo i re e i pedoni. Per questo i finali di pedone sono la base di tutti gli altri — prima di cambiare una torre o un cavallo bisogna sapere se il finale di pedoni che segue è vinto, patto o perso. Sembrano semplici, pochi pezzi su una scacchiera vuota, e sono i più esatti di tutti: un tempo, una casa per il re, decidono la partita.
+            - ply: 0
+              text:
+                en: |
+                  The ideas of this project are the classical ones, found in every endgame manual: the square of the pawn, the king in front of its pawn, the opposition, the rook’s pawn, the outside passed pawn and the breakthrough. Each chapter is a game to play through, to explain with E and to try against the engine in training; every line was checked with an engine.
+                it: |
+                  Le idee di questo progetto sono quelle classiche, che si trovano in ogni manuale di finali: il quadrato del pedone, il re davanti al suo pedone, l’opposizione, il pedone di torre, il pedone passato lontano e lo sfondamento. Ogni capitolo è una partita da scorrere, da spiegare con E e da provare contro il motore in allenamento; ogni linea è stata verificata con un motore.
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  Can the king catch the pawn?
+                it: |
+                  Il re raggiunge il pedone?
+            - ply: 0
+              text:
+                en: |
+                  When a king alone chases a passed pawn there is no need to count moves. Draw a square with the pawn in one corner and the promotion square in another: for the pawn on a5 it is a5–d5–d8–a8. If the king can step into the square, it catches the pawn; if it cannot, the pawn queens. A pawn still on its starting rank counts as if it had already made its double step.
+                it: |
+                  Quando un re da solo insegue un pedone passato non c’è bisogno di contare le mosse. Si disegna un quadrato con il pedone in un angolo e la casa di promozione in un altro: per il pedone in a5 è a5–d5–d8–a8. Se il re può entrare nel quadrato, raggiunge il pedone; se non può, il pedone va a Donna. Un pedone ancora sulla sua casa di partenza si conta come se avesse già fatto il passo doppio.
+            - ply: 1
+              text:
+                en: |
+                  White moves first, and the square shrinks with the pawn: now it is a6–c6–c8–a8. The king on e4 cannot reach it in one step.
+                it: |
+                  Muove prima il Bianco, e il quadrato si restringe con il pedone: ora è a6–c6–c8–a8. Il re in e4 non può entrarci con un passo.
+            - ply: 5
+              text:
+                en: |
+                  The pawn queens, with check: the king came one step too late.
+                it: |
+                  Il pedone va a Donna, con scacco: il re è arrivato con un passo di ritardo.
+        - result: 1/2-1/2
+          fen: 8/8/8/P7/4k3/8/8/7K b - - 0 1
+          moves: e4d5 a5a6 d5c6 a6a7 c6b7
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  The same, with Black to move
+                it: |
+                  La stessa, con il Nero al tratto
+            - ply: 1
+              text:
+                en: |
+                  Now it is Black who moves first: Kd5 steps into the square a5–d5–d8–a8, and from there the king stays inside it as it shrinks.
+                it: |
+                  Ora muove prima il Nero: Rd5 entra nel quadrato a5–d5–d8–a8, e da lì il re ci resta dentro mentre si restringe.
+            - ply: 5
+              text:
+                en: |
+                  The king stands in front of the pawn and takes it next: a draw. One tempo made the difference.
+                it: |
+                  Il re è davanti al pedone e lo cattura alla mossa dopo: patta. Un tempo ha fatto la differenza.
+    - title:
+        en: The King in Front of Its Pawn
+        it: Il re davanti al suo pedone
+      game: 0
+      ply: 0
+      games:
+        - result: 1-0
+          fen: 4k3/8/4K3/4P3/8/8/8/8 b - - 0 1
+          moves: e8f8 e6d7 f8f7 e5e6 f7f8 e6e7 f8f7 e7e8q
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  The king on the sixth rank
+                it: |
+                  Il re sulla sesta traversa
+            - ply: 0
+              text:
+                en: |
+                  With king and pawn against king the pawn cannot win alone: the king has to clear its way. A king on the sixth rank, in front of its pawn, wins whoever is to move — unless the pawn is a rook’s pawn (see the chapter on it). The defending king is pushed aside, and the attacking king takes the squares the pawn has to cross.
+                it: |
+                  Con re e pedone contro re il pedone da solo non vince: è il re che deve aprirgli la strada. Un re sulla sesta traversa, davanti al suo pedone, vince chiunque abbia il tratto — a meno che il pedone non sia di torre (c’è un capitolo apposta). Il re che difende viene spinto da parte, e quello che attacca prende le case che il pedone deve attraversare.
+            - ply: 2
+              text:
+                en: |
+                  From d7 the king holds e7 and e8, the two squares in front of the pawn: nothing can stop it any more.
+                it: |
+                  Da d7 il re controlla e7 ed e8, le due case davanti al pedone: niente può più fermarlo.
+            - ply: 8
+              text:
+                en: |
+                  Queen and king against king: the rest is the elementary mate.
+                it: |
+                  Donna e re contro re: il resto è il matto elementare.
+        - result: 1/2-1/2
+          fen: 4k3/8/4P3/4K3/8/8/8/8 w - - 0 1
+          moves: e5d6 e8d8 e6e7 d8e8 d6e6
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  When the pawn goes first
+                it: |
+                  Quando il pedone va avanti per primo
+            - ply: 0
+              text:
+                en: |
+                  Here the pawn has run ahead of its king, and the defender stands on the promotion square. The defending king only has to stay on e8 or right next to it, and step back in front of the pawn whenever it can.
+                it: |
+                  Qui il pedone è corso avanti prima del suo re, e chi difende sta sulla casa di promozione. Al re che difende basta restare in e8 o accanto, e tornare davanti al pedone ogni volta che può.
+            - ply: 5
+              text:
+                en: |
+                  Black has no move: stalemate. With the pawn on the seventh rank and the kings like this, the stronger side has nothing better; the king belongs in front of its pawn, not behind it.
+                it: |
+                  Il Nero non ha mosse: stallo. Con il pedone in settima e i re messi così, chi è più forte non ha niente di meglio; il re va davanti al suo pedone, non dietro.
+    - title:
+        en: The Opposition
+        it: L’opposizione
+      game: 0
+      ply: 0
+      games:
+        - result: 1/2-1/2
+          fen: 8/8/4k3/8/4K3/4P3/8/8 w - - 0 1
+          moves: e4d4 e6d6 e3e4 d6e6 e4e5 e6e7 d4d5 e7d7 e5e6 d7e7 d5e5 e7e8 e5d6 e8d8 e6e7 d8e8 d6e6
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  Kings face to face
+                it: |
+                  I re faccia a faccia
+            - ply: 0
+              text:
+                en: |
+                  Two kings facing each other on a file or a rank with one square between them are in opposition, and whoever has to move must give way. Here the kings stand on e4 and e6 and White is to move: Black has the opposition, and that is enough to draw.
+                it: |
+                  Due re che si fronteggiano su una colonna o una traversa con una casa in mezzo sono in opposizione, e chi deve muovere deve cedere il passo. Qui i re stanno in e4 ed e6 e muove il Bianco: l’opposizione ce l’ha il Nero, e gli basta per pattare.
+            - ply: 2
+              text:
+                en: |
+                  Whatever the White king does, the Black king answers on the same file or rank: Kd4 Kd6, and the White king cannot get in front of its pawn.
+                it: |
+                  Qualunque cosa faccia il re bianco, il re nero risponde sulla stessa colonna o traversa: Rd4 Rd6, e il re bianco non riesce a mettersi davanti al suo pedone.
+            - ply: 6
+              text:
+                en: |
+                  Ke7, straight back in front of the pawn, and not to the side.
+                it: |
+                  Re7, dritto indietro davanti al pedone, e non di lato.
+            - ply: 12
+              text:
+                en: |
+                  When the king is pushed to the last rank it goes straight back to e8: from there it can take the opposition again whatever White plays.
+                it: |
+                  Quando il re viene spinto in ultima traversa torna dritto in e8: da lì può riprendere l’opposizione qualunque cosa giochi il Bianco.
+            - ply: 17
+              text:
+                en: |
+                  Stalemate. Black held because the opposition was Black’s every time it counted.
+                it: |
+                  Stallo. Chi difendeva ha tenuto perché aveva l’opposizione ogni volta che contava.
+        - result: 1-0
+          fen: 8/8/4k3/8/4K3/4P3/8/8 b - - 0 1
+          moves: e6d6 e4f5 d6e7 f5e5 e7f7 e5d6 f7f6 e3e4 f6f7 e4e5 f7e8 d6e6 e8f8 e6d7 f8f7 e5e6 f7f8 e6e7 f8f7 e7e8q
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  The same, with Black to move
+                it: |
+                  La stessa, con il Nero al tratto
+            - ply: 0
+              text:
+                en: |
+                  Now Black must move and give way. The squares that win for White are the key squares of the pawn: for a pawn on e3 they are d5, e5 and f5. A king that reaches a key square wins, whoever is to move.
+                it: |
+                  Ora il Nero deve muovere e cedere il passo. Le case che vincono per il Bianco sono le case chiave del pedone: per un pedone in e3 sono d5, e5 ed f5. Un re che arriva su una casa chiave vince, chiunque abbia il tratto.
+            - ply: 2
+              text:
+                en: |
+                  Kf5: the king is on a key square, ahead of its pawn, and Black can no longer stop it.
+                it: |
+                  Rf5: il re è su una casa chiave, davanti al suo pedone, e il Nero non può più fermarlo.
+            - ply: 4
+              text:
+                en: |
+                  Ke5 takes the opposition and wins ground: the White king goes forward with the pawn kept behind it, in reserve.
+                it: |
+                  Re5 prende l’opposizione e guadagna terreno: il re bianco avanza tenendo il pedone dietro di sé, di riserva.
+            - ply: 8
+              text:
+                en: |
+                  Only now the pawn moves, with its king already on the sixth rank, in front of it: from here it is the technique of the previous chapter.
+                it: |
+                  Solo ora il pedone si muove, con il suo re già in sesta traversa, davanti a lui: da qui è la tecnica del capitolo precedente.
+    - title:
+        en: The Rook’s Pawn
+        it: Il pedone di torre
+      game: 0
+      ply: 0
+      games:
+        - result: 1/2-1/2
+          fen: 8/k7/8/P7/8/1K6/8/8 w - - 0 1
+          moves: b3b4 a7b7 b4b5 b7a7 a5a6 a7a8 b5b6 a8b8 a6a7 b8a8 b6a6
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  A corner to hide in
+                it: |
+                  Un angolo dove nascondersi
+            - ply: 0
+              text:
+                en: |
+                  A pawn on the edge of the board has no squares on one side, and the attacking king cannot push the defender away from the corner. If the defending king reaches the promotion square, or the squares next to it, the game is a draw, wherever the other king stands.
+                it: |
+                  Un pedone sul bordo della scacchiera non ha case da un lato, e il re che attacca non può allontanare quello che difende dall’angolo. Se il re che difende arriva sulla casa di promozione, o sulle case vicine, la partita è patta, dovunque stia l’altro re.
+            - ply: 8
+              text:
+                en: |
+                  The Black king steps between a8 and b8 and waits. White can push the pawn or move the king, but there is no way past.
+                it: |
+                  Il re nero si sposta tra a8 e b8 e aspetta. Il Bianco può spingere il pedone o muovere il re, ma non c’è modo di passare.
+            - ply: 11
+              text:
+                en: |
+                  Stalemate. With a rook’s pawn even an extra piece is often not enough: king, bishop and rook’s pawn only draw if the bishop does not control the promotion square.
+                it: |
+                  Stallo. Con un pedone di torre spesso nemmeno un pezzo in più basta: re, alfiere e pedone di torre fanno solo patta se l’alfiere non controlla la casa di promozione.
+    - title:
+        en: The Outside Passed Pawn
+        it: Il pedone passato lontano
+      game: 0
+      ply: 0
+      games:
+        - result: 1-0
+          fen: 8/8/4k3/6p1/P3K1P1/8/8/8 w - - 0 1
+          moves: a4a5 e6d6 e4f5 d6c6 f5g5 c6b5 g5f5 b5a5 g4g5 a5b6 g5g6 b6c7 g6g7 c7d7 g7g8q
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  A pawn far away
+                it: |
+                  Un pedone lontano
+            - ply: 0
+              text:
+                en: |
+                  A passed pawn far from the other pawns is an advantage of its own, often worth more than a pawn. The defending king has to go and stop it, and while it is away the other king eats the pawns left behind.
+                it: |
+                  Un pedone passato lontano dagli altri pedoni è un vantaggio a sé, spesso vale più di un pedone. Il re che difende deve andare a fermarlo, e mentre è lontano l’altro re mangia i pedoni rimasti indietro.
+            - ply: 2
+              text:
+                en: |
+                  The Black king leaves for the a-pawn: if it stayed, a6 and a7 would queen.
+                it: |
+                  Il re nero parte verso il pedone a: se restasse, a6 e a7 andrebbero a Donna.
+            - ply: 5
+              text:
+                en: |
+                  The g5 pawn falls. The a-pawn did its work: it pulled the king away.
+                it: |
+                  Il pedone g5 cade. Il pedone a ha fatto il suo lavoro: ha portato via il re.
+            - ply: 8
+              text:
+                en: |
+                  Black takes the a-pawn, but it is too late: from a5 the king is far outside the square of the g-pawn.
+                it: |
+                  Il Nero prende il pedone a, ma è tardi: da a5 il re è molto fuori dal quadrato del pedone g.
+    - title:
+        en: The Breakthrough
+        it: Lo sfondamento
+      game: 0
+      ply: 0
+      games:
+        - result: 1-0
+          fen: 7k/ppp5/8/PPP5/8/8/8/7K w - - 0 1
+          moves: b5b6 a7b6 c5c6 b7c6 a5a6 h8g7 a6a7 g7f7 a7a8q
+          variations: (2 cxb6 a6 bxa6 c6 )
+          paragraphs:
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  Three against three
+                it: |
+                  Tre contro tre
+            - ply: 0
+              text:
+                en: |
+                  Three pawns against three, the kings too far to take part. White, to move, sacrifices two pawns to make the third a passed pawn that nobody can stop.
+                it: |
+                  Tre pedoni contro tre, i re troppo lontani per intervenire. Il Bianco, che ha il tratto, sacrifica due pedoni per fare del terzo un pedone passato che nessuno può fermare.
+            - ply: 1
+              text:
+                en: |
+                  b6! The middle pawn goes first. After axb6 comes c6, and after cxb6 comes a6: in both cases one White pawn gets through.
+                it: |
+                  b6! Va per primo il pedone centrale. Dopo axb6 viene c6, e dopo cxb6 viene a6: in tutti e due i casi un pedone bianco passa.
+            - ply: 5
+              text:
+                en: |
+                  The a-pawn is free, and the Black king, on h8, is far outside its square.
+                it: |
+                  Il pedone a è libero, e il re nero, in h8, è molto fuori dal suo quadrato.
+            - ply: 9
+              text:
+                en: |
+                  With Black to move, the same position is a draw: …b6! blocks the breakthrough before it starts.
+                it: |
+                  Con il Nero al tratto la stessa posizione è patta: …b6! blocca lo sfondamento prima che cominci.
+board:
+  flipped: false
+  coordinates: true
+engine:
+  name: ~
+  analyzing: false
+workspace:
+  panels:
+    toolbar: true
+    moves: true
+    openingTree: false
+    engine: true
+    games: true
+  gamesHeight: 32
+  movesWidth: 33.33
+  engineHeight: 25
+  treeWidth: 22

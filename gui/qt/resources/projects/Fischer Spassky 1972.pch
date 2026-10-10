@@ -1,0 +1,143 @@
+# Pragma Chess project
+pragma-chess: 3
+name:
+  en: Fischer – Spassky 1972
+  it: Fischer – Spassky 1972
+multilingual: true
+read-only: true
+database:
+  path: ~
+chapters:
+  current: 0
+  list:
+    - title:
+        en: Game 6, Reykjavik 1972
+        it: Sesta partita, Reykjavík 1972
+      game: 0
+      ply: 0
+      games:
+        - result: 1-0
+          white: "Fischer, Robert James"
+          black: "Spassky, Boris V"
+          event: World Championship
+          site: Reykjavik ISL
+          date: 1972.07.23
+          round: "6"
+          eco: D59
+          moves: c2c4 e7e6 g1f3 d7d5 d2d4 g8f6 b1c3 f8e7 c1g5 e8g8 e2e3 h7h6 g5h4 b7b6 c4d5 f6d5 h4e7 d8e7 c3d5 e6d5 a1c1 c8e6 d1a4 c7c5 a4a3 f8c8 f1b5 a7a6 d4c5 b6c5 e1g1 a8a7 b5e2 b8d7 f3d4 e7f8 d4e6 f7e6 e3e4 d5d4 f2f4 f8e7 e4e5 c8b8 e2c4 g8h8 a3h3 d7f8 b2b3 a6a5 f4f5 e6f5 f1f5 f8h7 c1f1 e7d8 h3g3 a7e7 h2h4 b8b7 e5e6 b7c7 g3e5 d8e8 a2a4 e8d8 f1f2 d8e8 f2f3 e8d8 c4d3 d8e8 e5e4 h7f6 f5f6 g7f6 f3f6 h8g8 d3c4 g8h8 e4f4
+          paragraphs:
+            - ply: 0
+              kind: title
+              text:
+                en: |
+                  Fischer – Spassky
+                it: |
+                  Fischer – Spassky
+            - ply: 0
+              kind: subtitle
+              text:
+                en: |
+                  World Championship, Reykjavik 1972, game 6
+                it: |
+                  Campionato del mondo, Reykjavík 1972, sesta partita
+            - ply: 0
+              text:
+                en: |
+                  In the summer of 1972 Bobby Fischer challenged Boris Spassky for the world title in Reykjavik. The match had begun badly for him: he lost the first game and forfeited the second. He won the third and the fifth, and came to the sixth level with the champion. This is the game in which Fischer took the lead for the first time, and the one the whole match is remembered by.
+                it: |
+                  Nell’estate del 1972 Bobby Fischer sfidò Boris Spassky per il titolo mondiale a Reykjavík. Il match era cominciato male per lui: perse la prima partita e la seconda a forfait. Vinse la terza e la quinta, e arrivò alla sesta in parità con il campione. È la partita in cui Fischer passò in vantaggio per la prima volta, e quella con cui si ricorda tutto il match.
+            - ply: 0
+              text:
+                en: |
+                  It is a lesson in plans: a quiet opening, a structure understood better than the opponent, and an attack that comes only when everything is ready. Play it through, ask Explain at the moves marked in the text, and look at the engine’s line with the eye.
+                it: |
+                  È una lezione di piani: un’apertura tranquilla, una struttura capita meglio dell’avversario, e un attacco che arriva solo quando tutto è pronto. Scorrila, chiedi a Spiega delle mosse indicate nel testo, e guarda la linea del motore con l’occhio.
+            - ply: 1
+              text:
+                en: |
+                  Fischer was the player of 1.e4, almost always and all his life. 1.c4 in a World Championship game was a surprise, and Spassky had to play on ground chosen by the challenger.
+                it: |
+                  Fischer era il giocatore di 1.e4, quasi sempre e per tutta la vita. 1.c4 in una partita del Mondiale fu una sorpresa, e Spassky dovette giocare su un terreno scelto dallo sfidante.
+            - ply: 5
+              text:
+                en: |
+                  With d4 the English Opening becomes a Queen’s Gambit Declined, one of Spassky’s own openings.
+                it: |
+                  Con d4 la partita inglese diventa un Gambetto di Donna rifiutato, una delle aperture di Spassky.
+            - ply: 14
+              text:
+                en: |
+                  b6: the Tartakower Defence, solid and well known to Spassky. Black accepts hanging pawns in the centre in return for free play for his pieces.
+                it: |
+                  b6: la difesa Tartakower, solida e ben conosciuta da Spassky. Il Nero accetta pedoni sospesi al centro in cambio di gioco libero per i pezzi.
+            - ply: 27
+              text:
+                en: |
+                  Bb5: White lines up against the pawns on c5 and d5. After dxc5 bxc5 Black is left with two pawns side by side on c5 and d5, strong while they stand together, weak as soon as one of them has to move.
+                it: |
+                  Ab5: il Bianco punta i pedoni in c5 e d5. Dopo dxc5 bxc5 al Nero restano due pedoni affiancati in c5 e d5, forti finché restano insieme, deboli appena uno dei due deve muoversi.
+            - ply: 37
+              text:
+                en: |
+                  Nxe6: the knight gives itself for the bishop that defended the light squares. After fxe6 Black has a pawn on e6 and one less defender of d5, and the White bishop has nothing to fear.
+                it: |
+                  Cxe6: il cavallo si dà per l’alfiere che difendeva le case chiare. Dopo fxe6 il Nero ha un pedone in e6 e un difensore in meno di d5, e l’alfiere bianco non ha più niente da temere.
+            - ply: 40
+              text:
+                en: |
+                  e4 forced the decision: d4 keeps the centre closed but gives up e4 and the long diagonal. The Black pawns are fixed, and White’s e- and f-pawns are free to march.
+                it: |
+                  e4 ha costretto a decidere: d4 tiene chiuso il centro ma lascia e4 e la lunga diagonale. I pedoni neri sono fermi, e i pedoni e ed f del Bianco sono liberi di marciare.
+            - ply: 45
+              text:
+                en: |
+                  Bc4: the bishop takes the diagonal that leads to g8 and the Black king; the e-pawn will soon stand on it, on e6. Every White piece now points at the kingside.
+                it: |
+                  Ac4: l’alfiere prende la diagonale che porta in g8 e al re nero; presto ci arriverà anche il pedone e, in e6. Ogni pezzo bianco ora guarda all’arrocco.
+            - ply: 51
+              text:
+                en: |
+                  f5! The pawns move only now, with the pieces ready behind them. After exf5 Rxf5 the f-file is White’s, and the rooks double on it.
+                it: |
+                  f5! I pedoni si muovono solo ora, con i pezzi pronti dietro. Dopo exf5 Txf5 la colonna f è del Bianco, e le torri si raddoppiano.
+            - ply: 61
+              text:
+                en: |
+                  e6: the pawn cuts the Black position in two. The Black rooks on c7 and e7 are tied to its defence, the knight has no squares, and the queen has to watch f7 and f8.
+                it: |
+                  e6: il pedone taglia in due la posizione nera. Le torri nere in c7 ed e7 sono legate alla sua difesa, il cavallo non ha case, e la Donna deve sorvegliare f7 ed f8.
+            - ply: 62
+              text:
+                en: |
+                  Then Fischer is in no hurry: Qe5, a4, the rooks shuffled on the f-file, Bd3. Black can only wait, and every waiting move of White improves something.
+                it: |
+                  Poi Fischer non ha fretta: De5, a4, le torri spostate sulla colonna f, Ad3. Il Nero può solo aspettare, e ogni mossa d’attesa del Bianco migliora qualcosa.
+            - ply: 75
+              text:
+                en: |
+                  Rxf6! The exchange is given for the pawns around the king: after gxf6 Rxf6 the Black king has nothing left in front of it.
+                it: |
+                  Txf6! La qualità è data per i pedoni attorno al re: dopo gxf6 Txf6 al re nero non resta niente davanti.
+            - ply: 81
+              text:
+                en: |
+                  Qf4, and Spassky resigned: the queen goes to h6, and there is no defence. Fischer led the match for the first time, and in the hall Spassky joined the audience in applauding the game.
+                it: |
+                  Df4, e Spassky abbandonò: la Donna va in h6, e non c’è difesa. Fischer passava in vantaggio nel match per la prima volta, e in sala Spassky si unì al pubblico nell’applaudire la partita.
+board:
+  flipped: false
+  coordinates: true
+engine:
+  name: ~
+  analyzing: false
+workspace:
+  panels:
+    toolbar: true
+    moves: true
+    openingTree: true
+    engine: true
+    games: true
+  gamesHeight: 32
+  movesWidth: 60
+  engineHeight: 25
+  treeWidth: 22

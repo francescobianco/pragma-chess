@@ -31,6 +31,9 @@ public:
                      std::function<void(const QString &engineId)> removeEngine, QWidget *parent = nullptr);
     ~ExtensionsDialog() override;
 
+    /// Shows `provider`'s extensions of `kind` (Engine ▸ Install New Engine…,
+    /// Database ▸ Install New Database…); the search is emptied.
+    void showOnly(const QString &provider, Extension::Kind kind);
     /// For the development API: chooses the first extension whose name
     /// starts with `name` (once the catalog is read); with `install`, installs it.
     bool choose(const QString &name, bool install);

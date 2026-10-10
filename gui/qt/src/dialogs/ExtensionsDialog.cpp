@@ -200,6 +200,16 @@ ExtensionsDialog::ExtensionsDialog(std::function<QString(const InstalledExtensio
 
 ExtensionsDialog::~ExtensionsDialog() = default;
 
+void ExtensionsDialog::showOnly(const QString &provider, Extension::Kind kind)
+{
+    for (int i = 0; i < m_providers.size(); ++i) {
+        if (m_providers.at(i)->id() == provider)
+            m_providerList->setCurrentRow(i);
+    }
+    m_search->clear();
+    m_kind->setCurrentIndex(qMax(0, m_kind->findData(int(kind))));
+}
+
 bool ExtensionsDialog::choose(const QString &name, bool install)
 {
     for (int i = 0; i < m_list->topLevelItemCount(); ++i) {

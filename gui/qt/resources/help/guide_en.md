@@ -300,7 +300,7 @@ When you delete a database on the phone, the computer asks you at its next sync 
 
 **Help ▸ Manage Extensions…** installs engines and databases with a click. On the left are the **providers**, who offer them; in the middle what the chosen provider offers, to search by name and filter by kind; on the right the one you choose, with what it is, how big, where it comes from, and **Install** and **Remove**.
 
-Installing downloads it and puts it in Pragma Chess's own folder, and an engine joins **Engine ▸ Manage Engines…** and **Engine ▸ Switch Engine**, ready to use: nothing else of your computer is touched, and no password is asked. **Remove** takes it away again, and if the engine was in use, the bundled one takes its place. A newer version offered by the provider shows **Update**.
+Installing downloads it and puts it in Pragma Chess's own folder, and an engine joins **Engine ▸ Manage Engines…** and **Engine ▸ Switch Engine**, ready to use: nothing else of your computer is touched, and no password is asked. **Remove** takes it away again, and if the engine was in use, the bundled one takes its place. A newer version offered by the provider shows **Update**. **Engine ▸ Install New Engine…** and **Database ▸ Install New Database…** open the same window on En Croissant's registry, showing only engines or only databases.
 
 The first provider is the registry of En Croissant, another free chess program: its engines (Stockfish, RubiChess, Komodo, Dragon) are downloaded from their authors' own pages, for your system and processor. Its databases are listed but cannot be installed yet: they are in En Croissant's own format.
 

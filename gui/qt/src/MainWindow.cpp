@@ -1080,6 +1080,8 @@ void MainWindow::createMenus()
     connect(m_engineChoiceMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildEngineChoiceMenu);
     rebuildEngineChoiceMenu();
     engine->addAction(tr("&Manage Engines…"), this, &MainWindow::manageEngines);
+    engine->addAction(tr("&Install New Engine…"), this, [this] { showExtensions(int(Extension::Kind::Engine)); })
+        ->setToolTip(tr("Engines to install with a click, in Help ▸ Manage Extensions"));
     engine->addSeparator();
     // A wrong explanation as a case for pragma-explain --replay and smart/tests.
     QAction *copyTicks = engine->addAction(tr("&Copy Explain's Ticks"), this, [this] {
@@ -1097,6 +1099,9 @@ void MainWindow::createMenus()
     database->addAction(m_openDatabaseAction);
     m_databasesMenu = database->addMenu(themeIcon("folder", QStyle::SP_DirIcon), tr("S&witch Database"));
     connect(m_databasesMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildDatabasesMenu);
+    database->addAction(tr("&Install New Database…"), this, [this] { showExtensions(int(Extension::Kind::Database)); })
+        ->setToolTip(tr("Databases to install with a click, in Help ▸ Manage Extensions"));
+    database->setToolTipsVisible(true);
     database->addSeparator();
     database->addAction(m_connectSourceAction);
     database->addAction(m_manageSourcesAction);
@@ -1143,7 +1148,7 @@ void MainWindow::createMenus()
     QMenu *help = menuBar()->addMenu(tr("&Help"));
     help->addAction(m_welcomeAction);
     help->addAction(m_guideAction);
-    help->addAction(tr("Manage E&xtensions…"), this, &MainWindow::showExtensions)
+    help->addAction(tr("Manage E&xtensions…"), this, [this] { showExtensions(); })
         ->setToolTip(tr("Engines and databases from the providers, installed with a click"));
     help->addSeparator();
     help->addAction(tr("&Questions and Ideas…"), this, [] {
@@ -5794,7 +5799,7 @@ void MainWindow::checkForUpdates(bool asked)
     });
 }
 
-void MainWindow::showExtensions()
+void MainWindow::showExtensions(std::optional<int> kind)
 {
     if (!m_extensionsDialog) {
         // An engine installed joins Manage Engines; removed, it leaves it (and
@@ -5821,6 +5826,8 @@ void MainWindow::showExtensions()
         m_extensionsDialog = new ExtensionsDialog(addEngine, removeEngine, this);
         m_extensionsDialog->setAttribute(Qt::WA_DeleteOnClose);
     }
+    if (kind)
+        m_extensionsDialog->showOnly(QStringLiteral("encroissant"), Extension::Kind(*kind));
     m_extensionsDialog->show();
     m_extensionsDialog->raise();
     m_extensionsDialog->activateWindow();

@@ -300,7 +300,7 @@ Quando elimini un database sul telefono, il computer ti chiede alla sincronizzaz
 
 **Aiuto ▸ Gestione estensioni…** installa motori e database con un clic. A sinistra ci sono i **provider**, che li offrono; al centro ciò che offre il provider scelto, da cercare per nome e filtrare per tipo; a destra quello che scegli, con cos'è, quanto pesa, da dove viene, e **Installa** e **Rimuovi**.
 
-Installare lo scarica e lo mette nella cartella di Pragma Chess, e un motore entra in **Motore ▸ Gestisci motori…** e in **Motore ▸ Cambia motore**, pronto all'uso: nient'altro del computer viene toccato, e non viene chiesta nessuna password. **Rimuovi** lo toglie, e se il motore era in uso torna quello incluso. Una versione più nuova offerta dal provider mostra **Aggiorna**.
+Installare lo scarica e lo mette nella cartella di Pragma Chess, e un motore entra in **Motore ▸ Gestisci motori…** e in **Motore ▸ Cambia motore**, pronto all'uso: nient'altro del computer viene toccato, e non viene chiesta nessuna password. **Rimuovi** lo toglie, e se il motore era in uso torna quello incluso. Una versione più nuova offerta dal provider mostra **Aggiorna**. **Motore ▸ Installa nuovo motore…** e **Database ▸ Installa nuovo database…** aprono la stessa finestra sul registro di En Croissant, con solo i motori o solo i database.
 
 Il primo provider è il registro di En Croissant, un altro programma di scacchi libero: i suoi motori (Stockfish, RubiChess, Komodo, Dragon) si scaricano dalle pagine dei loro autori, per il tuo sistema e il tuo processore. I suoi database sono elencati ma non si possono ancora installare: sono nel formato di En Croissant.
 

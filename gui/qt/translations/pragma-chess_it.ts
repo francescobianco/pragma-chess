@@ -3862,6 +3862,22 @@ non è su questo computer.</translation>
         <source>Engines and databases from the providers, installed with a click</source>
         <translation>Motori e database dei provider, installati con un clic</translation>
     </message>
+    <message>
+        <source>&amp;Install New Engine…</source>
+        <translation>&amp;Installa nuovo motore…</translation>
+    </message>
+    <message>
+        <source>Engines to install with a click, in Help ▸ Manage Extensions</source>
+        <translation>Motori da installare con un clic, in Aiuto ▸ Gestione estensioni</translation>
+    </message>
+    <message>
+        <source>&amp;Install New Database…</source>
+        <translation>&amp;Installa nuovo database…</translation>
+    </message>
+    <message>
+        <source>Databases to install with a click, in Help ▸ Manage Extensions</source>
+        <translation>Database da installare con un clic, in Aiuto ▸ Gestione estensioni</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

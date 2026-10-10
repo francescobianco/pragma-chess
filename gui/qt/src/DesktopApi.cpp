@@ -658,9 +658,13 @@ void DesktopApi::addRoutes()
     // Help ▸ Manage Extensions…: opens it and answers with its picture.
     // {"choose": "Stockfish", "install": true} chooses an extension (and installs it).
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/extensions"), [w](const Request &request) {
-        w->showExtensions();
-        QApplication::processEvents();
         const QJsonObject body = bodyOf(request).value_or(QJsonObject());
+        // "kind": "engine" or "database", as Install New Engine… and Install New Database… open it.
+        const QString kind = body.value(QStringLiteral("kind")).toString();
+        w->showExtensions(kind == QLatin1String("engine") ? std::optional<int>(int(Extension::Kind::Engine))
+                          : kind == QLatin1String("database") ? std::optional<int>(int(Extension::Kind::Database))
+                                                              : std::nullopt);
+        QApplication::processEvents();
         if (body.contains(QStringLiteral("choose")))
             w->m_extensionsDialog->choose(body.value(QStringLiteral("choose")).toString(),
                                           body.value(QStringLiteral("install")).toBool());

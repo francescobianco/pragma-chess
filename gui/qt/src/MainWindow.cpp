@@ -5,6 +5,7 @@
 #include "app/GameIdentity.h"
 #include "app/OpeningNames.h"
 #include "app/DatabaseMerge.h"
+#include "app/DistributedUpdate.h"
 #include "app/ShippedOpeningNames.h"
 #include "DesktopApi.h"
 #include "dialogs/AboutDialog.h"
@@ -3164,24 +3165,8 @@ void MainWindow::updateDistributedDatabases()
             }
             continue;
         }
-        QSet<QString> present;
-        QSet<QString> positions;
-        for (qint64 i = 0; i < database->gameCount(); ++i) {
-            const GameRecord header = database->header(i);
-            present.insert(header.uid);
-            if (!header.startFen.isEmpty())
-                positions.insert(header.startFen);
-        }
-        for (const GameStateRecord &state : database->gameStates())
-            present.insert(state.uid); // Thrown away, even for good: not brought back.
-        int added = 0;
-        for (const GameRecord &game : games) {
-            const QString uid = game.uid.isEmpty() ? GameIdentity::uid(game) : game.uid;
-            if (present.contains(uid) || (!game.startFen.isEmpty() && positions.contains(game.startFen)))
-                continue;
-            if (database->addGame(game, &error) >= 0)
-                ++added;
-        }
+        // Migrated, never replaced: what the user loaded, changed or threw away stays so.
+        const int added = DistributedUpdate::addMissingGames(*database, games, &error);
         nameShippedDatabase(*database, QLatin1String(set.english), QString::fromUtf8(set.italian));
         settings.setValue(contentKey, content);
         if (added > 0 && database == m_database.get()) {

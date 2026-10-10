@@ -419,6 +419,8 @@ qt_add_executable(pragma-chess
     src/app/WorkspaceLayout.h
     src/app/DatabaseMerge.cpp
     src/app/DatabaseMerge.h
+    src/app/DistributedUpdate.cpp
+    src/app/DistributedUpdate.h
     src/app/DatabaseMigrations.cpp
     src/app/DatabaseMigrations.h
     src/app/SqliteGameDatabase.cpp
@@ -639,6 +641,8 @@ if(TARGET Qt6::Test)
     qt_add_executable(tst_chessrules tests/tst_chessrules.cpp
         src/app/DatabaseMerge.cpp
         src/app/DatabaseMerge.h
+        src/app/DistributedUpdate.cpp
+        src/app/DistributedUpdate.h
         src/app/DatabaseMigrations.cpp
         src/app/DatabaseMigrations.h
         src/app/SqliteGameDatabase.cpp

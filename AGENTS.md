@@ -1294,7 +1294,10 @@ Databases folder with that lineage, whatever its file is called, gets the
 games a new version brings (by uid — stable, language-independent uids for
 the training sets, `TrainingSets` — or by start position), never touching
 what the user changed and never bringing back a game the user threw away
-(its uid among `gameStates()`); a hash of what this version distributes
+(its uid among `gameStates()`) — **migrated, never replaced**: the games
+the user loaded into it, edited or threw away stay as they are
+(`app/DistributedUpdate::addMissingGames`, which only adds, covered by
+`migratesDistributedDatabasesWithoutReplacing`); a hash of what this version distributes
 (QSettings `distributed/<key>/content`) skips the work when nothing changed.
 Classic Games (its 3 games in code, the rest PGN in
 `resources/classics/classic-games.pgn`, tested by `readsTheClassicGames`) is

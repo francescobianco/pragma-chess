@@ -8,6 +8,7 @@
 #include "app/ChessPosition.h"
 #include "app/DatabaseDedupe.h"
 #include "app/DatabaseMerge.h"
+#include "app/DistributedUpdate.h"
 #include "app/DatabaseMigrations.h"
 #include "app/DatabaseOutline.h"
 #include "app/EngineCatalog.h"
@@ -4620,6 +4621,59 @@ END FUNCTION
                 }
             }
         }
+    }
+
+    void migratesDistributedDatabasesWithoutReplacing()
+    {
+        // A database we distribute, as the user's copy of version 1.
+        const auto game = [](const char *white, const char *uid) {
+            GameRecord record;
+            record.white = QString::fromLatin1(white);
+            record.black = QStringLiteral("Black");
+            record.result = QStringLiteral("1-0");
+            record.uid = QString::fromLatin1(uid);
+            record.moves = {MoveRecord{QStringLiteral("e4"), QStringLiteral("e2e4")}};
+            return record;
+        };
+        const QList<GameRecord> version1{game("Morphy", "shipped-1"), game("Anderssen", "shipped-2"),
+                                         game("Steinitz", "shipped-3")};
+        QTemporaryDir dir;
+        QString error;
+        const std::unique_ptr<SqliteGameDatabase> database =
+            SqliteGameDatabase::create(dir.filePath(QStringLiteral("Classic.pdb")), version1, &error);
+        QVERIFY2(database, qPrintable(error));
+        const auto indexOf = [&](const QString &uid) {
+            for (qint64 i = 0; i < database->gameCount(); ++i)
+                if (database->header(i).uid == uid)
+                    return i;
+            return qint64(-1);
+        };
+
+        // The user loads a game of their own, edits one of ours and throws one away.
+        QVERIFY(database->addGame(game("Me", "mine"), &error) >= 0);
+        std::optional<GameRecord> edited = database->loadGame(indexOf(QStringLiteral("shipped-1")));
+        QVERIFY(edited);
+        edited->white = QStringLiteral("Paul Morphy");
+        QVERIFY(database->replaceGame(indexOf(QStringLiteral("shipped-1")), *edited, &error));
+        QVERIFY(database->setGameState(indexOf(QStringLiteral("shipped-3")), GameState::Trashed, &error));
+
+        // Version 2 brings two new games, and the old ones as they were.
+        QList<GameRecord> version2 = version1;
+        version2 << game("Capablanca", "shipped-4") << game("Alekhine", "shipped-5");
+        QCOMPARE(DistributedUpdate::addMissingGames(*database, version2, &error), 2);
+        QCOMPARE(database->gameCount(), qint64(6)); // 3 of ours, the user's, 2 new: nothing replaced.
+        QVERIFY(indexOf(QStringLiteral("mine")) >= 0);
+        QCOMPARE(database->header(indexOf(QStringLiteral("shipped-1"))).white, QStringLiteral("Paul Morphy"));
+        QCOMPARE(database->header(indexOf(QStringLiteral("shipped-3"))).state, GameState::Trashed);
+        QVERIFY(indexOf(QStringLiteral("shipped-4")) >= 0);
+
+        // Thrown away for good, it does not come back either; a second run adds nothing.
+        QVERIFY(database->setGameState(indexOf(QStringLiteral("shipped-3")), GameState::Deleted, &error));
+        QVERIFY(database->optimize(&error) >= 0);
+        QCOMPARE(indexOf(QStringLiteral("shipped-3")), qint64(-1));
+        QCOMPARE(DistributedUpdate::addMissingGames(*database, version2, &error), 0);
+        QCOMPARE(indexOf(QStringLiteral("shipped-3")), qint64(-1));
+        QCOMPARE(database->gameCount(), qint64(5));
     }
 
     void keepsTheProjectsDatabaseLineage()

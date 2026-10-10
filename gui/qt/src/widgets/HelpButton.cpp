@@ -142,8 +142,14 @@ void HelpButton::paintEvent(QPaintEvent *)
     // A "?" in a thin circle, as help reads on the desktop.
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    const QColor color = palette().color(isEnabled() ? QPalette::Normal : QPalette::Disabled,
-                                         underMouse() || m_bubble ? QPalette::Highlight : QPalette::WindowText);
+    // Muted, and the same hovered or not: a remark beside the field, not a control
+    // calling for attention. The text's colour halfway to the window's.
+    const QColor text = palette().color(isEnabled() ? QPalette::Normal : QPalette::Disabled, QPalette::WindowText);
+    const QColor window = palette().color(QPalette::Window);
+    const qreal share = 0.55;
+    const QColor color = QColor::fromRgbF(text.redF() * (1 - share) + window.redF() * share,
+                                          text.greenF() * (1 - share) + window.greenF() * share,
+                                          text.blueF() * (1 - share) + window.blueF() * share);
     const qreal side = qMin(width(), height()) - 4.0;
     const QRectF circle((width() - side) / 2, (height() - side) / 2, side, side);
     painter.setPen(QPen(color, 1.2));
@@ -161,7 +167,6 @@ void HelpButton::showBubble()
         return;
     m_bubble = new Bubble(m_text, this);
     m_bubble->show();
-    update();
 }
 
 void HelpButton::hideBubble()
@@ -169,5 +174,4 @@ void HelpButton::hideBubble()
     if (m_bubble)
         m_bubble->close();
     m_bubble = nullptr;
-    update();
 }

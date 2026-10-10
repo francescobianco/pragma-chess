@@ -25,7 +25,7 @@
 
 namespace {
 
-constexpr int kPreviewSquare = 28;
+constexpr int kPreviewSquare = 40;
 
 /// Two squares of the style, a white knight on the light one and a black
 /// knight on the dark one: the colours and the pieces at a glance.
@@ -99,6 +99,12 @@ PersonalSettingsDialog::PersonalSettingsDialog(const PersonalSettings &settings,
                                     tr("<p>Your number at FIDE, the world chess federation: the digits of your FIDE "
                                        "profile.</p><p>Optional.</p>"),
                                     this));
+    // The board's style apart, under a line, and larger: it is seen, not read.
+    auto *styleLine = new QFrame(this);
+    styleLine->setFrameShape(QFrame::HLine);
+    styleLine->setFrameShadow(QFrame::Sunken);
+    form->addRow(styleLine);
+    m_boardTheme->setMinimumHeight(kPreviewSquare + 12);
     form->addRow(tr("Board &style:"),
                  HelpButton::beside(m_boardTheme,
                                     tr("<p>The colours of the squares and the pieces, together: Pragma Classic, Lichess "

@@ -8,6 +8,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Projects (`.pch`) open with Pragma Chess from your file manager, and
+  their icon is your system's document with a pawn on the page.
 - A **`.pragmaignore`** file in the synced folder on the server (FTP,
   WebDAV or Git) lists files that stay there only, written as in
   `.gitignore`: the README and LICENSE of your repository no longer land in

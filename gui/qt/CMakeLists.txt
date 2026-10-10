@@ -432,6 +432,8 @@ qt_add_executable(pragma-chess
     src/platform/FolderIcon.cpp
     src/platform/FolderIcon.h
     src/platform/MoveSound.cpp
+    src/platform/ProjectFileType.cpp
+    src/platform/ProjectFileType.h
     src/platform/MoveSound.h
     src/platform/DialogFrame.cpp
     src/platform/DialogFrame.h
@@ -564,6 +566,8 @@ qt_add_resources(pragma-chess welcome PREFIX /welcome BASE resources/welcome
 qt_add_resources(pragma-chess appicon PREFIX /icons BASE data/icons FILES ${APP_ICON_FILES})
 # The sound of a move (a CC0 wooden knock, resources/sounds/README.md), played by the system's own player.
 qt_add_resources(pragma-chess sounds PREFIX / FILES resources/sounds/move.wav)
+# The MIME type of projects, written for the user at run time too (ProjectFileType).
+qt_add_resources(pragma-chess mime PREFIX /mime BASE data FILES data/${APP_ID}.mime.xml)
 if(WIN32)
     target_sources(pragma-chess PRIVATE data/pragma-chess.rc)
     target_link_libraries(pragma-chess PRIVATE winmm shell32)
@@ -600,6 +604,8 @@ set_target_properties(pragma-chess PROPERTIES
     MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
     MACOSX_BUNDLE_COPYRIGHT "Copyright © Francesco Bianco and contributors"
+    # CMake's own template, plus the projects (.pch) as documents of the app.
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/data/Info.plist.in
 )
 
 # Command line "Explain", for tuning it on real lines (see docs/explain-tuning.md).
@@ -683,6 +689,8 @@ if(UNIX AND NOT APPLE)
         DESTINATION ${CMAKE_INSTALL_DATADIR}/icons)
     install(FILES data/${APP_ID}.metainfo.xml
         DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    install(FILES data/${APP_ID}.mime.xml
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/mime/packages RENAME ${APP_ID}.xml)
     # The bundled engine, when staged. A literal lib/, not CMAKE_INSTALL_LIBDIR
     # (lib64, lib/<multiarch>): EngineCatalog::bundledEngineDirs looks there.
     install(PROGRAMS ${PRAGMA_ENGINES_STAGE}/stockfish

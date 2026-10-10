@@ -5,6 +5,7 @@
 #include "platform/MacDesktopStyle.h"
 
 #include <QApplication>
+#include <QFileOpenEvent>
 #include <QIcon>
 
 #ifdef Q_OS_UNIX
@@ -81,6 +82,39 @@ void installTerminationHandler(QApplication &app, MainWindow &window)
 } // namespace
 #endif
 
+#ifdef Q_OS_MACOS
+namespace {
+
+/// Finder opens a project (Info.plist declares them) with an event, not on
+/// the command line.
+class FileOpenFilter : public QObject {
+public:
+    explicit FileOpenFilter(MainWindow *window)
+        : QObject(window)
+        , m_window(window)
+    {
+    }
+
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override
+    {
+        if (event->type() == QEvent::FileOpen) {
+            const QString path = static_cast<QFileOpenEvent *>(event)->file();
+            if (path.endsWith(QLatin1String(".pch"), Qt::CaseInsensitive)) {
+                m_window->openProjectFile(path);
+                return true;
+            }
+        }
+        return QObject::eventFilter(watched, event);
+    }
+
+private:
+    MainWindow *m_window;
+};
+
+} // namespace
+#endif
+
 int main(int argc, char *argv[])
 {
     // Menu entries are text only, as in GNOME and macOS; icons stay in toolbars.
@@ -128,6 +162,9 @@ int main(int argc, char *argv[])
     installTerminationHandler(app, window);
 #endif
     window.show();
+#ifdef Q_OS_MACOS
+    app.installEventFilter(new FileOpenFilter(&window));
+#endif
     // Project files passed on the command line (e.g. opened from the file manager).
     const QStringList arguments = app.arguments().mid(1);
     for (const QString &argument : arguments) {

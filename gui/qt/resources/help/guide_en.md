@@ -232,7 +232,7 @@ Deleting does not shrink the file yet. **Database ▸ Database Settings… ▸ O
 A project is what you are looking at: the database, the game and the move, the side the board is seen from, the engine, the panels and whether you are training. The title bar shows its name — the file's, or the one given in **File ▸ Project Settings…** — with an asterisk when it has changes not saved, and, once the project has chapters, the chapter open (it goes when the project is back without chapters): *Openings* - The Italian - Pragma Chess*.
 
 - **File ▸ New Project** keeps what you see — database, engine, panels — and starts a new, empty game, with White below.
-- **File ▸ Open Project…** and **File ▸ Open Recent Project** open a `.pch` file.
+- **File ▸ Open Project…** and **File ▸ Open Recent Project** open a `.pch` file. In your file manager a project has the document icon of your system with a pawn on the page, and opening it opens Pragma Chess.
 - **File ▸ Save Project** and **File ▸ Save Project As…** save it.
 
 You do not have to save: Pragma Chess reopens as you closed it.

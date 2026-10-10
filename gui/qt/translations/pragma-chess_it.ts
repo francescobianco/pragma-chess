@@ -4602,6 +4602,13 @@ Le %n partite già importate restano nel database.</numerusform>
     </message>
 </context>
 <context>
+    <name>ProjectFileType</name>
+    <message>
+        <source>Pragma Chess Project</source>
+        <translation>Progetto di Pragma Chess</translation>
+    </message>
+</context>
+<context>
     <name>ProjectSettingsDialog</name>
     <message>
         <source>Project Settings</source>

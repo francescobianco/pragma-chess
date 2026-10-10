@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-pragma-chess-project">
+    <comment>Pragma Chess project</comment>
+    <comment xml:lang="it">Progetto di Pragma Chess</comment>
+    <icon name="io.github.francescobianco.PragmaChess-project"/>
+    <glob pattern="*.pch" weight="60"/>
+    <magic priority="60">
+      <match type="string" value="# Pragma Chess project" offset="0"/>
+    </magic>
+  </mime-type>
+</mime-info>

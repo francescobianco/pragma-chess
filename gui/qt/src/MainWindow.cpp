@@ -69,6 +69,7 @@
 #include "platform/Appearance.h"
 #include "platform/FolderIcon.h"
 #include "platform/MoveSound.h"
+#include "platform/ProjectFileType.h"
 #include "platform/SymbolicIcons.h"
 #include "platform/WindowChrome.h"
 #include "widgets/BoardPanel.h"
@@ -479,7 +480,10 @@ MainWindow::MainWindow(QWidget *parent)
     applySyncSettings();
     createPhoneLink();
     // The chess and Pragma folders wear a pawn, as Videos wears a film: once the window is up.
-    QTimer::singleShot(3000, this, [] { FolderIcon::applyToChessFolders(); });
+    QTimer::singleShot(3000, this, [] {
+        FolderIcon::applyToChessFolders();
+        ProjectFileType::registerWithSystem(); // Projects open here, with a pawn on the page.
+    });
 
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::scheduleSaveSession);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::scheduleSaveSession);

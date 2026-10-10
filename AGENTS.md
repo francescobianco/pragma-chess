@@ -1242,7 +1242,21 @@ while one of them is selected.
   the icon theme; set with `gio set … metadata::custom-icon` (and
   `.directory` on KDE), `desktop.ini` on Windows, NSWorkspace on macOS,
   only when the picture changed (QSettings `folderIcon/applied`) and never
-  over an icon the user gave the folder. The folder sync never carries a
+  over an icon the user gave the folder. Projects (`.pch`) are documents of
+  the application (`platform/ProjectFileType`): their icon is the theme's
+  `text-x-generic` (the shell's text file on Windows) with its lines taken
+  off, each column redrawn from the paper above and below so the shading
+  stays, and the pawn (`FolderIcon::pawnPath`) in their place and colour.
+  Linux: the MIME type `application/x-pragma-chess-project`
+  (`data/<app id>.mime.xml`, installed and also written for the user with
+  `update-mime-database`), the icon `<app id>-project` in the user's
+  hicolor, the desktop entry's `MimeType`, and `xdg-mime default` only
+  when no application is the default. Windows: the installer's ProgId
+  `PragmaChess.Project`, written again for the user (HKCU) with the icon
+  and this executable. macOS: `data/Info.plist.in` declares the type (UTI
+  `<app id>.project`) and Finder draws its documents; it opens them with a
+  `QFileOpenEvent` (`main.cpp`). Done again only when something changed
+  (QSettings `projectFiles/registered`). The folder sync never carries a
   folder's icon (`desktop.ini`, macOS's `Icon\r`). Options ▸ Folder Settings…
   (`dialogs/FolderSettingsDialog`) moves the Pragma folder or any of
   Databases, Projects, Books, Opening Names elsewhere, per computer

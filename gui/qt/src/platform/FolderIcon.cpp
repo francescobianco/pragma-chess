@@ -36,38 +36,6 @@ namespace {
 /// (not the antialiasing of an edge drawn a hair differently).
 constexpr int kEmblemDifference = 40;
 
-/// The pawn, a silhouette in the unit square, in parts with gaps between
-/// them as a figurine has: the head, the collar, the body and the base.
-QPainterPath pawnPath()
-{
-    QPainterPath pawn;
-    pawn.setFillRule(Qt::WindingFill);
-    // The head.
-    pawn.addEllipse(QPointF(0.5, 0.16), 0.15, 0.15);
-    // The collar, wide and thick: what tells a pawn from a bishop or a ball.
-    pawn.addRoundedRect(QRectF(0.25, 0.345, 0.50, 0.105), 0.05, 0.05);
-    // The body, flaring to the base.
-    QPainterPath body;
-    body.moveTo(0.40, 0.48);
-    body.lineTo(0.60, 0.48);
-    body.cubicTo(0.61, 0.66, 0.70, 0.79, 0.77, 0.87);
-    body.lineTo(0.23, 0.87);
-    body.cubicTo(0.30, 0.79, 0.39, 0.66, 0.40, 0.48);
-    body.closeSubpath();
-    pawn.addPath(body);
-    // The base.
-    pawn.addRoundedRect(QRectF(0.18, 0.90, 0.64, 0.10), 0.035, 0.035);
-    return pawn;
-}
-
-QImage imageOf(const QIcon &icon, int size)
-{
-    QImage image = icon.pixmap(size, size).toImage().convertToFormat(QImage::Format_ARGB32_Premultiplied);
-    if (!image.isNull() && image.size() != QSize(size, size))
-        image = image.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    return image;
-}
-
 int difference(QRgb a, QRgb b)
 {
     return std::abs(qRed(a) - qRed(b)) + std::abs(qGreen(a) - qGreen(b)) + std::abs(qBlue(a) - qBlue(b))
@@ -152,35 +120,13 @@ SystemFolders systemFolders()
             folders.examples.append(provider.icon(QFileInfo(path)));
     }
 #else
-    const QString themeName = QIcon::themeName();
-    const QStringList searchPaths = QIcon::themeSearchPaths();
-    if (QIcon::fromTheme(QStringLiteral("folder")).isNull()) {
-        // Without a desktop platform theme Qt knows no icon theme: GNOME's,
-        // in the folders of the freedesktop specification.
-        QStringList paths = searchPaths;
-        paths.append(QDir::home().filePath(QStringLiteral(".icons")));
-        paths.append(QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QStringLiteral("icons"),
-                                               QStandardPaths::LocateDirectory));
-        QIcon::setThemeSearchPaths(paths);
-        QProcess gsettings;
-        gsettings.start(QStringLiteral("gsettings"),
-                        {QStringLiteral("get"), QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("icon-theme")});
-        if (gsettings.waitForFinished(2000))
-            QIcon::setThemeName(QString::fromUtf8(gsettings.readAllStandardOutput()).trimmed().remove(QLatin1Char('\'')));
-    }
-    folders.folder = QIcon::fromTheme(QStringLiteral("folder"));
-    for (const char *name : {"folder-videos", "folder-pictures", "folder-music", "folder-documents"}) {
-        const QIcon example = QIcon::fromTheme(QLatin1String(name));
+    const QList<QIcon> icons = FolderIcon::themeIcons(
+        {QStringLiteral("folder"), QStringLiteral("folder-videos"), QStringLiteral("folder-pictures"),
+         QStringLiteral("folder-music"), QStringLiteral("folder-documents")});
+    folders.folder = icons.constFirst();
+    for (const QIcon &example : icons.mid(1))
         if (!example.isNull())
             folders.examples.append(example);
-    }
-    // Images are taken now, while the theme is the one asked for.
-    const auto keep = [](const QIcon &icon) { return QIcon(icon.pixmap(256, 256)); };
-    folders.folder = keep(folders.folder);
-    for (QIcon &example : folders.examples)
-        example = keep(example);
-    QIcon::setThemeName(themeName);
-    QIcon::setThemeSearchPaths(searchPaths);
 #endif
     return folders;
 }
@@ -191,8 +137,11 @@ QString iconDirectory()
         .filePath(QStringLiteral("folder-icon"));
 }
 
+} // namespace
+
+namespace FolderIcon {
+
 #if defined(Q_OS_WIN)
-/// An .ico holding the image as PNG entries (Windows Vista and later read them).
 QByteArray icoOf(const QImage &image)
 {
     QList<QByteArray> entries;
@@ -219,13 +168,17 @@ QByteArray icoOf(const QImage &image)
         out.writeRawData(entry.constData(), int(entry.size()));
     return ico;
 }
+#endif
 
 bool writeFile(const QString &path, const QByteArray &data)
 {
     QSaveFile file(path);
     return file.open(QIODevice::WriteOnly) && file.write(data) == data.size() && file.commit();
 }
-#endif
+
+} // namespace FolderIcon
+
+namespace {
 
 /// Sets `iconFile` as the icon of `folder`, unless the folder wears another
 /// one the user gave it. True when the folder has it.
@@ -243,7 +196,7 @@ bool setFolderIcon(const QString &folder, const QString &iconFile, const QImage 
             return false;
         existing.close();
     }
-    if (!writeFile(iconFile, icoOf(image)))
+    if (!FolderIcon::writeFile(iconFile, FolderIcon::icoOf(image)))
         return false;
     const QString content = QStringLiteral("[.ShellClassInfo]\r\nIconResource=%1,0\r\n").arg(QDir::toNativeSeparators(iconFile));
     QByteArray data("\xff\xfe", 2);
@@ -312,6 +265,67 @@ bool setFolderIcon(const QString &folder, const QString &iconFile, const QImage 
 } // namespace
 
 namespace FolderIcon {
+
+QImage imageOf(const QIcon &icon, int size)
+{
+    QImage image = icon.pixmap(size, size).toImage().convertToFormat(QImage::Format_ARGB32_Premultiplied);
+    if (!image.isNull() && image.size() != QSize(size, size))
+        image = image.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    return image;
+}
+
+#if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
+QList<QIcon> themeIcons(const QStringList &names)
+{
+    const QString themeName = QIcon::themeName();
+    const QStringList searchPaths = QIcon::themeSearchPaths();
+    if (QIcon::fromTheme(names.value(0)).isNull()) {
+        // Without a desktop platform theme Qt knows no icon theme: GNOME's,
+        // in the folders of the freedesktop specification.
+        QStringList paths = searchPaths;
+        paths.append(QDir::home().filePath(QStringLiteral(".icons")));
+        paths.append(QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QStringLiteral("icons"),
+                                               QStandardPaths::LocateDirectory));
+        QIcon::setThemeSearchPaths(paths);
+        QProcess gsettings;
+        gsettings.start(QStringLiteral("gsettings"),
+                        {QStringLiteral("get"), QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("icon-theme")});
+        if (gsettings.waitForFinished(2000))
+            QIcon::setThemeName(QString::fromUtf8(gsettings.readAllStandardOutput()).trimmed().remove(QLatin1Char('\'')));
+    }
+    // Images are taken now, while the theme is the one asked for.
+    QList<QIcon> icons;
+    for (const QString &name : names) {
+        const QIcon icon = QIcon::fromTheme(name);
+        icons.append(icon.isNull() ? QIcon() : QIcon(icon.pixmap(256, 256)));
+    }
+    QIcon::setThemeName(themeName);
+    QIcon::setThemeSearchPaths(searchPaths);
+    return icons;
+}
+#endif
+
+QPainterPath pawnPath()
+{
+    QPainterPath pawn;
+    pawn.setFillRule(Qt::WindingFill);
+    // The head.
+    pawn.addEllipse(QPointF(0.5, 0.16), 0.15, 0.15);
+    // The collar, wide and thick: what tells a pawn from a bishop or a ball.
+    pawn.addRoundedRect(QRectF(0.25, 0.345, 0.50, 0.105), 0.05, 0.05);
+    // The body, flaring to the base.
+    QPainterPath body;
+    body.moveTo(0.40, 0.48);
+    body.lineTo(0.60, 0.48);
+    body.cubicTo(0.61, 0.66, 0.70, 0.79, 0.77, 0.87);
+    body.lineTo(0.23, 0.87);
+    body.cubicTo(0.30, 0.79, 0.39, 0.66, 0.40, 0.48);
+    body.closeSubpath();
+    pawn.addPath(body);
+    // The base.
+    pawn.addRoundedRect(QRectF(0.18, 0.90, 0.64, 0.10), 0.035, 0.035);
+    return pawn;
+}
 
 QImage compose(const QIcon &folder, const QList<QIcon> &examples, int size)
 {

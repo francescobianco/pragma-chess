@@ -162,16 +162,17 @@ Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags
 var
   Shoulder: TBitmapImage;
 
-procedure Widen(Control: TControl; Amount: Integer);
+{ Moves a control's left edge to Left, its right edge where it was. }
+procedure SetLeft(Control: TControl; Left: Integer);
 begin
-  Control.Left := Control.Left - Amount;
-  Control.Width := Control.Width + Amount;
+  Control.Width := Control.Width + Control.Left - Left;
+  Control.Left := Left;
 end;
 
 procedure InitializeWizard;
 var
   Side: Integer;
-  Picture: Integer;
+  Margin: Integer;
 begin
   Side := WizardForm.WizardBitmapImage.Width;
   WizardForm.ClientWidth := WizardForm.ClientWidth + Side;
@@ -187,29 +188,28 @@ begin
   Shoulder.Stretch := True;
   Shoulder.Bitmap := WizardForm.WizardBitmapImage.Bitmap;
 
-  { The first and last pages: the shoulder is their picture now. }
-  Picture := WizardForm.WizardBitmapImage.Width;
+  { The first and last pages: the shoulder is their picture now (their
+    texts move to the margin below). }
   WizardForm.WizardBitmapImage.Visible := False;
   WizardForm.WizardBitmapImage2.Visible := False;
-  Widen(WizardForm.WelcomeLabel1, Picture);
-  Widen(WizardForm.WelcomeLabel2, Picture);
-  Widen(WizardForm.FinishedHeadingLabel, Picture);
-  Widen(WizardForm.FinishedLabel, Picture);
-  Widen(WizardForm.RunList, Picture);
-  Widen(WizardForm.YesRadio, Picture);
-  Widen(WizardForm.NoRadio, Picture);
 
   { The inner pages' header: no small logo beside the shoulder. }
   WizardForm.WizardSmallBitmapImage.Visible := False;
   WizardForm.PageNameLabel.Width := WizardForm.PageNameLabel.Width + WizardForm.WizardSmallBitmapImage.Width;
   WizardForm.PageDescriptionLabel.Width := WizardForm.PageDescriptionLabel.Width + WizardForm.WizardSmallBitmapImage.Width;
-  { Its description at the title's margin, not indented under it as the
-    classic wizard has it: the pages read as the shoulder, aligned left. }
-  WizardForm.PageDescriptionLabel.Width := WizardForm.PageDescriptionLabel.Width
-    + WizardForm.PageDescriptionLabel.Left - WizardForm.PageNameLabel.Left;
-  WizardForm.PageDescriptionLabel.Left := WizardForm.PageNameLabel.Left;
-  { And what is under them, at the same margin: the page's contents. }
-  WizardForm.InnerNotebook.Width := WizardForm.InnerNotebook.Width
-    + WizardForm.InnerNotebook.Left - WizardForm.PageNameLabel.Left;
-  WizardForm.InnerNotebook.Left := WizardForm.PageNameLabel.Left;
+  { One margin on every page — the first and last ones' texts, the inner
+    pages' title, its description (not indented under it, as the classic
+    wizard has it) and their contents —, a little wider than the title's
+    own: the pages read as the shoulder beside them, aligned left. }
+  Margin := WizardForm.PageNameLabel.Left + ScaleX(8);
+  SetLeft(WizardForm.PageNameLabel, Margin);
+  SetLeft(WizardForm.PageDescriptionLabel, Margin);
+  SetLeft(WizardForm.InnerNotebook, Margin);
+  SetLeft(WizardForm.WelcomeLabel1, Margin);
+  SetLeft(WizardForm.WelcomeLabel2, Margin);
+  SetLeft(WizardForm.FinishedHeadingLabel, Margin);
+  SetLeft(WizardForm.FinishedLabel, Margin);
+  SetLeft(WizardForm.RunList, Margin);
+  SetLeft(WizardForm.YesRadio, Margin);
+  SetLeft(WizardForm.NoRadio, Margin);
 end;

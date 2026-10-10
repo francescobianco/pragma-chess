@@ -5815,8 +5815,8 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         return;
     }
     // A project without chapters, or from before them: its one game, if it
-    // has one, becomes the first chapter.
-    m_chapters = ChapterBook();
+    // has one, becomes the first chapter. Emptied, the language it declares kept.
+    m_chapters.clear();
     m_moveView->refresh();
 
     bool opened = false;

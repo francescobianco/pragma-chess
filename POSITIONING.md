@@ -150,6 +150,20 @@ Quello che ha funzionato per lui, adattato a noi:
 9. **Hacker News** con un "Show HN" vero, che lui non ha mai fatto: ci arriva
    gente che il blog di lichess non raggiunge.
 
+## A che punto siamo
+
+| Orma | Stato |
+|---|---|
+| 1. Post in inglese sul blog di lichess | ✅ scritto (`packaging/announcements/lichess-blog-en.md`) · ☐ da pubblicare (account lichess) |
+| 2. Thread su TalkChess | ☐ da scrivere e pubblicare (account TalkChess) |
+| 3. Una comunità | ✅ Discussions con post di benvenuto ([#2](https://github.com/francescobianco/pragma-chess/discussions/2)), collegate da README, sito e app (Aiuto ▸ Domande e idee…) · ☐ Discord, se lo vuoi |
+| 4. Installazione con un clic di motori e database | ☐ da progettare: quali database offrire (licenze, formati: i file mensili di lichess sono .zst, Caissabase è Scid) |
+| 5. Aggiornamento automatico | ✅ Aiuto ▸ Cerca aggiornamenti…, una volta al giorno all'avvio; `version.json` in ogni release (già allegato alla 0.3.0) conta le copie in uso |
+| 6. Pacchetti | ✅ AUR scritto (`packaging/aur/`) · ☐ provato su Arch e pubblicato (account AUR) · ☐ Flathub (serve `flatpak-builder`) · ☐ Softpedia, LinuxLinks |
+| 7. Guida sul sito | ✅ <https://yafb.net/pragma-chess/en/guide/> e `it/guide/` |
+| 8. Pagina per le donazioni | ☐ servono i tuoi conti (GitHub Sponsors, Buy Me a Coffee) |
+| 9. Show HN | ☐ dopo la prossima release (account Hacker News) |
+
 ## Fonti
 
 - Repository e release: <https://github.com/franciscoBSalgueiro/en-croissant> (API di GitHub, 2026-10-10)

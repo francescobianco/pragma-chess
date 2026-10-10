@@ -26,6 +26,7 @@
 #include <QTimer>
 #include <QScopedValueRollback>
 
+#include <numeric>
 #include <utility>
 
 namespace {
@@ -301,7 +302,11 @@ MoveTreeView::MoveTreeView(GameSession *session, QWidget *parent)
                 return;
             // A build that moved the scroll bar back to the width of the
             // build before: building for it would bring it back, for ever.
-            if (afterBuild && widths == m_widthsBefore)
+            // Only when the table built fits, though: columns narrower than
+            // the ones built (a panel laid out anew, Reset Panel Layout)
+            // would leave Black's column out of sight.
+            const auto total = [](const QList<int> &sections) { return std::accumulate(sections.begin(), sections.end(), 0); };
+            if (afterBuild && widths == m_widthsBefore && total(widths) >= total(m_builtWidths))
                 return;
             rebuild();
         });

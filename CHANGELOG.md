@@ -104,6 +104,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- View ▸ Reset Panel Layout no longer leaves the move list's White column
+  too wide, with Black's out of sight (it happened every other time).
 - On GNOME's Wayland the File menu, opened a second time, no longer has its
   highlighted entry reaching past the menu, nor its submenus opening too far
   right.

@@ -18,6 +18,11 @@ QString EnCroissantProvider::description() const
               "authors' own pages, and the databases it converted.");
 }
 
+QString EnCroissantProvider::logoUrl() const
+{
+    return QStringLiteral("https://raw.githubusercontent.com/franciscoBSalgueiro/en-croissant/master/src-tauri/icons/icon.png");
+}
+
 void EnCroissantProvider::fetch()
 {
     if (m_pending > 0)

@@ -19,6 +19,9 @@ public:
     virtual QString name() const = 0;
     virtual QString description() const = 0;
     virtual QString homepage() const = 0;
+    /// The provider's own logo, shown in the list of providers (downloaded
+    /// from the provider, kept in the cache: not shipped with Pragma Chess).
+    virtual QString logoUrl() const { return {}; }
     /// Reads the catalog; ready() or failed() follows.
     virtual void fetch() = 0;
     const QList<Extension> &extensions() const { return m_extensions; }
@@ -43,6 +46,7 @@ public:
     QString name() const override { return QStringLiteral("En Croissant"); }
     QString description() const override;
     QString homepage() const override { return QStringLiteral("https://encroissant.org"); }
+    QString logoUrl() const override;
     void fetch() override;
 
 private:

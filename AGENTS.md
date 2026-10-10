@@ -465,7 +465,9 @@ not apt-get). `app/extensions/`, core:
 - `Extension` (what is offered: kind, version, download, executable inside
   the archive, why it cannot be installed yet) and `ThisComputer` (system,
   BMI2 by cpuid).
-- `ExtensionProvider`, one per source; `EnCroissantProvider` reads En
+- `ExtensionProvider`, one per source, shown with its own logo
+  (`logoUrl()`: downloaded from the provider and kept in the cache for a
+  month, never shipped), its name in bold and its site under it; `EnCroissantProvider` reads En
   Croissant's catalogs (`EnCroissantCatalog`, pure, unit-tested): engines
   as links to their authors' downloads, for this system and processor; its
   databases listed, not installable (its own SQLite format, licenses to

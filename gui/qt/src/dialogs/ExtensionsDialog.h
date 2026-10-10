@@ -11,6 +11,8 @@ class QComboBox;
 class QLabel;
 class QLineEdit;
 class QListWidget;
+class QListWidgetItem;
+class QNetworkAccessManager;
 class QProgressBar;
 class QPushButton;
 class QTreeWidget;
@@ -46,6 +48,7 @@ private:
     const Extension *extension() const;
     const InstalledExtension *installedOf(const QString &provider, const QString &id) const;
     void providerChosen();
+    void loadLogo(ExtensionProvider *provider, QListWidgetItem *item);
     void fillList();
     void showExtension();
     void install();
@@ -57,6 +60,7 @@ private:
     QList<ExtensionProvider *> m_providers;
     QList<InstalledExtension> m_installed;
     ExtensionInstaller *m_installer;
+    QNetworkAccessManager *m_network;
 
     QListWidget *m_providerList;
     QLabel *m_providerText;

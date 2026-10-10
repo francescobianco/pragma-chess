@@ -1,6 +1,21 @@
 #include "ExtensionsDialog.h"
 
 #include "app/extensions/ExtensionProvider.h"
+#include "app/sources/SourceFetch.h"
+#include "widgets/PaddedHeaderView.h"
+#include "widgets/PaddedItemDelegate.h"
+
+#include <QApplication>
+#include <QDateTime>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QPainter>
+#include <QPainterPath>
+#include <QStandardPaths>
+#include <QStyledItemDelegate>
 
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -21,6 +36,74 @@
 namespace {
 
 constexpr int kIndexRole = Qt::UserRole;
+constexpr int kHostRole = Qt::UserRole + 1;
+constexpr int kLogo = 36;
+constexpr int kPadding = 10;
+
+/// A provider in the list: its logo, its name in bold, its site under it.
+class ProviderDelegate : public QStyledItemDelegate {
+public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &) const override
+    {
+        QFont bold = option.font;
+        bold.setBold(true);
+        const int text = QFontMetrics(bold).height() + QFontMetrics(option.font).height() + 2;
+        return {option.rect.width(), qMax(kLogo, text) + 2 * kPadding};
+    }
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        QStyleOptionViewItem background = option;
+        initStyleOption(&background, index);
+        background.text.clear();
+        background.icon = QIcon();
+        const QWidget *widget = option.widget;
+        (widget ? widget->style() : QApplication::style())->drawControl(QStyle::CE_ItemViewItem, &background, painter, widget);
+
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
+        painter->setRenderHint(QPainter::SmoothPixmapTransform);
+        const QRect logo(option.rect.left() + kPadding, option.rect.center().y() - kLogo / 2, kLogo, kLogo);
+        const QPixmap pixmap = index.data(Qt::DecorationRole).value<QPixmap>();
+        QPainterPath round;
+        round.addRoundedRect(QRectF(logo), 7, 7);
+        if (!pixmap.isNull()) {
+            painter->setClipPath(round);
+            painter->drawPixmap(logo, pixmap);
+            painter->setClipping(false);
+        } else {
+            // Until the logo arrives: its initial on a tile.
+            painter->fillPath(round, option.palette.color(QPalette::Mid));
+            QFont initial = option.font;
+            initial.setBold(true);
+            initial.setPixelSize(kLogo / 2);
+            painter->setFont(initial);
+            painter->setPen(option.palette.color(QPalette::Light));
+            painter->drawText(logo, Qt::AlignCenter, index.data(Qt::DisplayRole).toString().left(1));
+        }
+        const bool selected = option.state & QStyle::State_Selected;
+        const QColor text = option.palette.color(selected ? QPalette::HighlightedText : QPalette::Text);
+        QColor soft = text;
+        soft.setAlphaF(0.65);
+        QFont bold = option.font;
+        bold.setBold(true);
+        const int left = logo.right() + kPadding;
+        const int height = QFontMetrics(bold).height() + QFontMetrics(option.font).height() + 2;
+        const int top = option.rect.center().y() - height / 2;
+        const QRect textArea(left, top, option.rect.right() - kPadding - left, height);
+        painter->setFont(bold);
+        painter->setPen(text);
+        painter->drawText(textArea, Qt::AlignLeft | Qt::AlignTop,
+                          QFontMetrics(bold).elidedText(index.data(Qt::DisplayRole).toString(), Qt::ElideRight, textArea.width()));
+        painter->setFont(option.font);
+        painter->setPen(soft);
+        painter->drawText(textArea, Qt::AlignLeft | Qt::AlignBottom,
+                          QFontMetrics(option.font).elidedText(index.data(kHostRole).toString(), Qt::ElideRight, textArea.width()));
+        painter->restore();
+    }
+};
 
 QString kindName(Extension::Kind kind)
 {
@@ -42,6 +125,7 @@ QWidget *column(const QString &title, QWidget *parent, QVBoxLayout **layout)
     auto *widget = new QWidget(parent);
     *layout = new QVBoxLayout(widget);
     (*layout)->setContentsMargins(0, 0, 0, 0);
+    (*layout)->setSpacing(8);
     auto *label = new QLabel(title, widget);
     QFont font = label->font();
     font.setBold(true);
@@ -58,6 +142,7 @@ ExtensionsDialog::ExtensionsDialog(std::function<QString(const InstalledExtensio
     , m_addEngine(std::move(addEngine))
     , m_removeEngine(std::move(removeEngine))
     , m_installer(new ExtensionInstaller(this))
+    , m_network(new QNetworkAccessManager(this))
 {
     setWindowTitle(tr("Manage Extensions"));
     m_providers << new EnCroissantProvider(this);
@@ -65,15 +150,24 @@ ExtensionsDialog::ExtensionsDialog(std::function<QString(const InstalledExtensio
     m_installed = InstalledExtension::load(settings);
 
     auto *layout = new QVBoxLayout(this);
+    layout->setContentsMargins(16, 16, 16, 12);
+    layout->setSpacing(12);
     auto *splitter = new QSplitter(Qt::Horizontal, this);
     splitter->setChildrenCollapsible(false);
+    splitter->setHandleWidth(16); // Room between the columns.
 
     // The providers.
     QVBoxLayout *left = nullptr;
     splitter->addWidget(column(tr("Providers"), splitter, &left));
     m_providerList = new QListWidget;
-    for (ExtensionProvider *provider : std::as_const(m_providers))
-        m_providerList->addItem(provider->name());
+    m_providerList->setItemDelegate(new ProviderDelegate(m_providerList));
+    m_providerList->setSpacing(2);
+    for (ExtensionProvider *provider : std::as_const(m_providers)) {
+        auto *item = new QListWidgetItem(provider->name(), m_providerList);
+        item->setData(kHostRole, QUrl(provider->homepage()).host());
+        item->setToolTip(provider->description());
+        loadLogo(provider, item);
+    }
     left->addWidget(m_providerList, 1);
     m_providerText = new QLabel;
     m_providerText->setWordWrap(true);
@@ -96,6 +190,9 @@ ExtensionsDialog::ExtensionsDialog(std::function<QString(const InstalledExtensio
     filters->addWidget(m_kind);
     middle->addLayout(filters);
     m_list = new QTreeWidget;
+    PaddedHeaderView::install(m_list);
+    m_list->setItemDelegate(new PaddedItemDelegate(CellPadding::vertical, CellPadding::horizontal, m_list));
+    m_list->setAlternatingRowColors(true);
     m_list->setHeaderLabels({tr("Name"), tr("Version"), tr("Kind"), tr("Installed")});
     m_list->setRootIsDecorated(false);
     m_list->setUniformRowHeights(true);
@@ -111,6 +208,7 @@ ExtensionsDialog::ExtensionsDialog(std::function<QString(const InstalledExtensio
     // The extension chosen.
     QVBoxLayout *right = nullptr;
     splitter->addWidget(column(tr("Details"), splitter, &right));
+    right->setSpacing(10);
     m_title = new QLabel;
     QFont titleFont = m_title->font();
     titleFont.setPointSizeF(titleFont.pointSizeF() * 1.3);
@@ -148,7 +246,7 @@ ExtensionsDialog::ExtensionsDialog(std::function<QString(const InstalledExtensio
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 3);
     splitter->setStretchFactor(2, 2);
-    splitter->setSizes({180, 420, 300});
+    splitter->setSizes({220, 440, 300});
     layout->addWidget(splitter, 1);
     auto *close = new QDialogButtonBox(QDialogButtonBox::Close);
     connect(close, &QDialogButtonBox::rejected, this, &ExtensionsDialog::reject);
@@ -194,11 +292,47 @@ ExtensionsDialog::ExtensionsDialog(std::function<QString(const InstalledExtensio
         showExtension();
     });
 
-    resize(980, 560);
+    resize(1040, 600);
     m_providerList->setCurrentRow(0);
 }
 
 ExtensionsDialog::~ExtensionsDialog() = default;
+
+void ExtensionsDialog::loadLogo(ExtensionProvider *provider, QListWidgetItem *item)
+{
+    const QString url = provider->logoUrl();
+    if (url.isEmpty())
+        return;
+    // Kept in the cache, read again from the provider now and then.
+    const QString cache = QStandardPaths::writableLocation(QStandardPaths::CacheLocation)
+                          + QStringLiteral("/extensions/") + provider->id() + QStringLiteral(".png");
+    const auto show = [this, item](const QPixmap &logo) {
+        const qreal ratio = devicePixelRatioF();
+        QPixmap scaled = logo.scaled(QSize(kLogo, kLogo) * ratio, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        scaled.setDevicePixelRatio(ratio);
+        item->setData(Qt::DecorationRole, scaled);
+    };
+    QPixmap cached(cache);
+    if (!cached.isNull())
+        show(cached);
+    if (!cached.isNull() && QFileInfo(cache).lastModified().daysTo(QDateTime::currentDateTime()) < 30)
+        return;
+    QNetworkRequest request{QUrl(url)};
+    request.setHeader(QNetworkRequest::UserAgentHeader, SourceFetch::userAgent());
+    QNetworkReply *reply = m_network->get(request);
+    connect(reply, &QNetworkReply::finished, this, [reply, cache, show] {
+        reply->deleteLater();
+        const QByteArray bytes = reply->readAll();
+        QPixmap logo;
+        if (reply->error() != QNetworkReply::NoError || !logo.loadFromData(bytes))
+            return;
+        QDir().mkpath(QFileInfo(cache).absolutePath());
+        QFile file(cache);
+        if (file.open(QIODevice::WriteOnly))
+            file.write(bytes);
+        show(logo);
+    });
+}
 
 void ExtensionsDialog::showOnly(const QString &provider, Extension::Kind kind)
 {

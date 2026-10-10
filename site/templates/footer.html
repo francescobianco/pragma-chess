@@ -1,5 +1,5 @@
 <footer class="bottom">
   <p>{{footer.license}} · <a href="{{repo_url}}" rel="noopener">GitHub</a> · <a href="{{repo_url}}/blob/main/CHANGELOG.md" rel="noopener">{{footer.changelog}}</a> · <a href="{{repo_url}}/issues" rel="noopener">{{footer.issues}}</a></p>
-  <p class="languages">{{#each languages}}<a href="../{{code}}/" hreflang="{{code}}"{{#if current}} class="current"{{/if}}>{{name}}</a>{{/each}}</p>
+  <p class="languages">{{#each languages}}<a href="{{href}}" hreflang="{{code}}"{{#if current}} class="current"{{/if}}>{{name}}</a>{{/each}}</p>
   <p class="credits">{{footer.credits}}</p>
 </footer>

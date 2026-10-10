@@ -201,3 +201,35 @@ section > .download-note, section > .formats, section > .clubs { max-width: var(
   .join .button.primary { justify-self: center; }
   .club { flex-basis: 100%; }
 }
+
+/* Blog: the list of articles, and an article read as a page of a book. */
+.blog > h1, .blog > .section-lead, .blog > .posts { max-width: 760px; margin-left: auto; margin-right: auto; }
+.blog { padding-top: 3rem; }
+.posts { display: grid; gap: 1.25rem; }
+.post-card {
+  display: flex; gap: 1.25rem; align-items: center;
+  padding: 1.1rem; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--card); color: var(--ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.post-card:hover { text-decoration: none; transform: translateY(-2px); box-shadow: var(--shadow); }
+.post-card img { width: 96px; height: 96px; flex: none; }
+.post-text { display: flex; flex-direction: column; gap: 0.25rem; }
+.post-text strong { font-size: 1.15rem; line-height: 1.25; }
+.post-text span { color: var(--ink-soft); }
+.post-text time, .post time { color: var(--ink-soft); font-size: 0.9rem; }
+.post { max-width: 720px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+.post header { margin-bottom: 2rem; }
+.post h1 { font-size: clamp(1.9rem, 4.5vw, 2.6rem); margin-top: 0.3rem; }
+.post h2 { font-size: 1.45rem; margin-top: 2.2rem; }
+.post p { font-size: 1.05rem; line-height: 1.7; }
+.post-lead { font-size: 1.2rem !important; color: var(--ink-soft); }
+.post-back { font-size: 0.95rem; }
+.post-figure { margin: 2rem auto; max-width: 300px; text-align: center; }
+.post-figure-large { max-width: 420px; }
+.post-figure img { margin: 0 auto; }
+.post-figure figcaption { color: var(--ink-soft); font-size: 0.9rem; margin-top: 0.6rem; }
+.nav a.current { color: var(--blue); }
+@media (max-width: 560px) {
+  .post-card { flex-direction: column; align-items: flex-start; }
+}

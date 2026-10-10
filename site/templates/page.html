@@ -1,17 +1,7 @@
 <!doctype html>
 <html lang="{{lang}}">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{meta.title}}</title>
-<meta name="description" content="{{meta.description}}">
-<link rel="icon" href="../assets/favicon.png">
-<link rel="stylesheet" href="../assets/style.css">
-{{#each languages}}<link rel="alternate" hreflang="{{code}}" href="../{{code}}/">
-{{/each}}<meta property="og:title" content="{{meta.title}}">
-<meta property="og:description" content="{{meta.description}}">
-<meta property="og:image" content="../assets/screenshots/hero.png">
-</head>
+{{> head}}</head>
 <body>
 {{> header}}
 <main>
@@ -23,6 +13,6 @@
 {{> support}}
 </main>
 {{> footer}}
-<script src="../assets/site.js"></script>
+<script src="{{root}}assets/site.js"></script>
 </body>
 </html>

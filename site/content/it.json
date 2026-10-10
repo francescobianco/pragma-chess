@@ -13,7 +13,8 @@
     "screenshots": "Schermate",
     "download": "Download",
     "supporters": "Sostenitori",
-    "support": "Supporto"
+    "support": "Supporto",
+    "blog": "Blog"
   },
   "hero": {
     "title": "I tuoi scacchi, in un posto solo.",
@@ -206,5 +207,28 @@
     "join_text": "Fai conoscere Pragma Chess ai tuoi soci, poi raccontaci la tua esperienza nel nostro gruppo WhatsApp e mandaci lì il tuo logo.",
     "join_button": "Entra nel gruppo WhatsApp",
     "whatsapp": "https://chat.whatsapp.com/GHBDbRkejmYJ8Hev585ZCj"
+  },
+  "blog": {
+    "title": "Blog",
+    "page_title": "Blog – Pragma Chess",
+    "lead": "Come nasce Pragma Chess: le idee, le scelte e i dettagli dietro il programma.",
+    "back": "Tutti gli articoli",
+    "months": {
+      "format": "{day} {month} {year}",
+      "names": [
+        "gennaio",
+        "febbraio",
+        "marzo",
+        "aprile",
+        "maggio",
+        "giugno",
+        "luglio",
+        "agosto",
+        "settembre",
+        "ottobre",
+        "novembre",
+        "dicembre"
+      ]
+    }
   }
 }

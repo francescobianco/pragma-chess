@@ -13,7 +13,8 @@
     "screenshots": "Screenshots",
     "download": "Download",
     "supporters": "Supporters",
-    "support": "Support"
+    "support": "Support",
+    "blog": "Blog"
   },
   "hero": {
     "title": "Your chess, in one place.",
@@ -206,5 +207,28 @@
     "join_text": "Introduce Pragma Chess to your members, then tell us how it went in our WhatsApp group and send us your logo there.",
     "join_button": "Join the WhatsApp group",
     "whatsapp": "https://chat.whatsapp.com/GHBDbRkejmYJ8Hev585ZCj"
+  },
+  "blog": {
+    "title": "Blog",
+    "page_title": "Blog – Pragma Chess",
+    "lead": "How Pragma Chess is made: the ideas, the choices and the details behind it.",
+    "back": "All articles",
+    "months": {
+      "format": "{month} {day}, {year}",
+      "names": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ]
+    }
   }
 }

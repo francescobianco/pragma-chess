@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+</head>
+<body>
+{{> header}}
+<main>
+<article class="post">
+  <p class="post-back"><a href="../">← {{blog.title}}</a></p>
+  <header>
+    <time datetime="{{post.date}}">{{post.date_text}}</time>
+    <h1>{{post.title}}</h1>
+    <p class="post-lead">{{post.summary}}</p>
+  </header>
+  {{post.body}}
+  <p class="post-back"><a href="../">← {{blog.back}}</a></p>
+</article>
+</main>
+{{> footer}}
+<script src="{{root}}assets/site.js"></script>
+</body>
+</html>

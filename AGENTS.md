@@ -1695,7 +1695,17 @@ session at 1920×1200, maximized, cropped of the top bar and scaled to 1440
 40 s) is recorded there too, through `org.gnome.Mutter.ScreenCast` and
 `gst-launch-1.0 pipewiresrc ! videocrop top=32 ! vp8enc ! webmmux`, while
 the keys drive the Opera game to 14.Rd1 and press E; replace them when the
-interface changes. GitHub Pages is
+interface changes. The **blog** is `site/blog/<slug>/`: the article in every
+language, `<lang>.html` (a head of `title:`/`summary:` lines between `---`
+lines, then HTML), `meta.json` (`date`, the `image` of the list) and its
+pictures; `build.py` writes `docs/<lang>/blog/` (the list, newest first)
+and `docs/<lang>/blog/<slug>/`, an article missing in a language being left
+out of it. Pages at any depth reach the site through `{{root}}` and the
+language's home through `{{home}}` (header, footer, `head.html`); the
+language links of a page point to the same page in the other language.
+The first article tells the rich logo (`the-logo`: its pictures made from
+the icons and `reading.png`, the knights' steps and the rook's x-ray drawn
+over it). GitHub Pages is
 set to the `main` branch, folder `/docs`.
 
 ## Working agreements

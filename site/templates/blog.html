@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+</head>
+<body>
+{{> header}}
+<main>
+<section class="blog">
+  <h1>{{blog.title}}</h1>
+  <p class="section-lead">{{blog.lead}}</p>
+  <div class="posts">
+    {{#each posts}}<a class="post-card" href="{{slug}}/">
+      <img src="{{slug}}/{{image}}" alt="" loading="lazy" width="160" height="160">
+      <span class="post-text">
+        <time datetime="{{date}}">{{date_text}}</time>
+        <strong>{{title}}</strong>
+        <span>{{summary}}</span>
+      </span>
+    </a>
+    {{/each}}
+  </div>
+</section>
+</main>
+{{> footer}}
+<script src="{{root}}assets/site.js"></script>
+</body>
+</html>

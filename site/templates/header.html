@@ -1,14 +1,15 @@
 <header class="top">
-  <a class="brand" href="#top"><img src="../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <a class="brand" href="{{home}}#top"><img src="{{root}}assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
   <input type="checkbox" id="menu" class="menu-toggle" aria-label="{{nav.menu}}">
   <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
   <nav class="nav">
-    <a href="#features">{{nav.features}}</a>
-    <a href="#screenshots">{{nav.screenshots}}</a>
-    <a href="#download">{{nav.download}}</a>
-    <a href="#supporters">{{nav.supporters}}</a>
-    <a href="#support">{{nav.support}}</a>
+    <a href="{{home}}#features">{{nav.features}}</a>
+    <a href="{{home}}#screenshots">{{nav.screenshots}}</a>
+    <a href="{{home}}#download">{{nav.download}}</a>
+    <a href="{{home}}#supporters">{{nav.supporters}}</a>
+    <a href="{{home}}#support">{{nav.support}}</a>
+    <a href="{{root}}{{lang}}/blog/"{{#if in_blog}} class="current"{{/if}}>{{nav.blog}}</a>
     <a href="{{repo_url}}" rel="noopener">GitHub</a>
-    <span class="languages">{{#each languages}}<a href="../{{code}}/" hreflang="{{code}}"{{#if current}} class="current"{{/if}}>{{name}}</a>{{/each}}</span>
+    <span class="languages">{{#each languages}}<a href="{{href}}" hreflang="{{code}}"{{#if current}} class="current"{{/if}}>{{name}}</a>{{/each}}</span>
   </nav>
 </header>

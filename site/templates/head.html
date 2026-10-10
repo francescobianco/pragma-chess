@@ -1,0 +1,10 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{page.title}}</title>
+<meta name="description" content="{{page.description}}">
+<link rel="icon" href="{{root}}assets/favicon.png">
+<link rel="stylesheet" href="{{root}}assets/style.css">
+{{#each languages}}<link rel="alternate" hreflang="{{code}}" href="{{href}}">
+{{/each}}<meta property="og:title" content="{{page.title}}">
+<meta property="og:description" content="{{page.description}}">
+<meta property="og:image" content="{{page.image}}">

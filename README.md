@@ -4,7 +4,10 @@ An open source chess database for studying, training and playing: light,
 simple, with what really matters. For Windows, macOS and Linux.
 
 **Web site: <https://yafb.net/pragma-chess/>** (English and Italian, with
-screenshots and downloads). See [DESIGN.md](DESIGN.md) for the vision and
+screenshots, downloads and [the guide](https://yafb.net/pragma-chess/en/guide/)) ·
+**[Discussions](https://github.com/francescobianco/pragma-chess/discussions)**
+for questions and ideas · **[Issues](https://github.com/francescobianco/pragma-chess/issues)**
+for problems. See [DESIGN.md](DESIGN.md) for the vision and
 architecture, [CHANGELOG.md](CHANGELOG.md) for what changed, and
 [DISTRIBUTING.md](DISTRIBUTING.md) for how we make it known.
 

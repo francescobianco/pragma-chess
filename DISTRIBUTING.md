@@ -38,7 +38,9 @@ the downloads.
 | Web site | <https://yafb.net/pragma-chess/> — EN/IT, screenshots, download, supporters (generated from `site/`, see AGENTS.md) | ✅ live |
 | GitHub repository | Description, topics, homepage pointing at the site, releases with notes, README with the site and the claim | ✅ 2026-10-04 (homepage → site, README) |
 | GitHub social preview | `packaging/assets/social-preview.png` (1280×640: the hero screenshot with the logo, the name and the claim; `make-social-preview.py` draws it again): upload it in Settings ▸ Social preview | ✅ image 2026-10-10 · ☐ upload (web UI) |
-| GitHub Discussions | Turned on, with GitHub's categories (Announcements, General, Ideas, Polls, Q&A, Show and tell); linked from the site's Support section ("Questions and ideas") | ✅ on 2026-10-04 · ✅ site link 2026-10-10 |
+| GitHub Discussions | Turned on, with GitHub's categories (Announcements, General, Ideas, Polls, Q&A, Show and tell); linked from the site's Support section, the README and the application (Help ▸ Questions and Ideas…); a welcome post in English and Italian, [#2](https://github.com/francescobianco/pragma-chess/discussions/2) — pin it from the web UI | ✅ on 2026-10-04 · ✅ links, welcome 2026-10-11 · ☐ pin |
+| Guide on the site | The application's guide, a page per topic: <https://yafb.net/pragma-chess/en/guide/> (and `it/guide/`) | ✅ 2026-10-11 |
+| Update check | Help ▸ Check for Updates… and once a day; each release's `version.json` (also attached to 0.3.0) counts the copies in use | ✅ 2026-10-11, in the next release |
 | GitHub issues | Every issue answered, with a thank-you; the first from a stranger: [#1](https://github.com/francescobianco/pragma-chess/issues/1) (2026-10-06, in Russian: qrcodegen from the system's packages) — done in the code and answered (in Russian and English), closed 2026-10-10 | ✅ #1 |
 | Releases | Each `vX.Y.Z` tag publishes installers and the CHANGELOG section as notes (CI) | ✅ since 0.2.0 |
 | lichess.org blog | "Vi presento Pragma Chess…" (IT); the English counterpart is written, `packaging/announcements/lichess-blog-en.md` (title, intro, text, the picture to use), to paste in a new post; then a post per notable release | ✅ IT · ✅ EN written 2026-10-10 · ☐ EN posted |
@@ -245,3 +247,4 @@ books and lichess.org/freechess.org play; Windows, macOS, Linux.`
 | 2026-10-10 | Web site | https://yafb.net/pragma-chess/ | Support links Discussions; Play online names freechess.org |
 | 2026-10-10 | Issue #1 | https://github.com/francescobianco/pragma-chess/issues/1#issuecomment-6102469020 | qrcodegen from the system's packages: done, answered, closed |
 | 2026-10-10 | Social preview, lichess blog EN, chessprogramming.org | packaging/assets/social-preview.png, packaging/announcements/ | ready to upload and paste |
+| 2026-10-11 | Following En Croissant (POSITIONING.md) | https://github.com/francescobianco/pragma-chess/discussions/2 | guide on the site, update check with version.json, Discussions welcome, community links in README and Help |

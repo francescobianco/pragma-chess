@@ -1142,6 +1142,12 @@ void MainWindow::createMenus()
     QMenu *help = menuBar()->addMenu(tr("&Help"));
     help->addAction(m_welcomeAction);
     help->addAction(m_guideAction);
+    help->addAction(tr("&Questions and Ideas…"), this, [] {
+        QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/francescobianco/pragma-chess/discussions")));
+    })->setToolTip(tr("The project's Discussions on GitHub: ask, propose, show what you made"));
+    help->addAction(tr("&Report a Problem…"), this, [] {
+        QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/francescobianco/pragma-chess/issues")));
+    });
     help->addSeparator();
     help->addAction(tr("Check for &Updates…"), this, [this] { checkForUpdates(true); });
     QAction *automatic = help->addAction(tr("Check for Updates at &Startup"));

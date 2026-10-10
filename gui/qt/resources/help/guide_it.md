@@ -21,6 +21,8 @@ I tuoi file stanno nella cartella Pragma dentro la tua cartella degli scacchi (p
 
 **Opzioni ▸ Impostazioni cartelle…** le sposta altrove su questo computer: la cartella Pragma stessa, oppure solo i database, i progetti, i libri o i nomi delle aperture. Lascia vuota una cartella per tenerla al suo posto solito. I file che ci sono già non vengono spostati, e le nuove cartelle si usano dal prossimo avvio di Pragma Chess. La sincronizzazione tiene uguale sugli altri computer solo ciò che sta dentro la cartella Pragma.
 
+Una domanda, un'idea, qualcosa da mostrare: **Aiuto ▸ Domande e idee…** apre le Discussions del progetto su GitHub. Qualcosa non va: **Aiuto ▸ Segnala un problema…**.
+
 # Database {#databases}
 
 Un database è un file `.pdb` che contiene partite. Se ne apre uno alla volta; il suo nome è nel suggerimento dell'icona del database nella barra degli strumenti. Nel gestore dei file un database ha l'icona dei documenti del tuo sistema con un database e un pedone sul foglio; aprirlo apre Pragma Chess con il database nel progetto che avevi lasciato aperto.

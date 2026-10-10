@@ -21,6 +21,8 @@ Your files live in the Pragma folder inside your chess folder (for example `Ches
 
 **Options ▸ Folder Settings…** puts them somewhere else on this computer: the Pragma folder itself, or just the databases, the projects, the books or the opening names. Leave a folder empty to keep it in its usual place. The files already there are not moved, and the new folders are used the next time you start Pragma Chess. Sync keeps only what is inside the Pragma folder the same on your other computers.
 
+A question, an idea, something to show: **Help ▸ Questions and Ideas…** opens the project's Discussions on GitHub. Something broken: **Help ▸ Report a Problem…**.
+
 # Databases {#databases}
 
 A database is a `.pdb` file holding games. One database is open at a time; its name is in the tooltip of the database icon of the toolbar. In your file manager a database has the document icon of your system with a database and a pawn on the page; opening it opens Pragma Chess with the database in the project you left open.

@@ -3632,6 +3632,18 @@ non è su questo computer.</translation>
         <source>Pragma Chess %1 is out (you have %2). Open its download page?</source>
         <translation>È uscito Pragma Chess %1 (tu hai la %2). Aprire la pagina per scaricarlo?</translation>
     </message>
+    <message>
+        <source>&amp;Questions and Ideas…</source>
+        <translation>&amp;Domande e idee…</translation>
+    </message>
+    <message>
+        <source>The project&apos;s Discussions on GitHub: ask, propose, show what you made</source>
+        <translation>Le Discussions del progetto su GitHub: chiedi, proponi, mostra cosa hai fatto</translation>
+    </message>
+    <message>
+        <source>&amp;Report a Problem…</source>
+        <translation>&amp;Segnala un problema…</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

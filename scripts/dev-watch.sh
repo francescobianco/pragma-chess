@@ -103,11 +103,14 @@ build() {
     done
 }
 
-# Fingerprint of the watched files: path + modification time. BSD find (macOS)
+# Fingerprint of the watched files: path + modification time — the
+# translations (.ts), the guides (.md) and the data built into the app too.
+# BSD find (macOS)
 # has no -printf, so stat prints the times there.
 snapshot() {
     find "${WATCH_PATHS[@]}" -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.txt' \
-        -o -name '*.qrc' -o -name '*.ui' -o -name '*.svg' -o -name '*.png' -o -name '*.smart' \) \
+        -o -name '*.qrc' -o -name '*.ui' -o -name '*.svg' -o -name '*.png' -o -name '*.smart' \
+        -o -name '*.ts' -o -name '*.md' -o -name '*.pch' -o -name '*.tsv' -o -name '*.xml' \) \
         -print0 2>/dev/null | sort -z | xargs -0 stat $STAT_FORMAT 2>/dev/null | cksum
 }
 if stat -c '%Y' / >/dev/null 2>&1; then STAT_FORMAT="-c %Y:%n"; else STAT_FORMAT="-f %m:%N"; fi

@@ -1,6 +1,8 @@
 #include "MainWindow.h"
 
 #include "app/BookWeights.h"
+#include "app/UpdateCheck.h"
+#include "app/sources/SourceFetch.h"
 #include "app/online/FicsClient.h"
 #include "app/online/LichessBoardClient.h"
 #include "app/ClassicGames.h"
@@ -100,6 +102,8 @@
 #include <QCheckBox>
 #include <QClipboard>
 #include <QCryptographicHash>
+#include <QNetworkReply>
+#include <QNetworkAccessManager>
 #include <QElapsedTimer>
 #include <QSet>
 #include <QDataStream>
@@ -486,6 +490,12 @@ MainWindow::MainWindow(QWidget *parent)
     if (QFileInfo::exists(QDir(lobbyDirectory()).filePath(QStringLiteral("ledger.jsonl"))))
         lobbyService();
     resumeOnlineGame(); // After the session: the online game takes the board.
+    // A newer version, at most once a day, a little after the start.
+    if (QSettings().value(QStringLiteral("updates/atStartup"), true).toBool()) {
+        const QDateTime last = QSettings().value(QStringLiteral("updates/lastCheck")).toDateTime();
+        if (!last.isValid() || last.secsTo(QDateTime::currentDateTimeUtc()) > 24 * 3600)
+            QTimer::singleShot(15000, this, [this] { checkForUpdates(false); });
+    }
     adoptShippedLineages();
     updateDistributedDatabases();
     seedDistributedProjects();
@@ -1132,6 +1142,17 @@ void MainWindow::createMenus()
     QMenu *help = menuBar()->addMenu(tr("&Help"));
     help->addAction(m_welcomeAction);
     help->addAction(m_guideAction);
+    help->addSeparator();
+    help->addAction(tr("Check for &Updates…"), this, [this] { checkForUpdates(true); });
+    QAction *automatic = help->addAction(tr("Check for Updates at &Startup"));
+    automatic->setCheckable(true);
+    automatic->setChecked(QSettings().value(QStringLiteral("updates/atStartup"), true).toBool());
+    automatic->setToolTip(tr("Once a day, Pragma Chess asks GitHub for the number of the latest version, and nothing else"));
+    connect(automatic, &QAction::toggled, this, [](bool on) { QSettings().setValue(QStringLiteral("updates/atStartup"), on); });
+    m_newVersionAction = help->addAction(QString(), this, [] {
+        QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/francescobianco/pragma-chess/releases/latest")));
+    });
+    m_newVersionAction->setVisible(false);
     help->addSeparator();
     help->addAction(m_aboutAction);
 }
@@ -5722,6 +5743,45 @@ void MainWindow::showLobby()
     m_lobbyDialog->show();
     m_lobbyDialog->raise();
     m_lobbyDialog->activateWindow();
+}
+
+void MainWindow::checkForUpdates(bool asked)
+{
+    auto *network = new QNetworkAccessManager(this);
+    QNetworkRequest request{QUrl(UpdateCheck::latestUrl())};
+    request.setHeader(QNetworkRequest::UserAgentHeader, SourceFetch::userAgent());
+    QNetworkReply *reply = network->get(request);
+    connect(reply, &QNetworkReply::finished, this, [this, reply, network, asked] {
+        reply->deleteLater();
+        network->deleteLater();
+        const std::optional<UpdateCheck::Release> release =
+            reply->error() == QNetworkReply::NoError ? UpdateCheck::parse(reply->readAll()) : std::nullopt;
+        if (!release) {
+            if (asked)
+                QMessageBox::warning(this, tr("Check for Updates"),
+                                     tr("Could not learn the latest version: %1").arg(reply->errorString()));
+            return;
+        }
+        QSettings().setValue(QStringLiteral("updates/lastCheck"), QDateTime::currentDateTimeUtc());
+        const QString current = QCoreApplication::applicationVersion();
+        if (!UpdateCheck::isNewer(release->version, current)) {
+            if (asked)
+                QMessageBox::information(this, tr("Check for Updates"),
+                                         tr("Pragma Chess %1 is the latest version.").arg(current));
+            return;
+        }
+        // Said once, quietly: the status bar, and the Help menu until it is downloaded.
+        m_newVersionAction->setText(tr("Download Pragma Chess %1…").arg(release->version));
+        m_newVersionAction->setVisible(true);
+        statusBar()->showMessage(tr("Pragma Chess %1 is out: Help ▸ Download Pragma Chess %1…").arg(release->version), 20000);
+        if (asked) {
+            const auto answer = QMessageBox::question(
+                this, tr("Check for Updates"),
+                tr("Pragma Chess %1 is out (you have %2). Open its download page?").arg(release->version, current));
+            if (answer == QMessageBox::Yes)
+                m_newVersionAction->trigger();
+        }
+    });
 }
 
 void MainWindow::showConvertPgn()

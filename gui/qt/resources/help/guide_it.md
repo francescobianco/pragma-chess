@@ -294,6 +294,10 @@ Con un repository Git ogni sincronizzazione che cambia dei file fa un commit, ch
 
 Quando elimini un database sul telefono, il computer ti chiede alla sincronizzazione successiva con il telefono se eliminarlo anche qui o tenerlo: **Tienilo** lo lascia sul computer, **Chiedimelo più tardi** te lo chiede di nuovo al prossimo avvio di Pragma Chess, ed **Elimina ovunque…** ti avvisa prima che il database sarà eliminato da tutti i dispositivi sincronizzati — finisce nel cestino di questo computer, viene tolto dalla cartella di sincronizzazione sul server e gli altri computer che si sincronizzano con essa eliminano la loro copia. In ogni caso il telefono non lo riceve più.
 
+# Aggiornamenti {#updates}
+
+Una volta al giorno, poco dopo l'avvio, Pragma Chess chiede a GitHub il numero della sua ultima versione, e nient'altro: non viene inviato nessun dato su di te o sul tuo computer. Quando ne è uscita una più nuova, la barra di stato lo dice per un momento e il menu Aiuto offre **Scarica Pragma Chess …**, che apre la sua pagina per scaricarla. **Aiuto ▸ Cerca aggiornamenti…** chiede subito; **Aiuto ▸ Cerca aggiornamenti all'avvio** spegne la domanda di ogni giorno.
+
 # Lingua {#language}
 
 **Opzioni ▸ Cambia lingua** sceglie la lingua dell'interfaccia. Viene applicata al prossimo avvio di Pragma Chess. Questa guida e i nomi delle aperture la seguono.

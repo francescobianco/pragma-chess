@@ -181,6 +181,11 @@ jobs:
         run: scripts/build-stockfish.sh --source dist
       - name: Names without the version, for the releases/latest/download links
         run: packaging/latest-names.sh dist
+      - name: The version the clients check for (Help ▸ Check for Updates)
+        run: |
+          printf '{"version": "%s", "url": "https://github.com/%s/releases/tag/%s"}\n' \
+            "${{ needs.version.outputs.version }}" "${{ github.repository }}" "${{ github.ref_name }}" > dist/version.json
+          cat dist/version.json
       - name: Checksums
         run: cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt && ls -lS
       - name: Publish the release

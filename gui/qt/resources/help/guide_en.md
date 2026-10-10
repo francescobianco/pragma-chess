@@ -294,6 +294,10 @@ With a Git repository each sync that changes files makes one commit, named after
 
 When you delete a database on the phone, the computer asks you at its next sync with the phone whether to delete it here too or keep it: **Keep It** leaves it on the computer, **Ask Me Later** asks again the next time you start Pragma Chess, and **Delete Everywhere…** warns you first that the database will be deleted from every synced device — it goes to the trash on this computer, it is removed from the sync folder on the server, and the other computers that sync with it delete their copy. Either way the phone does not receive it again.
 
+# Updates {#updates}
+
+Once a day, a little after it starts, Pragma Chess asks GitHub for the number of its latest version, and nothing else: no data about you or your computer is sent. When a newer one is out, the status bar says so for a moment and the Help menu offers **Download Pragma Chess …**, which opens its download page. **Help ▸ Check for Updates…** asks at once; **Help ▸ Check for Updates at Startup** turns the daily question off.
+
 # Language {#language}
 
 **Options ▸ Switch Language** chooses the language of the interface. It is applied the next time Pragma Chess starts. This guide and the opening names follow it.

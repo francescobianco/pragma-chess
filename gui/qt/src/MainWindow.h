@@ -493,6 +493,10 @@ private:
     void showLobby();
     /// Tools ▸ Convert ▸ PGN to Pragma Database….
     void showConvertPgn();
+    /// Help ▸ Check for Updates…: reads the latest release's version.json
+    /// (UpdateCheck). `asked` says the user asked: then every answer is said,
+    /// otherwise only a newer version, in the status bar and the Help menu.
+    void checkForUpdates(bool asked);
     /// The lobby's Play: the game `white` plays against `black` in room
     /// `roomId` on the board, after asking about a game on the board that
     /// is not saved, seen from the user's side, in Lobby Mode.
@@ -754,6 +758,8 @@ private:
     LobbyDialog *m_lobbyDialog = nullptr;
     /// Tools ▸ Convert ▸ PGN to Pragma Database…: one window, not modal, so a long conversion goes on beside the board.
     ConvertPgnDialog *m_convertPgnDialog = nullptr;
+    /// Help ▸ Download Pragma Chess …: shown once a newer version is found.
+    QAction *m_newVersionAction = nullptr;
     /// How long the work on large databases took, last time, in milliseconds
     /// (opening, the games' moves, the board's counts and filters): what the
     /// development API's /api/profile reports.

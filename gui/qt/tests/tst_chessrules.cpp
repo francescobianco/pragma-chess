@@ -56,6 +56,7 @@
 #include "app/sources/PgnFile.h"
 #include "app/convert/PgnConversion.h"
 #include "app/ScoreView.h"
+#include "app/UpdateCheck.h"
 #include "app/online/FicsClient.h"
 #include "app/online/FicsProtocol.h"
 #include "app/convert/PgnSplitter.h"
@@ -4308,6 +4309,24 @@ END FUNCTION
         QCOMPARE(height(1000), 1.0);
         QCOMPARE(height(3000), 1.0);
         QCOMPARE(ScoreView::courseHeight(mate), -1.0);
+    }
+
+    void tellsANewerVersion()
+    {
+        QVERIFY(UpdateCheck::isNewer(QStringLiteral("0.4.0"), QStringLiteral("0.3.0")));
+        QVERIFY(UpdateCheck::isNewer(QStringLiteral("v0.10.0"), QStringLiteral("0.9.9")));
+        QVERIFY(UpdateCheck::isNewer(QStringLiteral("1.0"), QStringLiteral("0.99.1")));
+        QVERIFY(!UpdateCheck::isNewer(QStringLiteral("0.3.0"), QStringLiteral("0.3.0")));
+        QVERIFY(!UpdateCheck::isNewer(QStringLiteral("0.2.9"), QStringLiteral("0.3.0")));
+        QVERIFY(UpdateCheck::isNewer(QStringLiteral("0.4.0"), QStringLiteral("0.4.0-beta.1")));
+        QVERIFY(!UpdateCheck::isNewer(QStringLiteral("0.4.0-beta.1"), QStringLiteral("0.4.0")));
+        const std::optional<UpdateCheck::Release> release = UpdateCheck::parse(
+            // Not a raw string: moc reads the "//" of an address in one as a comment.
+            "{\"version\": \"0.4.0\", \"url\": \"https:/" "/github.com/francescobianco/pragma-chess/releases/tag/v0.4.0\"}");
+        QVERIFY(release);
+        QCOMPARE(release->version, QStringLiteral("0.4.0"));
+        QVERIFY(release->url.endsWith(QStringLiteral("v0.4.0")));
+        QVERIFY(!UpdateCheck::parse("<html>Not Found</html>"));
     }
 
     void readsFreechessLines()

@@ -3596,6 +3596,42 @@ non è su questo computer.</translation>
         <source>&amp;Stop</source>
         <translation>&amp;Ferma</translation>
     </message>
+    <message>
+        <source>Check for &amp;Updates…</source>
+        <translation>Cerca aggiornamen&amp;ti…</translation>
+    </message>
+    <message>
+        <source>Check for Updates at &amp;Startup</source>
+        <translation>Cerca aggiornamenti all&apos;a&amp;vvio</translation>
+    </message>
+    <message>
+        <source>Once a day, Pragma Chess asks GitHub for the number of the latest version, and nothing else</source>
+        <translation>Una volta al giorno Pragma Chess chiede a GitHub il numero dell&apos;ultima versione, e nient&apos;altro</translation>
+    </message>
+    <message>
+        <source>Check for Updates</source>
+        <translation>Cerca aggiornamenti</translation>
+    </message>
+    <message>
+        <source>Could not learn the latest version: %1</source>
+        <translation>Impossibile sapere qual è l&apos;ultima versione: %1</translation>
+    </message>
+    <message>
+        <source>Pragma Chess %1 is the latest version.</source>
+        <translation>Pragma Chess %1 è l&apos;ultima versione.</translation>
+    </message>
+    <message>
+        <source>Download Pragma Chess %1…</source>
+        <translation>Scarica Pragma Chess %1…</translation>
+    </message>
+    <message>
+        <source>Pragma Chess %1 is out: Help ▸ Download Pragma Chess %1…</source>
+        <translation>È uscito Pragma Chess %1: Aiuto ▸ Scarica Pragma Chess %1…</translation>
+    </message>
+    <message>
+        <source>Pragma Chess %1 is out (you have %2). Open its download page?</source>
+        <translation>È uscito Pragma Chess %1 (tu hai la %2). Aprire la pagina per scaricarlo?</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

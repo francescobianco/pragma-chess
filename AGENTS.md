@@ -448,6 +448,17 @@ add a dated section there after a change meant to make large databases faster,
 measured with `scripts/stress-databases.sh`, and keep its summary and plans
 up to date.
 
+## Updates
+
+Help ▸ Check for Updates… and, once a day a little after the start
+(QSettings `updates/atStartup`, `updates/lastCheck`), `MainWindow::checkForUpdates`
+reads the latest release's `version.json` (releases/latest/download/version.json,
+written by `release.yml` beside the installers; `app/UpdateCheck`, pure:
+parse, `isNewer`). Nothing about the user is sent; the asset's download count
+tells roughly how many copies are in use, as En Croissant's `latest.json` does
+(POSITIONING.md). A newer version is said quietly: the status bar and Help ▸
+Download Pragma Chess ….
+
 ## Welcome
 
 `dialogs/WelcomeDialog` greets the user at every start, opened over the main

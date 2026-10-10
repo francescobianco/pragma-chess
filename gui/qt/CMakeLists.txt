@@ -177,6 +177,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/EngineDetector.h
     src/app/EngineEvaluation.cpp
     src/app/ScoreView.cpp
+    src/app/UpdateCheck.cpp
+    src/app/UpdateCheck.h
     src/app/ScoreView.h
     src/app/EngineEvaluation.h
     src/app/EnginePower.cpp

@@ -8,6 +8,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Help ▸ Check for Updates…**, and once a day at startup: Pragma Chess
+  asks GitHub for the number of its latest version, and nothing else, and
+  says quietly when a newer one is out.
+- The guide is on the web site too, a page for each topic.
 - **Play online on freechess.org**, the Free Internet Chess Server: connect
   it in Game ▸ New Online Game… with your name and password, or play as a
   guest.

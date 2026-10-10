@@ -934,6 +934,14 @@ Il Nero ha catturato: %2</translation>
         <source>Offer your opponent a draw</source>
         <translation>Proponi la patta all&apos;avversario</translation>
     </message>
+    <message>
+        <source>Analyze</source>
+        <translation>Analizza</translation>
+    </message>
+    <message>
+        <source>Stop</source>
+        <translation>Ferma</translation>
+    </message>
 </context>
 <context>
     <name>EvaluationBar</name>
@@ -2345,10 +2353,6 @@ Il Nero ha catturato: %2</translation>
         <translation>Sessione</translation>
     </message>
     <message>
-        <source>Stop &amp;Analysis</source>
-        <translation>Ferma &amp;analisi</translation>
-    </message>
-    <message>
         <source>The engine “%1” was not found. Choose another one or set its executable in Engine ▸ Manage Engines….</source>
         <translation>Il motore “%1” non è stato trovato. Scegline un altro o imposta il suo eseguibile in Motore ▸ Gestisci motori….</translation>
     </message>
@@ -3561,6 +3565,10 @@ non è su questo computer.</translation>
     <message>
         <source>&amp;PGN to Pragma Database…</source>
         <translation>Da &amp;PGN a database Pragma…</translation>
+    </message>
+    <message>
+        <source>&amp;Stop</source>
+        <translation>&amp;Ferma</translation>
     </message>
 </context>
 <context>

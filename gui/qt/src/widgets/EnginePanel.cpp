@@ -45,9 +45,17 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     nameFont.setBold(true);
     m_name->setFont(nameFont);
     auto *toggle = new QToolButton;
-    toggle->setDefaultAction(analysisAction);
     toggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    toggle->setAutoRaise(true);
+    toggle->setIcon(analysisAction->icon());
+    // One size for Analyze and Stop, with the room of the tutor's buttons:
+    // the button does not jump when it changes.
+    QSize toggleSize;
+    for (const QString &text : {tr("Analyze"), tr("Stop")}) {
+        toggle->setText(text);
+        toggleSize = toggleSize.expandedTo(toggle->sizeHint());
+    }
+    toggle->setFixedSize(toggleSize.width() + 2 * kChoicePadding, toggleSize.height() + kChoicePadding);
+    toggle->setDefaultAction(analysisAction);
     // Held down, the board shows where the best line ends.
     m_peek->setIcon(SymbolicIcons::icon(QStringLiteral("pragma-eye")));
     m_peek->setAutoRaise(true);

@@ -898,7 +898,7 @@ void MainWindow::createActions()
     m_startEngineAction->setToolTip(tr("Analyze the position with the engine"));
     connect(m_startEngineAction, &QAction::toggled, this, &MainWindow::setAnalysisEnabled);
     // The menu's entry keeps one name and a check mark; the Engine panel's
-    // button (m_startEngineAction) says Analyze or Stop Analysis.
+    // button (m_startEngineAction) says Analyze or Stop.
     m_analysisAction = new QAction(tr("&Analysis"), this);
     m_analysisAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_E));
     m_analysisAction->setCheckable(true);
@@ -3745,7 +3745,7 @@ void MainWindow::manageSources()
 
 void MainWindow::setAnalysisEnabled(bool enabled)
 {
-    m_startEngineAction->setText(enabled ? tr("Stop &Analysis") : tr("&Analyze"));
+    m_startEngineAction->setText(enabled ? tr("&Stop") : tr("&Analyze"));
     m_startEngineAction->setIcon(enabled ? themeIcon("media-playback-stop", QStyle::SP_MediaStop)
                                          : themeIcon("media-playback-start", QStyle::SP_MediaPlay));
 

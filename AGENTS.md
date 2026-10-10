@@ -194,7 +194,7 @@ playing a move turns it off, and the user asks again at the next move.
   is the one place that decides: add new meanings there, do not call
   `setBorder` elsewhere.
 - The Engine panel shows the engine's whole line, and an eye beside Stop
-  Analysis (`EnginePanel::peekHeld`): held down, the board shows the
+  (`EnginePanel::peekHeld`): held down, the board shows the
   position at the end of the line, and follows it while the engine goes on
   (each `evaluationChanged` peeks again; `BoardWidget::peek` keeps what it
   covered from the first one) (`MainWindow::peekAtEngineLine`,

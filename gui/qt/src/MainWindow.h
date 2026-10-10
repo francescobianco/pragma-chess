@@ -340,6 +340,9 @@ private:
     QString projectDatabasePath(const Project &project) const;
     /// The names the games list shows for the players a training database
     /// leaves unnamed (StandInNames): the user's, and "Your Trainer".
+    /// Hides `hidden` columns in the database we distribute at `path`, and
+    /// marks it so that it is done once (DatabaseProperties::shippedColumns).
+    void giveShippedColumns(const QString &path, const QStringList &hidden);
     void updateStandInNames();
     StandInNames standInNames() const;
     /// The name of the personal settings, or the default one.

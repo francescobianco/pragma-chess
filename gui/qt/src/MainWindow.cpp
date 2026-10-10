@@ -3069,7 +3069,12 @@ void MainWindow::updateDistributedDatabases()
         DatabaseType type;
         bool createWhenMissing;
         std::function<QList<GameRecord>()> games;
+        /// The columns of the games list it hides by default (GameListModel::columnKey).
+        QStringList hiddenColumns = {};
     };
+    // A puzzle has no players' ratings, result, date or place worth a column.
+    const QStringList trainingColumns{QStringLiteral("white-elo"), QStringLiteral("black-elo"), QStringLiteral("result"),
+                                      QStringLiteral("date"), QStringLiteral("site")};
     const auto puzzles = [](const char *resource) {
         QFile file{QString::fromLatin1(resource)};
         return file.open(QIODevice::ReadOnly) ? TrainingSets::puzzleGames(QString::fromUtf8(file.readAll()))
@@ -3081,10 +3086,10 @@ void MainWindow::updateDistributedDatabases()
         {"endgames", "Endgames", GameIdentity::kEndgamesLineage, "Endgame Training", "Allenati sui finali",
          "Theoretical endgames and endgame puzzles from the lichess.org puzzle database (CC0).",
          DatabaseType::Training, true,
-         [puzzles] { return TrainingSets::theoryEndgames() + puzzles(":/training/endgames.tsv"); }},
+         [puzzles] { return TrainingSets::theoryEndgames() + puzzles(":/training/endgames.tsv"); }, trainingColumns},
         {"tactics", "Tactics", GameIdentity::kTacticsLineage, "Tactics Training", "Allenati sulla tattica",
          "Tactical puzzles by theme from the lichess.org puzzle database (CC0).", DatabaseType::Training, true,
-         [puzzles] { return puzzles(":/training/tactics.tsv"); }},
+         [puzzles] { return puzzles(":/training/tactics.tsv"); }, trainingColumns},
     };
     const QDir folder(UserFolders::databasesDir());
     QHash<QString, QString> byLineage;
@@ -3125,6 +3130,8 @@ void MainWindow::updateDistributedDatabases()
             properties.id = set.lineage;
             properties.description = QLatin1String(set.description);
             properties.type = set.type;
+            properties.hiddenColumns = set.hiddenColumns;
+            properties.shippedColumns = true;
             database->setProperties(properties, nullptr);
             nameShippedDatabase(*database, QLatin1String(set.english), QString::fromUtf8(set.italian));
             settings.setValue(seededKey, true);
@@ -3133,6 +3140,11 @@ void MainWindow::updateDistributedDatabases()
             continue;
         }
         settings.setValue(seededKey, true);
+        // The columns it hides by default, given once to a copy made before
+        // (the mark is in the file: shown again on one computer, they stay
+        // shown on all).
+        if (!set.hiddenColumns.isEmpty() && !SqliteGameDatabase::readProperties(path).shippedColumns)
+            giveShippedColumns(path, set.hiddenColumns);
         // Its type was given after it was first distributed (the training
         // sets became Puzzles and Training): given once, so a type the user
         // chose afterwards in Database Settings stays.
@@ -3181,6 +3193,28 @@ void MainWindow::updateDistributedDatabases()
             rebuildPositionIndex();
         }
     }
+}
+
+void MainWindow::giveShippedColumns(const QString &path, const QStringList &hidden)
+{
+    QString error;
+    std::unique_ptr<SqliteGameDatabase> opened;
+    GameDatabase *database = nullptr;
+    if (m_database && QFileInfo(m_database->location()) == QFileInfo(path)) {
+        database = m_database.get();
+    } else {
+        opened = SqliteGameDatabase::open(path, &error);
+        database = opened.get();
+    }
+    if (!database)
+        return;
+    DatabaseProperties properties = database->properties();
+    for (const QString &column : hidden)
+        if (!properties.hiddenColumns.contains(column))
+            properties.hiddenColumns << column;
+    properties.shippedColumns = true;
+    if (database->setProperties(properties, &error) && database == m_database.get())
+        applyGameColumns();
 }
 
 void MainWindow::adoptShippedLineages()

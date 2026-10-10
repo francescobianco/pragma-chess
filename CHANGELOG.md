@@ -8,6 +8,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Endgame Training** and **Tactics Training** hide the Elo, Result, Date
+  and Site columns, which a puzzle has nothing to put in; right-click a
+  column title to show them again.
 - In **Endgame Training** and **Tactics Training** the players have names:
   yours on the side you play, *Pragma Coach* on the other — stand-in names,
   never written in the database.

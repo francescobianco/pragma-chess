@@ -4991,6 +4991,11 @@ END FUNCTION
         properties.hiddenColumns.clear();
         QVERIFY(properties.values().contains(QStringLiteral("columns.hidden")));
         QVERIFY(DatabaseProperties::fromValues(properties.values()).hiddenColumns.isEmpty());
+        // The mark that a distributed database's default columns were given: kept with the file.
+        QVERIFY(!properties.values().contains(QStringLiteral("columns.shipped")));
+        properties.shippedColumns = true;
+        QCOMPARE(properties.values().value(QStringLiteral("columns.shipped")), QStringLiteral("1"));
+        QVERIFY(DatabaseProperties::fromValues(properties.values()).shippedColumns);
 
         // The shipped ones carry their names in every language we have.
         for (const ShippedOpeningNames::Names &names : ShippedOpeningNames::all()) {

@@ -36,6 +36,10 @@ struct DatabaseProperties {
     /// (GameListModel::columnKey: "result", "site"…), stored as
     /// `columns.hidden`, comma separated: each database opens with its own.
     QStringList hiddenColumns;
+    /// The columns a database we distribute hides by default were given to
+    /// it (`columns.shipped`): once, so the columns the user shows again stay
+    /// shown — on every computer, since the mark travels with the file.
+    bool shippedColumns = false;
 
     /// A database we distribute (Classic Games, the training sets, the
     /// opening names): it is named in every language, not by the user.

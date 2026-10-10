@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QEnterEvent>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
 #include <QPainterPath>
@@ -106,6 +107,16 @@ HelpButton::HelpButton(const QString &text, QWidget *parent)
     m_delay->setInterval(250);
     connect(m_delay, &QTimer::timeout, this, &HelpButton::showBubble);
     connect(this, &QToolButton::clicked, this, [this] { m_bubble ? hideBubble() : showBubble(); });
+}
+
+QWidget *HelpButton::beside(QWidget *field, const QString &help, QWidget *parent)
+{
+    auto *row = new QWidget(parent);
+    auto *layout = new QHBoxLayout(row);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(field, 1);
+    layout->addWidget(new HelpButton(help, row), 0, Qt::AlignVCenter);
+    return row;
 }
 
 HelpButton::~HelpButton()

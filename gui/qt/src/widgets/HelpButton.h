@@ -16,6 +16,9 @@ public:
     explicit HelpButton(const QString &text, QWidget *parent = nullptr);
     ~HelpButton() override;
 
+    /// `field` with its "?" at the end, in a row: what a form's row holds.
+    static QWidget *beside(QWidget *field, const QString &help, QWidget *parent);
+
     void setHelpText(const QString &text);
     /// Shows the balloon as hovering does; the balloon shown, or null.
     void showHelp() { showBubble(); }

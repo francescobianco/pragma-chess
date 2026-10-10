@@ -4314,10 +4314,6 @@ Le %n partite già importate restano nel database.</numerusform>
         <translation>ID &amp;FIDE:</translation>
     </message>
     <message>
-        <source>Your name goes on your side of new games and training games, unless the open database already knows you: a player marked as Me with Who Is This? wins. These settings are kept in .pragma-chess.conf in your Pragma folder, which Sync carries to your other computers.</source>
-        <translation>Il tuo nome va dalla tua parte nelle nuove partite e negli allenamenti, a meno che il database aperto ti conosca già: vince il giocatore segnato come Io con Chi è?. Queste impostazioni stanno in .pragma-chess.conf nella tua cartella Pragma, che la sincronizzazione porta sugli altri tuoi computer.</translation>
-    </message>
-    <message>
         <source>Board &amp;style:</source>
         <translation>&amp;Stile della scacchiera:</translation>
     </message>
@@ -4342,10 +4338,6 @@ Le %n partite già importate restano nel database.</numerusform>
         <translation>Chiave della lobby</translation>
     </message>
     <message>
-        <source>This key is who you are in the lobby: it signs your moves. For security it is not synced with your other settings and stays on this computer only. To play as yourself from another computer, copy it here and paste it into the same field there: you have to carry it yourself. Anyone who has it can play as you, so keep it to yourself.</source>
-        <translation>Questa chiave è chi sei nella lobby: firma le tue mosse. Per sicurezza non viene sincronizzata con le altre impostazioni e resta solo su questo computer. Per giocare come te da un altro computer, copiala qui e incollala nello stesso campo laggiù: devi portarla tu. Chi la possiede può giocare al posto tuo, quindi tienila per te.</translation>
-    </message>
-    <message>
         <source>Lobby Key</source>
         <translation>Chiave della lobby</translation>
     </message>
@@ -4356,6 +4348,30 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>This computer will be the player of the new key in the lobby. Its present key is replaced: if you have not copied it, you can no longer play as that player. Replace it?</source>
         <translation>Questo computer sarà nella lobby il giocatore della nuova chiave. La chiave attuale viene sostituita: se non l&apos;hai copiata, non potrai più giocare come quel giocatore. Sostituirla?</translation>
+    </message>
+    <message>
+        <source>Who you are and how you like your board: your name, year of birth and FIDE ID, and the style of the board. They are kept in your Pragma folder, and Sync carries them to your other computers — all but the lobby key, which stays on this one.</source>
+        <translation>Chi sei e come ti piace la scacchiera: il tuo nome, l&apos;anno di nascita e l&apos;ID FIDE, e lo stile della scacchiera. Sono salvati nella tua cartella Pragma, e la sincronizzazione li porta sugli altri tuoi computer — tutti tranne la chiave della lobby, che resta su questo.</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;Your name as it should appear in your games: it goes on your side of new games and training games.&lt;/p&gt;&lt;p&gt;When the open database already knows you — a player marked as Me with Who Is This? — that one wins. Until you give a name, Pragma Chess gives you one, a champion&apos;s with three digits.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Il tuo nome come deve comparire nelle tue partite: va dalla tua parte nelle nuove partite e negli allenamenti.&lt;/p&gt;&lt;p&gt;Quando il database aperto ti conosce già — un giocatore segnato come Io con Chi è? — vince quello. Finché non dai un nome, Pragma Chess te ne dà uno, quello di un campione con tre cifre.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;The year you were born, kept with your settings.&lt;/p&gt;&lt;p&gt;Optional: leave the dash if you would rather not give it.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;L&apos;anno in cui sei nato, conservato con le tue impostazioni.&lt;/p&gt;&lt;p&gt;Facoltativo: lascia il trattino se preferisci non darlo.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;Your number at FIDE, the world chess federation: the digits of your FIDE profile.&lt;/p&gt;&lt;p&gt;Optional.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Il tuo numero alla FIDE, la federazione mondiale degli scacchi: le cifre del tuo profilo FIDE.&lt;/p&gt;&lt;p&gt;Facoltativo.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;The colours of the squares and the pieces, together: Pragma Classic, Lichess Alpha or Classic Book.&lt;/p&gt;&lt;p&gt;Every board changes as soon as you press OK, and on your other computers with Sync.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;I colori delle case e i pezzi, insieme: Pragma Classic, Lichess Alpha o Classic Book.&lt;/p&gt;&lt;p&gt;Tutte le scacchiere cambiano appena premi OK, e sugli altri tuoi computer con la sincronizzazione.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;This key is who you are in the lobby: it signs your moves.&lt;/p&gt;&lt;p&gt;For security it is not synced with your other settings and stays on this computer only. To play as yourself from another computer, copy it here and paste it into the same field there: you have to carry it yourself.&lt;/p&gt;&lt;p&gt;Anyone who has it can play as you, so keep it to yourself.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Questa chiave è chi sei nella lobby: firma le tue mosse.&lt;/p&gt;&lt;p&gt;Per sicurezza non viene sincronizzata con le altre impostazioni e resta solo su questo computer. Per giocare come te da un altro computer, copiala qui e incollala nello stesso campo laggiù: devi portartela tu.&lt;/p&gt;&lt;p&gt;Chi ce l&apos;ha può giocare al posto tuo, quindi tienila per te.&lt;/p&gt;</translation>
     </message>
 </context>
 <context>

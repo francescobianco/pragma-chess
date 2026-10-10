@@ -15,21 +15,6 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-namespace {
-
-/// A field with its "?" at the end.
-QWidget *withHelp(QWidget *field, const QString &help, QWidget *parent)
-{
-    auto *row = new QWidget(parent);
-    auto *layout = new QHBoxLayout(row);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(field, 1);
-    layout->addWidget(new HelpButton(help, row), 0, Qt::AlignVCenter);
-    return row;
-}
-
-} // namespace
-
 ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const Project::Details &details, const QString &filePath,
                                      const QString &fileName, bool multilingual, const QString &language, bool readOnly,
                                      QWidget *parent)
@@ -73,60 +58,60 @@ ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const Project::D
 
     auto *form = new QFormLayout;
     form->addRow(tr("File:"),
-                 withHelp(file,
-                          tr("<p>Where the project is kept on this computer. Select it to copy it.</p>"
-                             "<p>The file is not renamed here: File ▸ Save Project As… saves the project "
-                             "under another name.</p>"),
-                          this));
+                 HelpButton::beside(file,
+                                    tr("<p>Where the project is kept on this computer. Select it to copy it.</p>"
+                                       "<p>The file is not renamed here: File ▸ Save Project As… saves the project "
+                                       "under another name.</p>"),
+                                    this));
     form->addRow(tr("Project &name:"),
-                 withHelp(m_name,
-                          tr("<p>Shown in the title bar in place of the file's name, followed by the chapter "
-                             "when the project has chapters.</p><p>Empty, the file's name is shown.</p>"),
-                          this));
+                 HelpButton::beside(m_name,
+                                    tr("<p>Shown in the title bar in place of the file's name, followed by the chapter "
+                                       "when the project has chapters.</p><p>Empty, the file's name is shown.</p>"),
+                                    this));
     form->addRow(tr("&Description:"),
-                 withHelp(m_description,
-                          tr("<p>What the project is about, in a line: a study of the Italian Game, the games "
-                             "of a tournament, a course for beginners.</p>"
-                             "<p>In a multilingual project it is written in each language, like the name.</p>"),
-                          this));
+                 HelpButton::beside(m_description,
+                                    tr("<p>What the project is about, in a line: a study of the Italian Game, the games "
+                                       "of a tournament, a course for beginners.</p>"
+                                       "<p>In a multilingual project it is written in each language, like the name.</p>"),
+                                    this));
     form->addRow(tr("&Author:"),
-                 withHelp(m_author,
-                          tr("<p>Who made the project: a name, a club, a school.</p>"), this));
+                 HelpButton::beside(m_author,
+                                    tr("<p>Who made the project: a name, a club, a school.</p>"), this));
     form->addRow(tr("&Contacts:"),
-                 withHelp(m_contacts,
-                          tr("<p>How to reach the author: an email address, a web site, a telephone "
-                             "number — whatever they wish to give.</p>"),
-                          this));
+                 HelpButton::beside(m_contacts,
+                                    tr("<p>How to reach the author: an email address, a web site, a telephone "
+                                       "number — whatever they wish to give.</p>"),
+                                    this));
     form->addRow(tr("Editio&n:"),
-                 withHelp(m_edition,
-                          tr("<p>Which edition of the project this is, written freely: “2nd edition”, "
-                             "“October 2026”, “v1.3”.</p>"),
-                          this));
+                 HelpButton::beside(m_edition,
+                                    tr("<p>Which edition of the project this is, written freely: “2nd edition”, "
+                                       "“October 2026”, “v1.3”.</p>"),
+                                    this));
     form->addRow(tr("&Language of the texts:"),
-                 withHelp(m_language,
-                          tr("<p>In a project in one language, the language it is written in: what it "
-                             "declares, and where its texts go, whatever the language of the interface. Choosing "
-                             "another declares the same texts in it; they are not translated.</p>"
-                             "<p>In a multilingual project, the language you work in: its texts are shown and "
-                             "written in it. It opens in the language of the interface.</p>"),
-                          this));
+                 HelpButton::beside(m_language,
+                                    tr("<p>In a project in one language, the language it is written in: what it "
+                                       "declares, and where its texts go, whatever the language of the interface. Choosing "
+                                       "another declares the same texts in it; they are not translated.</p>"
+                                       "<p>In a multilingual project, the language you work in: its texts are shown and "
+                                       "written in it. It opens in the language of the interface.</p>"),
+                                    this));
 
     // The flags, apart: how the project behaves, under what it is.
     auto *flags = new QVBoxLayout;
     flags->setSpacing(6);
-    flags->addWidget(withHelp(m_multilingual,
-                              tr("<p>A multilingual project has its name, titles, subtitles and paragraphs in several "
-                                 "languages, its chapters and games the same in all.</p>"
-                                 "<p>They are shown and written in the Language of the texts chosen above. A text not "
-                                 "written in it is shown in English, or in another language that has it.</p>"),
-                              this));
-    flags->addWidget(withHelp(m_readOnly,
-                              tr("<p>Keeps the project from changes made without thinking: its chapters, titles, "
-                                 "paragraphs, comments and variations cannot be changed, and it is not saved. The "
-                                 "board can still be explored.</p>"
-                                 "<p>Untick it to change the project. The projects distributed with Pragma Chess "
-                                 "come read-only.</p>"),
-                              this));
+    flags->addWidget(HelpButton::beside(m_multilingual,
+                                        tr("<p>A multilingual project has its name, titles, subtitles and paragraphs in several "
+                                           "languages, its chapters and games the same in all.</p>"
+                                           "<p>They are shown and written in the Language of the texts chosen above. A text not "
+                                           "written in it is shown in English, or in another language that has it.</p>"),
+                                        this));
+    flags->addWidget(HelpButton::beside(m_readOnly,
+                                        tr("<p>Keeps the project from changes made without thinking: its chapters, titles, "
+                                           "paragraphs, comments and variations cannot be changed, and it is not saved. The "
+                                           "board can still be explored.</p>"
+                                           "<p>Untick it to change the project. The projects distributed with Pragma Chess "
+                                           "come read-only.</p>"),
+                                        this));
 
     connect(m_language, &QComboBox::currentIndexChanged, this, &ProjectInfoDialog::showLanguage);
 

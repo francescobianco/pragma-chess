@@ -1,4 +1,8 @@
 #include "DesktopApi.h"
+#ifdef PRAGMA_HAS_PHONE_LINK
+#include "app/lobby/net/LobbyIdentity.h"
+#endif
+#include "dialogs/PersonalSettingsDialog.h"
 #include "widgets/HelpButton.h"
 #include "dialogs/ProjectInfoDialog.h"
 
@@ -393,6 +397,26 @@ void DesktopApi::addRoutes()
         QBuffer buffer(&png);
         buffer.open(QIODevice::WriteOnly);
         picture.save(&buffer, "PNG");
+        return Response{200, "image/png", png};
+    });
+    // Options ▸ Personal Settings…: its picture, as the window opens it (the
+    // lobby key, where there is one, hidden as there).
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/personal-settings"), [w](const Request &) {
+        PersonalSettings shown = PersonalSettings::read(PersonalSettings::path());
+        if (shown.name.trimmed().isEmpty())
+            shown.name = w->defaultName();
+        QString lobbyKey;
+#ifdef PRAGMA_HAS_PHONE_LINK
+        lobbyKey = LobbyIdentity::secretText();
+#endif
+        PersonalSettingsDialog dialog(shown, lobbyKey, w);
+        dialog.show();
+        dialog.adjustSize();
+        QApplication::processEvents();
+        QByteArray png;
+        QBuffer buffer(&png);
+        buffer.open(QIODevice::WriteOnly);
+        dialog.grab().save(&buffer, "PNG");
         return Response{200, "image/png", png};
     });
     // Help ▸ Welcome…: opens the welcome window and answers with its picture.

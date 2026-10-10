@@ -1,6 +1,7 @@
 #include "PersonalSettingsDialog.h"
 
 #include "widgets/BoardTheme.h"
+#include "widgets/HelpButton.h"
 #include "widgets/PieceRenderer.h"
 
 #include <QClipboard>
@@ -9,6 +10,7 @@
 #include <QDialogButtonBox>
 #include <QFontDatabase>
 #include <QFormLayout>
+#include <QFrame>
 #include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -71,28 +73,46 @@ PersonalSettingsDialog::PersonalSettingsDialog(const PersonalSettings &settings,
         m_boardTheme->addItem(themePreview(theme, devicePixelRatioF()), theme.name, theme.id);
     m_boardTheme->setCurrentIndex(m_boardTheme->findData(BoardTheme::byId(settings.boardTheme).id));
 
-    auto *form = new QFormLayout;
-    form->addRow(tr("My &name:"), m_name);
-    form->addRow(tr("Year of &birth:"), m_birthYear);
-    form->addRow(tr("&FIDE ID:"), m_fideId);
-    form->addRow(tr("Board &style:"), m_boardTheme);
+    // What the window is for, before the fields.
+    auto *intro = new QLabel(tr("Who you are and how you like your board: your name, year of birth and FIDE ID, and "
+                                "the style of the board. They are kept in your Pragma folder, and Sync carries them "
+                                "to your other computers — all but the lobby key, which stays on this one."),
+                             this);
+    intro->setWordWrap(true);
 
-    auto *note = new QLabel(tr("Your name goes on your side of new games and training games, unless the open "
-                               "database already knows you: a player marked as Me with Who Is This? wins. These "
-                               "settings are kept in .pragma-chess.conf in your Pragma folder, which Sync carries "
-                               "to your other computers."),
-                            this);
-    note->setWordWrap(true);
-    note->setEnabled(false); // Greyed: a remark, not a setting.
+    auto *form = new QFormLayout;
+    form->addRow(tr("My &name:"),
+                 HelpButton::beside(m_name,
+                                    tr("<p>Your name as it should appear in your games: it goes on your side of new "
+                                       "games and training games.</p>"
+                                       "<p>When the open database already knows you — a player marked as Me with "
+                                       "Who Is This? — that one wins. Until you give a name, Pragma Chess gives you "
+                                       "one, a champion's with three digits.</p>"),
+                                    this));
+    form->addRow(tr("Year of &birth:"),
+                 HelpButton::beside(m_birthYear,
+                                    tr("<p>The year you were born, kept with your settings.</p>"
+                                       "<p>Optional: leave the dash if you would rather not give it.</p>"),
+                                    this));
+    form->addRow(tr("&FIDE ID:"),
+                 HelpButton::beside(m_fideId,
+                                    tr("<p>Your number at FIDE, the world chess federation: the digits of your FIDE "
+                                       "profile.</p><p>Optional.</p>"),
+                                    this));
+    form->addRow(tr("Board &style:"),
+                 HelpButton::beside(m_boardTheme,
+                                    tr("<p>The colours of the squares and the pieces, together: Pragma Classic, Lichess "
+                                       "Alpha or Classic Book.</p>"
+                                       "<p>Every board changes as soon as you press OK, and on your other computers "
+                                       "with Sync.</p>"),
+                                    this));
 
     // The lobby key: who the user is in the lobby, kept on this computer only.
-    QWidget *lobby = nullptr;
     if (!lobbyKey.isEmpty()) {
         m_originalLobbyKey = lobbyKey;
-        lobby = new QWidget(this);
-        auto *lobbyLayout = new QVBoxLayout(lobby);
-        lobbyLayout->setContentsMargins(0, 0, 0, 0);
-        auto *keyRow = new QHBoxLayout;
+        auto *lobby = new QWidget(this);
+        auto *keyRow = new QHBoxLayout(lobby);
+        keyRow->setContentsMargins(0, 0, 0, 0);
         m_lobbyKey = new QLineEdit(lobbyKey, lobby);
         m_lobbyKey->setEchoMode(QLineEdit::Password); // A secret: shown only when asked.
         m_lobbyKey->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
@@ -111,19 +131,24 @@ PersonalSettingsDialog::PersonalSettingsDialog(const PersonalSettings &settings,
         keyRow->addWidget(m_lobbyKey, 1);
         keyRow->addWidget(show);
         keyRow->addWidget(copy);
-        auto *keyForm = new QFormLayout;
-        keyForm->addRow(tr("&Lobby key:"), keyRow);
+        keyRow->addWidget(new HelpButton(tr("<p>This key is who you are in the lobby: it signs your moves.</p>"
+                                            "<p>For security it is not synced with your other settings and stays on "
+                                            "this computer only. To play as yourself from another computer, copy it "
+                                            "here and paste it into the same field there: you have to carry it "
+                                            "yourself.</p><p>Anyone who has it can play as you, so keep it to "
+                                            "yourself.</p>"),
+                                         lobby),
+                          0, Qt::AlignVCenter);
+        // The lobby apart, under a line, in the same columns: it is no setting
+        // of yours, it is who you are there.
+        auto *line = new QFrame(this);
+        line->setFrameShape(QFrame::HLine);
+        line->setFrameShadow(QFrame::Sunken);
+        form->addRow(line);
+        auto *label = new QLabel(tr("&Lobby key:"), this);
+        label->setBuddy(m_lobbyKey); // Its letter takes the focus there.
+        form->addRow(label, lobby);
         m_lobbyKey->setAccessibleName(tr("Lobby key"));
-        lobbyLayout->addLayout(keyForm);
-        auto *keyNote = new QLabel(tr("This key is who you are in the lobby: it signs your moves. For security it is "
-                                      "not synced with your other settings and stays on this computer only. To play "
-                                      "as yourself from another computer, copy it here and paste it into the same "
-                                      "field there: you have to carry it yourself. Anyone who has it can play as "
-                                      "you, so keep it to yourself."),
-                                   lobby);
-        keyNote->setWordWrap(true);
-        keyNote->setEnabled(false);
-        lobbyLayout->addWidget(keyNote);
     }
 
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
@@ -131,12 +156,10 @@ PersonalSettingsDialog::PersonalSettingsDialog(const PersonalSettings &settings,
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     auto *layout = new QVBoxLayout(this);
+    layout->addWidget(intro);
+    layout->addSpacing(6);
     layout->addLayout(form);
-    layout->addWidget(note);
-    if (lobby) {
-        layout->addSpacing(layout->spacing());
-        layout->addWidget(lobby);
-    }
+    layout->addSpacing(18); // Room before the window's buttons.
     layout->addStretch();
     layout->addWidget(buttons);
 }

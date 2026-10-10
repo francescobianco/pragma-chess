@@ -5,7 +5,7 @@
 
 #include <QString>
 
-/// Stand-in names: what is shown for a player a game leaves unnamed, in
+/// Stand-in names: what is shown for a player (or a puzzle's theme) a game leaves unnamed, in
 /// the databases that are about the user — the training sets, whose games
 /// the user plays, by the side to move at the start, against a trainer.
 /// They are shown (games list, the board's header) and never stored: the
@@ -25,6 +25,11 @@ struct StandInNames {
 
     /// The name shown for `side` in `game`: its own, or the stand-in.
     QString name(const GameRecord &game, Side side) const;
-    /// `game` with its unnamed players given their stand-ins.
+    /// The event shown for `game`: a puzzle whose event says only where it
+    /// comes from (none, "lichess.org puzzles", "Puzzle <id>") shows its
+    /// theme (TrainingSets::puzzleTheme) in the interface's language; any
+    /// other event is its own.
+    static QString event(const GameRecord &game);
+    /// `game` with its unnamed players and its puzzle's event given their stand-ins.
     GameRecord appliedTo(GameRecord game) const;
 };

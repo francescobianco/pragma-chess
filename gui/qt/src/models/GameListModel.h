@@ -22,6 +22,9 @@ public:
     /// The column's name in full, for menus: the two "Elo" headers are
     /// "White Elo" and "Black Elo" there.
     static QString columnName(int column);
+    /// The column's name for menus as this database shows it: the name the
+    /// database gives it (DatabaseProperties::columnNames, "Theme"), else columnName.
+    QString shownColumnName(int column) const;
 
     void setDatabase(const GameDatabase *database);
     /// Reads again who the players are (Who Is This?): the names of "me"
@@ -46,5 +49,7 @@ private:
     QSet<QString> m_me; // The players who are the user, in bold.
     bool m_training = false; // A training database: the Line column stays empty, stand-in names.
     StandInNames m_standIns;
+    /// The names the database gives its columns, in the interface's language, by column.
+    QHash<int, QString> m_columnNames;
     int m_rows = 0;
 };

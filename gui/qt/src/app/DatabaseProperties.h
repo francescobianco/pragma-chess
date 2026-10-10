@@ -42,6 +42,16 @@ struct DatabaseProperties {
     /// the list travels with the file — and one added to the defaults later
     /// still reaches the copies made before.
     QStringList shippedColumns;
+    /// What the database calls a column of the games list, by its key and
+    /// language ("event" → {"en": "Theme", "it": "Tema"}), stored as
+    /// `columns.name.<key>.<code>`: the column stays what it is — the event
+    /// of the games —, the database says what it holds for it.
+    QHash<QString, QHash<QString, QString>> columnNames;
+
+    /// The name the database gives the column `key` in the interface
+    /// language `languageCode`: that translation, else the English one;
+    /// empty when it gives none.
+    QString columnName(const QString &key, const QString &languageCode) const;
 
     /// A database we distribute (Classic Games, the training sets, the
     /// opening names): it is named in every language, not by the user.

@@ -11,6 +11,7 @@ const QString kNameKey = QStringLiteral("name");
 const QString kNamePrefix = QStringLiteral("name.");
 const QString kHiddenColumnsKey = QStringLiteral("columns.hidden");
 const QString kShippedColumnsKey = QStringLiteral("columns.shipped");
+const QString kColumnNamePrefix = QStringLiteral("columns.name.");
 
 } // namespace
 
@@ -29,6 +30,13 @@ DatabaseProperties DatabaseProperties::fromValues(const QHash<QString, QString> 
                       QStringLiteral("date"), QStringLiteral("site")}
         : shipped.split(QLatin1Char(','), Qt::SkipEmptyParts);
     for (auto it = values.cbegin(); it != values.cend(); ++it) {
+        // "columns.name.event.it"
+        if (it.key().startsWith(kColumnNamePrefix) && !it.value().isEmpty()) {
+            const QString rest = it.key().mid(kColumnNamePrefix.size());
+            const qsizetype dot = rest.lastIndexOf(QLatin1Char('.'));
+            if (dot > 0)
+                properties.columnNames[rest.left(dot)].insert(rest.mid(dot + 1).toLower(), it.value());
+        }
         if (it.key().startsWith(kNamePrefix) && it.key().size() > kNamePrefix.size() && !it.value().isEmpty())
             properties.localizedNames.insert(it.key().mid(kNamePrefix.size()).toLower(), it.value());
     }
@@ -49,6 +57,10 @@ QHash<QString, QString> DatabaseProperties::values() const
                                    {kHiddenColumnsKey, hiddenColumns.join(QLatin1Char(','))}};
     if (!id.isEmpty())
         result.insert(kIdKey, id);
+    for (auto column = columnNames.cbegin(); column != columnNames.cend(); ++column)
+        for (auto name = column.value().cbegin(); name != column.value().cend(); ++name)
+            if (!name.value().isEmpty())
+                result.insert(kColumnNamePrefix + column.key() + QLatin1Char('.') + name.key(), name.value());
     if (!shippedColumns.isEmpty())
         result.insert(kShippedColumnsKey, shippedColumns.join(QLatin1Char(',')));
     if (!name.isEmpty())
@@ -58,6 +70,17 @@ QHash<QString, QString> DatabaseProperties::values() const
             result.insert(kNamePrefix + it.key(), it.value());
     }
     return result;
+}
+
+QString DatabaseProperties::columnName(const QString &key, const QString &languageCode) const
+{
+    const QHash<QString, QString> names = columnNames.value(key);
+    const QString code = languageCode.toLower().replace(QLatin1Char('-'), QLatin1Char('_'));
+    for (const QString &candidate : {code, code.section(QLatin1Char('_'), 0, 0), QStringLiteral("en")}) {
+        if (const QString name = names.value(candidate); !name.isEmpty())
+            return name;
+    }
+    return {};
 }
 
 QString DatabaseProperties::displayName(const QString &languageCode, const QString &fileBaseName) const

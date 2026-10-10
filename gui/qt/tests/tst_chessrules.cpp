@@ -4646,6 +4646,28 @@ END FUNCTION
         QCOMPARE(names.name(game, Side::White), QStringLiteral("Lasker"));
         QVERIFY(StandInNames::isUnnamed(QStringLiteral(" - ")));
 
+        // A puzzle's event shows its theme, the most telling of lichess's.
+        GameRecord puzzle2;
+        puzzle2.event = QStringLiteral("lichess.org puzzles");
+        puzzle2.tags = {{QStringLiteral("PuzzleId"), QStringLiteral("zosdQ")},
+                        {QStringLiteral("Themes"), QStringLiteral("advancedPawn crushing endgame long master pawnEndgame promotion")}};
+        QCOMPARE(TrainingSets::puzzleTheme(puzzle2), QStringLiteral("promotion")); // The motif before the endgame.
+        QCOMPARE(StandInNames::event(puzzle2), QStringLiteral("Promotion"));
+        puzzle2.tags[1].value = QStringLiteral("crushing endgame short pawnEndgame");
+        QCOMPARE(StandInNames::event(puzzle2), QStringLiteral("Pawn Endgame"));
+        puzzle2.tags[1].value = QStringLiteral("backRankMate mate mateIn2 short");
+        QCOMPARE(StandInNames::event(puzzle2), QStringLiteral("Back-Rank Mate")); // A named mate first.
+        puzzle2.tags[1].value = QStringLiteral("fork mate mateIn2 middlegame");
+        QCOMPARE(StandInNames::event(puzzle2), QStringLiteral("Mate in 2"));
+        puzzle2.event = QStringLiteral("Puzzle zosdQ"); // As older copies have it.
+        QCOMPARE(StandInNames::event(puzzle2), QStringLiteral("Mate in 2"));
+        puzzle2.event = QStringLiteral("My favourite"); // The user's own event is theirs.
+        QCOMPARE(StandInNames::event(puzzle2), QStringLiteral("My favourite"));
+        QCOMPARE(names.appliedTo(puzzle2).event, QStringLiteral("My favourite"));
+        GameRecord theory; // No themes: the event as it is.
+        theory.event = QStringLiteral("The opposition");
+        QCOMPARE(StandInNames::event(theory), QStringLiteral("The opposition"));
+
         // A user who gave no name gets a champion's, with three digits.
         QCOMPARE(PersonalSettings::generatedName(9), QStringLiteral("Spassky000"));
         const quint32 champions = quint32(RoomName::championCount()); // The list grows: appended to.
@@ -4991,6 +5013,15 @@ END FUNCTION
         properties.hiddenColumns.clear();
         QVERIFY(properties.values().contains(QStringLiteral("columns.hidden")));
         QVERIFY(DatabaseProperties::fromValues(properties.values()).hiddenColumns.isEmpty());
+        // What a database calls its columns, by language, English the fallback.
+        properties.columnNames = {{QStringLiteral("event"), {{QStringLiteral("en"), QStringLiteral("Theme")},
+                                                             {QStringLiteral("it"), QStringLiteral("Tema")}}}};
+        QCOMPARE(properties.values().value(QStringLiteral("columns.name.event.it")), QStringLiteral("Tema"));
+        QCOMPARE(DatabaseProperties::fromValues(properties.values()).columnNames, properties.columnNames);
+        QCOMPARE(properties.columnName(QStringLiteral("event"), QStringLiteral("it_IT")), QStringLiteral("Tema"));
+        QCOMPARE(properties.columnName(QStringLiteral("event"), QStringLiteral("de")), QStringLiteral("Theme"));
+        QVERIFY(properties.columnName(QStringLiteral("site"), QStringLiteral("it")).isEmpty());
+        properties.columnNames.clear();
         // The mark that a distributed database's default columns were given: kept with the file.
         QVERIFY(!properties.values().contains(QStringLiteral("columns.shipped")));
         properties.shippedColumns = {QStringLiteral("result"), QStringLiteral("moves")};

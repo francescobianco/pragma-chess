@@ -5780,6 +5780,186 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>%1 vs %2</source>
         <translation>%1 contro %2</translation>
     </message>
+    <message>
+        <source>Anastasia&apos;s Mate</source>
+        <translation>Matto di Anastasia</translation>
+    </message>
+    <message>
+        <source>Arabian Mate</source>
+        <translation>Matto arabo</translation>
+    </message>
+    <message>
+        <source>Boden&apos;s Mate</source>
+        <translation>Matto di Boden</translation>
+    </message>
+    <message>
+        <source>Double Bishop Mate</source>
+        <translation>Matto dei due alfieri</translation>
+    </message>
+    <message>
+        <source>Dovetail Mate</source>
+        <translation>Matto a coda di rondine</translation>
+    </message>
+    <message>
+        <source>Swallow&apos;s Tail Mate</source>
+        <translation>Matto della rondine</translation>
+    </message>
+    <message>
+        <source>Epaulette Mate</source>
+        <translation>Matto delle spalline</translation>
+    </message>
+    <message>
+        <source>Hook Mate</source>
+        <translation>Matto a uncino</translation>
+    </message>
+    <message>
+        <source>Opera Mate</source>
+        <translation>Matto dell&apos;Opera</translation>
+    </message>
+    <message>
+        <source>Pillsbury&apos;s Mate</source>
+        <translation>Matto di Pillsbury</translation>
+    </message>
+    <message>
+        <source>Morphy&apos;s Mate</source>
+        <translation>Matto di Morphy</translation>
+    </message>
+    <message>
+        <source>Vuković&apos;s Mate</source>
+        <translation>Matto di Vuković</translation>
+    </message>
+    <message>
+        <source>Balestra Mate</source>
+        <translation>Matto a balestra</translation>
+    </message>
+    <message>
+        <source>Blind Swine Mate</source>
+        <translation>Matto dei maiali ciechi</translation>
+    </message>
+    <message>
+        <source>Kill Box Mate</source>
+        <translation>Matto a scatola</translation>
+    </message>
+    <message>
+        <source>Triangle Mate</source>
+        <translation>Matto a triangolo</translation>
+    </message>
+    <message>
+        <source>Corner Mate</source>
+        <translation>Matto nell&apos;angolo</translation>
+    </message>
+    <message>
+        <source>Mate in 1</source>
+        <translation>Matto in 1</translation>
+    </message>
+    <message>
+        <source>Mate in 2</source>
+        <translation>Matto in 2</translation>
+    </message>
+    <message>
+        <source>Mate in 3</source>
+        <translation>Matto in 3</translation>
+    </message>
+    <message>
+        <source>Mate in 4</source>
+        <translation>Matto in 4</translation>
+    </message>
+    <message>
+        <source>Mate in 5 or More</source>
+        <translation>Matto in 5 o più</translation>
+    </message>
+    <message>
+        <source>Discovered Check</source>
+        <translation>Scacco di scoperta</translation>
+    </message>
+    <message>
+        <source>Defensive Move</source>
+        <translation>Mossa difensiva</translation>
+    </message>
+    <message>
+        <source>Underpromotion</source>
+        <translation>Sottopromozione</translation>
+    </message>
+    <message>
+        <source>En Passant</source>
+        <translation>En passant</translation>
+    </message>
+    <message>
+        <source>Castling</source>
+        <translation>Arrocco</translation>
+    </message>
+    <message>
+        <source>Advanced Pawn</source>
+        <translation>Pedone avanzato</translation>
+    </message>
+    <message>
+        <source>Attacking f2 or f7</source>
+        <translation>Attacco a f2 o f7</translation>
+    </message>
+    <message>
+        <source>Kingside Attack</source>
+        <translation>Attacco sul lato di re</translation>
+    </message>
+    <message>
+        <source>Queenside Attack</source>
+        <translation>Attacco sul lato di donna</translation>
+    </message>
+    <message>
+        <source>Exposed King</source>
+        <translation>Re esposto</translation>
+    </message>
+    <message>
+        <source>Pawn Endgame</source>
+        <translation>Finale di pedoni</translation>
+    </message>
+    <message>
+        <source>Knight Endgame</source>
+        <translation>Finale di cavallo</translation>
+    </message>
+    <message>
+        <source>Bishop Endgame</source>
+        <translation>Finale di alfiere</translation>
+    </message>
+    <message>
+        <source>Rook Endgame</source>
+        <translation>Finale di torre</translation>
+    </message>
+    <message>
+        <source>Queen Endgame</source>
+        <translation>Finale di donna</translation>
+    </message>
+    <message>
+        <source>Queen and Rook Endgame</source>
+        <translation>Finale di donna e torre</translation>
+    </message>
+    <message>
+        <source>Checkmate</source>
+        <translation>Scacco matto</translation>
+    </message>
+    <message>
+        <source>Endgame</source>
+        <translation>Finale</translation>
+    </message>
+    <message>
+        <source>Middlegame</source>
+        <translation>Mediogioco</translation>
+    </message>
+    <message>
+        <source>Opening</source>
+        <translation>Apertura</translation>
+    </message>
+    <message>
+        <source>Crushing</source>
+        <translation>Vantaggio decisivo</translation>
+    </message>
+    <message>
+        <source>Advantage</source>
+        <translation>Vantaggio</translation>
+    </message>
+    <message>
+        <source>Equality</source>
+        <translation>Parità</translation>
+    </message>
 </context>
 <context>
     <name>UiLanguage</name>

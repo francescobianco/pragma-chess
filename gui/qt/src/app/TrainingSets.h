@@ -46,6 +46,13 @@ QStringList endgameFamilies();
 /// The tactical themes of a game, from its Themes tag (lichess's names: "pin",
 /// "skewer"…), only those the tree lists, in that order.
 QStringList tacticsOf(const GameRecord &game);
+/// What a puzzle is about: the most telling of the themes lichess gave it
+/// (its Themes tag) — a named mate, then a mate's length, the tactical
+/// motif, the attack, the kind of endgame, the phase, the outcome; empty
+/// when it has none. "mateIn2", "fork", "rookEndgame"…
+QString puzzleTheme(const GameRecord &game);
+/// A puzzle theme in the interface's language: "Mate in 2", "Fork"…
+QString puzzleThemeName(const QString &theme);
 /// Every tactical theme the tree lists, and its name: "Pin", "Skewer"…
 QStringList tacticThemes();
 QString tacticName(const QString &theme);

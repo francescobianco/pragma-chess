@@ -4,6 +4,7 @@
 #include "app/DatabaseProperties.h"
 #include "app/GameDatabase.h"
 #include "app/PlayerRole.h"
+#include "app/UiLanguage.h"
 
 #include <QFont>
 
@@ -20,6 +21,15 @@ void GameListModel::setDatabase(const GameDatabase *database)
     m_me.clear();
     // Puzzles and exercises: their moves are the solution, not to be shown.
     m_training = m_database && m_database->properties().type == DatabaseType::Training;
+    m_columnNames.clear();
+    if (m_database) {
+        const DatabaseProperties properties = m_database->properties();
+        for (int column = 0; column < ColumnCount; ++column) {
+            const QString name = properties.columnName(columnKey(column), UiLanguage::effective());
+            if (!name.isEmpty())
+                m_columnNames.insert(column, name);
+        }
+    }
     if (m_database) {
         const PlayerRoles roles = m_database->playerRoles();
         for (auto it = roles.cbegin(); it != roles.cend(); ++it) {
@@ -121,7 +131,7 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
     case BlackElo: return elo(game.blackElo);
     case Result: return game.result;
     case Date: return game.date;
-    case Event: return game.event;
+    case Event: return m_training ? StandInNames::event(game) : game.event;
     case Site: return game.site;
     case Eco: return game.eco;
     case Moves: return (game.plyCount + 1) / 2;
@@ -149,6 +159,12 @@ QString GameListModel::columnKey(int column)
     }
 }
 
+QString GameListModel::shownColumnName(int column) const
+{
+    const QString name = m_columnNames.value(column);
+    return name.isEmpty() ? columnName(column) : name;
+}
+
 QString GameListModel::columnName(int column)
 {
     switch (column) {
@@ -172,6 +188,8 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
 {
     if (orientation != Qt::Horizontal || role != Qt::DisplayRole)
         return {};
+    if (const QString name = m_columnNames.value(section); !name.isEmpty())
+        return name;
     switch (section) {
     case Number: return tr("#");
     case White: return tr("White");

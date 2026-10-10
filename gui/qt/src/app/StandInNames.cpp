@@ -1,5 +1,9 @@
 #include "StandInNames.h"
 
+#include "TrainingSets.h"
+
+#include <QCoreApplication>
+
 #include <QStringList>
 
 Side StandInNames::traineeSide(const GameRecord &game)
@@ -23,11 +27,28 @@ QString StandInNames::name(const GameRecord &game, Side side) const
     return side == traineeSide(game) ? trainee : trainer;
 }
 
+QString StandInNames::event(const GameRecord &game)
+{
+    const QString theme = TrainingSets::puzzleTheme(game);
+    if (theme.isEmpty())
+        return game.event;
+    const QString own = game.event.trimmed();
+    QString id;
+    for (const PgnTag &tag : game.tags)
+        if (tag.name == QLatin1String("PuzzleId"))
+            id = tag.value;
+    const bool generic = isUnnamed(own) || own == QLatin1String("lichess.org puzzles")
+        || own == QCoreApplication::translate("TrainingSets", "lichess.org puzzles")
+        || (!id.isEmpty() && own == QStringLiteral("Puzzle ") + id);
+    return generic ? TrainingSets::puzzleThemeName(theme) : game.event;
+}
+
 GameRecord StandInNames::appliedTo(GameRecord game) const
 {
     const QString white = name(game, Side::White);
     const QString black = name(game, Side::Black);
     game.white = white;
     game.black = black;
+    game.event = event(game);
     return game;
 }

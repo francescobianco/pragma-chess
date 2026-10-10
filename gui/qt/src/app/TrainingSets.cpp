@@ -160,6 +160,78 @@ const Theme kTactics[] = {
     {"promotion", QT_TRANSLATE_NOOP("TrainingSets", "Promotion")},
 };
 
+/// Every theme lichess gives its puzzles that says what a puzzle is about,
+/// most telling first: a named mate, the length of a mate, the tactical
+/// motif, the attack, the kind of endgame, the phase, the outcome. Lengths
+/// and ratings of the games ("short", "master") are not themes.
+const Theme kPuzzleThemes[] = {
+    {"smotheredMate", QT_TRANSLATE_NOOP("TrainingSets", "Smothered Mate")},
+    {"backRankMate", QT_TRANSLATE_NOOP("TrainingSets", "Back-Rank Mate")},
+    {"anastasiaMate", QT_TRANSLATE_NOOP("TrainingSets", "Anastasia's Mate")},
+    {"arabianMate", QT_TRANSLATE_NOOP("TrainingSets", "Arabian Mate")},
+    {"bodenMate", QT_TRANSLATE_NOOP("TrainingSets", "Boden's Mate")},
+    {"doubleBishopMate", QT_TRANSLATE_NOOP("TrainingSets", "Double Bishop Mate")},
+    {"dovetailMate", QT_TRANSLATE_NOOP("TrainingSets", "Dovetail Mate")},
+    {"swallowstailMate", QT_TRANSLATE_NOOP("TrainingSets", "Swallow's Tail Mate")},
+    {"epauletteMate", QT_TRANSLATE_NOOP("TrainingSets", "Epaulette Mate")},
+    {"hookMate", QT_TRANSLATE_NOOP("TrainingSets", "Hook Mate")},
+    {"operaMate", QT_TRANSLATE_NOOP("TrainingSets", "Opera Mate")},
+    {"pillsburysMate", QT_TRANSLATE_NOOP("TrainingSets", "Pillsbury's Mate")},
+    {"morphysMate", QT_TRANSLATE_NOOP("TrainingSets", "Morphy's Mate")},
+    {"vukovicMate", QT_TRANSLATE_NOOP("TrainingSets", "Vuković's Mate")},
+    {"balestraMate", QT_TRANSLATE_NOOP("TrainingSets", "Balestra Mate")},
+    {"blindSwineMate", QT_TRANSLATE_NOOP("TrainingSets", "Blind Swine Mate")},
+    {"killBoxMate", QT_TRANSLATE_NOOP("TrainingSets", "Kill Box Mate")},
+    {"triangleMate", QT_TRANSLATE_NOOP("TrainingSets", "Triangle Mate")},
+    {"cornerMate", QT_TRANSLATE_NOOP("TrainingSets", "Corner Mate")},
+    {"mateIn1", QT_TRANSLATE_NOOP("TrainingSets", "Mate in 1")},
+    {"mateIn2", QT_TRANSLATE_NOOP("TrainingSets", "Mate in 2")},
+    {"mateIn3", QT_TRANSLATE_NOOP("TrainingSets", "Mate in 3")},
+    {"mateIn4", QT_TRANSLATE_NOOP("TrainingSets", "Mate in 4")},
+    {"mateIn5", QT_TRANSLATE_NOOP("TrainingSets", "Mate in 5 or More")},
+    {"doubleCheck", QT_TRANSLATE_NOOP("TrainingSets", "Double Check")},
+    {"discoveredCheck", QT_TRANSLATE_NOOP("TrainingSets", "Discovered Check")},
+    {"discoveredAttack", QT_TRANSLATE_NOOP("TrainingSets", "Discovered Attack")},
+    {"fork", QT_TRANSLATE_NOOP("TrainingSets", "Fork")},
+    {"pin", QT_TRANSLATE_NOOP("TrainingSets", "Pin")},
+    {"skewer", QT_TRANSLATE_NOOP("TrainingSets", "Skewer")},
+    {"xRayAttack", QT_TRANSLATE_NOOP("TrainingSets", "X-Ray Attack")},
+    {"deflection", QT_TRANSLATE_NOOP("TrainingSets", "Deflection")},
+    {"attraction", QT_TRANSLATE_NOOP("TrainingSets", "Attraction")},
+    {"interference", QT_TRANSLATE_NOOP("TrainingSets", "Interference")},
+    {"clearance", QT_TRANSLATE_NOOP("TrainingSets", "Clearance")},
+    {"intermezzo", QT_TRANSLATE_NOOP("TrainingSets", "Intermezzo")},
+    {"capturingDefender", QT_TRANSLATE_NOOP("TrainingSets", "Capturing the Defender")},
+    {"trappedPiece", QT_TRANSLATE_NOOP("TrainingSets", "Trapped Piece")},
+    {"hangingPiece", QT_TRANSLATE_NOOP("TrainingSets", "Hanging Piece")},
+    {"sacrifice", QT_TRANSLATE_NOOP("TrainingSets", "Sacrifice")},
+    {"zugzwang", QT_TRANSLATE_NOOP("TrainingSets", "Zugzwang")},
+    {"quietMove", QT_TRANSLATE_NOOP("TrainingSets", "Quiet Move")},
+    {"defensiveMove", QT_TRANSLATE_NOOP("TrainingSets", "Defensive Move")},
+    {"underPromotion", QT_TRANSLATE_NOOP("TrainingSets", "Underpromotion")},
+    {"promotion", QT_TRANSLATE_NOOP("TrainingSets", "Promotion")},
+    {"enPassant", QT_TRANSLATE_NOOP("TrainingSets", "En Passant")},
+    {"castling", QT_TRANSLATE_NOOP("TrainingSets", "Castling")},
+    {"advancedPawn", QT_TRANSLATE_NOOP("TrainingSets", "Advanced Pawn")},
+    {"attackingF2F7", QT_TRANSLATE_NOOP("TrainingSets", "Attacking f2 or f7")},
+    {"kingsideAttack", QT_TRANSLATE_NOOP("TrainingSets", "Kingside Attack")},
+    {"queensideAttack", QT_TRANSLATE_NOOP("TrainingSets", "Queenside Attack")},
+    {"exposedKing", QT_TRANSLATE_NOOP("TrainingSets", "Exposed King")},
+    {"pawnEndgame", QT_TRANSLATE_NOOP("TrainingSets", "Pawn Endgame")},
+    {"knightEndgame", QT_TRANSLATE_NOOP("TrainingSets", "Knight Endgame")},
+    {"bishopEndgame", QT_TRANSLATE_NOOP("TrainingSets", "Bishop Endgame")},
+    {"rookEndgame", QT_TRANSLATE_NOOP("TrainingSets", "Rook Endgame")},
+    {"queenEndgame", QT_TRANSLATE_NOOP("TrainingSets", "Queen Endgame")},
+    {"queenRookEndgame", QT_TRANSLATE_NOOP("TrainingSets", "Queen and Rook Endgame")},
+    {"mate", QT_TRANSLATE_NOOP("TrainingSets", "Checkmate")},
+    {"endgame", QT_TRANSLATE_NOOP("TrainingSets", "Endgame")},
+    {"middlegame", QT_TRANSLATE_NOOP("TrainingSets", "Middlegame")},
+    {"opening", QT_TRANSLATE_NOOP("TrainingSets", "Opening")},
+    {"crushing", QT_TRANSLATE_NOOP("TrainingSets", "Crushing")},
+    {"advantage", QT_TRANSLATE_NOOP("TrainingSets", "Advantage")},
+    {"equality", QT_TRANSLATE_NOOP("TrainingSets", "Equality")},
+};
+
 struct Family {
     const char *id;
     const char *name;
@@ -336,6 +408,25 @@ QStringList tacticsOf(const GameRecord &game)
             found << QLatin1String(theme.id);
     }
     return found;
+}
+
+QString puzzleTheme(const GameRecord &game)
+{
+    const QStringList themes = tagValue(game, QStringLiteral("Themes")).split(QLatin1Char(' '), Qt::SkipEmptyParts);
+    for (const Theme &theme : kPuzzleThemes) {
+        if (themes.contains(QLatin1String(theme.id)))
+            return QLatin1String(theme.id);
+    }
+    return {};
+}
+
+QString puzzleThemeName(const QString &theme)
+{
+    for (const Theme &entry : kPuzzleThemes) {
+        if (theme == QLatin1String(entry.id))
+            return Text::tr(entry.name);
+    }
+    return theme;
 }
 
 QStringList tacticThemes()

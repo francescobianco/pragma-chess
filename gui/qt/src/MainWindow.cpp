@@ -1696,7 +1696,7 @@ void MainWindow::showGameColumnsMenu(const QPoint &position)
     const QStringList hidden = m_database->properties().hiddenColumns;
 
     QMenu menu(this);
-    QAction *hide = menu.addAction(column < 0 ? tr("&Hide") : tr("&Hide “%1”").arg(GameListModel::columnName(column)),
+    QAction *hide = menu.addAction(column < 0 ? tr("&Hide") : tr("&Hide “%1”").arg(m_gameListModel->shownColumnName(column)),
                                    this, [this, hidden, column] {
         setGameColumnsHidden(hidden + QStringList{GameListModel::columnKey(column)});
     });
@@ -1708,7 +1708,7 @@ void MainWindow::showGameColumnsMenu(const QPoint &position)
         const QString key = GameListModel::columnKey(hiddenColumn);
         if (!hidden.contains(key))
             continue;
-        show->addAction(GameListModel::columnName(hiddenColumn), this, [this, hidden, key] {
+        show->addAction(m_gameListModel->shownColumnName(hiddenColumn), this, [this, hidden, key] {
             QStringList remaining = hidden;
             remaining.removeAll(key);
             setGameColumnsHidden(remaining);
@@ -3071,10 +3071,16 @@ void MainWindow::updateDistributedDatabases()
         std::function<QList<GameRecord>()> games;
         /// The columns of the games list it hides by default (GameListModel::columnKey).
         QStringList hiddenColumns = {};
+        /// What it calls its columns, by key and language (DatabaseProperties::columnNames).
+        QHash<QString, QHash<QString, QString>> columnNames = {};
     };
-    // A puzzle has no players' ratings, result, date, place or moves worth a column.
+    // A puzzle has no players' ratings, result, date, place, moves, opening or line worth a column.
     const QStringList trainingColumns{QStringLiteral("white-elo"), QStringLiteral("black-elo"), QStringLiteral("result"),
-                                      QStringLiteral("date"), QStringLiteral("site"), QStringLiteral("moves")};
+                                      QStringLiteral("date"), QStringLiteral("site"), QStringLiteral("moves"),
+                                      QStringLiteral("eco"), QStringLiteral("line")};
+    // Its event column holds the theme of each puzzle (StandInNames::event).
+    const QHash<QString, QHash<QString, QString>> trainingNames{
+        {QStringLiteral("event"), {{QStringLiteral("en"), QStringLiteral("Theme")}, {QStringLiteral("it"), QStringLiteral("Tema")}}}};
     const auto puzzles = [](const char *resource) {
         QFile file{QString::fromLatin1(resource)};
         return file.open(QIODevice::ReadOnly) ? TrainingSets::puzzleGames(QString::fromUtf8(file.readAll()))
@@ -3086,10 +3092,10 @@ void MainWindow::updateDistributedDatabases()
         {"endgames", "Endgames", GameIdentity::kEndgamesLineage, "Endgame Training", "Allenati sui finali",
          "Theoretical endgames and endgame puzzles from the lichess.org puzzle database (CC0).",
          DatabaseType::Training, true,
-         [puzzles] { return TrainingSets::theoryEndgames() + puzzles(":/training/endgames.tsv"); }, trainingColumns},
+         [puzzles] { return TrainingSets::theoryEndgames() + puzzles(":/training/endgames.tsv"); }, trainingColumns, trainingNames},
         {"tactics", "Tactics", GameIdentity::kTacticsLineage, "Tactics Training", "Allenati sulla tattica",
          "Tactical puzzles by theme from the lichess.org puzzle database (CC0).", DatabaseType::Training, true,
-         [puzzles] { return puzzles(":/training/tactics.tsv"); }, trainingColumns},
+         [puzzles] { return puzzles(":/training/tactics.tsv"); }, trainingColumns, trainingNames},
     };
     const QDir folder(UserFolders::databasesDir());
     QHash<QString, QString> byLineage;
@@ -3132,6 +3138,7 @@ void MainWindow::updateDistributedDatabases()
             properties.type = set.type;
             properties.hiddenColumns = set.hiddenColumns;
             properties.shippedColumns = set.hiddenColumns;
+            properties.columnNames = set.columnNames;
             database->setProperties(properties, nullptr);
             nameShippedDatabase(*database, QLatin1String(set.english), QString::fromUtf8(set.italian));
             settings.setValue(seededKey, true);
@@ -3143,13 +3150,15 @@ void MainWindow::updateDistributedDatabases()
         // The columns it hides by default, each given once to a copy made
         // before (the list is in the file: shown again on one computer, they
         // stay shown on all).
-        const QStringList given = SqliteGameDatabase::readProperties(path).shippedColumns;
+        // What it calls its columns is ours, as its names are: a version
+        // that renames one renames it in the copy.
+        const DatabaseProperties shipped = SqliteGameDatabase::readProperties(path);
         QStringList missing;
         for (const QString &column : set.hiddenColumns)
-            if (!given.contains(column))
+            if (!shipped.shippedColumns.contains(column))
                 missing << column;
-        if (!missing.isEmpty())
-            giveShippedColumns(path, missing);
+        if (!missing.isEmpty() || shipped.columnNames != set.columnNames)
+            giveShippedColumns(path, missing, set.columnNames);
         // Its type was given after it was first distributed (the training
         // sets became Puzzles and Training): given once, so a type the user
         // chose afterwards in Database Settings stays.
@@ -3200,7 +3209,8 @@ void MainWindow::updateDistributedDatabases()
     }
 }
 
-void MainWindow::giveShippedColumns(const QString &path, const QStringList &hidden)
+void MainWindow::giveShippedColumns(const QString &path, const QStringList &hidden,
+                                    const QHash<QString, QHash<QString, QString>> &names)
 {
     QString error;
     std::unique_ptr<SqliteGameDatabase> opened;
@@ -3220,8 +3230,11 @@ void MainWindow::giveShippedColumns(const QString &path, const QStringList &hidd
         if (!properties.shippedColumns.contains(column))
             properties.shippedColumns << column;
     }
-    if (database->setProperties(properties, &error) && database == m_database.get())
+    properties.columnNames = names;
+    if (database->setProperties(properties, &error) && database == m_database.get()) {
+        m_gameListModel->refreshRoles(); // The columns' names.
         applyGameColumns();
+    }
 }
 
 void MainWindow::adoptShippedLineages()

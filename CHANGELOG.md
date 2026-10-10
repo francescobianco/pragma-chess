@@ -12,8 +12,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   the welcome window; the application's icon keeps the plain
   board, which reads better when small.
 - **Endgame Training** and **Tactics Training** hide the Elo, Result, Date,
-  Site and Moves columns, which a puzzle has nothing to put in; right-click
-  a column title to show them again.
+  Site, Moves, ECO and Line columns, which a puzzle has nothing to put in;
+  right-click a column title to show them again. Their Event column is
+  called **Theme** and shows each puzzle's theme in your language: *Fork*,
+  *Mate in 2*, *Rook Endgame*.
 - In **Endgame Training** and **Tactics Training** the players have names:
   yours on the side you play, *Pragma Coach* on the other — stand-in names,
   never written in the database.

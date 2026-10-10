@@ -772,7 +772,7 @@ painted as a menu item, since QMenu draws an item in one font).
   (`DatabaseProperties::hiddenColumns`, property `columns.hidden`, by
   `GameListModel::columnKey`): right-click a column title to Hide it or Show
   a hidden one. The training sets we distribute hide Elo, Result, Date,
-  Site and Moves by default (`Distributed::hiddenColumns`), each given once
+  Site, Moves, ECO and Line by default (`Distributed::hiddenColumns`), each given once
   to a copy made before and listed in the file (`columns.shipped`, the
   columns given; "1", the first mark, stands for the first five;
   `MainWindow::giveShippedColumns`), so a column shown again stays shown on
@@ -1352,7 +1352,17 @@ not translated) on the other — never stored, in the games list (which sorts by
 sort role is the display) and the board's header (`updateGameHeader`, a
 copy for display; the session's game keeps its empty names, so nothing
 writes them back). `MainWindow::updateStandInNames` follows the personal
-settings, a sync and "Who Is This?".
+settings, a sync and "Who Is This?". A puzzle's event is a stand-in too
+(`StandInNames::event`): where it says only where the puzzle comes from
+(none, "lichess.org puzzles", "Puzzle <id>"), its theme is shown —
+`TrainingSets::puzzleTheme`, the most telling of its Themes tag by the
+order of `kPuzzleThemes` (a named mate, a mate's length, the motif, the
+attack, the kind of endgame, the phase, the outcome), translated. A
+database names its columns (`DatabaseProperties::columnNames`,
+`columns.name.<key>.<code>`; the games list's header and its menu,
+`GameListModel::shownColumnName`): the training sets call the event
+column Theme/Tema, ours like their names, so a version renames them in the
+copies.
 
 The tree classifies any database's games for training (`DatabaseOutline`,
 `TrainingSets`, pure, unit-tested): **Endgames** — games starting from a

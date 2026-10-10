@@ -341,8 +341,10 @@ private:
     /// The names the games list shows for the players a training database
     /// leaves unnamed (StandInNames): the user's, and "Your Trainer".
     /// Hides `hidden` columns in the database we distribute at `path`, and
-    /// marks them given, so each is hidden once (DatabaseProperties::shippedColumns).
-    void giveShippedColumns(const QString &path, const QStringList &hidden);
+    /// marks them given, so each is hidden once (DatabaseProperties::shippedColumns);
+    /// gives its columns our `names`.
+    void giveShippedColumns(const QString &path, const QStringList &hidden,
+                            const QHash<QString, QHash<QString, QString>> &names);
     void updateStandInNames();
     StandInNames standInNames() const;
     /// The name of the personal settings, or the default one.

@@ -123,7 +123,7 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   and sacrifices. A long quiet mate, like queen against king, is technique:
   Explain says the mate and draws the plan of the side that mates instead
   of every move, with the cage the losing king is shut in.
-- The evaluation bar is as tall as the board with its frame.
+- The evaluation bar reaches a pixel into the board's frame, top and bottom.
 - In Italian the databases we distribute are called **Partite storiche**,
   **Allenati sui finali** and **Allenati sulla tattica**, and the project
   **Finali di torre**: copies already installed take the new names.

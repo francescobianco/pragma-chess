@@ -168,11 +168,11 @@ void BoardPanel::layoutChildren()
     m_board->setGeometry(boardLeft, boardTop, side, side);
     // The board paints inside a small margin; align the bar and header with the squares.
     const QRect squares = m_board->boardArea().translated(boardLeft, boardTop);
-    // Level with the outer edge of the board's frame, which sits just outside
-    // the squares: the bar on the left as the column on the right.
+    // One pixel past the squares, top and bottom, into the board's frame:
+    // level with its outer edge the bar looked too tall (the user's eye).
     const int frame = BoardWidget::kFrameWidth;
-    m_evaluationBar->setGeometry(squares.left() - kBarSpacing - barWidth, squares.top() - frame, barWidth,
-                                 squares.height() + 2 * frame);
+    m_evaluationBar->setGeometry(squares.left() - kBarSpacing - barWidth, squares.top() - 1, barWidth,
+                                 squares.height() + 2);
     m_header->setGeometry(squares.left(), top, squares.width(), headerHeight);
     m_sideColumn->setGeometry(squares.right() + 1 + kBarSpacing, squares.top() - frame, columnWidth,
                                   squares.height() + 2 * frame);

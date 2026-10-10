@@ -376,6 +376,9 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   every move), `findGames`/`filterList` (a filter of the list) — and the
   process's memory (`VmRSS`/`VmHWM`, Linux). Profile a Release build: a
   Debug one is several times slower.
+- `POST /api/extensions {"choose": "Stockfish", "install": true}` opens Help
+  ▸ Manage Extensions…, chooses an extension (and installs it) and answers
+  with the window's picture.
 - `GET /api/engines` the engines of this computer with their Computing
   Power (level, share of the machine, threads used), the cores, whether the
   system can cap a process (`canCap`), and the engine's process: pid, CPU
@@ -448,6 +451,30 @@ measurement are in [docs/tech/large-databases.md](docs/tech/large-databases.md):
 add a dated section there after a change meant to make large databases faster,
 measured with `scripts/stress-databases.sh`, and keep its summary and plans
 up to date.
+
+## Extensions
+
+Help ▸ Manage Extensions… (`dialogs/ExtensionsDialog`, not modal): providers
+on the left, what the chosen one offers in the middle (search, filter by
+kind), the chosen extension on the right with Install, Update and Remove.
+**Installing only places files and configures them**: no package manager,
+no password, nothing of the system touched (docs/tech/downloads.md says why
+not apt-get). `app/extensions/`, core:
+- `Extension` (what is offered: kind, version, download, executable inside
+  the archive, why it cannot be installed yet) and `ThisComputer` (system,
+  BMI2 by cpuid).
+- `ExtensionProvider`, one per source; `EnCroissantProvider` reads En
+  Croissant's catalogs (`EnCroissantCatalog`, pure, unit-tested): engines
+  as links to their authors' downloads, for this system and processor; its
+  databases listed, not installable (its own SQLite format, licenses to
+  check). A new provider is a class beside it, added in the dialog.
+- `ExtensionInstaller`: downloads to a file, opens it with `Archive` (zip,
+  tar, tar.gz through miniz — the system's or fetched; nothing written
+  outside the folder; unit-tested) into
+  `AppLocalData/extensions/<provider>/<id>`, makes an engine executable.
+  `InstalledExtension` (QSettings `extensions/installed`) remembers it and
+  the engine's id: `MainWindow::showExtensions` adds it to `EngineCatalog`
+  and takes it away (the engine in use falls back to the bundled one).
 
 ## Updates
 

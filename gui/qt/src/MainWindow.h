@@ -48,6 +48,7 @@ class HelpDialog;
 class WelcomeDialog;
 class LobbyDialog;
 class ConvertPgnDialog;
+class ExtensionsDialog;
 class LobbyNetwork;
 class MoveTreeView;
 class BookPanel;
@@ -493,6 +494,8 @@ private:
     void showLobby();
     /// Tools ▸ Convert ▸ PGN to Pragma Database….
     void showConvertPgn();
+    /// Help ▸ Manage Extensions…: not modal, one window.
+    void showExtensions();
     /// Help ▸ Check for Updates…: reads the latest release's version.json
     /// (UpdateCheck). `asked` says the user asked: then every answer is said,
     /// otherwise only a newer version, in the status bar and the Help menu.
@@ -758,6 +761,7 @@ private:
     LobbyDialog *m_lobbyDialog = nullptr;
     /// Tools ▸ Convert ▸ PGN to Pragma Database…: one window, not modal, so a long conversion goes on beside the board.
     ConvertPgnDialog *m_convertPgnDialog = nullptr;
+    QPointer<ExtensionsDialog> m_extensionsDialog;
     /// Help ▸ Download Pragma Chess …: shown once a newer version is found.
     QAction *m_newVersionAction = nullptr;
     /// How long the work on large databases took, last time, in milliseconds

@@ -19,6 +19,7 @@
 #include "dialogs/WelcomeDialog.h"
 #include "dialogs/LobbyDialog.h"
 #include "dialogs/ConvertPgnDialog.h"
+#include "dialogs/ExtensionsDialog.h"
 #include "app/PositionIndexBuilder.h"
 #include "widgets/DatabaseTreeWidget.h"
 #include "models/GameFilterProxyModel.h"
@@ -653,6 +654,22 @@ void DesktopApi::addRoutes()
         QJsonObject answer = state();
         answer.insert(QStringLiteral("listed"), w->m_gameListProxy->rowCount());
         return json(answer);
+    });
+    // Help ▸ Manage Extensions…: opens it and answers with its picture.
+    // {"choose": "Stockfish", "install": true} chooses an extension (and installs it).
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/extensions"), [w](const Request &request) {
+        w->showExtensions();
+        QApplication::processEvents();
+        const QJsonObject body = bodyOf(request).value_or(QJsonObject());
+        if (body.contains(QStringLiteral("choose")))
+            w->m_extensionsDialog->choose(body.value(QStringLiteral("choose")).toString(),
+                                          body.value(QStringLiteral("install")).toBool());
+        QApplication::processEvents();
+        QByteArray png;
+        QBuffer buffer(&png);
+        buffer.open(QIODevice::WriteOnly);
+        w->m_extensionsDialog->grab().save(&buffer, "PNG");
+        return Response{200, "image/png", png};
     });
     // How long the work on the open database took, last time, and the memory.
     m_server->route(QStringLiteral("GET"), QStringLiteral("/api/profile"), [w](const Request &) {

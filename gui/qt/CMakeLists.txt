@@ -149,6 +149,24 @@ set(APP_ID "io.github.francescobianco.PragmaChess")
 
 # Chess rules, engine driver and "Explain" logic: Qt Core only, shared by the
 # desktop client, the command line tools and the tests.
+# Archives of the extensions (Help ▸ Manage Extensions: engines published as
+# .zip and .tar.gz): miniz, the system's or fetched (its single-file release).
+find_package(miniz CONFIG QUIET)
+if(TARGET miniz::miniz)
+    set(PRAGMA_MINIZ miniz::miniz)
+else()
+    enable_language(C)
+    include(FetchContent)
+    FetchContent_Declare(miniz
+        URL https://github.com/richgel999/miniz/releases/download/3.0.2/miniz-3.0.2.zip
+        URL_HASH SHA256=ada38db0b703a56d3dd6d57bf84a9c5d664921d870d8fea4db153979fb5332c5)
+    FetchContent_MakeAvailable(miniz)
+    add_library(pragma-miniz STATIC ${miniz_SOURCE_DIR}/miniz.c)
+    target_include_directories(pragma-miniz SYSTEM PUBLIC ${miniz_SOURCE_DIR})
+    set_target_properties(pragma-miniz PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    set(PRAGMA_MINIZ pragma-miniz)
+endif()
+
 qt_add_library(pragma-chess-core STATIC
     src/app/api/LocalHttpServer.cpp
     src/app/api/LocalHttpServer.h
@@ -179,6 +197,16 @@ qt_add_library(pragma-chess-core STATIC
     src/app/ScoreView.cpp
     src/app/UpdateCheck.cpp
     src/app/UpdateCheck.h
+    src/app/extensions/Archive.cpp
+    src/app/extensions/Archive.h
+    src/app/extensions/EnCroissantCatalog.cpp
+    src/app/extensions/EnCroissantCatalog.h
+    src/app/extensions/Extension.h
+    src/app/extensions/ExtensionInstaller.cpp
+    src/app/extensions/ExtensionInstaller.h
+    src/app/extensions/ExtensionProvider.cpp
+    src/app/extensions/ExtensionProvider.h
+    src/app/extensions/ThisComputer.cpp
     src/app/ScoreView.h
     src/app/EngineEvaluation.h
     src/app/EnginePower.cpp
@@ -331,6 +359,7 @@ qt_add_library(pragma-chess-core STATIC
 )
 target_include_directories(pragma-chess-core PUBLIC src)
 target_link_libraries(pragma-chess-core PUBLIC Qt6::Core Qt6::Network)
+target_link_libraries(pragma-chess-core PRIVATE ${PRAGMA_MINIZ})
 # The SMART programs (smart/README.md), built in; PRAGMA_SMART_DIR reads them from a folder instead.
 qt_add_resources(pragma-chess-core smart PREFIX /smart BASE ${CMAKE_CURRENT_SOURCE_DIR}/../../smart
     FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../smart/TUTOR.smart ${CMAKE_CURRENT_SOURCE_DIR}/../../smart/EXPLAIN.smart
@@ -444,6 +473,8 @@ qt_add_executable(pragma-chess
     src/dialogs/SyncDialog.h
     src/dialogs/ConvertPgnDialog.cpp
     src/dialogs/ConvertPgnDialog.h
+    src/dialogs/ExtensionsDialog.cpp
+    src/dialogs/ExtensionsDialog.h
     src/dialogs/ManageSyncFilesDialog.cpp
     src/dialogs/ManageSyncFilesDialog.h
     src/dialogs/SourceSettingsWidget.cpp

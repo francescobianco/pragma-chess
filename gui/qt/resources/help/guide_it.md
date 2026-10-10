@@ -296,6 +296,14 @@ Con un repository Git ogni sincronizzazione che cambia dei file fa un commit, ch
 
 Quando elimini un database sul telefono, il computer ti chiede alla sincronizzazione successiva con il telefono se eliminarlo anche qui o tenerlo: **Tienilo** lo lascia sul computer, **Chiedimelo più tardi** te lo chiede di nuovo al prossimo avvio di Pragma Chess, ed **Elimina ovunque…** ti avvisa prima che il database sarà eliminato da tutti i dispositivi sincronizzati — finisce nel cestino di questo computer, viene tolto dalla cartella di sincronizzazione sul server e gli altri computer che si sincronizzano con essa eliminano la loro copia. In ogni caso il telefono non lo riceve più.
 
+# Estensioni {#extensions}
+
+**Aiuto ▸ Gestione estensioni…** installa motori e database con un clic. A sinistra ci sono i **provider**, che li offrono; al centro ciò che offre il provider scelto, da cercare per nome e filtrare per tipo; a destra quello che scegli, con cos'è, quanto pesa, da dove viene, e **Installa** e **Rimuovi**.
+
+Installare lo scarica e lo mette nella cartella di Pragma Chess, e un motore entra in **Motore ▸ Gestisci motori…** e in **Motore ▸ Cambia motore**, pronto all'uso: nient'altro del computer viene toccato, e non viene chiesta nessuna password. **Rimuovi** lo toglie, e se il motore era in uso torna quello incluso. Una versione più nuova offerta dal provider mostra **Aggiorna**.
+
+Il primo provider è il registro di En Croissant, un altro programma di scacchi libero: i suoi motori (Stockfish, RubiChess, Komodo, Dragon) si scaricano dalle pagine dei loro autori, per il tuo sistema e il tuo processore. I suoi database sono elencati ma non si possono ancora installare: sono nel formato di En Croissant.
+
 # Aggiornamenti {#updates}
 
 Una volta al giorno, poco dopo l'avvio, Pragma Chess chiede a GitHub il numero della sua ultima versione, e nient'altro: non viene inviato nessun dato su di te o sul tuo computer. Quando ne è uscita una più nuova, la barra di stato lo dice per un momento e il menu Aiuto offre **Scarica Pragma Chess …**, che apre la sua pagina per scaricarla. **Aiuto ▸ Cerca aggiornamenti…** chiede subito; **Aiuto ▸ Cerca aggiornamenti all'avvio** spegne la domanda di ogni giorno.

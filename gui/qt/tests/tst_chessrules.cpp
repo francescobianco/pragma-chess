@@ -57,6 +57,8 @@
 #include "app/convert/PgnConversion.h"
 #include "app/ScoreView.h"
 #include "app/UpdateCheck.h"
+#include "app/extensions/Archive.h"
+#include "app/extensions/EnCroissantCatalog.h"
 #include "app/online/FicsClient.h"
 #include "app/online/FicsProtocol.h"
 #include "app/convert/PgnSplitter.h"
@@ -86,6 +88,7 @@
 #include <QNetworkReply>
 #include <QNetworkAccessManager>
 #include <QStandardPaths>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QSqlDatabase>
 #include <QSqlQuery>
@@ -4309,6 +4312,97 @@ END FUNCTION
         QCOMPARE(height(1000), 1.0);
         QCOMPARE(height(3000), 1.0);
         QCOMPARE(ScoreView::courseHeight(mate), -1.0);
+    }
+
+    void opensTheArchivesOfExtensions()
+    {
+        // Made with Python's zipfile and tarfile: a zip, a tar.gz with an
+        // executable, and a zip whose entry would leave its folder.
+        const QByteArray zip = QByteArray::fromBase64(
+            "UEsDBBQAAAAIAJAJS107agFOCgAAAPoAAAARAAAAZW5naW5lL1JFQURNRS50eHTLSM3Jyc8YiQQAUEsDBBQAAAAIAJAJS13zu8N2FwAAABUAAAARAAAA"
+            "ZW5naW5lL2Jpbi9lbmdpbmVTVtRPyszTL87gSk3OyFcoTc7Mz+YCAFBLAQIUAxQAAAAIAJAJS107agFOCgAAAPoAAAARAAAAAAAAAAAAAACAAQAAAABl"
+            "bmdpbmUvUkVBRE1FLnR4dFBLAQIUAxQAAAAIAJAJS13zu8N2FwAAABUAAAARAAAAAAAAAAAAAACAATkAAABlbmdpbmUvYmluL2VuZ2luZVBLBQYAAAAA"
+            "AgACAH4AAAB/AAAAAAA=");
+        const QByteArray escaping = QByteArray::fromBase64(
+            "UEsDBBQAAAAIAJAJS12DFtyMAwAAAAEAAAALAAAALi4vZXZpbC50eHSrAABQSwECFAMUAAAACACQCUtdgxbcjAMAAAABAAAACwAAAAAAAAAAAAAAgAEA"
+            "AAAALi4vZXZpbC50eHRQSwUGAAAAAAEAAQA5AAAALAAAAAAA");
+        const QByteArray tarGz = QByteArray::fromBase64(
+            "H4sIAGHGymoC/+3UsQ7CIBSFYWafosZduFrkebSS2pjQRjDx8SUsxiZulqX/N5xL7sJADtO91z70Q/BqMSZz1paZzacxcvicy965vGqMquAZ0/mRr1TrtNvq"
+            "yxB0vG0UVmjK/b+OnQ5j8nGfXmmh/p/a9lf/RY7mu/8iYh39r6G8e0OS/01+VgAAAAAAAAAAAAAA6nkDt0A4OAAoAAA=");
+        QTemporaryDir dir;
+        const auto write = [&dir](const QString &name, const QByteArray &bytes) {
+            QFile file(dir.filePath(name));
+            file.open(QIODevice::WriteOnly);
+            file.write(bytes);
+            return file.fileName();
+        };
+        QCOMPARE(Archive::kindOf(QStringLiteral("https://x.org/stockfish-linux.tar.gz?raw=1")), Archive::Kind::TarGz);
+        QCOMPARE(Archive::kindOf(QStringLiteral("dragon.ZIP")), Archive::Kind::Zip);
+        QCOMPARE(Archive::kindOf(QStringLiteral("engine.exe")), Archive::Kind::None);
+
+        QString error;
+        const QString zipFolder = dir.filePath(QStringLiteral("zip"));
+        QVERIFY2(Archive::extract(write(QStringLiteral("a.zip"), zip), Archive::Kind::Zip, zipFolder, &error), qPrintable(error));
+        QFile readme(zipFolder + QStringLiteral("/engine/README.txt"));
+        QVERIFY(readme.open(QIODevice::ReadOnly));
+        QCOMPARE(readme.readAll(), QByteArray("hello").repeated(50));
+        QVERIFY(QFileInfo::exists(zipFolder + QStringLiteral("/engine/bin/engine")));
+
+        const QString tarFolder = dir.filePath(QStringLiteral("tar"));
+        QVERIFY2(Archive::extract(write(QStringLiteral("a.tar.gz"), tarGz), Archive::Kind::TarGz, tarFolder, &error), qPrintable(error));
+        const QFileInfo engine(tarFolder + QStringLiteral("/pkg/engine"));
+        QVERIFY(engine.exists());
+        QVERIFY(QFileInfo(tarFolder + QStringLiteral("/pkg/doc/notes.txt")).size() == 600);
+#ifndef Q_OS_WIN
+        QVERIFY(engine.isExecutable()); // The archive's mode kept.
+#endif
+
+        // Nothing is written outside the folder.
+        const QString badFolder = dir.filePath(QStringLiteral("bad/inside"));
+        QVERIFY(!Archive::extract(write(QStringLiteral("bad.zip"), escaping), Archive::Kind::Zip, badFolder, &error));
+        QVERIFY(!QFileInfo::exists(dir.filePath(QStringLiteral("bad/evil.txt"))));
+        QVERIFY(!Archive::extract(write(QStringLiteral("not.tar.gz"), "plain text"), Archive::Kind::TarGz,
+                                  dir.filePath(QStringLiteral("x")), &error));
+    }
+
+    void readsEnCroissantsCatalogs()
+    {
+        // As encroissant.org serves them (2026-10-11), shortened. Built from
+        // objects: moc misreads raw strings holding addresses.
+        const auto entry = [](const char *name, const char *version, const char *os, bool bmi2, const char *link,
+                              const char *path, int elo) {
+            return QJsonObject{{QStringLiteral("name"), name}, {QStringLiteral("version"), version},
+                               {QStringLiteral("os"), os}, {QStringLiteral("bmi2"), bmi2},
+                               {QStringLiteral("downloadLink"), link}, {QStringLiteral("path"), path},
+                               {QStringLiteral("elo"), elo}, {QStringLiteral("downloadSize"), 81431614}};
+        };
+        const QByteArray engines = QJsonDocument(QJsonArray{
+            entry("Stockfish", "19", "linux", true,
+                  "https:/" "/github.com/official-stockfish/Stockfish/releases/download/sf_19/stockfish-linux-x86-64-universal.tar.gz",
+                  "stockfish/stockfish-linux-x86-64-universal", 3635),
+            entry("Stockfish", "19", "windows", true, "x.zip", "x.exe", 3635),
+            entry("Komodo", "14", "linux", false, "https:/" "/komodochess.com/pub/komodo-14.zip",
+                  "komodo-14/Linux/komodo-14.02-linux", 3479)}).toJson();
+        const QList<Extension> onLinux = EnCroissantCatalog::engines(engines, QStringLiteral("linux"), true);
+        QCOMPARE(onLinux.size(), 1);
+        QCOMPARE(onLinux.first().name, QStringLiteral("Stockfish"));
+        QCOMPARE(onLinux.first().version, QStringLiteral("19"));
+        QCOMPARE(onLinux.first().id, QStringLiteral("stockfish-19-linux-bmi2"));
+        QCOMPARE(onLinux.first().elo, 3635);
+        QCOMPARE(onLinux.first().executable, QStringLiteral("stockfish/stockfish-linux-x86-64-universal"));
+        QCOMPARE(onLinux.first().author, QStringLiteral("github.com"));
+        QVERIFY(onLinux.first().installable());
+        QCOMPARE(EnCroissantCatalog::engines(engines, QStringLiteral("linux"), false).first().name, QStringLiteral("Komodo"));
+
+        const QByteArray databases = QJsonDocument(QJsonArray{QJsonObject{
+            {QStringLiteral("title"), QStringLiteral("MillionBase")}, {QStringLiteral("game_count"), 3451068},
+            {QStringLiteral("storage_size"), 779833344},
+            {QStringLiteral("downloadLink"), QStringLiteral("https:/" "/db.encroissant.org/mb-3.db3")}}}).toJson();
+        const QList<Extension> listed = EnCroissantCatalog::databases(databases, Extension::Kind::Database);
+        QCOMPARE(listed.size(), 1);
+        QCOMPARE(listed.first().count, 3451068);
+        QVERIFY(!listed.first().installable()); // Its format is not read yet.
+        QVERIFY(EnCroissantCatalog::engines("not json", QStringLiteral("linux"), true).isEmpty());
     }
 
     void tellsANewerVersion()

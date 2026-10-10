@@ -296,6 +296,14 @@ With a Git repository each sync that changes files makes one commit, named after
 
 When you delete a database on the phone, the computer asks you at its next sync with the phone whether to delete it here too or keep it: **Keep It** leaves it on the computer, **Ask Me Later** asks again the next time you start Pragma Chess, and **Delete Everywhere…** warns you first that the database will be deleted from every synced device — it goes to the trash on this computer, it is removed from the sync folder on the server, and the other computers that sync with it delete their copy. Either way the phone does not receive it again.
 
+# Extensions {#extensions}
+
+**Help ▸ Manage Extensions…** installs engines and databases with a click. On the left are the **providers**, who offer them; in the middle what the chosen provider offers, to search by name and filter by kind; on the right the one you choose, with what it is, how big, where it comes from, and **Install** and **Remove**.
+
+Installing downloads it and puts it in Pragma Chess's own folder, and an engine joins **Engine ▸ Manage Engines…** and **Engine ▸ Switch Engine**, ready to use: nothing else of your computer is touched, and no password is asked. **Remove** takes it away again, and if the engine was in use, the bundled one takes its place. A newer version offered by the provider shows **Update**.
+
+The first provider is the registry of En Croissant, another free chess program: its engines (Stockfish, RubiChess, Komodo, Dragon) are downloaded from their authors' own pages, for your system and processor. Its databases are listed but cannot be installed yet: they are in En Croissant's own format.
+
 # Updates {#updates}
 
 Once a day, a little after it starts, Pragma Chess asks GitHub for the number of its latest version, and nothing else: no data about you or your computer is sent. When a newer one is out, the status bar says so for a moment and the Help menu offers **Download Pragma Chess …**, which opens its download page. **Help ▸ Check for Updates…** asks at once; **Help ▸ Check for Updates at Startup** turns the daily question off.

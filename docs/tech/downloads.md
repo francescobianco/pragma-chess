@@ -1,5 +1,10 @@
 # Scaricare motori e database: come fa En Croissant
 
+> **Fatto (2026-10-11):** Aiuto ▸ Gestione estensioni, con il registro di En
+> Croissant come primo provider: i motori si installano (scaricati dai loro
+> autori, aperti con miniz, configurati in Gestisci motori), i database sono
+> elencati ma non installabili. Vedi AGENTS.md, "Extensions".
+
 Studio del 2026-10-11 su come [En Croissant](https://github.com/franciscoBSalgueiro/en-croissant)
 offre "con un clic" motori e database (la sua funzione più citata dagli
 utenti, POSITIONING.md), per decidere più avanti come farlo noi. Niente qui è

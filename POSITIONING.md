@@ -157,7 +157,7 @@ Quello che ha funzionato per lui, adattato a noi:
 | 1. Post in inglese sul blog di lichess | ✅ scritto (`packaging/announcements/lichess-blog-en.md`) · ☐ da pubblicare (account lichess) |
 | 2. Thread su TalkChess | ☐ da scrivere e pubblicare (account TalkChess) |
 | 3. Una comunità | ✅ Discussions con post di benvenuto ([#2](https://github.com/francescobianco/pragma-chess/discussions/2)), collegate da README, sito e app (Aiuto ▸ Domande e idee…) · ☐ Discord, se lo vuoi |
-| 4. Installazione con un clic di motori e database | ☐ da discutere più avanti; come la fa lui, e perché pilotare apt-get sarebbe sbagliato: [docs/tech/downloads.md](docs/tech/downloads.md) |
+| 4. Installazione con un clic di motori e database | ✅ motori: Aiuto ▸ Gestione estensioni, con il registro di En Croissant come provider · ☐ database (formato e licenze, [docs/tech/downloads.md](docs/tech/downloads.md)) |
 | 5. Aggiornamento automatico | ✅ Aiuto ▸ Cerca aggiornamenti…, una volta al giorno all'avvio; `version.json` in ogni release (già allegato alla 0.3.0) conta le copie in uso |
 | 6. Pacchetti | ✅ AUR scritto (`packaging/aur/`) · ☐ provato su Arch e pubblicato (account AUR) · ☐ Flathub (serve `flatpak-builder`) · ☐ Softpedia, LinuxLinks |
 | 7. Guida sul sito | ✅ <https://yafb.net/pragma-chess/en/guide/> e `it/guide/` |

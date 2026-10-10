@@ -26,6 +26,7 @@
 #include "dialogs/DrawersDialog.h"
 #include "dialogs/LobbyDialog.h"
 #include "dialogs/ConvertPgnDialog.h"
+#include "dialogs/ExtensionsDialog.h"
 #include "app/lobby/LobbyPlans.h"
 #ifdef PRAGMA_HAS_PHONE_LINK
 #include "app/lobby/net/LobbyIdentity.h"
@@ -1142,6 +1143,9 @@ void MainWindow::createMenus()
     QMenu *help = menuBar()->addMenu(tr("&Help"));
     help->addAction(m_welcomeAction);
     help->addAction(m_guideAction);
+    help->addAction(tr("Manage E&xtensions…"), this, &MainWindow::showExtensions)
+        ->setToolTip(tr("Engines and databases from the providers, installed with a click"));
+    help->addSeparator();
     help->addAction(tr("&Questions and Ideas…"), this, [] {
         QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/francescobianco/pragma-chess/discussions")));
     })->setToolTip(tr("The project's Discussions on GitHub: ask, propose, show what you made"));
@@ -5788,6 +5792,38 @@ void MainWindow::checkForUpdates(bool asked)
                 m_newVersionAction->trigger();
         }
     });
+}
+
+void MainWindow::showExtensions()
+{
+    if (!m_extensionsDialog) {
+        // An engine installed joins Manage Engines; removed, it leaves it (and
+        // the engine in use goes back to the bundled one if it was that).
+        const auto addEngine = [this](const InstalledExtension &installed) {
+            EngineProfile profile;
+            profile.name = installed.version.isEmpty() ? installed.name : installed.name + QLatin1Char(' ') + installed.version;
+            profile.path = installed.executable;
+            const QString id = m_engines.add(profile);
+            QSettings settings;
+            m_engines.save(settings);
+            rebuildEngineChoiceMenu();
+            return id;
+        };
+        const auto removeEngine = [this](const QString &engineId) {
+            if (m_engines.resolve(m_engineId, m_engineName).id == engineId)
+                selectEngine(EngineCatalog::kBundledId);
+            if (m_engines.remove(engineId)) {
+                QSettings settings;
+                m_engines.save(settings);
+                rebuildEngineChoiceMenu();
+            }
+        };
+        m_extensionsDialog = new ExtensionsDialog(addEngine, removeEngine, this);
+        m_extensionsDialog->setAttribute(Qt::WA_DeleteOnClose);
+    }
+    m_extensionsDialog->show();
+    m_extensionsDialog->raise();
+    m_extensionsDialog->activateWindow();
 }
 
 void MainWindow::showConvertPgn()

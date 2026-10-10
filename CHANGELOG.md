@@ -8,6 +8,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Help ▸ Manage Extensions…** installs engines with a click — Stockfish,
+  RubiChess, Komodo, Dragon, from their authors' own pages, for your system
+  and processor — and adds them to Manage Engines; Remove takes them away.
+  Nothing else of your computer is touched.
 - **Help ▸ Check for Updates…**, and once a day at startup: Pragma Chess
   asks GitHub for the number of its latest version, and nothing else, and
   says quietly when a newer one is out.

@@ -37,6 +37,41 @@
     </message>
 </context>
 <context>
+    <name>Archive</name>
+    <message>
+        <source>The archive cannot be read.</source>
+        <translation>L&apos;archivio non si può leggere.</translation>
+    </message>
+    <message>
+        <source>The archive holds a file outside its folder: %1</source>
+        <translation>L&apos;archivio contiene un file fuori dalla sua cartella: %1</translation>
+    </message>
+    <message>
+        <source>Could not extract %1.</source>
+        <translation>Impossibile estrarre %1.</translation>
+    </message>
+    <message>
+        <source>The archive is not gzip.</source>
+        <translation>L&apos;archivio non è gzip.</translation>
+    </message>
+    <message>
+        <source>The archive is damaged.</source>
+        <translation>L&apos;archivio è danneggiato.</translation>
+    </message>
+    <message>
+        <source>The archive is cut short.</source>
+        <translation>L&apos;archivio è incompleto.</translation>
+    </message>
+    <message>
+        <source>Could not write %1.</source>
+        <translation>Impossibile scrivere %1.</translation>
+    </message>
+    <message>
+        <source>Could not make the folder %1.</source>
+        <translation>Impossibile creare la cartella %1.</translation>
+    </message>
+</context>
+<context>
     <name>BoardPanel</name>
     <message>
         <source>Game controls</source>
@@ -841,6 +876,20 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>EnCroissantCatalog</name>
+    <message>
+        <source>In En Croissant&apos;s own format, which Pragma Chess does not read yet; its license is to be checked before it is offered.</source>
+        <translation>Nel formato di En Croissant, che Pragma Chess non legge ancora; la sua licenza va verificata prima di offrirlo.</translation>
+    </message>
+</context>
+<context>
+    <name>EnCroissantProvider</name>
+    <message>
+        <source>The registry of En Croissant, another free chess program: engines downloaded from their authors&apos; own pages, and the databases it converted.</source>
+        <translation>Il registro di En Croissant, un altro programma di scacchi libero: motori scaricati dalle pagine dei loro autori, e i database che ha convertito.</translation>
+    </message>
+</context>
+<context>
     <name>EnginePanel</name>
     <message>
         <source>Explanation</source>
@@ -970,6 +1019,167 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>Analyzing…</source>
         <translation>Analisi in corso…</translation>
+    </message>
+</context>
+<context>
+    <name>ExtensionInstaller</name>
+    <message>
+        <source>The engine&apos;s program is not where its catalog says: %1</source>
+        <translation>Il programma del motore non è dove dice il catalogo: %1</translation>
+    </message>
+    <message>
+        <source>%1 is not an extension&apos;s folder.</source>
+        <translation>%1 non è la cartella di un&apos;estensione.</translation>
+    </message>
+    <message>
+        <source>Could not remove %1.</source>
+        <translation>Impossibile rimuovere %1.</translation>
+    </message>
+</context>
+<context>
+    <name>ExtensionsDialog</name>
+    <message>
+        <source>Engine</source>
+        <translation>Motore</translation>
+    </message>
+    <message>
+        <source>Database</source>
+        <translation>Database</translation>
+    </message>
+    <message>
+        <source>Puzzles</source>
+        <translation>Problemi</translation>
+    </message>
+    <message>
+        <source>Manage Extensions</source>
+        <translation>Gestione estensioni</translation>
+    </message>
+    <message>
+        <source>Providers</source>
+        <translation>Provider</translation>
+    </message>
+    <message>
+        <source>Extensions</source>
+        <translation>Estensioni</translation>
+    </message>
+    <message>
+        <source>Search</source>
+        <translation>Cerca</translation>
+    </message>
+    <message>
+        <source>All</source>
+        <translation>Tutte</translation>
+    </message>
+    <message>
+        <source>Engines</source>
+        <translation>Motori</translation>
+    </message>
+    <message>
+        <source>Databases</source>
+        <translation>Database</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation>Nome</translation>
+    </message>
+    <message>
+        <source>Version</source>
+        <translation>Versione</translation>
+    </message>
+    <message>
+        <source>Kind</source>
+        <translation>Tipo</translation>
+    </message>
+    <message>
+        <source>Installed</source>
+        <translation>Installata</translation>
+    </message>
+    <message>
+        <source>Details</source>
+        <translation>Dettagli</translation>
+    </message>
+    <message>
+        <source>Install</source>
+        <translation>Installa</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Rimuovi</translation>
+    </message>
+    <message>
+        <source>The catalog could not be read: %1</source>
+        <translation>Il catalogo non si è potuto leggere: %1</translation>
+    </message>
+    <message>
+        <source>Downloading… %1 of %2</source>
+        <translation>Scaricamento… %1 di %2</translation>
+    </message>
+    <message>
+        <source>Downloading… %1</source>
+        <translation>Scaricamento… %1</translation>
+    </message>
+    <message>
+        <source>Installed.</source>
+        <translation>Installata.</translation>
+    </message>
+    <message>
+        <source>Installed: %1 is in Engine ▸ Switch Engine.</source>
+        <translation>Installata: %1 è in Motore ▸ Cambia motore.</translation>
+    </message>
+    <message>
+        <source>Could not install: %1</source>
+        <translation>Impossibile installare: %1</translation>
+    </message>
+    <message>
+        <source>Reading the catalog…</source>
+        <translation>Lettura del catalogo…</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n extension(s)</source>
+        <translation>
+            <numerusform>%n estensione</numerusform>
+            <numerusform>%n estensioni</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Elo about %1</source>
+        <translation>Elo circa %1</translation>
+    </message>
+    <message>
+        <source>%1 puzzles</source>
+        <translation>%1 problemi</translation>
+    </message>
+    <message>
+        <source>%1 games</source>
+        <translation>%1 partite</translation>
+    </message>
+    <message>
+        <source>Download: %1</source>
+        <translation>Da scaricare: %1</translation>
+    </message>
+    <message>
+        <source>From &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;</source>
+        <translation>Da &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;</translation>
+    </message>
+    <message>
+        <source>Installed: version %1</source>
+        <translation>Installata: versione %1</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Aggiorna</translation>
+    </message>
+    <message>
+        <source>Downloading…</source>
+        <translation>Scaricamento…</translation>
+    </message>
+    <message>
+        <source>Could not remove: %1</source>
+        <translation>Impossibile rimuovere: %1</translation>
+    </message>
+    <message>
+        <source>Removed.</source>
+        <translation>Rimossa.</translation>
     </message>
 </context>
 <context>
@@ -3643,6 +3853,14 @@ non è su questo computer.</translation>
     <message>
         <source>&amp;Report a Problem…</source>
         <translation>&amp;Segnala un problema…</translation>
+    </message>
+    <message>
+        <source>Manage E&amp;xtensions…</source>
+        <translation>Gestione &amp;estensioni…</translation>
+    </message>
+    <message>
+        <source>Engines and databases from the providers, installed with a click</source>
+        <translation>Motori e database dei provider, installati con un clic</translation>
     </message>
 </context>
 <context>

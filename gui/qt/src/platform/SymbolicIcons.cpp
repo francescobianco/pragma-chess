@@ -42,6 +42,7 @@ enum class Shape {
     Lobby,
     Locked,
     Unlocked,
+    EyeClosed,
 };
 
 /// The square New Game and New Training share: a board, and a face as large.
@@ -316,8 +317,10 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         painter->drawLine(QPointF(7, 14.75), QPointF(9, 14.75));
         break;
     }
-    case Shape::Eye: {
-        // An eye: the end of the engine's line, seen while it is held.
+    case Shape::Eye:
+    case Shape::EyeClosed: {
+        // An eye: the end of the engine's line, seen while it is held; struck
+        // through, what is shown is hidden again.
         QPainterPath eye;
         eye.moveTo(1.5, 8);
         eye.quadTo(8, 1, 14.5, 8);
@@ -327,6 +330,8 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         QPainterPath pupil;
         pupil.addEllipse(QPointF(8, 8), 2.25, 2.25);
         painter->fillPath(pupil, color);
+        if (shape == Shape::EyeClosed)
+            painter->drawLine(QPointF(2.5, 13.5), QPointF(13.5, 2.5));
         break;
     }
     case Shape::NewGame: {
@@ -509,6 +514,7 @@ QIcon icon(const QString &name)
         {QStringLiteral("pragma-book"), Shape::Book},
         {QStringLiteral("pragma-engine"), Shape::Engine},
         {QStringLiteral("pragma-eye"), Shape::Eye},
+        {QStringLiteral("pragma-eye-closed"), Shape::EyeClosed},
         {QStringLiteral("pragma-send-move"), Shape::SendMove},
         {QStringLiteral("pragma-send-plan"), Shape::SendPlan},
         {QStringLiteral("pragma-lobby"), Shape::Lobby},

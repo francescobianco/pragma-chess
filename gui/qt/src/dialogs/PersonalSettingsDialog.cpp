@@ -1,5 +1,6 @@
 #include "PersonalSettingsDialog.h"
 
+#include "platform/SymbolicIcons.h"
 #include "widgets/BoardTheme.h"
 #include "widgets/HelpButton.h"
 #include "widgets/PieceRenderer.h"
@@ -124,15 +125,22 @@ PersonalSettingsDialog::PersonalSettingsDialog(const PersonalSettings &settings,
         m_lobbyKey->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
         m_lobbyKey->setValidator(
             new QRegularExpressionValidator(QRegularExpression(QStringLiteral("[0-9a-fA-F]{0,64}")), m_lobbyKey));
+        // Icons, not words: the field keeps its width whatever the button says.
         auto *show = new QToolButton(lobby);
-        show->setText(tr("Show"));
+        show->setIcon(SymbolicIcons::icon(QStringLiteral("pragma-eye")));
+        show->setToolTip(tr("Show"));
+        show->setAccessibleName(tr("Show"));
         show->setCheckable(true);
         connect(show, &QToolButton::toggled, this, [this, show](bool on) {
             m_lobbyKey->setEchoMode(on ? QLineEdit::Normal : QLineEdit::Password);
-            show->setText(on ? tr("Hide") : tr("Show"));
+            show->setIcon(SymbolicIcons::icon(on ? QStringLiteral("pragma-eye-closed") : QStringLiteral("pragma-eye")));
+            show->setToolTip(on ? tr("Hide") : tr("Show"));
+            show->setAccessibleName(show->toolTip());
         });
         auto *copy = new QToolButton(lobby);
-        copy->setText(tr("Copy"));
+        copy->setIcon(SymbolicIcons::icon(QStringLiteral("edit-copy")));
+        copy->setToolTip(tr("Copy"));
+        copy->setAccessibleName(tr("Copy"));
         connect(copy, &QToolButton::clicked, this, [this] { QGuiApplication::clipboard()->setText(m_lobbyKey->text()); });
         keyRow->addWidget(m_lobbyKey, 1);
         keyRow->addWidget(show);

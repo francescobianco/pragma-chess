@@ -61,7 +61,6 @@ PersonalSettingsDialog::PersonalSettingsDialog(const PersonalSettings &settings,
     setMinimumWidth(460);
 
     m_name->setPlaceholderText(tr("As it should appear in your games, e.g. Rossi, Mario"));
-    m_name->setClearButtonEnabled(true);
     // The lowest value shows as a dash: no year given.
     m_birthYear->setRange(1899, QDate::currentDate().year());
     m_birthYear->setSpecialValueText(QStringLiteral("—"));

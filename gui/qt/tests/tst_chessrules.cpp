@@ -2490,6 +2490,28 @@ END FUNCTION
         QCOMPARE(session.game().moves.size(), 3);
         QCOMPARE(session.game().moves.last().uci, QStringLiteral("d2d4"));
         QCOMPARE(session.game().variations.size(), 1); // Nc3 now replaces d4.
+
+        // Before the branch of a variation followed, the moves are its
+        // parent's: a move there is the parent's business (it crashed).
+        session.goToLine({0}, 1);
+        QVERIFY(session.wouldBranch(move("c7c5")));
+        QVERIFY(session.replaceLine(move("c7c5")));
+        QVERIFY(session.path().isEmpty());
+        QCOMPARE(session.ply(), 2);
+        QCOMPARE(session.game().moves.size(), 2);
+        QCOMPARE(session.game().moves.last().uci, QStringLiteral("c7c5"));
+        QVERIFY(session.game().variations.isEmpty()); // Off a move gone.
+        // And a new move there is a variation of the parent, not of the line followed.
+        session.goToLine({}, 2);
+        QVERIFY(session.playMove(move("g1f3")));
+        session.goToLine({}, 1);
+        QVERIFY(session.playMove(move("e7e6")));
+        QCOMPARE(session.path(), QList<int>{0});
+        session.goToLine({0}, 0);
+        QVERIFY(session.playMove(move("d2d4")));
+        QCOMPARE(session.game().variations.size(), 2);
+        QCOMPARE(session.game().variations.last().atPly, 1);
+        QCOMPARE(session.path(), QList<int>{1});
     }
 
     void playsIntoVariations()

@@ -96,6 +96,14 @@ void GameSession::followLine(const QList<int> &path)
     }
 }
 
+QList<int> GameSession::ownerPath(int ply) const
+{
+    QList<int> path = m_path;
+    while (!path.isEmpty() && ply < GameVariations::branchPly(m_game, path))
+        path.removeLast();
+    return path;
+}
+
 QList<Variation> &GameSession::lineVariations()
 {
     return *GameVariations::variationsOf(m_game, m_path);
@@ -150,6 +158,9 @@ bool GameSession::playMove(const ChessMove &move)
         return false;
     const int ply = m_ply;
     const MoveRecord record{current.san(move), move.uci(), {}};
+    // Before the branch of the line followed, the line playing on is the one it came from.
+    if (const QList<int> owner = ownerPath(ply); owner != m_path)
+        followLine(owner);
 
     // At the very branch of a variation the alternatives are the parent
     // line's move and the sibling variations, not lines of this one.
@@ -205,9 +216,12 @@ bool GameSession::wouldBranch(const ChessMove &move) const
     if (isNextMove(move) || !isPlayable(position(), move))
         return false;
     const QString uci = move.uci();
+    // Before the branch of the line followed, the line that owns the move.
+    const QList<int> path = ownerPath(m_ply);
+    const int branchPly = GameVariations::branchPly(m_game, path);
     // At the very branch of a variation: the parent's move and the siblings.
-    if (!m_path.isEmpty() && m_ply == m_branchPly) {
-        QList<int> parentPath = m_path;
+    if (!path.isEmpty() && m_ply == branchPly) {
+        QList<int> parentPath = path;
         const int taken = parentPath.takeLast();
         const QList<MoveRecord> parentLine = GameVariations::lineMoves(m_game, parentPath);
         if (m_ply < parentLine.size() && parentLine.at(m_ply).uci == uci)
@@ -220,12 +234,12 @@ bool GameSession::wouldBranch(const ChessMove &move) const
         }
         return true;
     }
-    const int ownPly = m_ply + 1 - m_branchPly;
-    for (const Variation &variation : *GameVariations::variationsOf(m_game, m_path)) {
+    const int ownPly = m_ply + 1 - branchPly;
+    for (const Variation &variation : *GameVariations::variationsOf(m_game, path)) {
         if (variation.atPly == ownPly && variation.moves.first().uci == uci)
             return false;
     }
-    return m_ply < plyCount();
+    return m_ply < GameVariations::lineMoves(m_game, path).size();
 }
 
 bool GameSession::replaceLine(const ChessMove &move)
@@ -233,6 +247,9 @@ bool GameSession::replaceLine(const ChessMove &move)
     if (!isPlayable(position(), move))
         return false;
     const int ply = m_ply;
+    // Before the branch of the line followed, the line replaced is the one it came from.
+    if (const QList<int> owner = ownerPath(ply); owner != m_path)
+        followLine(owner);
     // At the very branch of a variation the line going on is the parent's.
     if (!m_path.isEmpty() && ply == m_branchPly) {
         QList<int> parentPath = m_path;

@@ -110,6 +110,9 @@ private:
     static bool isPlayable(const ChessPosition &position, const ChessMove &move);
     /// Replays the line `path` leads to and makes it the one followed.
     void followLine(const QList<int> &path);
+    /// The line that owns the move after `ply` on the line followed: before
+    /// a variation's branch the moves are its parent's (and so up).
+    QList<int> ownerPath(int ply) const;
     /// The variations hanging off the line followed.
     QList<Variation> &lineVariations();
     /// The moves of the line followed, where its own moves start (the main

@@ -4659,6 +4659,8 @@ END FUNCTION
         QCOMPARE(StandInNames::event(puzzle2), QStringLiteral("Back-Rank Mate")); // A named mate first.
         puzzle2.tags[1].value = QStringLiteral("fork mate mateIn2 middlegame");
         QCOMPARE(StandInNames::event(puzzle2), QStringLiteral("Mate in 2"));
+        puzzle2.event = QStringLiteral("Problemi di lichess.org"); // A copy made in Italian.
+        QCOMPARE(StandInNames::event(puzzle2), QStringLiteral("Mate in 2"));
         puzzle2.event = QStringLiteral("Puzzle zosdQ"); // As older copies have it.
         QCOMPARE(StandInNames::event(puzzle2), QStringLiteral("Mate in 2"));
         puzzle2.event = QStringLiteral("My favourite"); // The user's own event is theirs.

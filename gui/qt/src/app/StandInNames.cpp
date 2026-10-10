@@ -37,7 +37,9 @@ QString StandInNames::event(const GameRecord &game)
     for (const PgnTag &tag : game.tags)
         if (tag.name == QLatin1String("PuzzleId"))
             id = tag.value;
-    const bool generic = isUnnamed(own) || own == QLatin1String("lichess.org puzzles")
+    // Where the puzzle comes from, in whatever language the copy was made
+    // ("lichess.org puzzles", "Problemi di lichess.org"), or older copies' "Puzzle <id>".
+    const bool generic = isUnnamed(own) || (!id.isEmpty() && own.contains(QLatin1String("lichess"), Qt::CaseInsensitive))
         || own == QCoreApplication::translate("TrainingSets", "lichess.org puzzles")
         || (!id.isEmpty() && own == QStringLiteral("Puzzle ") + id);
     return generic ? TrainingSets::puzzleThemeName(theme) : game.event;

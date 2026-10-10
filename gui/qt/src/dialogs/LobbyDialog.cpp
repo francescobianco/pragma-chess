@@ -188,8 +188,7 @@ LobbyDialog::LobbyDialog(LobbyService *service, QWidget *parent)
     lobbyLayout->addWidget(heading);
     lobbyLayout->addWidget(noteLabel(tr("Each room is a tournament of four players: everyone plays everyone twice, "
                                         "once with White and once with Black. It starts as soon as two sit down, "
-                                        "and there is no clock. Yours come first, in bold, then the rooms with a free seat, "
-                                        "then the full ones, whose games you can follow. Enter a room to see its games."),
+                                        "and there is no clock. Enter a room to see its games."),
                                      lobbyPage));
     m_rooms = new QTreeWidget(lobbyPage);
     padTable(m_rooms);

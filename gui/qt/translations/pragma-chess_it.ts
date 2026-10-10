@@ -1540,8 +1540,8 @@ Il Nero ha catturato: %2</translation>
         <translation>&amp;Gioca la tua mossa</translation>
     </message>
     <message>
-        <source>Each room is a tournament of four players: everyone plays everyone twice, once with White and once with Black. It starts as soon as two sit down, and there is no clock. Yours come first, in bold, then the rooms with a free seat, then the full ones, whose games you can follow. Enter a room to see its games.</source>
-        <translation>Ogni stanza è un torneo di quattro giocatori: tutti giocano contro tutti due volte, una col Bianco e una col Nero. Comincia appena due si siedono, e non c&apos;è orologio. Le tue vengono prima, in grassetto, poi le stanze con un posto libero, poi quelle piene, di cui puoi seguire le partite. Entra in una stanza per vederne le partite.</translation>
+        <source>Each room is a tournament of four players: everyone plays everyone twice, once with White and once with Black. It starts as soon as two sit down, and there is no clock. Enter a room to see its games.</source>
+        <translation>Ogni stanza è un torneo di quattro giocatori: tutti giocano contro tutti due volte, una col Bianco e una col Nero. Comincia appena due si siedono, e non c&apos;è orologio. Entra in una stanza per vederne le partite.</translation>
     </message>
     <message>
         <source>Full</source>

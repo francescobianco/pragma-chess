@@ -429,11 +429,11 @@ qt_add_executable(pragma-chess
     src/platform/WindowChrome.h
     src/platform/Appearance.cpp
     src/platform/Appearance.h
+    src/platform/FileTypes.cpp
+    src/platform/FileTypes.h
     src/platform/FolderIcon.cpp
     src/platform/FolderIcon.h
     src/platform/MoveSound.cpp
-    src/platform/ProjectFileType.cpp
-    src/platform/ProjectFileType.h
     src/platform/MoveSound.h
     src/platform/DialogFrame.cpp
     src/platform/DialogFrame.h
@@ -566,7 +566,7 @@ qt_add_resources(pragma-chess welcome PREFIX /welcome BASE resources/welcome
 qt_add_resources(pragma-chess appicon PREFIX /icons BASE data/icons FILES ${APP_ICON_FILES})
 # The sound of a move (a CC0 wooden knock, resources/sounds/README.md), played by the system's own player.
 qt_add_resources(pragma-chess sounds PREFIX / FILES resources/sounds/move.wav)
-# The MIME type of projects, written for the user at run time too (ProjectFileType).
+# The MIME types of projects and databases, written for the user at run time too (FileTypes).
 qt_add_resources(pragma-chess mime PREFIX /mime BASE data FILES data/${APP_ID}.mime.xml)
 if(WIN32)
     target_sources(pragma-chess PRIVATE data/pragma-chess.rc)

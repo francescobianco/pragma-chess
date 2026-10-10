@@ -23,7 +23,7 @@ I tuoi file stanno nella cartella Pragma dentro la tua cartella degli scacchi (p
 
 # Database {#databases}
 
-Un database è un file `.pdb` che contiene partite. Se ne apre uno alla volta; il suo nome è nel suggerimento dell'icona del database nella barra degli strumenti.
+Un database è un file `.pdb` che contiene partite. Se ne apre uno alla volta; il suo nome è nel suggerimento dell'icona del database nella barra degli strumenti. Nel gestore dei file un database ha l'icona dei documenti del tuo sistema con un database e un pedone sul foglio; aprirlo apre Pragma Chess con il database nel progetto che avevi lasciato aperto.
 
 - **Database ▸ Nuovo database…** ne crea uno vuoto nella cartella dei database.
 - **Database ▸ Apri database…** apre un file da qualunque posizione.

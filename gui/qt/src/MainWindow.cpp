@@ -67,9 +67,9 @@
 #include "models/GameFilterProxyModel.h"
 #include "models/GameListModel.h"
 #include "platform/Appearance.h"
+#include "platform/FileTypes.h"
 #include "platform/FolderIcon.h"
 #include "platform/MoveSound.h"
-#include "platform/ProjectFileType.h"
 #include "platform/SymbolicIcons.h"
 #include "platform/WindowChrome.h"
 #include "widgets/BoardPanel.h"
@@ -482,7 +482,7 @@ MainWindow::MainWindow(QWidget *parent)
     // The chess and Pragma folders wear a pawn, as Videos wears a film: once the window is up.
     QTimer::singleShot(3000, this, [] {
         FolderIcon::applyToChessFolders();
-        ProjectFileType::registerWithSystem(); // Projects open here, with a pawn on the page.
+        FileTypes::registerWithSystem(); // Projects and databases open here, with a pawn on the page.
     });
 
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::scheduleSaveSession);
@@ -5054,6 +5054,19 @@ void MainWindow::showWelcome()
     m_welcomeDialog->show();
     m_welcomeDialog->raise();
     m_welcomeDialog->activateWindow();
+}
+
+bool MainWindow::openDocument(const QString &path)
+{
+    if (path.endsWith(QLatin1String(".pch"), Qt::CaseInsensitive)) {
+        openProjectFile(path);
+        return true;
+    }
+    if (path.endsWith(QLatin1Char('.') + QLatin1String(UserFolders::databaseSuffix), Qt::CaseInsensitive)) {
+        openDatabaseFile(path);
+        return true;
+    }
+    return false;
 }
 
 void MainWindow::manageDrawers()

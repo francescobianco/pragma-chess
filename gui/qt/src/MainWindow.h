@@ -80,6 +80,10 @@ public:
 
     /// Opens a .pch project file, e.g. one passed on the command line.
     bool openProjectFile(const QString &path);
+    /// Opens a document the system hands over (command line, Finder): a
+    /// project, or a database in the project open — the one restored from
+    /// the last session. False for a file that is neither.
+    bool openDocument(const QString &path);
 
     /// Closes without asking anything: the app was stopped from outside
     /// (SIGTERM from `make start`, a session logout), not by the user.

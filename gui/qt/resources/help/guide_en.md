@@ -23,7 +23,7 @@ Your files live in the Pragma folder inside your chess folder (for example `Ches
 
 # Databases {#databases}
 
-A database is a `.pdb` file holding games. One database is open at a time; its name is in the tooltip of the database icon of the toolbar.
+A database is a `.pdb` file holding games. One database is open at a time; its name is in the tooltip of the database icon of the toolbar. In your file manager a database has the document icon of your system with a database and a pawn on the page; opening it opens Pragma Chess with the database in the project you left open.
 
 - **Database ▸ New Database…** creates an empty one in the Databases folder.
 - **Database ▸ Open Database…** opens a file from anywhere.

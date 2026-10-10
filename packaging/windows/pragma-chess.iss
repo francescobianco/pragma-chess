@@ -62,18 +62,24 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "portuguese"; MessagesFile: "compiler:Languages\Portuguese.isl"
 
 [CustomMessages]
-english.AssociateProjects=Open Pragma Chess &projects (.pch) with {#AppName}
-italian.AssociateProjects=Apri i &progetti Pragma Chess (.pch) con {#AppName}
-french.AssociateProjects=Ouvrir les &projets Pragma Chess (.pch) avec {#AppName}
-german.AssociateProjects=Pragma Chess-&Projekte (.pch) mit {#AppName} öffnen
-spanish.AssociateProjects=Abrir los &proyectos de Pragma Chess (.pch) con {#AppName}
-portuguese.AssociateProjects=Abrir os &projetos do Pragma Chess (.pch) com o {#AppName}
+english.AssociateProjects=Open Pragma Chess &projects (.pch) and databases (.pdb) with {#AppName}
+italian.AssociateProjects=Apri i &progetti (.pch) e i database (.pdb) di Pragma Chess con {#AppName}
+french.AssociateProjects=Ouvrir les &projets (.pch) et les bases (.pdb) Pragma Chess avec {#AppName}
+german.AssociateProjects=Pragma Chess-&Projekte (.pch) und -Datenbanken (.pdb) mit {#AppName} öffnen
+spanish.AssociateProjects=Abrir los &proyectos (.pch) y las bases de datos (.pdb) de Pragma Chess con {#AppName}
+portuguese.AssociateProjects=Abrir os &projetos (.pch) e os bancos de dados (.pdb) do Pragma Chess com o {#AppName}
 english.ProjectFile=Pragma Chess Project
 italian.ProjectFile=Progetto Pragma Chess
 french.ProjectFile=Projet Pragma Chess
 german.ProjectFile=Pragma Chess-Projekt
 spanish.ProjectFile=Proyecto de Pragma Chess
 portuguese.ProjectFile=Projeto do Pragma Chess
+english.DatabaseFile=Pragma Chess Database
+italian.DatabaseFile=Database di Pragma Chess
+french.DatabaseFile=Base Pragma Chess
+german.DatabaseFile=Pragma Chess-Datenbank
+spanish.DatabaseFile=Base de datos de Pragma Chess
+portuguese.DatabaseFile=Banco de dados do Pragma Chess
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
@@ -93,6 +99,12 @@ Root: HKA; Subkey: "Software\Classes\PragmaChess.Project"; ValueType: string; Va
 Root: HKA; Subkey: "Software\Classes\PragmaChess.Project\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#AppExe},0"; Tasks: associate
 Root: HKA; Subkey: "Software\Classes\PragmaChess.Project\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExe}"" ""%1"""; Tasks: associate
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExe}\SupportedTypes"; ValueType: string; ValueName: ".pch"; ValueData: ""; Flags: uninsdeletekey
+; Databases: offered, not made the default — .pdb is also Visual Studio's (the application makes it the default only where there is none).
+Root: HKA; Subkey: "Software\Classes\.pdb\OpenWithProgids"; ValueType: string; ValueName: "PragmaChess.Database"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associate
+Root: HKA; Subkey: "Software\Classes\PragmaChess.Database"; ValueType: string; ValueName: ""; ValueData: "{cm:DatabaseFile}"; Flags: uninsdeletekey; Tasks: associate
+Root: HKA; Subkey: "Software\Classes\PragmaChess.Database\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#AppExe},0"; Tasks: associate
+Root: HKA; Subkey: "Software\Classes\PragmaChess.Database\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExe}"" ""%1"""; Tasks: associate
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExe}\SupportedTypes"; ValueType: string; ValueName: ".pdb"; ValueData: ""; Flags: uninsdeletekey
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent

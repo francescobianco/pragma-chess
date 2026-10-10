@@ -816,6 +816,17 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>FileTypes</name>
+    <message>
+        <source>Pragma Chess Project</source>
+        <translation>Progetto di Pragma Chess</translation>
+    </message>
+    <message>
+        <source>Pragma Chess Database</source>
+        <translation>Database di Pragma Chess</translation>
+    </message>
+</context>
+<context>
     <name>FolderSettingsDialog</name>
     <message>
         <source>Folder Settings</source>
@@ -4599,13 +4610,6 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>A click takes the piece off the square. A right click does it too.</source>
         <translation>Un clic toglie il pezzo dalla casa. Lo fa anche il tasto destro.</translation>
-    </message>
-</context>
-<context>
-    <name>ProjectFileType</name>
-    <message>
-        <source>Pragma Chess Project</source>
-        <translation>Progetto di Pragma Chess</translation>
     </message>
 </context>
 <context>

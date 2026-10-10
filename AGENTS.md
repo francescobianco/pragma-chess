@@ -1242,21 +1242,29 @@ while one of them is selected.
   the icon theme; set with `gio set … metadata::custom-icon` (and
   `.directory` on KDE), `desktop.ini` on Windows, NSWorkspace on macOS,
   only when the picture changed (QSettings `folderIcon/applied`) and never
-  over an icon the user gave the folder. Projects (`.pch`) are documents of
-  the application (`platform/ProjectFileType`): their icon is the theme's
-  `text-x-generic` (the shell's text file on Windows) with its lines taken
-  off, each column redrawn from the paper above and below so the shading
-  stays, and the pawn (`FolderIcon::pawnPath`) in their place and colour.
-  Linux: the MIME type `application/x-pragma-chess-project`
+  over an icon the user gave the folder. Projects (`.pch`) and databases
+  (`.pdb`) are documents of the application (`platform/FileTypes`): their
+  icon is the theme's `text-x-generic` (the shell's text file on Windows)
+  with its lines taken off, each column redrawn from the paper above and
+  below so the shading stays, and a mark in their place and colour — the
+  pawn (`FolderIcon::pawnPath`), a drum with the pawn cut out
+  (`databasePath`, drawn on a grid of 100: Qt's boolean operations flatten
+  curves at the path's scale). Linux: the MIME types
+  `application/x-pragma-chess-project` and `…-database`
   (`data/<app id>.mime.xml`, installed and also written for the user with
-  `update-mime-database`), the icon `<app id>-project` in the user's
+  `update-mime-database`; `*.pdb` weighs 40, under Protein Data Bank's and
+  Visual Studio's 50, and SQLite's application_id `PRAG` at offset 68
+  claims ours), the icons `<app id>-project`/`-database` in the user's
   hicolor, the desktop entry's `MimeType`, and `xdg-mime default` only
-  when no application is the default. Windows: the installer's ProgId
-  `PragmaChess.Project`, written again for the user (HKCU) with the icon
-  and this executable. macOS: `data/Info.plist.in` declares the type (UTI
-  `<app id>.project`) and Finder draws its documents; it opens them with a
-  `QFileOpenEvent` (`main.cpp`). Done again only when something changed
-  (QSettings `projectFiles/registered`). The folder sync never carries a
+  when no application is the default. Windows: the installer's ProgIds
+  `PragmaChess.Project` (the `.pch` default) and `PragmaChess.Database`
+  (offered for `.pdb`, the default only where there is none), written
+  again for the user (HKCU) with the icons and this executable. macOS:
+  `data/Info.plist.in` declares the types (UTIs `<app id>.project`,
+  `.database`) and Finder draws their documents, opened through a
+  `QFileOpenEvent` (`main.cpp`). `MainWindow::openDocument` opens what the
+  system hands over: a project, or a database in the project restored.
+  Done again only when something changed (QSettings `fileTypes/registered`). The folder sync never carries a
   folder's icon (`desktop.ini`, macOS's `Icon\r`). Options ▸ Folder Settings…
   (`dialogs/FolderSettingsDialog`) moves the Pragma folder or any of
   Databases, Projects, Books, Opening Names elsewhere, per computer

@@ -327,6 +327,30 @@ QPainterPath pawnPath()
     return pawn;
 }
 
+QPainterPath databasePath()
+{
+    // Drawn on a grid of 100 and scaled down: the boolean operations
+    // flatten curves at the path's own scale.
+    const qreal rx = 40, ry = 12, top = 13, bottom = 87;
+    QPainterPath cylinder;
+    cylinder.setFillRule(Qt::WindingFill);
+    cylinder.addEllipse(QPointF(50, top), rx, ry);
+    cylinder.addRect(QRectF(50 - rx, top, 2 * rx, bottom - top));
+    cylinder.addEllipse(QPointF(50, bottom), rx, ry);
+    cylinder = cylinder.simplified();
+    // The rim of the lid: a curved gap under it.
+    QPainterPath lower, upper;
+    lower.addEllipse(QPointF(50, top + 7.5), rx, ry);
+    upper.addEllipse(QPointF(50, top + 3.5), rx, ry);
+    cylinder = cylinder.subtracted(lower.subtracted(upper));
+    // The pawn cut out of the body.
+    QTransform place;
+    place.translate(50 - 23, 37);
+    place.scale(46, 46);
+    cylinder = cylinder.subtracted(place.map(pawnPath()));
+    return QTransform::fromScale(0.01, 0.01).map(cylinder);
+}
+
 QImage compose(const QIcon &folder, const QList<QIcon> &examples, int size)
 {
     QImage image = imageOf(folder, size);

@@ -15,8 +15,10 @@ namespace FolderIcon {
 
 /// The pawn, a silhouette in the unit square, in parts with gaps between
 /// them as a figurine has: the head, the collar, the body and the base.
-/// Shared with the icon of project files (ProjectFileType).
+/// Shared with the icons of projects and databases (FileTypes).
 QPainterPath pawnPath();
+/// A database, the drum of the icons, with the pawn cut out of it (FileTypes).
+QPainterPath databasePath();
 
 /// The icons of the desktop's icon theme by freedesktop name (null where
 /// the theme has none), as images of up to 256 pixels; found through GNOME's

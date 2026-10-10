@@ -1,4 +1,4 @@
-#include "ProjectFileType.h"
+#include "FileTypes.h"
 
 #include "FolderIcon.h"
 
@@ -77,12 +77,7 @@ QByteArray pngOf(const QImage &image)
 #endif
 
 #if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
-QString iconName()
-{
-    return QStringLiteral(APP_ID "-project");
-}
-
-/// The MIME type, as data/<app id>.mime.xml installs it.
+/// The MIME types, as data/<app id>.mime.xml installs them.
 QByteArray mimeXml()
 {
     QFile file(QStringLiteral(":/mime/" APP_ID ".mime.xml"));
@@ -99,7 +94,7 @@ bool update(const QString &path, const QByteArray &data)
     return FolderIcon::writeFile(path, data);
 }
 
-void registerWithDesktop(const QImage &icon)
+void registerWithDesktop(const QList<std::pair<FileTypes::Type, QImage>> &icons)
 {
     const QDir data(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation));
     const QByteArray xml = mimeXml();
@@ -107,10 +102,12 @@ void registerWithDesktop(const QImage &icon)
         QProcess::execute(QStringLiteral("update-mime-database"), {data.filePath(QStringLiteral("mime"))});
 
     bool iconsChanged = false;
-    if (!icon.isNull()) {
+    for (const auto &[type, icon] : icons) {
+        if (icon.isNull())
+            continue;
         for (const int size : {16, 24, 32, 48, 64, 128, 256}) {
             const QImage scaled = size == icon.width() ? icon : icon.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-            iconsChanged |= update(data.filePath(QStringLiteral("icons/hicolor/%1x%1/mimetypes/%2.png").arg(size).arg(iconName())),
+            iconsChanged |= update(data.filePath(QStringLiteral("icons/hicolor/%1x%1/mimetypes/%2.png").arg(size).arg(type.iconName)),
                                    pngOf(scaled));
         }
     }
@@ -119,44 +116,58 @@ void registerWithDesktop(const QImage &icon)
     if (iconsChanged && QFileInfo::exists(hicolor + QStringLiteral("/icon-theme.cache")))
         QProcess::execute(QStringLiteral("gtk-update-icon-cache"), {QStringLiteral("-q"), QStringLiteral("-t"), QStringLiteral("-f"), hicolor});
 
-    // Pragma Chess opens projects, unless the user chose another application.
+    // Pragma Chess opens them, unless the user chose another application.
     const QString entry = QStringLiteral(APP_ID ".desktop");
     if (QStandardPaths::locate(QStandardPaths::ApplicationsLocation, entry).isEmpty())
         return;
-    QProcess query;
-    query.start(QStringLiteral("xdg-mime"), {QStringLiteral("query"), QStringLiteral("default"), QLatin1String(ProjectFileType::mimeType)});
-    if (query.waitForFinished(5000) && query.exitCode() == 0 && query.readAllStandardOutput().trimmed().isEmpty())
-        QProcess::execute(QStringLiteral("xdg-mime"), {QStringLiteral("default"), entry, QLatin1String(ProjectFileType::mimeType)});
+    for (const auto &[type, icon] : icons) {
+        QProcess query;
+        query.start(QStringLiteral("xdg-mime"), {QStringLiteral("query"), QStringLiteral("default"), type.mimeType});
+        if (query.waitForFinished(5000) && query.exitCode() == 0 && query.readAllStandardOutput().trimmed().isEmpty())
+            QProcess::execute(QStringLiteral("xdg-mime"), {QStringLiteral("default"), entry, type.mimeType});
+    }
 }
 #endif
 
 #if defined(Q_OS_WIN)
 /// The installer's ProgId, for this user, with the icon and this executable:
-/// it serves a copy that was not installed too.
-void registerWithShell(const QString &iconFile)
+/// it serves a copy that was not installed too. The extension's default is
+/// set only where there is none (.pdb is also Visual Studio's).
+void registerWithShell(const FileTypes::Type &type, const QString &iconFile)
 {
     const QString classes = QStringLiteral("HKEY_CURRENT_USER\\Software\\Classes");
     const QString command = QStringLiteral("\"%1\" \"%2\"").arg(QDir::toNativeSeparators(QCoreApplication::applicationFilePath()),
                                                                QStringLiteral("%1"));
-    QSettings progId(classes + QStringLiteral("\\PragmaChess.Project"), QSettings::NativeFormat);
-    progId.setValue(QStringLiteral("Default"), QCoreApplication::translate("ProjectFileType", "Pragma Chess Project"));
+    QSettings progId(classes + QStringLiteral("\\") + type.progId, QSettings::NativeFormat);
+    progId.setValue(QStringLiteral("Default"), type.description);
     progId.setValue(QStringLiteral("DefaultIcon/Default"), QDir::toNativeSeparators(iconFile));
     progId.setValue(QStringLiteral("shell/open/command/Default"), command);
     progId.sync();
-    QSettings extension(classes + QStringLiteral("\\.pch"), QSettings::NativeFormat);
-    extension.setValue(QStringLiteral("OpenWithProgids/PragmaChess.Project"), QString());
+    QSettings extension(classes + QStringLiteral("\\") + type.extension, QSettings::NativeFormat);
+    extension.setValue(QStringLiteral("OpenWithProgids/") + type.progId, QString());
     if (extension.value(QStringLiteral("Default")).toString().isEmpty())
-        extension.setValue(QStringLiteral("Default"), QStringLiteral("PragmaChess.Project"));
+        extension.setValue(QStringLiteral("Default"), type.progId);
     extension.sync();
-    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
 #endif
 
 } // namespace
 
-namespace ProjectFileType {
+namespace FileTypes {
 
-QImage compose(const QIcon &document, int size)
+QList<Type> types()
+{
+    return {
+        {QStringLiteral("application/x-pragma-chess-project"), QStringLiteral(APP_ID "-project"),
+         QStringLiteral("PragmaChess.Project"), QStringLiteral(".pch"),
+         QCoreApplication::translate("FileTypes", "Pragma Chess Project"), FolderIcon::pawnPath()},
+        {QStringLiteral("application/x-pragma-chess-database"), QStringLiteral(APP_ID "-database"),
+         QStringLiteral("PragmaChess.Database"), QStringLiteral(".pdb"),
+         QCoreApplication::translate("FileTypes", "Pragma Chess Database"), FolderIcon::databasePath()},
+    };
+}
+
+QImage compose(const QIcon &document, const QPainterPath &mark, int size)
 {
     QImage image = FolderIcon::imageOf(document, size);
     if (image.isNull())
@@ -213,49 +224,58 @@ QImage compose(const QIcon &document, int size)
 
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing);
-    // The pawn a little taller than the lines were, centred where they were.
+    // The mark a little taller than the lines were, centred where they were.
     const qreal side = std::min(box.height() * 1.15, box.width());
-    const QRectF pawn(box.center().x() - side / 2, box.center().y() - side / 2, side, side);
-    painter.translate(pawn.topLeft());
-    painter.scale(pawn.width(), pawn.height());
-    painter.fillPath(FolderIcon::pawnPath(), ink);
+    const QRectF place(box.center().x() - side / 2, box.center().y() - side / 2, side, side);
+    painter.translate(place.topLeft());
+    painter.scale(place.width(), place.height());
+    painter.fillPath(mark, ink);
     return image;
 }
 
 void registerWithSystem()
 {
 #if defined(Q_OS_MACOS)
-    // The bundle declares the type (Info.plist): nothing to do at run time.
+    // The bundle declares the types (Info.plist): nothing to do at run time.
 #else
-    const QImage icon = compose(systemDocument(), 256);
+    const QIcon document = systemDocument();
+    QList<std::pair<Type, QImage>> icons;
     QCryptographicHash hash(QCryptographicHash::Sha256);
-    hash.addData(pngOf(icon));
+    for (const Type &type : types()) {
+        icons.append({type, compose(document, type.mark, 256)});
+        hash.addData(pngOf(icons.constLast().second));
+    }
     hash.addData(QCoreApplication::applicationFilePath().toUtf8());
 #if !defined(Q_OS_WIN)
     hash.addData(mimeXml());
 #endif
     const QString stamp = QString::fromLatin1(hash.result().toHex().left(12));
     QSettings settings;
-    if (settings.value(QStringLiteral("projectFiles/registered")).toString() == stamp)
+    if (settings.value(QStringLiteral("fileTypes/registered")).toString() == stamp)
         return;
 #if defined(Q_OS_WIN)
-    if (icon.isNull())
-        return;
     // A new name for every new picture: Explorer keeps icons by path.
     const QDir directory(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
     directory.mkpath(QStringLiteral("."));
-    const QString iconFile = directory.filePath(QStringLiteral("project-") + stamp + QStringLiteral(".ico"));
-    if (!FolderIcon::writeFile(iconFile, FolderIcon::icoOf(icon)))
-        return;
-    for (const QString &old : directory.entryList({QStringLiteral("project-*.ico")}, QDir::Files))
-        if (directory.filePath(old) != iconFile)
+    QStringList written;
+    for (const auto &[type, icon] : icons) {
+        if (icon.isNull())
+            continue;
+        const QString name = type.extension.mid(1) + QLatin1Char('-') + stamp + QStringLiteral(".ico");
+        if (!FolderIcon::writeFile(directory.filePath(name), FolderIcon::icoOf(icon)))
+            return;
+        registerWithShell(type, directory.filePath(name));
+        written << name;
+    }
+    for (const QString &old : directory.entryList({QStringLiteral("pch-*.ico"), QStringLiteral("pdb-*.ico"), QStringLiteral("project-*.ico")}, QDir::Files))
+        if (!written.contains(old))
             QFile::remove(directory.filePath(old));
-    registerWithShell(iconFile);
+    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 #else
-    registerWithDesktop(icon);
+    registerWithDesktop(icons);
 #endif
-    settings.setValue(QStringLiteral("projectFiles/registered"), stamp);
+    settings.setValue(QStringLiteral("fileTypes/registered"), stamp);
 #endif
 }
 
-} // namespace ProjectFileType
+} // namespace FileTypes

@@ -85,8 +85,8 @@ void installTerminationHandler(QApplication &app, MainWindow &window)
 #ifdef Q_OS_MACOS
 namespace {
 
-/// Finder opens a project (Info.plist declares them) with an event, not on
-/// the command line.
+/// Finder opens a project or a database (Info.plist declares them) with an
+/// event, not on the command line.
 class FileOpenFilter : public QObject {
 public:
     explicit FileOpenFilter(MainWindow *window)
@@ -100,10 +100,8 @@ protected:
     {
         if (event->type() == QEvent::FileOpen) {
             const QString path = static_cast<QFileOpenEvent *>(event)->file();
-            if (path.endsWith(QLatin1String(".pch"), Qt::CaseInsensitive)) {
-                m_window->openProjectFile(path);
+            if (m_window->openDocument(path))
                 return true;
-            }
         }
         return QObject::eventFilter(watched, event);
     }
@@ -165,13 +163,11 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_MACOS
     app.installEventFilter(new FileOpenFilter(&window));
 #endif
-    // Project files passed on the command line (e.g. opened from the file manager).
+    // A project or a database passed on the command line (e.g. opened from the file manager).
     const QStringList arguments = app.arguments().mid(1);
     for (const QString &argument : arguments) {
-        if (argument.endsWith(QLatin1String(".pch"), Qt::CaseInsensitive)) {
-            window.openProjectFile(argument);
+        if (window.openDocument(argument))
             break;
-        }
     }
     return app.exec();
 }

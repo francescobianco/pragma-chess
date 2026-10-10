@@ -11,5 +11,5 @@ Terminal=false
 Categories=Game;BoardGame;
 Keywords=chess;database;pgn;opening;
 Keywords[it]=scacchi;database;pgn;apertura;partite;
-MimeType=application/x-chess-pgn;application/x-pragma-chess-project;
+MimeType=application/x-chess-pgn;application/x-pragma-chess-project;application/x-pragma-chess-database;
 StartupWMClass=pragma-chess

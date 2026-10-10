@@ -905,16 +905,16 @@ void MainWindow::createActions()
     connect(m_startEngineAction, &QAction::toggled, m_analysisAction, &QAction::setChecked);
     connect(m_startEngineAction, &QAction::enabledChanged, m_analysisAction, &QAction::setEnabled);
 
-    // Checked while looking for an opponent or playing: chosen, it starts or stops playing online.
+    // Checked while looking for an opponent or playing, as Lobby Mode: off otherwise,
+    // since playing starts from Game ▸ New Online Game…; chosen while on, it stops.
     m_onlineModeAction = new QAction(tr("&Online Play Mode"), this);
     m_onlineModeAction->setCheckable(true);
+    m_onlineModeAction->setEnabled(false);
     m_onlineModeAction->setToolTip(tr("Play against a person on a platform: the engine and Explain stay off"));
     connect(m_onlineModeAction, &QAction::triggered, this, [this] {
         m_onlineModeAction->setChecked(m_onlinePlay); // The mode follows the play, not the click.
         if (m_onlinePlay)
             stopOnline();
-        else
-            playOnline(true);
     });
 
     // Checked while a lobby game is on the board: the Engine panel sends its moves.
@@ -4564,6 +4564,7 @@ void MainWindow::setOnlinePlay(bool on)
         return;
     m_onlinePlay = on;
     m_onlineModeAction->setChecked(on);
+    m_onlineModeAction->setEnabled(on);
     // Against cheating: nothing that thinks for the user runs while they play.
     if (on) {
         m_trainingModeAction->setChecked(false);

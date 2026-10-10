@@ -1619,7 +1619,7 @@ a platform; lichess.org for now, through its Board API, more to come.
   per computer) from its start to its end: at startup `resumeOnlineGame`
   follows it again (`LichessBoardClient::resume`, the game stream sends the
   whole game, or its end, again); a resume that fails forgets it. There is
-  no Stop Playing Online entry; Engine ▸ Online Play Mode, chosen while on,
+  no Stop Playing Online entry; Engine ▸ Online Play Mode, disabled while off (play starts from Game ▸ New Online Game…) and chosen while on,
   stops. The flag is not part of the project. Opening another database while it is
   on (`keepOnlineGame`: Switch Database, New Database, the sync opening the
   file again) leaves the game on the board; it is saved to the database open

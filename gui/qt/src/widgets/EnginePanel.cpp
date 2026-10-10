@@ -1,6 +1,7 @@
 #include "EnginePanel.h"
 
 #include "FigurineFont.h"
+#include "SectionButton.h"
 #include "platform/SymbolicIcons.h"
 
 #include <QAction>
@@ -44,18 +45,11 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     QFont nameFont = m_name->font();
     nameFont.setBold(true);
     m_name->setFont(nameFont);
-    auto *toggle = new QToolButton;
-    toggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    toggle->setIcon(analysisAction->icon());
-    // One size for Analyze and Stop, with the room of the tutor's buttons:
-    // the button does not jump when it changes.
-    QSize toggleSize;
-    for (const QString &text : {tr("Analyze"), tr("Stop")}) {
-        toggle->setText(text);
-        toggleSize = toggleSize.expandedTo(toggle->sizeHint());
-    }
-    toggle->setFixedSize(toggleSize.width() + 2 * kChoicePadding, toggleSize.height() + kChoicePadding);
+    // The icon in a section of its own, the text centred in the rest; one
+    // size for Analyze and Stop, so the button does not jump when it changes.
+    auto *toggle = new SectionButton;
     toggle->setDefaultAction(analysisAction);
+    toggle->setTexts({tr("Analyze"), tr("Stop")});
     // Held down, the board shows where the best line ends.
     m_peek->setIcon(SymbolicIcons::icon(QStringLiteral("pragma-eye")));
     m_peek->setAutoRaise(true);

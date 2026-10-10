@@ -358,8 +358,8 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   tree's Board ▸ Position and Variant. `GET /api/profile` the open
   database's games, the position index (ready, entries) and how long the
   work took last time in ms — `openFile` (reading the headers),
-  `showDatabase` (list and tree), `readMoves` (`gameLines()`),
-  `buildIndex`, `countPosition`/`countVariant` (the tree's counts, at
+  `showDatabase` (list and tree: `showList`, `buildTree`),
+  `buildIndex` (reading the moves on its thread, `readGameLines`, included), `countPosition`/`countVariant` (the tree's counts, at
   every move), `findGames`/`filterList` (a filter of the list) — and the
   process's memory (`VmRSS`/`VmHWM`, Linux). Profile a Release build: a
   Debug one is several times slower.
@@ -666,6 +666,26 @@ cargo run -p chessdb-cli -- <args>
   so a file of a later version is refused and the user is asked to update the
   application — the desktop client and the Android app alike
   (`NewerSchemaException`, `PdbDatabase.SCHEMA_VERSION`: keep it in step).
+  For now performance comes before the phone (the user's choice, in beta: a
+  phone that refuses a newer file is updated). **Indexes are not schema**:
+  one that only makes reading faster is made when the file is opened, `IF NOT
+  EXISTS`, and the version stays — `games_brief`, the covering index the
+  briefs are read from (`ensureBriefIndex`).
+  **What the client keeps in memory of a database** (`SqliteGameDatabase`):
+  a `Brief` per game, a few dozen bytes — names, events, dates, results, ECO
+  codes as indexes into tables where each text is once (`m_strings`), the
+  brief tags (`isBriefTag`: TimeControl, StudyName, ChapterName, ChapterURL,
+  Themes) as an index into `m_tagSets`, numbers and the state — read at
+  opening from `games_brief` alone, never from the games' rows (their moves
+  come before their tags), the states apart from the few in `game_states`.
+  `GameDatabase::brief()` is what lists filter, sort and count by;
+  `header()` adds site, round, uid, modified, line preview and every tag,
+  read from the file a page of 256 games at a time (`details`, 64 pages
+  kept). **Anything that walks every game uses `brief()` and `stateOf()`,
+  never `header()`**; `indexOfId` (a binary search: the rows are in the order
+  of their ids) and `indexOfUid` find one. The games list sorts by
+  `GameListModel::sortKey` (from the brief; Site and Line from the pages),
+  kept per row by `GameFilterProxyModel::lessThan`, the number by row.
   Version 2 added `sources` (connected sources, settings and sync state as
   JSON) and `game_sources` (which source each imported game came from, by
   external id, so a sync never imports a game twice). Version 3 added

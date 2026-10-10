@@ -8,6 +8,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Large databases open in seconds and take far less memory: 1.26 million
+  games open in 3.5 s instead of 34 s, with half the memory.
 - Playing online, **Offer Draw** and **Resign** sit under the clocks; the
   first becomes **Accept Draw** when your opponent offers one.
 - **Tools ▸ Convert ▸ PGN to Pragma Database…**, the first of the tools:

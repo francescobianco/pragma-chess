@@ -4186,6 +4186,88 @@ END FUNCTION
         QCOMPARE(baseFromJson(baseToJson(next)).value("d").hash, next.value("d").hash);
     }
 
+    void keepsBriefHeadersAndPagesTheRest()
+    {
+        // More games than a page (256), so headers come from several pages.
+        QList<GameRecord> games;
+        for (int i = 0; i < 600; ++i) {
+            GameRecord game;
+            game.white = QStringLiteral("White %1").arg(i % 7);
+            game.black = QStringLiteral("Black %1").arg(i);
+            game.event = i % 2 ? QStringLiteral("Odd") : QStringLiteral("Even");
+            game.site = QStringLiteral("https://example.org/%1").arg(i);
+            game.round = QString::number(i);
+            game.date = QStringLiteral("2013.01.%1").arg(1 + i % 28, 2, 10, QLatin1Char('0'));
+            game.result = QStringLiteral("1-0");
+            game.eco = QStringLiteral("B%1").arg(i % 100, 2, 10, QLatin1Char('0'));
+            game.whiteElo = 1500 + i;
+            game.tags = {{QStringLiteral("UTCTime"), QStringLiteral("12:00:%1").arg(i % 60)},
+                         {QStringLiteral("TimeControl"), i % 3 ? QStringLiteral("600+0") : QStringLiteral("180+2")}};
+            if (i == 400)
+                game.tags << PgnTag{QStringLiteral("StudyName"), QStringLiteral("My Study")};
+            game.moves = {{QStringLiteral("e4"), QStringLiteral("e2e4")}, {QStringLiteral("e5"), QStringLiteral("e7e5")}};
+            games << game;
+        }
+        QTemporaryDir dir;
+        const QString path = dir.filePath(QStringLiteral("many.pdb"));
+        QString error;
+        QVERIFY(SqliteGameDatabase::create(path, games, &error));
+        std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(path, &error);
+        QVERIFY2(database, qPrintable(error));
+        QCOMPARE(database->gameCount(), 600);
+
+        // In any order across the pages: the full header as it was stored.
+        for (const int i : {599, 0, 300, 255, 256, 511, 512}) {
+            const GameRecord header = database->header(i);
+            QCOMPARE(header.black, games.at(i).black);
+            QCOMPARE(header.site, games.at(i).site);
+            QCOMPARE(header.round, games.at(i).round);
+            QCOMPARE(header.whiteElo, games.at(i).whiteElo);
+            QCOMPARE(header.tags, games.at(i).tags);
+            QVERIFY(!header.uid.isEmpty());
+            QVERIFY(header.linePreview.startsWith(QStringLiteral("1.e4 e5")));
+            QCOMPARE(database->indexOfId(header.id), i);
+            QCOMPARE(database->indexOfUid(header.uid), i);
+        }
+        // The brief: what the tree reads, the time control cut out of the tags.
+        const GameRecord brief = database->brief(1);
+        QCOMPARE(brief.white, games.at(1).white);
+        QCOMPARE(brief.eco, games.at(1).eco);
+        QCOMPARE(brief.date, games.at(1).date);
+        QVERIFY(brief.site.isEmpty() && brief.uid.isEmpty());
+        QCOMPARE(brief.tags, (QList<PgnTag>{{QStringLiteral("TimeControl"), QStringLiteral("600+0")}}));
+        QCOMPARE(TimeControl::of(database->brief(0)), QStringLiteral("180+2"));
+        QCOMPARE(DatabaseOutline::studyKey(database->brief(400)), QStringLiteral("My Study"));
+        QCOMPARE(database->indexOfId(-5), -1);
+        QCOMPARE(database->indexOfUid(QStringLiteral("nothing")), -1);
+
+        // Changes reach both the brief and the page read before.
+        QCOMPARE(database->header(599).site, games.at(599).site);
+        GameRecord changed = database->header(599);
+        changed.white = QStringLiteral("Someone Else");
+        changed.site = QStringLiteral("elsewhere");
+        QVERIFY(database->updateHeader(599, changed, &error));
+        QCOMPARE(database->brief(599).white, QStringLiteral("Someone Else"));
+        QCOMPARE(database->header(599).site, QStringLiteral("elsewhere"));
+        GameRecord added = games.at(0);
+        added.black = QStringLiteral("Newcomer");
+        added.site = QStringLiteral("new site");
+        const qint64 index = database->addGame(added, &error);
+        QCOMPARE(index, 600);
+        QCOMPARE(database->header(600).site, QStringLiteral("new site"));
+        QCOMPARE(database->header(598).site, games.at(598).site);
+        QVERIFY(database->setGameState(10, GameState::Trashed, &error));
+        QCOMPARE(database->stateOf(10), GameState::Trashed);
+        QCOMPARE(database->countGames(GameState::Live), 600);
+        database.reset();
+        // And read again from the file.
+        database = SqliteGameDatabase::open(path, &error);
+        QCOMPARE(database->gameCount(), 601);
+        QCOMPARE(database->stateOf(10), GameState::Trashed);
+        QCOMPARE(database->header(599).white, QStringLiteral("Someone Else"));
+        QCOMPARE(database->header(600).black, QStringLiteral("Newcomer"));
+    }
+
     void convertsPgnFiles()
     {
         // A comment before the first tags stays with them; the last game has no newline.

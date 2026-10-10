@@ -239,7 +239,7 @@ void DatabaseTreeWidget::refresh()
     int recentlyTrashed = 0;
     const QDateTime now = QDateTime::currentDateTimeUtc();
     for (qint64 index = 0; index < m_database->gameCount(); ++index) {
-        const GameRecord header = m_database->header(index);
+        const GameRecord header = m_database->brief(index); // All the tree reads.
         if (header.state == GameState::Trashed) {
             ++trashedGames;
             recentlyTrashed += GameStates::isRecent(header.stateModified, now);

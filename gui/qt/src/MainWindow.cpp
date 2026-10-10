@@ -1508,6 +1508,8 @@ void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
     m_gameListProxy->setDatabase(nullptr);
     m_gameListModel->setDatabase(nullptr);
     m_database = std::move(database);
+    QElapsedTimer clock;
+    clock.start();
     updateStandInNames(); // "Me" of this database may name the user.
     m_gameListModel->setDatabase(m_database.get());
     m_columnsByHand = false; // Another database, other contents: they share the room again.
@@ -1521,8 +1523,10 @@ void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
     m_filterSource = 0;
     m_category = {};
     m_gameListProxy->setDatabase(m_database.get());
+    m_profile.insert(QStringLiteral("showList"), clock.restart());
     m_databaseTree->setDatabase(m_database.get());
     restoreTreeState();
+    m_profile.insert(QStringLiteral("buildTree"), clock.restart());
     m_sourceSync->setDatabase(m_database.get());
     m_positionIndex->clear(); // Its games are another database's.
     rebuildPositionIndex();
@@ -1562,12 +1566,11 @@ void MainWindow::rebuildPositionIndex()
     m_positionIndexTimer->stop();
     // Games were added or changed: the sources that write them out follow.
     m_sourceSync->scheduleWrite();
-    if (m_database) {
-        QElapsedTimer clock;
-        clock.start();
-        const QList<GameLine> lines = m_database->gameLines();
-        m_profile.insert(QStringLiteral("readMoves"), clock.elapsed());
-        m_positionIndex->build(lines);
+    if (m_database && !m_database->location().isEmpty()) {
+        // Read on the index's thread, with a connection of its own.
+        m_positionIndex->build([path = m_database->location()] { return SqliteGameDatabase::readGameLines(path); });
+    } else if (m_database) {
+        m_positionIndex->build(m_database->gameLines());
     } else
         m_positionIndex->clear();
     updateBoardFilters();
@@ -2135,11 +2138,7 @@ bool MainWindow::storeOpenGame(QString *error)
 
 qint64 MainWindow::gameIndexOf(const QString &uid) const
 {
-    for (qint64 index = 0; m_database && !uid.isEmpty() && index < m_database->gameCount(); ++index) {
-        if (m_database->header(index).uid == uid)
-            return index;
-    }
-    return -1;
+    return m_database ? m_database->indexOfUid(uid) : -1;
 }
 
 void MainWindow::setGameState(const QStringList &uids, GameState state)
@@ -3393,7 +3392,7 @@ void MainWindow::reloadOpeningNamesIfChanged()
     QList<GameRecord> games;
     games.reserve(database->gameCount());
     for (qint64 index = 0; index < database->gameCount(); ++index) {
-        if (database->header(index).state != GameState::Live)
+        if (database->stateOf(index) != GameState::Live)
             continue; // A line in the trash names nothing.
         if (std::optional<GameRecord> game = database->loadGame(index))
             games << *game;
@@ -5903,9 +5902,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
     const bool sameDatabase = m_database
         && (databasePath.isEmpty() || m_database->location() == databasePath);
     if (sameDatabase && project.gameId >= 0) {
-        for (qint64 index = 0; index < m_database->gameCount() && !opened; ++index) {
-            if (m_database->header(index).id != project.gameId)
-                continue;
+        if (const qint64 index = m_database->indexOfId(project.gameId); index >= 0) {
             const QModelIndex proxyIndex = m_gameListProxy->mapFromSource(m_gameListModel->index(int(index), 0));
             if (proxyIndex.isValid()) {
                 openGame(proxyIndex);

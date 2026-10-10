@@ -32,13 +32,35 @@ public:
     {
         qint64 count = 0;
         for (qint64 index = 0; index < gameCount(); ++index)
-            count += header(index).state == state;
+            count += stateOf(index) == state;
         return count;
     }
 
     /// Header information for the game at `index` (0 <= index < gameCount()).
-    /// A reference into the database: valid until the database changes.
-    virtual const GameRecord &header(qint64 index) const = 0;
+    virtual GameRecord header(qint64 index) const = 0;
+    /// What lists filter, sort and count by, cheap for every game: the
+    /// header without its site, round, uid, modified and line preview, and
+    /// with only the tags the tree reads (isBriefTag, GameRecord.h).
+    virtual GameRecord brief(qint64 index) const { return header(index); }
+    virtual GameState stateOf(qint64 index) const { return header(index).state; }
+    /// The index of the game with that database id, or -1.
+    virtual qint64 indexOfId(qint64 id) const
+    {
+        for (qint64 index = 0; index < gameCount(); ++index) {
+            if (header(index).id == id)
+                return index;
+        }
+        return -1;
+    }
+    /// The index of the game with that uid, or -1.
+    virtual qint64 indexOfUid(const QString &uid) const
+    {
+        for (qint64 index = 0; !uid.isEmpty() && index < gameCount(); ++index) {
+            if (header(index).uid == uid)
+                return index;
+        }
+        return -1;
+    }
 
     /// Full game including moves.
     virtual std::optional<GameRecord> loadGame(qint64 index) const = 0;

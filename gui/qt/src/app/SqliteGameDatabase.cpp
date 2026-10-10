@@ -19,6 +19,7 @@
 #include <QUuid>
 #include <QVariant>
 
+#include <algorithm>
 #include <iterator>
 
 namespace {
@@ -285,7 +286,7 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::create(const QString &pa
     if (!db.commit())
         return fail(db.lastError().text());
 
-    if (!database->loadHeaders(errorMessage) || !database->loadProperties(errorMessage))
+    if (!database->loadBriefs(errorMessage) || !database->loadProperties(errorMessage))
         return nullptr;
     return database;
 }
@@ -333,7 +334,7 @@ std::unique_ptr<SqliteGameDatabase> SqliteGameDatabase::open(const QString &path
         return nullptr;
     }
 
-    if (!database->loadHeaders(errorMessage) || !database->loadPlayerRoles(errorMessage)
+    if (!database->loadBriefs(errorMessage) || !database->loadPlayerRoles(errorMessage)
         || !database->loadProperties(errorMessage))
         return nullptr;
     return database;
@@ -386,6 +387,43 @@ QHash<QString, QString> SqliteGameDatabase::readRevisions(const QString &path)
     }
     QSqlDatabase::removeDatabase(connection);
     return revisions;
+}
+
+QList<GameLine> SqliteGameDatabase::readGameLines(const QString &path)
+{
+    QList<GameLine> lines;
+    const QString connection = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        db.setDatabaseName(path);
+        db.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
+        if (db.open()) {
+            QSqlQuery query(db);
+            query.setForwardOnly(true);
+            // Only the games in the lists: the trash is not searched.
+            query.prepare(QStringLiteral("SELECT g.id, g.start_fen, g.moves_uci, g.result FROM games g"
+                                         " LEFT JOIN game_states st ON st.uid = g.uid"
+                                         " WHERE g.id > ? AND (st.state IS NULL OR st.state = 'live')"
+                                         " ORDER BY g.id LIMIT 50000"));
+            for (qint64 after = -1;;) {
+                query.addBindValue(after);
+                if (!query.exec())
+                    break;
+                qsizetype read = 0;
+                while (query.next()) {
+                    lines << GameLine{query.value(0).toLongLong(), query.value(1).toString(),
+                                      query.value(2).toString(), query.value(3).toString()};
+                    ++read;
+                }
+                query.finish();
+                if (read == 0)
+                    break;
+                after = lines.constLast().id;
+            }
+        }
+    }
+    QSqlDatabase::removeDatabase(connection);
+    return lines;
 }
 
 bool SqliteGameDatabase::adoptLineage(const QString &path, const QString &id)
@@ -453,58 +491,294 @@ bool SqliteGameDatabase::setProperties(const DatabaseProperties &properties, QSt
     return true;
 }
 
-bool SqliteGameDatabase::loadHeaders(QString *errorMessage)
+namespace {
+
+/// What the briefs read of every game, in the order of the index that
+/// holds them all (kBriefIndex): read from the index alone, the scan never
+/// touches the games' rows, whose moves come before their tags. Of the tags,
+/// SQL cuts out the time control; the whole text only for the games of a
+/// study or a puzzle. The same text in the index and in the query, or SQLite
+/// does not use it.
+const QString &briefColumns()
 {
+    static const QString columns = [] {
+        const QString timeControl = QStringLiteral("instr(tags, '[TimeControl \"')");
+        return QStringLiteral("id, white_id, black_id, event_id, date, result, eco, white_elo, black_elo, ply_count,"
+                              " start_fen, (CASE WHEN %1 > 0 THEN substr(tags, %1 + 14, instr(substr(tags, %1 + 14), '\"') - 1) END),"
+                              " (CASE WHEN instr(tags, '[Study') > 0 OR instr(tags, '[Chapter') > 0 OR instr(tags, '[Themes') > 0"
+                              " THEN tags END)")
+            .arg(timeControl);
+    }();
+    return columns;
+}
+
+/// Not part of the schema: an index changes nothing for whoever reads the
+/// file (older versions, the phone), so it is made when a database is
+/// opened, if missing, and the schema's version stays.
+bool ensureBriefIndex(QSqlDatabase db)
+{
+    QSqlQuery query(db);
+    return query.exec(QStringLiteral("CREATE INDEX IF NOT EXISTS games_brief ON games(%1)").arg(briefColumns()));
+}
+
+/// Games of a page: read together when one of them is shown.
+constexpr qint64 kPageRows = 256;
+/// Pages kept: what a few screens of a list need, whatever the database's size.
+constexpr qsizetype kPagesKept = 64;
+
+QString previewFromSan(const QString &startFen, const QString &san, int plyCount)
+{
+    // The beginning of the moves, for the lists: the last one may be cut short.
+    QStringList moves = san.split(QLatin1Char(' '), Qt::SkipEmptyParts);
+    if (san.size() == kPreviewChars && !moves.isEmpty())
+        moves.removeLast();
+    return Pgn::preview(startFen, moves.first(qMin(moves.size(), qsizetype(kPreviewPlies))), plyCount);
+}
+
+} // namespace
+
+int SqliteGameDatabase::intern(const QString &text)
+{
+    if (text.isEmpty())
+        return 0;
+    const auto found = m_stringIndex.constFind(text);
+    if (found != m_stringIndex.constEnd())
+        return *found;
+    m_strings << text;
+    m_stringIndex.insert(text, int(m_strings.size() - 1));
+    return int(m_strings.size() - 1);
+}
+
+int SqliteGameDatabase::internTags(const QList<PgnTag> &tags)
+{
+    QList<PgnTag> brief;
+    for (const PgnTag &tag : tags) {
+        if (isBriefTag(tag.name))
+            brief << tag;
+    }
+    if (brief.isEmpty())
+        return 0;
+    const QString key = Pgn::tagsText(brief);
+    const auto found = m_tagSetIndex.constFind(key);
+    if (found != m_tagSetIndex.constEnd())
+        return *found;
+    m_tagSets << brief;
+    m_tagSetIndex.insert(key, int(m_tagSets.size() - 1));
+    return int(m_tagSets.size() - 1);
+}
+
+SqliteGameDatabase::Brief SqliteGameDatabase::briefOf(const GameRecord &header)
+{
+    Brief brief;
+    brief.id = header.id;
+    brief.white = intern(header.white);
+    brief.black = intern(header.black);
+    brief.event = intern(header.event);
+    brief.date = intern(header.date);
+    brief.result = intern(header.result);
+    brief.eco = intern(header.eco);
+    brief.startFen = intern(header.startFen);
+    brief.stateModified = intern(header.stateModified);
+    brief.tags = internTags(header.tags);
+    brief.whiteElo = header.whiteElo;
+    brief.blackElo = header.blackElo;
+    brief.plyCount = header.plyCount;
+    brief.state = header.state;
+    return brief;
+}
+
+GameRecord SqliteGameDatabase::fromBrief(const Brief &brief) const
+{
+    GameRecord game;
+    game.id = brief.id;
+    game.white = m_strings.at(brief.white);
+    game.black = m_strings.at(brief.black);
+    game.event = m_strings.at(brief.event);
+    game.date = m_strings.at(brief.date);
+    game.result = m_strings.at(brief.result);
+    game.eco = m_strings.at(brief.eco);
+    game.startFen = m_strings.at(brief.startFen);
+    game.stateModified = m_strings.at(brief.stateModified);
+    game.tags = m_tagSets.at(brief.tags);
+    game.whiteElo = brief.whiteElo;
+    game.blackElo = brief.blackElo;
+    game.plyCount = brief.plyCount;
+    game.state = brief.state;
+    return game;
+}
+
+GameRecord SqliteGameDatabase::brief(qint64 index) const
+{
+    return fromBrief(m_rows.at(index));
+}
+
+GameRecord SqliteGameDatabase::header(qint64 index) const
+{
+    GameRecord game = fromBrief(m_rows.at(index));
+    const Details &more = details(index);
+    game.site = more.site;
+    game.round = more.round;
+    game.uid = more.uid;
+    game.modified = more.modified;
+    game.linePreview = more.linePreview;
+    game.tags = more.tags;
+    return game;
+}
+
+const SqliteGameDatabase::Details &SqliteGameDatabase::details(qint64 index) const
+{
+    const qint64 page = index / kPageRows;
+    if (auto found = m_pages.find(page); found != m_pages.end()) {
+        if (m_pageOrder.constLast() != page) {
+            m_pageOrder.removeOne(page);
+            m_pageOrder << page;
+        }
+        return found->at(index - page * kPageRows);
+    }
+    const qint64 first = page * kPageRows;
+    const qint64 last = qMin(first + kPageRows, qint64(m_rows.size())) - 1;
+    QList<Details> rows(last - first + 1);
     QSqlQuery query(QSqlDatabase::database(m_connectionName));
     query.setForwardOnly(true);
-    if (!query.exec(QStringLiteral(
-            "SELECT g.id, w.name, b.name, g.white_elo, g.black_elo, e.name, s.name,"
-            " g.date, g.round, g.result, g.eco, g.ply_count, g.start_fen, g.uid, g.modified, st.state, st.modified,"
-            " substr(g.moves_san, 1, %1), g.tags"
-            " FROM games g"
-            " LEFT JOIN players w ON w.id = g.white_id"
-            " LEFT JOIN players b ON b.id = g.black_id"
-            " LEFT JOIN events e ON e.id = g.event_id"
-            " LEFT JOIN sites s ON s.id = g.site_id"
-            " LEFT JOIN game_states st ON st.uid = g.uid"
-            " ORDER BY g.id").arg(kPreviewChars))) {
+    query.prepare(QStringLiteral("SELECT g.id, s.name, g.round, g.uid, g.modified, substr(g.moves_san, 1, %1), g.tags"
+                                 " FROM games g LEFT JOIN sites s ON s.id = g.site_id"
+                                 " WHERE g.id BETWEEN ? AND ? ORDER BY g.id")
+                      .arg(kPreviewChars));
+    query.addBindValue(m_rows.at(first).id);
+    query.addBindValue(m_rows.at(last).id);
+    if (query.exec()) {
+        // The rows are in the order of their ids, as the page's games.
+        qint64 row = first;
+        while (query.next() && row <= last) {
+            const qint64 id = query.value(0).toLongLong();
+            while (row <= last && m_rows.at(row).id < id)
+                ++row;
+            if (row > last || m_rows.at(row).id != id)
+                continue;
+            const Brief &brief = m_rows.at(row);
+            Details &more = rows[row - first];
+            more.site = query.value(1).toString();
+            more.round = query.value(2).toString();
+            more.uid = query.value(3).toString();
+            more.modified = query.value(4).toString();
+            more.linePreview = previewFromSan(m_strings.at(brief.startFen), query.value(5).toString(), brief.plyCount);
+            // The tags with no column: which study and chapter a game is, for the tree.
+            more.tags = Pgn::tagsFromText(query.value(6).toString());
+            ++row;
+        }
+    }
+    m_pages.insert(page, rows);
+    m_pageOrder << page;
+    while (m_pageOrder.size() > kPagesKept)
+        m_pages.remove(m_pageOrder.takeFirst());
+    return m_pages.find(page)->at(index - first);
+}
+
+void SqliteGameDatabase::dropPage(qint64 index) const
+{
+    const qint64 page = index / kPageRows;
+    if (m_pages.remove(page))
+        m_pageOrder.removeOne(page);
+}
+
+void SqliteGameDatabase::dropPages() const
+{
+    m_pages.clear();
+    m_pageOrder.clear();
+}
+
+qint64 SqliteGameDatabase::indexOfId(qint64 id) const
+{
+    // The rows are in the order of their ids.
+    const auto found = std::lower_bound(m_rows.cbegin(), m_rows.cend(), id,
+                                        [](const Brief &brief, qint64 value) { return brief.id < value; });
+    return found != m_rows.cend() && found->id == id ? qint64(found - m_rows.cbegin()) : -1;
+}
+
+qint64 SqliteGameDatabase::indexOfUid(const QString &uid) const
+{
+    if (uid.isEmpty())
+        return -1;
+    QSqlQuery query(QSqlDatabase::database(m_connectionName));
+    query.prepare(QStringLiteral("SELECT id FROM games WHERE uid = ?"));
+    query.addBindValue(uid);
+    return query.exec() && query.next() ? indexOfId(query.value(0).toLongLong()) : -1;
+}
+
+bool SqliteGameDatabase::loadBriefs(QString *errorMessage)
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    m_rows.clear();
+    m_strings = {QString()};
+    m_stringIndex.clear();
+    m_tagSets = {QList<PgnTag>()};
+    m_tagSetIndex.clear();
+    dropPages();
+
+    // Players and events by id, each name once.
+    QHash<qint64, int> players;
+    QHash<qint64, int> events;
+    QSqlQuery names(db);
+    names.setForwardOnly(true);
+    for (const auto &[table, ids] : {std::pair<const char *, QHash<qint64, int> *>{"players", &players},
+                                     std::pair<const char *, QHash<qint64, int> *>{"events", &events}}) {
+        if (!names.exec(QStringLiteral("SELECT id, name FROM %1").arg(QLatin1String(table)))) {
+            setError(errorMessage, names.lastError().text());
+            return false;
+        }
+        while (names.next())
+            ids->insert(names.value(0).toLongLong(), intern(names.value(1).toString()));
+    }
+
+    // A file that cannot be written (read only) is read without the index.
+    ensureBriefIndex(db);
+    QSqlQuery query(db);
+    query.setForwardOnly(true);
+    if (!query.exec(QStringLiteral("SELECT %1 FROM games ORDER BY id").arg(briefColumns()))) {
         setError(errorMessage, query.lastError().text());
         return false;
     }
-
-    m_headers.clear();
+    QHash<QString, int> timeControls;
     while (query.next()) {
-        GameRecord g;
-        g.id = query.value(0).toLongLong();
-        g.white = query.value(1).toString();
-        g.black = query.value(2).toString();
-        g.whiteElo = query.value(3).toInt();
-        g.blackElo = query.value(4).toInt();
-        g.event = query.value(5).toString();
-        g.site = query.value(6).toString();
-        g.date = query.value(7).toString();
-        g.round = query.value(8).toString();
-        g.result = query.value(9).toString();
-        g.eco = query.value(10).toString();
-        g.plyCount = query.value(11).toInt();
-        g.startFen = query.value(12).toString();
-        g.uid = query.value(13).toString();
-        g.modified = query.value(14).toString();
-        g.state = gameStateFromKey(query.value(15).toString());
-        g.stateModified = query.value(16).toString();
+        Brief brief;
+        brief.id = query.value(0).toLongLong();
+        brief.white = players.value(query.value(1).toLongLong());
+        brief.black = players.value(query.value(2).toLongLong());
+        brief.event = events.value(query.value(3).toLongLong());
+        brief.date = intern(query.value(4).toString());
+        brief.result = intern(query.value(5).toString());
+        brief.eco = intern(query.value(6).toString());
+        brief.whiteElo = query.value(7).toInt();
+        brief.blackElo = query.value(8).toInt();
+        brief.plyCount = query.value(9).toInt();
+        brief.startFen = intern(query.value(10).toString());
+        if (const QString tags = query.value(12).toString(); !tags.isEmpty()) {
+            brief.tags = internTags(Pgn::tagsFromText(tags));
+        } else if (const QString timeControl = query.value(11).toString(); !timeControl.isEmpty()) {
+            auto found = timeControls.constFind(timeControl);
+            if (found == timeControls.constEnd())
+                found = timeControls.insert(timeControl, internTags({{QStringLiteral("TimeControl"), timeControl}}));
+            brief.tags = *found;
+        }
+        m_rows.push_back(brief);
+    }
+    query.finish();
+    // Where the games are that are not live: the few the trash knows.
+    if (!query.exec(QStringLiteral("SELECT g.id, st.state, st.modified FROM game_states st JOIN games g ON g.uid = st.uid"))) {
+        setError(errorMessage, query.lastError().text());
+        return false;
+    }
+    while (query.next()) {
+        const qint64 index = indexOfId(query.value(0).toLongLong());
+        if (index < 0)
+            continue;
+        Brief &brief = m_rows[index];
+        brief.state = gameStateFromKey(query.value(1).toString());
         // A purged game whose row is still here (it came back from a copy
         // that had it) waits, hidden, for the next optimize().
-        if (g.state == GameState::Purged)
-            g.state = GameState::Deleted;
-        // The beginning of the moves, for the lists: the last one may be cut short.
-        const QString san = query.value(17).toString();
-        QStringList moves = san.split(QLatin1Char(' '), Qt::SkipEmptyParts);
-        if (san.size() == kPreviewChars && !moves.isEmpty())
-            moves.removeLast();
-        g.linePreview = Pgn::preview(g.startFen, moves.first(qMin(moves.size(), qsizetype(kPreviewPlies))), g.plyCount);
-        // The tags with no column: which study and chapter a game is, for the tree.
-        g.tags = Pgn::tagsFromText(query.value(18).toString());
-        m_headers << g;
+        if (brief.state == GameState::Purged)
+            brief.state = GameState::Deleted;
+        brief.stateModified = intern(query.value(2).toString());
     }
     return true;
 }
@@ -557,10 +831,10 @@ bool SqliteGameDatabase::setPlayerRole(const QString &player, PlayerRole role, Q
 
 std::optional<GameRecord> SqliteGameDatabase::loadGame(qint64 index) const
 {
-    if (index < 0 || index >= m_headers.size())
+    if (index < 0 || index >= gameCount())
         return std::nullopt;
 
-    GameRecord game = m_headers.at(index);
+    GameRecord game = header(index);
     QSqlQuery query(QSqlDatabase::database(m_connectionName));
     query.prepare(QStringLiteral("SELECT moves_san, moves_uci, variations, tags, comments FROM games WHERE id = ?"));
     query.addBindValue(game.id);
@@ -585,7 +859,7 @@ std::optional<GameRecord> SqliteGameDatabase::loadGame(qint64 index) const
 QList<GameLine> SqliteGameDatabase::gameLines() const
 {
     QList<GameLine> lines;
-    lines.reserve(m_headers.size());
+    lines.reserve(qsizetype(m_rows.size()));
     QSqlQuery query(QSqlDatabase::database(m_connectionName));
     query.setForwardOnly(true);
     // Only the games in the lists: the trash is not searched.
@@ -641,13 +915,14 @@ qint64 SqliteGameDatabase::addGame(const GameRecord &game, QString *errorMessage
         db.rollback();
         return -1;
     }
-    m_headers << inserter.header(game, id);
-    return m_headers.size() - 1;
+    m_rows.push_back(briefOf(inserter.header(game, id)));
+    dropPage(gameCount() - 1); // A page read before held one game less.
+    return gameCount() - 1;
 }
 
 bool SqliteGameDatabase::updateHeader(qint64 index, const GameRecord &header, QString *errorMessage)
 {
-    if (index < 0 || index >= m_headers.size()) {
+    if (index < 0 || index >= gameCount()) {
         setError(errorMessage, QObject::tr("The game does not exist."));
         return false;
     }
@@ -675,14 +950,14 @@ bool SqliteGameDatabase::updateHeader(qint64 index, const GameRecord &header, QS
     update.addBindValue(Pgn::tagsText(header.tags)); // The time control among them.
     const QString modified = GameIdentity::now();
     update.addBindValue(modified);
-    update.addBindValue(m_headers.at(index).id);
+    update.addBindValue(m_rows.at(index).id);
     if (!update.exec() || !db.commit()) {
         setError(errorMessage, update.lastError().isValid() ? update.lastError().text() : db.lastError().text());
         db.rollback();
         return false;
     }
 
-    GameRecord &cached = m_headers[index];
+    GameRecord cached = this->header(index);
     cached.white = header.white;
     cached.black = header.black;
     cached.whiteElo = header.whiteElo;
@@ -695,12 +970,14 @@ bool SqliteGameDatabase::updateHeader(qint64 index, const GameRecord &header, QS
     cached.eco = header.eco;
     cached.tags = header.tags;
     cached.modified = modified;
+    m_rows[index] = briefOf(cached);
+    dropPage(index);
     return true;
 }
 
 bool SqliteGameDatabase::replaceGame(qint64 index, const GameRecord &game, QString *errorMessage)
 {
-    if (index < 0 || index >= m_headers.size()) {
+    if (index < 0 || index >= gameCount()) {
         setError(errorMessage, QObject::tr("The game does not exist."));
         return false;
     }
@@ -741,14 +1018,14 @@ bool SqliteGameDatabase::replaceGame(qint64 index, const GameRecord &game, QStri
     update.addBindValue(Pgn::tagsText(game.tags));
     update.addBindValue(MoveComment::toJson(game));
     update.addBindValue(modified);
-    update.addBindValue(m_headers.at(index).id);
+    update.addBindValue(m_rows.at(index).id);
     if (!update.exec() || !db.commit()) {
         setError(errorMessage, update.lastError().isValid() ? update.lastError().text() : db.lastError().text());
         db.rollback();
         return false;
     }
 
-    GameRecord &cached = m_headers[index];
+    GameRecord cached = header(index);
     const qint64 id = cached.id;
     const QString uid = cached.uid;
     const GameState state = cached.state;
@@ -760,8 +1037,9 @@ bool SqliteGameDatabase::replaceGame(qint64 index, const GameRecord &game, QStri
     cached.stateModified = stateModified;
     cached.modified = modified;
     cached.plyCount = int(game.moves.size());
-    cached.linePreview = previewOf(game);
     cached.moves.clear();
+    m_rows[index] = briefOf(cached);
+    dropPage(index);
     return true;
 }
 
@@ -900,7 +1178,9 @@ int SqliteGameDatabase::importGames(qint64 sourceId, const QList<ImportedGame> &
         db.rollback();
         return -1;
     }
-    m_headers += added;
+    for (const GameRecord &header : std::as_const(added))
+        m_rows.push_back(briefOf(header));
+    dropPages();
     return int(added.size());
 }
 
@@ -968,13 +1248,13 @@ QSet<qint64> SqliteGameDatabase::sourceGameIds(qint64 sourceId) const
 
 bool SqliteGameDatabase::setGameState(qint64 index, GameState state, QString *errorMessage)
 {
-    if (index < 0 || index >= m_headers.size() || state == GameState::Purged) {
+    if (index < 0 || index >= gameCount() || state == GameState::Purged) {
         setError(errorMessage, QObject::tr("The game does not exist."));
         return false;
     }
     QSqlQuery query(QSqlDatabase::database(m_connectionName));
     query.prepare(QStringLiteral("INSERT OR REPLACE INTO game_states (uid, state, modified) VALUES (?, ?, ?)"));
-    query.addBindValue(m_headers.at(index).uid);
+    query.addBindValue(details(index).uid);
     query.addBindValue(gameStateKey(state));
     const QString now = GameIdentity::now();
     query.addBindValue(now);
@@ -982,8 +1262,8 @@ bool SqliteGameDatabase::setGameState(qint64 index, GameState state, QString *er
         setError(errorMessage, query.lastError().text());
         return false;
     }
-    m_headers[index].state = state;
-    m_headers[index].stateModified = now;
+    m_rows[index].state = state;
+    m_rows[index].stateModified = intern(now);
     return true;
 }
 
@@ -1051,7 +1331,7 @@ bool SqliteGameDatabase::mergeGameStates(const QList<GameStateRecord> &incoming,
         db.rollback();
         return false;
     }
-    return loadHeaders(errorMessage);
+    return loadBriefs(errorMessage);
 }
 
 int SqliteGameDatabase::optimize(QString *errorMessage)
@@ -1092,7 +1372,7 @@ int SqliteGameDatabase::optimize(QString *errorMessage)
         setError(errorMessage, query.lastError().text());
         return -1;
     }
-    if (!loadHeaders(errorMessage))
+    if (!loadBriefs(errorMessage))
         return -1;
     return removed;
 }
@@ -1132,6 +1412,8 @@ std::unique_ptr<SqliteGameWriter> SqliteGameWriter::create(const QString &path, 
     query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
     query.exec(QStringLiteral("PRAGMA synchronous = OFF"));
     query.exec(QStringLiteral("PRAGMA cache_size = -65536")); // 64 MB.
+    // Made once at the end: faster than kept up to date game by game.
+    query.exec(QStringLiteral("DROP INDEX IF EXISTS games_brief"));
     writer->d->inserter = std::make_unique<GameInserter>(db);
     return writer;
 }
@@ -1160,7 +1442,7 @@ bool SqliteGameWriter::finish(QString *errorMessage)
     QSqlDatabase db = QSqlDatabase::database(d->connectionName, false);
     QSqlQuery query(db);
     // The journal as every database has it.
-    if (!query.exec(QStringLiteral("PRAGMA journal_mode = DELETE"))) {
+    if (!ensureBriefIndex(db) || !query.exec(QStringLiteral("PRAGMA journal_mode = DELETE"))) {
         setError(errorMessage, query.lastError().text());
         return false;
     }

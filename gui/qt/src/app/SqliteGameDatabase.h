@@ -6,6 +6,7 @@
 #include <QList>
 
 #include <memory>
+#include <vector>
 
 /// A `.pdb` database file: an SQLite database tagged with Pragma's
 /// application id and a schema version.
@@ -32,11 +33,19 @@ public:
     /// (the databases we ship, seeded before they carried one). False if the
     /// file cannot be opened or written.
     static bool adoptLineage(const QString &path, const QString &id);
+    /// gameLines() of the database file at `path`, read on any thread with a
+    /// connection of its own, a chunk at a time (each a short read, so the
+    /// window can write meanwhile). Empty if the file cannot be read.
+    static QList<GameLine> readGameLines(const QString &path);
 
     QString name() const override;
     QString location() const override { return m_path; }
-    qint64 gameCount() const override { return m_headers.size(); }
-    const GameRecord &header(qint64 index) const override { return m_headers.at(index); }
+    qint64 gameCount() const override { return qint64(m_rows.size()); }
+    GameRecord header(qint64 index) const override;
+    GameRecord brief(qint64 index) const override;
+    GameState stateOf(qint64 index) const override { return m_rows.at(index).state; }
+    qint64 indexOfId(qint64 id) const override;
+    qint64 indexOfUid(const QString &uid) const override;
     std::optional<GameRecord> loadGame(qint64 index) const override;
     QList<GameLine> gameLines() const override;
     qint64 addGame(const GameRecord &game, QString *errorMessage) override;
@@ -64,14 +73,61 @@ public:
 private:
     SqliteGameDatabase(QString path, QString connectionName);
 
-    bool loadHeaders(QString *errorMessage);
+    bool loadBriefs(QString *errorMessage);
     bool loadPlayerRoles(QString *errorMessage);
     bool loadProperties(QString *errorMessage);
 
     QString m_path;
     QString m_connectionName;
-    // TODO: page headers from SQL instead of caching them for very large databases.
-    QList<GameRecord> m_headers;
+    /// What every game keeps in memory, a few dozen bytes whatever its size:
+    /// indexes into m_strings and m_tagSets, and numbers. The rest of a
+    /// header is read from the file a page at a time, when it is shown.
+    struct Brief {
+        qint64 id = 0;
+        int white = 0;
+        int black = 0;
+        int event = 0;
+        int date = 0;
+        int result = 0;
+        int eco = 0;
+        int startFen = 0;
+        int stateModified = 0;
+        int tags = 0;
+        int whiteElo = 0;
+        int blackElo = 0;
+        int plyCount = 0;
+        GameState state = GameState::Live;
+    };
+    /// What only showing a game needs, read with its page.
+    struct Details {
+        QString site;
+        QString round;
+        QString uid;
+        QString modified;
+        QString linePreview;
+        QList<PgnTag> tags;
+    };
+
+    int intern(const QString &text);
+    int internTags(const QList<PgnTag> &tags);
+    Brief briefOf(const GameRecord &header);
+    GameRecord fromBrief(const Brief &brief) const;
+    const Details &details(qint64 index) const;
+    /// Forgets the cached page holding `index`, or every page.
+    void dropPage(qint64 index) const;
+    void dropPages() const;
+
+    /// One per game, in the order of their ids (the list's order).
+    std::vector<Brief> m_rows;
+    /// Each text once: names, events, dates, results, codes (0 is empty).
+    QList<QString> m_strings;
+    QHash<QString, int> m_stringIndex;
+    /// Each set of brief tags once (0 is none).
+    QList<QList<PgnTag>> m_tagSets;
+    QHash<QString, int> m_tagSetIndex;
+    /// Pages of details by page number, the most recent last in m_pageOrder.
+    mutable QHash<qint64, QList<Details>> m_pages;
+    mutable QList<qint64> m_pageOrder;
     PlayerRoles m_roles;
     DatabaseProperties m_properties;
 };

@@ -5,6 +5,7 @@
 #include <QSortFilterProxyModel>
 
 #include <functional>
+#include <vector>
 
 class GameDatabase;
 
@@ -27,8 +28,13 @@ public:
     bool isFiltered() const { return bool(m_predicate); }
     GameState state() const { return m_state; }
 
+    void setSourceModel(QAbstractItemModel *model) override;
+
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
+    /// By GameListModel::sortKey, each row's read once and kept while the
+    /// column sorts: never every row's text through data().
+    bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
 
 private:
     /// Runs `change` to the filter's state and filters the rows again.
@@ -37,4 +43,8 @@ private:
     const GameDatabase *m_database = nullptr;
     Predicate m_predicate;
     GameState m_state = GameState::Live;
+    /// The sort keys of m_keysColumn by source row, read when first compared.
+    mutable std::vector<QVariant> m_keys;
+    mutable std::vector<bool> m_haveKey;
+    mutable int m_keysColumn = -1;
 };

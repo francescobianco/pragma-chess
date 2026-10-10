@@ -31,8 +31,9 @@ added below, never written over.
   filters along a Najdorf (1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6)
   with `POST /api/move` and `POST /api/category {"kind": "position"}` /
   `"variant"`, and `GET /api/profile` after each: `openFile` (reading the
-  headers), `showDatabase` (list and tree), `readMoves` (`gameLines()`),
-  `buildIndex` (on its worker thread), `countPosition`/`countVariant`,
+  headers), `showDatabase` (list and tree), `buildIndex` (on its worker
+  thread, reading the moves included; until the second section below,
+  `readMoves` timed that reading on the window's thread), `countPosition`/`countVariant`,
   `findGames` (the index's ids), `filterList` (the games list filtered and
   sorted), and the process's memory (`VmRSS`, `VmHWM` its peak).
 - **Machine**: 22 cores, 30 GB of RAM, NVMe disk, Ubuntu, Qt 6.4.
@@ -100,7 +101,7 @@ A move on the board with Board ▸ Position selected, step 4: 1.3 s after
 4. **The list after a short line**: filtering and sorting the games of
    1.e4 among 1.26 million takes about a second.
 
-### Next
+### Next (as written then)
 
 In order of what they free:
 
@@ -112,3 +113,32 @@ In order of what they free:
    database (built once, updated with the games), instead of being rebuilt
    at every opening.
 3. Then step 5 (2013-08…2014-01, about 2.5 million games) and on.
+
+## 2026-10-10 — headers no longer held in memory
+
+`SqliteGameDatabase` keeps a brief header per game (a few dozen bytes:
+indexes into tables where each name, event and date is once, numbers, the
+state, the tags the tree reads), read from a covering index (`games_brief`)
+without touching the games' rows; the rest of a header is read a page of 256
+games at a time when it is shown. The moves for the position index are read
+on its worker thread. Step 4, 1 259 487 games, Release:
+
+| | Before | After |
+|---|---|---|
+| Window frozen on opening | 33.6 s | 3.5 s |
+| of which reading the file | 28.1 s | 2.0 s |
+| list | | 0.6 s |
+| tree | | 0.9 s |
+| Memory, index built | 6.8 GB | 3.7 GB |
+| Peak | 8.2 GB | 5.1 GB |
+| Position after 1.e4 | 1.3 s | 0.95 s |
+| Position after 5…a6 | 0.5 s | 0.44 s |
+
+The first opening of a database made before builds `games_brief`, once (5.6 s
+for step 4); a converted database has it from the start.
+
+The position index is now most of the memory (172 million pairs, 2.75 GB)
+and takes 96 s to build at every opening: next, it is built on several
+threads and kept in the database file. Then the moves stored once instead of
+twice (SAN and UCI), which a version of the schema allows.
+

@@ -43,6 +43,10 @@ public:
     int columnCount(const QModelIndex &parent = {}) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    /// What `column` of `row` sorts by: what it shows, read from the brief
+    /// header where that holds it (GameDatabase::brief) — sorting reads every
+    /// game, and a full header comes from the file a page at a time.
+    QVariant sortKey(int row, int column) const;
 
 private:
     const GameDatabase *m_database = nullptr;

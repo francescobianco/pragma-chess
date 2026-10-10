@@ -23,6 +23,16 @@ struct PgnTag {
     bool operator==(const PgnTag &) const = default;
 };
 
+/// The tags the database tree and its filters read (TimeControl::of,
+/// DatabaseOutline's studies, TrainingSets' themes): what a brief header
+/// (GameDatabase::brief) keeps of a game's tags.
+inline bool isBriefTag(const QString &name)
+{
+    return name == QLatin1String("TimeControl") || name == QLatin1String("StudyName")
+        || name == QLatin1String("ChapterName") || name == QLatin1String("ChapterURL")
+        || name == QLatin1String("Themes");
+}
+
 /// A line of moves that branches off another: an alternative to the move
 /// at `atPly` (1-based) of the line it belongs to, played from the position
 /// before that move. Its own alternatives hang off it the same way, so the

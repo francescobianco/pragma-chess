@@ -140,6 +140,30 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
     }
 }
 
+QVariant GameListModel::sortKey(int row, int column) const
+{
+    if (!m_database || row < 0 || row >= m_rows)
+        return {};
+    const auto shown = [this, row, column] { return data(index(row, column)); };
+    const auto elo = [](int value) { return value > 0 ? QVariant(value) : QVariant(); };
+    // A training database shows stand-in names and themes: what is shown, then.
+    if (m_training && (column == White || column == Black || column == Event))
+        return shown();
+    switch (column) {
+    case Number: return m_database->brief(row).id;
+    case White: return m_database->brief(row).white;
+    case WhiteElo: return elo(m_database->brief(row).whiteElo);
+    case Black: return m_database->brief(row).black;
+    case BlackElo: return elo(m_database->brief(row).blackElo);
+    case Result: return m_database->brief(row).result;
+    case Date: return m_database->brief(row).date;
+    case Event: return m_database->brief(row).event;
+    case Eco: return m_database->brief(row).eco;
+    case Moves: return (m_database->brief(row).plyCount + 1) / 2;
+    default: return shown(); // Site and Line are only in the full header.
+    }
+}
+
 QString GameListModel::columnKey(int column)
 {
     switch (column) {

@@ -5,6 +5,7 @@
 #include <QObject>
 
 #include <atomic>
+#include <functional>
 #include <memory>
 
 class QThread;
@@ -22,6 +23,9 @@ public:
     /// Starts indexing `games`. The current index stays until the new one is
     /// ready (games were added): clear() first when it is another database.
     void build(const QList<GameLine> &games);
+    /// The same with the games read by `read` on the worker thread too: a
+    /// large database's moves take seconds to read.
+    void build(std::function<QList<GameLine>()> read);
     /// Forgets the index and any build still running.
     void clear();
 

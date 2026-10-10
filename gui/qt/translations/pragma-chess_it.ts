@@ -944,6 +944,10 @@ Il Nero ha catturato: %2</translation>
         <source>No server is set up.</source>
         <translation>Nessun server configurato.</translation>
     </message>
+    <message>
+        <source>Leaving %1 on the server only…</source>
+        <translation>%1 resta solo sul server…</translation>
+    </message>
 </context>
 <context>
     <name>FolderSyncTask</name>

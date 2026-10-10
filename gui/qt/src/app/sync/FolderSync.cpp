@@ -1,6 +1,7 @@
 #include "FolderSync.h"
 
 #include "RemoteStore.h"
+#include "SyncIgnore.h"
 #include "app/DatabaseDedupe.h"
 
 #include <QCryptographicHash>
@@ -483,6 +484,15 @@ void FolderSync::attempt(int round)
             }
             run->remote = *manifest;
         }
+        // What the server keeps to itself (.pragmaignore), read before planning.
+        m_store->read(QLatin1String(SyncIgnore::fileName), [this, run, generation](const RemoteStore::Result &ignoreFile) {
+        if (generation != m_generation)
+            return;
+        if (!ignoreFile.ok) {
+            finish(ignoreFile.error, 0);
+            return;
+        }
+        const SyncIgnore ignore = ignoreFile.notFound ? SyncIgnore() : SyncIgnore::parse(ignoreFile.data);
         // The merges made here go into the manifest with this sync.
         SyncManifest effective = run->remote;
         for (auto it = m_pendingMerges.cbegin(); it != m_pendingMerges.cend(); ++it)
@@ -512,7 +522,30 @@ void FolderSync::attempt(int round)
             [root, lineageOf](const QString &path) { return lineageOf ? lineageOf(QDir(root).filePath(path)) : QString(); });
         for (const QString &path : inapplicable)
             m_pendingDeletions.remove(path);
-        run->actions = planSync(run->local, m_base, effective);
+        // Files the server keeps to itself are planned as if neither side had
+        // them: never downloaded nor uploaded. The manifest keeps their
+        // entries as they are. A copy this device received, unchanged since,
+        // leaves it (KeptOnServer); one changed or made here stays, unsynced.
+        QMap<QString, LocalFileState> local = run->local;
+        QMap<QString, QString> base = m_base;
+        SyncManifest planned = effective;
+        QList<SyncAction> leaving;
+        if (!ignore.isEmpty()) {
+            for (const QString &path : run->local.keys()) {
+                if (!ignore.matches(path))
+                    continue;
+                if (m_base.contains(path) && m_base.value(path) == run->local.value(path).hash)
+                    leaving << SyncAction{SyncAction::Kind::KeptOnServer, path};
+                local.remove(path);
+            }
+            for (const QString &path : m_base.keys())
+                if (ignore.matches(path))
+                    base.remove(path);
+            for (const QString &path : effective.files.keys())
+                if (ignore.matches(path))
+                    planned.files.remove(path);
+        }
+        run->actions = planSync(local, base, planned) + leaving;
         for (const SyncAction &action : std::as_const(run->actions)) {
             if (action.kind == SyncAction::Kind::DeletedHere)
                 run->deletedByHand << action.path;
@@ -523,7 +556,7 @@ void FolderSync::attempt(int round)
         // files stay out: their games are elsewhere; deleted ones too.
         for (const QString &path : m_store->listFiles()) {
             if (effective.files.contains(path) || effective.merged.contains(path) || effective.deleted.contains(path)
-                || run->local.contains(path))
+                || run->local.contains(path) || ignore.matches(path))
                 continue;
             run->actions << SyncAction{SyncAction::Kind::Download, path};
         }
@@ -532,7 +565,11 @@ void FolderSync::attempt(int round)
                               [](const SyncAction &action) { return action.kind != SyncAction::Kind::Merge; });
         run->updated = effective;
         run->base = m_base;
+        for (const QString &path : m_base.keys())
+            if (ignore.matches(path) && !leaving.contains(SyncAction{SyncAction::Kind::KeptOnServer, path}))
+                run->base.remove(path); // Not synced any more: no base to keep.
         execute(run, 0);
+    });
     });
     });
 }
@@ -646,6 +683,22 @@ void FolderSync::execute(std::shared_ptr<Run> run, qsizetype index)
         return;
     case SyncAction::Kind::DeletedHere:
         // Left as it is everywhere until the user says (deletedByHand).
+        execute(run, index + 1);
+        return;
+    case SyncAction::Kind::KeptOnServer:
+        // Received from the server, unchanged, and now kept there only:
+        // nothing is lost, the server has it.
+        Q_EMIT progress(tr("Leaving %1 on the server only…").arg(action.path));
+        Q_EMIT localFileAboutToChange(absolute);
+        if (!discard(absolute)) {
+            Q_EMIT localFileChanged(absolute);
+            finish(tr("Could not delete “%1”.").arg(action.path), run->changes);
+            return;
+        }
+        run->base.remove(action.path);
+        ++run->changes;
+        Q_EMIT localFileDeleted(absolute);
+        Q_EMIT localFileChanged(absolute);
         execute(run, index + 1);
         return;
     case SyncAction::Kind::Merge:

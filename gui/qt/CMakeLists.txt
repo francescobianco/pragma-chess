@@ -277,6 +277,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/sync/GitStore.cpp
     src/app/sync/GitStore.h
     src/app/sync/RemoteStore.h
+    src/app/sync/SyncIgnore.cpp
+    src/app/sync/SyncIgnore.h
     src/app/sync/SyncManifest.cpp
     src/app/sync/SyncManifest.h
     src/app/sync/SyncPipeline.cpp

@@ -55,6 +55,7 @@
 #include "app/sources/PgnFilePlan.h"
 #include "app/sync/FolderSync.h"
 #include "app/sync/GitStore.h"
+#include "app/sync/SyncIgnore.h"
 #include "app/sync/SyncManifest.h"
 #include "app/Chapters.h"
 #include "app/PersonalSettings.h"
@@ -2866,6 +2867,138 @@ END FUNCTION
     /// deleted by hand is asked about (restored, or deleted everywhere), and
     /// nothing else ever leaves the repository, whose history holds only
     /// real changes of files.
+    void readsPragmaIgnore()
+    {
+        const SyncIgnore ignore = SyncIgnore::parse("# the repository's own files\n"
+                                                    "README.md\n"
+                                                    "/LICENSE\r\n"
+                                                    "*.tmp   \n"
+                                                    "Old/\n"
+                                                    "Books/**/draft-*.bin\n"
+                                                    "!keep.tmp\n");
+        QVERIFY(ignore.matches(QStringLiteral("README.md")));
+        QVERIFY(ignore.matches(QStringLiteral("Projects/README.md"))); // A name matches at any depth.
+        QVERIFY(ignore.matches(QStringLiteral("LICENSE")));
+        QVERIFY(!ignore.matches(QStringLiteral("Databases/LICENSE"))); // Anchored to the root.
+        QVERIFY(ignore.matches(QStringLiteral("Databases/scratch.tmp")));
+        QVERIFY(!ignore.matches(QStringLiteral("Databases/keep.tmp"))); // Taken back.
+        QVERIFY(ignore.matches(QStringLiteral("Databases/Old/Games.pdb"))); // Inside a folder that matches.
+        QVERIFY(!ignore.matches(QStringLiteral("Databases/Old"))); // A file named so is not a folder.
+        QVERIFY(ignore.matches(QStringLiteral("Books/draft-1.bin")));
+        QVERIFY(ignore.matches(QStringLiteral("Books/Mine/draft-2.bin")));
+        QVERIFY(!ignore.matches(QStringLiteral("Books/Openings.bin")));
+        QVERIFY(!ignore.matches(QStringLiteral("Databases/Games.pdb")));
+        QVERIFY(SyncIgnore::parse("# nothing\n\n").isEmpty());
+    }
+
+    void keepsIgnoredFilesOnTheServer()
+    {
+        const QString git = QStandardPaths::findExecutable(QStringLiteral("git"));
+        if (git.isEmpty())
+            QSKIP("git is not installed");
+
+        QTemporaryDir root;
+        QVERIFY(root.isValid());
+        const QDir base(root.path());
+        const QString origin = base.filePath(QStringLiteral("origin.git"));
+        const auto run = [&](const QString &directory, const QStringList &arguments) {
+            QProcess process;
+            process.setWorkingDirectory(directory);
+            process.start(git, arguments);
+            QVERIFY(process.waitForFinished(30000));
+            QVERIFY2(process.exitCode() == 0, process.readAllStandardError().constData());
+        };
+        run(base.path(), {QStringLiteral("init"), QStringLiteral("--bare"), QStringLiteral("--initial-branch=main"), origin});
+        const auto write = [](const QString &path, const QByteArray &data) {
+            QDir().mkpath(QFileInfo(path).absolutePath());
+            QFile file(path);
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            file.write(data);
+        };
+
+        // The owner of the repository writes its README and LICENSE by hand.
+        const QString owner = base.filePath(QStringLiteral("owner"));
+        run(base.path(), {QStringLiteral("clone"), origin, owner});
+        const auto commitAs = [&](const QString &message) {
+            run(owner, {QStringLiteral("add"), QStringLiteral("-A")});
+            run(owner, {QStringLiteral("-c"), QStringLiteral("user.name=Owner"), QStringLiteral("-c"),
+                        QStringLiteral("user.email=owner@example.org"), QStringLiteral("commit"), QStringLiteral("-m"), message});
+            run(owner, {QStringLiteral("push"), QStringLiteral("origin"), QStringLiteral("HEAD:main")});
+        };
+        write(owner + QStringLiteral("/README.md"), "# My chess");
+        write(owner + QStringLiteral("/LICENSE"), "MIT");
+        commitAs(QStringLiteral("Describe the repository"));
+
+        struct Device {
+            std::unique_ptr<GitStore> store;
+            std::unique_ptr<FolderSync> sync;
+            QString folder;
+        };
+        const auto makeDevice = [&](const QString &name) {
+            Device device;
+            device.folder = base.filePath(name + QStringLiteral("/Pragma"));
+            QDir().mkpath(device.folder);
+            device.store = std::make_unique<GitStore>(origin, QStringLiteral("main"), QString(), QString(),
+                                                      base.filePath(name + QStringLiteral("/clone")), name);
+            device.sync = std::make_unique<FolderSync>(device.folder, QString(), name);
+            device.sync->setStore(device.store.get());
+            FolderSync::DatabaseHooks hooks;
+            hooks.discard = [](const QString &path) { return QFile::remove(path); };
+            device.sync->setDatabaseHooks(hooks);
+            return device;
+        };
+        const auto syncOnce = [](Device &device) {
+            QSignalSpy finished(device.sync.get(), &FolderSync::finished);
+            device.sync->sync();
+            QVERIFY(finished.wait(60000));
+            QCOMPARE(finished.constFirst().at(0).toString(), QString()); // No error.
+        };
+
+        // Without a .pragmaignore they reach the device, as any file.
+        Device laptop = makeDevice(QStringLiteral("laptop"));
+        write(laptop.folder + QStringLiteral("/Databases/Games.pdb"), "games");
+        syncOnce(laptop);
+        syncOnce(laptop);
+        QVERIFY(QFile::exists(laptop.folder + QStringLiteral("/README.md")));
+        QVERIFY(QFile::exists(laptop.folder + QStringLiteral("/LICENSE")));
+
+        // With one, they stay on the server: the copies received go, a copy
+        // changed here stays here, and nothing made here goes up.
+        write(laptop.folder + QStringLiteral("/LICENSE"), "MIT, with my notes");
+        run(owner, {QStringLiteral("pull"), QStringLiteral("origin"), QStringLiteral("main")});
+        write(owner + QStringLiteral("/.pragmaignore"), "README.md\nLICENSE\n*.tmp\n");
+        commitAs(QStringLiteral("Keep the repository's files to it"));
+        write(laptop.folder + QStringLiteral("/Databases/scratch.tmp"), "scratch");
+        syncOnce(laptop);
+        QVERIFY2(!QFile::exists(laptop.folder + QStringLiteral("/README.md")), "a received copy leaves the device");
+        QVERIFY2(QFile::exists(laptop.folder + QStringLiteral("/LICENSE")), "a copy changed here stays here");
+        QVERIFY(QFile::exists(laptop.folder + QStringLiteral("/Databases/scratch.tmp")));
+        syncOnce(laptop);
+        QVERIFY(!QFile::exists(laptop.folder + QStringLiteral("/README.md")));
+
+        QProcess tree;
+        tree.setWorkingDirectory(origin);
+        tree.start(git, {QStringLiteral("ls-tree"), QStringLiteral("-r"), QStringLiteral("--name-only"), QStringLiteral("main")});
+        QVERIFY(tree.waitForFinished(30000));
+        const QString listing = QString::fromUtf8(tree.readAll());
+        QVERIFY2(listing.contains(QLatin1String("README.md")), qPrintable(listing));
+        QVERIFY2(listing.contains(QLatin1String("LICENSE")), qPrintable(listing));
+        QVERIFY2(!listing.contains(QLatin1String("scratch.tmp")), qPrintable(listing));
+        QProcess license;
+        license.setWorkingDirectory(origin);
+        license.start(git, {QStringLiteral("show"), QStringLiteral("main:LICENSE")});
+        QVERIFY(license.waitForFinished(30000));
+        QCOMPARE(license.readAll(), QByteArray("MIT")); // The server's, not the device's.
+
+        // A new device never receives them, and still gets everything else.
+        Device desktop = makeDevice(QStringLiteral("desktop"));
+        syncOnce(desktop);
+        QVERIFY(QFile::exists(desktop.folder + QStringLiteral("/Databases/Games.pdb")));
+        QVERIFY(!QFile::exists(desktop.folder + QStringLiteral("/README.md")));
+        QVERIFY(!QFile::exists(desktop.folder + QStringLiteral("/LICENSE")));
+        QVERIFY(!QFile::exists(desktop.folder + QStringLiteral("/.pragmaignore")));
+    }
+
     void reconcilesGitFoldersWithoutDeleting()
     {
         const QString git = QStandardPaths::findExecutable(QStringLiteral("git"));

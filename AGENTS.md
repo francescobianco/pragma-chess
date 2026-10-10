@@ -1035,6 +1035,14 @@ the toolbar's first button (`m_syncNowAction`, Ctrl+Y).
   bring the file back. `tst_chessrules::deletesDatabasesAcrossGitDevices`
   and `reconcilesGitFoldersWithoutDeleting` cover it. Never delete anything
   else through it without the same warning.
+- **`.pragmaignore`** at the root of the remote folder (`app/sync/SyncIgnore`,
+  pure, unit-tested: `.gitignore`'s patterns, `!`, `**`, folders) lists the
+  files the server keeps to itself (a repository's README, LICENSE). The
+  sync plans as if neither side had them — never downloaded, never
+  uploaded, their manifest entries left as they are, Git's `listFiles` not
+  bringing them —, and a copy a device received and never changed leaves
+  it (`SyncAction::KeptOnServer`, discarded: the server has it); one
+  changed there stays, unsynced. `keepsIgnoredFilesOnTheServer` covers it.
 - `app/sync/SyncPipeline` runs the sync **in order**, one `SyncTask` at a
   time: `SourceSyncTask` (sources → database), a `SyncStepTask` for the
   project file, one for the session and one merging duplicate databases,

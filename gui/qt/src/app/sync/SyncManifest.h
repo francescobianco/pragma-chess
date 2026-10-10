@@ -131,6 +131,9 @@ struct SyncAction {
         /// user deleted it by hand. Nothing moves until they say whether it
         /// goes from every device or comes back (FolderSync::deletedByHand).
         DeletedHere,
+        /// A file the server keeps to itself (.pragmaignore) that this device
+        /// received and never changed: it leaves this device, the server keeps it.
+        KeptOnServer,
     };
 
     Kind kind;

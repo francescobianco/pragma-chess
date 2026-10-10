@@ -276,6 +276,8 @@ Sync deletes nothing on its own: a database missing on one side is copied there,
 
 Each computer remembers what it synced last in a hidden file of its Pragma folder, `.pragma-chess.local`, which never goes to the server. So it can tell a file you deleted by hand — in the file manager, say — from one it has yet to receive: at the next sync it asks whether to **Delete Everywhere**, **Restore** it, or **Ask Me Later** (asked again the next time you start Pragma Chess). Deleted everywhere, the file is removed from the server, and every other computer moves its copy to the trash at its next sync. A file someone changed on another computer meanwhile simply comes back.
 
+Files that belong to the server alone — the README and LICENSE of a Git repository, say — are listed in a **`.pragmaignore`** file at the root of the folder on the server, one per line, written as in `.gitignore` (`*.tmp`, `Notes/`, `# a comment`). They stay on the server: they are never copied to your computers, a copy a computer received earlier leaves it at the next sync (one you changed there stays, but is no longer synced), and nothing of that name is sent from your computers.
+
 **Manage Files…**, in the Sync Settings, lists the files in the folder on the server. Select some and press **Delete…** to clean up: after you confirm, they are deleted from every synced device, this computer included (into the trash), so they stop travelling between your computers.
 
 With a Git repository each sync that changes files makes one commit, named after them ("Update Databases/Games.pdb; add Projects/Study.pch"): a sync that only receives, or finds nothing new, leaves the history alone.

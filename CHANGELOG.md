@@ -8,6 +8,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- A **`.pragmaignore`** file in the synced folder on the server (FTP,
+  WebDAV or Git) lists files that stay there only, written as in
+  `.gitignore`: the README and LICENSE of your repository no longer land in
+  your Pragma folder.
 - The chess folder in your home (Chess, Scacchi…) and the Pragma folder in it have their own icon: the
   system's folder with a pawn on it, as Videos has a film and Pictures a
   picture, drawn in the colours of your icon theme.

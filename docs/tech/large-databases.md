@@ -18,6 +18,7 @@ added below, never written over.
   | 2 | 2013-01…02 | 245 293 | 179 MB |
   | 3 | 2013-01…04 | 561 799 | 411 MB |
   | 4 | 2013-01…07 | 1 259 487 | 920 MB |
+  | 5 | 2013-01…10 | 2 321 149 | 1 704 MB |
 
 - **Build**: Release (`-DCMAKE_BUILD_TYPE=Release`), in a build folder of its
   own. A Debug build is several times slower and says little.
@@ -177,4 +178,30 @@ opened for a month are removed when another is saved.
 
 Since the start of the day, step 4: window frozen on opening 33.6 s → 3.5 s,
 memory 6.8 GB → 0.57 GB, the index 96 s at every opening → once.
+
+## 2026-10-10 — step 5, 2.32 million games
+
+| | |
+|---|---|
+| Conversion | 466 s, 4 976 games a second, 2 321 009 games (140 entries without moves left out), `.pdb` 2.7 GB |
+| Window frozen on opening | 5.8 s (file 3.5 s, list 1.0 s, tree 1.3 s) |
+| Position index, first opening | 43 s on its thread, peak 8.0 GB |
+| Position index, then | at once; the file is 3.8 GB |
+| Memory of the whole client | 0.55 GB |
+| Position at the start (every game) | 2.3 s |
+| Position after 1.e4 | 1.2 s |
+| Position after 5…a6 | 0.34 s |
+
+Next, by what is slowest now:
+
+1. A filter that keeps most of the games (the start, 1.e4) builds a set of
+   millions of ids and filters the list row by row: the index should give
+   the rows themselves, in order, and the list take them at once.
+2. The peak while the index is built (8 GB): every game's moves are read
+   before indexing starts, and the shares are merged in memory. Reading in
+   chunks as they are indexed, and merging into the file, would keep it low.
+3. Opening still reads every brief (3.5 s) and builds the tree (1.3 s)
+   before the window answers: both could be done on a thread.
+4. The moves stored once instead of twice (SAN and UCI): a smaller file,
+   faster to read.
 

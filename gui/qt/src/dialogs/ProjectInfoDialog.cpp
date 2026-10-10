@@ -132,6 +132,7 @@ ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const QString &f
     layout->addSpacing(4);
     layout->addWidget(line);
     layout->addLayout(flags);
+    layout->addSpacing(18); // Room under the flags before the window's buttons.
     layout->addStretch();
     layout->addLayout(bottom);
     setUnlocked(false);

@@ -244,6 +244,27 @@ void GtkDesktopStyle::drawPrimitive(PrimitiveElement element, const QStyleOption
         painter->restore();
         return;
     }
+    case PE_IndicatorCheckBox:
+    case PE_IndicatorRadioButton: {
+        // Fusion draws the box's edge in the window's colour made darker: on
+        // a dark theme, black on dark grey, hard to see. There it is drawn
+        // light instead, from a window colour given to Fusion for the edge
+        // alone (the box is filled with the base).
+        const QColor window = option->palette.window().color();
+        if (window.lightness() >= 128)
+            break;
+        QStyleOptionButton lighter;
+        if (const auto *button = qstyleoption_cast<const QStyleOptionButton *>(option))
+            lighter = *button;
+        else
+            lighter.QStyleOption::operator=(*option);
+        // Fusion's edge is this colour darker by 140%: a grey between the text's and the window's.
+        lighter.palette.setColor(QPalette::Active, QPalette::Window, QColor(0xc8, 0xc8, 0xc8));
+        lighter.palette.setColor(QPalette::Inactive, QPalette::Window, QColor(0xc8, 0xc8, 0xc8));
+        lighter.palette.setColor(QPalette::Disabled, QPalette::Window, QColor(0x9a, 0x9a, 0x9a));
+        QProxyStyle::drawPrimitive(element, &lighter, painter, widget);
+        return;
+    }
     default:
         break;
     }

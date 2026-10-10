@@ -141,6 +141,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- On a dark theme the boxes of checkboxes and radio buttons, in dialogs
+  and in menus (Engine ▸ Training Mode…), have a light edge: it was black on
+  dark grey, hard to see.
 - View ▸ Reset Panel Layout no longer leaves the move list's White column
   too wide, with Black's out of sight (it happened every other time).
 - On GNOME's Wayland the File menu, opened a second time, no longer has its

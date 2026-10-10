@@ -38,7 +38,7 @@ GENERATOR :=$(if $(shell command -v ninja),-G Ninja,)
 
 PREFIX ?= $(HOME)/.local
 
-.PHONY: help start fresh-start build run test install desktop-dev configure clean deps stockfish engine site
+.PHONY: help start fresh-start build run test install desktop-dev configure clean deps stockfish engine site test-windows-setup
 
 help: ## Show available targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-12s %s\n", $$1, $$2}'
@@ -51,6 +51,11 @@ start: configure engine desktop-dev ## Launch the GUI and rebuild/restart it on 
 # launch, to look at what the first run wrote).
 fresh-start: configure engine desktop-dev ## Like start, but every launch is a first launch (empty home)
 	@BUILD_DIR=$(BUILD_DIR) FRESH_HOME="$(abspath $(BUILD_DIR))/fresh-home" ./scripts/dev-watch.sh
+
+# The Windows installer as a Windows user meets it: built with Inno Setup
+# under Wine from packaging/windows, run in a fresh Wine prefix (needs wine).
+test-windows-setup: ## Build the Windows installer under Wine and run it, as a first install
+	@BUILD_DIR=$(BUILD_DIR) ./scripts/test-windows-setup.sh
 
 build: configure ## Build the GUI once
 	@$(CMAKE) --build $(BUILD_DIR)

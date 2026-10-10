@@ -79,9 +79,7 @@ bool GtkDesktopStyle::eventFilter(QObject *watched, QEvent *event)
             // menu) the shadow would reach past the screen's usable area, and
             // the compositor would push the whole menu right, out of line with
             // its title: there the left shadow is cut short instead, the menu's
-            // contents moving with it. The menu keeps its width: QMenu laid its
-            // items out for it, and a narrower window would leave them
-            // reaching past the panel, with the submenus opening as far right.
+            // contents moving with it.
             const QWidget *parent = menu->parentWidget();
             const QWidget *window = parent ? parent->window() : nullptr;
             const int cut = window ? qBound(0, window->mapToGlobal(QPoint(0, 0)).x() - corner.x(), kMenuShadow) : 0;
@@ -89,6 +87,20 @@ bool GtkDesktopStyle::eventFilter(QObject *watched, QEvent *event)
                 menu->setProperty(kShadowCutProperty, cut);
                 menu->setContentsMargins(-cut, 0, 0, 0);
                 corner.rx() += cut;
+            }
+            // The width is taken from where the items end, not from QMenu's
+            // size: opened again after a cut, QMenu sized it with the margins
+            // of the time before, and the panel came out narrower than its
+            // items — the highlight reaching past it and the submenus opening
+            // that much to the right.
+            int itemsRight = -1;
+            for (QAction *action : menu->actions()) {
+                if (action->isVisible())
+                    itemsRight = qMax(itemsRight, menu->actionGeometry(action).right());
+            }
+            if (itemsRight >= 0) {
+                const int padding = pixelMetric(PM_MenuPanelWidth, nullptr, menu) + pixelMetric(PM_MenuHMargin, nullptr, menu);
+                menu->resize(itemsRight + 1 + padding + cut, menu->height());
             }
             menu->move(corner);
         }

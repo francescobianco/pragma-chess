@@ -434,10 +434,12 @@ to open, and `PM_SubMenuOverlap` does the same for submenus. Against the
 left edge of a maximized window (the File menu) the left shadow is cut
 short (`pragmaMenuShadowCut`, a negative left contents margin): the shadow
 would reach past the usable area, and the compositor would push the menu
-right, out of line with its title. The menu keeps its width (QMenu laid
-its items out for it: a narrower window left the highlight reaching past
-the panel and the submenus opening that much to the right) and the panel
-moves by the cut on both sides, so it stays with the items. On X11 the
+right, out of line with its title. The panel moves by the cut on both
+sides, and the menu's width is set at every show from where its items end
+(`itemsRight` + panel width + the cut), not taken from QMenu: opened a
+second time, QMenu had sized it with the margins of the time before, one
+cut narrower than its items — the highlight reaching past the panel and the
+submenus opening that much to the right. On X11 the
 window manager shadows menus, and nothing changes. A widget put in a menu
 (`GlyphMenuAction`) needs nothing: it lives inside the frame.
 

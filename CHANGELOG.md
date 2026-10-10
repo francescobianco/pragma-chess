@@ -104,6 +104,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- On GNOME's Wayland the File menu, opened a second time, no longer has its
+  highlighted entry reaching past the menu, nor its submenus opening too far
+  right.
 - While playing online, the status under the clocks showed "â" in place
   of its dash.
 - The moves of a variation in the move list could not be clicked.

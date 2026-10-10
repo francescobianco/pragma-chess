@@ -8,8 +8,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- The logo has a rich version, with a P drawn by pawns on its squares,
-  shown in the welcome window; the application's icon keeps the plain
+- The logo has a rich version, with chess pieces on its squares, shown in
+  the welcome window; the application's icon keeps the plain
   board, which reads better when small.
 - **Endgame Training** and **Tactics Training** hide the Elo, Result, Date,
   Site and Moves columns, which a puzzle has nothing to put in; right-click

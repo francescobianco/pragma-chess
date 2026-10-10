@@ -34,11 +34,11 @@ the downloads.
 |---|---|---|
 | Web site | <https://yafb.net/pragma-chess/> — EN/IT, screenshots, download, supporters (generated from `site/`, see AGENTS.md) | ✅ live |
 | GitHub repository | Description, topics, homepage pointing at the site, releases with notes, README with the site and the claim | ✅ 2026-10-04 (homepage → site, README) |
-| GitHub social preview | The hero screenshot as the preview image (Settings ▸ Social preview; 1280×640, `site/assets/screenshots/hero.png` cropped) | ☐ needs the web UI |
+| GitHub social preview | `packaging/assets/social-preview.png` (1280×640: the hero screenshot with the logo, the name and the claim; `make-social-preview.py` draws it again): upload it in Settings ▸ Social preview | ✅ image 2026-10-10 · ☐ upload (web UI) |
 | GitHub Discussions | Turned on, with GitHub's categories (Announcements, General, Ideas, Polls, Q&A, Show and tell); linked from the site's Support section ("Questions and ideas") | ✅ on 2026-10-04 · ✅ site link 2026-10-10 |
 | GitHub issues | Every issue answered, with a thank-you; the first from a stranger: [#1](https://github.com/francescobianco/pragma-chess/issues/1) (2026-10-06, in Russian: qrcodegen from the system's packages) — done in the code and answered (in Russian and English), closed 2026-10-10 | ✅ #1 |
 | Releases | Each `vX.Y.Z` tag publishes installers and the CHANGELOG section as notes (CI) | ✅ since 0.2.0 |
-| lichess.org blog | "Vi presento Pragma Chess…" (IT) — write the English counterpart and a post per notable release | ✅ IT · ☐ EN |
+| lichess.org blog | "Vi presento Pragma Chess…" (IT); the English counterpart is written, `packaging/announcements/lichess-blog-en.md` (title, intro, text, the picture to use), to paste in a new post; then a post per notable release | ✅ IT · ✅ EN written 2026-10-10 · ☐ EN posted |
 | Screen recording | 40 s, recorded in the headless session: the Opera game move by move, E on 14.Rd1, Explain's arrows (`site/assets/pragma-chess-explain.webm`, the hero of the site). A longer tour with Training and Play Online is still to make | ✅ clip 2026-10-04 · ☐ tour |
 
 ## 2. Package channels
@@ -67,7 +67,7 @@ advert, and each needs a maintainer: us, until someone else steps in.
 | **Flathub / winget / Homebrew pages** | Come with section 2: they are the directories most people use | — |
 | **FossHub, Softpedia, Uptodown** | Submit the Windows installer; they mirror and list. Softpedia reviews are read by Windows users | ☐ |
 | **SourceForge mirror** | Optional: a project page mirroring the releases gives another download channel and listing | ☐ |
-| **Chess programming wiki** | A short page under "GUIs" (<https://www.chessprogramming.org/GUI>), factual, once there is a release history | ☐ |
+| **Chess programming wiki** | A short page under "GUIs" (<https://www.chessprogramming.org/GUI>), factual: written in the wiki's markup, `packaging/announcements/chessprogramming-wiki.md`; needs an account there | ✅ written 2026-10-10 · ☐ posted |
 | **Wikipedia "List of chess software"** | Only when notable (coverage by third parties); do not add it ourselves before | — |
 
 ## 4. Communities
@@ -241,3 +241,4 @@ books and lichess.org/freechess.org play; Windows, macOS, Linux.`
 | 2026-10-10 | Round of the plan | — | statuses checked: winget waits for a moderator, mbiesiad PR without review, mersesarvari repository gone; numbers in "What to measure" |
 | 2026-10-10 | Web site | https://yafb.net/pragma-chess/ | Support links Discussions; Play online names freechess.org |
 | 2026-10-10 | Issue #1 | https://github.com/francescobianco/pragma-chess/issues/1#issuecomment-6102469020 | qrcodegen from the system's packages: done, answered, closed |
+| 2026-10-10 | Social preview, lichess blog EN, chessprogramming.org | packaging/assets/social-preview.png, packaging/announcements/ | ready to upload and paste |

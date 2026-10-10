@@ -3101,7 +3101,17 @@ END FUNCTION
         QCOMPARE(commits(), history);
 
         // The state of each device lives in its folder, and never in the repository.
-        QVERIFY(QFile::exists(laptop.folder + QStringLiteral("/.pragma-chess.local")));
+        QVERIFY(QFile::exists(laptop.folder + QStringLiteral("/.pragma-chess.mine")));
+
+        // Under its former name (.pragma-chess.local) the state is renamed
+        // once, and kept: the deletion by hand below is still told apart.
+        laptop.sync.reset();
+        QVERIFY(QFile::rename(laptop.folder + QStringLiteral("/.pragma-chess.mine"),
+                              laptop.folder + QStringLiteral("/.pragma-chess.local")));
+        laptop.sync = std::make_unique<FolderSync>(laptop.folder, QString(), QStringLiteral("laptop"));
+        laptop.sync->setStore(laptop.store.get());
+        QVERIFY(QFile::exists(laptop.folder + QStringLiteral("/.pragma-chess.mine")));
+        QVERIFY(!QFile::exists(laptop.folder + QStringLiteral("/.pragma-chess.local")));
 
         // The database is deleted by hand: the sync notices and asks, and
         // until the user answers it neither comes back nor goes elsewhere.
@@ -3143,7 +3153,7 @@ END FUNCTION
         const QString listing = QString::fromUtf8(tree.readAll());
         QVERIFY2(!listing.contains(QLatin1String("Databases/Games.pdb")), qPrintable(listing));
         QVERIFY2(listing.contains(QLatin1String("Projects/Study.pch")), qPrintable(listing));
-        QVERIFY2(!listing.contains(QLatin1String(".pragma-chess.local")), qPrintable(listing));
+        QVERIFY2(!listing.contains(QLatin1String(".pragma-chess.mine")), qPrintable(listing));
 
         // Manage Files lists what the server holds, and deletes from there everywhere.
         QList<FolderSync::RemoteFile> files;

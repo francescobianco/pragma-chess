@@ -118,6 +118,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- The sync's record of each computer, hidden in its Pragma folder, is now
+  `.pragma-chess.mine` (it was `.pragma-chess.local`): renamed by itself,
+  nothing is synced again.
 - **Connect Mobile App** shows the app as the phone does, with its icon,
   and where to get it: the Android APK, and Google Play, F-Droid and the App
   Store marked as coming soon. The Android app's icon is the new logo.

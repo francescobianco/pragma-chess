@@ -1108,7 +1108,7 @@ the toolbar's first button (`m_syncNowAction`, Ctrl+Y).
   `QApplication::quit()`: a SIGTERM (`make start`) must not raise the "save
   before quitting?" dialog. Anything new in `closeEvent` has to honour it.
 - The base, a hash cache and the deletions and merges not published yet live
-  per device in the root of the local Pragma folder, `.pragma-chess.local`
+  per device in the root of the local Pragma folder, `.pragma-chess.mine`
   (`SyncManifest::localStateFileName`). It is never uploaded (hidden files
   are not synced — except `.pragma-chess.conf`, the personal settings,
   `PersonalSettings`, whose conflict the newer copy wins in `planSync`), but it sits with the files it describes: the base must

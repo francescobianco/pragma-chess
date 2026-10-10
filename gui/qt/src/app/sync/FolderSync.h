@@ -16,7 +16,7 @@ class RemoteStore;
 /// Each sync compares the local files, the remote `.pragma-chess.sync`
 /// manifest and what this device last synced, then uploads or downloads files
 /// (see planSync). What this device last synced is kept in the root of the
-/// local folder, `.pragma-chess.local`, which never leaves it: it describes
+/// local folder, `.pragma-chess.mine`, which never leaves it: it describes
 /// these files and travels with them, and it is what tells a file deleted by
 /// hand (asked about, deletedByHand) from one not received yet. The manifest
 /// is written last, only if the files on the server changed, and only if no

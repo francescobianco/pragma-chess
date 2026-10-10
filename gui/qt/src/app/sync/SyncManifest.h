@@ -75,7 +75,10 @@ struct SyncManifest {
     static constexpr char fileName[] = ".pragma-chess.sync";
     /// This device's own record of the folder (what it last synced, hashes),
     /// in the root of the local folder and never uploaded (see FolderSync).
-    static constexpr char localStateFileName[] = ".pragma-chess.local";
+    /// What is this device's own, never `.sync`: that is the server's manifest.
+    static constexpr char localStateFileName[] = ".pragma-chess.mine";
+    /// Its name up to version 0.3: renamed once, where it is found.
+    static constexpr char formerLocalStateFileName[] = ".pragma-chess.local";
     /// The user's personal settings (PersonalSettings): hidden like the
     /// state, but synced, the one hidden file that is. Changed on two
     /// devices, the newer wins: a copy beside it would never be read.

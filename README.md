@@ -156,7 +156,7 @@ Syncing reconciles, it deletes nothing on its own. Every computer ends up
 with the union of what all of them have: a file that appears anywhere is
 added everywhere, and two computers editing the same file keep both
 versions. A file deleted by hand from the Pragma folder is noticed (each
-computer keeps what it last synced in a hidden `.pragma-chess.local` there)
+computer keeps what it last synced in a hidden `.pragma-chess.mine` there)
 and you are asked whether to delete it everywhere or restore it; *Manage
 Files…* in the Sync Settings deletes files from the server and every
 computer, after a confirmation. Nothing else is ever removed.

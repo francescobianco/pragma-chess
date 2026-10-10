@@ -61,6 +61,9 @@ FolderSync::FolderSync(const QString &localRoot, const QString &legacyStatePath,
     , m_statePath(QDir(m_root).filePath(QLatin1String(SyncManifest::localStateFileName)))
     , m_device(deviceName)
 {
+    const QString former = QDir(m_root).filePath(QLatin1String(SyncManifest::formerLocalStateFileName));
+    if (!QFileInfo::exists(m_statePath) && QFileInfo::exists(former))
+        QFile::rename(former, m_statePath); // Its earlier name: the same state, renamed once.
     if (!QFileInfo::exists(m_statePath) && !legacyStatePath.isEmpty() && QFileInfo::exists(legacyStatePath)) {
         // Older versions kept the state in the app's data folder: it moves
         // next to the files it describes.

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/Project.h"
 #include "app/StandInNames.h"
 #include "app/GraphicsSettings.h"
 #include "app/Chapters.h"
@@ -28,7 +29,6 @@
 
 struct GameSource;
 struct PersonalSettings;
-struct Project;
 
 class BoardWidget;
 class GameFilterProxyModel;
@@ -541,6 +541,8 @@ private:
     /// The project's name (Project Information), empty for the file's.
     /// The project's name, in each language its texts are written in.
     LocalizedText m_projectName;
+    /// The project's description, author, contacts and edition (Project Information).
+    Project::Details m_projectDetails;
     /// The project's texts are in several languages: the one shown and
     /// written (m_chapters.language) is chosen in Project Information.
     bool m_multilingual = false;

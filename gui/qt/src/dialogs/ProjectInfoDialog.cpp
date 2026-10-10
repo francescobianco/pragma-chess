@@ -30,10 +30,16 @@ QWidget *withHelp(QWidget *field, const QString &help, QWidget *parent)
 
 } // namespace
 
-ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const QString &filePath, const QString &fileName,
-                                     bool multilingual, const QString &language, bool readOnly, QWidget *parent)
+ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const Project::Details &details, const QString &filePath,
+                                     const QString &fileName, bool multilingual, const QString &language, bool readOnly,
+                                     QWidget *parent)
     : QDialog(parent)
     , m_name(new QLineEdit(name.text(language), this))
+    , m_description(new QLineEdit(details.description.text(language), this))
+    , m_author(new QLineEdit(details.author, this))
+    , m_contacts(new QLineEdit(details.contacts, this))
+    , m_edition(new QLineEdit(details.edition, this))
+    , m_descriptions(details.description)
     , m_multilingual(new QCheckBox(tr("&Multilingual project"), this))
     , m_readOnly(new QCheckBox(tr("&Read-only"), this))
     , m_language(new QComboBox(this))
@@ -59,9 +65,9 @@ ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const QString &f
     file->setCursorPosition(0);
 
     // What the window is for, before the fields.
-    auto *intro = new QLabel(tr("Here you find what the project is: the file it is kept in, the name shown in the "
-                                "title bar and the language of its texts, then how it behaves. These are seldom "
-                                "changed: Edit unlocks them."),
+    auto *intro = new QLabel(tr("Here you find what the project is: the file it is kept in, its name, what it is "
+                                "about, who made it and which edition it is, the language of its texts, then how it "
+                                "behaves. These are seldom changed: Edit unlocks them."),
                              this);
     intro->setWordWrap(true);
 
@@ -76,6 +82,25 @@ ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const QString &f
                  withHelp(m_name,
                           tr("<p>Shown in the title bar in place of the file's name, followed by the chapter "
                              "when the project has chapters.</p><p>Empty, the file's name is shown.</p>"),
+                          this));
+    form->addRow(tr("&Description:"),
+                 withHelp(m_description,
+                          tr("<p>What the project is about, in a line: a study of the Italian Game, the games "
+                             "of a tournament, a course for beginners.</p>"
+                             "<p>In a multilingual project it is written in each language, like the name.</p>"),
+                          this));
+    form->addRow(tr("&Author:"),
+                 withHelp(m_author,
+                          tr("<p>Who made the project: a name, a club, a school.</p>"), this));
+    form->addRow(tr("&Contacts:"),
+                 withHelp(m_contacts,
+                          tr("<p>How to reach the author: an email address, a web site, a telephone "
+                             "number — whatever they wish to give.</p>"),
+                          this));
+    form->addRow(tr("Editio&n:"),
+                 withHelp(m_edition,
+                          tr("<p>Which edition of the project this is, written freely: “2nd edition”, "
+                             "“October 2026”, “v1.3”.</p>"),
                           this));
     form->addRow(tr("&Language of the texts:"),
                  withHelp(m_language,
@@ -136,8 +161,10 @@ ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const QString &f
 void ProjectInfoDialog::setUnlocked(bool unlocked)
 {
     m_unlocked = unlocked;
-    m_name->setReadOnly(!unlocked);
-    m_name->setClearButtonEnabled(unlocked);
+    for (QLineEdit *field : {m_name, m_description, m_author, m_contacts, m_edition}) {
+        field->setReadOnly(!unlocked);
+        field->setClearButtonEnabled(unlocked);
+    }
     m_multilingual->setEnabled(unlocked);
     m_language->setEnabled(unlocked); // A declaration, or the language worked in: always there.
     m_readOnly->setEnabled(unlocked);
@@ -158,6 +185,19 @@ LocalizedText ProjectInfoDialog::name() const
     return names;
 }
 
+Project::Details ProjectInfoDialog::details() const
+{
+    Project::Details details;
+    details.description = m_descriptions;
+    // As for the name: shown as it was, from this language or another one, nothing written.
+    if (m_description->text().trimmed() != details.description.text(m_shown))
+        details.description.set(m_shown, m_description->text().trimmed());
+    details.author = m_author->text().trimmed();
+    details.contacts = m_contacts->text().trimmed();
+    details.edition = m_edition->text().trimmed();
+    return details;
+}
+
 bool ProjectInfoDialog::isReadOnly() const
 {
     return m_readOnly->isChecked();
@@ -176,6 +216,7 @@ QString ProjectInfoDialog::language() const
 void ProjectInfoDialog::showLanguage()
 {
     m_names = name();
+    m_descriptions = details().description;
     if (!m_multilingual->isChecked()) {
         // A declaration: the name stays as it is, now said to be in that language.
         m_shown = language();
@@ -183,4 +224,5 @@ void ProjectInfoDialog::showLanguage()
     }
     m_shown = language();
     m_name->setText(m_names.text(m_shown));
+    m_description->setText(m_descriptions.text(m_shown));
 }

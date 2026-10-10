@@ -122,6 +122,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   Information: its texts are written in it whatever the interface's, and
   declaring another relabels them; a multilingual project chooses there the
   language worked in. A new project takes the interface's language.
+- Project Information has a **Description**, an **Author**, **Contacts**
+  and an **Edition**, a line each, kept in the project file.
 - File ▸ Project Settings… is now **Project Information…**: it opens
   locked, and **Edit**, with its padlock, unlocks the fields; what each one
   means is in a balloon behind its **?**.

@@ -239,7 +239,7 @@ You do not have to save: Pragma Chess reopens as you closed it.
 
 Panels can be resized and closed; the **View** menu (Moves, Opening Tree, Engine, Games List) shows them again, and **View ▸ Reset Panel Layout** puts them back where they start.
 
-**File ▸ Project Information…** shows the project's file, its name, its languages and whether it is read-only. Changing them is the exception, not the rule: the fields open locked, and the **Edit** button, with its padlock, unlocks them; the file's name is not changed there (**Save Project As…** does that). The **?** at the end of each field says what it is for.
+**File ▸ Project Information…** shows the project's file, its name, a description, the author, contacts and edition (a line each, kept in the project), its languages and whether it is read-only. Changing them is the exception, not the rule: the fields open locked, and the **Edit** button, with its padlock, unlocks them; the file's name is not changed there (**Save Project As…** does that). The **?** at the end of each field says what it is for.
 
 **Read-only**, in **File ▸ Project Information…**, keeps a project from changes made without thinking: its chapters, titles, paragraphs, comments and variations cannot be changed, and it is not saved — the board can still be explored, and the title bar says *(Read-Only)*. Untick it to change the project. The projects that come with Pragma Chess are read-only.
 

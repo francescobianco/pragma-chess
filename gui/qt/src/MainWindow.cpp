@@ -4046,37 +4046,31 @@ QString MainWindow::contentLanguage()
 void MainWindow::editProjectInformation()
 {
     const QString fileName = m_projectPath.isEmpty() ? tr("Untitled") : QFileInfo(m_projectPath).completeBaseName();
-    ProjectInfoDialog dialog(m_projectName, m_projectPath.isEmpty() ? QString() : QFileInfo(m_projectPath).absoluteFilePath(),
-                             fileName, m_multilingual, m_chapters.language, m_projectReadOnly, this);
+    ProjectInfoDialog dialog(m_projectName, m_projectDetails,
+                             m_projectPath.isEmpty() ? QString() : QFileInfo(m_projectPath).absoluteFilePath(), fileName,
+                             m_multilingual, m_chapters.language, m_projectReadOnly, this);
     if (dialog.exec() != QDialog::Accepted)
         return;
-    if (dialog.isReadOnly() != m_projectReadOnly) {
-        const bool locking = dialog.isReadOnly();
-        m_projectReadOnly = locking;
-        m_moveView->setEditingLocked(locking);
-        // Made read-only: the project is saved as it is now, with the flag,
-        // and from then on not any more.
-        if (locking && !m_projectPath.isEmpty())
-            writeProject();
-        updateWindowTitle();
-        updateProjectModified();
-    }
     const QString chosen = dialog.language();
-    const bool changed = dialog.name() != m_projectName || dialog.isMultilingual() != m_multilingual
-        || chosen != m_projectLanguage;
+    const bool changed = dialog.name() != m_projectName || dialog.details() != m_projectDetails
+        || dialog.isMultilingual() != m_multilingual || chosen != m_projectLanguage;
     const bool relanguaged = chosen != m_chapters.language;
     LocalizedText name = dialog.name();
+    Project::Details details = dialog.details();
     if (!m_multilingual && !dialog.isMultilingual() && relanguaged) {
         // In one language, the language declared another: the same texts,
-        // relabelled, not translated.
-        // The name written anew in the dialog is the new language's already.
-        if (name.has(chosen))
-            name.set(m_chapters.language, QString());
-        else
-            name.relabel(m_chapters.language, chosen);
+        // relabelled, not translated. One written anew in the dialog is the
+        // new language's already.
+        for (LocalizedText *text : {&name, &details.description}) {
+            if (text->has(chosen))
+                text->set(m_chapters.language, QString());
+            else
+                text->relabel(m_chapters.language, chosen);
+        }
         m_chapters.relabel(m_chapters.language, chosen);
     }
     m_projectName = name;
+    m_projectDetails = details;
     m_multilingual = dialog.isMultilingual();
     // In one language the choice is a declaration; multilingual, the language worked in.
     if (!m_multilingual)
@@ -4084,6 +4078,16 @@ void MainWindow::editProjectInformation()
     m_chapters.language = chosen;
     if (relanguaged) {
         m_moveView->refresh();
+    }
+    // After the rest: made read-only, the project is saved as it is now, with
+    // the flag and what was changed with it, and from then on not any more.
+    if (dialog.isReadOnly() != m_projectReadOnly) {
+        const bool locking = dialog.isReadOnly();
+        m_projectReadOnly = locking;
+        m_moveView->setEditingLocked(locking);
+        if (locking && !m_projectPath.isEmpty())
+            writeProject();
+        updateProjectModified();
     }
     updateWindowTitle();
     if (!changed)
@@ -5700,6 +5704,7 @@ Project MainWindow::captureProject()
 {
     Project project;
     project.name = m_projectName;
+    project.details = m_projectDetails;
     project.multilingual = m_multilingual;
     project.language = m_projectLanguage;
     project.readOnly = m_projectReadOnly;
@@ -5774,6 +5779,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         openInitialDatabase(databasePath);
 
     m_projectName = project.name;
+    m_projectDetails = project.details;
     m_multilingual = project.multilingual;
     m_projectReadOnly = project.readOnly;
     // Declared, or (a project made before) the language most of its texts are in.
@@ -5896,6 +5902,7 @@ void MainWindow::newProject()
     Project project = captureProject();
     project.chapters.clear(); // No chapter, an empty game.
     project.name = LocalizedText();
+    project.details = {};
     project.multilingual = false;
     project.language = contentLanguage(); // A new project is in the interface's language.
     project.gameId = -1;

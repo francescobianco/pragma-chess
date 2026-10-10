@@ -4790,6 +4790,16 @@ END FUNCTION
         QVERIFY2(read, qPrintable(error));
         QCOMPARE(read->language, QStringLiteral("it"));
         QVERIFY(Project::fromYaml(Project().toYaml(), QDir(), &error)->language.isEmpty());
+
+        // Its description (by language), author, contacts and edition, one line each.
+        project.details.description = LocalizedText(QStringLiteral("it"), QStringLiteral("Uno studio della partita italiana"));
+        project.details.author = QStringLiteral("Circolo del Re");
+        project.details.contacts = QStringLiteral("info@example.org");
+        project.details.edition = QStringLiteral("2nd edition");
+        const QString yaml = project.toYaml();
+        QVERIFY(yaml.contains(QLatin1String("edition: 2nd edition")));
+        QCOMPARE(Project::fromYaml(yaml, QDir(), &error)->details, project.details);
+        QVERIFY(!Project().toYaml().contains(QLatin1String("author"))); // Written only when given.
     }
 
     void localizesProjectTexts()

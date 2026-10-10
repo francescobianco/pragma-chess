@@ -239,7 +239,7 @@ Non sei obbligato a salvare: Pragma Chess si riapre come l'hai chiuso.
 
 I pannelli si possono ridimensionare e chiudere; il menu **Visualizza** (Mosse, Albero delle aperture, Motore, Lista partite) li mostra di nuovo, e **Visualizza ▸ Ripristina disposizione dei pannelli** li rimette dove stanno all'inizio.
 
-**File ▸ Informazioni progetto…** mostra il file del progetto, il suo nome, le lingue e se è in sola lettura. Cambiarli è l'eccezione, non la regola: i campi si aprono bloccati, e il pulsante **Modifica**, col lucchetto, li sblocca; il nome del file non si cambia lì (lo fa **Salva progetto come…**). Il **?** in fondo a ogni campo spiega a cosa serve.
+**File ▸ Informazioni progetto…** mostra il file del progetto, il suo nome, una descrizione, l'autore, i contatti e l'edizione (una riga ciascuno, salvati nel progetto), le lingue e se è in sola lettura. Cambiarli è l'eccezione, non la regola: i campi si aprono bloccati, e il pulsante **Modifica**, col lucchetto, li sblocca; il nome del file non si cambia lì (lo fa **Salva progetto come…**). Il **?** in fondo a ogni campo spiega a cosa serve.
 
 **Sola lettura**, in **File ▸ Informazioni progetto…**, protegge un progetto da modifiche fatte senza pensarci: i suoi capitoli, titoli, paragrafi, commenti e varianti non si possono cambiare, e non viene salvato — la scacchiera si può comunque esplorare, e la barra del titolo dice *(sola lettura)*. Togli la spunta per modificare il progetto. I progetti che arrivano con Pragma Chess sono in sola lettura.
 

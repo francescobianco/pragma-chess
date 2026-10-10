@@ -11,6 +11,8 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <utility>
+
 namespace {
 
 std::string toStd(const QString &value)
@@ -221,6 +223,12 @@ QString Project::toYaml(const QDir &baseDir) const
     out << YAML::BeginMap;
     out << YAML::Key << "pragma-chess" << YAML::Value << formatVersion;
     writeLocalized(out, "name", name);
+    writeLocalized(out, "description", details.description);
+    for (const auto &[key, value] : {std::pair{"author", details.author}, std::pair{"contacts", details.contacts},
+                                     std::pair{"edition", details.edition}}) {
+        if (!value.trimmed().isEmpty())
+            out << YAML::Key << key << YAML::Value << toStd(value.trimmed());
+    }
     if (multilingual)
         out << YAML::Key << "multilingual" << YAML::Value << true;
     if (!language.isEmpty())
@@ -350,6 +358,10 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
 
     Project env;
     env.name = readLocalized(root["name"], legacyLanguage);
+    env.details.description = readLocalized(root["description"], legacyLanguage);
+    env.details.author = fromNode(root["author"]);
+    env.details.contacts = fromNode(root["contacts"]);
+    env.details.edition = fromNode(root["edition"]);
     env.multilingual = valueOf<bool>(root["multilingual"], false);
     env.language = fromNode(root["language"]);
     env.readOnly = valueOf<bool>(root["read-only"], false);

@@ -907,7 +907,10 @@ a chapter always has a game. In other tools this is a study or a chess book.
   open locked, Edit with its padlock (`pragma-locked`/`pragma-unlocked`)
   unlocks them and brings OK and Cancel, Close otherwise; what each field
   means is behind its "?", `widgets/HelpButton`: a balloon whose tip comes
-  out of the button, paragraphs at a width that reads; the file's absolute path, read-only; the project's `name`, shown in the
+  out of the button, paragraphs at a width that reads; the file's absolute path, read-only;
+  the description (by language, like the name), author, contacts and
+  edition, one line each, `Project::Details`, `description:`/`author:`/
+  `contacts:`/`edition:` in the `.pch`; the project's `name`, shown in the
   title bar in place of the file's, then the chapter open as soon as the
   project has chapters, and no more when it is back without:
   "Name* - Chapter - Pragma Chess").

@@ -26,6 +26,19 @@ struct Project {
     /// bar in place of the file's; empty for the file's. Like the chapters'
     /// titles and the paragraphs, in each language the project is written in.
     LocalizedText name;
+    /// What the project is about, who made it, how to reach them and which
+    /// edition it is (File ▸ Project Information…), one line each. The
+    /// description is a text of the project, in each language like its name;
+    /// the others are the same in all. Written `description:` (by language),
+    /// `author:`, `contacts:`, `edition:`, only when given.
+    struct Details {
+        LocalizedText description;
+        QString author;
+        QString contacts;
+        QString edition;
+        bool operator==(const Details &) const = default;
+    };
+    Details details;
     /// Its texts are written in several languages, one chosen at a time in
     /// Project Information; otherwise they are shown and written in the
     /// interface's. Written `multilingual: true`, only when on.

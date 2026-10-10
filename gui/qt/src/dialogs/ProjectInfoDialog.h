@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/LocalizedText.h"
+#include "app/Project.h"
 
 #include <QDialog>
 
@@ -28,11 +29,14 @@ public:
     /// saved), shown read-only; `fileName` is what the title bar shows without
     /// a name; `language` the language the texts are written in now — in a
     /// project in one language, the one it declares.
-    ProjectInfoDialog(const LocalizedText &name, const QString &filePath, const QString &fileName, bool multilingual,
-                      const QString &language, bool readOnly, QWidget *parent = nullptr);
+    ProjectInfoDialog(const LocalizedText &name, const Project::Details &details, const QString &filePath,
+                      const QString &fileName, bool multilingual, const QString &language, bool readOnly,
+                      QWidget *parent = nullptr);
 
     /// The name, with what was written in each language.
     LocalizedText name() const;
+    /// The description (with what was written in each language), author, contacts, edition.
+    Project::Details details() const;
     bool isMultilingual() const;
     /// The project is protected from changes made without thinking.
     bool isReadOnly() const;
@@ -47,6 +51,12 @@ private:
     void setUnlocked(bool unlocked);
 
     QLineEdit *m_name;
+    QLineEdit *m_description;
+    QLineEdit *m_author;
+    QLineEdit *m_contacts;
+    QLineEdit *m_edition;
+    /// The description as it was, in each language.
+    LocalizedText m_descriptions;
     QCheckBox *m_multilingual;
     QCheckBox *m_readOnly;
     QComboBox *m_language;

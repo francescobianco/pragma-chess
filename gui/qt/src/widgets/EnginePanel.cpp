@@ -49,9 +49,11 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     auto *toggle = new SectionButton;
     toggle->setDefaultAction(analysisAction);
     toggle->setTexts({tr("Analyze"), tr("Stop")});
+    // The eye beside it as tall, and square.
+    m_peek->setFixedSize(toggle->height(), toggle->height());
     // Held down, the board shows where the best line ends.
     m_peek->setIcon(SymbolicIcons::icon(QStringLiteral("pragma-eye")));
-    m_peek->setAutoRaise(true);
+    m_peek->setAutoRaise(false); // Framed, as the button beside it.
     m_peek->setToolTip(tr("Hold: where the line ends"));
     m_peek->setEnabled(false);
     // The physical press and release, not the button's own down state, which

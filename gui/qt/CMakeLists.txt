@@ -427,6 +427,8 @@ qt_add_executable(pragma-chess
     src/platform/WindowChrome.h
     src/platform/Appearance.cpp
     src/platform/Appearance.h
+    src/platform/FolderIcon.cpp
+    src/platform/FolderIcon.h
     src/platform/MoveSound.cpp
     src/platform/MoveSound.h
     src/platform/DialogFrame.cpp
@@ -562,9 +564,9 @@ qt_add_resources(pragma-chess appicon PREFIX /icons BASE data/icons FILES ${APP_
 qt_add_resources(pragma-chess sounds PREFIX / FILES resources/sounds/move.wav)
 if(WIN32)
     target_sources(pragma-chess PRIVATE data/pragma-chess.rc)
-    target_link_libraries(pragma-chess PRIVATE winmm)
+    target_link_libraries(pragma-chess PRIVATE winmm shell32)
 elseif(APPLE)
-    target_link_libraries(pragma-chess PRIVATE "-framework AudioToolbox" "-framework CoreFoundation")
+    target_link_libraries(pragma-chess PRIVATE "-framework AudioToolbox" "-framework CoreFoundation" objc)
     set(APP_ICNS data/icons/pragma-chess.icns)
     set_source_files_properties(${APP_ICNS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     target_sources(pragma-chess PRIVATE ${APP_ICNS})

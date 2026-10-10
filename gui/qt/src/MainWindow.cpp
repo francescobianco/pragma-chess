@@ -67,6 +67,7 @@
 #include "models/GameFilterProxyModel.h"
 #include "models/GameListModel.h"
 #include "platform/Appearance.h"
+#include "platform/FolderIcon.h"
 #include "platform/MoveSound.h"
 #include "platform/SymbolicIcons.h"
 #include "platform/WindowChrome.h"
@@ -477,6 +478,8 @@ MainWindow::MainWindow(QWidget *parent)
     restoreOpeningNames(); // After the session, so the first launch still seeds Classic Games first.
     applySyncSettings();
     createPhoneLink();
+    // The chess folder wears a king, as Videos wears a film: once the window is up.
+    QTimer::singleShot(3000, this, [] { FolderIcon::applyToChessFolder(); });
 
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::scheduleSaveSession);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::scheduleSaveSession);

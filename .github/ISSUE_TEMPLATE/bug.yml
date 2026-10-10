@@ -1,0 +1,46 @@
+name: Something is broken
+description: Pragma Chess does something wrong, or does not start.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time. Please look first whether an
+        [issue](https://github.com/francescobianco/pragma-chess/issues?q=is%3Aissue)
+        already tells it. Write in English or Italian — or your language, we will manage.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead. A screenshot helps.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to make it happen
+      placeholder: |
+        1. Open …
+        2. Click …
+        3. …
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Help ▸ About Pragma Chess
+      placeholder: "0.3.0"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: System
+      placeholder: "Windows 11, macOS 15, Ubuntu 24.04 (GNOME, Wayland), Android 14…"
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Messages
+      description: If it crashed, or printed something in a terminal, paste it here.
+      render: shell

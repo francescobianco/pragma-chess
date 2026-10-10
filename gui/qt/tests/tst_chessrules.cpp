@@ -1765,8 +1765,13 @@ QString writeChessBaseFixture(const QString &dir)
         };
         const HelpGuide english = shipped("en");
         QVERIFY(english.topics().size() >= 10);
-        for (const char *code : {"it"}) {
-            const HelpGuide translated = shipped(code);
+        const QStringList guides = QDir(QStringLiteral(PRAGMA_HELP_DIR)).entryList({QStringLiteral("guide_*.md")});
+        QVERIFY(guides.contains(QStringLiteral("guide_it.md")));
+        for (const QString &guideFile : guides) {
+            const QByteArray code = guideFile.mid(6).chopped(3).toLatin1();
+            if (code == "en")
+                continue;
+            const HelpGuide translated = shipped(code.constData());
             QCOMPARE(translated.topics().size(), english.topics().size());
             for (int index = 0; index < english.topics().size(); ++index) {
                 QCOMPARE(translated.topics().at(index).id, english.topics().at(index).id);

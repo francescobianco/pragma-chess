@@ -7,7 +7,8 @@ simple, with what really matters. For Windows, macOS and Linux.
 screenshots, downloads and [the guide](https://yafb.net/pragma-chess/en/guide/)) ·
 **[Discussions](https://github.com/francescobianco/pragma-chess/discussions)**
 for questions and ideas · **[Issues](https://github.com/francescobianco/pragma-chess/issues)**
-for problems. See [DESIGN.md](DESIGN.md) for the vision and
+for problems. **[Contributing](CONTRIBUTING.md)**: report a wrong
+explanation, translate, write code. See [DESIGN.md](DESIGN.md) for the vision and
 architecture, [CHANGELOG.md](CHANGELOG.md) for what changed, and
 [DISTRIBUTING.md](DISTRIBUTING.md) for how we make it known.
 
@@ -141,7 +142,9 @@ collection; `pragma-book` builds and probes books on the command line.
 ### Language
 
 *Options ▸ Switch Language* chooses the language of the interface for your user
-account; it applies the next time Pragma Chess starts.
+account; it applies the next time Pragma Chess starts. English and Italian
+today: [your language is welcome](CONTRIBUTING.md#translating), and it takes
+no code.
 
 ### Sync between computers
 

@@ -1,0 +1,36 @@
+name: Explain is wrong
+description: Explain (key E) drew or said something wrong about a move.
+labels: ["explain"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every wrong explanation becomes a test, so it is never wrong again.
+        What we need is the position and the move: see
+        [CONTRIBUTING.md](https://github.com/francescobianco/pragma-chess/blob/main/CONTRIBUTING.md#reporting-a-wrong-explanation).
+  - type: textarea
+    id: moves
+    attributes:
+      label: The game, and the move explained
+      description: Edit ▸ Copy ▸ Game as PGN, or a FEN. Say which move you pressed E on.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: shown
+    attributes:
+      label: What Explain showed, and what you expected
+      description: A screenshot of the board is perfect.
+    validations:
+      required: true
+  - type: textarea
+    id: ticks
+    attributes:
+      label: Explain's ticks (optional)
+      description: Right after, Engine ▸ Copy Explain's Ticks, and paste here — we can then replay exactly what you saw.
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: "0.3.0"

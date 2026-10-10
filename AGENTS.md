@@ -33,6 +33,7 @@ Command line tools                  gui/qt/tools: pragma-explain, pragma-book
 ```text
 CMakeLists.txt         top-level CMake, only adds gui/qt
 CHANGELOG.md           what changed in each version, for users (Keep a Changelog)
+CONTRIBUTING.md        how to help: wrong explanations, translations, code
 DISTRIBUTING.md        how Pragma Chess is made known: channels, messages, log
 POSITIONING.md         where Pragma Chess stands among free chess programs (Italian)
 TODO.md                handoff: what is left to do, open decisions, formats decoded
@@ -677,7 +678,12 @@ Compiler warnings are on (`-Wall -Wextra -Wpedantic`); don't introduce new ones.
 - User-visible strings go through `tr()`. Code, comments and identifiers in English.
   The interface language is chosen in Options ▸ Switch Language (`UiLanguage`, a
   per-user setting applied at startup); translations are
-  `translations/pragma-chess_<code>.ts`, compiled when Qt6 LinguistTools is found.
+  `translations/pragma-chess_<code>.ts`, compiled when Qt6 LinguistTools is found;
+  the menu lists every language built in (`UiLanguage::available`, from
+  `:/i18n`, named by `QLocale::nativeLanguageName`) and the guides are
+  globbed, so a new language needs its files only (CONTRIBUTING.md,
+  "Translating"; `LocalizedText::languages` and the site's `LANGUAGES` are
+  still by hand).
   After changing texts, refresh them from `gui/qt` with
   `/usr/lib/qt6/bin/lupdate -locations none -no-obsolete src tools -ts translations/pragma-chess_it.ts`
   and translate the new `type="unfinished"` entries. Both tools come with

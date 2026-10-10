@@ -644,8 +644,10 @@ qt_add_resources(pragma-chess training PREFIX /training BASE resources/training
 file(GLOB DISTRIBUTED_PROJECTS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/projects/*.pch)
 qt_add_resources(pragma-chess projects PREFIX /projects BASE resources/projects
     FILES ${DISTRIBUTED_PROJECTS} resources/projects/former-versions.txt)
+# The guide, one file per language: a language without one shows the English.
+file(GLOB PRAGMA_GUIDES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DEPENDS resources/help/guide_*.md)
 qt_add_resources(pragma-chess help PREFIX /help BASE resources/help
-    FILES resources/help/guide_en.md resources/help/guide_it.md)
+    FILES ${PRAGMA_GUIDES})
 # Logos of the clubs that support Pragma Chess, shown in About.
 qt_add_resources(pragma-chess credits PREFIX /credits BASE resources/credits
     FILES resources/credits/circolo-del-re.png)

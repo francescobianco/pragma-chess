@@ -1,10 +1,13 @@
 #include "UiLanguage.h"
 
 #include <QCoreApplication>
+#include <QDir>
 #include <QLibraryInfo>
 #include <QLocale>
 #include <QSettings>
 #include <QTranslator>
+
+#include <algorithm>
 
 namespace {
 
@@ -16,11 +19,25 @@ namespace UiLanguage {
 
 QList<Language> available()
 {
-    return {
-        {QString(), QCoreApplication::translate("UiLanguage", "System Language")},
-        {QStringLiteral("en"), QStringLiteral("English")},
-        {QStringLiteral("it"), QStringLiteral("Italiano")},
-    };
+    // English, and every language a translation was built into the
+    // application for (translations/pragma-chess_<code>.ts): a new language
+    // needs its file only.
+    QList<Language> languages{{QStringLiteral("en"), QStringLiteral("English")}};
+    const QStringList files = QDir(QStringLiteral(":/i18n"))
+                                  .entryList({QStringLiteral("pragma-chess_*.qm")}, QDir::Files);
+    for (const QString &file : files) {
+        const QString code = file.mid(13).chopped(3);
+        QString name = QLocale(code).nativeLanguageName();
+        if (name.isEmpty())
+            name = code;
+        name[0] = name.at(0).toUpper();
+        languages.append({code, name});
+    }
+    std::sort(languages.begin(), languages.end(), [](const Language &a, const Language &b) {
+        return QString::localeAwareCompare(a.name, b.name) < 0;
+    });
+    languages.prepend({QString(), QCoreApplication::translate("UiLanguage", "System Language")});
+    return languages;
 }
 
 QString chosen()

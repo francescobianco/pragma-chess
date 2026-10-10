@@ -104,4 +104,6 @@ private:
     void stopPeeking();
 
     void refreshLine();
+    /// The line wrapped when the room left holds it, else on one line with "…".
+    void fitLine();
 };

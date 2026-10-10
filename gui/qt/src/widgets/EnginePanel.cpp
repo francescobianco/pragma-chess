@@ -153,9 +153,12 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     layout->addWidget(m_explanation);
 
     m_line->setFont(FigurineFont::apply(m_line->font())); // The figurines of the move list.
-    m_line->setWordWrap(true);
     m_line->setTextInteractionFlags(Qt::TextSelectableByMouse);
     m_line->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    // The line takes the room left and never asks for more: a long line
+    // would push the tutor's buttons out of the panel (fitLine).
+    m_line->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    m_line->installEventFilter(this);
     layout->addWidget(m_line, 1);
 
     // Lobby Mode, at the bottom of the panel over the opening and the book:
@@ -286,6 +289,8 @@ void EnginePanel::setLineHidden(bool hidden)
 
 bool EnginePanel::eventFilter(QObject *watched, QEvent *event)
 {
+    if (watched == m_line && event->type() == QEvent::Resize)
+        fitLine();
     if (watched == m_peek && m_peek->isEnabled()) {
         // Only a mouse event is read as one.
         const bool mouseEvent = event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonRelease
@@ -320,9 +325,23 @@ void EnginePanel::stopPeeking()
     Q_EMIT peekHeld(false);
 }
 
+void EnginePanel::fitLine()
+{
+    const QString text = m_lineHidden ? tr("The best line is hidden: it is your move.") : m_lineText;
+    // On as many lines as the room left holds; when it holds fewer, on one
+    // line ending in "…", the whole of it in the tooltip.
+    const QFontMetrics metrics = m_line->fontMetrics();
+    const int width = qMax(1, m_line->width());
+    const int needed = metrics.boundingRect(QRect(0, 0, width, 1 << 20), Qt::TextWordWrap, text).height();
+    const bool fits = needed <= m_line->height();
+    m_line->setWordWrap(fits);
+    m_line->setText(fits ? text : metrics.elidedText(text, Qt::ElideRight, width));
+    m_line->setToolTip(fits ? QString() : text);
+}
+
 void EnginePanel::refreshLine()
 {
-    m_line->setText(m_lineHidden ? tr("The best line is hidden: it is your move.") : m_lineText);
+    fitLine();
     m_line->setEnabled(!m_lineHidden);
     // The end of a line the user may not see is not shown either.
     const bool peekable = m_hasLine && !m_lineHidden;

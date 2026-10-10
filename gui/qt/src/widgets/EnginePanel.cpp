@@ -67,6 +67,7 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
 
     // The score and the game's course, in one box.
     connect(m_score, &EvaluationBox::plyClicked, this, &EnginePanel::coursePlyClicked);
+    connect(m_score, &EvaluationBox::viewChanged, this, &EnginePanel::scoreViewChanged);
     layout->addWidget(m_score);
 
     m_clocks = new ChessClocks(this);
@@ -261,13 +262,13 @@ void EnginePanel::setExplanation(const QString &text)
 void EnginePanel::setEvaluation(const std::optional<EngineEvaluation> &evaluation, const QString &line)
 {
     if (!evaluation) {
-        m_score->setScore(QStringLiteral("–"), QString());
+        m_score->setEvaluation(std::nullopt);
         m_hasLine = false;
         refreshLine();
         return;
     }
     m_hasLine = !evaluation->pv.isEmpty();
-    m_score->setScore(evaluation->text(), tr("Depth %1").arg(evaluation->depth));
+    m_score->setEvaluation(evaluation);
     m_lineText = line.isEmpty() ? evaluation->pv.join(QLatin1Char(' ')) : line;
     refreshLine();
 }

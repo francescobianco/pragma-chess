@@ -349,8 +349,9 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   from inside (`QWidget::grab`: no compositor permission needed — GNOME
   refuses screenshots to other programs).
 - `POST /api/clocks {"white": ms, "black": ms, "running": "white"|"black",
-  "draw": "mine"|"theirs"}` shows the online clocks and the buttons under
-  them without a game (`{"hide": true}` hides them) and
+  "draw": "mine"|"theirs", "scoreView": "absolute"|"for-bottom"|"chances"|"judgement"}`
+  shows the online clocks and the buttons under them (and the score so)
+  without a game (`{"hide": true}` hides them) and
   answers with the Engine panel's picture.
 - `POST /api/convert {"pgn", "pdb"}` starts Tools ▸ Convert ▸ PGN to
   Pragma Database (the window opens) and `GET /api/convert` says how far

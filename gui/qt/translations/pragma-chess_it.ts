@@ -855,10 +855,6 @@ Il Nero ha catturato: %2</translation>
         <translation>Libro</translation>
     </message>
     <message>
-        <source>Depth %1</source>
-        <translation>Profondità %1</translation>
-    </message>
-    <message>
         <source>The best line is hidden: it is your move.</source>
         <translation>La linea migliore è nascosta: tocca a te muovere.</translation>
     </message>
@@ -963,6 +959,10 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>Depth %1</source>
         <translation>Profondità %1</translation>
+    </message>
+    <message>
+        <source>Click to show the score another way.</source>
+        <translation>Clic per mostrare il punteggio in un altro modo.</translation>
     </message>
 </context>
 <context>
@@ -5206,6 +5206,33 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>%1&apos;s Brilliancy</source>
         <translation>La mossa brillante di %1</translation>
+    </message>
+</context>
+<context>
+    <name>ScoreView</name>
+    <message>
+        <source>Absolute</source>
+        <translation>Assoluto</translation>
+    </message>
+    <message>
+        <source>For White</source>
+        <translation>Per il Bianco</translation>
+    </message>
+    <message>
+        <source>For Black</source>
+        <translation>Per il Nero</translation>
+    </message>
+    <message>
+        <source>White&apos;s chances</source>
+        <translation>Probabilità del Bianco</translation>
+    </message>
+    <message>
+        <source>Black&apos;s chances</source>
+        <translation>Probabilità del Nero</translation>
+    </message>
+    <message>
+        <source>Judgement</source>
+        <translation>Giudizio</translation>
     </message>
 </context>
 <context>

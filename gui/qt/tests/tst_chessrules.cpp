@@ -55,6 +55,7 @@
 #include "app/smart/SmartScript.h"
 #include "app/sources/PgnFile.h"
 #include "app/convert/PgnConversion.h"
+#include "app/ScoreView.h"
 #include "app/convert/PgnSplitter.h"
 #include "app/sources/PgnFileFetch.h"
 #include "app/sources/PgnFilePlan.h"
@@ -4229,6 +4230,57 @@ END FUNCTION
         QCOMPARE(next.value("b").hash, QStringLiteral("b2"));
         QVERIFY(next.contains("g") && next.value("g").hash.isEmpty());
         QCOMPARE(baseFromJson(baseToJson(next)).value("d").hash, next.value("d").hash);
+    }
+
+    void showsTheScoreInSeveralWays()
+    {
+        using ScoreView::Kind;
+        EngineEvaluation white;
+        white.centipawns = 150;
+        QCOMPARE(ScoreView::text(white, Kind::Absolute, Side::Black), QStringLiteral("+1.5"));
+        QCOMPARE(ScoreView::text(white, Kind::ForBottom, Side::White), QStringLiteral("+1.5"));
+        QCOMPARE(ScoreView::text(white, Kind::ForBottom, Side::Black), QStringLiteral("−1.5"));
+        QCOMPARE(ScoreView::text(white, Kind::Judgement, Side::Black), QStringLiteral("±"));
+        const int chances = ScoreView::text(white, Kind::Chances, Side::White).chopped(1).toInt();
+        QVERIFY(chances > 50 && chances < 100);
+        QCOMPARE(ScoreView::text(white, Kind::Chances, Side::Black), QStringLiteral("%1%").arg(100 - chances));
+        EngineEvaluation level;
+        level.centipawns = -20;
+        QCOMPARE(ScoreView::judgement(level), QStringLiteral("="));
+        level.centipawns = -60;
+        QCOMPARE(ScoreView::judgement(level), QStringLiteral("⩱"));
+        level.centipawns = -500;
+        QCOMPARE(ScoreView::judgement(level), QStringLiteral("−+"));
+        EngineEvaluation mate;
+        mate.isMate = true;
+        mate.mateIn = 3;
+        mate.mating = Side::Black;
+        QCOMPARE(ScoreView::text(mate, Kind::ForBottom, Side::Black), QStringLiteral("M3"));
+        QCOMPARE(ScoreView::text(mate, Kind::ForBottom, Side::White), QStringLiteral("−M3"));
+        QCOMPARE(ScoreView::text(mate, Kind::Chances, Side::White), QStringLiteral("0%"));
+        QCOMPARE(ScoreView::judgement(mate), QStringLiteral("−+"));
+        // Round the four, and back as stored.
+        Kind kind = Kind::Absolute;
+        for (int i = 0; i < ScoreView::kKinds; ++i) {
+            QCOMPARE(ScoreView::fromKey(ScoreView::key(kind)), kind);
+            kind = ScoreView::next(kind);
+        }
+        QCOMPARE(kind, Kind::Absolute);
+        QCOMPARE(ScoreView::fromKey(QStringLiteral("unknown")), Kind::Absolute);
+
+        // The course: a pawn stands out, two are less than twice as far.
+        const auto height = [](int centipawns) {
+            EngineEvaluation evaluation;
+            evaluation.centipawns = centipawns;
+            return ScoreView::courseHeight(evaluation);
+        };
+        QCOMPARE(height(0), 0.0);
+        QVERIFY(height(100) > 0.25);
+        QVERIFY(height(200) < 2 * height(100) && height(200) > height(100));
+        QCOMPARE(height(-100), -height(100));
+        QCOMPARE(height(1000), 1.0);
+        QCOMPARE(height(3000), 1.0);
+        QCOMPARE(ScoreView::courseHeight(mate), -1.0);
     }
 
     void readsEvaluationsFromComments()

@@ -54,6 +54,8 @@ public:
         m_clocks->setFlipped(flipped);
         m_score->setFlipped(flipped);
     }
+    /// How the score is shown (ScoreView), as the user last chose.
+    void setScoreView(ScoreView::Kind view) { m_score->setView(view); }
     /// The game's course beside the score (EvaluationBox::setCourse).
     void setCourse(const QList<std::optional<double>> &shares, int current) { m_score->setCourse(shares, current); }
     /// Summary of the "Explain" command; empty hides it.
@@ -75,6 +77,8 @@ Q_SIGNALS:
     void sendPlanRequested();
     /// A dot of the game's course was clicked: the board goes to that ply.
     void coursePlyClicked(int ply);
+    /// The score was clicked to show another way (EvaluationBox), to be remembered.
+    void scoreViewChanged(ScoreView::Kind view);
     /// Online play's Offer Draw (or Accept Draw) and Resign.
     void drawRequested();
     void resignRequested();

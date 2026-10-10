@@ -469,6 +469,9 @@ void DesktopApi::addRoutes()
         w->m_enginePanel->setClocks(!body.value(QStringLiteral("hide")).toBool(),
                                     body.value(QStringLiteral("white")).toInt(180000),
                                     body.value(QStringLiteral("black")).toInt(180000), running);
+        // How the score is shown: "absolute", "for-bottom", "chances", "judgement".
+        if (body.contains(QStringLiteral("scoreView")))
+            w->m_enginePanel->setScoreView(ScoreView::fromKey(body.value(QStringLiteral("scoreView")).toString()));
         // The buttons under them: "draw" says whose offer waits ("mine", "theirs").
         const QString draw = body.value(QStringLiteral("draw")).toString();
         w->m_enginePanel->setOnlineActions(!body.value(QStringLiteral("hide")).toBool(), true,

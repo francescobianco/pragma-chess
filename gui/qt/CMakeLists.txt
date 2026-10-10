@@ -150,6 +150,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/EngineDetector.cpp
     src/app/EngineDetector.h
     src/app/EngineEvaluation.cpp
+    src/app/ScoreView.cpp
+    src/app/ScoreView.h
     src/app/EngineEvaluation.h
     src/app/EnginePower.cpp
     src/app/EnginePower.h

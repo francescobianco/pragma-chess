@@ -3,6 +3,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
+#include <QStringList>
 
 #include <cmath>
 
@@ -16,22 +17,45 @@ constexpr int kPadding = 10;
 
 EvaluationBox::EvaluationBox(QWidget *parent)
     : QWidget(parent)
-    , m_score(QStringLiteral("–"))
 {
     setAccessibleName(tr("Evaluation"));
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     setMouseTracking(true); // The dot under the pointer lights up.
+    updateToolTip();
 }
 
-void EvaluationBox::setScore(const QString &score, const QString &depth)
+void EvaluationBox::setEvaluation(const std::optional<EngineEvaluation> &evaluation)
 {
-    if (score == m_score && depth == m_depth)
-        return;
-    m_score = score;
-    m_depth = depth;
-    setAccessibleDescription(depth.isEmpty() ? score : score + QLatin1String(", ") + depth);
-    updateGeometry();
+    m_evaluation = evaluation;
+    updateToolTip();
     update();
+}
+
+void EvaluationBox::setView(ScoreView::Kind view)
+{
+    if (m_view == view)
+        return;
+    m_view = view;
+    updateToolTip();
+    update();
+}
+
+void EvaluationBox::updateToolTip()
+{
+    const Side bottom = m_flipped ? Side::Black : Side::White;
+    const QString shown = m_evaluation ? ScoreView::text(*m_evaluation, m_view, bottom) : QStringLiteral("–");
+    setAccessibleDescription(shown + QLatin1String(", ") + ScoreView::label(m_view, bottom));
+    // Every way at once, the one shown first; and what a click does.
+    QStringList lines;
+    for (int i = 0; i < ScoreView::kKinds; ++i) {
+        const auto kind = ScoreView::Kind((int(m_view) + i) % ScoreView::kKinds);
+        lines << QStringLiteral("%1: %2").arg(ScoreView::label(kind, bottom),
+                                             m_evaluation ? ScoreView::text(*m_evaluation, kind, bottom) : QStringLiteral("–"));
+    }
+    if (m_evaluation)
+        lines << tr("Depth %1").arg(m_evaluation->depth);
+    lines << QString() << tr("Click to show the score another way.");
+    m_scoreTip = lines.join(QLatin1Char('\n'));
 }
 
 void EvaluationBox::setCourse(const QList<std::optional<double>> &shares, int current)
@@ -46,6 +70,7 @@ void EvaluationBox::setFlipped(bool flipped)
     if (m_flipped == flipped)
         return;
     m_flipped = flipped;
+    updateToolTip();
     update();
 }
 
@@ -117,10 +142,13 @@ int EvaluationBox::plyAt(const QPointF &position) const
 void EvaluationBox::mouseMoveEvent(QMouseEvent *event)
 {
     const int ply = plyAt(event->position());
-    if (ply == m_hovered)
+    const bool score = onScore(event->position());
+    if (ply == m_hovered && score == m_hoverScore)
         return;
     m_hovered = ply;
-    setCursor(ply >= 0 ? Qt::PointingHandCursor : Qt::ArrowCursor);
+    m_hoverScore = score;
+    setCursor(ply >= 0 || score ? Qt::PointingHandCursor : Qt::ArrowCursor);
+    setToolTip(score ? m_scoreTip : QString());
     update();
 }
 
@@ -128,6 +156,11 @@ void EvaluationBox::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() != Qt::LeftButton)
         return QWidget::mousePressEvent(event);
+    if (onScore(event->position())) {
+        setView(ScoreView::next(m_view));
+        Q_EMIT viewChanged(m_view);
+        return;
+    }
     if (const int ply = plyAt(event->position()); ply >= 0)
         Q_EMIT plyClicked(ply);
 }
@@ -135,6 +168,7 @@ void EvaluationBox::mousePressEvent(QMouseEvent *event)
 void EvaluationBox::leaveEvent(QEvent *event)
 {
     m_hovered = -1;
+    m_hoverScore = false;
     unsetCursor();
     update();
     QWidget::leaveEvent(event);
@@ -142,19 +176,28 @@ void EvaluationBox::leaveEvent(QEvent *event)
 
 int EvaluationBox::sectionWidth() const
 {
-    // As wide as the widest score it may show, so it never moves.
+    // As wide as the widest it may show, so it never moves.
     const QFontMetrics score(scoreFont(font()));
-    const QFontMetrics depth(depthFont(font()));
-    const int widest = qMax(score.horizontalAdvance(QStringLiteral("−88.8")),
-                            depth.horizontalAdvance(tr("Depth %1").arg(88)));
+    const QFontMetrics small(depthFont(font()));
+    int widest = qMax(score.horizontalAdvance(QStringLiteral("−M88")), small.horizontalAdvance(tr("Depth %1").arg(88)));
+    for (int i = 0; i < ScoreView::kKinds; ++i) {
+        for (const Side side : {Side::White, Side::Black})
+            widest = qMax(widest, small.horizontalAdvance(ScoreView::label(ScoreView::Kind(i), side)));
+    }
     return widest + 2 * kPadding;
+}
+
+bool EvaluationBox::onScore(const QPointF &position) const
+{
+    return position.x() < sectionWidth() && rect().contains(position.toPoint());
 }
 
 QSize EvaluationBox::sizeHint() const
 {
+    // The score, what it is, the depth, the dots of the ways.
     const QFontMetrics score(scoreFont(font()));
-    const QFontMetrics depth(depthFont(font()));
-    return {sectionWidth() + 200, score.height() + depth.height() + kPadding};
+    const QFontMetrics small(depthFont(font()));
+    return {sectionWidth() + 200, score.height() + 2 * small.height() + kPadding + 6};
 }
 
 QSize EvaluationBox::minimumSizeHint() const
@@ -171,19 +214,45 @@ void EvaluationBox::paintEvent(QPaintEvent *)
     QColor edge = palette().color(QPalette::WindowText);
     edge.setAlphaF(0.28);
 
-    // The score's section: the score, the depth under it.
+    // The score's section: the score, what it is, the depth, and a dot for
+    // each way of showing it, the one shown filled. Under the pointer it is
+    // tinted: a click there turns to the next way.
     const int section = sectionWidth();
+    if (m_hoverScore) {
+        QColor tint = palette().color(QPalette::Highlight);
+        tint.setAlphaF(0.10);
+        QPainterPath box;
+        box.addRoundedRect(bounds, radius, radius);
+        QPainterPath left;
+        left.addRect(QRectF(bounds.left(), bounds.top(), section - bounds.left(), bounds.height()));
+        painter.fillPath(box.intersected(left), tint);
+    }
+    const Side bottom = m_flipped ? Side::Black : Side::White;
     const QFontMetrics scoreMetrics(scoreFont(font()));
-    const QFontMetrics depthMetrics(depthFont(font()));
-    const int textHeight = scoreMetrics.height() + (m_depth.isEmpty() ? 0 : depthMetrics.height());
-    const int top = (height() - textHeight) / 2;
+    const QFontMetrics smallMetrics(depthFont(font()));
+    const int dotsHeight = 6;
+    const int textHeight = scoreMetrics.height() + 2 * smallMetrics.height() + dotsHeight;
+    int y = (height() - textHeight) / 2;
     painter.setFont(scoreFont(font()));
     painter.setPen(palette().color(QPalette::WindowText));
-    painter.drawText(QRect(0, top, section, scoreMetrics.height()), Qt::AlignCenter, m_score);
-    if (!m_depth.isEmpty()) {
-        painter.setFont(depthFont(font()));
-        painter.setPen(palette().color(QPalette::Disabled, QPalette::WindowText));
-        painter.drawText(QRect(0, top + scoreMetrics.height(), section, depthMetrics.height()), Qt::AlignCenter, m_depth);
+    painter.drawText(QRect(0, y, section, scoreMetrics.height()), Qt::AlignCenter,
+                     m_evaluation ? ScoreView::text(*m_evaluation, m_view, bottom) : QStringLiteral("–"));
+    y += scoreMetrics.height();
+    painter.setFont(depthFont(font()));
+    painter.setPen(palette().color(QPalette::Disabled, QPalette::WindowText));
+    painter.drawText(QRect(0, y, section, smallMetrics.height()), Qt::AlignCenter, ScoreView::label(m_view, bottom));
+    y += smallMetrics.height();
+    if (m_evaluation)
+        painter.drawText(QRect(0, y, section, smallMetrics.height()), Qt::AlignCenter, tr("Depth %1").arg(m_evaluation->depth));
+    y += smallMetrics.height();
+    const qreal gap = 7;
+    qreal x = section / 2.0 - gap * (ScoreView::kKinds - 1) / 2.0;
+    QColor off = palette().color(QPalette::WindowText);
+    off.setAlphaF(0.25);
+    painter.setPen(Qt::NoPen);
+    for (int i = 0; i < ScoreView::kKinds; ++i, x += gap) {
+        painter.setBrush(i == int(m_view) ? palette().color(QPalette::WindowText) : off);
+        painter.drawEllipse(QPointF(x, y + dotsHeight / 2.0), 1.8, 1.8);
     }
 
     // The course of the game, clipped to the box's rounded right end.

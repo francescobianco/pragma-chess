@@ -1342,6 +1342,11 @@ void MainWindow::createDocks()
     connect(m_enginePanel, &EnginePanel::sendMoveRequested, this, [this] { sendLobby(false); });
     // A dot of the game's course: the board goes to that move of the line.
     connect(m_enginePanel, &EnginePanel::coursePlyClicked, m_session, &GameSession::goToPly);
+    // The way the score is shown is the user's, on this computer.
+    m_enginePanel->setScoreView(ScoreView::fromKey(QSettings().value(QStringLiteral("engine/scoreView")).toString()));
+    connect(m_enginePanel, &EnginePanel::scoreViewChanged, this, [](ScoreView::Kind view) {
+        QSettings().setValue(QStringLiteral("engine/scoreView"), ScoreView::key(view));
+    });
     connect(m_enginePanel, &EnginePanel::drawRequested, this, [this] {
         if (m_online && m_online->isPlaying())
             m_online->offerDraw(); // The stream says when the opponent answers.
@@ -3945,7 +3950,8 @@ void MainWindow::updateCourse()
             std::optional<EngineEvaluation> evaluation = m_explainer->known(m_session->positionAt(ply));
             if (!evaluation && ply > 0)
                 evaluation = MoveComment::evaluation(m_session->moveAt(ply).comment);
-            shares << (evaluation ? std::optional<double>(evaluation->whiteShare()) : std::nullopt);
+            // White's side 1, Black's 0, the balance half way: logarithmic in pawns.
+            shares << (evaluation ? std::optional<double>(0.5 + 0.5 * ScoreView::courseHeight(*evaluation)) : std::nullopt);
         }
     }
     m_enginePanel->setCourse(shares, m_session->ply());

@@ -3,19 +3,18 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QTimer>
-#include <QtMath>
 
 namespace {
 
-constexpr int kLowTimeMs = 20000;   // Under it the figures turn red.
-constexpr int kTenthsMs = 10000;    // Under it tenths are shown, as on the platforms.
-constexpr qreal kFlagMinutes = 3.0; // The minute hand lifts the flag over the last three minutes.
-
-QColor mix(const QColor &a, const QColor &b, qreal share)
-{
-    return QColor::fromRgbF(a.redF() * (1 - share) + b.redF() * share, a.greenF() * (1 - share) + b.greenF() * share,
-                            a.blueF() * (1 - share) + b.blueF() * share);
-}
+constexpr int kLowTimeMs = 20000; // Under it the figures turn red.
+constexpr int kTenthsMs = 10000;  // Under it tenths are shown, as on the platforms.
+constexpr qreal kDigitHeight = 36;
+constexpr qreal kDigitWidth = kDigitHeight * 0.52;
+constexpr qreal kStroke = kDigitHeight * 0.115;
+constexpr qreal kGap = kDigitHeight * 0.14;   // Between two figures.
+constexpr qreal kNarrow = kDigitHeight * 0.22; // A colon's or a point's place.
+constexpr qreal kPadding = 12;
+constexpr qreal kSpacing = 14; // Between the two clocks.
 
 QString clockText(int ms)
 {
@@ -30,6 +29,96 @@ QString clockText(int ms)
     if (ms < kTenthsMs)
         text += QStringLiteral(".%1").arg(ms / 100 % 10);
     return text;
+}
+
+/// Segments a…g of each figure, bit 0 = a (top), clockwise, g the middle.
+constexpr quint8 kSegments[10] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f};
+
+qreal advance(QChar c)
+{
+    return c.isDigit() ? kDigitWidth + kGap : kNarrow + kGap;
+}
+
+qreal textWidth(const QString &text)
+{
+    qreal width = 0;
+    for (QChar c : text)
+        width += advance(c);
+    return width - kGap;
+}
+
+/// One segment: a long hexagon from `a` to `b`.
+QPainterPath segment(QPointF a, QPointF b)
+{
+    const qreal h = kStroke / 2;
+    QPainterPath path;
+    if (qFuzzyCompare(a.y(), b.y())) { // Horizontal.
+        path.moveTo(a.x(), a.y());
+        path.lineTo(a.x() + h, a.y() - h);
+        path.lineTo(b.x() - h, b.y() - h);
+        path.lineTo(b.x(), b.y());
+        path.lineTo(b.x() - h, b.y() + h);
+        path.lineTo(a.x() + h, a.y() + h);
+    } else { // Vertical.
+        path.moveTo(a.x(), a.y());
+        path.lineTo(a.x() + h, a.y() + h);
+        path.lineTo(b.x() + h, b.y() - h);
+        path.lineTo(b.x(), b.y());
+        path.lineTo(b.x() - h, b.y() - h);
+        path.lineTo(a.x() - h, a.y() + h);
+    }
+    path.closeSubpath();
+    return path;
+}
+
+/// A figure at `x` (left) and `top`: lit segments in `lit`, the others in `unlit`.
+void paintDigit(QPainter &painter, qreal x, qreal top, int digit, const QColor &lit, const QColor &unlit)
+{
+    const qreal inset = kStroke * 0.55; // Room for the segments' points to meet.
+    const qreal l = x + kStroke / 2, r = x + kDigitWidth - kStroke / 2;
+    const qreal t = top + kStroke / 2, m = top + kDigitHeight / 2, b = top + kDigitHeight - kStroke / 2;
+    const QPainterPath segments[7] = {
+        segment({l + inset * 0.3, t}, {r - inset * 0.3, t}), // a
+        segment({r, t + inset * 0.3}, {r, m - inset * 0.3}), // b
+        segment({r, m + inset * 0.3}, {r, b - inset * 0.3}), // c
+        segment({l + inset * 0.3, b}, {r - inset * 0.3, b}), // d
+        segment({l, m + inset * 0.3}, {l, b - inset * 0.3}), // e
+        segment({l, t + inset * 0.3}, {l, m - inset * 0.3}), // f
+        segment({l + inset * 0.3, m}, {r - inset * 0.3, m}), // g
+    };
+    const quint8 on = digit >= 0 && digit <= 9 ? kSegments[digit] : 0;
+    for (int s = 0; s < 7; ++s)
+        painter.fillPath(segments[s], (on >> s) & 1 ? lit : unlit);
+}
+
+/// The time as the display shows it: figures, colons and the point of the tenths.
+void paintTime(QPainter &painter, qreal x, qreal top, const QString &text, const QColor &lit, const QColor &unlit)
+{
+    // A slight slant, as on the displays.
+    painter.save();
+    QTransform slant;
+    slant.translate(0, top + kDigitHeight);
+    slant.shear(-0.07, 0);
+    slant.translate(0, -(top + kDigitHeight));
+    painter.setTransform(slant, true);
+    const qreal dot = kStroke * 0.95;
+    for (QChar c : text) {
+        if (c.isDigit()) {
+            paintDigit(painter, x, top, c.digitValue(), lit, unlit);
+        } else if (c == QLatin1Char(':')) {
+            const qreal cx = x + kNarrow / 2;
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(lit);
+            painter.drawRect(QRectF(cx - dot / 2, top + kDigitHeight * 0.30 - dot / 2, dot, dot));
+            painter.drawRect(QRectF(cx - dot / 2, top + kDigitHeight * 0.70 - dot / 2, dot, dot));
+        } else if (c == QLatin1Char('.')) {
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(lit);
+            painter.drawRect(QRectF(x + kNarrow / 2 - dot / 2, top + kDigitHeight - dot, dot, dot));
+        }
+        x += advance(c);
+    }
+    painter.restore();
 }
 
 } // namespace
@@ -53,17 +142,29 @@ void ChessClocks::setClocks(const Face &left, const Face &right, int running)
         m_tick->start();
     else
         m_tick->stop();
+    updateGeometry();
     update();
+}
+
+qreal ChessClocks::displayWidth() const
+{
+    // Wide enough for "8:88.8" — the tenths come under ten seconds — or for
+    // hours, so the display never changes width while the time runs down.
+    qreal width = textWidth(QStringLiteral("8:88.8"));
+    for (const Face &face : m_faces)
+        width = qMax(width, textWidth(clockText(face.ms).replace(QLatin1Char('.'), QString())));
+    return width + 2 * kPadding;
 }
 
 QSize ChessClocks::sizeHint() const
 {
-    return {320, 210};
+    const int name = fontMetrics().height() + 6;
+    return {int(2 * displayWidth() + kSpacing) + 2, int(kDigitHeight + 2 * kPadding) + name + 2};
 }
 
 QSize ChessClocks::minimumSizeHint() const
 {
-    return {220, 210};
+    return sizeHint();
 }
 
 int ChessClocks::remaining(int index) const
@@ -76,112 +177,44 @@ void ChessClocks::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    const qreal gap = 12;
-    const qreal half = (width() - gap) / 2.0;
+    const qreal width = displayWidth();
+    // From the left, as the rest of the panel: the opponent's, then the user's.
     for (int i = 0; i < 2; ++i)
-        paintFace(painter, QRectF(i * (half + gap), 0, half, height()), m_faces[i], remaining(i), i == m_running);
+        paintFace(painter, QRectF(1 + i * (width + kSpacing), 1, width, height() - 2), m_faces[i], remaining(i),
+                  i == m_running);
 }
 
 void ChessClocks::paintFace(QPainter &painter, const QRectF &area, const Face &face, int ms, bool running) const
 {
     const QPalette pal = palette();
-    const QColor ink = pal.color(QPalette::WindowText);
-    const QColor window = pal.color(QPalette::Window);
     const QColor accent = pal.color(QPalette::Highlight);
-    const QColor red(0xd0, 0x2b, 0x2b);
+    const QColor red(0xff, 0x4d, 0x4d);
 
-    // The name and rating under the dial, as the label on the clock's case.
+    // The display: dark on any theme, as the clocks are; the running one ringed.
+    const QRectF display(area.left(), area.top(), area.width(), kDigitHeight + 2 * kPadding);
+    painter.setPen(QPen(running ? accent : QColor(0x55, 0x55, 0x55), running ? 2.5 : 1.0));
+    painter.setBrush(QColor(0x16, 0x16, 0x16));
+    painter.drawRoundedRect(display.adjusted(0.5, 0.5, -0.5, -0.5), 6, 6);
+
+    const QColor lit = ms < kLowTimeMs ? red : (running ? QColor(0xf4, 0xf4, 0xf0) : QColor(0xb8, 0xb8, 0xb4));
+    const QColor unlit(0xff, 0xff, 0xff, 14);
+    // The time right-aligned in the display, as a clock's figures stand.
+    const QString text = clockText(ms);
+    const qreal x = display.right() - kPadding - textWidth(text);
+    paintTime(painter, x, display.top() + kPadding, text, lit, unlit);
+
+    // Who it is, under the display, from its left edge.
     QFont nameFont = font();
     nameFont.setBold(running);
-    const qreal nameHeight = QFontMetricsF(nameFont).height() + 4;
-    const qreal side = qMin(area.width(), area.height() - nameHeight) - 4;
-    const QRectF dial(area.center().x() - side / 2, area.top() + 2, side, side);
-    const QPointF centre = dial.center();
-    const qreal radius = side / 2;
-
-    // The case and the face: the running one lit by the selection's colour.
-    painter.setPen(QPen(running ? accent : mix(ink, window, 0.6), running ? 3.0 : 1.5));
-    painter.setBrush(face.white ? QColor(0xfb, 0xf8, 0xf0) : QColor(0xf1, 0xec, 0xe2));
-    painter.drawEllipse(dial.adjusted(1.5, 1.5, -1.5, -1.5));
-    const QColor dialInk(0x22, 0x22, 0x22); // The face is paper on any theme.
-
-    // Sixty minute marks, the five-minute ones longer, and the hours' figures.
-    for (int m = 0; m < 60; ++m) {
-        const qreal angle = qDegreesToRadians(m * 6.0);
-        const qreal outer = radius - 6;
-        const qreal inner = outer - (m % 5 == 0 ? radius * 0.12 : radius * 0.05);
-        painter.setPen(QPen(dialInk, m % 5 == 0 ? 2.0 : 1.0));
-        painter.drawLine(QPointF(centre.x() + inner * qSin(angle), centre.y() - inner * qCos(angle)),
-                         QPointF(centre.x() + outer * qSin(angle), centre.y() - outer * qCos(angle)));
-    }
-    QFont figures = font();
-    figures.setPixelSize(qMax(8, int(radius * 0.15)));
-    painter.setFont(figures);
-    painter.setPen(dialInk);
-    for (int h = 1; h <= 12; ++h) {
-        const qreal angle = qDegreesToRadians(h * 30.0);
-        const qreal at = radius * 0.68;
-        const QPointF p(centre.x() + at * qSin(angle), centre.y() - at * qCos(angle));
-        painter.drawText(QRectF(p.x() - radius * 0.15, p.y() - radius * 0.12, radius * 0.3, radius * 0.24),
-                         Qt::AlignCenter, QString::number(h));
-    }
-
-    // The flag at twelve: lifted by the minute hand over the last minutes, fallen at zero.
-    const qreal minutesLeft = ms / 60000.0;
-    qreal lift = 0; // 0 hanging, 1 at its highest.
-    if (ms <= 0)
-        lift = 0;
-    else if (minutesLeft < kFlagMinutes)
-        lift = 1.0 - minutesLeft / kFlagMinutes;
-    {
-        painter.save();
-        // Pivoting just right of twelve, above the figure, among the marks.
-        const QPointF pivot(centre.x() + radius * 0.07, centre.y() - radius * 0.88);
-        painter.translate(pivot);
-        painter.rotate(ms <= 0 ? -90 : -35 + lift * 35); // Hanging down-left, lifted level, fallen once the time is out.
-        QPainterPath flag;
-        flag.moveTo(0, 0);
-        flag.lineTo(-radius * 0.24, -radius * 0.05);
-        flag.lineTo(-radius * 0.21, radius * 0.08);
-        flag.closeSubpath();
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(red);
-        painter.drawPath(flag);
-        painter.setBrush(QColor(0x22, 0x22, 0x22));
-        painter.drawEllipse(QPointF(0, 0), radius * 0.025, radius * 0.025); // Its pin.
-        painter.restore();
-    }
-
-    // The large figures, under the hands' centre.
-    QFont digits = font();
-    digits.setPixelSize(qMax(12, int(radius * 0.30)));
-    digits.setBold(true);
-    digits.setStyleHint(QFont::Monospace);
-    painter.setFont(digits);
-    painter.setPen(ms < kLowTimeMs ? red : dialInk);
-    painter.drawText(QRectF(dial.left(), centre.y() + radius * 0.14, dial.width(), radius * 0.42), Qt::AlignCenter,
-                     clockText(ms));
-
-    // The hands, set so that twelve is the end: they show twelve minus what is left.
-    const qreal hoursLeft = ms / 3600000.0;
-    const auto hand = [&](qreal turns, qreal length, qreal width, const QColor &colour) {
-        const qreal angle = qDegreesToRadians(-turns * 360.0);
-        painter.setPen(QPen(colour, width, Qt::SolidLine, Qt::RoundCap));
-        painter.drawLine(centre, QPointF(centre.x() + length * qSin(angle), centre.y() - length * qCos(angle)));
-    };
-    hand(hoursLeft / 12.0, radius * 0.45, qMax(2.5, radius * 0.06), dialInk);
-    hand(minutesLeft / 60.0, radius * 0.78, qMax(2.0, radius * 0.04), dialInk);
-    if (running)
-        hand(ms / 60000.0 - qFloor(ms / 60000.0), radius * 0.82, 1.2, red); // The seconds, while it runs.
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(dialInk);
-    painter.drawEllipse(centre, radius * 0.05, radius * 0.05);
-
-    // Who it is.
     painter.setFont(nameFont);
-    painter.setPen(running ? ink : mix(ink, window, 0.35));
+    const QColor ink = pal.color(QPalette::WindowText);
+    const QColor window = pal.color(QPalette::Window);
+    const qreal fade = running ? 0.0 : 0.3;
+    painter.setPen(QColor::fromRgbF(ink.redF() * (1 - fade) + window.redF() * fade,
+                                    ink.greenF() * (1 - fade) + window.greenF() * fade,
+                                    ink.blueF() * (1 - fade) + window.blueF() * fade));
     const QString label = face.rating > 0 ? QStringLiteral("%1 (%2)").arg(face.name).arg(face.rating) : face.name;
-    const QRectF nameRect(area.left(), dial.bottom() + 4, area.width(), nameHeight);
-    painter.drawText(nameRect, Qt::AlignHCenter | Qt::AlignTop,
-                     QFontMetricsF(nameFont).elidedText(label, Qt::ElideRight, area.width()));
+    const QRectF nameRect(area.left() + 2, display.bottom() + 4, area.width() - 2, area.bottom() - display.bottom() - 4);
+    painter.drawText(nameRect, Qt::AlignLeft | Qt::AlignTop,
+                     QFontMetricsF(nameFont).elidedText(label, Qt::ElideRight, nameRect.width()));
 }

@@ -1610,10 +1610,10 @@ a platform; lichess.org for now, through its Board API, more to come.
   to the open database with players, ratings, "lichess.org rated/casual
   game" and the game's URL as site. The Engine panel shows the clocks
   (`widgets/ChessClocks`, `EnginePanel::setClocks`): a tournament's
-  mechanical clock, a large dial each, hands set so the flag falls at
-  twelve and lifted by the minute hand over the last three minutes, the
-  time in large figures; the opponent's on the left, the user's on the
-  right; running from the second move, ticking on their own between the
+  digital clock, a dark display each with the time in seven-segment
+  figures drawn in code (no font), laid out from the left — the user
+  wanted digital, not dials, and not centred —; the opponent's first,
+  then the user's; running from the second move, ticking on their own between the
   platform's updates. New Online Game…, New Game and New Training… stay enabled while it is on (New Game first asks, in `NewGameChoiceDialog`: a
   new online game, as the toolbar's New Online Game, or one to analyse; "Remember
   for this session" keeps the choice in `m_rememberedNewGame`, never saved): they go through

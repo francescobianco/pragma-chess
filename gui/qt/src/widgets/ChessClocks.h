@@ -5,11 +5,11 @@
 
 class QTimer;
 
-/// The two clocks of a game played online, drawn as a tournament's
-/// mechanical clock: a large dial each, the hands set so the flag falls at
-/// twelve, the red flag lifted by the minute hand in the last minutes, and
-/// the time in large figures under the hands. The running clock ticks on
-/// its own between the platform's updates, which set it right again.
+/// The two clocks of a game played online, as a tournament's digital clock:
+/// a dark display each, the time in large seven-segment figures (drawn here,
+/// the unlit segments faint behind them), laid out from the left. The
+/// running clock ticks on its own between the platform's updates, which set
+/// it right again.
 class ChessClocks : public QWidget {
     Q_OBJECT
 
@@ -35,6 +35,8 @@ protected:
 
 private:
     void paintFace(QPainter &painter, const QRectF &area, const Face &face, int ms, bool running) const;
+    /// How wide a display is: the same for both, from the longer time's shape.
+    qreal displayWidth() const;
     int remaining(int index) const;
 
     Face m_faces[2];

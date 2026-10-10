@@ -6,6 +6,7 @@
 #include "app/OpeningNames.h"
 #include "app/DatabaseMerge.h"
 #include "app/DistributedUpdate.h"
+#include "app/StandInNames.h"
 #include "app/ShippedOpeningNames.h"
 #include "DesktopApi.h"
 #include "dialogs/AboutDialog.h"
@@ -398,8 +399,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_folderSync, &FolderSync::progress, m_folderSyncLabel, &QLabel::setText);
     connect(m_folderSync, &FolderSync::finished, this, [this](const QString &error, int changes) {
         // The personal settings may have come from another computer.
-        if (changes > 0)
+        if (changes > 0) {
             applyBoardTheme(PersonalSettings::read(PersonalSettings::path()));
+            updateStandInNames(); // The user's name too.
+        }
         if (!error.isEmpty()) {
             m_folderSyncLabel->setText(tr("Sync failed"));
             m_folderSyncLabel->setToolTip(error);
@@ -1474,6 +1477,7 @@ void MainWindow::setDatabase(std::unique_ptr<GameDatabase> database)
     m_gameListProxy->setDatabase(nullptr);
     m_gameListModel->setDatabase(nullptr);
     m_database = std::move(database);
+    updateStandInNames(); // "Me" of this database may name the user.
     m_gameListModel->setDatabase(m_database.get());
     m_gameView->resizeColumnsToContents();
     applyGameColumns();
@@ -2183,6 +2187,7 @@ void MainWindow::setPlayerRole(const QString &player, PlayerRole role)
         return;
     }
     m_databaseTree->refresh();
+    updateStandInNames();
     m_gameListModel->refreshRoles(); // "Me" is shown in bold.
     showCategory(m_category); // A filter on roles now shows other games.
     if (role == PlayerRole::Me)
@@ -3294,6 +3299,23 @@ void MainWindow::editPersonalSettings()
         QMessageBox::warning(this, tr("Personal Settings"),
                              tr("Could not save the personal settings in “%1”: %2")
                                  .arg(QDir::toNativeSeparators(path), error));
+    updateStandInNames(); // The user's name, on the games of a training database.
+    updateGameHeader();
+}
+
+StandInNames MainWindow::standInNames() const
+{
+    StandInNames names;
+    names.trainee = myName();
+    if (names.trainee.isEmpty())
+        names.trainee = tr("You");
+    names.trainer = tr("Your Trainer");
+    return names;
+}
+
+void MainWindow::updateStandInNames()
+{
+    m_gameListModel->setStandInNames(standInNames());
 }
 
 void MainWindow::applyBoardTheme(const PersonalSettings &settings)
@@ -4883,6 +4905,11 @@ void MainWindow::updateGameHeader()
 {
     // Games not in the database (new games, pasted positions) are edited in memory.
     const bool editable = m_openGameIndex < 0 || (m_database && m_openGameIndex < m_database->gameCount());
+    // A game of a training database shows the stand-ins of the players it leaves unnamed.
+    if (m_openGameIndex >= 0 && m_database && m_database->properties().type == DatabaseType::Training) {
+        m_gameHeader->setGame(standInNames().appliedTo(m_session->game()), editable);
+        return;
+    }
     m_gameHeader->setGame(m_session->game(), editable);
 }
 

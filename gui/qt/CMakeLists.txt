@@ -137,6 +137,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/ChessPosition.cpp
     src/app/ChessPosition.h
     src/app/DatabaseOutline.cpp
+    src/app/StandInNames.cpp
+    src/app/StandInNames.h
     src/app/TrainingSets.cpp
     src/app/DatabaseDedupe.cpp
     src/app/DatabaseDedupe.h

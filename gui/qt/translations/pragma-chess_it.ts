@@ -3413,6 +3413,14 @@ non è su questo computer.</translation>
         <source>&amp;Welcome…</source>
         <translation>&amp;Benvenuto…</translation>
     </message>
+    <message>
+        <source>You</source>
+        <translation>Tu</translation>
+    </message>
+    <message>
+        <source>Your Trainer</source>
+        <translation>Il tuo allenatore</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

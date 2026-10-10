@@ -19,7 +19,7 @@ void GameListModel::setDatabase(const GameDatabase *database)
     m_rows = database ? int(database->gameCount()) : 0;
     m_me.clear();
     // Puzzles and exercises: their moves are the solution, not to be shown.
-    m_hidesLine = m_database && m_database->properties().type == DatabaseType::Training;
+    m_training = m_database && m_database->properties().type == DatabaseType::Training;
     if (m_database) {
         const PlayerRoles roles = m_database->playerRoles();
         for (auto it = roles.cbegin(); it != roles.cend(); ++it) {
@@ -28,6 +28,15 @@ void GameListModel::setDatabase(const GameDatabase *database)
         }
     }
     endResetModel();
+}
+
+void GameListModel::setStandInNames(const StandInNames &names)
+{
+    if (names.trainee == m_standIns.trainee && names.trainer == m_standIns.trainer)
+        return;
+    m_standIns = names;
+    if (m_training && m_rows > 0)
+        Q_EMIT dataChanged(index(0, White), index(m_rows - 1, Black));
 }
 
 void GameListModel::refreshRoles()
@@ -81,11 +90,17 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
     }
 
     if (role == Qt::FontRole) {
-        // The user's own name stands out: bold wherever "me" plays.
-        if ((index.column() != White && index.column() != Black) || m_me.isEmpty())
+        // The user's own name stands out: bold wherever "me" plays, and on
+        // the side the user plays in a training database.
+        if (index.column() != White && index.column() != Black)
+            return {};
+        const Side side = index.column() == White ? Side::White : Side::Black;
+        if (m_me.isEmpty() && !m_training)
             return {};
         const GameRecord game = m_database->header(index.row());
-        if (!m_me.contains(index.column() == White ? game.white : game.black))
+        const QString &own = side == Side::White ? game.white : game.black;
+        const bool trainee = m_training && StandInNames::isUnnamed(own) && side == StandInNames::traineeSide(game);
+        if (!trainee && !m_me.contains(own))
             return {};
         QFont font;
         font.setBold(true);
@@ -100,9 +115,9 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
     const auto elo = [](int value) { return value > 0 ? QVariant(value) : QVariant(); };
     switch (index.column()) {
     case Number: return game.id;
-    case White: return game.white;
+    case White: return m_training ? m_standIns.name(game, Side::White) : game.white;
     case WhiteElo: return elo(game.whiteElo);
-    case Black: return game.black;
+    case Black: return m_training ? m_standIns.name(game, Side::Black) : game.black;
     case BlackElo: return elo(game.blackElo);
     case Result: return game.result;
     case Date: return game.date;
@@ -110,7 +125,7 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
     case Site: return game.site;
     case Eco: return game.eco;
     case Moves: return (game.plyCount + 1) / 2;
-    case Line: return m_hidesLine ? QVariant() : figurineLine(game.linePreview);
+    case Line: return m_training ? QVariant() : figurineLine(game.linePreview);
     default: return {};
     }
 }

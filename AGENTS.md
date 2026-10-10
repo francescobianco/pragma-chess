@@ -1325,9 +1325,17 @@ told apart: its `name` is read as the English one.
 The training sets are of type Puzzles and Training (`DatabaseType::Training`,
 `training`; given to copies seeded before once per computer,
 `distributed/<key>/typed`): the games list leaves their Line empty
-(`GameListModel::m_hidesLine`), so the solution is not shown, and `openGame`
+(`GameListModel::m_training`), so the solution is not shown, and `openGame`
 starts a game of such a database in Training Mode, the user playing the side
-to move at the start, from below.
+to move at the start, from below. Its players are left unnamed in the file
+and shown with **stand-in names** (`app/StandInNames`, pure, unit-tested;
+Italian "nomi segnaposto"): the user's name (`myName`, else "You") on the
+side to move at the start, "Your Trainer" on the other — translated, so
+never stored, in the games list (which sorts by what it shows: the proxy's
+sort role is the display) and the board's header (`updateGameHeader`, a
+copy for display; the session's game keeps its empty names, so nothing
+writes them back). `MainWindow::updateStandInNames` follows the personal
+settings, a sync and "Who Is This?".
 
 The tree classifies any database's games for training (`DatabaseOutline`,
 `TrainingSets`, pure, unit-tested): **Endgames** — games starting from a

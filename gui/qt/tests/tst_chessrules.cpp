@@ -9,6 +9,7 @@
 #include "app/DatabaseDedupe.h"
 #include "app/DatabaseMerge.h"
 #include "app/DistributedUpdate.h"
+#include "app/StandInNames.h"
 #include "app/DatabaseMigrations.h"
 #include "app/DatabaseOutline.h"
 #include "app/EngineCatalog.h"
@@ -4621,6 +4622,30 @@ END FUNCTION
                 }
             }
         }
+    }
+
+    void showsStandInNames()
+    {
+        StandInNames names;
+        names.trainee = QStringLiteral("Francesco");
+        names.trainer = QStringLiteral("Your Trainer");
+        // A puzzle with Black to move: the user plays Black, the trainer White.
+        GameRecord puzzle;
+        puzzle.startFen = QStringLiteral("8/8/8/4k3/8/8/4P3/4K3 b - - 0 1");
+        QCOMPARE(StandInNames::traineeSide(puzzle), Side::Black);
+        QCOMPARE(names.name(puzzle, Side::Black), QStringLiteral("Francesco"));
+        QCOMPARE(names.name(puzzle, Side::White), QStringLiteral("Your Trainer"));
+        // From the standard position the user plays White; "?" is no name.
+        GameRecord game;
+        game.black = QStringLiteral("?");
+        QCOMPARE(StandInNames::traineeSide(game), Side::White);
+        QCOMPARE(names.appliedTo(game).white, QStringLiteral("Francesco"));
+        QCOMPARE(names.appliedTo(game).black, QStringLiteral("Your Trainer"));
+        // A name the game has is its own.
+        game.white = QStringLiteral("Lasker");
+        QCOMPARE(names.name(game, Side::White), QStringLiteral("Lasker"));
+        QVERIFY(StandInNames::isUnnamed(QStringLiteral(" - ")));
+        QVERIFY(!StandInNames::isUnnamed(QStringLiteral("Tal")));
     }
 
     void migratesDistributedDatabasesWithoutReplacing()

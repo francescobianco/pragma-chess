@@ -1,5 +1,7 @@
 #pragma once
 
+#include "app/StandInNames.h"
+
 #include <QAbstractTableModel>
 #include <QSet>
 
@@ -26,6 +28,9 @@ public:
     /// are shown in bold, and the database's type (a training database
     /// shows no Line). Called when a role or the properties change.
     void refreshRoles();
+    /// The names shown for the players a training database leaves unnamed
+    /// (StandInNames): the user's, and the trainer's.
+    void setStandInNames(const StandInNames &names);
     /// Call after the header of the game in `row` changed in the database.
     void refreshRow(int row);
     /// Call after games were appended to the database.
@@ -39,6 +44,7 @@ public:
 private:
     const GameDatabase *m_database = nullptr;
     QSet<QString> m_me; // The players who are the user, in bold.
-    bool m_hidesLine = false; // A training database: the Line column stays empty.
+    bool m_training = false; // A training database: the Line column stays empty, stand-in names.
+    StandInNames m_standIns;
     int m_rows = 0;
 };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/StandInNames.h"
 #include "app/GraphicsSettings.h"
 #include "app/Chapters.h"
 #include "app/EngineCatalog.h"
@@ -337,6 +338,10 @@ private:
     /// The database a project opens: its path, or the database with its
     /// lineage when the path is missing, gone or another database's.
     QString projectDatabasePath(const Project &project) const;
+    /// The names the games list shows for the players a training database
+    /// leaves unnamed (StandInNames): the user's, and "Your Trainer".
+    void updateStandInNames();
+    StandInNames standInNames() const;
     void applyProject(const Project &project, bool openFirstGameIfNone);
     void updateWindowTitle();
     /// Says in the tooltips of their toolbar buttons which book, engine and database are in use.

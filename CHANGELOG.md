@@ -8,6 +8,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- In **Endgame Training** and **Tactics Training** the players have names:
+  yours on the side you play, *Your Trainer* on the other — stand-in names,
+  shown in your language and never written in the database.
 - The **Pawn Endgames** and **Rook Endgames** projects open **Endgame
   Training**, to try what they teach; a project finds its database again
   even when the file was moved or renamed.

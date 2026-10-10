@@ -396,8 +396,10 @@ state is restored — never before it), and from Help ▸ Welcome…
 (`showWelcome`). On the left a shoulder (`resources/welcome/chess-study.png`,
 CC0, PNG so no image plugin is needed) with the logo — the rich one,
 `data/icons/pragma-chess-rich.png`: the logo's board with a P of seven pawns
-(1100/1010/1100/1000), white on dark squares and black on light ones, for
-where the logo is large; the icons, down to 16 pixels, keep the plain
+(1100/1010/1100/1000), each centred on its whole square (the grid
+commands, under the frame too) and the negative of what lies under it —
+white on dark squares and on the frame, black on light ones —, for where
+the logo is large; the icons, down to 16 pixels, keep the plain
 board — and the name in the book face; on the right what Pragma Chess does, then the way in: the
 projects of the Projects folder (by their name in the user's language) and
 the databases of the Databases folder (as Switch Database names them), read

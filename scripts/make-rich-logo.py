@@ -12,9 +12,12 @@ the bowl in the three rows from the top:
     1100
     1000
 
-each pawn the negative of its square, white on the dark ones and black on
-the light ones. It is shown where the logo is large (the welcome window);
-small sizes, where a pawn would be a dot, keep the plain board. Writes
+each pawn centred on its whole square, the same for all — the grid
+commands, even where the frame covers part of the square — and the
+negative of what lies under it: white on the dark squares and on the
+frame, black on the light ones. It is shown where the logo is large (the
+welcome window); small sizes, where a pawn would be a dot, keep the plain
+board. Writes
 gui/qt/data/icons/pragma-chess-rich.png, committed like the other icons.
 The pawn is the one of the folder and file icons (FolderIcon::pawnPath).
 Requires Pillow (apt install python3-pil).
@@ -22,16 +25,15 @@ Requires Pillow (apt install python3-pil).
 
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 
 ICONS = Path(__file__).resolve().parent.parent / "gui" / "qt" / "data" / "icons"
 P = ["1100", "1010", "1100", "1000"]
 SCALE = 4  # Drawn four times larger, then reduced: smooth edges.
 
-# The board of the 300-pixel logo: the squares' edges, and what the frame
-# leaves of the outer ones.
+# The board of the 300-pixel logo: the squares' edges (the frame covers
+# part of the outer ones).
 EDGES = [18, 84, 150, 216, 282]
-INNER = (27, 273)
 
 
 def cubic(p0, p1, p2, p3, steps=24):
@@ -66,28 +68,26 @@ def pawn(draw, left, top, side, colour):
 def main():
     logo = Image.open(ICONS / "pragma-chess.png").convert("RGBA")
     big = logo.resize((logo.width * SCALE, logo.height * SCALE), Image.NEAREST)
-    draw = ImageDraw.Draw(big)
+    # The pawns as a mask: each the same, centred on its whole square — the
+    # grid commands, even where the frame covers the square.
+    mask = Image.new("L", big.size, 0)
+    draw = ImageDraw.Draw(mask)
     for row, line in enumerate(P):
         for column, cell in enumerate(line):
             if cell != "1":
                 continue
-            # The part of the square the frame leaves visible.
-            left = max(EDGES[column], INNER[0])
-            right = min(EDGES[column + 1], INNER[1])
-            top = max(EDGES[row], INNER[0])
-            bottom = min(EDGES[row + 1], INNER[1])
-            side = 0.74 * min(right - left, bottom - top)
-            cx, cy = (left + right) / 2, (top + bottom) / 2
-            if row in (0, 3) and column in (0, 3):
-                # A corner square: the frame rounds it off, the pawn keeps clear.
-                side *= 0.88
-                cx += 3 if column == 0 else -3
-                cy += 3 if row == 0 else -3
-            x = cx - side / 2
-            y = cy - side / 2
-            dark = (row + column) % 2 == 0
-            pawn(draw, x * SCALE, y * SCALE, side * SCALE, (255, 255, 255, 255) if dark else (0, 0, 0, 255))
-    big.resize(logo.size, Image.LANCZOS).save(ICONS / "pragma-chess-rich.png", optimize=True)
+            size = EDGES[1] - EDGES[0]
+            side = 0.74 * size
+            x = EDGES[column] + (size - side) / 2
+            y = EDGES[row] + (size - side) / 2
+            pawn(draw, x * SCALE, y * SCALE, side * SCALE, 255)
+    # Each pawn is the negative of what lies under it: white on the dark
+    # squares and on the frame, black on the light squares.
+    rgb, alpha = big.convert("RGB"), big.getchannel("A")
+    inverted = ImageOps.invert(rgb)
+    painted = Image.composite(inverted, rgb, mask)
+    painted.putalpha(alpha)
+    painted.resize(logo.size, Image.LANCZOS).save(ICONS / "pragma-chess-rich.png", optimize=True)
 
 
 if __name__ == "__main__":

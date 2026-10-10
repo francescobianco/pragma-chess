@@ -9,14 +9,14 @@
 struct WorkspaceLayout {
     bool toolbar = true;
     bool moves = true;
-    bool openingTree = false;
+    bool openingTree = true;
     bool engine = true;
     bool games = true;
 
     /// Height of the Games panel (tree and list), of the usable height.
     double gamesHeight = 32;
     /// Width of the Moves panel in its row with the Opening Tree.
-    double movesWidth = 50;
+    double movesWidth = 33.33;
     /// Height of the Engine panel, of the height right of the board.
     double engineHeight = 25;
     /// Width of the database tree in the Games panel.

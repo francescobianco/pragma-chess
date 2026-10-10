@@ -504,6 +504,9 @@ make test     # build and run the tests (ctest)
 make stockfish  # build the bundled Stockfish into the build (build/gui/qt/engines; start and run do it once when missing)
 ./build/gui/qt/pragma-explain --trace "1.e4 e5 2.Nf3 d6 3.Nxe5"   # Explain on the command line
 make start    # launch, rebuild and restart on every change (interactive, long-running)
+make fresh-start  # the same, but every launch is a first launch: an empty home of its
+                 # own (build/fresh-home, emptied at each restart; the desktop's theme
+                 # and fonts linked from the real one), to tune what a new user finds
 make clean
 ```
 

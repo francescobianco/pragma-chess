@@ -38,13 +38,19 @@ GENERATOR :=$(if $(shell command -v ninja),-G Ninja,)
 
 PREFIX ?= $(HOME)/.local
 
-.PHONY: help start build run test install desktop-dev configure clean deps stockfish engine site
+.PHONY: help start fresh-start build run test install desktop-dev configure clean deps stockfish engine site
 
 help: ## Show available targets
-	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-10s %s\n", $$1, $$2}'
+	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-12s %s\n", $$1, $$2}'
 
 start: configure engine desktop-dev ## Launch the GUI and rebuild/restart it on every source change
 	@BUILD_DIR=$(BUILD_DIR) ./scripts/dev-watch.sh
+
+# The first launch after installing, again at every restart: settings, data
+# and the chess folder start empty in build/fresh-home (kept until the next
+# launch, to look at what the first run wrote).
+fresh-start: configure engine desktop-dev ## Like start, but every launch is a first launch (empty home)
+	@BUILD_DIR=$(BUILD_DIR) FRESH_HOME="$(abspath $(BUILD_DIR))/fresh-home" ./scripts/dev-watch.sh
 
 build: configure ## Build the GUI once
 	@$(CMAKE) --build $(BUILD_DIR)

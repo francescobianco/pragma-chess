@@ -9,6 +9,9 @@ APP="$BUILD_DIR/gui/qt/pragma-chess"
 [[ "$(uname)" == Darwin ]] && APP="$APP.app/Contents/MacOS/pragma-chess" # a bundle
 WATCH_PATHS=(gui/qt smart CMakeLists.txt) # smart/: the SMART programs are built into the app
 POLL_INTERVAL="${POLL_INTERVAL:-1}"
+# make fresh-start: every launch is a first launch, in a home of its own
+# emptied each time (settings, data, the chess folder), as if just installed.
+FRESH_HOME="${FRESH_HOME:-}"
 
 app_pid=""
 
@@ -22,7 +25,27 @@ stop_app() {
     app_pid=""
 }
 
+# Empties FRESH_HOME and lays out a new user's home in it. The desktop's own
+# settings (theme, dark mode, fonts, the folder names) are linked from the
+# real home: a new user of the application is not a new user of the desktop.
+fresh_home() {
+    local real="$HOME" config="${XDG_CONFIG_HOME:-$HOME/.config}" item
+    rm -rf "$FRESH_HOME"
+    mkdir -p "$FRESH_HOME/.config" "$FRESH_HOME/.local/share" "$FRESH_HOME/.cache"
+    for item in dconf gtk-3.0 gtk-4.0 fontconfig user-dirs.dirs user-dirs.locale kdeglobals; do
+        [[ -e "$config/$item" ]] && ln -s "$config/$item" "$FRESH_HOME/.config/$item"
+    done
+    log "fresh home: $FRESH_HOME (the real one, $real, is not touched)"
+}
+
 start_app() {
+    local env_fresh=()
+    if [[ -n "$FRESH_HOME" ]]; then
+        fresh_home
+        env_fresh=(-u PRAGMA_CHESS_DIR HOME="$FRESH_HOME" XDG_CONFIG_HOME="$FRESH_HOME/.config"
+                   XDG_DATA_HOME="$FRESH_HOME/.local/share" XDG_CACHE_HOME="$FRESH_HOME/.cache"
+                   XDG_STATE_HOME="$FRESH_HOME/.local/state")
+    fi
     # Another build (make build, a test run) may still be writing the binary:
     # launching it then fails with "Text file busy" (exit 126), so wait and retry.
     local attempt status
@@ -32,7 +55,8 @@ start_app() {
         # the shell (a terminal, an IDE): handed to every restart, GNOME
         # refuses it and marks the window as demanding attention, which keeps
         # the Ubuntu Dock out over it.
-        env -u XDG_ACTIVATION_TOKEN -u DESKTOP_STARTUP_ID PRAGMA_DEV_API=1 "$APP" "$@" &
+        env -u XDG_ACTIVATION_TOKEN -u DESKTOP_STARTUP_ID \
+            ${env_fresh[@]+"${env_fresh[@]}"} PRAGMA_DEV_API=1 "$APP" "$@" &
         app_pid=$!
         sleep 0.3
         if kill -0 "$app_pid" 2>/dev/null; then

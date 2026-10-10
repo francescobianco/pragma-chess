@@ -428,6 +428,22 @@ Il Nero ha catturato: %2</translation>
         <source>Relays: %1 of %2</source>
         <translation>Relay: %1 di %2</translation>
     </message>
+    <message>
+        <source>Pragma Chess for your phone</source>
+        <translation>Pragma Chess per il telefono</translation>
+    </message>
+    <message>
+        <source>For Android phones and tablets; it is coming to the stores. Install it, then scan the code below with it.</source>
+        <translation>Per telefoni e tablet Android; presto anche negli store. Installala, poi inquadra con l&apos;app il codice qui sotto.</translation>
+    </message>
+    <message>
+        <source>Download the APK for</source>
+        <translation>Scarica l&apos;APK per</translation>
+    </message>
+    <message>
+        <source>Coming soon on</source>
+        <translation>Presto su</translation>
+    </message>
 </context>
 <context>
     <name>ConnectSourceWizard</name>

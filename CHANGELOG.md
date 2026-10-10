@@ -118,6 +118,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Connect Mobile App** shows the app as the phone does, with its icon,
+  and where to get it: the Android APK, and Google Play, F-Droid and the App
+  Store marked as coming soon. The Android app's icon is the new logo.
 - On Linux the application's icon is the rich logo, the pieces on the
   board, wherever it is shown large enough to read (GNOME's dock, the
   applications grid, Alt+Tab).

@@ -1,6 +1,7 @@
 #include "DesktopApi.h"
 #ifdef PRAGMA_HAS_PHONE_LINK
 #include "app/lobby/net/LobbyIdentity.h"
+#include "dialogs/ConnectMobileDialog.h"
 #endif
 #include "dialogs/PersonalSettingsDialog.h"
 #include "widgets/HelpButton.h"
@@ -399,6 +400,21 @@ void DesktopApi::addRoutes()
         picture.save(&buffer, "PNG");
         return Response{200, "image/png", png};
     });
+#ifdef PRAGMA_HAS_PHONE_LINK
+    // File ▸ Connect Mobile App…: its picture.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/connect-mobile"), [w](const Request &) {
+        if (!w->m_phoneLink)
+            return LocalHttpServer::error(503, QStringLiteral("no phone link in this run"));
+        ConnectMobileDialog dialog(w->m_phoneLink, w);
+        dialog.show();
+        QApplication::processEvents();
+        QByteArray png;
+        QBuffer buffer(&png);
+        buffer.open(QIODevice::WriteOnly);
+        dialog.grab().save(&buffer, "PNG");
+        return Response{200, "image/png", png};
+    });
+#endif
     // Options ▸ Personal Settings…: its picture, as the window opens it (the
     // lobby key, where there is one, hidden as there).
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/personal-settings"), [w](const Request &) {

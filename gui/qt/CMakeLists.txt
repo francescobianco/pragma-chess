@@ -489,6 +489,8 @@ qt_add_executable(pragma-chess
     src/widgets/GlyphMenuAction.cpp
     src/widgets/HelpButton.cpp
     src/widgets/HelpButton.h
+    src/widgets/StoreBadge.cpp
+    src/widgets/StoreBadge.h
     src/widgets/GlyphMenuAction.h
     src/widgets/MoveTreeView.cpp
     src/widgets/MoveTreeView.h

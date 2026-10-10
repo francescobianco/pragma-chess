@@ -1,6 +1,7 @@
 #include "ConnectMobileDialog.h"
 
 #include "widgets/PaddedHeaderView.h"
+#include "widgets/StoreBadge.h"
 
 #include "app/phone/PhoneLink.h"
 
@@ -9,6 +10,7 @@
 #include <QDialogButtonBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QFrame>
 #include <QImage>
 #include <QLabel>
 #include <QLineEdit>
@@ -52,6 +54,10 @@ QString when(const QDateTime &time)
     return time.isValid() ? QLocale().toString(time.toLocalTime(), QLocale::ShortFormat) : QString();
 }
 
+constexpr int kAppIconSize = 64;
+// The APK of the latest release: the site's and the README's permanent link.
+constexpr char kApkUrl[] = "https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-android.apk";
+
 } // namespace
 
 ConnectMobileDialog::ConnectMobileDialog(PhoneLink *link, QWidget *parent)
@@ -64,6 +70,35 @@ ConnectMobileDialog::ConnectMobileDialog(PhoneLink *link, QWidget *parent)
     , m_status(new QLabel)
 {
     setWindowTitle(tr("Connect Mobile App"));
+
+    // The app as the phone shows it, to know it at a glance, and where to get it.
+    auto *appIcon = new QLabel;
+    const QPixmap rich(QStringLiteral(":/icons/pragma-chess-rich.png"));
+    const qreal ratio = devicePixelRatioF();
+    QPixmap icon = rich.scaled(QSize(kAppIconSize, kAppIconSize) * ratio, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    icon.setDevicePixelRatio(ratio);
+    appIcon->setPixmap(icon);
+    appIcon->setFixedSize(kAppIconSize, kAppIconSize);
+    auto *appTitle = new QLabel(tr("Pragma Chess for your phone"));
+    QFont titleFont = appTitle->font();
+    titleFont.setBold(true);
+    titleFont.setPointSizeF(titleFont.pointSizeF() * 1.25);
+    appTitle->setFont(titleFont);
+    auto *appText = new QLabel(tr("For Android phones and tablets; it is coming to the stores. Install it, then scan "
+                                  "the code below with it."));
+    appText->setWordWrap(true);
+    auto *appWords = new QVBoxLayout;
+    appWords->addWidget(appTitle);
+    appWords->addWidget(appText);
+    auto *appRow = new QHBoxLayout;
+    appRow->addWidget(appIcon, 0, Qt::AlignTop);
+    appRow->addSpacing(8);
+    appRow->addLayout(appWords, 1);
+    auto *badges = new QHBoxLayout;
+    badges->setSpacing(8);
+    badges->addWidget(new StoreBadge(tr("Download the APK for"), QStringLiteral("Android"), QUrl(QString::fromLatin1(kApkUrl))));
+    for (const char *store : {"Google Play", "F-Droid", "App Store"})
+        badges->addWidget(new StoreBadge(tr("Coming soon on"), QString::fromLatin1(store), QUrl()));
 
     auto *intro = new QLabel(tr("Scan this code with Pragma Chess on your phone or tablet. It copies your databases "
                                 "to the device, and the games you play there come back to this computer."));
@@ -104,7 +139,16 @@ ConnectMobileDialog::ConnectMobileDialog(PhoneLink *link, QWidget *parent)
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
+    auto *line = new QFrame;
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Sunken);
+
     auto *layout = new QVBoxLayout(this);
+    layout->addLayout(appRow);
+    layout->addSpacing(6);
+    layout->addLayout(badges);
+    layout->addSpacing(4);
+    layout->addWidget(line);
     layout->addWidget(intro);
     layout->addWidget(m_code);
     layout->addLayout(linkRow);
@@ -113,8 +157,9 @@ ConnectMobileDialog::ConnectMobileDialog(PhoneLink *link, QWidget *parent)
     layout->addWidget(m_devices);
     layout->addWidget(m_noDevices);
     layout->addWidget(m_status);
+    layout->addStretch(); // Room left over goes under the list, not between the parts.
     layout->addWidget(buttons);
-    resize(520, 640);
+    resize(560, 700);
 
     connect(m_link, &PhoneLink::pairingLinkChanged, this, &ConnectMobileDialog::updateCode);
     connect(m_link, &PhoneLink::devicesChanged, this, &ConnectMobileDialog::updateDevices);

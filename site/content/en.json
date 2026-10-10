@@ -14,6 +14,7 @@
     "download": "Download",
     "supporters": "Supporters",
     "support": "Support",
+    "guide": "Guide",
     "blog": "Blog"
   },
   "hero": {
@@ -169,9 +170,9 @@
     "items": [
       {
         "title": "Guide",
-        "text": "The guide is built into the application (Help ▸ Pragma Chess Guide, F1), with a search field, in English and Italian.",
-        "link": "",
-        "link_text": ""
+        "text": "The guide is built into the application (Help ▸ Pragma Chess Guide, F1), with a search field, in English and Italian — and here on the site.",
+        "link": "guide/",
+        "link_text": "Read the guide"
       },
       {
         "title": "Report a problem",
@@ -213,6 +214,11 @@
     "join_text": "Introduce Pragma Chess to your members, then tell us how it went in our WhatsApp group and send us your logo there.",
     "join_button": "Join the WhatsApp group",
     "whatsapp": "https://chat.whatsapp.com/GHBDbRkejmYJ8Hev585ZCj"
+  },
+  "guide": {
+    "title": "Guide",
+    "page_title": "Guide – Pragma Chess",
+    "lead": "The guide of Pragma Chess, as the application has it (Help ▸ Pragma Chess Guide, F1): every topic, from the first steps to playing online."
   },
   "blog": {
     "title": "Blog",

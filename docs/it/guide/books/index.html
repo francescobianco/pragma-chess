@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Libri delle aperture – Guida – Pragma Chess</title>
+<meta name="description" content="Un libro delle aperture è un file Polyglot .bin: le mosse conosciute in ogni posizione, ciascuna con un peso.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/books/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/books/">
+<meta property="og:title" content="Libri delle aperture – Guida – Pragma Chess">
+<meta property="og:description" content="Un libro delle aperture è un file Polyglot .bin: le mosse conosciute in ogni posizione, ciascuna con un peso.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funzioni</a>
+    <a href="../../#screenshots">Schermate</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Sostenitori</a>
+    <a href="../../#support">Supporto</a>
+    <a href="../../../it/guide/" class="current">Guida</a>
+    <a href="../../../it/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/books/" hreflang="en">English</a><a href="../../../it/guide/books/" hreflang="it" class="current">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guida</a></p>
+  <header>
+    <h1>Libri delle aperture</h1>
+  </header>
+  <p>Un libro delle aperture è un file Polyglot <code>.bin</code>: le mosse conosciute in ogni posizione, ciascuna con un peso. L'icona del libro nella barra degli strumenti apre l'elenco dei libri della tua cartella dei libri.</p>
+<ul><li><strong>Libro ▸ Nuovo libro…</strong> e <strong>Libro ▸ Apri libro…</strong> creano un libro o ne aprono uno da qualunque posizione.</li><li><strong>Libro ▸ Cambia libro</strong> elenca i libri della cartella: scegline uno per usarlo, oppure <strong>Nessun libro</strong> per lavorare senza. <strong>Mostra cartella dei libri</strong>, in fondo, apre la cartella nel gestore dei file.</li></ul>
+<p>Il pannello <strong>Albero delle aperture</strong> mostra, per la posizione sulla scacchiera, ogni mossa del libro con la sua parte del peso, il nome dell'apertura a cui porta e come sono andate dopo quella mossa le partite del database aperto (partite, poi vittorie del Bianco / patte / vittorie del Nero). Clicca una mossa per giocarla; la prima riga ritira l'ultima mossa.</p>
+<p><strong>Il tuo repertorio</strong>: clic destro su una mossa dell'Albero delle aperture e scegli <strong>Metti nel repertorio</strong>. Le mosse del repertorio sono elencate per prime, in grassetto. Il segno è scritto nel file del libro e gli altri programmi lo ignorano.</p>
+<p><strong>I pesi</strong>: lo stesso menu ha <strong>Regola peso</strong>, con +5%, +10%, +25%, +50%, +100%, gli stessi in negativo e <strong>Azzera peso</strong>. La percentuale è della quota della mossa stessa, e la somma della posizione resta sempre 100%: quel che una mossa guadagna lo cedono le altre in proporzione a quanto hanno — le più pesanti di più — e quel che perde torna a loro allo stesso modo. Una mossa allo 0%, o con meno dell'1%, non può crescere per percentuale di sé stessa, quindi un aumento prima le ruba l'1% dalle altre e cresce da lì; una diminuzione di una mossa allo 0% non fa nulla. Azzera peso dà tutta la quota della mossa alle altre che ne hanno. Le modifiche sono scritte nel libro in uso. L'elenco viene riordinato, e la mossa che hai cambiato brilla per un momento ed è segnata, a sinistra del suo peso, con ↑ se è salita, ↓ se è scesa, = se è rimasta dov'era; il segno resta finché non lasci la posizione.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../online/">← Giocare online</a>
+    <a class="next" href="../opening-names/">Nomi delle aperture →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess è software libero con licenza MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novità</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Segnalazioni</a></p>
+  <p class="languages"><a href="../../../en/guide/books/" hreflang="en">English</a><a href="../../../it/guide/books/" hreflang="it" class="current">Italiano</a></p>
+  <p class="credits">Costruito con Qt. Motore predefinito: Stockfish (GPL v3). Nomi delle aperture da lichess-org/chess-openings (CC0). Pezzi: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

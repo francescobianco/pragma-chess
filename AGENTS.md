@@ -1829,7 +1829,12 @@ session at 1920×1200, maximized, cropped of the top bar and scaled to 1440
 40 s) is recorded there too, through `org.gnome.Mutter.ScreenCast` and
 `gst-launch-1.0 pipewiresrc ! videocrop top=32 ! vp8enc ! webmmux`, while
 the keys drive the Opera game to 14.Rd1 and press E; replace them when the
-interface changes. The **blog** is `site/blog/<slug>/`: the article in every
+interface changes. The **guide** is published too: `build.py` reads the
+application's own `gui/qt/resources/help/guide_<lang>.md` (paragraphs, `- `
+lists, bold, italic, code) and writes a page for each topic under
+`docs/<lang>/guide/<id>/` and their list under `docs/<lang>/guide/`, linked
+from the menu and from Support: after changing the guide, run `make site`
+too. The **blog** is `site/blog/<slug>/`: the article in every
 language, `<lang>.html` (a head of `title:`/`summary:` lines between `---`
 lines, then HTML), `meta.json` (`date`, the `image` of the list) and its
 pictures; `build.py` writes `docs/<lang>/blog/` (the list, newest first)

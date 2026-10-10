@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motori – Guida – Pragma Chess</title>
+<meta name="description" content="Motore ▸ Analisi (Ctrl+E) accende e spegne l'analisi della posizione sulla scacchiera.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/engine/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/engine/">
+<meta property="og:title" content="Motori – Guida – Pragma Chess">
+<meta property="og:description" content="Motore ▸ Analisi (Ctrl+E) accende e spegne l'analisi della posizione sulla scacchiera.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funzioni</a>
+    <a href="../../#screenshots">Schermate</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Sostenitori</a>
+    <a href="../../#support">Supporto</a>
+    <a href="../../../it/guide/" class="current">Guida</a>
+    <a href="../../../it/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/engine/" hreflang="en">English</a><a href="../../../it/guide/engine/" hreflang="it" class="current">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guida</a></p>
+  <header>
+    <h1>Motori</h1>
+  </header>
+  <p><strong>Motore ▸ Analisi</strong> (Ctrl+E) accende e spegne l'analisi della posizione sulla scacchiera. Il pannello Motore mostra il punteggio — sempre dal lato del Bianco: positivo è buono per il Bianco —, la profondità e la linea migliore. La barra accanto alla scacchiera mostra lo stesso punteggio. Un clic sul punteggio lo mostra in un altro modo, a turno: assoluto (dal lato del Bianco, come lo dà il motore), per chi ha il tratto, le probabilità di chi ha il tratto e il giudizio che stampa un libro di scacchi (=, ⩲, ±, +− e i loro opposti, dal lato del Bianco). Il pallino davanti al valore è la sua unità di misura: metà bianco e metà nero per il lato del Bianco, del colore di chi ha il tratto per il suo; i simboli del libro non ne hanno. Le probabilità sono il punteggio atteso in percentuale: quanto quel colore porta a casa in media da una posizione così, contando 1 la vittoria e ½ la patta — 50% è parità, un pedone in più circa il 59%, tre pedoni circa il 75% (la curva che usa lichess, e la barra accanto alla scacchiera). Il suggerimento li dà tutti e quattro insieme; la scelta viene salvata nel progetto. Accanto al punteggio, nello stesso riquadro, l'andamento della partita: un pallino per ogni mossa di cui si conosce la valutazione (quella trovata dal motore, o quelle scritte nella partita, come le scrive lichess), uniti da una linea, sopra la mediana della parità. L'altezza cresce più lentamente del vantaggio: mezzo pedone si vede già, un pedone arriva quasi a metà, due sono meno del doppio, dieci e il matto arrivano al bordo. Il vantaggio del Bianco va verso il lato del Bianco sulla scacchiera, come nella barra, quindi il grafico si gira con la scacchiera; la mossa sulla scacchiera è segnata. Un clic su un pallino porta a quella mossa. Venti mosse riempiono la larghezza; una partita più lunga vi si stringe, senza mai scorrere.</p>
+<p><strong>Per vedere dove porta la linea</strong>, tieni premuto l'occhio accanto a Ferma: finché lo tieni, la scacchiera mostra la posizione alla fine della linea del motore, come se tutte le sue mosse fossero giocate, e segue il motore: quando il motore trova un'altra linea, la scacchiera va dove finisce quella nuova. Rilascia e torna la tua posizione. Su quella posizione, frecce viola mostrano i piani che la linea contiene: la strada fatta da un pezzo per arrivarci (il giro di un cavallo, una torre che si alza, la donna che cambia ala), la marcia del re in un finale, un pedone che corre o rompe. Una freccia che gira passa per le case dove il pezzo si è fermato. Gli scambi e le mosse forzate da uno scacco non sono piani: una linea fatta solo di quelli non mostra frecce.</p>
+<p>Pragma Chess arriva con Stockfish, e funziona con qualunque motore UCI.</p>
+<ul><li><strong>Motore ▸ Cambia motore</strong> sceglie tra i motori di questo computer. L'icona del motore nella barra degli strumenti apre lo stesso elenco.</li><li><strong>Motore ▸ Gestisci motori…</strong> aggiunge, modifica e rimuove motori. <strong>Rileva motori</strong> trova quelli installati sul computer; <strong>Usa questo motore</strong> passa a quello selezionato.</li><li><strong>Potenza di calcolo</strong>, nella stessa finestra, è quanta parte del computer il motore può usare mentre analizza, da <strong>Minima</strong> (3% del processore) a <strong>Piena</strong> (tutto, senza limiti); <strong>Media</strong>, 10%, è quella da cui parte ogni motore. A ogni livello il motore è forte uguale, solo più lento: riceve meno thread, una priorità più bassa e, su Linux e Windows, un tetto alla sua parte del processore, così le ventole restano tranquille e il resto del computer libero. I <strong>Thread</strong>, se li imposti, valgono più del livello.</li></ul>
+<p>Il motore in uso fa parte del progetto.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../explain/">← Spiega</a>
+    <a class="next" href="../training/">Allenamento →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess è software libero con licenza MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novità</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Segnalazioni</a></p>
+  <p class="languages"><a href="../../../en/guide/engine/" hreflang="en">English</a><a href="../../../it/guide/engine/" hreflang="it" class="current">Italiano</a></p>
+  <p class="credits">Costruito con Qt. Motore predefinito: Stockfish (GPL v3). Nomi delle aperture da lichess-org/chess-openings (CC0). Pezzi: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

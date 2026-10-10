@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sync – Guide – Pragma Chess</title>
+<meta name="description" content="Sync keeps your Pragma folder — databases and projects — the same on several computers, through a folder on a server.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/sync/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/sync/">
+<meta property="og:title" content="Sync – Guide – Pragma Chess">
+<meta property="og:description" content="Sync keeps your Pragma folder — databases and projects — the same on several computers, through a folder on a server.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Features</a>
+    <a href="../../#screenshots">Screenshots</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Supporters</a>
+    <a href="../../#support">Support</a>
+    <a href="../../../en/guide/" class="current">Guide</a>
+    <a href="../../../en/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/sync/" hreflang="en" class="current">English</a><a href="../../../it/guide/sync/" hreflang="it">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guide</a></p>
+  <header>
+    <h1>Sync</h1>
+  </header>
+  <p>Sync keeps your Pragma folder — databases and projects — the same on several computers, through a folder on a server.</p>
+<p><strong>Options ▸ Sync Settings…</strong> sets it up: an <strong>FTP</strong> server (also with TLS), a <strong>WebDAV</strong> server or a <strong>Git repository</strong>. <strong>Test Connection</strong> checks it.</p>
+<p><strong>File ▸ Sync Now</strong> (Ctrl+Y, also the first button of the toolbar) does everything in order: reads the sources, saves the project and exchanges the files with the server. <strong>Sync before closing</strong> does it every time you quit.</p>
+<p>Sync deletes nothing on its own: a database missing on one side is copied there, and a database changed on two computers is merged game by game. To get rid of a game use the trash, which the other computers follow.</p>
+<p>Each computer remembers what it synced last in a hidden file of its Pragma folder, <code>.pragma-chess.mine</code>, which never goes to the server. So it can tell a file you deleted by hand — in the file manager, say — from one it has yet to receive: at the next sync it asks whether to <strong>Delete Everywhere</strong>, <strong>Restore</strong> it, or <strong>Ask Me Later</strong> (asked again the next time you start Pragma Chess). Deleted everywhere, the file is removed from the server, and every other computer moves its copy to the trash at its next sync. A file someone changed on another computer meanwhile simply comes back.</p>
+<p>Files that belong to the server alone — the README and LICENSE of a Git repository, say — are listed in a <strong><code>.pragmaignore</code></strong> file at the root of the folder on the server, one per line, written as in <code>.gitignore</code> (<code>*.tmp</code>, <code>Notes/</code>, <code># a comment</code>). They stay on the server: they are never copied to your computers, a copy a computer received earlier leaves it at the next sync (one you changed there stays, but is no longer synced), and nothing of that name is sent from your computers.</p>
+<p><strong>Manage Files…</strong>, in the Sync Settings, lists the files in the folder on the server. Select some and press <strong>Delete…</strong> to clean up: after you confirm, they are deleted from every synced device, this computer included (into the trash), so they stop travelling between your computers.</p>
+<p>With a Git repository each sync that changes files makes one commit, named after them ("Update Databases/Games.pdb; add Projects/Study.pch"): a sync that only receives, or finds nothing new, leaves the history alone.</p>
+<p><strong>Options ▸ Connect Mobile App…</strong> shows a code to scan with Pragma Chess on your phone, which then keeps a copy of your databases.</p>
+<p>When you delete a database on the phone, the computer asks you at its next sync with the phone whether to delete it here too or keep it: <strong>Keep It</strong> leaves it on the computer, <strong>Ask Me Later</strong> asks again the next time you start Pragma Chess, and <strong>Delete Everywhere…</strong> warns you first that the database will be deleted from every synced device — it goes to the trash on this computer, it is removed from the sync folder on the server, and the other computers that sync with it delete their copy. Either way the phone does not receive it again.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../chapters/">← Chapters and paragraphs</a>
+    <a class="next" href="../language/">Language →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess is free software under the MIT License. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">What's new</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="../../../en/guide/sync/" hreflang="en" class="current">English</a><a href="../../../it/guide/sync/" hreflang="it">Italiano</a></p>
+  <p class="credits">Built with Qt. Default engine: Stockfish (GPL v3). Opening names from lichess-org/chess-openings (CC0). Pieces: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

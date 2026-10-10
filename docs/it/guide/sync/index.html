@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sincronizzazione – Guida – Pragma Chess</title>
+<meta name="description" content="La sincronizzazione tiene uguale la tua cartella Pragma — database e progetti — su più computer, attraverso una cartella su un server.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/sync/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/sync/">
+<meta property="og:title" content="Sincronizzazione – Guida – Pragma Chess">
+<meta property="og:description" content="La sincronizzazione tiene uguale la tua cartella Pragma — database e progetti — su più computer, attraverso una cartella su un server.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funzioni</a>
+    <a href="../../#screenshots">Schermate</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Sostenitori</a>
+    <a href="../../#support">Supporto</a>
+    <a href="../../../it/guide/" class="current">Guida</a>
+    <a href="../../../it/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/sync/" hreflang="en">English</a><a href="../../../it/guide/sync/" hreflang="it" class="current">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guida</a></p>
+  <header>
+    <h1>Sincronizzazione</h1>
+  </header>
+  <p>La sincronizzazione tiene uguale la tua cartella Pragma — database e progetti — su più computer, attraverso una cartella su un server.</p>
+<p><strong>Opzioni ▸ Impostazioni di sincronizzazione…</strong> la imposta: un server <strong>FTP</strong> (anche con TLS), un server <strong>WebDAV</strong> o un <strong>repository Git</strong>. <strong>Prova connessione</strong> la verifica.</p>
+<p><strong>File ▸ Sincronizza ora</strong> (Ctrl+Y, anche primo bottone della barra degli strumenti) fa tutto in ordine: legge le sorgenti, salva il progetto e scambia i file con il server. <strong>Sincronizza prima di chiudere</strong> lo fa ogni volta che esci.</p>
+<p>La sincronizzazione non elimina niente di sua iniziativa: un database che manca da una parte viene copiato lì, e un database modificato su due computer viene unito partita per partita. Per liberarti di una partita usa il cestino, che gli altri computer seguono.</p>
+<p>Ogni computer ricorda cosa ha sincronizzato l'ultima volta in un file nascosto della sua cartella Pragma, <code>.pragma-chess.mine</code>, che non va mai sul server. Così distingue un file che hai eliminato a mano — dal file manager, per esempio — da uno che deve ancora ricevere: alla sincronizzazione successiva ti chiede cosa farne: <strong>Elimina ovunque</strong>, <strong>Ripristina</strong> o <strong>Chiedimelo più tardi</strong> (te lo richiede al prossimo avvio di Pragma Chess). Eliminato ovunque, il file viene tolto dal server e ogni altro computer sposta la sua copia nel cestino alla sincronizzazione successiva. Un file che nel frattempo qualcuno ha modificato su un altro computer torna semplicemente indietro.</p>
+<p>I file che appartengono solo al server — il README e la LICENSE di un repository Git, per esempio — si elencano in un file <strong><code>.pragmaignore</code></strong> nella radice della cartella sul server, uno per riga, scritti come in <code>.gitignore</code> (<code>*.tmp</code>, <code>Appunti/</code>, <code># un commento</code>). Restano sul server: non vengono mai copiati sui tuoi computer, la copia che un computer aveva già ricevuto se ne va alla sincronizzazione successiva (se l'avevi modificata lì resta, ma non viene più sincronizzata) e nessun file con quel nome parte dai tuoi computer.</p>
+<p><strong>Gestisci file…</strong>, nelle Impostazioni di sincronizzazione, elenca i file della cartella sul server. Selezionane alcuni e premi <strong>Elimina…</strong> per fare pulizia: dopo la conferma vengono eliminati da tutti i dispositivi sincronizzati, compreso questo computer (nel cestino), e smettono di girare tra i tuoi computer.</p>
+<p>Con un repository Git ogni sincronizzazione che cambia dei file fa un commit, che porta il loro nome ("Update Databases/Games.pdb; add Projects/Study.pch"): una sincronizzazione che riceve soltanto, o non trova niente di nuovo, lascia la storia com'è.</p>
+<p><strong>Opzioni ▸ Collega app mobile…</strong> mostra un codice da inquadrare con Pragma Chess sul telefono, che da quel momento tiene una copia dei tuoi database.</p>
+<p>Quando elimini un database sul telefono, il computer ti chiede alla sincronizzazione successiva con il telefono se eliminarlo anche qui o tenerlo: <strong>Tienilo</strong> lo lascia sul computer, <strong>Chiedimelo più tardi</strong> te lo chiede di nuovo al prossimo avvio di Pragma Chess, ed <strong>Elimina ovunque…</strong> ti avvisa prima che il database sarà eliminato da tutti i dispositivi sincronizzati — finisce nel cestino di questo computer, viene tolto dalla cartella di sincronizzazione sul server e gli altri computer che si sincronizzano con essa eliminano la loro copia. In ogni caso il telefono non lo riceve più.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../chapters/">← Capitoli e paragrafi</a>
+    <a class="next" href="../language/">Lingua →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess è software libero con licenza MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novità</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Segnalazioni</a></p>
+  <p class="languages"><a href="../../../en/guide/sync/" hreflang="en">English</a><a href="../../../it/guide/sync/" hreflang="it" class="current">Italiano</a></p>
+  <p class="credits">Costruito con Qt. Motore predefinito: Stockfish (GPL v3). Nomi delle aperture da lichess-org/chess-openings (CC0). Pezzi: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

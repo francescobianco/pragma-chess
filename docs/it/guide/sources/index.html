@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sorgenti di partite – Guida – Pragma Chess</title>
+<meta name="description" content="Una sorgente porta nel database aperto le tue partite da un sito e le tiene aggiornate.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/sources/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/sources/">
+<meta property="og:title" content="Sorgenti di partite – Guida – Pragma Chess">
+<meta property="og:description" content="Una sorgente porta nel database aperto le tue partite da un sito e le tiene aggiornate.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funzioni</a>
+    <a href="../../#screenshots">Schermate</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Sostenitori</a>
+    <a href="../../#support">Supporto</a>
+    <a href="../../../it/guide/" class="current">Guida</a>
+    <a href="../../../it/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/sources/" hreflang="en">English</a><a href="../../../it/guide/sources/" hreflang="it" class="current">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guida</a></p>
+  <header>
+    <h1>Sorgenti di partite</h1>
+  </header>
+  <p>Una sorgente porta nel database aperto le tue partite da un sito e le tiene aggiornate.</p>
+<p><strong>Database ▸ Collega sorgente…</strong> ne aggiunge una:</p>
+<ul><li><strong>lichess.org</strong>: le partite pubbliche dell'account; l'accesso è facoltativo e le scarica più in fretta;</li><li><strong>chess.com</strong>: il tuo nome utente;</li><li><strong>torneionline.com</strong>: il tuo numero FIDE o FSI, per le partite dei tornei che hai giocato.</li><li><strong>File ChessBase</strong>: un database ChessBase su questo computer: il formato classico (<code>.cbh</code> e i suoi file) o quello di ChessBase 17 e successivi (<code>.2cbh</code> e i suoi file). Scegli il file <code>.cbh</code> o <code>.2cbh</code>: le sue partite vengono copiate (da un <code>.2cbh</code> con le varianti, i commenti nella tua lingua quando ce ne sono in più lingue, i simboli, le case e le frecce colorate e le valutazioni del motore), i file restano dove sono e le partite aggiunte in seguito arrivano alla sincronizzazione successiva. Su un altro computer il file non c'è: la sincronizzazione lo dice e propone di ignorare la sorgente su quel computer; <em>Database ▸ Gestisci sorgenti… ▸ Modifica…</em> sceglie di nuovo il file, e <strong>Usa su questo computer</strong> smette di ignorarla.</li><li><strong>Lichess Study</strong>: uno studio su lichess.org. Incolla l'indirizzo della sua pagina (o di uno dei suoi capitoli) in <strong>Indirizzo dello studio</strong>: ogni capitolo diventa una partita del database, con i suoi commenti e le sue varianti, e i suoi tag <code>StudyName</code>, <code>ChapterName</code> e <code>ChapterURL</code> dicono di quale studio e capitolo si tratta (i capitoli dello studio non sono i capitoli di un progetto). Un capitolo cambiato su lichess.org sostituisce la sua partita alla sincronizzazione successiva, a meno che la partita sia cambiata anche qui: allora si tengono tutte e due. Uno studio pubblico non chiede un account; per uno privato, <strong>Accedi con lichess.org…</strong> con un account che può vederlo. Uno studio può essere visibile a tutti ma non scaricabile: il suo autore sceglie chi può esportarlo (<strong>Condividi ed esporta</strong> nelle impostazioni dello studio su lichess.org), e solo loro possono collegarlo. Per ora lo studio viene solo letto: la scrittura è in arrivo.</li><li><strong>File PGN</strong>: un file <code>.pgn</code> su questo computer, tenuto al passo con il database. Sceglilo con <strong>Sfoglia…</strong>, o creane uno vuoto con <strong>Nuovo file…</strong>, poi la <strong>Direzione</strong>: <strong>Leggi e scrivi</strong> (le partite del file entrano nel database e quelle del database vanno nel file, così una partita aggiunta o modificata da una parte arriva all'altra), <strong>Solo lettura</strong> (il file non viene mai scritto) o <strong>Solo scrittura</strong> (tutte le partite del database vanno nel file; le altre partite del file restano fuori dal database). Una partita che salvi, modifichi o annoti viene scritta nel file pochi secondi dopo. Niente di ciò che togli da una parte viene tolto dall'altra, e una partita modificata da entrambe le parti tra due sincronizzazioni viene tenuta due volte. Pragma Chess segna ogni partita che lega al database con un tag <code>PragmaUid</code>, e tiene un indice accanto al file in un file nascosto, così un file che non è cambiato non viene riletto.</li></ul>
+<p>Le sorgenti vengono lette quando il database viene aperto e ogni venti minuti. Una partita non viene mai importata due volte. <strong>Database ▸ Gestisci sorgenti…</strong> sincronizza subito una sorgente, la modifica, rifà l'accesso o la rimuove; le partite già importate restano.</p>
+<p>Il nodo <strong>Sorgente</strong> dell'albero elenca le partite di ogni sorgente.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../opening-names/">← Nomi delle aperture</a>
+    <a class="next" href="../trash/">Cestino →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess è software libero con licenza MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novità</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Segnalazioni</a></p>
+  <p class="languages"><a href="../../../en/guide/sources/" hreflang="en">English</a><a href="../../../it/guide/sources/" hreflang="it" class="current">Italiano</a></p>
+  <p class="credits">Costruito con Qt. Motore predefinito: Stockfish (GPL v3). Nomi delle aperture da lichess-org/chess-openings (CC0). Pezzi: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opening books – Guide – Pragma Chess</title>
+<meta name="description" content="An opening book is a Polyglot .bin file: the moves known in each position, each with a weight.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/books/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/books/">
+<meta property="og:title" content="Opening books – Guide – Pragma Chess">
+<meta property="og:description" content="An opening book is a Polyglot .bin file: the moves known in each position, each with a weight.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Features</a>
+    <a href="../../#screenshots">Screenshots</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Supporters</a>
+    <a href="../../#support">Support</a>
+    <a href="../../../en/guide/" class="current">Guide</a>
+    <a href="../../../en/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/books/" hreflang="en" class="current">English</a><a href="../../../it/guide/books/" hreflang="it">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guide</a></p>
+  <header>
+    <h1>Opening books</h1>
+  </header>
+  <p>An opening book is a Polyglot <code>.bin</code> file: the moves known in each position, each with a weight. The book icon of the toolbar drops down the books of your Books folder.</p>
+<ul><li><strong>Book ▸ New Book…</strong> and <strong>Book ▸ Open Book…</strong> create a book or open one from anywhere.</li><li><strong>Book ▸ Switch Book</strong> lists the books of the folder: choose one to use it, or <strong>No Book</strong> to work without one. <strong>Show Books Folder</strong>, at its end, opens the folder in the file manager.</li></ul>
+<p>The <strong>Opening Tree</strong> panel shows, for the position on the board, each move of the book with its share of the weight, the name of the opening it leads to and how the games of the open database went after it (games, then White wins / draws / Black wins). Click a move to play it; the first row takes the last move back.</p>
+<p><strong>Your repertoire</strong>: right-click a move of the Opening Tree and choose <strong>Add to Repertoire</strong>. Repertoire moves are listed first, in bold. The mark is stored in the book file and other programs ignore it.</p>
+<p><strong>Weights</strong>: the same menu has <strong>Adjust Weight</strong>, with +5%, +10%, +25%, +50%, +100%, the same downwards and <strong>Zero Weight</strong>. The percentage is of the move's own share, and the sum of the position always stays 100%: what a move gains the other moves give up in proportion to what they have — the heavy ones most — and what it loses goes back to them the same way. A move at 0%, or with less than 1%, cannot grow by a percentage of itself, so an increase first takes 1% from the others and grows from there; a decrease of a move at 0% does nothing. Zero Weight gives the move's whole share to the other moves that have some. The changes are written into the book in use. The list is sorted again, and the move you changed glows for a moment and is marked, left of its weight, with ↑ if it went up, ↓ if it went down, = if it stayed; the mark lasts until you leave the position.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../online/">← Playing online</a>
+    <a class="next" href="../opening-names/">Opening names →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess is free software under the MIT License. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">What's new</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="../../../en/guide/books/" hreflang="en" class="current">English</a><a href="../../../it/guide/books/" hreflang="it">Italiano</a></p>
+  <p class="credits">Built with Qt. Default engine: Stockfish (GPL v3). Opening names from lichess-org/chess-openings (CC0). Pieces: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

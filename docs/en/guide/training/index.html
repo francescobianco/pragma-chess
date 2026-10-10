@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Training – Guide – Pragma Chess</title>
+<meta name="description" content="Game ▸ New Training… (Ctrl+Shift+T) starts a game against the engine.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/training/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/training/">
+<meta property="og:title" content="Training – Guide – Pragma Chess">
+<meta property="og:description" content="Game ▸ New Training… (Ctrl+Shift+T) starts a game against the engine.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Features</a>
+    <a href="../../#screenshots">Screenshots</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Supporters</a>
+    <a href="../../#support">Support</a>
+    <a href="../../../en/guide/" class="current">Guide</a>
+    <a href="../../../en/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/training/" hreflang="en" class="current">English</a><a href="../../../it/guide/training/" hreflang="it">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guide</a></p>
+  <header>
+    <h1>Training</h1>
+  </header>
+  <p><strong>Game ▸ New Training…</strong> (Ctrl+Shift+T) starts a game against the engine. Choose White, Black or Random and press Start.</p>
+<p>While it is your move the engine hides its best line and shows only the score. When you have moved, it answers by itself, slowly, so that you see its move.</p>
+<p>As long as the position is in the <strong>opening book</strong>, the engine answers with a book move, choosing each as often as its weight says: adjust the weights in the Opening Tree to train against the lines you want, as often as you want. Out of the book it plays its own best move.</p>
+<p>The <strong>tutor</strong> watches your moves. When one is an <strong>inaccuracy</strong>, a <strong>mistake</strong>, a <strong>blunder</strong> or a <strong>missed chance</strong>, the engine does not answer; the border of the board turns red, the Engine panel says what happened and offers:</p>
+<ul><li><strong>Take Back</strong>: return to the position and try another move;</li><li><strong>Explain</strong>: the same Explain as the button under the board, turned on and off together with it: it shows on the board why the move is an error;</li><li><strong>Ignore</strong>: keep the move, and the engine answers.</li></ul>
+<p>You can go back in a training game and play a move again, even where the game goes on after it: a move you play on the board is your turn, so the engine answers and the tutor judges it (an answer other than the one already there starts a variation). Going through the moves with the arrows is only looking.</p>
+<p>Checkmate or stalemate ends the game, which is saved in the open database.</p>
+<p>Tick <strong>Remember for this session</strong> in the New Training window and the toolbar button will start the next trainings with the same choice, without asking. The menu always asks.</p>
+<p><strong>Engine ▸ Training Mode</strong> turns training on or off for the game on the board. Opening a game from the games list turns it off. If you close Pragma Chess while training, it starts again in training.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../engine/">← Engines</a>
+    <a class="next" href="../online/">Playing online →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess is free software under the MIT License. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">What's new</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="../../../en/guide/training/" hreflang="en" class="current">English</a><a href="../../../it/guide/training/" hreflang="it">Italiano</a></p>
+  <p class="credits">Built with Qt. Default engine: Stockfish (GPL v3). Opening names from lichess-org/chess-openings (CC0). Pieces: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

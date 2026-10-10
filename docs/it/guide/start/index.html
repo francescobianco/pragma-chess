@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Per iniziare – Guida – Pragma Chess</title>
+<meta name="description" content="Pragma Chess conserva le tue partite in database e te le fa studiare sulla scacchiera con un motore, un libro delle aperture e le tue annotazioni.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/start/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/start/">
+<meta property="og:title" content="Per iniziare – Guida – Pragma Chess">
+<meta property="og:description" content="Pragma Chess conserva le tue partite in database e te le fa studiare sulla scacchiera con un motore, un libro delle aperture e le tue annotazioni.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funzioni</a>
+    <a href="../../#screenshots">Schermate</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Sostenitori</a>
+    <a href="../../#support">Supporto</a>
+    <a href="../../../it/guide/" class="current">Guida</a>
+    <a href="../../../it/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/start/" hreflang="en">English</a><a href="../../../it/guide/start/" hreflang="it" class="current">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guida</a></p>
+  <header>
+    <h1>Per iniziare</h1>
+  </header>
+  <p>Pragma Chess conserva le tue partite in <strong>database</strong> e te le fa studiare sulla scacchiera con un motore, un libro delle aperture e le tue annotazioni.</p>
+<p>A ogni avvio si apre, sopra la finestra principale, la <strong>finestra di benvenuto</strong>: cosa puoi fare con Pragma Chess, poi i tuoi <strong>progetti</strong> e i tuoi <strong>database</strong>, letti dalle loro cartelle (un file che aggiungi lì compare). Fai clic su un progetto per aprirlo, su un database per aprirlo in un nuovo progetto, oppure su <strong>Nuovo progetto</strong>. Spunta <strong>Non mostrare questa finestra all'avvio</strong> per partire subito; <strong>Aiuto ▸ Benvenuto…</strong> la riapre quando vuoi.</p>
+<p>La finestra ha la <strong>scacchiera</strong> al centro e quattro pannelli attorno:</p>
+<ul><li><strong>Partite</strong>, in basso: l'albero del database aperto e la lista delle sue partite.</li><li><strong>Mosse</strong>: le mosse della partita sulla scacchiera.</li><li><strong>Albero delle aperture</strong>: le mosse del libro per la posizione sulla scacchiera.</li><li><strong>Motore</strong>: la valutazione, la linea migliore e l'apertura in cui si trova la partita.</li></ul>
+<p>La <strong>barra degli strumenti</strong> ha Sincronizza, Salva progetto, Nuova partita, Nuovo allenamento, Nuova partita online, Entra nella lobby (il bicchiere da martini) e tre icone per scegliere il libro delle aperture, il motore e il database in uso.</p>
+<p>Tutto quello che vedi — database, partita, mossa, pannelli — è un <strong>progetto</strong>: la prossima volta che avvii Pragma Chess lo ritrovi come l'hai lasciato.</p>
+<p>I tuoi file stanno nella cartella Pragma dentro la tua cartella degli scacchi (per esempio <code>Scacchi/Pragma</code> nella tua home), con <code>Databases</code>, <code>Projects</code> e <code>Books</code>. Al primo avvio ci trovi un database di partite classiche.</p>
+<p><strong>Opzioni ▸ Impostazioni personali…</strong> dice chi sei: il tuo nome, il tuo anno di nascita e il tuo ID FIDE. Il tuo nome va dalla tua parte in una nuova partita, in una partita da Inserisci posizione (dal lato in basso della scacchiera) e in un allenamento (col colore che hai scelto), a meno che il database aperto ti conosca già — vince il giocatore segnato come Io con <strong>Chi è?</strong>. Finché non dai un nome, Pragma Chess te ne dà uno, quello di un campione con tre cifre come <em>Spassky007</em>, diverso per ognuno, così nella lobby non si chiamano tutti allo stesso modo: lo trovi già scritto qui, da tenere o cambiare. <strong>Stile della scacchiera</strong> sceglie insieme i colori delle case e i pezzi: Pragma Classic (case marroni e i pezzi dei libri di scacchi) Lichess Alpha (la scacchiera verde e i pezzi Alpha di lichess.org) o Classic Book (il diagramma di un libro di scacchi stampato: carta antica, le case scure tratteggiate a inchiostro, un margine di carta attorno a ogni pezzo che vi sta sopra, e nessuna coordinata); tutte le scacchiere cambiano appena premi OK. Queste impostazioni stanno in <code>.pragma-chess.conf</code>, un file YAML nella tua cartella Pragma, che la sincronizzazione porta sugli altri tuoi computer anche se è nascosto; cambiato su due computer insieme, vince il più recente.</p>
+<p><strong>Opzioni ▸ Impostazioni cartelle…</strong> le sposta altrove su questo computer: la cartella Pragma stessa, oppure solo i database, i progetti, i libri o i nomi delle aperture. Lascia vuota una cartella per tenerla al suo posto solito. I file che ci sono già non vengono spostati, e le nuove cartelle si usano dal prossimo avvio di Pragma Chess. La sincronizzazione tiene uguale sugli altri computer solo ciò che sta dentro la cartella Pragma.</p>
+  <nav class="topic-steps">
+    
+    <a class="next" href="../databases/">Database →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess è software libero con licenza MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novità</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Segnalazioni</a></p>
+  <p class="languages"><a href="../../../en/guide/start/" hreflang="en">English</a><a href="../../../it/guide/start/" hreflang="it" class="current">Italiano</a></p>
+  <p class="credits">Costruito con Qt. Motore predefinito: Stockfish (GPL v3). Nomi delle aperture da lichess-org/chess-openings (CC0). Pezzi: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mosse e annotazioni – Guida – Pragma Chess</title>
+<meta name="description" content="Il pannello Mosse elenca la partita sulla scacchiera, con i pezzi disegnati come figurine.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/moves/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/moves/">
+<meta property="og:title" content="Mosse e annotazioni – Guida – Pragma Chess">
+<meta property="og:description" content="Il pannello Mosse elenca la partita sulla scacchiera, con i pezzi disegnati come figurine.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funzioni</a>
+    <a href="../../#screenshots">Schermate</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Sostenitori</a>
+    <a href="../../#support">Supporto</a>
+    <a href="../../../it/guide/" class="current">Guida</a>
+    <a href="../../../it/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/moves/" hreflang="en">English</a><a href="../../../it/guide/moves/" hreflang="it" class="current">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guida</a></p>
+  <header>
+    <h1>Mosse e annotazioni</h1>
+  </header>
+  <p>Il pannello Mosse elenca la partita sulla scacchiera, con i pezzi disegnati come figurine. Clicca una mossa per andarci.</p>
+<p>La linea principale è una tabella, una mossa per cella: clicca la cella per andare alla mossa. Le <strong>varianti</strong> hanno una riga tutta loro sotto la mossa che sostituiscono, più piccole, come testo; le varianti di una variante la seguono tra parentesi. Clicca una mossa di una variante per seguire quella linea: le frecce poi si muovono lungo di essa, e cliccando una mossa della linea principale si torna indietro. All'inizio di una variante, giocare la mossa della linea principale riprende la linea principale, e un'altra mossa apre una variante sorella. Le varianti sono salvate con la partita e viaggiano nel PGN che copi.</p>
+<p>Una partita scritta a mano può avere una <strong>mossa nulla</strong>, scritta <code>--</code>: chi ha il tratto passa, dove una mossa non era nota o per mostrare un piano (ChessBase e il PGN la scrivono così). È mostrata e copiata come <code>--</code>, le frecce la attraversano come ogni altra mossa e il motore analizza la posizione dopo di essa. Spiega non ha niente da dire su una mossa nulla; non si gioca mai in allenamento, online o nella lobby.</p>
+<p>Clic destro su una mossa per il suo menu:</p>
+<ul><li><strong>Copia ▸ Copia mossa</strong> e <strong>Copia ▸ Copia linea fino a qui</strong> mettono negli appunti la mossa, o la partita fino a lì.</li><li><strong>Annotazioni</strong> elenca i simboli con il significato di ciascuno.</li><li><strong>Varianti</strong>: su una mossa di una variante, <strong>Promuovi variante</strong> la fa diventare la linea da cui parte (le mosse che sostituiva diventano la sua variante, con le loro) e <strong>Elimina variante</strong> la toglie; su qualunque mossa, <strong>Elimina da qui</strong> toglie lei e le mosse dopo di lei sulla sua linea, con le loro varianti. Eliminare chiede prima conferma: non si può annullare.</li></ul>
+<p>Una mossa può avere un giudizio sulla mossa e una valutazione della posizione:</p>
+<ul><li><code>!!</code> mossa brillante, <code>!</code> buona mossa, <code>!?</code> mossa interessante, <code>?!</code> mossa dubbia, <code>?</code> errore, <code>??</code> errore grave, <code>□</code> mossa unica.</li><li><code>+−</code> il Bianco è in vantaggio decisivo, <code>±</code> il Bianco sta meglio, <code>⩲</code> il Bianco sta leggermente meglio, <code>=</code> posizione pari, <code>∞</code> posizione poco chiara, <code>⩱</code> <code>∓</code> <code>−+</code> lo stesso per il Nero.</li></ul>
+<p>Scegli il simbolo che la mossa ha già per toglierlo, oppure <strong>Nessuna annotazione</strong> per toglierli tutti. Le annotazioni sono salvate subito con la partita e vengono scritte quando copi la partita come PGN.</p>
+<p>I <strong>commenti</strong> — il testo tra le mosse di una partita PGN o di uno studio lichess — sono in corsivo: sotto la loro mossa nella linea principale, tra le mosse in una variante. I comandi che i programmi mettono nei commenti (una valutazione <code>[%eval 0.18]</code>, un orologio, delle frecce) restano con la partita ma non si vedono. I commenti si salvano nel database con la partita e si riscrivono quando la partita viene scritta in PGN.</p>
+<p>Fai doppio clic su un commento per scriverci, lì dov'è, come si scrive un paragrafo (Esc, Ctrl+Invio o un clic altrove finiscono; se lo svuoti, sparisce). Il clic destro su una mossa offre <strong>Aggiungi commento</strong> o <strong>Modifica commento</strong>, su un commento <strong>Modifica commento</strong> ed <strong>Elimina commento</strong>. I comandi che contiene restano com'erano. Le mosse scritte in un commento — "4.d4 cxd4 era meglio", "poi Qg5" — sono link: fai clic su una e la sua linea viene giocata sulla scacchiera come variante della partita (o viene presa la variante che è già), poi la segui con le frecce come le altre. Una mossa con il numero parte da quella mossa della linea; una senza numero continua dal commento, o prende il posto della mossa commentata. I cerchi e le frecce che uno studio lichess disegna sulle caselle (<code>[%csl …]</code>, <code>[%cal …]</code> nel commento) compaiono sulla scacchiera, nei loro colori, mentre è mostrata la posizione del loro commento.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../board/">← La scacchiera</a>
+    <a class="next" href="../explain/">Spiega →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess è software libero con licenza MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novità</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Segnalazioni</a></p>
+  <p class="languages"><a href="../../../en/guide/moves/" hreflang="en">English</a><a href="../../../it/guide/moves/" hreflang="it" class="current">Italiano</a></p>
+  <p class="credits">Costruito con Qt. Motore predefinito: Stockfish (GPL v3). Nomi delle aperture da lichess-org/chess-openings (CC0). Pezzi: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

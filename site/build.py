@@ -7,6 +7,11 @@ texts in content/<lang>.json, one file per language. The root index.html
 sends the browser to its language (en/ or it/); every page links to the
 other languages and to the download of the latest release.
 
+The guide is the application's own (gui/qt/resources/help/guide_<lang>.md,
+the same Markdown the Help window reads): a page for each topic under
+docs/<lang>/guide/<id>/ and their list under docs/<lang>/guide/, so it can
+be found and linked outside the application.
+
 The blog is blog/<slug>/: an article in every language, <lang>.html — a
 head of `key: value` lines (title, summary) between two `---` lines, then
 the article as HTML —, meta.json (date, the image of the list and of the
@@ -17,6 +22,7 @@ published in it.
     python3 site/build.py            # writes docs/
 """
 
+import html
 import json
 import re
 import shutil
@@ -24,6 +30,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT.parent / "docs"
+GUIDES = ROOT.parent / "gui" / "qt" / "resources" / "help"
 LANGUAGES = ["en", "it"]
 DEFAULT_LANGUAGE = "en"
 REPO = "francescobianco/pragma-chess"
@@ -98,6 +105,43 @@ def articles(lang):
     return sorted(found, key=lambda article: article["date"], reverse=True)
 
 
+TOPIC = re.compile(r"^# (.+?) \{#([\w-]+)\}\s*$", re.M)
+
+
+def inline(text):
+    """The guide's inline Markdown: **bold**, *italic*, `code`."""
+    text = html.escape(text, quote=False)
+    text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
+    text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
+    return re.sub(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])", r"<em>\1</em>", text)
+
+
+def markdown(text):
+    """Paragraphs and "- " lists, as the guide writes them."""
+    out = []
+    for block in re.split(r"\n\s*\n", text.strip()):
+        lines = [line for line in block.split("\n") if line.strip()]
+        if lines and all(line.startswith("- ") for line in lines):
+            out.append("<ul>" + "".join(f"<li>{inline(line[2:])}</li>" for line in lines) + "</ul>")
+        elif lines:
+            out.append(f"<p>{inline(' '.join(lines))}</p>")
+    return "\n".join(out)
+
+
+def guide_topics(lang):
+    """The topics of the application's guide in `lang`: id, title, body, the first sentence."""
+    text = (GUIDES / f"guide_{lang}.md").read_text(encoding="utf-8")
+    heads = list(TOPIC.finditer(text))
+    topics = []
+    for index, head in enumerate(heads):
+        body = text[head.end():heads[index + 1].start() if index + 1 < len(heads) else len(text)]
+        first = re.sub(r"[*`]", "", body.strip().split("\n")[0])
+        summary = first.split(". ")[0].rstrip(".") + "."
+        topics.append({"id": head.group(2), "title": head.group(1), "body": markdown(body),
+                       "summary": summary if len(summary) < 220 else summary[:217].rsplit(" ", 1)[0] + "…"})
+    return topics
+
+
 def languages_of(content, lang, path=""):
     """The language links of a page: the same page, `path` under each language's folder."""
     return [{"code": code, "name": content["language_names"][code], "current": code == lang,
@@ -142,6 +186,28 @@ def build():
                 "page": {"title": content["blog"]["page_title"], "description": content["blog"]["lead"],
                          "image": "../../assets/screenshots/hero.png"},
                 "languages": languages_of(content, lang, "blog/")}
+        # The guide: its topics, then each on a page of its own.
+        guide_page = (ROOT / "templates" / "guide.html").read_text(encoding="utf-8")
+        topic_page = (ROOT / "templates" / "topic.html").read_text(encoding="utf-8")
+        topics = guide_topics(lang)
+        guide = {**context, "root": "../../", "home": "../", "in_guide": True, "topics": topics,
+                 "page": {"title": content["guide"]["page_title"], "description": content["guide"]["lead"],
+                          "image": "../../assets/screenshots/guide.png"},
+                 "languages": languages_of(content, lang, "guide/")}
+        (OUT / lang / "guide").mkdir(exist_ok=True)
+        (OUT / lang / "guide" / "index.html").write_text(render(guide_page, guide), encoding="utf-8")
+        for index, topic in enumerate(topics):
+            target = OUT / lang / "guide" / topic["id"]
+            target.mkdir(exist_ok=True)
+            neighbours = {"previous": topics[index - 1] if index > 0 else {},
+                          "next": topics[index + 1] if index + 1 < len(topics) else {}}
+            page_context = {**context, "root": "../../../", "home": "../../", "in_guide": True, "topic": topic,
+                            "topics": topics, **neighbours,
+                            "page": {"title": f"{topic['title']} – {content['guide']['page_title']}",
+                                     "description": topic["summary"], "image": "../../../assets/screenshots/guide.png"},
+                            "languages": languages_of(content, lang, f"guide/{topic['id']}/")}
+            (target / "index.html").write_text(render(topic_page, page_context), encoding="utf-8")
+
         (OUT / lang / "blog").mkdir(exist_ok=True)
         (OUT / lang / "blog" / "index.html").write_text(render(blog_page, blog), encoding="utf-8")
         for post in posts:

@@ -14,6 +14,7 @@
     "download": "Download",
     "supporters": "Sostenitori",
     "support": "Supporto",
+    "guide": "Guida",
     "blog": "Blog"
   },
   "hero": {
@@ -169,9 +170,9 @@
     "items": [
       {
         "title": "Guida",
-        "text": "La guida è dentro l'applicazione (Aiuto ▸ Guida di Pragma Chess, F1), con un campo di ricerca, in italiano e inglese.",
-        "link": "",
-        "link_text": ""
+        "text": "La guida è dentro l’applicazione (Aiuto ▸ Guida di Pragma Chess, F1), con un campo di ricerca, in italiano e in inglese — e qui sul sito.",
+        "link": "guide/",
+        "link_text": "Leggi la guida"
       },
       {
         "title": "Segnala un problema",
@@ -213,6 +214,11 @@
     "join_text": "Fai conoscere Pragma Chess ai tuoi soci, poi raccontaci la tua esperienza nel nostro gruppo WhatsApp e mandaci lì il tuo logo.",
     "join_button": "Entra nel gruppo WhatsApp",
     "whatsapp": "https://chat.whatsapp.com/GHBDbRkejmYJ8Hev585ZCj"
+  },
+  "guide": {
+    "title": "Guida",
+    "page_title": "Guida – Pragma Chess",
+    "lead": "La guida di Pragma Chess, la stessa dell’applicazione (Aiuto ▸ Guida di Pragma Chess, F1): ogni argomento, dai primi passi al gioco online."
   },
   "blog": {
     "title": "Blog",

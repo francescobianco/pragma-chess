@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spiega – Guida – Pragma Chess</title>
+<meta name="description" content="Spiega mostra sulla scacchiera perché l'ultima mossa è buona o cattiva.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/explain/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/explain/">
+<meta property="og:title" content="Spiega – Guida – Pragma Chess">
+<meta property="og:description" content="Spiega mostra sulla scacchiera perché l'ultima mossa è buona o cattiva.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funzioni</a>
+    <a href="../../#screenshots">Schermate</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Sostenitori</a>
+    <a href="../../#support">Supporto</a>
+    <a href="../../../it/guide/" class="current">Guida</a>
+    <a href="../../../it/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/explain/" hreflang="en">English</a><a href="../../../it/guide/explain/" hreflang="it" class="current">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guida</a></p>
+  <header>
+    <h1>Spiega</h1>
+  </header>
+  <p><strong>Spiega</strong> mostra sulla scacchiera perché l'ultima mossa è buona o cattiva. Premi il bottone tra le frecce sotto la scacchiera, oppure il tasto <strong>E</strong>.</p>
+<p>Il motore guarda la posizione prima e dopo la mossa e disegna delle frecce:</p>
+<ul><li>frecce <strong>rosse</strong>: sta per cadere del materiale, e i pezzi che si perdono sono cerchiati;</li><li>frecce <strong>verdi</strong>: le idee della tua parte, le mosse che fanno la valutazione;</li><li>frecce <strong>blu</strong>: le mosse dell'altra parte — la risposta che fa la differenza quando ancora non si perde niente, o il suo piano; <em>la tua parte</em> è quella che giochi in allenamento, altrimenti quella in basso sulla scacchiera;</li><li>frecce <strong>rosse tratteggiate</strong>: una minaccia, un pezzo lasciato sotto attacco — «5.Dxf3 attacca la torre in a8», o quella a cui la tua mossa non ha risposto, «5…Dh4+ lascia la torre in a8 sotto attacco: 7.Dxa8»;</li><li>una freccia <strong>verde tratteggiata</strong>: la mossa migliore che avevi al posto della tua. Quando muove lo stesso pezzo che hai mosso tu — e quindi la casa da cui parte ora è vuota, perché quel pezzo è andato altrove — il pezzo è disegnato piccolo e trasparente dove doveva arrivare.</li></ul>
+<p>Un matto forzato viene giocato sulla scacchiera, dentro una cornice rossa. Il pannello Motore lo dice a parole, per esempio «Errore grave (+0.3 → −2.9). Il Nero vince un cavallo».</p>
+<p>Spiega legge l'analisi in corso nel pannello Motore: la spiegazione compare appena il motore ha cercato abbastanza a fondo, e si affina mentre va più a fondo — le frecce cambiano solo quando una nuova linea regge per un po'. La mossa viene giudicata rispetto alla posizione prima: se quella non è mai stata analizzata (sei arrivato direttamente alla mossa, o hai riaperto Pragma Chess lì), il motore la guarda prima, per un momento, e poi continua con la posizione sulla scacchiera. Fino alla prima risposta il bordo della scacchiera pulsa; diventa blu quando la spiegazione è pronta. Spiega riguarda una mossa sola: andando a un'altra mossa si spegne, e la chiedi di nuovo. Se chiudi Pragma Chess con Spiega acceso, si riapre acceso, sulla stessa mossa.</p>
+<p><strong>Modifica ▸ Copia ▸ Spiegazione</strong> copia il testo.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../moves/">← Mosse e annotazioni</a>
+    <a class="next" href="../engine/">Motori →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess è software libero con licenza MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novità</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Segnalazioni</a></p>
+  <p class="languages"><a href="../../../en/guide/explain/" hreflang="en">English</a><a href="../../../it/guide/explain/" hreflang="it" class="current">Italiano</a></p>
+  <p class="credits">Costruito con Qt. Motore predefinito: Stockfish (GPL v3). Nomi delle aperture da lichess-org/chess-openings (CC0). Pezzi: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

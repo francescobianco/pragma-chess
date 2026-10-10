@@ -8,6 +8,7 @@
     <a href="{{home}}#download">{{nav.download}}</a>
     <a href="{{home}}#supporters">{{nav.supporters}}</a>
     <a href="{{home}}#support">{{nav.support}}</a>
+    <a href="{{root}}{{lang}}/guide/"{{#if in_guide}} class="current"{{/if}}>{{nav.guide}}</a>
     <a href="{{root}}{{lang}}/blog/"{{#if in_blog}} class="current"{{/if}}>{{nav.blog}}</a>
     <a href="{{repo_url}}" rel="noopener">GitHub</a>
     <span class="languages">{{#each languages}}<a href="{{href}}" hreflang="{{code}}"{{#if current}} class="current"{{/if}}>{{name}}</a>{{/each}}</span>

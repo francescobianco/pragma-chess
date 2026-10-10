@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moves and annotations – Guide – Pragma Chess</title>
+<meta name="description" content="The Moves panel lists the game on the board, with the pieces drawn as figurines.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/moves/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/moves/">
+<meta property="og:title" content="Moves and annotations – Guide – Pragma Chess">
+<meta property="og:description" content="The Moves panel lists the game on the board, with the pieces drawn as figurines.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Features</a>
+    <a href="../../#screenshots">Screenshots</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Supporters</a>
+    <a href="../../#support">Support</a>
+    <a href="../../../en/guide/" class="current">Guide</a>
+    <a href="../../../en/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/moves/" hreflang="en" class="current">English</a><a href="../../../it/guide/moves/" hreflang="it">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guide</a></p>
+  <header>
+    <h1>Moves and annotations</h1>
+  </header>
+  <p>The Moves panel lists the game on the board, with the pieces drawn as figurines. Click a move to go there.</p>
+<p>The main line is a table, one move a cell: click the cell to go to the move. <strong>Variations</strong> take a row of their own under the move they replace, smaller, as text; a variation's own variations follow it in parentheses. Click a move of a variation to follow that line: the arrows then move along it, and clicking a move of the main line brings you back. At the start of a variation, playing the main line's move takes the main line again, and another move starts a sister variation. Variations are saved with the game and travel in the PGN you copy.</p>
+<p>A game written by hand may have a <strong>null move</strong>, written <code>--</code>: the side to move passes, where a move was not known or to show a plan (ChessBase and PGN write it so). It is shown and copied as <code>--</code>, the arrows go through it like any other move, and the engine analyses the position after it. Explain has nothing to say about a null move; it is never played in training, online or in the lobby.</p>
+<p>Right-click a move for its menu:</p>
+<ul><li><strong>Copy ▸ Copy Move</strong> and <strong>Copy ▸ Copy Line up to Here</strong> put the move, or the game up to it, on the clipboard.</li><li><strong>Annotations</strong> lists the symbols with what each one means.</li><li><strong>Variations</strong>: on a move of a variation, <strong>Promote Variation</strong> makes it the line it hangs off (the moves it replaced become its variation, with their own) and <strong>Delete Variation</strong> removes it; on any move, <strong>Delete from Here</strong> removes it and the moves after it on its line, with their variations. Deleting asks first: it cannot be undone.</li></ul>
+<p>A move can carry one judgement of the move and one assessment of the position:</p>
+<ul><li><code>!!</code> brilliant move, <code>!</code> good move, <code>!?</code> interesting move, <code>?!</code> dubious move, <code>?</code> mistake, <code>??</code> blunder, <code>□</code> only move.</li><li><code>+−</code> White is winning, <code>±</code> White is better, <code>⩲</code> White is slightly better, <code>=</code> equal, <code>∞</code> unclear, <code>⩱</code> <code>∓</code> <code>−+</code> the same for Black.</li></ul>
+<p>Choose the symbol a move already has to take it off, or <strong>No Annotation</strong> to clear them all. Annotations are saved with the game at once and are written when you copy the game as PGN.</p>
+<p><strong>Comments</strong> — the text between the moves of a PGN game or of a lichess study — are shown in italics: under their move in the main line, between the moves in a variation. The commands programs put in comments (an evaluation <code>[%eval 0.18]</code>, a clock, arrows) are kept with the game but not shown. Comments are saved in the database with the game and written back when the game is written as PGN.</p>
+<p>Double-click a comment to write in it, right there, as a paragraph is written (Esc, Ctrl+Enter or a click elsewhere ends; emptied, it goes). Right-click a move for <strong>Add Comment</strong> or <strong>Edit Comment</strong>, a comment for <strong>Edit Comment</strong> and <strong>Delete Comment</strong>. The commands in it stay as they were. The moves written in a comment — "4.d4 cxd4 was best", "then Qg5" — are links: click one and its line is played on the board as a variation of the game (or the variation it already is is taken), then followed with the arrows like any other. A numbered move starts from that move of the line; one without a number goes on from the comment, or replaces the move commented. The circles and arrows a lichess study draws on squares (<code>[%csl …]</code>, <code>[%cal …]</code> in the comment) are drawn on the board, in their colours, while the position of their comment is shown.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../board/">← The board</a>
+    <a class="next" href="../explain/">Explain →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess is free software under the MIT License. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">What's new</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="../../../en/guide/moves/" hreflang="en" class="current">English</a><a href="../../../it/guide/moves/" hreflang="it">Italiano</a></p>
+  <p class="credits">Built with Qt. Default engine: Stockfish (GPL v3). Opening names from lichess-org/chess-openings (CC0). Pieces: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

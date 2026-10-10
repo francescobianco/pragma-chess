@@ -236,3 +236,16 @@ section > .download-note, section > .formats, section > .clubs { max-width: var(
 @media (max-width: 560px) {
   .post-card { flex-direction: column; align-items: flex-start; }
 }
+
+/* The guide: its topics, then a topic a page. */
+.guide > .topics { max-width: 760px; margin: 0 auto; padding: 0; list-style: none; display: grid; gap: 0.6rem; }
+.topics a { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.9rem 1.1rem; border-radius: 10px;
+  background: var(--card, transparent); border: 1px solid var(--line, rgba(127,127,127,0.25)); }
+.topics a:hover { text-decoration: none; box-shadow: var(--shadow); }
+.topics strong { font-size: 1.1rem; }
+.topics span { color: var(--ink-soft); }
+.guide-topic ul { padding-left: 1.3rem; }
+.guide-topic li { font-size: 1.05rem; line-height: 1.65; margin-bottom: 0.45rem; }
+.guide-topic code { font-size: 0.92em; }
+.topic-steps { display: flex; justify-content: space-between; gap: 1rem; margin-top: 2.5rem; flex-wrap: wrap; }
+.topic-steps .next { margin-left: auto; text-align: right; }

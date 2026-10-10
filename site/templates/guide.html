@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+</head>
+<body>
+{{> header}}
+<main>
+<section class="blog guide">
+  <h1>{{guide.title}}</h1>
+  <p class="section-lead">{{guide.lead}}</p>
+  <ol class="topics">
+    {{#each topics}}<li><a href="{{id}}/"><strong>{{title}}</strong><span>{{summary}}</span></a></li>
+    {{/each}}
+  </ol>
+</section>
+</main>
+{{> footer}}
+<script src="{{root}}assets/site.js"></script>
+</body>
+</html>

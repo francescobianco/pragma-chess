@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The board – Guide – Pragma Chess</title>
+<meta name="description" content="Move a piece by dragging it, or by clicking it and then its square.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/board/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/board/">
+<meta property="og:title" content="The board – Guide – Pragma Chess">
+<meta property="og:description" content="Move a piece by dragging it, or by clicking it and then its square.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Features</a>
+    <a href="../../#screenshots">Screenshots</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Supporters</a>
+    <a href="../../#support">Support</a>
+    <a href="../../../en/guide/" class="current">Guide</a>
+    <a href="../../../en/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/board/" hreflang="en" class="current">English</a><a href="../../../it/guide/board/" hreflang="it">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guide</a></p>
+  <header>
+    <h1>The board</h1>
+  </header>
+  <p>Move a piece by dragging it, or by clicking it and then its square. A pawn reaching the last rank asks what to promote to.</p>
+<ul><li><strong>Left</strong> and <strong>Right</strong> go one move back and forward, <strong>Home</strong> and <strong>End</strong> to the start and the end. Clicking a move in the Moves panel goes there.</li><li><strong>View ▸ Flip Board</strong> (Ctrl+R) turns the board around; <strong>View ▸ Show Coordinates</strong> shows or hides the letters and numbers.</li><li><strong>Options ▸ Graphics Settings…</strong> chooses the <strong>Appearance</strong> — Follow the System (the default), or always Light or always Dark, whatever the system says —, where the captured pieces are shown, whether to show whose turn it is, and whether a move is heard: <strong>Sound when a piece is moved</strong> plays the knock of a piece set down on the board for your moves, the engine's in training and your opponent's online (the engine's and the opponent's when they land). These settings stay on this computer: each one can match its own desktop.</li><li>When the position on the board is <strong>checkmate</strong>, the border of the board turns red.</li></ul>
+<p><strong>Game ▸ New Game</strong> (Ctrl+Shift+N) starts a game to enter move by move. <strong>Game ▸ Save Game to Database</strong> stores it in the open database; <strong>Game ▸ Save Game to Another Database…</strong> stores it in a database you choose, which is not opened.</p>
+<p>Play a move that is not the next one of the game and you are asked what it is: <strong>Insert as Variation</strong> keeps the game's line, and the new one appears in the Moves panel under the move it replaces; <strong>Replace Main Line</strong> (or <strong>Replace Line</strong>, in a variation) deletes the moves after it and goes on with yours. While training or playing online nothing is asked: a different move is a variation. A game stored in the database is saved at once, variations included.</p>
+<p><strong>Game ▸ Set Up Position…</strong> opens a board to draw a position on: choose a piece on the right and click the squares to put it down (a click on the same piece takes it off), drag a piece to move it anywhere on the board (let go off the board, it goes back), right-click a square to empty it. Set the side to move, castling, en passant and the move number, or type a FEN; <strong>Starting Position</strong>, <strong>Clear Board</strong> and <strong>Flip Board</strong> help. OK is enabled only for a position a game can start from, and the text below the board says what is wrong. The position starts a new game at the end of the chapter, so the game you were on stays as it is. An online game in progress is kept or resigned first.</p>
+<p><strong>Edit ▸ Copy</strong> puts on the clipboard the moves, the game as PGN, the position as FEN (Ctrl+Shift+C), the engine line or the explanation. <strong>Edit ▸ Paste</strong> takes what is on the clipboard: <strong>Paste FEN</strong> (Ctrl+Shift+V) sets up the position, <strong>Paste Line</strong> starts a new game with the moves (PGN, moves with or without numbers, or UCI), and <strong>Paste Line from Current Position</strong> (Ctrl+Alt+V) plays the moves from the position on the board, as if you played them: at the end of the game they are added, elsewhere they become a variation.</p>
+<p><strong>Edit ▸ Drawers…</strong> keeps things under a name: each drawer has a name and its content — moves, a variation, a FEN position, a note. <strong>New Drawer</strong> adds one, <strong>Delete</strong> takes the selected one away; OK keeps the changes, as long as every drawer has a name and no two have the same one. The drawers are yours, kept with your personal settings, so they are the same on every synced computer. Putting things in and taking them out quickly will come.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../database-tree/">← The database tree</a>
+    <a class="next" href="../moves/">Moves and annotations →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess is free software under the MIT License. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">What's new</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="../../../en/guide/board/" hreflang="en" class="current">English</a><a href="../../../it/guide/board/" hreflang="it">Italiano</a></p>
+  <p class="credits">Built with Qt. Default engine: Stockfish (GPL v3). Opening names from lichess-org/chess-openings (CC0). Pieces: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

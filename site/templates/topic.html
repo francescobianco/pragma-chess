@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+</head>
+<body>
+{{> header}}
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← {{guide.title}}</a></p>
+  <header>
+    <h1>{{topic.title}}</h1>
+  </header>
+  {{topic.body}}
+  <nav class="topic-steps">
+    {{#if previous.id}}<a class="previous" href="../{{previous.id}}/">← {{previous.title}}</a>{{/if}}
+    {{#if next.id}}<a class="next" href="../{{next.id}}/">{{next.title}} →</a>{{/if}}
+  </nav>
+</article>
+</main>
+{{> footer}}
+<script src="{{root}}assets/site.js"></script>
+</body>
+</html>

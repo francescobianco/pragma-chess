@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting started – Guide – Pragma Chess</title>
+<meta name="description" content="Pragma Chess keeps your games in databases and lets you study them on the board with an engine, an opening book and your own notes.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/start/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/start/">
+<meta property="og:title" content="Getting started – Guide – Pragma Chess">
+<meta property="og:description" content="Pragma Chess keeps your games in databases and lets you study them on the board with an engine, an opening book and your own notes.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Features</a>
+    <a href="../../#screenshots">Screenshots</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Supporters</a>
+    <a href="../../#support">Support</a>
+    <a href="../../../en/guide/" class="current">Guide</a>
+    <a href="../../../en/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/start/" hreflang="en" class="current">English</a><a href="../../../it/guide/start/" hreflang="it">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guide</a></p>
+  <header>
+    <h1>Getting started</h1>
+  </header>
+  <p>Pragma Chess keeps your games in <strong>databases</strong> and lets you study them on the board with an engine, an opening book and your own notes.</p>
+<p>At every start the <strong>welcome window</strong> opens over the main window: what Pragma Chess can do, then your <strong>projects</strong> and your <strong>databases</strong>, read from their folders (a file you add there shows up). Click a project to open it, a database to open it in a new project, or <strong>New Project</strong>. Tick <strong>Don't show this window at startup</strong> to start straight away; <strong>Help ▸ Welcome…</strong> opens it again whenever you want.</p>
+<p>The window has the <strong>board</strong> in the middle and four panels around it:</p>
+<ul><li><strong>Games</strong>, at the bottom: the tree of the open database and the list of its games.</li><li><strong>Moves</strong>: the moves of the game on the board.</li><li><strong>Opening Tree</strong>: the moves of the opening book for the position on the board.</li><li><strong>Engine</strong>: the evaluation, the best line and the opening the game is in.</li></ul>
+<p>The <strong>toolbar</strong> has Sync Now, Save Project, New Game, New Training, New Online Game, Enter the Lobby (the martini glass) and three icons to choose the opening book, the engine and the database in use.</p>
+<p>Everything you see — database, game, move, panels — is a <strong>project</strong>: it comes back as you left it the next time you start Pragma Chess.</p>
+<p>Your files live in the Pragma folder inside your chess folder (for example <code>Chess/Pragma</code> in your home), with <code>Databases</code>, <code>Projects</code> and <code>Books</code>. The first launch puts a database of classic games there.</p>
+<p><strong>Options ▸ Personal Settings…</strong> says who you are: your name, your year of birth and your FIDE ID. Your name goes on your side of a new game, a game from Set Up Position (on the side at the bottom of the board) and a training game (on the colour you chose), unless the open database already knows you — a player marked as Me with <strong>Who Is This?</strong> wins. Until you give a name, Pragma Chess gives you one, a champion's with three digits such as <em>Spassky007</em>, different for everyone, so the lobby is not full of players with the same name: you find it written here, to keep or change. <strong>Board style</strong> chooses the colours of the squares and the pieces together: Pragma Classic (brown squares and the pieces of chess books) Lichess Alpha (the green board and the Alpha pieces of lichess.org) or Classic Book (the diagram of a printed chess book: old paper, the dark squares hatched in ink, a margin of paper around each piece standing on them, and no coordinates); every board changes as soon as you press OK. These settings are kept in <code>.pragma-chess.conf</code>, a YAML file in your Pragma folder, which Sync carries to your other computers although it is hidden; changed on two computers at once, the newer one wins.</p>
+<p><strong>Options ▸ Folder Settings…</strong> puts them somewhere else on this computer: the Pragma folder itself, or just the databases, the projects, the books or the opening names. Leave a folder empty to keep it in its usual place. The files already there are not moved, and the new folders are used the next time you start Pragma Chess. Sync keeps only what is inside the Pragma folder the same on your other computers.</p>
+  <nav class="topic-steps">
+    
+    <a class="next" href="../databases/">Databases →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess is free software under the MIT License. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">What's new</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="../../../en/guide/start/" hreflang="en" class="current">English</a><a href="../../../it/guide/start/" hreflang="it">Italiano</a></p>
+  <p class="credits">Built with Qt. Default engine: Stockfish (GPL v3). Opening names from lichess-org/chess-openings (CC0). Pieces: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

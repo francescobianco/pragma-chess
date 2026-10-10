@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game sources – Guide – Pragma Chess</title>
+<meta name="description" content="A source brings your games from a website into the open database and keeps them up to date.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="alternate" hreflang="en" href="../../../en/guide/sources/">
+<link rel="alternate" hreflang="it" href="../../../it/guide/sources/">
+<meta property="og:title" content="Game sources – Guide – Pragma Chess">
+<meta property="og:description" content="A source brings your games from a website into the open database and keeps them up to date.">
+<meta property="og:image" content="../../../assets/screenshots/guide.png">
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Features</a>
+    <a href="../../#screenshots">Screenshots</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Supporters</a>
+    <a href="../../#support">Support</a>
+    <a href="../../../en/guide/" class="current">Guide</a>
+    <a href="../../../en/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="../../../en/guide/sources/" hreflang="en" class="current">English</a><a href="../../../it/guide/sources/" hreflang="it">Italiano</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guide</a></p>
+  <header>
+    <h1>Game sources</h1>
+  </header>
+  <p>A source brings your games from a website into the open database and keeps them up to date.</p>
+<p><strong>Database ▸ Connect Source…</strong> adds one:</p>
+<ul><li><strong>lichess.org</strong>: the account's public games; signing in is optional and downloads them faster;</li><li><strong>chess.com</strong>: your user name;</li><li><strong>torneionline.com</strong>: your FIDE or FSI number, for the games of the tournaments you played.</li><li><strong>ChessBase files</strong>: a ChessBase database on this computer: the classic format (<code>.cbh</code> and its files) or the one of ChessBase 17 and later (<code>.2cbh</code> and its files). Choose the <code>.cbh</code> or <code>.2cbh</code> file: its games are copied in (from a <code>.2cbh</code> with their variations, comments in your language when they come in several, symbols, coloured squares and arrows and the engine's evaluations), the files stay where they are, and games added to them later arrive at the next sync. On another computer the file is not there: the sync says so and offers to ignore the source on that computer; <em>Database ▸ Manage Sources… ▸ Edit…</em> chooses the file again, and <strong>Use on This Computer</strong> stops ignoring it.</li><li><strong>Lichess Study</strong>: a study on lichess.org. Paste the address of its page (or of one of its chapters) in <strong>Study address</strong>: each chapter becomes a game of the database, with its comments and variations, and its tags <code>StudyName</code>, <code>ChapterName</code> and <code>ChapterURL</code> say which study and chapter it is (the study's chapters are not the chapters of a project). A chapter changed on lichess.org replaces its game at the next sync, unless the game changed here too: then both are kept. A public study needs no account; for a private one, <strong>Sign In with lichess.org…</strong> with an account that can see it. A study can be public to look at and still not be downloadable: its author chooses who may export it (<strong>Share &amp; export</strong> in the study's settings on lichess.org), and only those people can connect it. For now the study is only read: writing to it is coming.</li><li><strong>PGN file</strong>: a <code>.pgn</code> file on this computer, kept in step with the database. Choose it with <strong>Browse…</strong>, or make an empty one with <strong>New File…</strong>, then the <strong>Direction</strong>: <strong>Read and write</strong> (the file's games come into the database and the database's games go into the file, so a game added or changed on either side reaches the other), <strong>Read only</strong> (the file is never written) or <strong>Write only</strong> (every game of the database goes into the file; the file's other games stay out of the database). A game you save, change or annotate is written to the file a few seconds later. Nothing removed on one side is removed on the other, and a game changed on both sides between two syncs is kept twice. Pragma Chess marks each game it ties to the database with a <code>PragmaUid</code> tag, and keeps an index beside the file in a hidden file, so a file that did not change is not read again.</li></ul>
+<p>Sources are read when the database is opened and every twenty minutes. A game is never imported twice. <strong>Database ▸ Manage Sources…</strong> syncs a source now, changes it, signs in again or removes it; the games already imported stay.</p>
+<p>The <strong>Source</strong> node of the tree lists the games of each source.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../opening-names/">← Opening names</a>
+    <a class="next" href="../trash/">Trash →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess is free software under the MIT License. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">What's new</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="../../../en/guide/sources/" hreflang="en" class="current">English</a><a href="../../../it/guide/sources/" hreflang="it">Italiano</a></p>
+  <p class="credits">Built with Qt. Default engine: Stockfish (GPL v3). Opening names from lichess-org/chess-openings (CC0). Pieces: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

@@ -4275,7 +4275,8 @@ END FUNCTION
             return ScoreView::courseHeight(evaluation);
         };
         QCOMPARE(height(0), 0.0);
-        QVERIFY(height(100) > 0.25);
+        QVERIFY(height(50) > 0.25);
+        QVERIFY(height(100) > 0.38);
         QVERIFY(height(200) < 2 * height(100) && height(200) > height(100));
         QCOMPARE(height(-100), -height(100));
         QCOMPARE(height(1000), 1.0);

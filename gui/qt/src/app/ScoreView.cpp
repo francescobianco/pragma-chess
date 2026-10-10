@@ -45,8 +45,10 @@ double courseHeight(const EngineEvaluation &evaluation)
     if (evaluation.isMate)
         return evaluation.mating == Side::White ? 1.0 : -1.0;
     constexpr double kEdgePawns = 10;
+    // Steeper near the balance: half a pawn already shows, a pawn is 40% of the way.
+    constexpr double kSteepness = 3;
     const double pawns = std::abs(evaluation.centipawns) / 100.0;
-    const double height = std::min(1.0, std::log1p(pawns) / std::log1p(kEdgePawns));
+    const double height = std::min(1.0, std::log1p(kSteepness * pawns) / std::log1p(kSteepness * kEdgePawns));
     return evaluation.centipawns < 0 ? -height : height;
 }
 

@@ -36,8 +36,9 @@ bool fromMover(Kind kind);
 
 /// Where an evaluation sits on the game's course, from −1 (Black wins) to
 /// 1 (White wins), 0 the balance: logarithmic in pawns, so a pawn stands
-/// out from the midline and two are less than twice as far — log(1 + p)
-/// over log(1 + 10), ten pawns and a mate at the edge.
+/// out from the midline and two are less than twice as far — log(1 + 3p)
+/// over log(1 + 30): half a pawn a quarter of the way, a pawn 40%, two 57%,
+/// five 81%, ten pawns and a mate at the edge.
 double courseHeight(const EngineEvaluation &evaluation);
 
 /// The Informant's symbol from White's side: = up to 0.3 pawns, ⩲/⩱ up to

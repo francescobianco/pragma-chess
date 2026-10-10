@@ -200,7 +200,7 @@ playing a move turns it off, and the user asks again at the next move.
   comment's `[%eval]` (`MoveComment::evaluation`) — joined by a polyline,
   nothing filled, over a marked midline; White's advantage towards White's
   side of the board, as the bar, the height logarithmic in pawns
-  (`ScoreView::courseHeight`: log(1 + p) / log(11)); 40 plies fill the
+  (`ScoreView::courseHeight`: log(1 + 3p) / log(31), a pawn 40% of the way); 40 plies fill the
   width, more share it, never scrolled. A click on the score turns how it
   is shown (`app/ScoreView`, pure: absolute, for the side to move, its
   chances, the Informant's symbol; the project's, `engine: score:` in the

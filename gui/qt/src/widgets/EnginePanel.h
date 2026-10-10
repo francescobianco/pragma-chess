@@ -3,6 +3,7 @@
 #include "app/OpeningNames.h"
 #include "app/UciEngine.h"
 #include "widgets/ChessClocks.h"
+#include "widgets/EvaluationBox.h"
 
 #include <QWidget>
 
@@ -46,7 +47,15 @@ public:
     /// or it is over), greyed when not `enabled` (the user's side not known yet).
     void setOnlineActions(bool shown, bool enabled = false, DrawOffer offer = DrawOffer::None);
     /// The clocks follow the board: the colour at its top first.
-    void setClocksFlipped(bool flipped) { m_clocks->setFlipped(flipped); }
+    /// The clocks and the game's course follow the board: the colour at its
+    /// top first, its side of the course on top.
+    void setBoardFlipped(bool flipped)
+    {
+        m_clocks->setFlipped(flipped);
+        m_score->setFlipped(flipped);
+    }
+    /// The game's course beside the score (EvaluationBox::setCourse).
+    void setCourse(const QList<std::optional<double>> &shares, int current) { m_score->setCourse(shares, current); }
     /// Summary of the "Explain" command; empty hides it.
     void setExplanation(const QString &text);
     /// The opening the game is in and the chosen opening book; empty values show a dash.
@@ -86,8 +95,7 @@ private:
     QPushButton *m_sendMove;
     QPushButton *m_sendPlan;
     QLabel *m_name;
-    QLabel *m_score;
-    QLabel *m_depth;
+    EvaluationBox *m_score;
     QLabel *m_explanation;
     QLabel *m_line;
     QToolButton *m_peek;

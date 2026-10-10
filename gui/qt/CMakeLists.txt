@@ -488,6 +488,8 @@ qt_add_executable(pragma-chess
     src/widgets/EnginePanel.h
     src/widgets/SectionButton.cpp
     src/widgets/SectionButton.h
+    src/widgets/EvaluationBox.cpp
+    src/widgets/EvaluationBox.h
     src/widgets/EvaluationBar.cpp
     src/widgets/EvaluationBar.h
     src/widgets/FigurineFont.cpp

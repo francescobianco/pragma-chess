@@ -4231,6 +4231,22 @@ END FUNCTION
         QCOMPARE(baseFromJson(baseToJson(next)).value("d").hash, next.value("d").hash);
     }
 
+    void readsEvaluationsFromComments()
+    {
+        const std::optional<EngineEvaluation> pawns = MoveComment::evaluation(QStringLiteral("Good move [%eval 0.18] [%clk 0:05:00]"));
+        QVERIFY(pawns && !pawns->isMate);
+        QCOMPARE(pawns->centipawns, 18);
+        const std::optional<EngineEvaluation> deep = MoveComment::evaluation(QStringLiteral("[%eval -1.5,20]"));
+        QVERIFY(deep);
+        QCOMPARE(deep->centipawns, -150);
+        QCOMPARE(deep->depth, 20);
+        const std::optional<EngineEvaluation> mate = MoveComment::evaluation(QStringLiteral("[%eval #-3]"));
+        QVERIFY(mate && mate->isMate);
+        QCOMPARE(mate->mateIn, 3);
+        QCOMPARE(mate->mating, Side::Black);
+        QVERIFY(!MoveComment::evaluation(QStringLiteral("No evaluation here [%clk 0:01:00]")));
+    }
+
     void keepsBriefHeadersAndPagesTheRest()
     {
         // More games than a page (256), so headers come from several pages.

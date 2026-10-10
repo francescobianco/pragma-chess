@@ -279,6 +279,7 @@ MainWindow::MainWindow(QWidget *parent)
             // bar stay with the position on the board.
             if (m_session->ply() > 0)
                 m_explainer->setEvaluation(m_session->positionAt(m_session->ply() - 1), evaluation);
+            updateCourse();
             return;
         }
         m_lastEvaluation = evaluation;
@@ -293,6 +294,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
         m_evaluationBar->setEvaluation(evaluation);
         m_explainer->setLiveEvaluation(evaluation);
+        updateCourse();
         m_engineLine = m_session->position().lineText(evaluation.pv);
         m_enginePanel->setEvaluation(evaluation, m_session->position().lineText(evaluation.pv, -1, SanStyle::Figurines));
         // Held, the eye follows the engine: each new line moves the board to where it now ends.
@@ -1328,8 +1330,8 @@ void MainWindow::createDocks()
 
     m_enginePanel = new EnginePanel(m_startEngineAction, m_explainAction);
     // The online clocks follow the board: the colour at its top first.
-    m_enginePanel->setClocksFlipped(m_flipBoardAction->isChecked());
-    connect(m_flipBoardAction, &QAction::toggled, m_enginePanel, &EnginePanel::setClocksFlipped);
+    m_enginePanel->setBoardFlipped(m_flipBoardAction->isChecked());
+    connect(m_flipBoardAction, &QAction::toggled, m_enginePanel, &EnginePanel::setBoardFlipped);
     {
         QSettings settings;
         m_engines = EngineCatalog::load(settings);
@@ -2356,6 +2358,7 @@ void MainWindow::syncBoard()
     // An explanation belongs to one move: moving on turns it off until asked again.
     m_explainAction->setChecked(false);
     updateExplainer();
+    updateCourse();
     updateBoardBorder(); // A checkmate on the board turns it red.
     updateCommentMarks();
 
@@ -3925,6 +3928,25 @@ void MainWindow::updateBoardBorder()
         m_board->setBorder(BoardBorder::Alert);
     else
         m_board->setBorder(BoardBorder::Plain);
+}
+
+void MainWindow::updateCourse()
+{
+    // Nothing that judges the game while it is played online, the
+    // evaluations of its positions known from before included.
+    QList<std::optional<double>> shares;
+    if (!m_onlinePlay) {
+        const int plies = m_session->plyCount();
+        shares.reserve(plies + 1);
+        for (int ply = 0; ply <= plies; ++ply) {
+            // What the engine found here, else what the game's comments say (lichess's [%eval]).
+            std::optional<EngineEvaluation> evaluation = m_explainer->known(m_session->positionAt(ply));
+            if (!evaluation && ply > 0)
+                evaluation = MoveComment::evaluation(m_session->moveAt(ply).comment);
+            shares << (evaluation ? std::optional<double>(evaluation->whiteShare()) : std::nullopt);
+        }
+    }
+    m_enginePanel->setCourse(shares, m_session->ply());
 }
 
 void MainWindow::updateExplainer()

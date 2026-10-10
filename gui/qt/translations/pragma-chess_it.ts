@@ -955,6 +955,17 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>EvaluationBox</name>
+    <message>
+        <source>Evaluation</source>
+        <translation>Valutazione</translation>
+    </message>
+    <message>
+        <source>Depth %1</source>
+        <translation>Profondità %1</translation>
+    </message>
+</context>
+<context>
     <name>Explainer</name>
     <message>
         <source>Analyzing…</source>

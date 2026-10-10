@@ -1,5 +1,6 @@
 #pragma once
 
+#include "EngineEvaluation.h"
 #include "GameRecord.h"
 
 #include <QList>
@@ -48,6 +49,11 @@ bool hasComments(const GameRecord &game);
 QString at(const GameRecord &game, const QList<int> &path, int index);
 /// Sets that comment; false where the game has no such move.
 bool set(GameRecord &game, const QList<int> &path, int index, const QString &comment);
+
+/// The evaluation a comment carries, as lichess writes it: "[%eval 0.18]"
+/// (pawns, White's view), "[%eval #-3]" (Black mates in 3), a depth after a
+/// comma ("[%eval 0.18,20]"). None when it carries none.
+std::optional<EngineEvaluation> evaluation(const QString &comment);
 
 /// `comment` with what a person reads replaced by `text`: its commands stay,
 /// after the text, so a comment edited by hand keeps its evaluation, clock

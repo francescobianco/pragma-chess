@@ -1,6 +1,7 @@
 #include "EnginePanel.h"
 
 #include "FigurineFont.h"
+#include "EvaluationBox.h"
 #include "SectionButton.h"
 #include "platform/SymbolicIcons.h"
 
@@ -29,8 +30,7 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     , m_sendMove(new QPushButton(tr("Send Move")))
     , m_sendPlan(new QPushButton(tr("Send Plan")))
     , m_name(new QLabel)
-    , m_score(new QLabel)
-    , m_depth(new QLabel)
+    , m_score(new EvaluationBox)
     , m_explanation(new QLabel)
     , m_line(new QLabel)
     , m_peek(new QToolButton)
@@ -63,16 +63,8 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     header->addWidget(toggle);
     layout->addLayout(header);
 
-    auto *scoreRow = new QHBoxLayout;
-    QFont scoreFont = m_score->font();
-    scoreFont.setPointSizeF(scoreFont.pointSizeF() * 1.8);
-    scoreFont.setBold(true);
-    m_score->setFont(scoreFont);
-    m_depth->setEnabled(false);
-    scoreRow->addWidget(m_score);
-    scoreRow->addStretch();
-    scoreRow->addWidget(m_depth, 0, Qt::AlignBottom);
-    layout->addLayout(scoreRow);
+    // The score and the game's course, in one box.
+    layout->addWidget(m_score);
 
     m_clocks = new ChessClocks(this);
     m_clocks->hide();
@@ -266,15 +258,13 @@ void EnginePanel::setExplanation(const QString &text)
 void EnginePanel::setEvaluation(const std::optional<EngineEvaluation> &evaluation, const QString &line)
 {
     if (!evaluation) {
-        m_score->setText(QStringLiteral("–"));
-        m_depth->clear();
+        m_score->setScore(QStringLiteral("–"), QString());
         m_hasLine = false;
         refreshLine();
         return;
     }
     m_hasLine = !evaluation->pv.isEmpty();
-    m_score->setText(evaluation->text());
-    m_depth->setText(tr("Depth %1").arg(evaluation->depth));
+    m_score->setScore(evaluation->text(), tr("Depth %1").arg(evaluation->depth));
     m_lineText = line.isEmpty() ? evaluation->pv.join(QLatin1Char(' ')) : line;
     refreshLine();
 }

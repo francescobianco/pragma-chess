@@ -8,6 +8,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- The Engine panel draws the course of the game beside the score: a dot for
+  each move whose evaluation is known, joined by a line over the midline,
+  turning with the board.
 - Large databases open in seconds and take far less memory: 1.26 million
   games open in 3.5 s instead of 34 s, in 0.6 GB instead of 6.8 GB.
 - Board ▸ Position and Variant are ready at once on a database opened

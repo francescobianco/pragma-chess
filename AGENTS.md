@@ -193,6 +193,14 @@ playing a move turns it off, and the user asks again at the next move.
   the red comes back after it. `MainWindow::updateBoardBorder`
   is the one place that decides: add new meanings there, do not call
   `setBorder` elsewhere.
+- The Engine panel's score is in a box with the game's course
+  (`widgets/EvaluationBox`, `MainWindow::updateCourse`): a dot for each ply
+  whose evaluation is known — `Explainer::known` (the deepest evaluation of
+  every position the engine searched, kept across restarts), else the
+  comment's `[%eval]` (`MoveComment::evaluation`) — joined by a polyline,
+  nothing filled, over a marked midline; White's share towards White's side
+  of the board, as the bar; 40 plies fill the width, more share it, never
+  scrolled. Empty while playing online: nothing judges that game.
 - The Engine panel shows the engine's whole line, and an eye beside Stop
   (`EnginePanel::peekHeld`): held down, the board shows the
   position at the end of the line, and follows it while the engine goes on
@@ -1657,7 +1665,7 @@ a platform; lichess.org for now, through its Board API, more to come.
   square of paper) and the time in seven-segment figures drawn in code
   (no font), laid out from the left — the user wanted digital, not dials,
   not centred, no names —; the colour at the board's top first, so
-  turning the board swaps them (`setClocksFlipped`); running from the second move, ticking on their own between the
+  turning the board swaps them (`EnginePanel::setBoardFlipped`); running from the second move, ticking on their own between the
   platform's updates. Under them Offer Draw and Resign
   (`EnginePanel::setOnlineActions`; the draw button reads Accept Draw on
   the opponent's offer and Draw Offered, greyed, on the user's, from the

@@ -321,6 +321,9 @@ private:
     /// "Explain": arrows on the board that justify the evaluation.
     void setExplainEnabled(bool enabled);
     void updateExplainer();
+    /// The game's course beside the Engine panel's score: the evaluation
+    /// known after every move of the line on the board.
+    void updateCourse();
 
     // Projects (.pch): the File menu saves and restores the whole environment.
     void newProject();

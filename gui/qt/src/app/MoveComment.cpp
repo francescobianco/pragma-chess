@@ -7,6 +7,8 @@
 #include <QRegularExpression>
 #include <QStringList>
 
+#include <cmath>
+
 namespace MoveComment {
 
 namespace {
@@ -186,6 +188,25 @@ QList<Mark> marks(const QString &comment)
         }
     }
     return found;
+}
+
+std::optional<EngineEvaluation> evaluation(const QString &comment)
+{
+    static const QRegularExpression command(QStringLiteral(R"(\[%eval\s+(#)?([-+]?\d+(?:\.\d+)?)(?:,(\d+))?\s*\])"));
+    const QRegularExpressionMatch match = command.match(comment);
+    if (!match.hasMatch())
+        return std::nullopt;
+    EngineEvaluation evaluation;
+    evaluation.depth = match.captured(3).toInt();
+    const double value = match.captured(2).toDouble();
+    if (match.hasCaptured(1) && !match.captured(1).isEmpty()) {
+        evaluation.isMate = true;
+        evaluation.mateIn = int(std::abs(value));
+        evaluation.mating = value < 0 ? Side::Black : Side::White;
+    } else {
+        evaluation.centipawns = int(std::lround(value * 100));
+    }
+    return evaluation;
 }
 
 QString withText(const QString &comment, const QString &text)

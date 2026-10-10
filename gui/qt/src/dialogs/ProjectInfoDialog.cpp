@@ -8,6 +8,8 @@
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QFormLayout>
+#include <QFrame>
+#include <QLabel>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
@@ -58,6 +60,13 @@ ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const QString &f
     file->setPlaceholderText(tr("Not saved yet"));
     file->setCursorPosition(0);
 
+    // What the window is for, before the fields.
+    auto *intro = new QLabel(tr("Here you find what the project is: the file it is kept in, the name shown in the "
+                                "title bar and the language of its texts, then how it behaves. These are seldom "
+                                "changed: Edit unlocks them."),
+                             this);
+    intro->setWordWrap(true);
+
     auto *form = new QFormLayout;
     form->addRow(tr("File:"),
                  withHelp(file,
@@ -70,27 +79,29 @@ ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const QString &f
                           tr("<p>Shown in the title bar in place of the file's name, followed by the chapter "
                              "when the project has chapters.</p><p>Empty, the file's name is shown.</p>"),
                           this));
-    form->addRow(QString(),
-                 withHelp(m_multilingual,
-                          tr("<p>A multilingual project has its name, titles, subtitles and paragraphs in several "
-                             "languages, its chapters and games the same in all.</p>"
-                             "<p>They are shown and written in the language chosen below. A text not written in "
-                             "it is shown in English, or in another language that has it.</p>"),
-                          this));
     form->addRow(tr("&Language of the texts:"),
                  withHelp(m_language,
                           tr("<p>The language the project's texts are shown and written in.</p>"
                              "<p>A project opens in the language of the interface; one that is not multilingual "
                              "stays in it.</p>"),
                           this));
-    form->addRow(QString(),
-                 withHelp(m_readOnly,
-                          tr("<p>Keeps the project from changes made without thinking: its chapters, titles, "
-                             "paragraphs, comments and variations cannot be changed, and it is not saved. The "
-                             "board can still be explored.</p>"
-                             "<p>Untick it to change the project. The projects distributed with Pragma Chess "
-                             "come read-only.</p>"),
-                          this));
+
+    // The flags, apart: how the project behaves, under what it is.
+    auto *flags = new QVBoxLayout;
+    flags->setSpacing(6);
+    flags->addWidget(withHelp(m_multilingual,
+                              tr("<p>A multilingual project has its name, titles, subtitles and paragraphs in several "
+                                 "languages, its chapters and games the same in all.</p>"
+                                 "<p>They are shown and written in the Language of the texts chosen above. A text not "
+                                 "written in it is shown in English, or in another language that has it.</p>"),
+                              this));
+    flags->addWidget(withHelp(m_readOnly,
+                              tr("<p>Keeps the project from changes made without thinking: its chapters, titles, "
+                                 "paragraphs, comments and variations cannot be changed, and it is not saved. The "
+                                 "board can still be explored.</p>"
+                                 "<p>Untick it to change the project. The projects distributed with Pragma Chess "
+                                 "come read-only.</p>"),
+                              this));
 
     connect(m_multilingual, &QCheckBox::toggled, this, [this](bool on) {
         m_language->setEnabled(m_unlocked && on);
@@ -110,8 +121,17 @@ ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const QString &f
     bottom->addStretch();
     bottom->addWidget(m_buttons);
 
+    auto *line = new QFrame(this);
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Sunken);
+
     auto *layout = new QVBoxLayout(this);
+    layout->addWidget(intro);
+    layout->addSpacing(6);
     layout->addLayout(form);
+    layout->addSpacing(4);
+    layout->addWidget(line);
+    layout->addLayout(flags);
     layout->addStretch();
     layout->addLayout(bottom);
     setUnlocked(false);

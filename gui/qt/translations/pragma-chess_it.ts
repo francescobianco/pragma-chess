@@ -4674,10 +4674,6 @@ Le %n partite già importate restano nel database.</numerusform>
         <translation>&lt;p&gt;Compare nella barra del titolo al posto del nome del file, seguito dal capitolo quando il progetto ha dei capitoli.&lt;/p&gt;&lt;p&gt;Se è vuoto, si vede il nome del file.&lt;/p&gt;</translation>
     </message>
     <message>
-        <source>&lt;p&gt;A multilingual project has its name, titles, subtitles and paragraphs in several languages, its chapters and games the same in all.&lt;/p&gt;&lt;p&gt;They are shown and written in the language chosen below. A text not written in it is shown in English, or in another language that has it.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;Un progetto multilingua ha il nome, i titoli, i sottotitoli e i paragrafi in più lingue, con gli stessi capitoli e le stesse partite in tutte.&lt;/p&gt;&lt;p&gt;Si vedono e si scrivono nella lingua scelta qui sotto. Un testo non ancora scritto in quella lingua si vede in inglese, o in un&apos;altra lingua che lo ha.&lt;/p&gt;</translation>
-    </message>
-    <message>
         <source>&amp;Language of the texts:</source>
         <translation>&amp;Lingua dei testi:</translation>
     </message>
@@ -4696,6 +4692,14 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>&amp;Edit</source>
         <translation>&amp;Modifica</translation>
+    </message>
+    <message>
+        <source>Here you find what the project is: the file it is kept in, the name shown in the title bar and the language of its texts, then how it behaves. These are seldom changed: Edit unlocks them.</source>
+        <translation>Qui trovi che cos&apos;è il progetto: il file in cui è salvato, il nome che compare nella barra del titolo e la lingua dei suoi testi, poi come si comporta. Sono cose che si cambiano di rado: Modifica le sblocca.</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;A multilingual project has its name, titles, subtitles and paragraphs in several languages, its chapters and games the same in all.&lt;/p&gt;&lt;p&gt;They are shown and written in the Language of the texts chosen above. A text not written in it is shown in English, or in another language that has it.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Un progetto multilingua ha il nome, i titoli, i sottotitoli e i paragrafi in più lingue, con gli stessi capitoli e le stesse partite in tutte.&lt;/p&gt;&lt;p&gt;Si vedono e si scrivono nella Lingua dei testi scelta sopra. Un testo non ancora scritto in quella lingua si vede in inglese, o in un&apos;altra lingua che lo ha.&lt;/p&gt;</translation>
     </message>
 </context>
 <context>

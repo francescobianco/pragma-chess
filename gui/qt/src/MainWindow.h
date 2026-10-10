@@ -341,7 +341,7 @@ private:
     /// The names the games list shows for the players a training database
     /// leaves unnamed (StandInNames): the user's, and "Your Trainer".
     /// Hides `hidden` columns in the database we distribute at `path`, and
-    /// marks it so that it is done once (DatabaseProperties::shippedColumns).
+    /// marks them given, so each is hidden once (DatabaseProperties::shippedColumns).
     void giveShippedColumns(const QString &path, const QStringList &hidden);
     void updateStandInNames();
     StandInNames standInNames() const;

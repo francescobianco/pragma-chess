@@ -765,11 +765,12 @@ painted as a menu item, since QMenu draws an item in one font).
 - Which columns of the games list are shown belongs to the database
   (`DatabaseProperties::hiddenColumns`, property `columns.hidden`, by
   `GameListModel::columnKey`): right-click a column title to Hide it or Show
-  a hidden one. The training sets we distribute hide Elo, Result, Date and
-  Site by default (`Distributed::hiddenColumns`), given once to a copy made
-  before and marked in the file (`columns.shipped`,
-  `MainWindow::giveShippedColumns`), so columns shown again stay shown on
-  every synced computer. The order and widths of the columns stay in the session.
+  a hidden one. The training sets we distribute hide Elo, Result, Date,
+  Site and Moves by default (`Distributed::hiddenColumns`), each given once
+  to a copy made before and listed in the file (`columns.shipped`, the
+  columns given; "1", the first mark, stands for the first five;
+  `MainWindow::giveShippedColumns`), so a column shown again stays shown on
+  every synced computer and one added to the defaults later still arrives. The order and widths of the columns stay in the session.
 
 ## Drawers
 

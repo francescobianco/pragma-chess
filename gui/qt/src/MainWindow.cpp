@@ -3072,9 +3072,9 @@ void MainWindow::updateDistributedDatabases()
         /// The columns of the games list it hides by default (GameListModel::columnKey).
         QStringList hiddenColumns = {};
     };
-    // A puzzle has no players' ratings, result, date or place worth a column.
+    // A puzzle has no players' ratings, result, date, place or moves worth a column.
     const QStringList trainingColumns{QStringLiteral("white-elo"), QStringLiteral("black-elo"), QStringLiteral("result"),
-                                      QStringLiteral("date"), QStringLiteral("site")};
+                                      QStringLiteral("date"), QStringLiteral("site"), QStringLiteral("moves")};
     const auto puzzles = [](const char *resource) {
         QFile file{QString::fromLatin1(resource)};
         return file.open(QIODevice::ReadOnly) ? TrainingSets::puzzleGames(QString::fromUtf8(file.readAll()))
@@ -3131,7 +3131,7 @@ void MainWindow::updateDistributedDatabases()
             properties.description = QLatin1String(set.description);
             properties.type = set.type;
             properties.hiddenColumns = set.hiddenColumns;
-            properties.shippedColumns = true;
+            properties.shippedColumns = set.hiddenColumns;
             database->setProperties(properties, nullptr);
             nameShippedDatabase(*database, QLatin1String(set.english), QString::fromUtf8(set.italian));
             settings.setValue(seededKey, true);
@@ -3140,11 +3140,16 @@ void MainWindow::updateDistributedDatabases()
             continue;
         }
         settings.setValue(seededKey, true);
-        // The columns it hides by default, given once to a copy made before
-        // (the mark is in the file: shown again on one computer, they stay
-        // shown on all).
-        if (!set.hiddenColumns.isEmpty() && !SqliteGameDatabase::readProperties(path).shippedColumns)
-            giveShippedColumns(path, set.hiddenColumns);
+        // The columns it hides by default, each given once to a copy made
+        // before (the list is in the file: shown again on one computer, they
+        // stay shown on all).
+        const QStringList given = SqliteGameDatabase::readProperties(path).shippedColumns;
+        QStringList missing;
+        for (const QString &column : set.hiddenColumns)
+            if (!given.contains(column))
+                missing << column;
+        if (!missing.isEmpty())
+            giveShippedColumns(path, missing);
         // Its type was given after it was first distributed (the training
         // sets became Puzzles and Training): given once, so a type the user
         // chose afterwards in Database Settings stays.
@@ -3209,10 +3214,12 @@ void MainWindow::giveShippedColumns(const QString &path, const QStringList &hidd
     if (!database)
         return;
     DatabaseProperties properties = database->properties();
-    for (const QString &column : hidden)
+    for (const QString &column : hidden) {
         if (!properties.hiddenColumns.contains(column))
             properties.hiddenColumns << column;
-    properties.shippedColumns = true;
+        if (!properties.shippedColumns.contains(column))
+            properties.shippedColumns << column;
+    }
     if (database->setProperties(properties, &error) && database == m_database.get())
         applyGameColumns();
 }

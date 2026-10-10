@@ -62,7 +62,7 @@ const char *const kTerms[] = {
 const char *const kChampions[] = {
     "Steinitz", "Lasker", "Capablanca", "Alekhine", "Euwe", "Botvinnik", "Smyslov", "Tal",
     "Petrosian", "Spassky", "Fischer", "Staunton", "Zukertort", "Chigorin", "Pillsbury", "Schlechter",
-    "Bogoljubov", "Spielmann", "Flohr", "Menchik", "Rudenko", "Bykova", "Gaprindashvili", "Najdorf",
+    "Bogoljubov", "Spielmann", "Flohr", "Menchik", "Rudenko", "Bykova", "Ruy López", "Najdorf",
     "La Bourdonnais", "Reshevsky", "Maróczy", "Morphy", "Philidor", "Greco", "Anderssen", "Rubinstein",
     "Nimzowitsch", "Réti", "Keres", "Bronstein", "Tarrasch", "Marshall", "Larsen", "Korchnoi",
 };

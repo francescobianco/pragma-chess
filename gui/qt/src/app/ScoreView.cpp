@@ -24,7 +24,7 @@ QString key(Kind kind)
 {
     switch (kind) {
     case Kind::Absolute: return QStringLiteral("absolute");
-    case Kind::ForBottom: return QStringLiteral("for-bottom");
+    case Kind::ForMover: return QStringLiteral("for-mover");
     case Kind::Chances: return QStringLiteral("chances");
     case Kind::Judgement: return QStringLiteral("judgement");
     }
@@ -63,36 +63,41 @@ QString judgement(const EngineEvaluation &evaluation)
     return white ? QStringLiteral("+−") : QStringLiteral("−+");
 }
 
-QString text(const EngineEvaluation &evaluation, Kind kind, Side bottom)
+bool fromMover(Kind kind)
+{
+    return kind == Kind::ForMover || kind == Kind::Chances;
+}
+
+QString text(const EngineEvaluation &evaluation, Kind kind, Side mover)
 {
     switch (kind) {
     case Kind::Absolute:
         return evaluation.text();
-    case Kind::ForBottom: {
+    case Kind::ForMover: {
         if (evaluation.isMate) {
             if (evaluation.mateIn == 0)
                 return QStringLiteral("#");
-            return (evaluation.mating == bottom ? QString() : QStringLiteral("−")) + QStringLiteral("M%1").arg(evaluation.mateIn);
+            return (evaluation.mating == mover ? QString() : QStringLiteral("−")) + QStringLiteral("M%1").arg(evaluation.mateIn);
         }
         EngineEvaluation seen = evaluation;
-        if (bottom == Side::Black)
+        if (mover == Side::Black)
             seen.centipawns = -seen.centipawns;
         return seen.text();
     }
     case Kind::Chances:
-        return QStringLiteral("%1%").arg(qRound(evaluation.shareFor(bottom) * 100));
+        return QStringLiteral("%1%").arg(qRound(evaluation.shareFor(mover) * 100));
     case Kind::Judgement:
         return judgement(evaluation);
     }
     return {};
 }
 
-QString label(Kind kind, Side bottom)
+QString label(Kind kind, Side mover)
 {
-    const bool white = bottom == Side::White;
+    const bool white = mover == Side::White;
     switch (kind) {
     case Kind::Absolute: return Text::tr("Absolute");
-    case Kind::ForBottom: return white ? Text::tr("For White") : Text::tr("For Black");
+    case Kind::ForMover: return white ? Text::tr("For White") : Text::tr("For Black");
     case Kind::Chances: return white ? Text::tr("White's chances") : Text::tr("Black's chances");
     case Kind::Judgement: return Text::tr("Judgement");
     }

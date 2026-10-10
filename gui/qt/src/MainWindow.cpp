@@ -296,7 +296,8 @@ MainWindow::MainWindow(QWidget *parent)
         m_explainer->setLiveEvaluation(evaluation);
         updateCourse();
         m_engineLine = m_session->position().lineText(evaluation.pv);
-        m_enginePanel->setEvaluation(evaluation, m_session->position().lineText(evaluation.pv, -1, SanStyle::Figurines));
+        m_enginePanel->setEvaluation(evaluation, m_session->position().lineText(evaluation.pv, -1, SanStyle::Figurines),
+                                     m_session->position().sideToMove());
         // Held, the eye follows the engine: each new line moves the board to where it now ends.
         if (m_enginePanel->isPeeking())
             peekAtEngineLine(true);

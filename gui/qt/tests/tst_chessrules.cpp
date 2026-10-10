@@ -4238,8 +4238,8 @@ END FUNCTION
         EngineEvaluation white;
         white.centipawns = 150;
         QCOMPARE(ScoreView::text(white, Kind::Absolute, Side::Black), QStringLiteral("+1.5"));
-        QCOMPARE(ScoreView::text(white, Kind::ForBottom, Side::White), QStringLiteral("+1.5"));
-        QCOMPARE(ScoreView::text(white, Kind::ForBottom, Side::Black), QStringLiteral("−1.5"));
+        QCOMPARE(ScoreView::text(white, Kind::ForMover, Side::White), QStringLiteral("+1.5"));
+        QCOMPARE(ScoreView::text(white, Kind::ForMover, Side::Black), QStringLiteral("−1.5"));
         QCOMPARE(ScoreView::text(white, Kind::Judgement, Side::Black), QStringLiteral("±"));
         const int chances = ScoreView::text(white, Kind::Chances, Side::White).chopped(1).toInt();
         QVERIFY(chances > 50 && chances < 100);
@@ -4255,8 +4255,8 @@ END FUNCTION
         mate.isMate = true;
         mate.mateIn = 3;
         mate.mating = Side::Black;
-        QCOMPARE(ScoreView::text(mate, Kind::ForBottom, Side::Black), QStringLiteral("M3"));
-        QCOMPARE(ScoreView::text(mate, Kind::ForBottom, Side::White), QStringLiteral("−M3"));
+        QCOMPARE(ScoreView::text(mate, Kind::ForMover, Side::Black), QStringLiteral("M3"));
+        QCOMPARE(ScoreView::text(mate, Kind::ForMover, Side::White), QStringLiteral("−M3"));
         QCOMPARE(ScoreView::text(mate, Kind::Chances, Side::White), QStringLiteral("0%"));
         QCOMPARE(ScoreView::judgement(mate), QStringLiteral("−+"));
         // Round the four, and back as stored.

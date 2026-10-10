@@ -12,6 +12,9 @@ namespace {
 /// The width holds this many plies (20 moves) before they share it.
 constexpr int kPliesShown = 40;
 constexpr int kPadding = 10;
+/// The colours of the pieces, for the unit's dot.
+const QColor kWhite(0xf2, 0xf2, 0xf2);
+const QColor kBlack(0x30, 0x30, 0x30);
 
 } // namespace
 
@@ -24,9 +27,10 @@ EvaluationBox::EvaluationBox(QWidget *parent)
     updateToolTip();
 }
 
-void EvaluationBox::setEvaluation(const std::optional<EngineEvaluation> &evaluation)
+void EvaluationBox::setEvaluation(const std::optional<EngineEvaluation> &evaluation, Side mover)
 {
     m_evaluation = evaluation;
+    m_mover = mover;
     updateToolTip();
     update();
 }
@@ -42,7 +46,7 @@ void EvaluationBox::setView(ScoreView::Kind view)
 
 void EvaluationBox::updateToolTip()
 {
-    const Side bottom = m_flipped ? Side::Black : Side::White;
+    const Side bottom = m_mover;
     const QString shown = m_evaluation ? ScoreView::text(*m_evaluation, m_view, bottom) : QStringLiteral("–");
     setAccessibleDescription(shown + QLatin1String(", ") + ScoreView::label(m_view, bottom));
     // Every way at once, the one shown first; and what a click does.
@@ -142,13 +146,12 @@ int EvaluationBox::plyAt(const QPointF &position) const
 void EvaluationBox::mouseMoveEvent(QMouseEvent *event)
 {
     const int ply = plyAt(event->position());
-    const bool score = onScore(event->position());
-    if (ply == m_hovered && score == m_hoverScore)
+    // Over the score, its tooltip says every way at once; nothing lights up.
+    setToolTip(onScore(event->position()) ? m_scoreTip : QString());
+    if (ply == m_hovered)
         return;
     m_hovered = ply;
-    m_hoverScore = score;
-    setCursor(ply >= 0 || score ? Qt::PointingHandCursor : Qt::ArrowCursor);
-    setToolTip(score ? m_scoreTip : QString());
+    setCursor(ply >= 0 ? Qt::PointingHandCursor : Qt::ArrowCursor);
     update();
 }
 
@@ -168,22 +171,46 @@ void EvaluationBox::mousePressEvent(QMouseEvent *event)
 void EvaluationBox::leaveEvent(QEvent *event)
 {
     m_hovered = -1;
-    m_hoverScore = false;
     unsetCursor();
     update();
     QWidget::leaveEvent(event);
 }
 
+qreal EvaluationBox::unitSize() const
+{
+    return qRound(QFontMetrics(scoreFont(font())).capHeight() * 0.8);
+}
+
+void EvaluationBox::paintUnit(QPainter &painter, const QRectF &dot) const
+{
+    // The unit: White's view in both colours, the side to move's in its own.
+    QColor edge = palette().color(QPalette::WindowText);
+    edge.setAlphaF(0.55);
+    painter.save();
+    painter.setPen(Qt::NoPen);
+    if (ScoreView::fromMover(m_view)) {
+        painter.setBrush(m_mover == Side::White ? kWhite : kBlack);
+        painter.drawEllipse(dot);
+    } else {
+        // White on the left half, black on the right.
+        painter.setBrush(kWhite);
+        painter.drawPie(dot, 90 * 16, 180 * 16);
+        painter.setBrush(kBlack);
+        painter.drawPie(dot, -90 * 16, 180 * 16);
+    }
+    painter.setPen(QPen(edge, 1));
+    painter.setBrush(Qt::NoBrush);
+    painter.drawEllipse(dot.adjusted(0.5, 0.5, -0.5, -0.5));
+    painter.restore();
+}
+
 int EvaluationBox::sectionWidth() const
 {
-    // As wide as the widest it may show, so it never moves.
+    // As wide as the widest it may show, the unit before it, so it never moves.
     const QFontMetrics score(scoreFont(font()));
     const QFontMetrics small(depthFont(font()));
-    int widest = qMax(score.horizontalAdvance(QStringLiteral("−M88")), small.horizontalAdvance(tr("Depth %1").arg(88)));
-    for (int i = 0; i < ScoreView::kKinds; ++i) {
-        for (const Side side : {Side::White, Side::Black})
-            widest = qMax(widest, small.horizontalAdvance(ScoreView::label(ScoreView::Kind(i), side)));
-    }
+    const int widest = qMax(int(unitSize() * 1.6) + score.horizontalAdvance(QStringLiteral("−M88")),
+                            small.horizontalAdvance(tr("Depth %1").arg(88)));
     return widest + 2 * kPadding;
 }
 
@@ -194,10 +221,10 @@ bool EvaluationBox::onScore(const QPointF &position) const
 
 QSize EvaluationBox::sizeHint() const
 {
-    // The score, what it is, the depth, the dots of the ways.
+    // The score and the depth under it.
     const QFontMetrics score(scoreFont(font()));
     const QFontMetrics small(depthFont(font()));
-    return {sectionWidth() + 200, score.height() + 2 * small.height() + kPadding + 6};
+    return {sectionWidth() + 200, score.height() + small.height() + kPadding};
 }
 
 QSize EvaluationBox::minimumSizeHint() const
@@ -214,45 +241,32 @@ void EvaluationBox::paintEvent(QPaintEvent *)
     QColor edge = palette().color(QPalette::WindowText);
     edge.setAlphaF(0.28);
 
-    // The score's section: the score, what it is, the depth, and a dot for
-    // each way of showing it, the one shown filled. Under the pointer it is
-    // tinted: a click there turns to the next way.
+    // The score's section: the value, after the dot that is its unit — two
+    // colours for White's view, the side to move's colour for its own —,
+    // and the depth under it.
     const int section = sectionWidth();
-    if (m_hoverScore) {
-        QColor tint = palette().color(QPalette::Highlight);
-        tint.setAlphaF(0.10);
-        QPainterPath box;
-        box.addRoundedRect(bounds, radius, radius);
-        QPainterPath left;
-        left.addRect(QRectF(bounds.left(), bounds.top(), section - bounds.left(), bounds.height()));
-        painter.fillPath(box.intersected(left), tint);
-    }
-    const Side bottom = m_flipped ? Side::Black : Side::White;
     const QFontMetrics scoreMetrics(scoreFont(font()));
     const QFontMetrics smallMetrics(depthFont(font()));
-    const int dotsHeight = 6;
-    const int textHeight = scoreMetrics.height() + 2 * smallMetrics.height() + dotsHeight;
+    const int textHeight = scoreMetrics.height() + smallMetrics.height();
     int y = (height() - textHeight) / 2;
+    const QString value = m_evaluation ? ScoreView::text(*m_evaluation, m_view, m_mover) : QStringLiteral("–");
+    const qreal unit = unitSize();
+    const qreal valueWidth = scoreMetrics.horizontalAdvance(value);
+    const qreal gap = unit * 0.6;
+    const qreal left = (section - (m_evaluation ? unit + gap : 0) - valueWidth) / 2;
+    if (m_evaluation) {
+        const QRectF dot(left, y + (scoreMetrics.height() - unit) / 2.0, unit, unit);
+        paintUnit(painter, dot);
+    }
     painter.setFont(scoreFont(font()));
     painter.setPen(palette().color(QPalette::WindowText));
-    painter.drawText(QRect(0, y, section, scoreMetrics.height()), Qt::AlignCenter,
-                     m_evaluation ? ScoreView::text(*m_evaluation, m_view, bottom) : QStringLiteral("–"));
+    painter.drawText(QRectF(left + (m_evaluation ? unit + gap : 0), y, valueWidth + 1, scoreMetrics.height()),
+                     Qt::AlignLeft | Qt::AlignVCenter, value);
     y += scoreMetrics.height();
-    painter.setFont(depthFont(font()));
-    painter.setPen(palette().color(QPalette::Disabled, QPalette::WindowText));
-    painter.drawText(QRect(0, y, section, smallMetrics.height()), Qt::AlignCenter, ScoreView::label(m_view, bottom));
-    y += smallMetrics.height();
-    if (m_evaluation)
+    if (m_evaluation) {
+        painter.setFont(depthFont(font()));
+        painter.setPen(palette().color(QPalette::Disabled, QPalette::WindowText));
         painter.drawText(QRect(0, y, section, smallMetrics.height()), Qt::AlignCenter, tr("Depth %1").arg(m_evaluation->depth));
-    y += smallMetrics.height();
-    const qreal gap = 7;
-    qreal x = section / 2.0 - gap * (ScoreView::kKinds - 1) / 2.0;
-    QColor off = palette().color(QPalette::WindowText);
-    off.setAlphaF(0.25);
-    painter.setPen(Qt::NoPen);
-    for (int i = 0; i < ScoreView::kKinds; ++i, x += gap) {
-        painter.setBrush(i == int(m_view) ? palette().color(QPalette::WindowText) : off);
-        painter.drawEllipse(QPointF(x, y + dotsHeight / 2.0), 1.8, 1.8);
     }
 
     // The course of the game, clipped to the box's rounded right end.

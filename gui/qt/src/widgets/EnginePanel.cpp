@@ -259,7 +259,7 @@ void EnginePanel::setExplanation(const QString &text)
     m_explanation->setVisible(!text.isEmpty());
 }
 
-void EnginePanel::setEvaluation(const std::optional<EngineEvaluation> &evaluation, const QString &line)
+void EnginePanel::setEvaluation(const std::optional<EngineEvaluation> &evaluation, const QString &line, Side mover)
 {
     if (!evaluation) {
         m_score->setEvaluation(std::nullopt);
@@ -268,7 +268,7 @@ void EnginePanel::setEvaluation(const std::optional<EngineEvaluation> &evaluatio
         return;
     }
     m_hasLine = !evaluation->pv.isEmpty();
-    m_score->setEvaluation(evaluation);
+    m_score->setEvaluation(evaluation, mover);
     m_lineText = line.isEmpty() ? evaluation->pv.join(QLatin1Char(' ')) : line;
     refreshLine();
 }

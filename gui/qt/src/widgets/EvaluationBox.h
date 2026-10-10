@@ -3,14 +3,16 @@
 #include "app/ScoreView.h"
 
 #include <QList>
+
+class QPainter;
 #include <QWidget>
 
 #include <optional>
 
 /// The Engine panel's score in a box of two sections: on the left the
-/// score, large, with what it is and the depth under it — a click there
-/// shows it another way (ScoreView: absolute, for the colour at the bottom,
-/// its chances, the book's symbol), four dots saying which; on the right the
+/// score, large, the depth under it — a click there shows it another way
+/// (ScoreView: absolute, for the side to move, its chances, the book's
+/// symbol), a dot before the value its unit, no words; on the right the
 /// game's course: a
 /// dot for the evaluation after every move, joined by a line, nothing filled,
 /// over a marked midline — the balance. White's advantage goes towards
@@ -23,8 +25,8 @@ class EvaluationBox : public QWidget {
 public:
     explicit EvaluationBox(QWidget *parent = nullptr);
 
-    /// The evaluation shown; none shows a dash.
-    void setEvaluation(const std::optional<EngineEvaluation> &evaluation);
+    /// The evaluation shown, `mover` the side to move; none shows a dash.
+    void setEvaluation(const std::optional<EngineEvaluation> &evaluation, Side mover = Side::White);
     void setView(ScoreView::Kind view);
     ScoreView::Kind view() const { return m_view; }
     /// Where each ply sits, 0 the start: 1 White's edge, 0 Black's, 0.5 the
@@ -61,11 +63,14 @@ private:
 
     /// Whether `position` is on the score's section.
     bool onScore(const QPointF &position) const;
+    /// The dot before the value, its unit (ScoreView::fromMover).
+    qreal unitSize() const;
+    void paintUnit(QPainter &painter, const QRectF &dot) const;
     void updateToolTip();
 
     std::optional<EngineEvaluation> m_evaluation;
     ScoreView::Kind m_view = ScoreView::Kind::Absolute;
-    bool m_hoverScore = false;
+    Side m_mover = Side::White;
     QString m_scoreTip;
     QList<std::optional<double>> m_shares;
     int m_current = 0;

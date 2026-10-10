@@ -26,7 +26,8 @@ public:
     void setEngineName(const QString &name);
     void setStatus(const QString &status);
     /// Score and depth, with the best line already written in SAN.
-    void setEvaluation(const std::optional<EngineEvaluation> &evaluation, const QString &line = QString());
+    void setEvaluation(const std::optional<EngineEvaluation> &evaluation, const QString &line = QString(),
+                       Side mover = Side::White);
     /// Keeps the best line out of sight while still showing the score, so that
     /// training does not give the move away.
     void setLineHidden(bool hidden);

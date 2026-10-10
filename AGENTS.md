@@ -202,8 +202,10 @@ playing a move turns it off, and the user asks again at the next move.
   side of the board, as the bar, the height logarithmic in pawns
   (`ScoreView::courseHeight`: log(1 + p) / log(11)); 40 plies fill the
   width, more share it, never scrolled. A click on the score turns how it
-  is shown (`app/ScoreView`, pure: absolute, for the colour at the bottom,
-  its chances, the Informant's symbol; QSettings `engine/scoreView`). A
+  is shown (`app/ScoreView`, pure: absolute, for the side to move, its
+  chances, the Informant's symbol; QSettings `engine/scoreView`), said by a
+  dot before the value, its unit, and no words: two colours for White's
+  view, the side to move's colour for its own (`ScoreView::fromMover`). A
   click on a dot goes to that ply (`EnginePanel::coursePlyClicked`,
   `GameSession::goToPly`); the dot under the pointer lights up. Empty while
   playing online: nothing judges that game.

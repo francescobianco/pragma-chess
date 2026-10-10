@@ -429,7 +429,9 @@ without moves are skipped and counted. `convertsPgnFiles` covers it. It is
 also how large databases are tried: the lichess open database
 (database.lichess.org, monthly files from 121 332 games in 2013-01 up to
 tens of millions) is the stress corpus, kept outside the repository
-(`~/.cache/pragma-chess-stress`), never distributed.
+(`~/.cache/pragma-chess-stress`), never distributed. The method and every
+measurement are in [docs/tech/large-databases.md](docs/tech/large-databases.md):
+add a dated section there after a change meant to make large databases faster.
 
 ## Welcome
 

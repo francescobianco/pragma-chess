@@ -233,7 +233,7 @@ LobbyDialog::LobbyDialog(LobbyService *service, QWidget *parent)
     m_standings->setAlternatingRowColors(true);
     m_standings->setHeaderLabels({tr("#"), tr("Player"), tr("W"), tr("D"), tr("L"), tr("Pts")});
     for (int column : {0, 2, 3, 4, 5})
-        m_standings->headerItem()->setTextAlignment(column, Qt::AlignRight | Qt::AlignVCenter); // Over the figures.
+        m_standings->headerItem()->setTextAlignment(column, Qt::AlignCenter); // The figures centred, title and cells.
     m_standings->headerItem()->setToolTip(2, tr("Wins"));
     m_standings->headerItem()->setToolTip(3, tr("Draws"));
     m_standings->headerItem()->setToolTip(4, tr("Losses"));
@@ -263,6 +263,8 @@ LobbyDialog::LobbyDialog(LobbyService *service, QWidget *parent)
     padTable(m_games);
     m_games->setAlternatingRowColors(true);
     m_games->setHeaderLabels({tr("White"), tr("Black"), tr("Moves"), tr("State")});
+    for (int column : {2, 3})
+        m_games->headerItem()->setTextAlignment(column, Qt::AlignCenter); // All but the names centred.
     m_games->setRootIsDecorated(false);
     m_games->setUniformRowHeights(true);
     m_games->header()->setStretchLastSection(true);
@@ -611,7 +613,7 @@ void LobbyDialog::showRoom()
             item->setToolTip(1, tr("%n game(s) finished", nullptr, line.played) + QLatin1Char('\n')
                                     + tr("Won %n tournament(s)", nullptr, medals.value(line.player)));
         for (int column : {0, 2, 3, 4, 5})
-            item->setTextAlignment(column, Qt::AlignRight | Qt::AlignVCenter);
+            item->setTextAlignment(column, Qt::AlignCenter);
         QFont font = item->font(0);
         font.setBold(line.player == m_me);
         for (int column = 0; column < m_standings->columnCount(); ++column)
@@ -662,6 +664,8 @@ void LobbyDialog::showRoom()
             state = game.toMove() == m_me ? tr("Your move") : tr("%1 to move").arg(room.displayName(game.toMove()));
         auto *item = new QTreeWidgetItem(m_games, {room.displayName(game.white), room.displayName(game.black),
                                                    QString::number((game.moves.size() + 1) / 2), state});
+        item->setTextAlignment(2, Qt::AlignCenter);
+        item->setTextAlignment(3, Qt::AlignCenter);
         item->setData(0, kGameRole, i);
         item->setData(1, kGameRole, game.white + QLatin1Char('|') + game.black);
         showMedal(item, 0, game.white);

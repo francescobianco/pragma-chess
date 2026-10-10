@@ -109,13 +109,13 @@ HelpButton::HelpButton(const QString &text, QWidget *parent)
     connect(this, &QToolButton::clicked, this, [this] { m_bubble ? hideBubble() : showBubble(); });
 }
 
-QWidget *HelpButton::beside(QWidget *field, const QString &help, QWidget *parent)
+QWidget *HelpButton::beside(QWidget *field, const QString &help, QWidget *parent, Qt::Alignment alignment)
 {
     auto *row = new QWidget(parent);
     auto *layout = new QHBoxLayout(row);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(field, 1);
-    layout->addWidget(new HelpButton(help, row), 0, Qt::AlignVCenter);
+    layout->addWidget(new HelpButton(help, row), 0, alignment);
     return row;
 }
 

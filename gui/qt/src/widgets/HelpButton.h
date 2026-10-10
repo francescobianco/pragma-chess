@@ -17,7 +17,10 @@ public:
     ~HelpButton() override;
 
     /// `field` with its "?" at the end, in a row: what a form's row holds.
-    static QWidget *beside(QWidget *field, const QString &help, QWidget *parent);
+    /// `alignment` places the "?" against a field taller than a line (top,
+    /// as the form's label is there).
+    static QWidget *beside(QWidget *field, const QString &help, QWidget *parent,
+                           Qt::Alignment alignment = Qt::AlignVCenter);
 
     void setHelpText(const QString &text);
     /// Shows the balloon as hovering does; the balloon shown, or null.

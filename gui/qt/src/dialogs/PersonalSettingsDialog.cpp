@@ -111,7 +111,7 @@ PersonalSettingsDialog::PersonalSettingsDialog(const PersonalSettings &settings,
                                        "Alpha or Classic Book.</p>"
                                        "<p>Every board changes as soon as you press OK, and on your other computers "
                                        "with Sync.</p>"),
-                                    this));
+                                    this, Qt::AlignTop));
 
     // The lobby key: who the user is in the lobby, kept on this computer only.
     if (!lobbyKey.isEmpty()) {

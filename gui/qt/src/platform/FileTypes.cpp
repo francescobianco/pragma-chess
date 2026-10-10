@@ -94,27 +94,60 @@ bool update(const QString &path, const QByteArray &data)
     return FolderIcon::writeFile(path, data);
 }
 
-void registerWithDesktop(const QList<std::pair<FileTypes::Type, QImage>> &icons)
+void registerWithDesktop(const QList<std::pair<FileTypes::Type, QImage>> &icons, const QString &themeName)
 {
     const QDir data(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation));
     const QByteArray xml = mimeXml();
     if (!xml.isEmpty() && update(data.filePath(QStringLiteral("mime/packages/" APP_ID ".xml")), xml))
         QProcess::execute(QStringLiteral("update-mime-database"), {data.filePath(QStringLiteral("mime"))});
 
-    bool iconsChanged = false;
-    for (const auto &[type, icon] : icons) {
-        if (icon.isNull())
+    // In hicolor, where every theme ends, and in the user's theme itself:
+    // GTK 4 looks for every name of a type's icon in a theme before going
+    // to the next one, so the generic document of the theme (or of one it
+    // inherits, Adwaita) would win over ours, kept in hicolor only.
+    QStringList themes{QStringLiteral("hicolor")};
+    if (!themeName.isEmpty() && themeName != QLatin1String("hicolor"))
+        themes << themeName;
+    const QDir iconsDir(data.filePath(QStringLiteral("icons")));
+    // The names of earlier versions go from every theme.
+    for (const QString &name : iconsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
+        for (const QString &size : QDir(iconsDir.filePath(name)).entryList(QDir::Dirs | QDir::NoDotAndDotDot))
+            for (const char *old : {APP_ID "-project", APP_ID "-database"})
+                QFile::remove(iconsDir.filePath(QStringLiteral("%1/%2/mimetypes/%3.png").arg(name, size, QLatin1String(old))));
+    for (const QString &other : iconsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
+        if (themes.contains(other))
             continue;
-        for (const int size : {16, 24, 32, 48, 64, 128, 256}) {
-            const QImage scaled = size == icon.width() ? icon : icon.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-            iconsChanged |= update(data.filePath(QStringLiteral("icons/hicolor/%1x%1/mimetypes/%2.png").arg(size).arg(type.iconName)),
-                                   pngOf(scaled));
+        // A theme used before: ours go from there.
+        for (const auto &[type, icon] : icons) {
+            for (const QString &file : QDir(iconsDir.filePath(other))
+                                           .entryList({QStringLiteral("*")}, QDir::Dirs | QDir::NoDotAndDotDot)) {
+                QFile::remove(iconsDir.filePath(QStringLiteral("%1/%2/mimetypes/%3.png").arg(other, file, type.iconName)));
+            }
         }
     }
-    // A theme with a cache is looked up in the cache only.
-    const QString hicolor = data.filePath(QStringLiteral("icons/hicolor"));
-    if (iconsChanged && QFileInfo::exists(hicolor + QStringLiteral("/icon-theme.cache")))
-        QProcess::execute(QStringLiteral("gtk-update-icon-cache"), {QStringLiteral("-q"), QStringLiteral("-t"), QStringLiteral("-f"), hicolor});
+    for (const QString &name : themes) {
+        // The sizes the theme has folders of mime type icons for.
+        const QString index = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
+                                                     QStringLiteral("icons/%1/index.theme").arg(name));
+        QFile indexFile(index);
+        const QString listed = indexFile.open(QIODevice::ReadOnly) ? QString::fromUtf8(indexFile.readAll()) : QString();
+        bool changed = false;
+        for (const auto &[type, icon] : icons) {
+            if (icon.isNull())
+                continue;
+            for (const int size : {16, 24, 32, 48, 64, 128, 256}) {
+                const QString folder = QStringLiteral("%1x%1/mimetypes").arg(size);
+                if (name != QLatin1String("hicolor") && !listed.contains(QLatin1Char('[') + folder + QLatin1Char(']')))
+                    continue;
+                const QImage scaled = size == icon.width() ? icon : icon.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                changed |= update(iconsDir.filePath(QStringLiteral("%1/%2/%3.png").arg(name, folder, type.iconName)), pngOf(scaled));
+            }
+        }
+        // A theme with a cache is looked up in the cache only.
+        const QString root = iconsDir.filePath(name);
+        if (changed && QFileInfo::exists(root + QStringLiteral("/icon-theme.cache")))
+            QProcess::execute(QStringLiteral("gtk-update-icon-cache"), {QStringLiteral("-q"), QStringLiteral("-t"), QStringLiteral("-f"), root});
+    }
 
     // Pragma Chess opens them, unless the user chose another application.
     const QString entry = QStringLiteral(APP_ID ".desktop");
@@ -158,10 +191,10 @@ namespace FileTypes {
 QList<Type> types()
 {
     return {
-        {QStringLiteral("application/x-pragma-chess-project"), QStringLiteral(APP_ID "-project"),
+        {QStringLiteral("application/x-pragma-chess-project"), QStringLiteral("io.github.francescobianco.pragma-chess-project"),
          QStringLiteral("PragmaChess.Project"), QStringLiteral(".pch"),
          QCoreApplication::translate("FileTypes", "Pragma Chess Project"), FolderIcon::pawnPath()},
-        {QStringLiteral("application/x-pragma-chess-database"), QStringLiteral(APP_ID "-database"),
+        {QStringLiteral("application/x-pragma-chess-database"), QStringLiteral("io.github.francescobianco.pragma-chess-database"),
          QStringLiteral("PragmaChess.Database"), QStringLiteral(".pdb"),
          QCoreApplication::translate("FileTypes", "Pragma Chess Database"), FolderIcon::databasePath()},
     };
@@ -248,6 +281,8 @@ void registerWithSystem()
     hash.addData(QCoreApplication::applicationFilePath().toUtf8());
 #if !defined(Q_OS_WIN)
     hash.addData(mimeXml());
+    const QString themeName = FolderIcon::iconThemeName();
+    hash.addData(themeName.toUtf8());
 #endif
     const QString stamp = QString::fromLatin1(hash.result().toHex().left(12));
     QSettings settings;
@@ -272,7 +307,7 @@ void registerWithSystem()
             QFile::remove(directory.filePath(old));
     SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 #else
-    registerWithDesktop(icons);
+    registerWithDesktop(icons, themeName);
 #endif
     settings.setValue(QStringLiteral("fileTypes/registered"), stamp);
 #endif

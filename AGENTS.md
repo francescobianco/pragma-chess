@@ -1254,8 +1254,10 @@ while one of them is selected.
   (`data/<app id>.mime.xml`, installed and also written for the user with
   `update-mime-database`; `*.pdb` weighs 40, under Protein Data Bank's and
   Visual Studio's 50, and SQLite's application_id `PRAG` at offset 68
-  claims ours), the icons `<app id>-project`/`-database` in the user's
-  hicolor, the desktop entry's `MimeType`, and `xdg-mime default` only
+  claims ours), the icons `io.github.francescobianco.pragma-chess-project`/`-database`
+  in the user's hicolor and in the user's icon theme itself (GTK 4 looks
+  for every name of an icon in a theme, and its parents, before hicolor:
+  the generic document would win), the desktop entry's `MimeType`, and `xdg-mime default` only
   when no application is the default. Windows: the installer's ProgIds
   `PragmaChess.Project` (the `.pch` default) and `PragmaChess.Database`
   (offered for `.pdb`, the default only where there is none), written

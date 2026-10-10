@@ -24,6 +24,8 @@ QPainterPath databasePath();
 /// the theme has none), as images of up to 256 pixels; found through GNOME's
 /// setting when Qt knows no theme. Not on Windows and macOS.
 QList<QIcon> themeIcons(const QStringList &names);
+/// The desktop's icon theme ("Yaru"); empty when unknown. Not on Windows and macOS.
+QString iconThemeName();
 
 /// Writes a whole file, replacing it only once written.
 bool writeFile(const QString &path, const QByteArray &data);

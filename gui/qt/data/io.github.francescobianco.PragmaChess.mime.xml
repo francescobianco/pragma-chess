@@ -3,7 +3,7 @@
   <mime-type type="application/x-pragma-chess-project">
     <comment>Pragma Chess project</comment>
     <comment xml:lang="it">Progetto di Pragma Chess</comment>
-    <icon name="io.github.francescobianco.PragmaChess-project"/>
+    <icon name="io.github.francescobianco.pragma-chess-project"/>
     <glob pattern="*.pch" weight="60"/>
     <magic priority="60">
       <match type="string" value="# Pragma Chess project" offset="0"/>
@@ -16,7 +16,7 @@
     <comment>Pragma Chess database</comment>
     <comment xml:lang="it">Database di Pragma Chess</comment>
     <sub-class-of type="application/vnd.sqlite3"/>
-    <icon name="io.github.francescobianco.PragmaChess-database"/>
+    <icon name="io.github.francescobianco.pragma-chess-database"/>
     <glob pattern="*.pdb" weight="40"/>
     <magic priority="80">
       <match type="string" value="SQLite format 3" offset="0">

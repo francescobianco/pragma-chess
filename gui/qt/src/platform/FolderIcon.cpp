@@ -275,23 +275,34 @@ QImage imageOf(const QIcon &icon, int size)
 }
 
 #if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
+QString iconThemeName()
+{
+    if (!QIcon::fromTheme(QStringLiteral("folder")).isNull())
+        return QIcon::themeName();
+    // Without a desktop platform theme Qt knows no icon theme: GNOME's.
+    QProcess gsettings;
+    gsettings.start(QStringLiteral("gsettings"),
+                    {QStringLiteral("get"), QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("icon-theme")});
+    if (!gsettings.waitForFinished(2000) || gsettings.exitCode() != 0)
+        return {};
+    return QString::fromUtf8(gsettings.readAllStandardOutput()).trimmed().remove(QLatin1Char('\''));
+}
+
 QList<QIcon> themeIcons(const QStringList &names)
 {
     const QString themeName = QIcon::themeName();
     const QStringList searchPaths = QIcon::themeSearchPaths();
     if (QIcon::fromTheme(names.value(0)).isNull()) {
-        // Without a desktop platform theme Qt knows no icon theme: GNOME's,
-        // in the folders of the freedesktop specification.
+        // Qt may know no icon theme (no desktop platform theme): the
+        // desktop's, in the folders of the freedesktop specification.
         QStringList paths = searchPaths;
         paths.append(QDir::home().filePath(QStringLiteral(".icons")));
         paths.append(QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QStringLiteral("icons"),
                                                QStandardPaths::LocateDirectory));
         QIcon::setThemeSearchPaths(paths);
-        QProcess gsettings;
-        gsettings.start(QStringLiteral("gsettings"),
-                        {QStringLiteral("get"), QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("icon-theme")});
-        if (gsettings.waitForFinished(2000))
-            QIcon::setThemeName(QString::fromUtf8(gsettings.readAllStandardOutput()).trimmed().remove(QLatin1Char('\'')));
+        const QString desktopTheme = iconThemeName();
+        if (!desktopTheme.isEmpty())
+            QIcon::setThemeName(desktopTheme);
     }
     // Images are taken now, while the theme is the one asked for.
     QList<QIcon> icons;

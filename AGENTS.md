@@ -1227,14 +1227,15 @@ while one of them is selected.
   they are, so nothing jumps. The window's own geometry and maximized
   state are per device, in QSettings.
 - Default user folder: `~/Chess/Pragma/{Databases,Projects,Books}`, localized
-  (e.g. `~/Scacchi/Pragma/…`). The chess folder wears a pawn, as Videos
+  (e.g. `~/Scacchi/Pragma/…`). The chess folder and the Pragma folder in it wear a pawn, as Videos
   wears a film (`platform/FolderIcon`, a few seconds after start): the
   system's folder icon, the emblem's place and colour read from its Videos,
   Pictures, Music and Documents icons against the plain one, so it follows
   the icon theme; set with `gio set … metadata::custom-icon` (and
   `.directory` on KDE), `desktop.ini` on Windows, NSWorkspace on macOS,
   only when the picture changed (QSettings `folderIcon/applied`) and never
-  over an icon the user gave the folder. Options ▸ Folder Settings…
+  over an icon the user gave the folder. The folder sync never carries a
+  folder's icon (`desktop.ini`, macOS's `Icon\r`). Options ▸ Folder Settings…
   (`dialogs/FolderSettingsDialog`) moves the Pragma folder or any of
   Databases, Projects, Books, Opening Names elsewhere, per computer
   (QSettings `folders/*`, `UserFolders::FolderChoice`; empty = the default,

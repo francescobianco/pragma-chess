@@ -478,8 +478,8 @@ MainWindow::MainWindow(QWidget *parent)
     restoreOpeningNames(); // After the session, so the first launch still seeds Classic Games first.
     applySyncSettings();
     createPhoneLink();
-    // The chess folder wears a king, as Videos wears a film: once the window is up.
-    QTimer::singleShot(3000, this, [] { FolderIcon::applyToChessFolder(); });
+    // The chess and Pragma folders wear a pawn, as Videos wears a film: once the window is up.
+    QTimer::singleShot(3000, this, [] { FolderIcon::applyToChessFolders(); });
 
     connect(m_session, &GameSession::gameChanged, this, &MainWindow::scheduleSaveSession);
     connect(m_session, &GameSession::plyChanged, this, &MainWindow::scheduleSaveSession);

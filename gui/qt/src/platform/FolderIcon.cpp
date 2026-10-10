@@ -43,16 +43,16 @@ QPainterPath pawnPath()
     QPainterPath pawn;
     pawn.setFillRule(Qt::WindingFill);
     // The head.
-    pawn.addEllipse(QPointF(0.5, 0.17), 0.155, 0.155);
-    // The collar.
-    pawn.addRoundedRect(QRectF(0.32, 0.36, 0.36, 0.075), 0.035, 0.035);
+    pawn.addEllipse(QPointF(0.5, 0.16), 0.15, 0.15);
+    // The collar, wide and thick: what tells a pawn from a bishop or a ball.
+    pawn.addRoundedRect(QRectF(0.25, 0.345, 0.50, 0.105), 0.05, 0.05);
     // The body, flaring to the base.
     QPainterPath body;
-    body.moveTo(0.40, 0.465);
-    body.lineTo(0.60, 0.465);
+    body.moveTo(0.40, 0.48);
+    body.lineTo(0.60, 0.48);
     body.cubicTo(0.61, 0.66, 0.70, 0.79, 0.77, 0.87);
     body.lineTo(0.23, 0.87);
-    body.cubicTo(0.30, 0.79, 0.39, 0.66, 0.40, 0.465);
+    body.cubicTo(0.30, 0.79, 0.39, 0.66, 0.40, 0.48);
     body.closeSubpath();
     pawn.addPath(body);
     // The base.
@@ -333,12 +333,15 @@ QImage compose(const QIcon &folder, const QList<QIcon> &examples, int size)
     return image;
 }
 
-void applyToChessFolder()
+void applyToChessFolders()
 {
     if (UserFolders::isOverridden())
         return;
-    const QString folder = UserFolders::chessDir();
-    if (!QFileInfo(folder).isDir())
+    QStringList folders;
+    for (const QString &folder : {UserFolders::chessDir(), UserFolders::pragmaDir()})
+        if (QFileInfo(folder).isDir() && !folders.contains(folder))
+            folders.append(folder);
+    if (folders.isEmpty())
         return;
 #if defined(Q_OS_MACOS)
     const int size = 512;
@@ -357,11 +360,6 @@ void applyToChessFolder()
         image.save(&buffer, "PNG");
     }
     const QString hash = QString::fromLatin1(QCryptographicHash::hash(png, QCryptographicHash::Sha256).toHex().left(12));
-    const QString applied = folder + QLatin1Char('|') + hash;
-    QSettings settings;
-    if (settings.value(QStringLiteral("folderIcon/applied")).toString() == applied)
-        return;
-
     // A new name for every new picture: file managers keep icons by path.
     QDir directory(iconDirectory());
     directory.mkpath(QStringLiteral("."));
@@ -371,7 +369,20 @@ void applyToChessFolder()
     const QString suffix = QStringLiteral(".png");
 #endif
     const QString iconFile = directory.filePath(QStringLiteral("chess-folder-") + hash + suffix);
-    if (!setFolderIcon(folder, iconFile, image))
+
+    // "folder|hash" for each folder that has the picture of that hash.
+    QSettings settings;
+    QStringList applied = settings.value(QStringLiteral("folderIcon/applied")).toStringList();
+    bool changed = false;
+    for (const QString &folder : folders) {
+        const QString entry = folder + QLatin1Char('|') + hash;
+        if (applied.contains(entry) || !setFolderIcon(folder, iconFile, image))
+            continue;
+        applied.removeIf([&folder](const QString &old) { return old.section(QLatin1Char('|'), 0, -2) == folder; });
+        applied.append(entry);
+        changed = true;
+    }
+    if (!changed)
         return;
     settings.setValue(QStringLiteral("folderIcon/applied"), applied);
     for (const QString &old : directory.entryList({QStringLiteral("chess-folder-*")}, QDir::Files))

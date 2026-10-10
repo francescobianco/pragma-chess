@@ -27,7 +27,11 @@ constexpr int kLockPauseMs = 3000;
 
 bool isSyncedName(const QString &name)
 {
-    // Hidden files, partial transfers, SQLite side files and temporary copies stay local.
+    // Hidden files, partial transfers, SQLite side files and temporary copies
+    // stay local, and so does a folder's icon (Windows' desktop.ini, the
+    // "Icon\r" of macOS): it points at a file of this computer.
+    if (name.compare(QLatin1String("desktop.ini"), Qt::CaseInsensitive) == 0 || name == QLatin1String("Icon\r"))
+        return false;
     return !name.startsWith(QLatin1Char('.')) && !name.endsWith(QLatin1String(".part"))
         && !name.endsWith(QLatin1String(".saving")) && !name.endsWith(QLatin1String("-journal"))
         && !name.endsWith(QLatin1String("-wal")) && !name.endsWith(QLatin1String("-shm"));

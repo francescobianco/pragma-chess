@@ -8,7 +8,7 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- The chess folder in your home (Chess, Scacchi…) has its own icon: the
+- The chess folder in your home (Chess, Scacchi…) and the Pragma folder in it have their own icon: the
   system's folder with a pawn on it, as Videos has a film and Pictures a
   picture, drawn in the colours of your icon theme.
 - Two new projects, in English and Italian: **Pawn Endgames** (the square,

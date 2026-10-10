@@ -4,7 +4,8 @@
 #include <QImage>
 #include <QString>
 
-/// The chess folder in the home (~/Chess, ~/Scacchi…) wears a pawn, as
+/// The chess folder in the home (~/Chess, ~/Scacchi…) and the Pragma folder
+/// in it wear a pawn, as
 /// Videos wears a film and Pictures a picture: the system's own folder icon
 /// with a pawn where the system draws the emblems of its folders, in their
 /// colour. It is composed again at every start from the icons of the moment,
@@ -17,9 +18,9 @@ namespace FolderIcon {
 /// A null image when there is no folder icon.
 QImage compose(const QIcon &folder, const QList<QIcon> &examples, int size);
 
-/// Puts the pawn on the chess folder, if it exists and wears no icon of
-/// the user's; only when the icon changed since the last time, so a user
-/// who took it off is not overruled at every start.
-void applyToChessFolder();
+/// Puts the pawn on the chess folder and the Pragma folder, each if it
+/// exists and wears no icon of the user's; only when the icon changed since
+/// the last time, so a user who took it off is not overruled at every start.
+void applyToChessFolders();
 
 } // namespace FolderIcon

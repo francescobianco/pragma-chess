@@ -1608,8 +1608,9 @@ it**: the rules of the ledger are a protocol every client must apply alike.
   sits), `LobbyRoom` (id, seed, four seats of players' public keys, the two
   games of every pair as they sit, `names`, `standings`), `LobbyGame` (white
   and black keys, UCI moves, result). `RoomName`: a seed names a room in
-  every language (a chess term, a whole translated phrase, and a champion;
-  the lists are append only). `LobbyLedger`: the events and the **fold**
+  every language (a chess term, a whole translated phrase, and a champion
+  from Fischer back — the names of today confuse a beginner; the lists are
+  append only, a name only ever replaced in its place). `LobbyLedger`: the events and the **fold**
   that makes the rooms — a function of the set of events, not of their
   order (opens, then joins in (created_at, id) order, moves by ply with the
   first legal one of the player to move counting, resignations, mate and

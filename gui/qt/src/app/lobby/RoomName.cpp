@@ -52,13 +52,18 @@ const char *const kTerms[] = {
     QT_TRANSLATE_NOOP("RoomName", "%1's Brilliancy"),
 };
 
-/// World champions and masters of the game's history, written as they are
-/// known in the West. Append only.
+/// Champions and masters of the game's history, from Fischer back, written
+/// as they are known in the West: names that sound like chess's history to
+/// anyone, where a champion of today may read as a stranger to a beginner.
+/// They name rooms by seed (and users who gave no name): append only, and a
+/// name is only ever replaced in its place — the champions after Fischer
+/// were, by masters of the past — so the count, and the other rooms' names,
+/// stay as they are.
 const char *const kChampions[] = {
     "Steinitz", "Lasker", "Capablanca", "Alekhine", "Euwe", "Botvinnik", "Smyslov", "Tal",
-    "Petrosian", "Spassky", "Fischer", "Karpov", "Kasparov", "Kramnik", "Anand", "Carlsen",
-    "Ding", "Gukesh", "Topalov", "Menchik", "Rudenko", "Bykova", "Gaprindashvili", "Chiburdanidze",
-    "Xie Jun", "Hou Yifan", "Polgar", "Morphy", "Philidor", "Greco", "Anderssen", "Rubinstein",
+    "Petrosian", "Spassky", "Fischer", "Staunton", "Zukertort", "Chigorin", "Pillsbury", "Schlechter",
+    "Bogoljubov", "Spielmann", "Flohr", "Menchik", "Rudenko", "Bykova", "Gaprindashvili", "Najdorf",
+    "La Bourdonnais", "Reshevsky", "Maróczy", "Morphy", "Philidor", "Greco", "Anderssen", "Rubinstein",
     "Nimzowitsch", "Réti", "Keres", "Bronstein", "Tarrasch", "Marshall", "Larsen", "Korchnoi",
 };
 

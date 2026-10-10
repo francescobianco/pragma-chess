@@ -100,7 +100,7 @@ QString PersonalSettings::generatedName(quint32 random)
 {
     const int champions = RoomName::championCount();
     QString champion = RoomName::champion(int(random % quint32(champions)));
-    champion.remove(QLatin1Char(' ')); // "Xie Jun" → "XieJun007"
+    champion.remove(QLatin1Char(' ')); // "La Bourdonnais" → "LaBourdonnais007"
     return champion + QStringLiteral("%1").arg((random / quint32(champions)) % 1000, 3, 10, QLatin1Char('0'));
 }
 

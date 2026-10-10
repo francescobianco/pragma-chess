@@ -4672,7 +4672,7 @@ END FUNCTION
         QCOMPARE(PersonalSettings::generatedName(9), QStringLiteral("Spassky000"));
         const quint32 champions = quint32(RoomName::championCount()); // The list grows: appended to.
         QCOMPARE(PersonalSettings::generatedName(9 + champions * 7), QStringLiteral("Spassky007"));
-        QCOMPARE(PersonalSettings::generatedName(24 + champions * 123), QStringLiteral("XieJun123")); // No space.
+        QCOMPARE(PersonalSettings::generatedName(24 + champions * 123), QStringLiteral("LaBourdonnais123")); // No space.
         QSet<QString> generated;
         for (quint32 random = 0; random < 4000; random += 37)
             generated.insert(PersonalSettings::generatedName(random * 2654435761u));

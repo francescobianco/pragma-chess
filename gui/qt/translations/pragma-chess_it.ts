@@ -2699,18 +2699,6 @@ non è su questo computer.</translation>
         <translation>Nero</translation>
     </message>
     <message>
-        <source>Online: %1 – %2</source>
-        <translation>Online: %1 – %2</translation>
-    </message>
-    <message>
-        <source>waiting for the opponent…</source>
-        <translation>aspetto l&apos;avversario…</translation>
-    </message>
-    <message>
-        <source>your move</source>
-        <translation>tocca a te</translation>
-    </message>
-    <message>
         <source>Phone</source>
         <translation>Telefono</translation>
     </message>
@@ -3435,6 +3423,14 @@ non è su questo computer.</translation>
     <message>
         <source>The project is read-only: untick Read-only in File ▸ Project Information… to change it</source>
         <translation>Il progetto è in sola lettura: togli la spunta a Sola lettura in File ▸ Informazioni progetto… per modificarlo</translation>
+    </message>
+    <message>
+        <source>Waiting for the opponent…</source>
+        <translation>In attesa dell&apos;avversario…</translation>
+    </message>
+    <message>
+        <source>Your move</source>
+        <translation>Tocca a te</translation>
     </message>
 </context>
 <context>

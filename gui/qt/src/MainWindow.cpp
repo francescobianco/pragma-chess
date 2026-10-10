@@ -4565,6 +4565,8 @@ void MainWindow::setOnlinePlay(bool on)
     m_onlinePlay = on;
     m_onlineModeAction->setChecked(on);
     m_onlineModeAction->setEnabled(on);
+    if (!on)
+        m_enginePanel->setClocks(false);
     // Against cheating: nothing that thinks for the user runs while they play.
     if (on) {
         m_trainingModeAction->setChecked(false);
@@ -4651,20 +4653,29 @@ void MainWindow::onlineGameUpdated(const OnlineGame &game)
 
 void MainWindow::updateOnlineStatus(const OnlineGame &game)
 {
-    const auto clock = [](int ms) {
-        const int seconds = qMax(0, ms / 1000);
-        return QStringLiteral("%1:%2").arg(seconds / 60).arg(seconds % 60, 2, 10, QLatin1Char('0'));
-    };
-    const QString white = QStringLiteral("%1 (%2) %3").arg(game.white).arg(game.whiteRating).arg(clock(game.whiteTimeMs));
-    const QString black = QStringLiteral("%1 (%2) %3").arg(game.black).arg(game.blackRating).arg(clock(game.blackTimeMs));
-    QString status = tr("Online: %1 – %2").arg(white, black);
+    // Names, ratings and times are on the clocks: the line says whose move it is.
     if (game.isOver())
-        status = game.endText() + QLatin1Char(' ') + status;
+        m_enginePanel->setStatus(game.endText());
     else if (isOpponentTurn())
-        status += QStringLiteral(" — ") + tr("waiting for the opponent…");
+        m_enginePanel->setStatus(tr("Waiting for the opponent…"));
     else
-        status += QStringLiteral(" — ") + tr("your move");
-    m_enginePanel->setStatus(status);
+        m_enginePanel->setStatus(tr("Your move"));
+
+    // The clocks: the opponent's on the left, the user's on the right, as across a
+    // table; they run from the second move, as on the platforms, while the game goes on.
+    const ChessClocks::Face whiteClock{game.white, game.whiteRating, game.whiteTimeMs, true};
+    const ChessClocks::Face blackClock{game.black, game.blackRating, game.blackTimeMs, false};
+    const bool userWhite = !m_onlineSide || *m_onlineSide == Side::White;
+    Side toMove = Side::White;
+    if (!game.initialFen.isEmpty())
+        if (const std::optional<ChessPosition> start = ChessPosition::fromFen(game.initialFen, ChessPosition::Kings::Optional))
+            toMove = start->sideToMove();
+    if (game.moves.size() % 2)
+        toMove = toMove == Side::White ? Side::Black : Side::White;
+    int running = -1;
+    if (!game.isOver() && game.moves.size() >= 2)
+        running = (toMove == Side::White) == userWhite ? 1 : 0;
+    m_enginePanel->setClocks(true, userWhite ? blackClock : whiteClock, userWhite ? whiteClock : blackClock, running);
 }
 
 void MainWindow::onlineGameFinished(const OnlineGame &game)

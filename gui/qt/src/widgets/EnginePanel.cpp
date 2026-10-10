@@ -73,6 +73,10 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     scoreRow->addWidget(m_depth, 0, Qt::AlignBottom);
     layout->addLayout(scoreRow);
 
+    m_clocks = new ChessClocks(this);
+    m_clocks->hide();
+    layout->addWidget(m_clocks);
+
     // The tutor's alert: what went wrong, then what to do about it.
     auto *tutor = new QVBoxLayout(m_tutor);
     tutor->setContentsMargins(0, 0, 0, 0);
@@ -314,4 +318,11 @@ void EnginePanel::setOpening(const OpeningNames::Name &opening)
 void EnginePanel::setBookName(const QString &name)
 {
     m_book->setText(name.isEmpty() ? QStringLiteral("–") : name);
+}
+
+void EnginePanel::setClocks(bool shown, const ChessClocks::Face &left, const ChessClocks::Face &right, int running)
+{
+    m_clocks->setVisible(shown);
+    if (shown)
+        m_clocks->setClocks(left, right, running);
 }

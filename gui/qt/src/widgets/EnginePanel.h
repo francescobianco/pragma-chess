@@ -2,6 +2,7 @@
 
 #include "app/OpeningNames.h"
 #include "app/UciEngine.h"
+#include "widgets/ChessClocks.h"
 
 #include <QWidget>
 
@@ -36,6 +37,9 @@ public:
     /// one move after where the game stands, or the whole plan prepared on
     /// the board. Hidden when not `shown`.
     void setLobby(bool shown, const QString &status = QString(), bool canSendMove = false, bool canSendPlan = false);
+    /// Online play: the two clocks, large (see ChessClocks); hidden when not `shown`.
+    void setClocks(bool shown, const ChessClocks::Face &left = {}, const ChessClocks::Face &right = {},
+                   int running = -1);
     /// Summary of the "Explain" command; empty hides it.
     void setExplanation(const QString &text);
     /// The opening the game is in and the chosen opening book; empty values show a dash.
@@ -61,6 +65,7 @@ protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
+    ChessClocks *m_clocks;
     QWidget *m_tutor;
     QLabel *m_tutorMessage;
     QWidget *m_lobby;

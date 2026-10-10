@@ -1608,7 +1608,13 @@ a platform; lichess.org for now, through its Board API, more to come.
   slide of the engine's, a refused move is taken back by rebuilding the
   game). The end (`onlineGameFinished`) writes the result and saves the game
   to the open database with players, ratings, "lichess.org rated/casual
-  game" and the game's URL as site. New Online Game…, New Game and New Training… stay enabled while it is on (New Game first asks, in `NewGameChoiceDialog`: a
+  game" and the game's URL as site. The Engine panel shows the clocks
+  (`widgets/ChessClocks`, `EnginePanel::setClocks`): a tournament's
+  mechanical clock, a large dial each, hands set so the flag falls at
+  twelve and lifted by the minute hand over the last three minutes, the
+  time in large figures; the opponent's on the left, the user's on the
+  right; running from the second move, ticking on their own between the
+  platform's updates. New Online Game…, New Game and New Training… stay enabled while it is on (New Game first asks, in `NewGameChoiceDialog`: a
   new online game, as the toolbar's New Online Game, or one to analyse; "Remember
   for this session" keeps the choice in `m_rememberedNewGame`, never saved): they go through
   `leaveOnlineThen`, which asks to Keep Playing or Resign the game in

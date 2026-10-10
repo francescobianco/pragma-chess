@@ -37,6 +37,12 @@ struct Project {
     bool readOnly = false;
     /// Absolute path of the database file.
     QString databasePath;
+    /// The database's lineage (DatabaseProperties::id), so the project finds
+    /// it wherever it is — moved, renamed, on another computer: the database
+    /// with this lineage in the Databases folder is opened when the path has
+    /// none or another. The projects we distribute name their database so,
+    /// with no path. Written `database: lineage:`, only when known.
+    QString databaseLineage;
     /// The chapters, their games and paragraphs, and the one open (where in
     /// it is the chapter's currentGame and ply). Empty for a project written
     /// before chapters: the fields below say what its one game was.

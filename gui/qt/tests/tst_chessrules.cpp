@@ -4586,7 +4586,12 @@ END FUNCTION
             QVERIFY2(project, qPrintable(file + QLatin1String(": ") + error));
             QVERIFY(project->multilingual);
             QVERIFY(project->readOnly); // Distributed: read-only until the user unticks it.
-            QVERIFY(project->databasePath.isEmpty()); // It keeps the database open.
+            QVERIFY(project->databasePath.isEmpty()); // No path: the user's folders are their own.
+            // The endgame projects open the endgames to train on, wherever they are.
+            if (file.contains(QLatin1String("Endgames")))
+                QCOMPARE(project->databaseLineage, GameIdentity::kEndgamesLineage);
+            else
+                QVERIFY(project->databaseLineage.isEmpty()); // It keeps the database open.
             const auto bothLanguages = [](const LocalizedText &text) {
                 return text.has(QStringLiteral("en")) && text.has(QStringLiteral("it"));
             };
@@ -4615,6 +4620,22 @@ END FUNCTION
                 }
             }
         }
+    }
+
+    void keepsTheProjectsDatabaseLineage()
+    {
+        Project project;
+        project.databasePath = QStringLiteral("/somewhere/Databases/Endgames.pdb");
+        project.databaseLineage = GameIdentity::kEndgamesLineage;
+        const QString yaml = project.toYaml();
+        QVERIFY(yaml.contains(QLatin1String("lineage: ") + GameIdentity::kEndgamesLineage));
+        QString error;
+        const std::optional<Project> read = Project::fromYaml(yaml, QDir(), &error);
+        QVERIFY2(read, qPrintable(error));
+        QCOMPARE(read->databaseLineage, GameIdentity::kEndgamesLineage);
+        QCOMPARE(read->databasePath, project.databasePath);
+        // A project without one writes none.
+        QVERIFY(!Project().toYaml().contains(QLatin1String("lineage")));
     }
 
     void localizesProjectTexts()

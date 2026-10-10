@@ -334,6 +334,9 @@ private:
     void addRecentProject(const QString &path);
     void rebuildRecentProjectsMenu();
     Project captureProject();
+    /// The database a project opens: its path, or the database with its
+    /// lineage when the path is missing, gone or another database's.
+    QString projectDatabasePath(const Project &project) const;
     void applyProject(const Project &project, bool openFirstGameIfNone);
     void updateWindowTitle();
     /// Says in the tooltips of their toolbar buttons which book, engine and database are in use.

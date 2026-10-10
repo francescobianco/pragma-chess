@@ -904,8 +904,14 @@ a chapter always has a game. In other tools this is a study or a chess book.
 - **Projects we distribute** are `resources/projects/*.pch` (`:/projects`),
   copied once into the Projects folder at start
   (`MainWindow::seedDistributedProjects`, `distributed/project/<name>/seeded`:
-  one the user deleted is not brought back). They name no database: a
-  project without one keeps the database open (`applyProject`). A copy equal
+  one the user deleted is not brought back). They name no path: a
+  project without a database keeps the one open (`applyProject`), and the
+  endgame ones (Pawn Endgames, Rook Endgames) name Endgame Training by its
+  lineage (`database: lineage:`, `Project::databaseLineage`), opened
+  wherever it is and whatever its file is called
+  (`MainWindow::projectDatabasePath`; every project now writes the lineage
+  of its database beside the path, used when the path is gone or holds
+  another database). A copy equal
   to a version distributed before (its SHA-256 in
   `resources/projects/former-versions.txt`) was never changed and takes the
   new one: **before changing a distributed project, add the hash of the file

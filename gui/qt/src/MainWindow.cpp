@@ -5517,14 +5517,39 @@ void MainWindow::saveSession()
     updateProjectModified();
 }
 
+QString MainWindow::projectDatabasePath(const Project &project) const
+{
+    // A database moved since the project was saved (migrateOpeningNames) is opened where it is now.
+    const QString path = m_movedDatabases.value(project.databasePath, project.databasePath);
+    if (project.databaseLineage.isEmpty())
+        return path;
+    if (!path.isEmpty() && QFileInfo::exists(path)) {
+        const QString id = SqliteGameDatabase::readProperties(path).id;
+        if (id.isEmpty() || id == project.databaseLineage)
+            return path;
+    }
+    if (m_database && m_database->properties().id == project.databaseLineage)
+        return m_database->location();
+    // The database with the project's lineage in the Databases folder.
+    const QDir folder(UserFolders::databasesDir());
+    for (const QString &file : folder.entryList({QStringLiteral("*.") + QLatin1String(UserFolders::databaseSuffix)},
+                                                QDir::Files, QDir::Name)) {
+        if (SqliteGameDatabase::readProperties(folder.filePath(file)).id == project.databaseLineage)
+            return folder.filePath(file);
+    }
+    return path;
+}
+
 Project MainWindow::captureProject()
 {
     Project project;
     project.name = m_projectName;
     project.multilingual = m_multilingual;
     project.readOnly = m_projectReadOnly;
-    if (m_database)
+    if (m_database) {
         project.databasePath = m_database->location();
+        project.databaseLineage = m_database->properties().id;
+    }
     // The chapters, with the game on the board as it is and where the user is in it.
     project.chapters = m_chapters.chapters;
     project.chapter = m_chapters.current;
@@ -5586,9 +5611,8 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
     m_enginePanel->setEngineName(m_engineName);
     updateResourceButtons();
 
-    // A database moved since the project was saved (migrateOpeningNames) is opened where it is now.
-    const QString databasePath = m_movedDatabases.value(project.databasePath, project.databasePath);
-    // A project that names no database (one we distribute) keeps the one open.
+    const QString databasePath = projectDatabasePath(project);
+    // A project that names no database keeps the one open.
     if (!databasePath.isEmpty() || !m_database)
         openInitialDatabase(databasePath);
 
@@ -5749,10 +5773,11 @@ bool MainWindow::openProjectFile(const QString &path)
     }
 
     applyProject(*project, false);
-    if (!project->databasePath.isEmpty() && (!m_database || m_database->location() != project->databasePath)) {
+    const QString databasePath = projectDatabasePath(*project);
+    if (!databasePath.isEmpty() && (!m_database || m_database->location() != databasePath)) {
         QMessageBox::warning(this, tr("Open Project"),
                              tr("The database “%1” used by this project could not be opened.")
-                                 .arg(QDir::toNativeSeparators(project->databasePath)));
+                                 .arg(QDir::toNativeSeparators(databasePath)));
     }
 
     m_projectPath = QFileInfo(path).absoluteFilePath();

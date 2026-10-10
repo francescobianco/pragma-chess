@@ -232,6 +232,8 @@ QString Project::toYaml(const QDir &baseDir) const
         out << YAML::Null;
     else
         out << toStd(database);
+    if (!databaseLineage.isEmpty())
+        out << YAML::Key << "lineage" << YAML::Value << toStd(databaseLineage);
     out << YAML::EndMap;
 
     // The chapters: each a list of games with the paragraphs between their moves.
@@ -351,6 +353,7 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     const QString database = fromNode(root["database"]["path"]);
     if (!database.isEmpty())
         env.databasePath = QDir::cleanPath(baseDir.absoluteFilePath(database));
+    env.databaseLineage = fromNode(root["database"]["lineage"]);
 
     YAML::Node chapters = root["chapters"];
     if (chapters.IsMap() && chapters["list"].IsSequence()) {

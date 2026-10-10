@@ -5,3 +5,5 @@
 # changing a project here, add the hash of the file as it is: sha256sum.
 f70a0a4e436eef96a5efec0c820e16924bdc25d963cd2b4f588895714765ab12  Rook Endgames.pch, read-only
 216301e650469fa87a1cd355094f2a64b84c30a8d290b39e50659ed23f162f79  Rook Endgames.pch, before the read-only flag
+dafd4327d421270ca9d6a376ee374e20aebbb851e70e0e9f95c9ca472f2744a7  Rook Endgames.pch, before naming its database
+a563a8f026b16a744afedac6f01a5bb701149ef29a6b998e4a43c3ed108fb3a4  Pawn Endgames.pch, before naming its database

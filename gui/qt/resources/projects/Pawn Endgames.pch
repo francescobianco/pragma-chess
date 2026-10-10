@@ -7,6 +7,7 @@ multilingual: true
 read-only: true
 database:
   path: ~
+  lineage: 7b0c5a1e-3f0d-4a55-9e3c-6f1d0a9b4c04
 chapters:
   current: 0
   list:

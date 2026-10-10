@@ -8,6 +8,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- The **Pawn Endgames** and **Rook Endgames** projects open **Endgame
+  Training**, to try what they teach; a project finds its database again
+  even when the file was moved or renamed.
 - Projects (`.pch`) and databases (`.pdb`) open with Pragma Chess from
   your file manager — a database in the project you left open — and their
   icon is your system's document with a pawn on the page (a database with a

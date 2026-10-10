@@ -5,6 +5,9 @@ chess programmers, Linux users — through channels that welcome free
 software, one honest post at a time. This is the plan and its log: tick a
 line when it is done, with the date and the link, so nobody posts twice.
 
+Where we stand among the other free programs, and what to learn from the
+way En Croissant grew, is in [POSITIONING.md](POSITIONING.md) (in Italian).
+
 The messages are in [Messages](#messages); use them as they are or shorten
 them, in the language of the place. Everything links to the site,
 <https://yafb.net/pragma-chess/>, which speaks English and Italian and has

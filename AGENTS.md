@@ -34,6 +34,7 @@ Command line tools                  gui/qt/tools: pragma-explain, pragma-book
 CMakeLists.txt         top-level CMake, only adds gui/qt
 CHANGELOG.md           what changed in each version, for users (Keep a Changelog)
 DISTRIBUTING.md        how Pragma Chess is made known: channels, messages, log
+POSITIONING.md         where Pragma Chess stands among free chess programs (Italian)
 TODO.md                handoff: what is left to do, open decisions, formats decoded
 smart/                 SMART programs, the chess judgement every client runs:
                        EXPLAIN.smart, TUTOR.smart; README.md is the language

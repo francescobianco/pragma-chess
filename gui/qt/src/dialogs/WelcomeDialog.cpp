@@ -117,9 +117,9 @@ private:
         QFont title = BookFont::paragraph(font());
         title.setPixelSize(58);
         QFont tagline = font();
-        tagline.setPixelSize(12);
+        tagline.setPixelSize(14);
         tagline.setCapitalization(QFont::AllUppercase);
-        tagline.setLetterSpacing(QFont::AbsoluteSpacing, 2.2);
+        tagline.setLetterSpacing(QFont::AbsoluteSpacing, 2.6);
 
         const QFontMetricsF titleMetrics(title);
         const QFontMetricsF taglineMetrics(tagline);

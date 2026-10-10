@@ -105,7 +105,7 @@ def wizard_image(width, height):
     margin = round(32 * scale)
     size = scale * 1.35  # A little larger than the welcome's: the shoulder is smaller.
     title = ImageFont.truetype(str(BOOK_FONT), round(58 * size))
-    tagline = font("Regular", max(8, round(12 * size)))
+    tagline = font("Regular", max(9, round(14 * size)))
     ascent, descent = title.getmetrics()
     line = (ascent + descent) * 0.88
     tag_ascent, tag_descent = tagline.getmetrics()
@@ -134,7 +134,7 @@ def wizard_image(width, height):
     x = margin
     for character in "STUDY · TRAIN · PLAY":
         draw.text((x, tagline_top), character, font=tagline, fill=(0xfa, 0xf6, 0xee, 200))
-        x += tagline.getlength(character) + 2.2 * size
+        x += tagline.getlength(character) + 2.6 * size
     return image.convert("RGB")
 
 

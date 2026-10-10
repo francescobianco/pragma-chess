@@ -91,11 +91,37 @@ if(PRAGMA_PHONE_LINK)
         set(PRAGMA_SECP256K1 secp256k1)
     endif()
 
-    FetchContent_Declare(qrcodegen
-        GIT_REPOSITORY https://github.com/nayuki/QR-Code-generator.git
-        GIT_TAG v1.8.0
-        GIT_SHALLOW TRUE)
-    FetchContent_MakeAvailable(qrcodegen)
+    # QR codes: the system's qrcodegen (Debian's libqrcodegencpp-dev, Fedora's
+    # qrcodegen-devel, openSUSE's QR-Code-generator-devel) through pkg-config
+    # or by its header and library; else fetched. PRAGMA_FETCH_QRCODEGEN
+    # forces the fetch.
+    option(PRAGMA_FETCH_QRCODEGEN "Fetch qrcodegen even when the system has it" OFF)
+    if(NOT PRAGMA_FETCH_QRCODEGEN)
+        if(PkgConfig_FOUND)
+            pkg_check_modules(QRCODEGEN QUIET IMPORTED_TARGET qrcodegencpp)
+        endif()
+        if(QRCODEGEN_FOUND)
+            set(PRAGMA_QRCODEGEN PkgConfig::QRCODEGEN)
+        else()
+            find_path(QRCODEGEN_INCLUDE_DIR qrcodegen.hpp PATH_SUFFIXES qrcodegencpp qrcodegen)
+            find_library(QRCODEGEN_LIBRARY NAMES qrcodegencpp qrcodegen)
+            if(QRCODEGEN_INCLUDE_DIR AND QRCODEGEN_LIBRARY)
+                add_library(pragma-system-qrcodegen INTERFACE)
+                target_include_directories(pragma-system-qrcodegen SYSTEM INTERFACE ${QRCODEGEN_INCLUDE_DIR})
+                target_link_libraries(pragma-system-qrcodegen INTERFACE ${QRCODEGEN_LIBRARY})
+                set(PRAGMA_QRCODEGEN pragma-system-qrcodegen)
+            endif()
+        endif()
+    endif()
+    if(PRAGMA_QRCODEGEN)
+        message(STATUS "qrcodegen: the system's")
+    else()
+        FetchContent_Declare(qrcodegen
+            GIT_REPOSITORY https://github.com/nayuki/QR-Code-generator.git
+            GIT_TAG v1.8.0
+            GIT_SHALLOW TRUE)
+        FetchContent_MakeAvailable(qrcodegen)
+    endif()
 
     if(PRAGMA_DATACHANNEL AND TARGET ${PRAGMA_SECP256K1})
         set(PRAGMA_HAS_PHONE_LINK ON)
@@ -361,8 +387,11 @@ if(PRAGMA_HAS_PHONE_LINK)
     target_compile_definitions(pragma-phone-link PUBLIC PRAGMA_HAS_PHONE_LINK)
     target_compile_options(pragma-phone-link PRIVATE ${PRAGMA_WARNINGS})
 
-    add_library(qrcodegen STATIC ${qrcodegen_SOURCE_DIR}/cpp/qrcodegen.cpp ${qrcodegen_SOURCE_DIR}/cpp/qrcodegen.hpp)
-    target_include_directories(qrcodegen SYSTEM PUBLIC ${qrcodegen_SOURCE_DIR}/cpp)
+    if(NOT PRAGMA_QRCODEGEN)
+        add_library(qrcodegen STATIC ${qrcodegen_SOURCE_DIR}/cpp/qrcodegen.cpp ${qrcodegen_SOURCE_DIR}/cpp/qrcodegen.hpp)
+        target_include_directories(qrcodegen SYSTEM PUBLIC ${qrcodegen_SOURCE_DIR}/cpp)
+        set(PRAGMA_QRCODEGEN qrcodegen)
+    endif()
 endif()
 
 qt_add_executable(pragma-chess
@@ -523,7 +552,7 @@ if(PRAGMA_HAS_PHONE_LINK)
         src/app/phone/DatabaseFolderStore.h
         src/dialogs/ConnectMobileDialog.cpp
         src/dialogs/ConnectMobileDialog.h)
-    target_link_libraries(pragma-chess PRIVATE pragma-phone-link qrcodegen)
+    target_link_libraries(pragma-chess PRIVATE pragma-phone-link ${PRAGMA_QRCODEGEN})
 endif()
 target_link_libraries(pragma-chess PRIVATE pragma-chess-core Qt6::Widgets Qt6::Sql yaml-cpp::yaml-cpp)
 

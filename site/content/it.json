@@ -53,7 +53,7 @@
       {
         "icon": "♚",
         "title": "Gioca online",
-        "text": "Connetti il tuo account lichess.org e gioca con le persone dalla stessa scacchiera. Mentre giochi, motore, Spiega e libro sono spenti: sei tu contro il tuo avversario."
+        "text": "Connetti il tuo account lichess.org, o freechess.org anche come ospite, e gioca con le persone dalla stessa scacchiera. Mentre giochi, motore, Spiega e libro sono spenti: sei tu contro il tuo avversario."
       },
       {
         "icon": "♟",
@@ -178,6 +178,12 @@
         "text": "Qualcosa non va, o manca? Apri una segnalazione su GitHub con quello che hai fatto e quello che hai visto.",
         "link": "https://github.com/francescobianco/pragma-chess/issues",
         "link_text": "Segnalazioni su GitHub →"
+      },
+      {
+        "title": "Domande e idee",
+        "text": "Chiedi come si fa qualcosa, proponi ciò che manca, mostra cosa ci hai fatto: le Discussions del progetto su GitHub.",
+        "link": "https://github.com/francescobianco/pragma-chess/discussions",
+        "link_text": "Discussions"
       },
       {
         "title": "Contribuisci",

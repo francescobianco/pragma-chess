@@ -15,8 +15,9 @@ the downloads.
 - **One post per place, then listen.** Reply to every comment and open an
   issue for every problem reported, with a thank-you. Never repost the same
   thing in the same place.
-- **Say what it is.** Version 0.2.0, Windows/macOS/Linux, MIT; the Android
-  app is in testing. No comparisons that talk down other programs; ChessBase,
+- **Say what it is.** Version 0.3.0 (the next one will bring freechess.org
+  and large databases), Windows/macOS/Linux, MIT; the Android app is in
+  testing. No comparisons that talk down other programs; ChessBase,
   Scid and ChessX are mentioned only to place Pragma Chess among them.
 - **Show, do not claim.** Lead with the Opera-game screenshot of Explain and
   a 30–60 s screen recording; the hook is Explain, then training with the
@@ -34,7 +35,8 @@ the downloads.
 | Web site | <https://yafb.net/pragma-chess/> — EN/IT, screenshots, download, supporters (generated from `site/`, see AGENTS.md) | ✅ live |
 | GitHub repository | Description, topics, homepage pointing at the site, releases with notes, README with the site and the claim | ✅ 2026-10-04 (homepage → site, README) |
 | GitHub social preview | The hero screenshot as the preview image (Settings ▸ Social preview; 1280×640, `site/assets/screenshots/hero.png` cropped) | ☐ needs the web UI |
-| GitHub Discussions | Turned on; add Q&A and Ideas categories and link it from the site's Support section | ✅ on 2026-10-04 · ☐ categories, site link |
+| GitHub Discussions | Turned on, with GitHub's categories (Announcements, General, Ideas, Polls, Q&A, Show and tell); linked from the site's Support section ("Questions and ideas") | ✅ on 2026-10-04 · ✅ site link 2026-10-10 |
+| GitHub issues | Every issue answered, with a thank-you; the first from a stranger: [#1](https://github.com/francescobianco/pragma-chess/issues/1) (2026-10-06, in Russian: qrcodegen from the system's packages) — done in the code 2026-10-10, the answer still to post | ☐ answer #1 |
 | Releases | Each `vX.Y.Z` tag publishes installers and the CHANGELOG section as notes (CI) | ✅ since 0.2.0 |
 | lichess.org blog | "Vi presento Pragma Chess…" (IT) — write the English counterpart and a post per notable release | ✅ IT · ☐ EN |
 | Screen recording | 40 s, recorded in the headless session: the Opera game move by move, E on 14.Rd1, Explain's arrows (`site/assets/pragma-chess-explain.webm`, the hero of the site). A longer tour with Training and Play Online is still to make | ✅ clip 2026-10-04 · ☐ tour |
@@ -47,7 +49,7 @@ advert, and each needs a maintainer: us, until someone else steps in.
 | Channel | How | Status |
 |---|---|---|
 | **Flathub** (Linux) | Manifest written: `packaging/flatpak/` (KDE 6.9 runtime, yaml-cpp module, Stockfish binary, metainfo with screenshots and releases, validated with `appstreamcli`). To do: build it once with `flatpak-builder` on a machine that has it, then submit to <https://github.com/flathub/flathub> (`new-pr` branch). The most visited Linux "store": GNOME Software, KDE Discover, Flathub.org | ✅ manifest · ☐ build & submit |
-| **winget** (Windows) | `packaging/winget/make-winget.sh <version>` writes the manifests; 0.3.0 submitted as <https://github.com/microsoft/winget-pkgs/pull/446459> (CLA signed). Each release: run the script, PR "New version: FrancescoBianco.PragmaChess version X" (to automate in `release.yml`) | ✅ PR open 2026-10-04 |
+| **winget** (Windows) | `packaging/winget/make-winget.sh <version>` writes the manifests; 0.3.0 submitted as <https://github.com/microsoft/winget-pkgs/pull/446459> (CLA signed; on 2026-10-10 the checks pass and it waits for a community moderator's approval). Each release: run the script, PR "New version: FrancescoBianco.PragmaChess version X" (to automate in `release.yml`) | ✅ PR open 2026-10-04 · waiting for a moderator |
 | **Homebrew cask** (macOS) | `Homebrew/homebrew-cask` accepts new casks only from projects with ~75 stars/forks/watchers: wait for that, then `brew create --cask` on the `.dmg` (the app is signed in CI; notarization needed) | ☐ when notable |
 | **AUR** (Arch) | `pragma-chess` PKGBUILD building from the tag, and `pragma-chess-bin` from the `.deb`; publish with an AUR account | ☐ |
 | **Chocolatey / Scoop** (Windows) | Scoop manifest in `extras`; Chocolatey package from the installer. Lower priority than winget | ☐ |
@@ -58,8 +60,8 @@ advert, and each needs a maintainer: us, until someone else steps in.
 
 | Channel | How | Status |
 |---|---|---|
-| **awesome-chess** lists on GitHub | <https://github.com/mbiesiad/awesome-chess>: PR [#59](https://github.com/mbiesiad/awesome-chess/pull/59) (Projects). <https://github.com/mersesarvari/awesome-chess>: issue [#2](https://github.com/mersesarvari/awesome-chess/issues/2) (its directory is a wiki). <https://github.com/atamano/awesome-chess> (Desktop GUIs, lists Scid/ChessX/En Croissant) requires ~50 stars and 3 months: submit then. <https://github.com/hkirat/awesome-chess> has no software section: skip | ✅ 2 of 4 · ☐ atamano at 50★ |
-| **awesome-italia-opensource** | PR [#222](https://github.com/italia-opensource/awesome-italia-opensource/pull/222) (`awesome/opensource/data/pragma-chess.json`) | ✅ PR open 2026-10-04 |
+| **awesome-chess** lists on GitHub | <https://github.com/mbiesiad/awesome-chess>: PR [#59](https://github.com/mbiesiad/awesome-chess/pull/59) (Projects). <https://github.com/mersesarvari/awesome-chess>: issue #2 — the repository is gone (404 on 2026-10-10), nothing to follow. <https://github.com/atamano/awesome-chess> (Desktop GUIs, lists Scid/ChessX/En Croissant) requires ~50 stars and 3 months: submit then. <https://github.com/hkirat/awesome-chess> has no software section: skip | mbiesiad PR open (no review yet, 2026-10-10) · ☐ atamano at 50★ |
+| **awesome-italia-opensource** | PR [#222](https://github.com/italia-opensource/awesome-italia-opensource/pull/222) (`awesome/opensource/data/pragma-chess.json`) | ✅ merged 2026-10-05 |
 | **AlternativeTo** | Submitted 2026-10-04 (id `98fe179f-e51c-46b5-8a27-b02160f2b4e2`): description, MIT, Free, Windows/Mac/Linux, tags, icon and 4 screenshots, author Francesco Bianco (Italy); alternatives ChessBase, En Croissant, Scid vs. PC, scidCommunity, ChessX, ChessDB, Chess Assistant. Online: <https://alternativeto.net/software/pragma-chess/about/> | ✅ online 2026-10-05 |
 | **OpenSourceAlternative.to** | Submitted to the free waitlist (6+ months; the 48 h review costs $29) as an alternative to ChessBase: <https://www.opensourcealternative.to/project/pragma-chess> says "under review" | ✅ 2026-10-04 · waiting |
 | **Flathub / winget / Homebrew pages** | Come with section 2: they are the directories most people use | — |
@@ -78,6 +80,7 @@ to the place. Dates and links go here.
 | Place | Notes | Status |
 |---|---|---|
 | **lichess.org forum** — General Chess Discussion / Lichess Feedback | Link the blog post; mention the lichess import and playing through the Board API | ☐ |
+| **freechess.org** — the FICS community (its web page lists interfaces; `help interfaces` on the server, and the admins who keep that list) | Once a release plays there: ask to be listed among the interfaces, factual, with the download link | ☐ after the next release |
 | **r/chess** | Allows software posts with "I made this"; post with the Explain screenshot, weekend | ☐ |
 | **r/chessbeginners**, **r/TournamentChess** | Training with the tutor; the latter is where club players are | ☐ |
 | **chess.com forums** — Chess Software | Factual post, the chess.com import is relevant there | ☐ |
@@ -116,12 +119,16 @@ to the place. Dates and links go here.
 
 ## 5. Calendar
 
-1. **Week 1 (now)**: site live ✅, repository metadata ✅, README ✅,
-   awesome-list PRs ✅, winget PR ✅, Flatpak manifest ✅; social preview;
-   recording; English blog post; AlternativeTo; Flathub build and submission.
-2. **Week 2**: Flathub, winget, Homebrew submissions; Show HN; r/chess;
-   lichess forum; TalkChess; Mastodon.
-3. **Week 3**: Italian blogs and groups; FSI note; Linux Day; Qt forum.
+1. **Week 1** (from 2026-10-04): site live ✅, repository metadata ✅,
+   README ✅, awesome-list PRs ✅, winget PR ✅, Flatpak manifest ✅,
+   recording ✅, AlternativeTo ✅; still open: social preview, English blog
+   post, Flathub build and submission.
+2. **Week 2 (now, from 2026-10-11)**: answer issue #1; release 0.4.0
+   (freechess.org, large databases, the Engine panel's graph: much to tell
+   since 0.3.0), then the posts with something new to show — Show HN,
+   r/chess, lichess forum, TalkChess, Mastodon; Flathub submission.
+3. **Week 3**: Italian blogs and groups; FSI note; Linux Day; Qt forum;
+   freechess.org's list of interfaces.
 4. **Each release**: release notes from the CHANGELOG, a line on Mastodon
    and the lichess blog, the package channels updated (automate winget and
    Flathub from `release.yml`).
@@ -132,6 +139,10 @@ GitHub stars and clones (Insights ▸ Traffic), release download counts
 (`gh release view --json assets`), site visits (add a privacy-respecting
 counter if wanted: Plausible/GoatCounter, or none), issues opened by new
 people, clubs in Supporters. Write the numbers here once a month.
+
+| Date | Stars | Forks | Visits, 14 days (unique) | Clones, 14 days (unique) | Downloads | Issues from others | Clubs |
+|---|---|---|---|---|---|---|---|
+| 2026-10-10 | 2 | 0 | 209 (23) | 2 360 (650, mostly bots and mirrors) | 0.3.0: 45 (Windows 25, Android 16, macOS 2, Linux 2) · 0.2.0: 31 | 1 | 1 |
 
 ## Messages
 
@@ -156,13 +167,14 @@ people, clubs in Supporters. Write the numbers here once a month.
 > or bad, with arrows for the material that falls or the reply that makes the
 > difference. You can train against the engine, which plays from an opening
 > book whose weights you tune, with a tutor that stops you on mistakes, and
-> play on lichess.org from the same board (engine and book off while you play).
-> Variations, annotations, Polyglot books, sync between computers.
+> play on lichess.org or freechess.org from the same board (engine and book
+> off while you play). Variations, annotations, Polyglot books, sync between
+> computers, databases of millions of games.
 >
 > Site and downloads: https://yafb.net/pragma-chess/ — source:
 > https://github.com/francescobianco/pragma-chess
 >
-> It is version 0.2.0: I would love to hear what breaks and what you miss.
+> It is version 0.3.0: I would love to hear what breaks and what you miss.
 
 **IT**
 
@@ -174,14 +186,15 @@ people, clubs in Supporters. Write the numbers here once a month.
 > l'ultima mossa è buona o cattiva, con le frecce sul materiale che cade o
 > sulla risposta che fa la differenza. Ti alleni contro il motore, che gioca
 > dal libro di aperture con i pesi che regoli tu, con un tutor che ti ferma
-> sugli errori, e giochi su lichess.org dalla stessa scacchiera (motore e
-> libro spenti mentre giochi). Varianti, annotazioni, libri Polyglot,
-> sincronizzazione tra computer. Tutto in italiano.
+> sugli errori, e giochi su lichess.org o freechess.org dalla stessa
+> scacchiera (motore e libro spenti mentre giochi). Varianti, annotazioni,
+> libri Polyglot, sincronizzazione tra computer, database di milioni di
+> partite. Tutto in italiano.
 >
 > Sito e download: https://yafb.net/pragma-chess/ — codice:
 > https://github.com/francescobianco/pragma-chess
 >
-> È la versione 0.2.0: mi interessa sapere cosa si rompe e cosa manca.
+> È la versione 0.3.0: mi interessa sapere cosa si rompe e cosa manca.
 
 ### Show HN title and first comment
 
@@ -198,7 +211,7 @@ concrete — material won once exchanges are over, or a mate), what is next
 
 `- [Pragma Chess](https://yafb.net/pragma-chess/) - Open source chess
 database and analysis GUI (Qt) with Explain, training with a tutor, Polyglot
-books and lichess.org play; Windows, macOS, Linux.`
+books and lichess.org/freechess.org play; Windows, macOS, Linux.`
 
 ### Package descriptions
 
@@ -224,3 +237,7 @@ books and lichess.org play; Windows, macOS, Linux.`
 | 2026-10-04 | Clip | https://yafb.net/pragma-chess/assets/pragma-chess-explain.webm | 40 s, Explain on the Opera game; the site's hero |
 | 2026-10-04 | OpenSourceAlternative.to | https://www.opensourcealternative.to/project/pragma-chess | waitlist, alternative to ChessBase |
 | 2026-10-04 | AlternativeTo | https://alternativeto.net/ (in the review queue) | 7 alternatives suggested |
+| 2026-10-05 | awesome-italia-opensource | https://github.com/italia-opensource/awesome-italia-opensource/pull/222 | merged |
+| 2026-10-10 | Round of the plan | — | statuses checked: winget waits for a moderator, mbiesiad PR without review, mersesarvari repository gone; numbers in "What to measure" |
+| 2026-10-10 | Web site | https://yafb.net/pragma-chess/ | Support links Discussions; Play online names freechess.org |
+| 2026-10-10 | Issue #1 | https://github.com/francescobianco/pragma-chess/issues/1 | qrcodegen from the system's packages: done, answer to post |

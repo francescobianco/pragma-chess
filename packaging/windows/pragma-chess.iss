@@ -208,4 +208,8 @@ begin
   WizardForm.PageDescriptionLabel.Width := WizardForm.PageDescriptionLabel.Width
     + WizardForm.PageDescriptionLabel.Left - WizardForm.PageNameLabel.Left;
   WizardForm.PageDescriptionLabel.Left := WizardForm.PageNameLabel.Left;
+  { And what is under them, at the same margin: the page's contents. }
+  WizardForm.InnerNotebook.Width := WizardForm.InnerNotebook.Width
+    + WizardForm.InnerNotebook.Left - WizardForm.PageNameLabel.Left;
+  WizardForm.InnerNotebook.Left := WizardForm.PageNameLabel.Left;
 end;

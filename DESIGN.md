@@ -141,6 +141,14 @@ Rust potrebbe quindi implementare tutto ciò che costituisce il vero motore dell
 
 Qt/C++ rimarrebbe principalmente responsabile della GUI.
 
+> **Decisione (2026-10-10).** La strada scelta è stata la prima: il motore è
+> scritto in C++20 con Qt Core e SQLite, nella libreria `pragma-chess-core`
+> (`gui/qt/src/app`), senza widget, usata dal client, dagli strumenti a riga
+> di comando (`pragma-explain`, `pragma-book`) e dai test. Il workspace Rust
+> (`core/`, `cli/`), mai completato né collegato, è stato tolto. Le idee che
+> seguono su CLI, indici e ricerca restano valide: le misure e i piani per i
+> database grandi sono in [docs/tech/large-databases.md](docs/tech/large-databases.md).
+
 ---
 
 # Struttura iniziale del repository

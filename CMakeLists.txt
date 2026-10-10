@@ -14,9 +14,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 enable_testing()
 
-# The chess database engine (core/, Rust) is built separately with Cargo.
-# The desktop client lives in gui/qt and talks to it through an interface
-# layer (gui/qt/src/app) so it can be developed on its own.
+# The desktop client, its core library (gui/qt/src/app: rules, databases,
+# indexes, Explain) and its command line tools all live in gui/qt.
 add_subdirectory(gui/qt)
 
 # .deb and .rpm packages (cpack -G DEB|RPM, see packaging/linux).

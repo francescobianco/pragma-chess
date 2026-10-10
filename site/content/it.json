@@ -181,7 +181,7 @@
       },
       {
         "title": "Contribuisci",
-        "text": "Il codice è con licenza MIT: C++ e Qt per il client desktop, Rust per il motore di database che verrà. Le pull request sono benvenute.",
+        "text": "Il codice è con licenza MIT: C++ e Qt, per il client desktop come per il suo motore di database. Le pull request sono benvenute.",
         "link": "https://github.com/francescobianco/pragma-chess",
         "link_text": "Il repository →"
       }

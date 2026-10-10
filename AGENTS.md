@@ -13,14 +13,16 @@ architecture). The vision and architecture are in [DESIGN.md](DESIGN.md)
 Layering, top to bottom — dependencies only point downwards:
 
 ```text
-Desktop GUI (Qt 6 Widgets, C++20)   gui/qt
-        │  GameDatabase interface (gui/qt/src/app)
-Application core
+Desktop GUI (Qt 6 Widgets, C++20)   gui/qt/src (widgets, dialogs, MainWindow)
+        │  GameDatabase interface
+Core library (C++20, Qt Core/Sql)   gui/qt/src/app: rules, .pdb, indexes, Explain
         │
-Chess DB engine (Rust)              core/, cli/
+Command line tools                  gui/qt/tools: pragma-explain, pragma-book
 ```
 
-- The engine must never know Qt exists. It must be usable headless via the CLI.
+- The core never knows widgets exist: it is usable headless, by the tools
+  and the tests. (A Rust engine was planned first; its unfinished workspace
+  was removed on 2026-10-10 — the engine is the C++ core.)
 - The interesting problem is indexing and searching millions of games and
   positions quickly, not drawing the board. The board is just one view.
 - "Native desktop first": use Qt/OS widgets and behaviours (menus, docks, file
@@ -29,10 +31,6 @@ Chess DB engine (Rust)              core/, cli/
 ## Repository layout
 
 ```text
-Cargo.toml             Rust workspace (members: core, cli)
-core/                  chessdb-core: chess model, PGN, storage, index, search
-  src/chess/           bitboards, types, FEN, move generation, positions
-cli/                   chessdb-cli, binary `chessdb`
 CMakeLists.txt         top-level CMake, only adds gui/qt
 CHANGELOG.md           what changed in each version, for users (Keep a Changelog)
 DISTRIBUTING.md        how Pragma Chess is made known: channels, messages, log
@@ -86,17 +84,10 @@ scripts/stress-databases.sh  measures large databases (docs/tech/large-databases
 
 ## Current state (keep in mind)
 
-- The **Qt GUI is the working part**. It reads `.pdb` databases directly via
-  `SqliteGameDatabase`; the Rust engine will later replace it behind the
-  `GameDatabase` interface through a C API, without widgets changing.
-- Chess rules in the GUI live in `ChessPosition` (legal moves, SAN, FEN,
-  attacks): an interim implementation with the same status as
-  `SqliteGameDatabase`, to be replaced by the Rust core. `BoardState` is
-  display-only.
-- The **Rust workspace is incomplete**: `core/src/lib.rs`, `cli/src/main.rs`
-  and some modules declared in `core/src/chess/mod.rs` (`san`, `zobrist`) are
-  not in the repository yet, so `cargo build` does not currently succeed.
-  Don't assume Rust code is wired up; check before relying on it.
+- The client reads `.pdb` databases through `SqliteGameDatabase`, behind
+  the `GameDatabase` interface the widgets talk to.
+- Chess rules live in `ChessPosition` (legal moves, SAN, FEN, attacks).
+  `BoardState` is display-only.
 - Non-widget code (rules, engine driver, Explain, PGN) is the static library
   `pragma-chess-core` (Qt Core only), linked by the app, the tools and tests.
 - Tests: `gui/qt/tests/tst_chessrules.cpp` (Qt Test, no display needed) covers
@@ -608,14 +599,6 @@ building there at the same time corrupts the static library, so configure a
 build directory of your own (`cmake -S . -B <scratch>/build -G Ninja`).
 Compiler warnings are on (`-Wall -Wextra -Wpedantic`); don't introduce new ones.
 
-Rust (once the workspace is complete):
-
-```bash
-cargo build
-cargo test          # chessdb-core is built with opt-level 3 even in dev (perft)
-cargo run -p chessdb-cli -- <args>
-```
-
 ## Conventions
 
 ### C++ / Qt
@@ -649,13 +632,6 @@ cargo run -p chessdb-cli -- <args>
   the database only through `GameDatabase`.
 - Qt SVG is optional: code guarded by `PRAGMA_HAS_SVG` must still build without it
   (font glyph fallback).
-
-### Rust
-
-- Edition 2021, shared dependency versions in the workspace `Cargo.toml`.
-- The chess model is on the hot path of import and search: avoid allocations,
-  keep positions small `Copy` values backed by bitboards.
-- Errors in the chess layer use `ChessError`; the CLI uses `anyhow`.
 
 ## File formats and user data
 
@@ -1850,4 +1826,4 @@ set to the `main` branch, folder `/docs`.
   the deploy steps in `packaging/windows/build.ps1` and `packaging/macos/build.sh`.
 - Commit messages: short imperative subject, blank line, then a bullet list of
   the user-visible changes (see `git log`).
-- Don't commit build output (`build/`, `target/`) or IDE files (`.idea/`).
+- Don't commit build output (`build/`) or IDE files (`.idea/`).

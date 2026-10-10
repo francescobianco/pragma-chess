@@ -94,7 +94,6 @@ to the place. Dates and links go here.
 | **Mastodon** (fosstodon.org or mastodon.social) | #chess #opensource #qt #linux, with screenshot and video; also the #ItalianMastodon chess folk | ☐ |
 | **Qt community** — forum.qt.io Showcase, r/QtFramework | A Qt 6 Widgets application with a native GNOME/Wayland frame is of interest there | ☐ |
 | **Phoronix / OMG! Ubuntu / It's FOSS / Linuxiac** | Tip by mail or form, with screenshots and the Flathub link once there is one | ☐ after Flathub |
-| **This Week in Rust**? | Not yet: the Rust core is not wired up. Later | — |
 
 ### Italy
 
@@ -193,7 +192,7 @@ First comment: who I am, why (clubs need a free ChessBase-like tool that
 does less and explains more), how Explain works (searches before and after
 the move, replays the engine's line to where the evaluation becomes
 concrete — material won once exchanges are over, or a mate), what is next
-(the Rust core, Flathub), and a request for feedback on Windows and macOS.
+(large databases, Flathub), and a request for feedback on Windows and macOS.
 
 ### Awesome-list line
 

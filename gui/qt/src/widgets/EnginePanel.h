@@ -42,8 +42,8 @@ public:
     /// What the user can do about the online game, under the clocks.
     enum class DrawOffer { None, Mine, Theirs };
     /// Offer Draw (Accept Draw when the opponent offered one, greyed while
-    /// the user's offer waits) and Resign; hidden when not `shown`, greyed
-    /// when not `enabled` (the game is over).
+    /// the user's offer waits) and Resign; hidden when not `shown` (no game,
+    /// or it is over), greyed when not `enabled` (the user's side not known yet).
     void setOnlineActions(bool shown, bool enabled = false, DrawOffer offer = DrawOffer::None);
     /// The clocks follow the board: the colour at its top first.
     void setClocksFlipped(bool flipped) { m_clocks->setFlipped(flipped); }

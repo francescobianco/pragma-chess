@@ -4721,7 +4721,8 @@ void MainWindow::updateOnlineStatus(const OnlineGame &game)
         const bool theirs = *m_onlineSide == Side::White ? game.blackOffersDraw : game.whiteOffersDraw;
         offer = theirs ? DrawOffer::Theirs : mine ? DrawOffer::Mine : DrawOffer::None;
     }
-    m_enginePanel->setOnlineActions(true, !game.isOver() && m_onlineSide.has_value(), offer);
+    // Gone as soon as the game is over: mate, a resignation, the clock.
+    m_enginePanel->setOnlineActions(!game.isOver(), m_onlineSide.has_value(), offer);
 }
 
 void MainWindow::onlineGameFinished(const OnlineGame &game)

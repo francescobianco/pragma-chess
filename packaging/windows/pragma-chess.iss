@@ -199,9 +199,9 @@ begin
   WizardForm.PageDescriptionLabel.Width := WizardForm.PageDescriptionLabel.Width + WizardForm.WizardSmallBitmapImage.Width;
   { One margin on every page — the first and last ones' texts, the inner
     pages' title, its description (not indented under it, as the classic
-    wizard has it) and their contents —, a little wider than the title's
-    own: the pages read as the shoulder beside them, aligned left. }
-  Margin := WizardForm.PageNameLabel.Left + ScaleX(8);
+    wizard has it) and their contents —, the title's own: the pages read
+    as the shoulder beside them, aligned left. }
+  Margin := WizardForm.PageNameLabel.Left;
   SetLeft(WizardForm.PageNameLabel, Margin);
   SetLeft(WizardForm.PageDescriptionLabel, Margin);
   SetLeft(WizardForm.InnerNotebook, Margin);

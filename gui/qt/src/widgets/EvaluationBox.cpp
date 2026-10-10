@@ -250,17 +250,19 @@ void EvaluationBox::paintEvent(QPaintEvent *)
     const int textHeight = scoreMetrics.height() + smallMetrics.height();
     int y = (height() - textHeight) / 2;
     const QString value = m_evaluation ? ScoreView::text(*m_evaluation, m_view, m_mover) : QStringLiteral("–");
+    // The book's symbol is its own unit: no dot before it.
+    const bool withUnit = m_evaluation && m_view != ScoreView::Kind::Judgement;
     const qreal unit = unitSize();
     const qreal valueWidth = scoreMetrics.horizontalAdvance(value);
     const qreal gap = unit * 0.6;
-    const qreal left = (section - (m_evaluation ? unit + gap : 0) - valueWidth) / 2;
-    if (m_evaluation) {
+    const qreal left = (section - (withUnit ? unit + gap : 0) - valueWidth) / 2;
+    if (withUnit) {
         const QRectF dot(left, y + (scoreMetrics.height() - unit) / 2.0, unit, unit);
         paintUnit(painter, dot);
     }
     painter.setFont(scoreFont(font()));
     painter.setPen(palette().color(QPalette::WindowText));
-    painter.drawText(QRectF(left + (m_evaluation ? unit + gap : 0), y, valueWidth + 1, scoreMetrics.height()),
+    painter.drawText(QRectF(left + (withUnit ? unit + gap : 0), y, valueWidth + 1, scoreMetrics.height()),
                      Qt::AlignLeft | Qt::AlignVCenter, value);
     y += scoreMetrics.height();
     if (m_evaluation) {

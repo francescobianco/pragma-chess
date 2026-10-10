@@ -9,8 +9,9 @@
 /// move's chances (its expected score: what it brings home on average from
 /// such a position, a win 1 and a draw ½, from the score by lichess's
 /// curve), or as the symbol a chess book prints. The panel says which by a
-/// dot before the value, no words: two colours for White's view (absolute,
-/// judgement), the side to move's colour for its own. Pure, unit-tested.
+/// dot before the value, no words: two colours for White's view (absolute),
+/// the side to move's colour for its own; the book's symbol needs none.
+/// Pure, unit-tested.
 namespace ScoreView {
 
 enum class Kind { Absolute, ForMover, Chances, Judgement };

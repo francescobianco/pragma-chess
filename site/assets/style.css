@@ -124,7 +124,9 @@ section > .download-note, section > .formats, section > .clubs { max-width: var(
 /* Download */
 .download { background: var(--paper-deep); }
 .version { font-weight: 700; color: var(--ink); }
-.platforms { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.25rem; }
+/* Two a row, wide: six systems in three rows, each card with room to breathe. */
+.platforms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+@media (max-width: 700px) { .platforms { grid-template-columns: 1fr; } }
 .platform {
   background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.4rem;
   display: flex; flex-direction: column;

@@ -128,17 +128,34 @@ to the place. Dates and links go here.
    README ✅, awesome-list PRs ✅, winget PR ✅, Flatpak manifest ✅,
    recording ✅, AlternativeTo ✅; still open: social preview, English blog
    post, Flathub build and submission.
-2. **Week 2 (now, from 2026-10-11)**: issue #1 answered ✅; TalkChess and
-   Show HN written ✅; release 0.4.0 (freechess.org, large databases, the
-   Engine panel's graph, Manage Extensions, the update check: much to tell
-   since 0.3.0), then the posts with something new to show — lichess blog
-   (EN), TalkChess, Show HN, r/chess, lichess forum, Mastodon — with the
-   short messages moved to 0.4.0; Flathub submission.
-3. **Week 3**: Italian blogs and groups; FSI note; Linux Day; Qt forum;
-   freechess.org's list of interfaces.
+2. **Weeks 2–3 (now, from 2026-10-11)**: issue #1 answered ✅; TalkChess and
+   Show HN written ✅; the door open to contributors ✅ (CONTRIBUTING.md,
+   issue forms, translations without code, #4 pinned); 0.4.0 announced in
+   the Discussions ✅ ([#3](https://github.com/francescobianco/pragma-chess/discussions/3)).
+   Italian blogs and groups, FSI note, Linux Day, Qt forum can go before
+   the release: they speak of what 0.3.0 already does.
+3. **End of October: release day of 0.4.0** (below).
 4. **Each release**: release notes from the CHANGELOG, a line on Mastodon
    and the lichess blog, the package channels updated (automate winget and
    Flathub from `release.yml`).
+
+### Release day (0.4.0, end of October)
+
+What En Croissant did on 2024-02-10, the day that changed its course
+(POSITIONING.md, "Seconda lettura"): the release and the lichess post the
+same day, then two fixes in five days.
+
+1. Tag `v0.4.0`; when CI has published, the Android APK (AGENTS.md,
+   "Working agreements") and the package channels: winget, AUR, metainfo.
+2. **The same day**: the English post on the lichess blog
+   (`packaging/announcements/lichess-blog-en.md`, moved to 0.4.0), a line in
+   the Discussions' announcement (#3), the short messages below moved to
+   0.4.0.
+3. **The days after**: answer every comment and issue the same day; a
+   **0.4.1** as soon as the first real problems are fixed — the people who
+   arrive with the post are the ones a quick fix keeps.
+4. **A few days apart**: TalkChess, then Show HN (Tuesday–Thursday), then
+   r/chess and Mastodon, each when the previous one has quietened down.
 
 ## 6. What to measure
 
@@ -255,4 +272,7 @@ books and lichess.org/freechess.org play; Windows, macOS, Linux.`
 | 2026-10-10 | Issue #1 | https://github.com/francescobianco/pragma-chess/issues/1#issuecomment-6102469020 | qrcodegen from the system's packages: done, answered, closed |
 | 2026-10-10 | Social preview, lichess blog EN, chessprogramming.org | packaging/assets/social-preview.png, packaging/announcements/ | ready to upload and paste |
 | 2026-10-11 | Following En Croissant (POSITIONING.md) | https://github.com/francescobianco/pragma-chess/discussions/2 | guide on the site, update check with version.json, Discussions welcome, community links in README and Help |
+| 2026-10-11 | Contributors (POSITIONING.md, steps 11–12) | https://github.com/francescobianco/pragma-chess/blob/main/CONTRIBUTING.md | CONTRIBUTING.md, issue forms (bug, Explain is wrong, translation), labels `explain` and `translation`; a language needs only its files |
+| 2026-10-11 | Discussions: 0.4.0 announced | https://github.com/francescobianco/pragma-chess/discussions/3 | what is coming at the end of October, three ways to help (EN/IT) |
+| 2026-10-11 | Issue #4, pinned | https://github.com/francescobianco/pragma-chess/issues/4 | "Translate Pragma Chess into your language": good first issue, help wanted |
 | 2026-10-11 | Round of the plan | — | winget still waits for a moderator (checks green since 10-05), mbiesiad PR without review; 3 stars; build.opensuse.org among the referrers; TalkChess thread and Show HN written (`packaging/announcements/`) |

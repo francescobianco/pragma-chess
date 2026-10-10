@@ -53,6 +53,41 @@ Scaricamenti degli installer per release (la curva dell'adozione):
 di lichess), con un'immagine e un elenco chiaro di cose utili. Da lì in poi
 sono cresciuti da soli il passaparola, gli elenchi e i pacchetti fatti da altri.
 
+### Seconda lettura: le persone, non solo gli scaricamenti (2026-10-11)
+
+Le release dicono quanti l'hanno scaricato; le issue e le pull request dicono
+quanti si sono messi a lavorarci. Issue aperte e PR di altri, per periodo:
+
+| Periodo | Mesi | Issue | PR di altri |
+|---|---|---|---|
+| mar–dic 2023 | 10 | 73 | 13 |
+| 1 gen – 9 feb 2024 | 1,3 | 22 | 3 |
+| **10 feb – 30 apr 2024** (dopo il post su lichess) | 2,7 | **107** | **20** |
+| mag–dic 2024 | 8 | 147 | 41 |
+
+Quattro cose che la prima lettura non diceva:
+
+1. **Il post è uscito il giorno della release.** La 0.9.0 e il post sul blog
+   di lichess sono entrambi del 10 febbraio 2024; poi la 0.9.1 il 12 e la
+   0.9.2 il 15: due correzioni in cinque giorni, per i problemi che il primo
+   flusso di utenti ha trovato. Chi arriva trova la versione nuova, e chi
+   segnala un problema lo vede risolto subito.
+2. **Le traduzioni sono state la porta dei contributori.** Ad aprile 2024 un
+   utente cinese traduce tutta l'interfaccia di sua iniziativa; a maggio lo
+   sviluppatore rende la lingua una scelta delle impostazioni; ad agosto e
+   settembre arrivano bielorusso, russo, ucraino, polacco, spagnolo,
+   francese, italiano. Oggi 16 lingue, scritte da 27 persone: più di un terzo
+   dei suoi 75 contributori è entrato da lì. Tradurre è un file JSON, nessun
+   codice.
+3. **Accoglie chi arriva**: un `CONTRIBUTING.md` (come compilare, come
+   proporre), moduli per le issue (bug, miglioramento), etichette `good first
+   issue` e `help wanted`, un `FUNDING.yml` che mette il pulsante *Sponsor*
+   sul repository.
+4. **Lo sviluppatore resta il motore**: 1 493 commit suoi, il secondo
+   contributore 35. La comunità aggiunge lingue, correzioni e idee; il lavoro
+   resta suo. Per noi vale lo stesso: la cadenza delle release conta più dei
+   contributori.
+
 ## 4. Dove si trova
 
 | Canale | En Croissant | Pragma Chess |
@@ -163,14 +198,18 @@ Quello che ha funzionato per lui, adattato a noi:
 | 7. Guida sul sito | ✅ <https://yafb.net/pragma-chess/en/guide/> e `it/guide/` |
 | 8. Pagina per le donazioni | ☐ servono i tuoi conti (GitHub Sponsors, Buy Me a Coffee) |
 | 9. Show HN | ✅ titolo e primo commento scritti (`packaging/announcements/show-hn.md`) · ☐ da pubblicare dopo la 0.4.0 (account Hacker News) |
+| 10. Il post il giorno della release, e correzioni subito dopo | ☐ 0.4.0 a fine ottobre: post su lichess lo stesso giorno, pronti a una 0.4.1 nei giorni seguenti (DISTRIBUTING.md, "Release day") |
+| 11. Le traduzioni aperte a tutti | ✅ una lingua nuova è solo il suo file (Opzioni ▸ Cambia lingua la trova da sé), istruzioni in `CONTRIBUTING.md`, modulo *Translation*, issue fissata [#4](https://github.com/francescobianco/pragma-chess/issues/4) con `good first issue` · ☐ i primi traduttori |
+| 12. Accogliere i contributori | ✅ `CONTRIBUTING.md`, moduli per le issue (qualcosa non va, **Spiega sbaglia** — nostro: ogni errore diventa un test —, traduzione), etichette, domande verso le Discussions; annuncio della 0.4.0 con tre modi di aiutare, [#3](https://github.com/francescobianco/pragma-chess/discussions/3) · ☐ `FUNDING.yml` con i tuoi conti (vedi 8) |
 
-**Il passo che sblocca il resto è la 0.4.0.** Blog di lichess in inglese,
+**Il passo che sblocca il resto è la 0.4.0, a fine ottobre.** Blog di lichess in inglese,
 TalkChess e Show HN sono pronti, ma parlano di cose (freechess.org, database
 grandi, il grafico, le estensioni, l'aggiornamento automatico) che chi
 scarica oggi la 0.3.0 non trova. La lezione di En Croissant è che conta un
 post solo, nel posto giusto, quando c'è qualcosa da mostrare: prima la
-release, poi i post, uno per posto, distanziati di qualche giorno (lichess,
-poi TalkChess, poi Show HN) per poter rispondere a tutti.
+release, e il post su lichess lo stesso giorno, come lui; poi gli altri, uno per
+posto, distanziati di qualche giorno (TalkChess, Show HN) per poter
+rispondere a tutti e pubblicare le correzioni.
 
 ## Fonti
 

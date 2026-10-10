@@ -1616,7 +1616,7 @@ a platform; lichess.org for now, through its Board API, more to come.
   digital clock, a dark display each with its king for its colour (on a
   square of paper) and the time in seven-segment figures drawn in code
   (no font), laid out from the left — the user wanted digital, not dials,
-  not centred, no names —; the colour at the board's bottom first, so
+  not centred, no names —; the colour at the board's top first, so
   turning the board swaps them (`setClocksFlipped`); running from the second move, ticking on their own between the
   platform's updates. New Online Game…, New Game and New Training… stay enabled while it is on (New Game first asks, in `NewGameChoiceDialog`: a
   new online game, as the toolbar's New Online Game, or one to analyse; "Remember

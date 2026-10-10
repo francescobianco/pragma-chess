@@ -186,8 +186,8 @@ void ChessClocks::paintEvent(QPaintEvent *)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     const qreal width = displayWidth();
-    // From the left, as the rest of the panel: the colour at the board's bottom first.
-    const Side first = m_flipped ? Side::Black : Side::White;
+    // From the left, as the rest of the panel: the colour at the board's top first.
+    const Side first = m_flipped ? Side::White : Side::Black;
     const Side sides[2] = {first, first == Side::White ? Side::Black : Side::White};
     for (int i = 0; i < 2; ++i)
         paintFace(painter, QRectF(1 + i * (width + kSpacing), 1, width, height() - 2), sides[i], remaining(sides[i]),

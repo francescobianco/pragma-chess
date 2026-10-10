@@ -39,7 +39,7 @@ public:
     void setLobby(bool shown, const QString &status = QString(), bool canSendMove = false, bool canSendPlan = false);
     /// Online play: the two clocks, large (see ChessClocks); hidden when not `shown`.
     void setClocks(bool shown, int whiteMs = 0, int blackMs = 0, std::optional<Side> running = std::nullopt);
-    /// The clocks follow the board: the colour at its bottom first.
+    /// The clocks follow the board: the colour at its top first.
     void setClocksFlipped(bool flipped) { m_clocks->setFlipped(flipped); }
     /// Summary of the "Explain" command; empty hides it.
     void setExplanation(const QString &text);

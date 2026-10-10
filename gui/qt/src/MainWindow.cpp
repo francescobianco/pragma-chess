@@ -1323,7 +1323,7 @@ void MainWindow::createDocks()
     m_movesDock = addDock(m_sidebar, QStringLiteral("movesDock"), tr("Moves"), m_moveView, Qt::RightDockWidgetArea);
 
     m_enginePanel = new EnginePanel(m_startEngineAction, m_explainAction);
-    // The online clocks follow the board: the colour at its bottom first.
+    // The online clocks follow the board: the colour at its top first.
     m_enginePanel->setClocksFlipped(m_flipBoardAction->isChecked());
     connect(m_flipBoardAction, &QAction::toggled, m_enginePanel, &EnginePanel::setClocksFlipped);
     {
@@ -4664,7 +4664,7 @@ void MainWindow::updateOnlineStatus(const OnlineGame &game)
     else
         m_enginePanel->setStatus(tr("Your move"));
 
-    // The clocks, from the colour at the board's bottom; they run from the second
+    // The clocks, from the colour at the board's top; they run from the second
     // move, as on the platforms, while the game goes on.
     Side toMove = Side::White;
     if (!game.initialFen.isEmpty())

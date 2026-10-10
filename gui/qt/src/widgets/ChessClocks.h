@@ -12,7 +12,7 @@ class QTimer;
 /// The two clocks of a game played online, as a tournament's digital clock:
 /// a dark display each, its king for its colour and the time in large
 /// seven-segment figures (drawn here, the unlit segments faint behind them),
-/// laid out from the left: first the colour at the bottom of the board, as
+/// laid out from the left: first the colour at the top of the board, as
 /// it is turned. The running clock ticks on its own between the platform's
 /// updates, which set it right again.
 class ChessClocks : public QWidget {
@@ -24,7 +24,7 @@ public:
     /// The time left to each colour; `running` the clock going, none before the
     /// clocks start or once the game is over.
     void setClocks(int whiteMs, int blackMs, std::optional<Side> running);
-    /// Follows the board: the colour at its bottom comes first.
+    /// Follows the board: the colour at its top comes first.
     void setFlipped(bool flipped);
 
     QSize sizeHint() const override;

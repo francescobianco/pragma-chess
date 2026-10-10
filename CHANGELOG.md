@@ -120,7 +120,7 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 - **Online play** shows two large clocks in the Engine panel, as a
   tournament's digital clock: each with its king for its colour and the
-  time in large seven-segment figures, the colour at the bottom of the
+  time in large seven-segment figures, the colour at the top of the
   board on the left.
 - The sync's record of each computer, hidden in its Pragma folder, is now
   `.pragma-chess.mine` (it was `.pragma-chess.local`): renamed by itself,

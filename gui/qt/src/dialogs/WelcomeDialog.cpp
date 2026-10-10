@@ -44,7 +44,8 @@ public:
     explicit Shoulder(QWidget *parent = nullptr)
         : QWidget(parent)
         , m_picture(QStringLiteral(":/welcome/chess-study.png"))
-        , m_logo(QStringLiteral(":/icons/hicolor/256x256/apps/io.github.francescobianco.PragmaChess.png"))
+        // The rich logo, the P of pawns: shown large enough here for its pawns to read.
+        , m_logo(QStringLiteral(":/icons/pragma-chess-rich.png"))
     {
         setFixedWidth(kShoulderWidth);
         setMinimumHeight(600);

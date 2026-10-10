@@ -77,6 +77,7 @@ packaging/             installers: windows/ (Inno Setup), macos/ (dmg), linux/
 .github/workflows/release.yml  builds them all and publishes a release on a v* tag
 scripts/dev-watch.sh   rebuild + restart loop used by `make start`
 scripts/make-icons.py  regenerates every platform icon from data/icons/pragma-chess.png
+scripts/make-rich-logo.py  draws the rich logo (the P of pawns) on it: pragma-chess-rich.png
 scripts/make-figurine-font.py  builds resources/fonts/pragma-figurine.otf from SkakNew
 scripts/install-dev-desktop.sh  user menu entry + icons for the build (Wayland dock icon)
 scripts/pragma-api.sh  calls the development API of a client started by make start
@@ -393,8 +394,11 @@ modal, so it stays open while the user tries things.
 window once it is on screen (`MainWindow::showEvent`, after the window's
 state is restored — never before it), and from Help ▸ Welcome…
 (`showWelcome`). On the left a shoulder (`resources/welcome/chess-study.png`,
-CC0, PNG so no image plugin is needed) with the logo and the name in the
-book face; on the right what Pragma Chess does, then the way in: the
+CC0, PNG so no image plugin is needed) with the logo — the rich one,
+`data/icons/pragma-chess-rich.png`: the logo's board with a P of seven pawns
+(1100/1010/1100/1000), white on dark squares and black on light ones, for
+where the logo is large; the icons, down to 16 pixels, keep the plain
+board — and the name in the book face; on the right what Pragma Chess does, then the way in: the
 projects of the Projects folder (by their name in the user's language) and
 the databases of the Databases folder (as Switch Database names them), read
 from disk and followed with a `QFileSystemWatcher`, and New Project. A

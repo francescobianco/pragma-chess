@@ -510,6 +510,8 @@ set(APP_ICON_FILES)
 foreach(size IN LISTS APP_ICON_SIZES)
     list(APPEND APP_ICON_FILES data/icons/hicolor/${size}x${size}/apps/${APP_ID}.png)
 endforeach()
+# The rich logo, the P of pawns, for where the logo is large (scripts/make-rich-logo.py).
+list(APPEND APP_ICON_FILES data/icons/pragma-chess-rich.png)
 # Embedded for the window icon, available even when the app is not installed.
 # Interface translations, loaded by UiLanguage from :/i18n.
 file(GLOB PRAGMA_TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/translations/pragma-chess_*.ts)

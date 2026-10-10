@@ -9,8 +9,11 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 ### Added
 
 - In **Endgame Training** and **Tactics Training** the players have names:
-  yours on the side you play, *Your Trainer* on the other — stand-in names,
-  shown in your language and never written in the database.
+  yours on the side you play, *Pragma Coach* on the other — stand-in names,
+  never written in the database.
+- A user who gave no name gets a champion's with three digits, such as
+  *Spassky007*, different for everyone, so the lobby is not full of players
+  called "Me"; Personal Settings shows it, to keep or change.
 - The **Pawn Endgames** and **Rook Endgames** projects open **Endgame
   Training**, to try what they teach; a project finds its database again
   even when the file was moved or renamed.

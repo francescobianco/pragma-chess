@@ -4645,6 +4645,19 @@ END FUNCTION
         game.white = QStringLiteral("Lasker");
         QCOMPARE(names.name(game, Side::White), QStringLiteral("Lasker"));
         QVERIFY(StandInNames::isUnnamed(QStringLiteral(" - ")));
+
+        // A user who gave no name gets a champion's, with three digits.
+        QCOMPARE(PersonalSettings::generatedName(9), QStringLiteral("Spassky000"));
+        const quint32 champions = quint32(RoomName::championCount()); // The list grows: appended to.
+        QCOMPARE(PersonalSettings::generatedName(9 + champions * 7), QStringLiteral("Spassky007"));
+        QCOMPARE(PersonalSettings::generatedName(24 + champions * 123), QStringLiteral("XieJun123")); // No space.
+        QSet<QString> generated;
+        for (quint32 random = 0; random < 4000; random += 37)
+            generated.insert(PersonalSettings::generatedName(random * 2654435761u));
+        QVERIFY(generated.size() > 100); // Many different names, not a few.
+        const QRegularExpression shape(QStringLiteral("^\\S+\\d{3}$"));
+        for (const QString &name : generated)
+            QVERIFY2(shape.match(name).hasMatch(), qPrintable(name));
         QVERIFY(!StandInNames::isUnnamed(QStringLiteral("Tal")));
     }
 

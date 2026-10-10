@@ -342,6 +342,11 @@ private:
     /// leaves unnamed (StandInNames): the user's, and "Your Trainer".
     void updateStandInNames();
     StandInNames standInNames() const;
+    /// The name of the personal settings, or the default one.
+    QString personalName() const;
+    /// The name generated for a user who gave none (PersonalSettings::
+    /// generatedName), kept on this computer until they give one.
+    QString defaultName() const;
     void applyProject(const Project &project, bool openFirstGameIfNone);
     void updateWindowTitle();
     /// Says in the tooltips of their toolbar buttons which book, engine and database are in use.
@@ -413,7 +418,7 @@ private:
     /// Paints every board with the style of the personal settings.
     void applyBoardTheme(const PersonalSettings &settings);
     /// The user's name for new games: the open database's "me", else the
-    /// personal settings'; empty when neither says.
+    /// personal settings', else the name generated for this computer.
     QString myName() const;
     /// Puts myName() on the side at the bottom of the board.
     void nameMe(GameRecord &game) const;

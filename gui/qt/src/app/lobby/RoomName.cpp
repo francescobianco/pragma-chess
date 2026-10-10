@@ -1,5 +1,6 @@
 #include "RoomName.h"
 
+#include <algorithm>
 #include <QCoreApplication>
 #include <QRandomGenerator>
 
@@ -81,6 +82,11 @@ int championCount()
 int termOf(quint32 seed)
 {
     return int(seed % quint32(kTermCount));
+}
+
+QString champion(int index)
+{
+    return QString::fromUtf8(kChampions[std::clamp(index, 0, kChampionCount - 1)]);
 }
 
 int championOf(quint32 seed)

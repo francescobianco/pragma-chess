@@ -31,6 +31,11 @@ struct PersonalSettings {
     /// `existing` is the file as it was: its other keys are kept.
     QByteArray toYaml(const QByteArray &existing = QByteArray()) const;
 
+    /// A name for a user who gave none, the same on this computer until
+    /// they do: a champion and three digits, "Spassky007" — so the lobby is
+    /// not full of players called "Me". `random` picks it.
+    static QString generatedName(quint32 random);
+
     /// The user's name in a database: the player marked "me" there (Who Is
     /// This?) wins, then the personal name; empty when neither says.
     QString nameIn(const PlayerRoles &roles) const;

@@ -3278,7 +3278,11 @@ void MainWindow::editPersonalSettings()
 #ifdef PRAGMA_HAS_PHONE_LINK
     lobbyKey = LobbyIdentity::secretText();
 #endif
-    PersonalSettingsDialog dialog(current, lobbyKey, this);
+    // A user who gave no name finds the one Pragma Chess gave them, to keep or change.
+    PersonalSettings shown = current;
+    if (shown.name.trimmed().isEmpty())
+        shown.name = defaultName();
+    PersonalSettingsDialog dialog(shown, lobbyKey, this);
     if (dialog.exec() != QDialog::Accepted)
         return;
 #ifdef PRAGMA_HAS_PHONE_LINK
@@ -3306,10 +3310,8 @@ void MainWindow::editPersonalSettings()
 StandInNames MainWindow::standInNames() const
 {
     StandInNames names;
-    names.trainee = myName();
-    if (names.trainee.isEmpty())
-        names.trainee = tr("You");
-    names.trainer = tr("Your Trainer");
+    names.trainee = personalName();
+    names.trainer = QStringLiteral("Pragma Coach"); // A name: the same in every language.
     return names;
 }
 
@@ -3331,8 +3333,28 @@ void MainWindow::applyBoardTheme(const PersonalSettings &settings)
 QString MainWindow::myName() const
 {
     // Read each time: a sync may have brought another computer's version.
-    return PersonalSettings::read(PersonalSettings::path()).nameIn(m_database ? m_database->playerRoles()
-                                                                               : PlayerRoles());
+    const QString name = PersonalSettings::read(PersonalSettings::path()).nameIn(m_database ? m_database->playerRoles()
+                                                                                             : PlayerRoles());
+    return name.isEmpty() ? defaultName() : name;
+}
+
+QString MainWindow::personalName() const
+{
+    const QString name = PersonalSettings::read(PersonalSettings::path()).name.trimmed();
+    return name.isEmpty() ? defaultName() : name;
+}
+
+QString MainWindow::defaultName() const
+{
+    // Per computer, not in the personal settings: written there, a computer
+    // syncing for the first time would put its own over the user's name.
+    QSettings settings;
+    QString name = settings.value(QStringLiteral("personal/defaultName")).toString();
+    if (name.isEmpty()) {
+        name = PersonalSettings::generatedName(QRandomGenerator::system()->generate());
+        settings.setValue(QStringLiteral("personal/defaultName"), name);
+    }
+    return name;
 }
 
 void MainWindow::nameMe(GameRecord &game) const

@@ -1197,7 +1197,13 @@ while one of them is selected.
   the Pragma folder; writing keeps the keys it does not know. The name goes
   on the user's side of new games, Set Up Position and training
   (`MainWindow::myName`, `nameMe`), unless the open database has a player
-  marked Me, who wins (`PersonalSettings::nameIn`, unit-tested). It is read
+  marked Me, who wins (`PersonalSettings::nameIn`, unit-tested). A user who
+  gave no name has a generated one (`PersonalSettings::generatedName`: a
+  champion of `RoomName`'s list and three digits, "Spassky007"), so the
+  lobby is not full of "Me": kept per computer (QSettings
+  `personal/defaultName`, `MainWindow::defaultName`), never in the synced
+  file — a computer syncing for the first time would put its own over the
+  user's name —, and shown in Personal Settings, where OK makes it theirs. It is read
   each time, so a sync's version is used at once.
 - **`.pch` project**: YAML (yaml-cpp, system package or fetched by CMake)
   capturing database, open game/ply (or the moves of a game not saved to the
@@ -1329,9 +1335,9 @@ The training sets are of type Puzzles and Training (`DatabaseType::Training`,
 starts a game of such a database in Training Mode, the user playing the side
 to move at the start, from below. Its players are left unnamed in the file
 and shown with **stand-in names** (`app/StandInNames`, pure, unit-tested;
-Italian "nomi segnaposto"): the user's name (`myName`, else "You") on the
-side to move at the start, "Your Trainer" on the other — translated, so
-never stored, in the games list (which sorts by what it shows: the proxy's
+Italian "nomi segnaposto"): the personal settings' name
+(`personalName`) on the side to move at the start, "Pragma Coach" (a name,
+not translated) on the other — never stored, in the games list (which sorts by what it shows: the proxy's
 sort role is the display) and the board's header (`updateGameHeader`, a
 copy for display; the session's game keeps its empty names, so nothing
 writes them back). `MainWindow::updateStandInNames` follows the personal

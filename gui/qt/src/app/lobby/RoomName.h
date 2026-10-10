@@ -23,6 +23,8 @@ int termOf(quint32 seed);
 int championOf(quint32 seed);
 int termCount();
 int championCount();
+/// The champion at `index` (0 to championCount() - 1), as the West writes the name.
+QString champion(int index);
 /// A new seed, drawn at random, whose name is none of `taken`'s.
 quint32 newSeed(const QSet<quint32> &taken = {});
 

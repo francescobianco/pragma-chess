@@ -1,6 +1,7 @@
 #include "PersonalSettings.h"
 
 #include "UserFolders.h"
+#include "lobby/RoomName.h"
 #include "sync/SyncManifest.h"
 
 #include <QDir>
@@ -93,6 +94,14 @@ QByteArray PersonalSettings::toYaml(const QByteArray &existing) const
     out << YAML::Comment("Pragma Chess: who you are, the same on every synced computer") << YAML::Newline;
     out << root;
     return QByteArray(out.c_str()) + '\n';
+}
+
+QString PersonalSettings::generatedName(quint32 random)
+{
+    const int champions = RoomName::championCount();
+    QString champion = RoomName::champion(int(random % quint32(champions)));
+    champion.remove(QLatin1Char(' ')); // "Xie Jun" → "XieJun007"
+    return champion + QStringLiteral("%1").arg((random / quint32(champions)) % 1000, 3, 10, QLatin1Char('0'));
 }
 
 QString PersonalSettings::nameIn(const PlayerRoles &roles) const

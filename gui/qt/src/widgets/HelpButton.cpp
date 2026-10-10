@@ -100,7 +100,6 @@ HelpButton::HelpButton(const QString &text, QWidget *parent)
     setText(QStringLiteral("?"));
     setAutoRaise(true);
     setFocusPolicy(Qt::TabFocus);
-    setCursor(Qt::WhatsThisCursor);
     setAccessibleName(tr("Help"));
     setFixedSize(22, 22);
     m_delay->setSingleShot(true);

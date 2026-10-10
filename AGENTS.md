@@ -203,7 +203,8 @@ playing a move turns it off, and the user asks again at the next move.
   (`ScoreView::courseHeight`: log(1 + p) / log(11)); 40 plies fill the
   width, more share it, never scrolled. A click on the score turns how it
   is shown (`app/ScoreView`, pure: absolute, for the side to move, its
-  chances, the Informant's symbol; QSettings `engine/scoreView`), said by a
+  chances, the Informant's symbol; the project's, `engine: score:` in the
+  `.pch`, written when not absolute), said by a
   dot before the value, its unit, and no words: two colours for White's
   view, the side to move's colour for its own (`ScoreView::fromMover`),
   none before the Informant's symbol. A

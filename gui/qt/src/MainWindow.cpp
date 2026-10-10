@@ -1343,10 +1343,10 @@ void MainWindow::createDocks()
     connect(m_enginePanel, &EnginePanel::sendMoveRequested, this, [this] { sendLobby(false); });
     // A dot of the game's course: the board goes to that move of the line.
     connect(m_enginePanel, &EnginePanel::coursePlyClicked, m_session, &GameSession::goToPly);
-    // The way the score is shown is the user's, on this computer.
-    m_enginePanel->setScoreView(ScoreView::fromKey(QSettings().value(QStringLiteral("engine/scoreView")).toString()));
-    connect(m_enginePanel, &EnginePanel::scoreViewChanged, this, [](ScoreView::Kind view) {
-        QSettings().setValue(QStringLiteral("engine/scoreView"), ScoreView::key(view));
+    // The way the score is shown is the project's: saved with it.
+    connect(m_enginePanel, &EnginePanel::scoreViewChanged, this, [this] {
+        updateProjectModified();
+        scheduleSaveSession();
     });
     connect(m_enginePanel, &EnginePanel::drawRequested, this, [this] {
         if (m_online && m_online->isPlaying())
@@ -5870,6 +5870,7 @@ Project MainWindow::captureProject()
         project.tutorHold = hold;
     }
     project.explain = m_explainAction->isChecked();
+    project.scoreView = ScoreView::key(m_enginePanel->scoreView());
     if (m_lobbyGame) {
         project.lobbyRoom = m_lobbyGame->room;
         project.lobbyWhite = m_lobbyGame->white;
@@ -5945,6 +5946,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         }
         // Explain comes back on for the move it was explaining (moving to it turned it off).
         m_explainAction->setChecked(project.explain);
+        m_enginePanel->setScoreView(ScoreView::fromKey(project.scoreView));
         restoreLobbyLink(project);
         m_restoringSession = wasRestoring;
         return;
@@ -6012,6 +6014,7 @@ void MainWindow::applyProject(const Project &project, bool openFirstGameIfNone)
         m_trainingModeAction->setChecked(true);
     }
     m_explainAction->setChecked(project.explain);
+    m_enginePanel->setScoreView(ScoreView::fromKey(project.scoreView));
     restoreLobbyLink(project);
 
     m_restoringSession = wasRestoring;

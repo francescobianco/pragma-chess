@@ -5192,6 +5192,10 @@ END FUNCTION
         QVERIFY(!project.toYaml().contains(QStringLiteral("explain"))); // Written only when on.
         project.explain = true;
         QVERIFY(Project::fromYaml(project.toYaml(), QDir(), &error)->explain);
+        // How the score is shown: written only when not absolute.
+        QVERIFY(!project.toYaml().contains(QStringLiteral("score:")));
+        project.scoreView = QStringLiteral("chances");
+        QCOMPARE(Project::fromYaml(project.toYaml(), QDir(), &error)->scoreView, QStringLiteral("chances"));
         project.explain = false;
         // The tutor's alert travels with training, and only with it.
         Project::TutorHold hold;

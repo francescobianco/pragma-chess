@@ -97,6 +97,9 @@ struct Project {
     QString engineId;
     QString engineName;
     bool engineAnalyzing = false;
+    /// How the Engine panel shows the score (ScoreView::key): "absolute",
+    /// "for-mover", "chances", "judgement". Written only when not absolute.
+    QString scoreView;
 
     /// Training Mode: the engine answers as the other colour. A project closed
     /// while training opens training, with the user on `trainingSide`.

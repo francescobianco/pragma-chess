@@ -57,6 +57,7 @@ public:
     }
     /// How the score is shown (ScoreView), as the user last chose.
     void setScoreView(ScoreView::Kind view) { m_score->setView(view); }
+    ScoreView::Kind scoreView() const { return m_score->view(); }
     /// The game's course beside the score (EvaluationBox::setCourse).
     void setCourse(const QList<std::optional<double>> &shares, int current) { m_score->setCourse(shares, current); }
     /// Summary of the "Explain" command; empty hides it.

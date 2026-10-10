@@ -288,6 +288,8 @@ QString Project::toYaml(const QDir &baseDir) const
     else
         out << toStd(engineName);
     out << YAML::Key << "analyzing" << YAML::Value << engineAnalyzing;
+    if (!scoreView.isEmpty() && scoreView != QLatin1String("absolute"))
+        out << YAML::Key << "score" << YAML::Value << toStd(scoreView);
     out << YAML::EndMap;
 
     // Only while training: the section itself is the flag.
@@ -413,6 +415,7 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     env.engineId = fromNode(engine["id"]);
     env.engineName = fromNode(engine["name"]);
     env.engineAnalyzing = valueOf<bool>(engine["analyzing"], false);
+    env.scoreView = fromNode(engine["score"]);
 
     const YAML::Node training = root["training"];
     env.training = training.IsMap();

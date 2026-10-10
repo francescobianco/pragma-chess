@@ -96,6 +96,11 @@ build() {
         if changed_during_build; then
             log "sources changed during the build, building again"
             sleep 0.2
+            # A file saved while the compiler was reading it leaves an object
+            # newer than the source but built from the old text, which ninja
+            # then takes as up to date: newer than every object, it is
+            # compiled again.
+            find "${WATCH_PATHS[@]}" -type f -newer "$MARKER" -exec touch {} + 2>/dev/null
             continue
         fi
         log "build ok"

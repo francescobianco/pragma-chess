@@ -11,6 +11,7 @@ namespace {
 
 enum class Shape {
     NewDocument,
+    Project,
     Open,
     Save,
     SaveAs,
@@ -78,6 +79,24 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         painter->drawLine(QPointF(8, 7), QPointF(8, 11.5));
         painter->drawLine(QPointF(5.75, 9.25), QPointF(10.25, 9.25));
         break;
+    case Shape::Project: {
+        // A project: the page of New, with a small pawn standing in it.
+        page(3, 1.75, 13, 14.25);
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(color);
+        painter->drawEllipse(QPointF(8, 7.1), 1.35, 1.35); // The head.
+        QPainterPath body;
+        body.moveTo(7.2, 8.4);
+        body.lineTo(8.8, 8.4);
+        body.quadTo(9.0, 10.3, 10.3, 11.1);
+        body.lineTo(10.3, 12.2);
+        body.lineTo(5.7, 12.2);
+        body.lineTo(5.7, 11.1);
+        body.quadTo(7.0, 10.3, 7.2, 8.4);
+        body.closeSubpath();
+        painter->drawPath(body);
+        break;
+    }
     case Shape::Open:
     case Shape::Folder: {
         QPainterPath path;
@@ -470,6 +489,7 @@ QIcon icon(const QString &name)
         {QStringLiteral("pragma-send-move"), Shape::SendMove},
         {QStringLiteral("pragma-send-plan"), Shape::SendPlan},
         {QStringLiteral("pragma-lobby"), Shape::Lobby},
+        {QStringLiteral("pragma-project"), Shape::Project},
     };
     const auto it = shapes.constFind(name);
     if (it == shapes.cend())

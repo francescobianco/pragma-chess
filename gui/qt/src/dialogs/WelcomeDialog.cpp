@@ -276,7 +276,7 @@ void WelcomeDialog::fillProjects()
         // By the project's name in the user's language, else the file's.
         const std::optional<Project> project = Project::loadFromFile(file.absoluteFilePath(), nullptr, language);
         const QString name = project ? project->name.text(language) : QString();
-        auto *item = new QListWidgetItem(QApplication::windowIcon(),
+        auto *item = new QListWidgetItem(SymbolicIcons::icon(QStringLiteral("pragma-project")),
                                          name.isEmpty() ? file.completeBaseName() : name, m_projects);
         item->setData(Qt::UserRole, file.absoluteFilePath());
         item->setToolTip(QDir::toNativeSeparators(file.absoluteFilePath()));

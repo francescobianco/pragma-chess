@@ -1200,6 +1200,9 @@ games from the same start position that begin with exactly the moves played
 to the current ply. Both come from `app/PositionIndex` (pure, unit-tested:
 sorted (key, game id) pairs for positions and for lines), built from
 `GameDatabase::gameLines()` on a worker thread by `PositionIndexBuilder`.
+The build shares the games among every core but one and merges the
+sorted shares on threads; an entry is 12 bytes, the key and the game's id
+with its result in the two low bits (`PositionIndex::Entry`).
 `MainWindow::rebuildPositionIndex` runs when a database is opened and, coalesced,
 when games are added, imported or replaced; the old index stays until the new
 one is ready (the counts show "…" only before the first one).

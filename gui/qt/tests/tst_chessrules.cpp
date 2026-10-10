@@ -3638,6 +3638,33 @@ END FUNCTION
         QCOMPARE(index.statsWithPosition(position), PositionIndex::Stats());
     }
 
+    void buildsTheIndexOnSeveralThreads()
+    {
+        // Enough games for several threads, in a few openings and results.
+        const QStringList openings{QStringLiteral("e2e4 e7e5 g1f3 b8c6 f1b5 a7a6"),
+                                   QStringLiteral("g1f3 b8c6 e2e4 e7e5 f1c4"),
+                                   QStringLiteral("d2d4 d7d5 c2c4 e7e6 b1c3"),
+                                   QStringLiteral("e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4")};
+        const QStringList results{QStringLiteral("1-0"), QStringLiteral("0-1"), QStringLiteral("1/2-1/2"), QStringLiteral("*")};
+        QList<GameLine> games;
+        for (int id = 1; id <= 5000; ++id)
+            games << GameLine{id, QString(), openings.at(id % openings.size()), results.at(id % 7 % results.size())};
+        const PositionIndex one = PositionIndex::build(games, nullptr, 1);
+        const PositionIndex many = PositionIndex::build(games, nullptr, 4);
+        ChessPosition position = ChessPosition::startingPosition();
+        QList<ChessMove> line;
+        for (const QString &uci : openings.at(3).split(QLatin1Char(' '))) {
+            QCOMPARE(many.statsWithPosition(position), one.statsWithPosition(position));
+            QCOMPARE(many.gamesWithPosition(position), one.gamesWithPosition(position));
+            QCOMPARE(many.gamesWithLine(ChessPosition::startingPosition(), line),
+                     one.gamesWithLine(ChessPosition::startingPosition(), line));
+            line << *position.moveFromUci(uci);
+            position.play(line.last());
+        }
+        QCOMPARE(many.countWithPosition(position), 1250);
+        QCOMPARE(many.statsWithPosition(ChessPosition::startingPosition()).games, 5000);
+    }
+
     void indexesPositionsAndLines()
     {
         const QString endgame = QStringLiteral("4k3/8/8/8/8/8/4P3/4K3 w - - 0 1");

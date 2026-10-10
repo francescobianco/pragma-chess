@@ -22,9 +22,11 @@
 class PositionIndex {
 public:
     /// Indexes the games; moves are replayed from each start position and a
-    /// game is cut at its first illegal move (as GameSession does). Stops
+    /// game is cut at its first illegal move (as GameSession does). The games
+    /// are shared among `threads` threads (0: every core but one). Stops
     /// early, with a partial index, once `cancelled` (if given) turns true.
-    static PositionIndex build(const QList<GameLine> &games, const std::atomic_bool *cancelled = nullptr);
+    static PositionIndex build(const QList<GameLine> &games, const std::atomic_bool *cancelled = nullptr,
+                               int threads = 0);
 
     int gameCount() const { return m_gameCount; }
     /// Positions and lines held, a pair each: what the index weighs.
@@ -53,16 +55,26 @@ public:
     static quint64 lineKey(const ChessPosition &start, const QList<ChessMove> &moves);
 
 private:
-    using Entries = std::vector<std::pair<quint64, qint64>>;
+#pragma pack(push, 4)
+    /// A key and the game it is found in: 12 bytes, the index's whole weight.
+    struct Entry {
+        quint64 key;
+        /// The game's id times four, plus its result: 1 White won, 2 draw,
+        /// 3 Black won, 0 none.
+        quint32 game;
+        bool operator<(const Entry &other) const { return key < other.key || (key == other.key && game < other.game); }
+        bool operator==(const Entry &) const = default;
+    };
+#pragma pack(pop)
+    using Entries = std::vector<Entry>;
 
+    static std::pair<Entries::const_iterator, Entries::const_iterator> range(const Entries &entries, quint64 key);
     static QSet<qint64> idsOf(const Entries &entries, quint64 key);
     static int countOf(const Entries &entries, quint64 key);
     static quint64 extendLine(quint64 line, const ChessMove &move);
 
-    /// (position key, game id) and (line key, game id), sorted and unique.
+    /// (position key, game) and (line key, game), sorted and unique.
     Entries m_positions;
     Entries m_lines;
-    /// Result of each game: 1 White won, 2 draw, 3 Black won, 0 none.
-    QHash<qint64, quint8> m_results;
     int m_gameCount = 0;
 };

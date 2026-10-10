@@ -142,3 +142,17 @@ and takes 96 s to build at every opening: next, it is built on several
 threads and kept in the database file. Then the moves stored once instead of
 twice (SAN and UCI), which a version of the schema allows.
 
+## 2026-10-10 — the position index on every core
+
+`PositionIndex::build` shares the games among every core but one, each
+sorting what it found, then merges the shares two by two on threads; an
+entry is 12 bytes (the key, and the game's id with its result in its two low
+bits) instead of 16 plus a hash of the results. Step 4:
+
+| | Before | After |
+|---|---|---|
+| Building the index (reading the moves included) | 95.9 s | 18.2 s |
+| Memory, index built | 3.7 GB | 2.7 GB |
+| Peak | 5.1 GB | 4.7 GB |
+| Position after 1.e4 | 0.95 s | 0.73 s |
+

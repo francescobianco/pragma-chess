@@ -20,6 +20,7 @@
 #include <QHash>
 #include <QSet>
 #include <QMainWindow>
+#include <QPointer>
 
 #include <functional>
 #include <memory>
@@ -43,6 +44,7 @@ class GameDatabase;
 class GameListModel;
 class GameSession;
 class HelpDialog;
+class WelcomeDialog;
 class LobbyDialog;
 class LobbyNetwork;
 class MoveTreeView;
@@ -455,6 +457,7 @@ private:
     void showAbout();
     /// Help ▸ Pragma Chess Guide (F1).
     void showGuide();
+    void showWelcome();
     void showLobby();
     /// The lobby's Play: the game `white` plays against `black` in room
     /// `roomId` on the board, after asking about a game on the board that
@@ -705,6 +708,9 @@ private:
     QAction *m_aboutAction;
     QAction *m_guideAction;
     HelpDialog *m_guideDialog = nullptr;
+    QAction *m_welcomeAction;
+    QPointer<WelcomeDialog> m_welcomeDialog;
+    bool m_welcomeShown = false; ///< At startup, once: the first showEvent.
     /// Game ▸ Enter the Lobby…: one window, kept with its rooms while the application runs.
     LobbyDialog *m_lobbyDialog = nullptr;
     /// The lobby of Game ▸ Enter the Lobby…, on the network (LobbyNode).

@@ -402,6 +402,8 @@ qt_add_executable(pragma-chess
     src/dialogs/ManageSyncFilesDialog.h
     src/dialogs/SourceSettingsWidget.cpp
     src/dialogs/SourceSettingsWidget.h
+    src/dialogs/WelcomeDialog.cpp
+    src/dialogs/WelcomeDialog.h
     src/app/ClassicGames.cpp
     src/app/ClassicGames.h
     src/app/GameDatabase.h
@@ -552,6 +554,8 @@ qt_add_resources(pragma-chess credits PREFIX /credits BASE resources/credits
 # SkakNew figurines for the move list (scripts/make-figurine-font.py).
 qt_add_resources(pragma-chess fonts PREFIX /fonts BASE resources/fonts
     FILES resources/fonts/pragma-figurine.otf resources/fonts/crimson-pro.ttf)
+qt_add_resources(pragma-chess welcome PREFIX /welcome BASE resources/welcome
+    FILES resources/welcome/chess-study.png)
 qt_add_resources(pragma-chess appicon PREFIX /icons BASE data/icons FILES ${APP_ICON_FILES})
 # The sound of a move (a CC0 wooden knock, resources/sounds/README.md), played by the system's own player.
 qt_add_resources(pragma-chess sounds PREFIX / FILES resources/sounds/move.wav)

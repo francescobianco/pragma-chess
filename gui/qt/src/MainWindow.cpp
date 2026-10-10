@@ -40,6 +40,7 @@
 #include "app/phone/DatabaseFolderStore.h"
 #include "app/phone/PhoneLink.h"
 #include "dialogs/ConnectMobileDialog.h"
+#include "dialogs/WelcomeDialog.h"
 #endif
 #include "app/Explainer.h"
 #include "app/LineInsight.h"
@@ -919,6 +920,8 @@ void MainWindow::createActions()
     m_guideAction = new QAction(tr("Pragma Chess &Guide"), this);
     m_guideAction->setShortcut(QKeySequence::HelpContents);
     connect(m_guideAction, &QAction::triggered, this, &MainWindow::showGuide);
+    m_welcomeAction = new QAction(tr("&Welcome…"), this);
+    connect(m_welcomeAction, &QAction::triggered, this, &MainWindow::showWelcome);
 }
 
 void MainWindow::createMenus()
@@ -1103,6 +1106,7 @@ void MainWindow::createMenus()
     }
 
     QMenu *help = menuBar()->addMenu(tr("&Help"));
+    help->addAction(m_welcomeAction);
     help->addAction(m_guideAction);
     help->addSeparator();
     help->addAction(m_aboutAction);
@@ -4999,6 +5003,28 @@ void MainWindow::showGuide()
     m_guideDialog->activateWindow();
 }
 
+void MainWindow::showWelcome()
+{
+    if (!m_welcomeDialog) {
+        m_welcomeDialog = new WelcomeDialog(this);
+        connect(m_welcomeDialog, &WelcomeDialog::newProjectChosen, this, &MainWindow::newProject);
+        connect(m_welcomeDialog, &WelcomeDialog::projectChosen, this, [this](const QString &path) {
+            if (maybeSaveProject())
+                openProjectFile(path);
+        });
+        // A database starts a new project with it open, its first game on the board.
+        connect(m_welcomeDialog, &WelcomeDialog::databaseChosen, this, [this](const QString &path) {
+            newProject(); // Asks about the project open first.
+            if (!m_projectPath.isEmpty())
+                return; // Cancelled: the project stays, with its database.
+            openDatabaseFile(path);
+        });
+    }
+    m_welcomeDialog->show();
+    m_welcomeDialog->raise();
+    m_welcomeDialog->activateWindow();
+}
+
 void MainWindow::manageDrawers()
 {
     // Read each time: a sync may have brought another computer's drawers.
@@ -5883,6 +5909,10 @@ void MainWindow::changeEvent(QEvent *event)
 void MainWindow::showEvent(QShowEvent *event)
 {
     QMainWindow::showEvent(event);
+    // The welcome opens over the window, once it is on screen (and maximized,
+    // when it was): never before it, alone on the desktop.
+    if (!std::exchange(m_welcomeShown, true) && WelcomeDialog::showsAtStartup())
+        QTimer::singleShot(kRestoreWindowStateDelayMs + 250, this, &MainWindow::showWelcome);
     if (m_layoutPending)
         QTimer::singleShot(0, this, &MainWindow::applyLayoutShares); // Now that the window has a size.
     if (m_restoredWindowState == Qt::WindowNoState)

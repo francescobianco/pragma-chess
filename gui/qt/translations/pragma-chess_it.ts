@@ -3394,6 +3394,10 @@ non è su questo computer.</translation>
         <source>%1 (Read-Only)</source>
         <translation>%1 (sola lettura)</translation>
     </message>
+    <message>
+        <source>&amp;Welcome…</source>
+        <translation>&amp;Benvenuto…</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>
@@ -5782,6 +5786,97 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>The server answered %1 %2.</source>
         <translation>Il server ha risposto %1 %2.</translation>
+    </message>
+</context>
+<context>
+    <name>WelcomeDialog</name>
+    <message>
+        <source>Study · Train · Play</source>
+        <translation>Studia · Allenati · Gioca</translation>
+    </message>
+    <message>
+        <source>Don&apos;t show this window at startup</source>
+        <translation>Non mostrare questa finestra all&apos;avvio</translation>
+    </message>
+    <message>
+        <source>Welcome to Pragma Chess</source>
+        <translation>Ti diamo il benvenuto in Pragma Chess</translation>
+    </message>
+    <message>
+        <source>Welcome</source>
+        <translation>Ti diamo il benvenuto</translation>
+    </message>
+    <message>
+        <source>Pragma Chess keeps your games in databases and your work in projects: chapters of games with your moves, variations, comments and paragraphs, as in a chess book.</source>
+        <translation>Pragma Chess conserva le tue partite nei database e il tuo lavoro nei progetti: capitoli di partite con le tue mosse, varianti, commenti e paragrafi, come in un libro di scacchi.</translation>
+    </message>
+    <message>
+        <source>Explain</source>
+        <translation>Spiega</translation>
+    </message>
+    <message>
+        <source>Press E on a move: arrows show why the evaluation changed.</source>
+        <translation>Premi E su una mossa: le frecce mostrano perché la valutazione è cambiata.</translation>
+    </message>
+    <message>
+        <source>Train</source>
+        <translation>Allenati</translation>
+    </message>
+    <message>
+        <source>Play the engine; the tutor stops you when a move is a mistake.</source>
+        <translation>Gioca contro il motore; il tutor ti ferma quando una mossa è un errore.</translation>
+    </message>
+    <message>
+        <source>Opening Tree</source>
+        <translation>Albero delle aperture</translation>
+    </message>
+    <message>
+        <source>The book&apos;s moves for the position, and your repertoire.</source>
+        <translation>Le mosse del libro per la posizione, e il tuo repertorio.</translation>
+    </message>
+    <message>
+        <source>Databases</source>
+        <translation>Database</translation>
+    </message>
+    <message>
+        <source>Import from lichess, chess.com, PGN and ChessBase; search by position.</source>
+        <translation>Importa da lichess, chess.com, PGN e ChessBase; cerca per posizione.</translation>
+    </message>
+    <message>
+        <source>Play</source>
+        <translation>Gioca</translation>
+    </message>
+    <message>
+        <source>Play on lichess, or in the lobby&apos;s correspondence tournaments.</source>
+        <translation>Gioca su lichess, o nei tornei per corrispondenza della lobby.</translation>
+    </message>
+    <message>
+        <source>Sync</source>
+        <translation>Sincronizza</translation>
+    </message>
+    <message>
+        <source>Keep databases and projects the same on every computer and on the phone.</source>
+        <translation>Tieni database e progetti uguali su ogni computer e sul telefono.</translation>
+    </message>
+    <message>
+        <source>Projects</source>
+        <translation>Progetti</translation>
+    </message>
+    <message>
+        <source>New Project</source>
+        <translation>Nuovo progetto</translation>
+    </message>
+    <message>
+        <source>opens in a new project</source>
+        <translation>si apre in un nuovo progetto</translation>
+    </message>
+    <message>
+        <source>No projects yet</source>
+        <translation>Ancora nessun progetto</translation>
+    </message>
+    <message>
+        <source>No databases yet</source>
+        <translation>Ancora nessun database</translation>
     </message>
 </context>
 </TS>

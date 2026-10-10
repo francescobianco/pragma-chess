@@ -2,6 +2,8 @@
 
 Pragma Chess keeps your games in **databases** and lets you study them on the board with an engine, an opening book and your own notes.
 
+At every start the **welcome window** opens over the main window: what Pragma Chess can do, then your **projects** and your **databases**, read from their folders (a file you add there shows up). Click a project to open it, a database to open it in a new project, or **New Project**. Tick **Don't show this window at startup** to start straight away; **Help ▸ Welcome…** opens it again whenever you want.
+
 The window has the **board** in the middle and four panels around it:
 
 - **Games**, at the bottom: the tree of the open database and the list of its games.

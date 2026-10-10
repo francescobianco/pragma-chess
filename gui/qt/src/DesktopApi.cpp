@@ -9,6 +9,7 @@
 #include "app/GameDatabase.h"
 #include "app/UciEngine.h"
 #include "dialogs/DrawersDialog.h"
+#include "dialogs/WelcomeDialog.h"
 #include "dialogs/LobbyDialog.h"
 #include "models/GameFilterProxyModel.h"
 #include "app/Drawers.h"
@@ -338,6 +339,15 @@ void DesktopApi::addRoutes()
         QBuffer buffer(&png);
         buffer.open(QIODevice::WriteOnly);
         dialog.grab().save(&buffer, "PNG");
+        return Response{200, "image/png", png};
+    });
+    // Help ▸ Welcome…: opens the welcome window and answers with its picture.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/welcome"), [w](const Request &) {
+        w->showWelcome();
+        QByteArray png;
+        QBuffer buffer(&png);
+        buffer.open(QIODevice::WriteOnly);
+        w->m_welcomeDialog->grab().save(&buffer, "PNG");
         return Response{200, "image/png", png};
     });
     // Lobby Mode's sends: {"plan": true} the plan prepared on the board, else the move.

@@ -387,6 +387,22 @@ modal, so it stays open while the user tries things.
   its own notice is the About Qt… button of the dialog: there is no separate
   About Qt entry in the menu.
 
+## Welcome
+
+`dialogs/WelcomeDialog` greets the user at every start, opened over the main
+window once it is on screen (`MainWindow::showEvent`, after the window's
+state is restored — never before it), and from Help ▸ Welcome…
+(`showWelcome`). On the left a shoulder (`resources/welcome/chess-study.png`,
+CC0, PNG so no image plugin is needed) with the logo and the name in the
+book face; on the right what Pragma Chess does, then the way in: the
+projects of the Projects folder (by their name in the user's language) and
+the databases of the Databases folder (as Switch Database names them), read
+from disk and followed with a `QFileSystemWatcher`, and New Project. A
+click opens: a project as File ▸ Open Project, a database in a new project
+(`newProject`, then `openDatabaseFile`). "Don't show this window at
+startup" is QSettings `welcome/showAtStartup`, per computer.
+`POST /api/welcome` opens it and answers with its picture.
+
 ## Toolbar
 
 `MainWindow::createToolBar`: Sync Now on its own, then the saving section

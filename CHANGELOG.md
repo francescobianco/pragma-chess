@@ -8,6 +8,12 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- A **welcome window** at startup, over the main window: what Pragma Chess
+  does, your projects and databases (read from their folders) to open with a
+  click — a database opens in a new project — and New Project. "Don't show
+  this window at startup" turns it off; Help ▸ Welcome… opens it again.
+- The **Opening Tree** is shown at the first start, two thirds of its row
+  beside the move list.
 - A new database type, **Puzzles and Training** (Database Settings): its
   games list does not show the moves, so the solution stays hidden, and a
   game opened from it starts in Training Mode, the board turned to the side

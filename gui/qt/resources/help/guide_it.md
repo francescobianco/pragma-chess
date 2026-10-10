@@ -2,6 +2,8 @@
 
 Pragma Chess conserva le tue partite in **database** e te le fa studiare sulla scacchiera con un motore, un libro delle aperture e le tue annotazioni.
 
+A ogni avvio si apre, sopra la finestra principale, la **finestra di benvenuto**: cosa puoi fare con Pragma Chess, poi i tuoi **progetti** e i tuoi **database**, letti dalle loro cartelle (un file che aggiungi lì compare). Fai clic su un progetto per aprirlo, su un database per aprirlo in un nuovo progetto, oppure su **Nuovo progetto**. Spunta **Non mostrare questa finestra all'avvio** per partire subito; **Aiuto ▸ Benvenuto…** la riapre quando vuoi.
+
 La finestra ha la **scacchiera** al centro e quattro pannelli attorno:
 
 - **Partite**, in basso: l'albero del database aperto e la lista delle sue partite.

@@ -56,6 +56,8 @@
 #include "app/sources/PgnFile.h"
 #include "app/convert/PgnConversion.h"
 #include "app/ScoreView.h"
+#include "app/online/FicsClient.h"
+#include "app/online/FicsProtocol.h"
 #include "app/convert/PgnSplitter.h"
 #include "app/sources/PgnFileFetch.h"
 #include "app/sources/PgnFilePlan.h"
@@ -77,6 +79,8 @@
 #include <QProcess>
 #include <QSettings>
 #include <QSignalSpy>
+#include <QTcpServer>
+#include <QTcpSocket>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QNetworkAccessManager>
@@ -4304,6 +4308,130 @@ END FUNCTION
         QCOMPARE(height(1000), 1.0);
         QCOMPARE(height(3000), 1.0);
         QCOMPARE(ScoreView::courseHeight(mate), -1.0);
+    }
+
+    void readsFreechessLines()
+    {
+        // Recorded from freechess.org, observing a game (relation 0).
+        const QString line = QStringLiteral(
+            "<12> rnbqkbnr pppp--pp -------- ----Np-- ----P--- -------- PPPP-PPP RNBQKB-R B -1 1 1 1 1 0 15 "
+            "SENHUS Moondance 0 3 0 39 38 172394 179900 3 N/f3-e5 (0:05.160) Nxe5 0 1 174");
+        const std::optional<Fics::Style12> board = Fics::parseStyle12(line);
+        QVERIFY(board);
+        QCOMPARE(board->squares.size(), 64);
+        QCOMPARE(board->squares.left(8), QStringLiteral("rnbqkbnr"));
+        QVERIFY(!board->whiteToMove);
+        QCOMPARE(board->game, 15);
+        QCOMPARE(board->white, QStringLiteral("SENHUS"));
+        QCOMPARE(board->black, QStringLiteral("Moondance"));
+        QVERIFY(!board->isPlayed());
+        QCOMPARE(board->initialMinutes, 3);
+        QCOMPARE(board->whiteTimeMs, 172394);
+        QCOMPARE(board->blackTimeMs, 179900);
+        QCOMPARE(board->plies(), 5); // 1.e4 e5 2.Nf3 f5 3.Nxe5: Black to make move 3.
+        QCOMPARE(Fics::uciOfVerbose(board->verboseMove, !board->whiteToMove), QStringLiteral("f3e5"));
+        QVERIFY(!Fics::parseStyle12(QStringLiteral("fics% Style 12 set.")));
+
+        QCOMPARE(Fics::uciOfVerbose(QStringLiteral("o-o"), true), QStringLiteral("e1g1"));
+        QCOMPARE(Fics::uciOfVerbose(QStringLiteral("o-o-o"), false), QStringLiteral("e8c8"));
+        QCOMPARE(Fics::uciOfVerbose(QStringLiteral("P/e7-e8=Q"), true), QStringLiteral("e7e8q"));
+        QCOMPARE(Fics::uciOfVerbose(QStringLiteral("none"), true), QString());
+        QCOMPARE(Fics::moveCommand(QStringLiteral("e1g1"), QLatin1Char('K')), QStringLiteral("o-o"));
+        QCOMPARE(Fics::moveCommand(QStringLiteral("e8c8"), QLatin1Char('k')), QStringLiteral("o-o-o"));
+        QCOMPARE(Fics::moveCommand(QStringLiteral("e1g1"), QLatin1Char('Q')), QStringLiteral("e1g1"));
+        QCOMPARE(Fics::moveCommand(QStringLiteral("a7a8n"), QLatin1Char('P')), QStringLiteral("a7a8=n"));
+        QCOMPARE(Fics::moveCommand(QStringLiteral("g1f3"), QLatin1Char('N')), QStringLiteral("g1f3"));
+
+        const std::optional<Fics::Creating> creating =
+            Fics::parseCreating(QStringLiteral("Creating: GuestABCD (++++) frank (1650) unrated blitz 5 0"));
+        QVERIFY(creating);
+        QCOMPARE(creating->white, QStringLiteral("GuestABCD"));
+        QCOMPARE(creating->whiteRating, 0);
+        QCOMPARE(creating->blackRating, 1650);
+        QVERIFY(!creating->rated);
+
+        const std::optional<Fics::GameEnd> resigned =
+            Fics::parseGameEnd(QStringLiteral("{Game 12 (frank vs. GuestABCD) frank resigns} 0-1"));
+        QVERIFY(resigned);
+        QCOMPARE(resigned->game, 12);
+        QCOMPARE(resigned->status, QStringLiteral("resign"));
+        QCOMPARE(resigned->winner, QStringLiteral("black"));
+        QCOMPARE(Fics::parseGameEnd(QStringLiteral("{Game 7 (a vs. b) b checkmated} 1-0"))->status, QStringLiteral("mate"));
+        QCOMPARE(Fics::parseGameEnd(QStringLiteral("{Game 7 (a vs. b) a forfeits on time} 0-1"))->status, QStringLiteral("outoftime"));
+        QCOMPARE(Fics::parseGameEnd(QStringLiteral("{Game 7 (a vs. b) Game drawn by mutual agreement} 1/2-1/2"))->status,
+                 QStringLiteral("draw"));
+        QCOMPARE(Fics::parseGameEnd(QStringLiteral("{Game 7 (a vs. b) Game aborted on move 1} *"))->status,
+                 QStringLiteral("aborted"));
+        QVERIFY(!Fics::parseGameEnd(QStringLiteral("Game 15: SENHUS (1916) Moondance (1710) rated blitz 3 0")));
+
+        QCOMPARE(Fics::parseSessionStart(QStringLiteral("**** Starting FICS session as GuestCNFG(U) ****")).value_or(QString()),
+                 QStringLiteral("GuestCNFG"));
+        QCOMPARE(Fics::parseDrawOffer(QStringLiteral("frank offers you a draw.")).value_or(QString()), QStringLiteral("frank"));
+        QVERIFY(!Fics::parseDrawOffer(QStringLiteral("frank tells you: a draw?")));
+    }
+
+    void playsOnFreechess()
+    {
+        // A server of our own playing FICS's part: the login as a guest, the
+        // seek, a move each way, the opponent resigning.
+        QTcpServer server;
+        QVERIFY(server.listen(QHostAddress::LocalHost));
+        QTcpSocket *peer = nullptr;
+        QByteArray heard;
+        const auto board = [](const QString &rank4, const QString &rank5, const QString &side, int relation, int move,
+                              const QString &verbose) {
+            return QStringLiteral("<12> rnbqkbnr pppp%1 -------- %2 %3 -------- PPPP%4 RNBQKBNR %5 -1 1 1 1 1 0 41 GuestTEST bob %6 5 0 39 39 300000 300000 %7 %8 (0:00.000) x 0 1 0\n")
+                .arg(rank5 == QLatin1String("----p---") ? QStringLiteral("-ppp") : QStringLiteral("pppp"), rank5, rank4,
+                     rank4 == QLatin1String("----P---") ? QStringLiteral("-PPP") : QStringLiteral("PPPP"), side)
+                .arg(relation).arg(move).arg(verbose).toLatin1();
+        };
+        connect(&server, &QTcpServer::newConnection, this, [&] {
+            peer = server.nextPendingConnection();
+            peer->write("Welcome to the Free Internet Chess Server\n\rlogin: ");
+            connect(peer, &QTcpSocket::readyRead, this, [&] {
+                heard += peer->readAll();
+                if (heard.endsWith("guest\n")) {
+                    peer->write("Logging you in as \"GuestTEST\".\n\rPress return to enter the server as \"GuestTEST\":\n\r");
+                } else if (heard.endsWith("GuestTEST\":\n") || heard.endsWith("guest\n\n")) {
+                    peer->write("**** Starting FICS session as GuestTEST(U) ****\n\rfics% ");
+                } else if (heard.contains("seek 5 0 unrated") && !heard.contains("e2e4")) {
+                    if (!heard.contains("SEEN")) {
+                        heard += "SEEN";
+                        peer->write("fics% Creating: GuestTEST (++++) bob (1700) unrated blitz 5 0\n\r");
+                        peer->write(board(QStringLiteral("--------"), QStringLiteral("--------"), QStringLiteral("W"), 1, 1,
+                                          QStringLiteral("none")));
+                    }
+                } else if (heard.endsWith("e2e4\n")) {
+                    peer->write(board(QStringLiteral("----P---"), QStringLiteral("--------"), QStringLiteral("B"), -1, 1,
+                                      QStringLiteral("P/e2-e4")));
+                    peer->write(board(QStringLiteral("----P---"), QStringLiteral("----p---"), QStringLiteral("W"), 1, 2,
+                                      QStringLiteral("P/e7-e5")));
+                    peer->write("{Game 41 (GuestTEST vs. bob) bob resigns} 1-0\n\r");
+                }
+            });
+        });
+        FicsClient client(QStringLiteral("guest"), QString());
+        client.setServer(QStringLiteral("127.0.0.1"), server.serverPort());
+        QSignalSpy started(&client, &OnlineClient::gameStarted);
+        QSignalSpy finished(&client, &OnlineClient::gameFinished);
+        QSignalSpy failed(&client, &OnlineClient::failed);
+        client.seek({5, 0, true, QStringLiteral("random")}); // A guest's game is unrated whatever is asked.
+        QVERIFY(started.wait(5000));
+        QCOMPARE(client.playingAs(), QStringLiteral("GuestTEST"));
+        QCOMPARE(client.game().id, QStringLiteral("41"));
+        QCOMPARE(client.game().black, QStringLiteral("bob"));
+        QCOMPARE(client.game().blackRating, 1700);
+        QCOMPARE(client.game().timeControl, QStringLiteral("300+0"));
+        QVERIFY(client.isPlaying());
+        QVERIFY(heard.contains("set style 12\n"));
+        QVERIFY(heard.contains("seek 5 0 unrated\n"));
+        client.move(QStringLiteral("e2e4"));
+        QVERIFY(finished.wait(5000));
+        QCOMPARE(client.game().moves, (QStringList{QStringLiteral("e2e4"), QStringLiteral("e7e5")}));
+        QCOMPARE(client.game().status, QStringLiteral("resign"));
+        QCOMPARE(client.game().result(), QStringLiteral("1-0"));
+        QVERIFY(!client.isPlaying());
+        QVERIFY(failed.isEmpty());
     }
 
     void readsEvaluationsFromComments()

@@ -169,7 +169,7 @@ Tick **Remember for this session** in the New Training window and the toolbar bu
 
 # Playing online {#online}
 
-**Game ▸ New Online Game…** plays a game against a person on lichess.org (more platforms will follow).
+**Game ▸ New Online Game…** plays a game against a person on lichess.org or on the Free Internet Chess Server, freechess.org. Lichess is connected through its own sign-in page in your browser; freechess.org asks in Pragma Chess for a registered player's name and password, or lets you play as a guest — unrated games under a name the server gives at every session. A game on freechess.org lives as long as the session: closed during it, Pragma Chess cannot follow it again.
 
 The window lists the **platforms you are connected to**, each with the account you play as. **Connect Platform…** asks which kind of platform, opens its own sign-in page in your browser and brings the connection here; **Disconnect** removes one. Connections are yours on this computer, kept with your settings, never in a project. Choose the connection, the **clock** (minutes and increment), the colour and whether the game is **rated**, then **Find an Opponent**.
 

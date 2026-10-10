@@ -14,7 +14,7 @@ const QString kBase = QStringLiteral("https://lichess.org");
 } // namespace
 
 LichessBoardClient::LichessBoardClient(const QString &token, QObject *parent)
-    : QObject(parent)
+    : OnlineClient(parent)
     , m_token(token)
     , m_network(new QNetworkAccessManager(this))
 {

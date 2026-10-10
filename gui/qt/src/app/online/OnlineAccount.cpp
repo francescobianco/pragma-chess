@@ -61,5 +61,7 @@ QString OnlineAccounts::platformName(const QString &platform)
 {
     if (platform == QLatin1String(OnlineAccount::kLichess))
         return QStringLiteral("lichess.org");
+    if (platform == QLatin1String(OnlineAccount::kFics))
+        return QStringLiteral("freechess.org");
     return platform;
 }

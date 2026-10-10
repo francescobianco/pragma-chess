@@ -169,7 +169,7 @@ Spunta **Ricorda per questa sessione** nella finestra Nuovo allenamento e il bot
 
 # Giocare online {#online}
 
-**Partita ▸ Nuova partita online…** gioca una partita contro una persona su lichess.org (altre piattaforme seguiranno).
+**Partita ▸ Nuova partita online…** gioca una partita contro una persona su lichess.org o sul Free Internet Chess Server, freechess.org. Lichess si collega con la sua pagina di accesso nel browser; freechess.org chiede in Pragma Chess il nome e la password di un giocatore registrato, oppure ti fa giocare come ospite — partite non classificate con un nome che il server dà a ogni sessione. Una partita su freechess.org vive quanto la sessione: se Pragma Chess si chiude durante la partita, non la può riprendere.
 
 La finestra elenca le **piattaforme a cui sei connesso**, ciascuna con l'account con cui giochi. **Connetti piattaforma…** chiede di che tipo è, apre nel browser la sua pagina di accesso e porta qui la connessione; **Disconnetti** ne toglie una. Le connessioni sono tue su questo computer, conservate con le tue impostazioni, mai in un progetto. Scegli la connessione, l'**orologio** (minuti e incremento), il colore e se la partita è **classificata**, poi **Cerca un avversario**.
 

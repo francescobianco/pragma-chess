@@ -1,6 +1,8 @@
 #include "MainWindow.h"
 
 #include "app/BookWeights.h"
+#include "app/online/FicsClient.h"
+#include "app/online/LichessBoardClient.h"
 #include "app/ClassicGames.h"
 #include "app/GameIdentity.h"
 #include "app/OpeningNames.h"
@@ -4529,7 +4531,7 @@ void MainWindow::playOnline(bool alwaysAsk)
         leaveOnlineThen([this, alwaysAsk] { playOnline(alwaysAsk); });
         return;
     }
-    LichessBoardClient::Seek seek;
+    OnlineClient::Seek seek;
     if (alwaysAsk || !m_rememberedOnline) {
         PlayOnlineDialog dialog(m_rememberedOnline.has_value(), this);
         if (dialog.exec() != QDialog::Accepted || dialog.account().id.isEmpty())
@@ -4537,7 +4539,7 @@ void MainWindow::playOnline(bool alwaysAsk)
         m_onlineAccount = dialog.account();
         seek = dialog.seek();
         // Unticking it forgets the choice: the toolbar asks again.
-        m_rememberedOnline = dialog.remember() ? std::optional<LichessBoardClient::Seek>(seek) : std::nullopt;
+        m_rememberedOnline = dialog.remember() ? std::optional<OnlineClient::Seek>(seek) : std::nullopt;
     } else {
         seek = *m_rememberedOnline;
     }
@@ -4587,15 +4589,21 @@ void MainWindow::leaveOnlineThen(std::function<void()> next)
 bool MainWindow::startOnlineClient()
 {
     const QString token = SourceCredentials::token(m_onlineAccount.id);
-    if (token.isEmpty()) {
+    const bool fics = m_onlineAccount.platform == QLatin1String(OnlineAccount::kFics);
+    // A guest of freechess.org needs no password; everyone else their sign-in.
+    const bool guest = fics && m_onlineAccount.username == QLatin1String("guest");
+    if (token.isEmpty() && !guest) {
         QMessageBox::warning(this, tr("Play Online"), tr("The account %1 has no sign-in on this computer: sign in again.").arg(m_onlineAccount.username));
         return false;
     }
-    m_online = std::make_unique<LichessBoardClient>(token);
-    connect(m_online.get(), &LichessBoardClient::gameStarted, this, &MainWindow::onlineGameStarted);
-    connect(m_online.get(), &LichessBoardClient::gameUpdated, this, &MainWindow::onlineGameUpdated);
-    connect(m_online.get(), &LichessBoardClient::gameFinished, this, &MainWindow::onlineGameFinished);
-    connect(m_online.get(), &LichessBoardClient::failed, this, &MainWindow::onlineFailed);
+    if (fics)
+        m_online = std::make_unique<FicsClient>(m_onlineAccount.username, token);
+    else
+        m_online = std::make_unique<LichessBoardClient>(token);
+    connect(m_online.get(), &OnlineClient::gameStarted, this, &MainWindow::onlineGameStarted);
+    connect(m_online.get(), &OnlineClient::gameUpdated, this, &MainWindow::onlineGameUpdated);
+    connect(m_online.get(), &OnlineClient::gameFinished, this, &MainWindow::onlineGameFinished);
+    connect(m_online.get(), &OnlineClient::failed, this, &MainWindow::onlineFailed);
     return true;
 }
 
@@ -4618,6 +4626,11 @@ void MainWindow::resumeOnlineGame()
     m_onlineAccount = *account;
     if (!startOnlineClient())
         return;
+    if (!m_online->canResume()) { // A platform whose games end with the session.
+        m_online.reset();
+        forgetActiveOnlineGame();
+        return;
+    }
     m_resumingOnline = true;
     setOnlinePlay(true);
     m_onlineSide.reset();
@@ -4686,9 +4699,13 @@ void MainWindow::onlineGameStarted(const OnlineGame &game)
     // Remembered until the game ends, so a restart follows it again.
     m_resumingOnline = false;
     QSettings settings;
-    settings.setValue(QLatin1String(kActiveGameKey), game.id);
-    settings.setValue(QLatin1String(kActiveAccountKey), m_onlineAccount.id);
-    const bool white = game.white.compare(m_onlineAccount.username, Qt::CaseInsensitive) == 0;
+    if (m_online->canResume()) {
+        settings.setValue(QLatin1String(kActiveGameKey), game.id);
+        settings.setValue(QLatin1String(kActiveAccountKey), m_onlineAccount.id);
+    }
+    // The name played under: the account's, or the one the platform gave (a guest).
+    const QString me = m_online->playingAs().isEmpty() ? m_onlineAccount.username : m_online->playingAs();
+    const bool white = game.white.compare(me, Qt::CaseInsensitive) == 0;
     m_onlineSide = white ? Side::White : Side::Black;
     GameRecord record;
     record.white = game.white;
@@ -4696,7 +4713,7 @@ void MainWindow::onlineGameStarted(const OnlineGame &game)
     record.whiteElo = game.whiteRating;
     record.blackElo = game.blackRating;
     record.event = tr("%1 %2 game").arg(OnlineAccounts::platformName(m_onlineAccount.platform), game.rated ? tr("rated") : tr("casual"));
-    record.site = QStringLiteral("https://lichess.org/%1").arg(game.id);
+    record.site = m_online->gameUrl();
     record.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
     record.result = QStringLiteral("*");
     record.startFen = game.initialFen;

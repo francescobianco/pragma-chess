@@ -1640,7 +1640,8 @@ while the menu entry and its shortcut always ask. Everything lives in `MainWindo
 ## Online play
 
 Game ▸ New Online Game… (`dialogs/PlayOnlineDialog`) plays against a person on
-a platform; lichess.org for now, through its Board API, more to come.
+a platform: lichess.org through its Board API, and freechess.org (FICS)
+through its telnet session.
 
 - **Connections are the user's, per computer**, never the project's: a
   connection is a platform signed in to as some account,
@@ -1650,6 +1651,24 @@ a platform; lichess.org for now, through its Board API, more to come.
   kind (a menu; lichess only) and runs `LichessSignIn` with the scope
   `board:play` (`start(scopes)`; the sources' sign-in asks for none). The
   platform's own accounts are its business: nothing here creates one.
+- **Platforms are `app/online/OnlineClient`s** (seek, move, resign, abort,
+  draw; `gameStarted`/`gameUpdated`/`gameFinished`/`failed`): the window
+  only knows that. `canResume()` says whether a game survives the session
+  (lichess yes, FICS no: its active game is not remembered); `playingAs()`
+  is the name the platform gave (a FICS guest's), `gameUrl()` the Site.
+- **freechess.org** (`OnlineAccount::kFics`): `app/online/FicsClient`, a
+  telnet session on port 5000 (QTcpSocket): logs in as the account's name
+  with its password (kept where tokens are) or as a guest ("guest", no
+  password: `Press return to enter the server as …`), sets the session
+  (`set style 12`, `iset ms 1`, `iset nowrap 1`, the chatter off), seeks
+  (`seek <min> <inc> rated|unrated [white|black]`, a guest always
+  unrated) and plays (`o-o` for castling, `e7e8=q`, `resign`, `abort`,
+  `draw`). `app/online/FicsProtocol` (pure, unit-tested on lines recorded
+  from the server) reads style 12 boards — the moves are kept by counting
+  plies, the verbose move turned into UCI —, `Creating:`, `{Game …}` ends,
+  draw offers. `tst_chessrules::playsOnFreechess` plays a game against a
+  scripted local server; never test on freechess.org by seeking: a stranger
+  would accept.
 - `app/online/LichessBoardClient` (core, Qt Network): `seek()` POSTs
   `/api/board/seek` (the request stays open while the seek lives) and
   follows `/api/stream/event` for the game's start, then

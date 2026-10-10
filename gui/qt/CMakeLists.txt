@@ -222,8 +222,13 @@ qt_add_library(pragma-chess-core STATIC
     src/app/TimeControl.h
     src/app/UiLanguage.cpp
     src/app/UiLanguage.h
+    src/app/online/FicsClient.cpp
+    src/app/online/FicsClient.h
+    src/app/online/FicsProtocol.cpp
+    src/app/online/FicsProtocol.h
     src/app/online/LichessBoardClient.cpp
     src/app/online/LichessBoardClient.h
+    src/app/online/OnlineClient.h
     src/app/online/OnlineAccount.cpp
     src/app/online/OnlineAccount.h
     src/app/lobby/Lobby.cpp

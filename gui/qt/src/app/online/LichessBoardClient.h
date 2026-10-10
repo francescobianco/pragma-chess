@@ -1,8 +1,7 @@
 #pragma once
 
-#include "OnlineGame.h"
+#include "OnlineClient.h"
 
-#include <QObject>
 #include <QString>
 
 class QNetworkAccessManager;
@@ -11,48 +10,33 @@ class QNetworkReply;
 /// Plays on lichess.org through its Board API with the user's token
 /// (scope board:play): looks for an opponent, follows the game's stream and
 /// sends the user's moves. One game at a time.
-class LichessBoardClient : public QObject {
+class LichessBoardClient : public OnlineClient {
     Q_OBJECT
 
 public:
     explicit LichessBoardClient(const QString &token, QObject *parent = nullptr);
     ~LichessBoardClient() override;
 
-    /// How a game is asked for: clock in minutes and seconds of increment,
-    /// rated or casual, the colour wanted ("random", "white", "black").
-    struct Seek {
-        int minutes = 10;
-        int increment = 0;
-        bool rated = false;
-        QString color = QStringLiteral("random");
-    };
-
-    /// Looks for an opponent; gameStarted() follows when one is found.
-    void seek(const Seek &seek);
-    void cancelSeek();
+    void seek(const Seek &seek) override;
+    void cancelSeek() override;
+    bool canResume() const override { return true; }
     /// Follows again a game already started, e.g. after the application was
     /// closed during it: the stream sends the whole game (or its end) again.
-    void resume(const QString &gameId);
-    bool isSeeking() const { return m_seek != nullptr; }
+    void resume(const QString &gameId) override;
+    bool isSeeking() const override { return m_seek != nullptr; }
 
-    const OnlineGame &game() const { return m_game; }
-    bool isPlaying() const { return m_gameStream != nullptr; }
+    const OnlineGame &game() const override { return m_game; }
+    bool isPlaying() const override { return m_gameStream != nullptr; }
+    /// The account's name, as the game's players carry it.
+    QString playingAs() const override { return {}; }
+    QString gameUrl() const override { return QStringLiteral("https://lichess.org/%1").arg(m_game.id); }
 
     /// The user's move, UCI; the platform answers through the game stream.
-    void move(const QString &uci);
-    void resign();
-    void abort();
+    void move(const QString &uci) override;
+    void resign() override;
+    void abort() override;
     /// Offers a draw, or accepts the one the opponent offered.
-    void offerDraw();
-
-Q_SIGNALS:
-    void seeking();
-    void gameStarted(const OnlineGame &game);
-    /// The game's state changed: a move was played, a clock ticked, it ended.
-    void gameUpdated(const OnlineGame &game);
-    void gameFinished(const OnlineGame &game);
-    /// Something went wrong with the platform; the game, if any, is over for us.
-    void failed(const QString &message);
+    void offerDraw() override;
 
 private:
     void openEventStream();

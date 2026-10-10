@@ -9,8 +9,10 @@ class QSettings;
 /// and as whom. The token lives in SourceCredentials, keyed by `id`, never
 /// here.
 struct OnlineAccount {
-    /// Platforms are named by a key the code knows: "lichess" for now.
+    /// Platforms are named by a key the code knows.
     static constexpr char kLichess[] = "lichess";
+    /// The Free Internet Chess Server; a guest's account is named "guest".
+    static constexpr char kFics[] = "fics";
 
     QString id;       // A uuid of ours, stable for the token.
     QString platform; // kLichess…

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app/online/LichessBoardClient.h"
+#include "app/online/OnlineClient.h"
 #include "app/online/OnlineAccount.h"
 
 #include <QDialog>
@@ -28,7 +28,7 @@ public:
 
     /// The account chosen, once accepted.
     OnlineAccount account() const;
-    LichessBoardClient::Seek seek() const;
+    OnlineClient::Seek seek() const;
     /// "Remember for this session": the toolbar's New Online Game then looks for
     /// an opponent with these choices without asking, until the application
     /// is closed.
@@ -37,6 +37,8 @@ public:
 private:
     void rebuildAccounts();
     void connectPlatform();
+    /// freechess.org: a name and password, or a guest.
+    void connectFics();
     void removeAccount();
     void updateButtons();
     void signedIn(const QString &platform, const QString &token, const QString &username, const QString &error);

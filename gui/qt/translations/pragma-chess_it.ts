@@ -973,6 +973,21 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>FicsClient</name>
+    <message>
+        <source>freechess.org: %1</source>
+        <translation>freechess.org: %1</translation>
+    </message>
+    <message>
+        <source>freechess.org asks for the password of %1.</source>
+        <translation>freechess.org chiede la password di %1.</translation>
+    </message>
+    <message>
+        <source>freechess.org refused the password of %1.</source>
+        <translation>freechess.org ha rifiutato la password di %1.</translation>
+    </message>
+</context>
+<context>
     <name>FileTypes</name>
     <message>
         <source>Pragma Chess Project</source>
@@ -4711,6 +4726,26 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>The Play Online button of the toolbar looks for an opponent with these choices without asking, until Pragma Chess is closed; the menu always asks</source>
         <translation>Il bottone Gioca online della barra degli strumenti cerca un avversario con queste scelte senza chiedere, finché Pragma Chess non viene chiuso; il menu chiede sempre</translation>
+    </message>
+    <message>
+        <source>Connect freechess.org</source>
+        <translation>Connetti freechess.org</translation>
+    </message>
+    <message>
+        <source>The Free Internet Chess Server. Play as a guest, unrated games under a name the server gives, or as a player registered at freechess.org.</source>
+        <translation>Il Free Internet Chess Server. Gioca come ospite, partite non classificate con un nome dato dal server, oppure come giocatore registrato su freechess.org.</translation>
+    </message>
+    <message>
+        <source>Play as a guest</source>
+        <translation>Gioca come ospite</translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation>Nome:</translation>
+    </message>
+    <message>
+        <source>Password:</source>
+        <translation>Password:</translation>
     </message>
 </context>
 <context>

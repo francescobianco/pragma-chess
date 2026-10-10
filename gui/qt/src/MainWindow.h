@@ -7,7 +7,7 @@
 #include "app/EngineCatalog.h"
 #include "app/EngineEvaluation.h"
 #include "app/GameVariations.h"
-#include "app/online/LichessBoardClient.h"
+#include "app/online/OnlineClient.h"
 #include "app/online/OnlineAccount.h"
 #include "app/WorkspaceLayout.h"
 #include "app/PlayerRole.h"
@@ -720,12 +720,12 @@ private:
     QAction *m_lobbyAction;
     QAction *m_setUpPositionAction;
     QAction *m_quickOnlineAction;
-    std::optional<LichessBoardClient::Seek> m_rememberedOnline; // "Remember for this session", never saved.
+    std::optional<OnlineClient::Seek> m_rememberedOnline; // "Remember for this session", never saved.
     /// Run once the online game resigned by leaveOnlineThen has ended and been saved.
     std::function<void()> m_afterOnlineGame;
     /// Following again a game left in progress, until its start comes back.
     bool m_resumingOnline = false;
-    std::unique_ptr<LichessBoardClient> m_online; // Alive while looking for an opponent or playing.
+    std::unique_ptr<OnlineClient> m_online; // Alive while looking for an opponent or playing.
     OnlineAccount m_onlineAccount;
     bool m_onlinePlay = false;
     std::optional<Side> m_onlineSide; // The user's colour, once the game is on.

@@ -11,6 +11,7 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QMenu>
 #include <QPushButton>
@@ -152,9 +153,9 @@ bool PlayOnlineDialog::remember() const
     return m_remember->isChecked();
 }
 
-LichessBoardClient::Seek PlayOnlineDialog::seek() const
+OnlineClient::Seek PlayOnlineDialog::seek() const
 {
-    LichessBoardClient::Seek seek;
+    OnlineClient::Seek seek;
     seek.minutes = m_minutes->value();
     seek.increment = m_increment->value();
     seek.rated = m_rated->isChecked();
@@ -172,15 +173,20 @@ void PlayOnlineDialog::updateButtons()
 
 void PlayOnlineDialog::connectPlatform()
 {
-    // Which kind of platform: one for now, so the question is a short menu;
-    // then the platform's own sign-in.
+    // Which kind of platform, a short menu; then the platform's own sign-in.
     QMenu menu(this);
-    QAction *lichess = menu.addAction(OnlineAccounts::platformName(QLatin1String(OnlineAccount::kLichess)));
-    lichess->setData(QString::fromLatin1(OnlineAccount::kLichess));
+    for (const char *platform : {OnlineAccount::kLichess, OnlineAccount::kFics}) {
+        QAction *action = menu.addAction(OnlineAccounts::platformName(QLatin1String(platform)));
+        action->setData(QString::fromLatin1(platform));
+    }
     const QAction *chosen = menu.exec(m_connect->mapToGlobal(QPoint(0, m_connect->height())));
     if (!chosen)
         return;
     const QString platform = chosen->data().toString();
+    if (platform == QLatin1String(OnlineAccount::kFics)) {
+        connectFics();
+        return;
+    }
     if (platform != QLatin1String(OnlineAccount::kLichess))
         return;
     // The browser shows lichess's own sign-in page; the token comes back here.
@@ -198,8 +204,11 @@ void PlayOnlineDialog::connectPlatform()
 
 void PlayOnlineDialog::signedIn(const QString &platform, const QString &token, const QString &username, const QString &error)
 {
-    m_signIn->deleteLater();
-    m_signIn = nullptr;
+    if (m_signIn) { // freechess.org asks for nothing in a browser.
+        m_signIn->deleteLater();
+        m_signIn = nullptr;
+    }
+    m_signInStatus->show();
     if (!error.isEmpty()) {
         m_signInStatus->setText(tr("Could not connect: %1").arg(error));
         updateButtons();
@@ -225,6 +234,50 @@ void PlayOnlineDialog::signedIn(const QString &platform, const QString &token, c
             m_list->setCurrentRow(i);
     }
     updateButtons();
+}
+
+void PlayOnlineDialog::connectFics()
+{
+    // FICS has no sign-in page: a registered player's name and password, or
+    // a guest, whose name the server gives at every session.
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Connect freechess.org"));
+    auto *layout = new QVBoxLayout(&dialog);
+    auto *intro = new QLabel(tr("The Free Internet Chess Server. Play as a guest, unrated games under a name the "
+                                "server gives, or as a player registered at freechess.org."));
+    intro->setWordWrap(true);
+    layout->addWidget(intro);
+    auto *guest = new QCheckBox(tr("Play as a guest"));
+    guest->setChecked(true);
+    layout->addWidget(guest);
+    auto *form = new QFormLayout;
+    auto *name = new QLineEdit;
+    auto *password = new QLineEdit;
+    password->setEchoMode(QLineEdit::Password);
+    form->addRow(tr("Name:"), name);
+    form->addRow(tr("Password:"), password);
+    layout->addLayout(form);
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    layout->addWidget(buttons);
+    const auto fill = [&] {
+        name->setEnabled(!guest->isChecked());
+        password->setEnabled(!guest->isChecked());
+        buttons->button(QDialogButtonBox::Ok)->setEnabled(guest->isChecked()
+                                                          || (!name->text().trimmed().isEmpty() && !password->text().isEmpty()));
+    };
+    connect(guest, &QCheckBox::toggled, &dialog, fill);
+    connect(name, &QLineEdit::textChanged, &dialog, fill);
+    connect(password, &QLineEdit::textChanged, &dialog, fill);
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    fill();
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+    // The password is kept where tokens are; a guest has none.
+    if (guest->isChecked())
+        signedIn(QLatin1String(OnlineAccount::kFics), QString(), QStringLiteral("guest"), QString());
+    else
+        signedIn(QLatin1String(OnlineAccount::kFics), password->text(), name->text().trimmed(), QString());
 }
 
 void PlayOnlineDialog::removeAccount()

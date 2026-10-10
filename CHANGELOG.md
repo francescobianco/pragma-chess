@@ -8,6 +8,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Play online on freechess.org**, the Free Internet Chess Server: connect
+  it in Game ▸ New Online Game… with your name and password, or play as a
+  guest.
 - The Engine panel draws the course of the game beside the score: a dot for
   each move whose evaluation is known, joined by a line over the midline,
   turning with the board, its height growing more slowly than the advantage.

@@ -612,3 +612,144 @@ expect verdict good
 expect arrows d8c7 reply 1, h7h6 threat, h6g5 threat, g5f3 reply, c7f4 threat
 expect summary Good move (−1.3). Black is slightly better. Then the knight goes back to f3 before 12…h6 chases it: 12.Nf3. 11…Qc7 lines up behind the bishop on d6 against the pawn on f4. Main line: 11…Qc7 12.Nf3 Rae8 13.h3.
 end
+explain
+before 8/8/8/4k3/8/8/8/3QK3 w - - 0 1
+played d1g4
+before-eval depth 214 mate 7 pv d1d7 e5f6 e1e2 f6g5 d7e6 g5f4 e2f2 f4g5 f2g3 g5h5 g3f4 h5h4 e6g4
+after 8/8/8/4k3/6Q1/8/8/4K3 b - - 1 1
+viewer white
+tick depth 12 cp 455 pv e5d6 e1f1 d6c5 g4g1 c5d6 g1h2 d6d7
+tick depth 12 cp 455 pv e5d6 e1e2 d6c7 e2e3 c7d6 g4d4 d6c7 d4a7 c7d8
+tick depth 13 cp 458 pv e5d6 e1e2 d6c6 e2e3 c6b6
+tick depth 14 cp 479 pv e5d6 e1e2 d6c6 g4d4 c6b5 d4d5 b5b6 e2d2 b6c7 d2e3 c7b6
+tick depth 15 cp 8115 pv e5d6 g4d4 d6c6 e1d2 c6c7 d4c5 c7b7 d2e3 b7a8 c5g5 a8b7 g5d5 b7c7 e3d3 c7b6
+tick depth 16 cp 8115 pv e5d6 g4d4 d6c6 e1d2 c6c7 d2e3 c7c6 e3e2 c6c7 d4c5 c7b7 c5d6 b7c8 e2d2 c8b7 d2d3 b7c8 d3e3 c8b7 e3e4
+tick depth 17 mate 12 pv e5d6 g4d4 d6c6 e1d2 c6c7 d4d5 c7b6 d5d7 b6a6 d7c6 a6a7 d2e3 a7b8 e3d3 b8a7 c6b5 a7a8 d3c4 a8a7 c4d5 a7a8 d5c6 a8a7 b5b7
+tick depth 18 mate 12 pv e5d6 g4d4 d6c6 e1d2 c6c7 d4d5 c7b6 d5d7 b6a6 d7c6 a6a7 d2d3 a7b8 d3e3 b8a7 e3e4 a7b8 c6d7 b8a8 e4d5 a8b8 d5c6 b8a8 d7b7
+tick depth 19 mate 12 pv e5d6 g4d4 d6c6 e1d2 c6c7 d4d5 c7b6 d5d7 b6a6 d7c6 a6a7 d2d3 a7b8 d3e3 b8a7 e3e4 a7b8 c6d7 b8a8 e4d5 a8b8 d5c6 b8a8 d7b7
+tick depth 20 mate 11 pv e5d6 e1d2 d6c6 g4e6 c6c7 e6d5 c7b6 d5d7 b6a6 d7c6 a6a7 d2d3 a7b8 d3c4 b8a7 c6b5 a7a8 c4d5 a8a7 d5c6 a7a8 b5b7
+tick depth 21 mate 11 pv e5d6 e1d2 d6c6 g4e6 c6c7 e6d5 c7b6 d5d7 b6a6 d7c6 a6a7 d2d3 a7b8 d3c4 b8a7 c6b5 a7a8 c4d5 a8a7 d5c6 a7a8 b5b7
+tick depth 22 mate 11 pv e5d6 e1e2 d6c7 g4e6 c7d8 e6c6 d8e7 e2e3 e7d8 e3f4 d8e7 c6d5 e7e8 f4f5 e8e7 d5d3 e7f7 d3d7 f7g8 f5f6 g8f8 d7f7
+tick depth 23 mate 11 pv e5d6 e1e2 d6c7 g4e6 c7d8 e6c6 d8e7 e2e3 e7d8 e3f4 d8e7 c6d5 e7e8 f4f5 e8e7 d5d3 e7f7 d3d7 f7g8 f5f6 g8f8 d7f7
+tick depth 24 mate 10 pv e5d6 e1e2 d6c6 g4e6 c6c7 e2d3 c7b7 e6d7 b7b6 d3c4 b6a6 d7c6 a6a7 c6b5 a7a8 c4d5 a8a7 d5c6 a7a8 b5b7
+tick depth 25 mate 10 pv e5d6 e1e2 d6c6 g4e6 c6c7 e2d3 c7b7 e6d7 b7a6 d7c6 a6a5 d3d2 a5b4 c6d5 b4a3 d5b5 a3a2 d2c2 a2a3 b5a5
+tick depth 26 mate 10 pv e5d6 e1e2 d6c6 g4e6 c6c7 e2d3 c7b7 e6d7 b7a6 d7c6 a6a5 d3d2 a5b4 c6d5 b4a3 d5b5 a3a2 d2c2 a2a3 b5a5
+tick depth 27 mate 10 pv e5d6 e1e2 d6c6 g4e6 c6c7 e2d3 c7b7 e6d7 b7a6 d7c6 a6a5 d3d2 a5b4 c6d5 b4a3 d5b5 a3a2 d2c2 a2a3 b5a5
+tick depth 28 mate 10 pv e5d6 e1e2 d6c6 g4e6 c6c7 e2d3 c7b7 e6d7 b7a6 d7c6 a6a5 d3d2 a5b4 c6d5 b4a3 d5b5 a3a2 d2c2 a2a3 b5a5
+tick depth 29 mate 10 pv e5d6 e1e2 d6c6 g4e6 c6c7 e2d3 c7b7 e6d7 b7a6 d7c6 a6a5 d3d2 a5b4 c6d5 b4a3 d5b5 a3a2 d2c2 a2a3 b5a5
+tick depth 30 mate 10 pv e5d6 e1e2 d6c6 g4e6 c6c7 e2d3 c7b7 e6d7 b7a6 d7c6 a6a5 d3d2 a5b4 c6d5 b4a3 d5b5 a3a2 d2c2 a2a3 b5a5
+tick depth 31 mate 10 pv e5d6 e1e2 d6c6 g4e6 c6c7 e2d3 c7b7 e6d7 b7a6 d7c6 a6a5 d3d2 a5b4 c6d5 b4a3 d5b5 a3a2 d2c2 a2a3 b5a5
+tick depth 32 mate 10 pv e5d6 e1e2 d6c6 g4e6 c6c7 e2d3 c7b7 e6d7 b7a6 d7c6 a6a7 d3e4 a7b8 c6d7 b8a8 e4d5 a8b8 d5c6 b8a8 d7b7
+tick depth 33 mate 9 pv e5d6 g4d4 d6c7 d4d5 c7c8 e1e2 c8c7 e2d3 c7b6 d3c4 b6c7 c4c5 c7c8 c5c6 c8b8 d5d7 b8a8 d7b7
+tick depth 34 mate 9 pv e5d6 g4d4 d6c7 d4d5 c7c8 e1e2 c8c7 e2d3 c7b6 d3c4 b6c7 c4c5 c7c8 c5c6 c8b8 d5d7 b8a8 d7b7
+tick depth 35 mate 9 pv e5d6 g4d4 d6c7 d4d5 c7c8 e1e2 c8c7 e2d3 c7b6 d3c4 b6c7 c4c5 c7c8 c5c6 c8b8 d5d7 b8a8 d7b7
+tick depth 36 mate 9 pv e5d6 g4d4 d6c7 d4d5 c7c8 e1e2 c8c7 e2d3 c7b6 d3c4 b6c7 c4c5 c7c8 c5c6 c8b8 d5d7 b8a8 d7b7
+tick depth 37 mate 9 pv e5d6 g4d4 d6c7 d4d5 c7c8 e1e2 c8c7 e2d3 c7b6 d3c4 b6c7 c4c5 c7c8 c5c6 c8b8 d5d7 b8a8 d7b7
+tick depth 38 mate 9 pv e5d6 g4d4 d6c7 d4d5 c7c8 e1e2 c8c7 e2d3 c7b6 d3c4 b6c7 c4c5 c7c8 c5c6 c8b8 d5d7 b8a8 d7b7
+tick depth 39 mate 9 pv e5d6 g4d4 d6c7 d4d5 c7c8 e1e2 c8c7 e2d3 c7b6 d3c4 b6c7 c4c5 c7c8 c5c6 c8b8 d5d7 b8a8 d7b7
+tick depth 40 mate 9 pv e5d6 g4d4 d6c7 d4d5 c7c8 e1e2 c8c7 e2d3 c7b6 d3c4 b6c7 c4c5 c7b8 c5c6 b8a7 d5f7 a7b8 f7b7
+tick depth 41 mate 9 pv e5d6 g4d4 d6e6 e1e2 e6e7 e2e3 e7e6 e3f4 e6f7 f4f5 f7e7 d4d5 e7f8 d5d7 f8g8 f5f6 g8f8 d7f7
+tick depth 42 mate 9 pv e5d6 g4d4 d6e6 e1e2 e6e7 e2e3 e7e6 e3f4 e6f7 f4f5 f7e7 d4d5 e7f8 d5d7 f8g8 f5f6 g8f8 d7f7
+tick depth 43 mate 9 pv e5d6 g4d4 d6e6 e1e2 e6e7 e2e3 e7e6 e3f4 e6f7 f4f5 f7e7 d4d5 e7f8 d5d7 f8g8 f5f6 g8f8 d7f7
+tick depth 44 mate 9 pv e5d6 g4d4 d6e6 e1e2 e6e7 e2e3 e7e6 e3f4 e6f7 f4f5 f7e7 d4d5 e7f8 d5d7 f8g8 f5f6 g8f8 d7f7
+tick depth 45 mate 9 pv e5d6 g4d4 d6e6 e1e2 e6e7 e2e3 e7e6 e3f4 e6f7 f4f5 f7e7 d4d5 e7f8 d5d7 f8g8 f5f6 g8f8 d7f7
+tick depth 46 mate 9 pv e5d6 g4d4 d6e6 e1e2 e6e7 e2e3 e7e6 e3f4 e6f7 f4f5 f7e7 d4d5 e7f8 d5d7 f8g8 f5f6 g8f8 d7f7
+tick depth 47 mate 9 pv e5d6 g4d4 d6e6 e1e2 e6e7 e2e3 e7e6 e3f4 e6f7 f4f5 f7e7 d4d5 e7f8 d5d7 f8g8 f5f6 g8f8 d7f7
+tick depth 48 mate 9 pv e5d6 g4d4 d6e6 e1e2 e6e7 e2e3 e7e6 e3f4 e6f7 f4f5 f7e7 d4d5 e7f8 d5d7 f8g8 f5f6 g8f8 d7f7
+tick depth 49 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 50 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 51 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 52 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 53 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 54 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 55 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 56 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 57 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 58 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 59 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 60 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 61 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 62 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 63 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 64 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 65 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 66 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 67 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 68 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 69 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 70 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 71 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 72 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 73 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 74 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 75 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 76 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 77 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 78 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 79 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 80 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 81 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 82 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 83 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 84 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 85 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 86 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 87 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 88 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 89 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 90 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 91 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 92 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 93 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 94 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 95 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 96 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 97 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 98 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 99 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 100 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 101 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 102 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 103 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 104 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 105 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 106 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 107 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 108 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 109 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 110 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 111 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 112 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 113 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 114 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 115 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 116 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 117 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 118 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 119 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 120 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 121 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 122 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 123 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 124 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 125 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 126 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 127 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 128 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 129 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 130 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 131 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 132 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 133 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 134 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 135 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 136 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 137 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 138 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 139 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 140 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+tick depth 141 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
+expect verdict good
+expect arrows e1d2 idea 1, d2c3 idea 2, c3d4 idea 3
+expect summary Good move (M8). White mates in 8. The plan: the king comes to help.
+end

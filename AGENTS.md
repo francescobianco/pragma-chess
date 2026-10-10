@@ -239,6 +239,12 @@ playing a move turns it off, and the user asks again at the next move.
   `dropPieces`: the pieces come unhooked, fall with gravity, bounce on the
   bottom edge, lie still a moment and fly back; nothing changes in the game,
   any new position ends it.
+- A mate is played (`PLAYBACK`) only when the one who asks can use its
+  moves (`MateShown`): against them within 4 moves, theirs within 3, or a
+  combination (checks, a sacrifice) within 6. A longer quiet mate is
+  technique (`ShowTechnique`): the mate is said and the first moves of the
+  side that mates drawn as its plan ("The plan: the king comes to help"),
+  an attack's first moves said where the defender still has pieces.
 - `widgets/BoardWidget` only paints `BoardArrow`s and lost-piece rings, and
   plays `BoardFrame` sequences (a forced mate from `MoveExplanation::playback`)
   with a red frame, restoring the position on `stopSequence()`.

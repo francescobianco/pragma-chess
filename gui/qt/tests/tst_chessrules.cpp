@@ -2743,8 +2743,10 @@ END FUNCTION
         QVERIFY(analysis.acceptsHint(mate));
 
         const MoveExplanation explanation = explainPosition(analysis.input(SanStyle::Letters, true, mate));
-        QCOMPARE(explanation.playback.size(), 27); // The whole mate, not only the first plies.
-        QVERIFY(explanation.summary.contains(QStringLiteral("White mates in 14")));
+        // A mate in 14 is no one's to see: it is said, its attack drawn, not played.
+        QVERIFY(explanation.playback.isEmpty());
+        QVERIFY2(explanation.summary.contains(QStringLiteral("White mates in 14. The attack: 15.Qxc3")),
+                 qPrintable(explanation.summary));
         QVERIFY(explanation.trace.first().startsWith(QStringLiteral("hint from the live analysis")));
 
         EngineEvaluation shallow = mate;

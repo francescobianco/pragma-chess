@@ -557,3 +557,31 @@ back before …h6 comes. When no move of the line chases the piece back,
 `PawnChase` finds the pawn move that would attack it were it the other
 side's turn, drawn dashed and said: "Then the knight goes back to f3
 before 12…h6 chases it: 12.Nf3".
+
+### 1.Qg4 in K+Q vs K: a mate too far is technique, not moves (10 October)
+
+The user, training the queen ending of Endgame Training (8/8/8/4k3/8/8/8/3QK3,
+1.Qg4): Explain found the mate in 8 and played it on the board, eight arrows
+— half of them the lone king's — and sixteen plies with the red frame.
+"Showing a mate in 6 as a mate loses its meaning: here Explain must be
+thematic, show me the best plan, as in a position to improve without mate."
+A mate is worth its moves only to someone who can use them: the one being
+mated (the threat to see), the one who mates when it is within sight (the
+combination to find), or anyone when it is a combination — checks or a
+sacrifice, forced, every move teaching. A quiet mate far away is technique:
+there are dozens of equivalent lines, and the plan is what matters.
+
+`MateShown` (both mate branches: the move allows mate, mate on the board):
+played and drawn to the end when it is against VIEWER within MATE_SUFFERED
+(4) moves, the viewer's within MATE_IN_SIGHT (3) — an unknown viewer counts
+as the one who mates —, or `Combinative` (every move of the mating side a
+check, or material given up on the way) within MATE_COMBINATION (6).
+Otherwise `ShowTechnique`: the mate said ("White mates in 8."), the first
+TECHNIQUE_MOVES (3) moves of the mating side drawn alone as its plan, no
+playback; against a king with nothing but pawns it is said as technique
+("The plan: the king comes to help", "the queen drives the king to the
+edge"), otherwise as an attack ("The attack: 15.Qxc3 d5 16.exd6 f6
+17.Rxf6"). usesLiveAnalysisHints's mate in 14 is no longer played (its
+attack is said). Recorded: user-feedback.ticks (1.Qg4). Still to do: the
+cage — the squares the defending king is confined to — drawn for the
+queen and rook endings.

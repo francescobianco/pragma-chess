@@ -4123,6 +4123,26 @@ Le %n partite già importate restano nel database.</numerusform>
         <source>%1 loses time: before %2 chases it, %3 goes back, %4.</source>
         <translation>%1 perde tempo: prima che %2 lo cacci, %3 torna indietro, %4.</translation>
     </message>
+    <message>
+        <source>%1 mates in %2.</source>
+        <translation>Il %1 dà matto in %2.</translation>
+    </message>
+    <message>
+        <source>The plan: %1 drives the king to the edge, the king comes to help.</source>
+        <translation>Il piano: %1 spinge il re verso il bordo, il re viene in aiuto.</translation>
+    </message>
+    <message>
+        <source>The plan: the king comes to help.</source>
+        <translation>Il piano: il re viene in aiuto.</translation>
+    </message>
+    <message>
+        <source>The plan: %1 drives the king to the edge.</source>
+        <translation>Il piano: %1 spinge il re verso il bordo.</translation>
+    </message>
+    <message>
+        <source>The attack: %1.</source>
+        <translation>L&apos;attacco: %1.</translation>
+    </message>
 </context>
 <context>
     <name>MoveTreeView</name>

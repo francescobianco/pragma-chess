@@ -118,6 +118,11 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Explain** plays a mate on the board only when you can use it: one
+  against you within 4 moves, yours within 3, or a combination of checks
+  and sacrifices. A long quiet mate, like queen against king, is technique:
+  Explain says the mate and draws the plan of the side that mates instead
+  of every move.
 - In Italian the databases we distribute are called **Partite storiche**,
   **Allenati sui finali** and **Allenati sulla tattica**, and the project
   **Finali di torre**: copies already installed take the new names.

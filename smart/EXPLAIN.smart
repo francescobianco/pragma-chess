@@ -61,6 +61,17 @@ CONST HOLD_PLIES = 4
 CONST MAX_ARROWS = 8
 ' Mates are replayed to the end, so that they can be played on the board.
 CONST MAX_MATE_PLIES = 100
+' A mate is played on the board and drawn to the end only when the one who
+' asked can use its moves: one against them within MATE_SUFFERED moves (the
+' threat to see), theirs within MATE_IN_SIGHT (a combination to find), or
+' one of checks and sacrifices within MATE_COMBINATION (forced: every move
+' teaches). A longer quiet mate — the queen or the rook against a lone king —
+' is technique: nobody counts its moves. The mate is said, and the plan
+' drawn: the first TECHNIQUE_MOVES moves of the side that mates.
+CONST MATE_IN_SIGHT = 3
+CONST MATE_SUFFERED = 4
+CONST MATE_COMBINATION = 6
+CONST TECHNIQUE_MOVES = 3
 ' Realizations longer than this are drawn focused on their decisive moves:
 ' a long sequence of arrows says nothing at a glance.
 CONST FOCUS_ABOVE = 3
@@ -713,6 +724,75 @@ FUNCTION MateToPlay(line)
     IF Plies(line) = 0 THEN RETURN []
     IF NOT CHECKMATE(line[1][Plies(line)]) THEN RETURN []
     RETURN line[0]
+END FUNCTION
+
+' Whether the mate of `line` is a combination for `side`: every move of
+' `side` gives check, or `side` gives material up on the way.
+FUNCTION Combinative(line, side)
+    moves = line[0]
+    positions = line[1]
+    checks = TRUE
+    FOR k = 0 TO LEN(moves) - 1
+        IF SIDETOMOVE(positions[k]) = side AND NOT INCHECK(positions[k + 1]) THEN checks = FALSE
+        IF (MATERIAL(positions[k + 1]) - MATERIAL(positions[0])) * side < -100 THEN RETURN TRUE
+    NEXT
+    RETURN checks
+END FUNCTION
+
+' Whether a mate in `mateIn` for `side`, along `line`, is shown move by move
+' (MATE_IN_SIGHT, MATE_SUFFERED, MATE_COMBINATION).
+FUNCTION MateShown(line, side, mateIn)
+    viewer = VIEWER()
+    IF viewer <> 0 AND viewer <> side THEN
+        IF mateIn <= MATE_SUFFERED THEN RETURN TRUE
+    ELSEIF mateIn <= MATE_IN_SIGHT THEN
+        RETURN TRUE
+    END IF
+    IF mateIn <= MATE_COMBINATION AND Combinative(line, side) THEN
+        NOTE "  a combination: checks or a sacrifice"
+        RETURN TRUE
+    END IF
+    NOTE "  a mate in " + STR(mateIn) + " by technique: the plan, not the moves"
+    RETURN FALSE
+END FUNCTION
+
+' A mate too far to be shown move by move: the first TECHNIQUE_MOVES moves
+' of `side` from ply `first` of `line` drawn alone, as its plan. Against a
+' king with nothing but pawns it is technique, and said so (the queen drives
+' the king to the edge, the king comes to help); otherwise it is an attack,
+' and its first moves are said.
+FUNCTION ShowTechnique(line, first, side, kind)
+    SHARED drawOnly
+    plies = []
+    other = 0
+    withKing = FALSE
+    k = first
+    WHILE k < Plies(line) AND LEN(plies) < TECHNIQUE_MOVES
+        IF SIDETOMOVE(line[1][k]) = side THEN
+            plies = plies + [k]
+            piece = PIECE(line[1][k], FROMSQ(line[0][k]))
+            IF piece = KING THEN
+                withKing = TRUE
+            ELSEIF other = 0 THEN
+                other = piece
+            END IF
+        END IF
+        k = k + 1
+    WEND
+    IF LEN(plies) = 0 THEN RETURN ""
+    drawOnly = plies
+    last = plies[LEN(plies) - 1] + 1
+    AddArrows line, first, last, side, kind, -1, -1
+    start = line[1][first]
+    defender = -side
+    bare = TRUE
+    FOR piece = KNIGHT TO QUEEN
+        IF COUNT(start, defender, piece) > 0 THEN bare = FALSE
+    NEXT
+    IF NOT bare THEN RETURN " " + TEXT("The attack: %1.", LINETEXT(start, SLICE(line[0], first, last - first), last - first))
+    IF withKing AND other <> 0 THEN RETURN " " + TEXT("The plan: %1 drives the king to the edge, the king comes to help.", PieceName(other))
+    IF withKing THEN RETURN " " + TEXT("The plan: the king comes to help.")
+    RETURN " " + TEXT("The plan: %1 drives the king to the edge.", PieceName(other))
 END FUNCTION
 
 FUNCTION CountedPiece(piece, howMany)
@@ -1401,9 +1481,15 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
         IF ISMATE(afterEval) AND MATING(afterEval) = toMove AND MATEIN(afterEval) > 0 THEN
             NOTE "branch: the move allows mate"
             IF betterExists THEN DrawBetter before, best[0][0], played
-            AddArrows current, 0, Plies(current), toMove, "refutation", -1, -1
-            PLAYBACK MateToPlay(Replay(after, pv, MAX_MATE_PLIES))
-            SAY prefix + TEXT("%1 mates in %2: %3.", SideName(toMove), MATEIN(afterEval), LINETEXT(after, pv, MAX_ARROWS)) + better
+            mate = Replay(after, pv, MAX_MATE_PLIES)
+            IF MateShown(mate, toMove, MATEIN(afterEval)) THEN
+                AddArrows current, 0, Plies(current), toMove, "refutation", -1, -1
+                PLAYBACK MateToPlay(mate)
+                SAY prefix + TEXT("%1 mates in %2: %3.", SideName(toMove), MATEIN(afterEval), LINETEXT(after, pv, MAX_ARROWS)) + better
+            ELSE
+                plan = ShowTechnique(current, 0, toMove, "refutation")
+                SAY prefix + TEXT("%1 mates in %2.", SideName(toMove), MATEIN(afterEval)) + plan + better
+            END IF
             RETURN
         END IF
 
@@ -1496,9 +1582,15 @@ FUNCTION Explain(before, played, beforeEval, after, afterEval, concretePly, note
 
     IF ISMATE(afterEval) AND MATEIN(afterEval) > 0 THEN
         NOTE "branch: mate on the board"
-        AddArrows current, 0, Plies(current), favored, favoredKind, -1, -1
-        PLAYBACK MateToPlay(Replay(after, pv, MAX_MATE_PLIES))
-        SAY prefix + TEXT("%1 mates in %2: %3.", SideName(favored), MATEIN(afterEval), LINETEXT(after, pv, MAX_ARROWS))
+        mate = Replay(after, pv, MAX_MATE_PLIES)
+        IF MateShown(mate, favored, MATEIN(afterEval)) THEN
+            AddArrows current, 0, Plies(current), favored, favoredKind, -1, -1
+            PLAYBACK MateToPlay(mate)
+            SAY prefix + TEXT("%1 mates in %2: %3.", SideName(favored), MATEIN(afterEval), LINETEXT(after, pv, MAX_ARROWS))
+        ELSE
+            plan = ShowTechnique(current, 0, favored, favoredKind)
+            SAY prefix + TEXT("%1 mates in %2.", SideName(favored), MATEIN(afterEval)) + plan
+        END IF
         RETURN
     END IF
 

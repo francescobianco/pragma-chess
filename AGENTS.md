@@ -198,9 +198,13 @@ playing a move turns it off, and the user asks again at the next move.
   whose evaluation is known — `Explainer::known` (the deepest evaluation of
   every position the engine searched, kept across restarts), else the
   comment's `[%eval]` (`MoveComment::evaluation`) — joined by a polyline,
-  nothing filled, over a marked midline; White's share towards White's side
-  of the board, as the bar; 40 plies fill the width, more share it, never
-  scrolled. A click on a dot goes to that ply (`EnginePanel::coursePlyClicked`,
+  nothing filled, over a marked midline; White's advantage towards White's
+  side of the board, as the bar, the height logarithmic in pawns
+  (`ScoreView::courseHeight`: log(1 + p) / log(11)); 40 plies fill the
+  width, more share it, never scrolled. A click on the score turns how it
+  is shown (`app/ScoreView`, pure: absolute, for the colour at the bottom,
+  its chances, the Informant's symbol; QSettings `engine/scoreView`). A
+  click on a dot goes to that ply (`EnginePanel::coursePlyClicked`,
   `GameSession::goToPly`); the dot under the pointer lights up. Empty while
   playing online: nothing judges that game.
 - The Engine panel shows the engine's whole line, and an eye beside Stop

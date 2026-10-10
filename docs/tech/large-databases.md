@@ -1,11 +1,185 @@
-# Large databases: measurements
+# Large databases
 
-How Pragma Chess holds up as a database grows, measured by doubling the
-number of games. Each step is logged here with its date and build: a change
-meant to make large databases faster is measured again on the same files and
-added below, never written over.
+How Pragma Chess holds up as a database grows, what was done about it, and
+what is still to do. The games are doubled step by step (a ladder of lichess
+months, see Method) and every step is measured the same way, with
+`scripts/stress-databases.sh`.
+
+- **Where we are**: the summary below, kept up to date.
+- **Targets** and **Plans**: what we want, and the optimizations still to
+  make, by priority. Strike a plan out (and say where it was measured) when
+  it is done; add new ideas there.
+- **Measurements, by date**: the log. A change meant to make large
+  databases faster is measured again on the same files and added at the
+  bottom, never written over.
+
+## Where we are
+
+Release build, the machine of Method. "Before" is the first measurement of
+2026-10-10, before any of this work.
+
+| 1.26 million games (step 4) | Before | Now |
+|---|---|---|
+| Window frozen on opening | 33.6 s | 3.5 s |
+| Memory of the whole client | 6.8 GB (peak 8.2) | 0.57 GB |
+| Board ▸ Position and Variant ready | 96 s, at every opening | 18 s the first time, then 11 ms |
+| Position after 1.e4 | 1.3 s | 0.53 s |
+| Position after 5…a6 | 0.5 s | 0.21 s |
+| Conversion from PGN | — | 199 s, 6 300 games a second |
+
+| 2.32 million games (step 5) | Now |
+|---|---|
+| Conversion from PGN | 466 s, 5 000 games a second, `.pdb` 2.7 GB |
+| Window frozen on opening | 5.8 s (reading 3.5 s, list 1.0 s, tree 1.3 s) |
+| Memory of the whole client | 0.55 GB |
+| Position index | 43 s the first time (peak 8 GB), then at once; its file 3.8 GB |
+| Position at the start, after 1.e4, after 5…a6 | 2.3 s, 1.2 s, 0.34 s |
+
+What made the difference, in order (each is a section of the log):
+
+1. The games list filtered without taking rows out one range at a time,
+   and headers no longer copied for every row (`invalidate()`, references).
+2. A brief header per game in memory instead of the whole header: names,
+   events and dates as indexes into tables where each text is once; the rest
+   read from the file 256 games at a time when shown. The briefs are read
+   from a covering index (`games_brief`), never from the games' rows.
+3. The position index built on every core, 12 bytes an entry.
+4. The position index saved in the cache folder and mapped: built once per
+   version of the file, never held in the process's memory.
+
+## Targets
+
+For a database of 10 million games on a machine like the one of Method:
+
+| | Target | Now, extrapolated to 10 million |
+|---|---|---|
+| Window frozen on opening | under 1 s | about 25 s |
+| Memory of the whole client | under 1 GB | about 2.4 GB |
+| Board ▸ Position and Variant, any position | under 200 ms | up to 10 s at the start |
+| Position index, first time | under 2 minutes, peak under 4 GB | about 3 minutes, peak over 30 GB |
+| Its file | under 8 GB | about 16 GB |
+| Conversion from PGN | 20 000 games a second | 5 000 |
+
+And on any database: the window never waits for the file — what takes
+longer than a tenth of a second is done on a thread, and says so.
+
+## Plans
+
+By priority: what frees the most first. Each with what it should give and
+what to watch out for.
+
+### 1. The list takes the rows the index gives
+
+A filter that keeps most of the games (the start position, 1.e4) builds a
+`QSet` of millions of ids, then `QSortFilterProxyModel` asks for every row
+whether it is in it, and sorts what is left: 2.3 s at the start for 2.32
+million games.
+
+- The index returns the game ids sorted (they are, within a key: `Entry`
+  sorts by key, then game), turned into rows in one pass (`indexOfId` on
+  sorted ids is a merge, not a search per id).
+- The games list gets a proxy of its own (`QAbstractProxyModel`) that maps
+  rows through a vector given whole — the filter's rows, in the sort's order
+  — instead of `QSortFilterProxyModel`, which tests and sorts row by row.
+  The sort by number is the rows' order already; other columns keep the
+  keys of `GameListModel::sortKey`, computed once per column.
+- Expected: under 200 ms whatever the number of games kept.
+
+### 2. Nothing on the window's thread at opening
+
+Opening still reads every brief (3.5 s at 2.32 million) and builds the tree
+(1.3 s) before the window answers.
+
+- The briefs saved beside the position index, in the cache folder, with the
+  same stamp (`SqliteGameDatabase::fileStamp`), and mapped: a database opened
+  again unchanged has them at once. The tables of texts (players, events,
+  dates) go with them.
+- Read the first time on a thread: the list shows the number of games at
+  once (`SELECT count(*)`, 0.1 s) and fills when the briefs are there, the
+  tree shows "…" meanwhile, as Position and Variant do.
+- The tree's outline (`DatabaseOutline`) counted on the same thread, from
+  the briefs' numbers directly rather than a `GameRecord` per game.
+- Expected: under 0.5 s frozen at 10 million.
+
+### 3. The position index: less memory, less disk, updated rather than rebuilt
+
+- **The peak while building** (8 GB at 2.32 million, 30 GB extrapolated at
+  10 million): every game's moves are read before indexing starts (a
+  `QList<GameLine>` of all of them), and the sorted shares are merged in
+  memory, twice their size. Read in chunks as the threads index them, and
+  merge the shares into the file (each share sorted and written, then a
+  k-way merge from the files): the peak becomes a share, not the whole.
+- **Lines kept only while they are shared**: a line of moves stops being
+  useful to the Variant filter at the ply where only one game still follows
+  it. Keep a game's line entries up to that ply; a deeper line is answered
+  by the last shared prefix and a check of that one game's moves. About half
+  the entries go (lichess games part ways around the twelfth move and last
+  seventy plies).
+- **Updated, not rebuilt**: any write to the database makes the whole index
+  be built again — even a source's sync state, which changes no game. Keep a
+  small index of the games added since (built in a moment) beside the big
+  one, merged into it in the background; and stamp the index with what the
+  games are (their count, the greatest id, the last change of a game or a
+  state) rather than with any write to the file.
+- **Faster per game**: `PolyglotBook::key` is computed from the whole board
+  at every ply; a key updated move by move (what Zobrist keys are for) and
+  the moves read without building `QString`s would make indexing several
+  times faster.
+- **Smaller file**: ids delta-encoded in blocks, keys stored once per run of
+  equal keys.
+
+### 4. The file: a version of the schema for speed
+
+The phone may need updating for these; for now speed comes first.
+
+- **Moves stored once**: today a game keeps them twice, `moves_san` and
+  `moves_uci`, a third of the file. Keep one, compact — two bytes a move, the
+  index of the move among the legal ones, as ChessBase and SCID do, or UCI
+  — and make SAN when a game is loaded. The file shrinks by a third to a
+  half; reading the moves for the index gets as much faster.
+- **Headers apart from moves**: a table of headers and a table of moves (as
+  ChessBase keeps `.cbh` and `.cbg`), so that reading headers never crosses
+  the moves; `games_brief` would no longer be needed.
+- **Indexes for the tree's filters** (ECO, year, event, player) where they
+  are answered from the briefs today, if the briefs alone stop being enough.
+
+### 5. Conversion and import
+
+- Reading and writing at the same time: today a batch is read on every core,
+  then written on one, then the next is read. A pipeline (read batch n+1
+  while batch n is written) and the moves written compact (plan 4) should
+  give 20 000 games a second.
+- The index of positions built during the conversion, from the moves just
+  read, instead of from the file afterwards.
+- More formats under Tools ▸ Convert: ChessBase (`.cbh`, `.2cbh`, read
+  already for sources), SCID (`.si4`, `.si5`); and adding to an existing
+  database, not only making a new one.
+
+### 6. Large databases elsewhere in the application
+
+- **Folder sync**: a `.pdb` of gigabytes goes whole through FTP, WebDAV or
+  Git at every change. Git is unfit for it; the others need sending only
+  what changed (SQLite pages, or games by uid). Until then, say so in Sync
+  Settings when a synced database passes a size.
+- **Search by text** (players, events) and the Opening Tree's Database
+  column on millions of games: measure them in the ladder too.
+- **The Android app** opens the same files: measure it on step 3.
+
+### 7. The ladder goes on
+
+Step 6, about 4.8 million games (2013-01 to 2014-02), then step 7, about
+10 million (2013-01 to 2014-08): each measured after the plans above, against the
+targets.
 
 ## Method
+
+```bash
+scripts/stress-databases.sh download 2013-01 2013-02 2013-03   # lichess months
+scripts/stress-databases.sh join step2 2013-01 2013-02          # one PGN of them
+scripts/stress-databases.sh convert step2                       # Tools ▸ Convert, timed
+scripts/stress-databases.sh measure step2                       # opening, index, filters, memory
+scripts/stress-databases.sh measure step2                       # again: the index from its file
+```
 
 - **Corpus**: the lichess open database (database.lichess.org, CC0), rated
   standard games, one file a month. It is a test corpus only: it is kept in
@@ -25,8 +199,11 @@ added below, never written over.
 - **Client**: an instance of its own with an empty home
   (`PRAGMA_CHESS_DIR`, `HOME`, `XDG_CONFIG_HOME` in a scratch folder),
   `QT_QPA_PLATFORM=offscreen`, `PRAGMA_DEV_API=1` on its own port. The home
-  is emptied before opening a step, or the session would open the previous
-  database first and the memory would count both.
+  is emptied before opening a step, once the previous client has quit (it
+  writes its session as it goes), or the session would open the previous
+  database first and the memory would count both. The cache folder (the
+  position indexes) stays, as a user's does: the first `measure` of a
+  database builds its index, the next ones read it.
 - **Driven by the development API**: `POST /api/convert` (Tools ▸ Convert ▸
   PGN to Pragma Database), `POST /api/database` (open), then the board's
   filters along a Najdorf (1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6)
@@ -38,6 +215,8 @@ added below, never written over.
   `findGames` (the index's ids), `filterList` (the games list filtered and
   sorted), and the process's memory (`VmRSS`, `VmHWM` its peak).
 - **Machine**: 22 cores, 30 GB of RAM, NVMe disk, Ubuntu, Qt 6.4.
+
+## Measurements, by date
 
 ## 2026-10-10 — first measurements
 

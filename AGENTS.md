@@ -81,6 +81,7 @@ scripts/make-rich-logo.py  draws the rich logo (pieces on its board) on it: prag
 scripts/make-figurine-font.py  builds resources/fonts/pragma-figurine.otf from SkakNew
 scripts/install-dev-desktop.sh  user menu entry + icons for the build (Wayland dock icon)
 scripts/pragma-api.sh  calls the development API of a client started by make start
+scripts/stress-databases.sh  measures large databases (docs/tech/large-databases.md)
 ```
 
 ## Current state (keep in mind)
@@ -432,7 +433,9 @@ also how large databases are tried: the lichess open database
 tens of millions) is the stress corpus, kept outside the repository
 (`~/.cache/pragma-chess-stress`), never distributed. The method and every
 measurement are in [docs/tech/large-databases.md](docs/tech/large-databases.md):
-add a dated section there after a change meant to make large databases faster.
+add a dated section there after a change meant to make large databases faster,
+measured with `scripts/stress-databases.sh`, and keep its summary and plans
+up to date.
 
 ## Welcome
 

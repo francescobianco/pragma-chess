@@ -3663,6 +3663,24 @@ END FUNCTION
         }
         QCOMPARE(many.countWithPosition(position), 1250);
         QCOMPARE(many.statsWithPosition(ChessPosition::startingPosition()).games, 5000);
+
+        // Saved and mapped again: the same answers, while the stamp holds.
+        QTemporaryDir dir;
+        const QString path = dir.filePath(QStringLiteral("cache/games.pix"));
+        QVERIFY(many.save(path, "stamp 1"));
+        QVERIFY(!PositionIndex::load(path, "stamp 2"));
+        QVERIFY(!PositionIndex::load(dir.filePath(QStringLiteral("none.pix")), "stamp 1"));
+        const std::optional<PositionIndex> mapped = PositionIndex::load(path, "stamp 1");
+        QVERIFY(mapped && mapped->isMapped() && !many.isMapped());
+        QCOMPARE(mapped->gameCount(), 5000);
+        QCOMPARE(mapped->entryCount(), many.entryCount());
+        QCOMPARE(mapped->statsWithPosition(position), many.statsWithPosition(position));
+        QCOMPARE(mapped->gamesWithLine(ChessPosition::startingPosition(), line),
+                 many.gamesWithLine(ChessPosition::startingPosition(), line));
+        // A file cut short is not taken.
+        QFile cut(path);
+        QVERIFY(cut.resize(cut.size() - 5));
+        QVERIFY(!PositionIndex::load(path, "stamp 1"));
     }
 
     void indexesPositionsAndLines()

@@ -1567,8 +1567,34 @@ void MainWindow::rebuildPositionIndex()
     // Games were added or changed: the sources that write them out follow.
     m_sourceSync->scheduleWrite();
     if (m_database && !m_database->location().isEmpty()) {
-        // Read on the index's thread, with a connection of its own.
-        m_positionIndex->build([path = m_database->location()] { return SqliteGameDatabase::readGameLines(path); });
+        // On the index's thread, with a connection of its own: the index
+        // saved for this file when it has not changed since, or built and saved.
+        const QString path = m_database->location();
+        const QString cache = QStandardPaths::writableLocation(QStandardPaths::CacheLocation)
+                              + QStringLiteral("/position-index/")
+                              + QString::fromLatin1(QCryptographicHash::hash(path.toUtf8(), QCryptographicHash::Sha1).toHex())
+                              + QStringLiteral(".pix");
+        m_positionIndex->build([path, cache](const std::atomic_bool *cancelled) {
+            // Taken before the games are read: a write meanwhile makes it stale.
+            const QByteArray stamp = SqliteGameDatabase::fileStamp(path);
+            if (std::optional<PositionIndex> saved = PositionIndex::load(cache, stamp)) {
+                QFile used(cache); // Still in use: not one to forget.
+                if (used.open(QIODevice::ReadOnly))
+                    used.setFileTime(QDateTime::currentDateTime(), QFileDevice::FileModificationTime);
+                return *saved;
+            }
+            PositionIndex index = PositionIndex::build(SqliteGameDatabase::readGameLines(path), cancelled);
+            if (cancelled->load() || stamp.isEmpty() || !index.save(cache, stamp))
+                return index;
+            // The indexes of databases not opened for a month go: they are made again if needed.
+            const QDateTime month = QDateTime::currentDateTime().addDays(-30);
+            for (const QFileInfo &old : QDir(QFileInfo(cache).absolutePath()).entryInfoList({QStringLiteral("*.pix")}, QDir::Files)) {
+                if (old.lastModified() < month)
+                    QFile::remove(old.absoluteFilePath());
+            }
+            // Mapped rather than kept: the process holds no copy of it.
+            return PositionIndex::load(cache, stamp).value_or(index);
+        });
     } else if (m_database) {
         m_positionIndex->build(m_database->gameLines());
     } else

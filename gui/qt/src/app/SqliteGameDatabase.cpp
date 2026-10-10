@@ -389,6 +389,21 @@ QHash<QString, QString> SqliteGameDatabase::readRevisions(const QString &path)
     return revisions;
 }
 
+QByteArray SqliteGameDatabase::fileStamp(const QString &path)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+        return {};
+    const QByteArray head = file.read(100);
+    if (head.size() < 100 || !head.startsWith("SQLite format 3"))
+        return {};
+    // Bytes 24 to 27: the file change counter, big-endian.
+    const quint32 counter = quint32(uchar(head[24])) << 24 | quint32(uchar(head[25])) << 16
+                            | quint32(uchar(head[26])) << 8 | quint32(uchar(head[27]));
+    return QByteArrayLiteral("sqlite-change ") + QByteArray::number(counter) + QByteArrayLiteral(" size ")
+         + QByteArray::number(file.size());
+}
+
 QList<GameLine> SqliteGameDatabase::readGameLines(const QString &path)
 {
     QList<GameLine> lines;

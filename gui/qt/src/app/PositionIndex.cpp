@@ -2,6 +2,10 @@
 
 #include "PolyglotBook.h"
 
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QSaveFile>
 #include <QThread>
 
 #include <algorithm>
@@ -120,15 +124,91 @@ PositionIndex PositionIndex::build(const QList<GameLine> &games, const std::atom
         entries.shrink_to_fit();
         return entries;
     };
+    struct Built {
+        Entries positions;
+        Entries lines;
+    };
+    auto built = std::make_shared<Built>(Built{merged(&Share::positions), merged(&Share::lines)});
     PositionIndex index;
     index.m_gameCount = int(games.size());
-    index.m_positions = merged(&Share::positions);
-    index.m_lines = merged(&Share::lines);
+    index.m_positions = {built->positions.data(), built->positions.size()};
+    index.m_lines = {built->lines.data(), built->lines.size()};
+    index.m_storage = built;
     return index;
 }
 
-std::pair<PositionIndex::Entries::const_iterator, PositionIndex::Entries::const_iterator>
-PositionIndex::range(const Entries &entries, quint64 key)
+namespace {
+
+/// The file's head: what it is, what it was made from, how much it holds.
+struct FileHead {
+    char magic[8] = {'P', 'R', 'A', 'G', 'P', 'I', 'X', '1'};
+    quint32 entrySize = sizeof(quint64) + sizeof(quint32);
+    quint32 stampSize = 0;
+    char stamp[48] = {};
+    qint64 gameCount = 0;
+    qint64 positions = 0;
+    qint64 lines = 0;
+};
+
+} // namespace
+
+bool PositionIndex::save(const QString &path, const QByteArray &stamp) const
+{
+    FileHead head;
+    if (stamp.size() > qsizetype(sizeof(head.stamp)))
+        return false;
+    head.stampSize = quint32(stamp.size());
+    std::copy(stamp.begin(), stamp.end(), head.stamp);
+    head.gameCount = m_gameCount;
+    head.positions = qint64(m_positions.size);
+    head.lines = qint64(m_lines.size);
+    QDir().mkpath(QFileInfo(path).absolutePath());
+    QSaveFile file(path);
+    if (!file.open(QIODevice::WriteOnly))
+        return false;
+    const auto write = [&file](const void *data, qint64 size) {
+        // In pieces: QIODevice writes at most 2 GB at once on some systems.
+        const char *bytes = static_cast<const char *>(data);
+        for (qint64 done = 0; done < size;) {
+            const qint64 written = file.write(bytes + done, qMin<qint64>(size - done, qint64(1) << 28));
+            if (written <= 0)
+                return false;
+            done += written;
+        }
+        return true;
+    };
+    return write(&head, sizeof head) && write(m_positions.data, qint64(m_positions.size * sizeof(Entry)))
+        && write(m_lines.data, qint64(m_lines.size * sizeof(Entry))) && file.commit();
+}
+
+std::optional<PositionIndex> PositionIndex::load(const QString &path, const QByteArray &stamp)
+{
+    auto file = std::make_shared<QFile>(path);
+    if (!file->open(QIODevice::ReadOnly) || file->size() < qint64(sizeof(FileHead)))
+        return std::nullopt;
+    FileHead head;
+    const FileHead expected;
+    if (file->read(reinterpret_cast<char *>(&head), sizeof head) != qint64(sizeof head)
+        || !std::equal(std::begin(head.magic), std::end(head.magic), std::begin(expected.magic))
+        || head.entrySize != sizeof(Entry) || QByteArray(head.stamp, head.stampSize) != stamp
+        || head.positions < 0 || head.lines < 0
+        || file->size() != qint64(sizeof head) + (head.positions + head.lines) * qint64(sizeof(Entry)))
+        return std::nullopt;
+    uchar *mapped = file->map(0, file->size());
+    if (!mapped)
+        return std::nullopt;
+    const auto *entries = reinterpret_cast<const Entry *>(mapped + sizeof head);
+    PositionIndex index;
+    index.m_gameCount = int(head.gameCount);
+    index.m_positions = {entries, size_t(head.positions)};
+    index.m_lines = {entries + head.positions, size_t(head.lines)};
+    index.m_storage = file; // Unmapped when the last copy of the index goes.
+    index.m_mapped = true;
+    return index;
+}
+
+std::pair<const PositionIndex::Entry *, const PositionIndex::Entry *> PositionIndex::range(const Table &entries,
+                                                                                       quint64 key)
 {
     const auto first = std::lower_bound(entries.begin(), entries.end(), key,
                                         [](const Entry &entry, quint64 value) { return entry.key < value; });
@@ -137,7 +217,7 @@ PositionIndex::range(const Entries &entries, quint64 key)
     return {first, last};
 }
 
-QSet<qint64> PositionIndex::idsOf(const Entries &entries, quint64 key)
+QSet<qint64> PositionIndex::idsOf(const Table &entries, quint64 key)
 {
     const auto [first, last] = range(entries, key);
     QSet<qint64> ids;
@@ -163,7 +243,7 @@ PositionIndex::Stats PositionIndex::statsWithPosition(const ChessPosition &posit
     return stats;
 }
 
-int PositionIndex::countOf(const Entries &entries, quint64 key)
+int PositionIndex::countOf(const Table &entries, quint64 key)
 {
     const auto [first, last] = range(entries, key);
     return int(last - first);

@@ -26,6 +26,9 @@ public:
     /// The same with the games read by `read` on the worker thread too: a
     /// large database's moves take seconds to read.
     void build(std::function<QList<GameLine>()> read);
+    /// The same with the whole index made by `make` on the worker thread
+    /// (read from a file saved before, or built and saved).
+    void build(std::function<PositionIndex(const std::atomic_bool *cancelled)> make);
     /// Forgets the index and any build still running.
     void clear();
 

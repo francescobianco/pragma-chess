@@ -156,3 +156,25 @@ bits) instead of 16 plus a hash of the results. Step 4:
 | Peak | 5.1 GB | 4.7 GB |
 | Position after 1.e4 | 0.95 s | 0.73 s |
 
+## 2026-10-10 — the position index kept on disk
+
+A built index is saved in the cache folder (`position-index/<sha1 of the
+database's path>.pix`) with the stamp of the database file it was made from
+(SQLite's file change counter and the size, `SqliteGameDatabase::fileStamp`),
+and mapped rather than read: the system brings in the pages a search touches,
+and the process holds no copy. A database opened again unchanged has its
+index at once; any write to it makes the index be built again. Step 4:
+
+| | Before | After |
+|---|---|---|
+| Board ▸ Position and Variant ready, second opening | 18.2 s | 11 ms |
+| Memory of the whole client, second opening | 2.7 GB | 0.57 GB |
+| Position after 1.e4 | 0.73 s | 0.53 s |
+| Position after 5…a6 | 0.43 s | 0.21 s |
+
+The file is 2.0 GB for step 4 (12 bytes an entry). Files of databases not
+opened for a month are removed when another is saved.
+
+Since the start of the day, step 4: window frozen on opening 33.6 s → 3.5 s,
+memory 6.8 GB → 0.57 GB, the index 96 s at every opening → once.
+

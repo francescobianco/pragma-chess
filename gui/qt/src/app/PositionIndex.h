@@ -8,6 +8,8 @@
 #include <QSet>
 
 #include <atomic>
+#include <memory>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -28,9 +30,19 @@ public:
     static PositionIndex build(const QList<GameLine> &games, const std::atomic_bool *cancelled = nullptr,
                                int threads = 0);
 
+    /// Writes the index to `path`, marked with `stamp` (what the database
+    /// file was when its games were read: SqliteGameDatabase::fileStamp).
+    bool save(const QString &path, const QByteArray &stamp) const;
+    /// The index saved at `path`, if it carries `stamp`: mapped, not read —
+    /// the system brings in the pages a search touches, and the process
+    /// holds no copy of it.
+    static std::optional<PositionIndex> load(const QString &path, const QByteArray &stamp);
+    /// Whether the index is a file mapped (load) rather than built here.
+    bool isMapped() const { return m_mapped; }
+
     int gameCount() const { return m_gameCount; }
     /// Positions and lines held, a pair each: what the index weighs.
-    qsizetype entryCount() const { return qsizetype(m_positions.size() + m_lines.size()); }
+    qsizetype entryCount() const { return qsizetype(m_positions.size + m_lines.size); }
 
     /// How the games reaching a position ended (the Database column of the Opening Tree).
     struct Stats {
@@ -67,14 +79,24 @@ private:
     };
 #pragma pack(pop)
     using Entries = std::vector<Entry>;
+    /// Entries where they are: in vectors built here, or in a mapped file.
+    struct Table {
+        const Entry *data = nullptr;
+        size_t size = 0;
+        const Entry *begin() const { return data; }
+        const Entry *end() const { return data + size; }
+    };
 
-    static std::pair<Entries::const_iterator, Entries::const_iterator> range(const Entries &entries, quint64 key);
-    static QSet<qint64> idsOf(const Entries &entries, quint64 key);
-    static int countOf(const Entries &entries, quint64 key);
+    static std::pair<const Entry *, const Entry *> range(const Table &entries, quint64 key);
+    static QSet<qint64> idsOf(const Table &entries, quint64 key);
+    static int countOf(const Table &entries, quint64 key);
     static quint64 extendLine(quint64 line, const ChessMove &move);
 
     /// (position key, game) and (line key, game), sorted and unique.
-    Entries m_positions;
-    Entries m_lines;
+    Table m_positions;
+    Table m_lines;
+    /// What keeps the tables alive: the vectors, or the file mapped.
+    std::shared_ptr<const void> m_storage;
+    bool m_mapped = false;
     int m_gameCount = 0;
 };

@@ -1203,6 +1203,12 @@ sorted (key, game id) pairs for positions and for lines), built from
 The build shares the games among every core but one and merges the
 sorted shares on threads; an entry is 12 bytes, the key and the game's id
 with its result in the two low bits (`PositionIndex::Entry`).
+A database file's index is saved in the cache folder
+(`position-index/<sha1 of the path>.pix`, `PositionIndex::save`) with the
+file's stamp (`SqliteGameDatabase::fileStamp`: SQLite's change counter and
+the size), and mapped again (`PositionIndex::load`) while the stamp holds:
+any write to the database makes it be built again; unused for a month, it
+is removed.
 `MainWindow::rebuildPositionIndex` runs when a database is opened and, coalesced,
 when games are added, imported or replaced; the old index stays until the new
 one is ready (the counts show "…" only before the first one).

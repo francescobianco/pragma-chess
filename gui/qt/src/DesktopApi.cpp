@@ -661,6 +661,7 @@ void DesktopApi::addRoutes()
             times.insert(QStringLiteral("buildIndex"), w->m_positionIndex->lastBuildMs());
             index.insert(QStringLiteral("games"), built->gameCount());
             index.insert(QStringLiteral("entries"), qint64(built->entryCount()));
+            index.insert(QStringLiteral("mapped"), built->isMapped()); // Read from the file saved before, or built and saved.
         }
         QJsonObject memory;
         QFile status(QStringLiteral("/proc/self/status")); // Linux; empty elsewhere.

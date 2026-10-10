@@ -25,18 +25,23 @@ void PositionIndexBuilder::build(const QList<GameLine> &games)
 
 void PositionIndexBuilder::build(std::function<QList<GameLine>()> read)
 {
+    build([read = std::move(read)](const std::atomic_bool *cancelled) {
+        const QList<GameLine> games = read();
+        return cancelled->load() ? PositionIndex() : PositionIndex::build(games, cancelled);
+    });
+}
+
+void PositionIndexBuilder::build(std::function<PositionIndex(const std::atomic_bool *cancelled)> make)
+{
     cancelWorkers();
     const quint64 generation = m_generation;
     auto cancelled = std::make_shared<std::atomic_bool>(false);
     auto result = std::make_shared<std::shared_ptr<const PositionIndex>>();
     auto ms = std::make_shared<qint64>(0);
-    QThread *thread = QThread::create([read = std::move(read), cancelled, result, ms] {
+    QThread *thread = QThread::create([make = std::move(make), cancelled, result, ms] {
         QElapsedTimer clock;
         clock.start();
-        const QList<GameLine> games = read();
-        if (cancelled->load())
-            return;
-        *result = std::make_shared<const PositionIndex>(PositionIndex::build(games, cancelled.get()));
+        *result = std::make_shared<const PositionIndex>(make(cancelled.get()));
         *ms = clock.elapsed();
     });
     connect(thread, &QThread::finished, this, [this, thread, generation, cancelled, result, ms] {

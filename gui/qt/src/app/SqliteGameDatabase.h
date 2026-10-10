@@ -37,6 +37,10 @@ public:
     /// connection of its own, a chunk at a time (each a short read, so the
     /// window can write meanwhile). Empty if the file cannot be read.
     static QList<GameLine> readGameLines(const QString &path);
+    /// What the file at `path` is now, as SQLite counts its writes (the file
+    /// change counter of its header, moved by every write) and its size: an
+    /// index made from the file holds while the stamp is the same.
+    static QByteArray fileStamp(const QString &path);
 
     QString name() const override;
     QString location() const override { return m_path; }

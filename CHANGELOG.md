@@ -9,7 +9,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 ### Added
 
 - Large databases open in seconds and take far less memory: 1.26 million
-  games open in 3.5 s instead of 34 s, with half the memory.
+  games open in 3.5 s instead of 34 s, in 0.6 GB instead of 6.8 GB.
+- Board ▸ Position and Variant are ready at once on a database opened
+  before and not changed since; building them uses every core.
 - Playing online, **Offer Draw** and **Resign** sit under the clocks; the
   first becomes **Accept Draw** when your opponent offers one.
 - **Tools ▸ Convert ▸ PGN to Pragma Database…**, the first of the tools:

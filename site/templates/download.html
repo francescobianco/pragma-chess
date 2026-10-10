@@ -3,7 +3,7 @@
   <p class="section-lead">{{download.lead}} <span id="release-version" class="version"></span></p>
   <div class="platforms">
     {{#each download.platforms}}<article class="platform" data-system="{{system}}" data-file="{{file}}">
-      <div class="icon" aria-hidden="true">{{icon}}</div>
+      <div class="icon" aria-hidden="true"><img src="../assets/logos/{{icon}}.svg" alt="" height="32"></div>
       <h3>{{name}}{{#if beta}} <span class="badge">{{beta}}</span>{{/if}}</h3>
       <p>{{text}}</p>
       <a class="button primary asset" href="{{releases_url}}/download/{{file}}" rel="noopener">{{label}}</a>

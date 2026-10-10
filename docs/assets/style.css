@@ -131,7 +131,8 @@ section > .download-note, section > .formats, section > .clubs { max-width: var(
   background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.4rem;
   display: flex; flex-direction: column;
 }
-.platform .icon { font-size: 2rem; line-height: 1; margin-bottom: 0.5rem; }
+.platform .icon { line-height: 1; margin-bottom: 0.75rem; }
+.platform .icon img { height: 32px; width: auto; display: block; }
 .platform .badge { display: inline-block; vertical-align: middle; margin-left: 0.4rem; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--blue); background: color-mix(in srgb, var(--blue) 14%, transparent); }
 .platform p { color: var(--ink-soft); flex: 1; }
 .platform .button { text-align: center; }

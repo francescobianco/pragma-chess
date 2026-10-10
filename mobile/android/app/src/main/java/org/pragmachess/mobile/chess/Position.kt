@@ -104,7 +104,8 @@ class Position private constructor(
         return -1
     }
 
-    fun isAttacked(square: Int, by: Side): Boolean {
+    /** Whether [by] attacks [square]; lines pass through [transparent] (a square taken as empty, -1 for none). */
+    fun isAttacked(square: Int, by: Side, transparent: Int = -1): Boolean {
         val file = Square.file(square)
         val rank = Square.rank(square)
         // Pawns attack diagonally forward, so look backwards from the square.
@@ -126,20 +127,20 @@ class Position private constructor(
             if (f in 0..7 && r in 0..7 && board[Square.of(f, r)] == Piece.of(Piece.KING, by)) return true
         }
         for ((df, dr) in ROOK_DIRECTIONS) {
-            if (slidingAttack(file, rank, df, dr, by, Piece.ROOK)) return true
+            if (slidingAttack(file, rank, df, dr, by, Piece.ROOK, transparent)) return true
         }
         for ((df, dr) in BISHOP_DIRECTIONS) {
-            if (slidingAttack(file, rank, df, dr, by, Piece.BISHOP)) return true
+            if (slidingAttack(file, rank, df, dr, by, Piece.BISHOP, transparent)) return true
         }
         return false
     }
 
-    private fun slidingAttack(file: Int, rank: Int, df: Int, dr: Int, by: Side, slider: Int): Boolean {
+    private fun slidingAttack(file: Int, rank: Int, df: Int, dr: Int, by: Side, slider: Int, transparent: Int): Boolean {
         var f = file + df
         var r = rank + dr
         while (f in 0..7 && r in 0..7) {
             val piece = board[Square.of(f, r)]
-            if (piece != Piece.NONE) {
+            if (piece != Piece.NONE && Square.of(f, r) != transparent) {
                 if (Piece.side(piece) != by) return false
                 val type = Piece.type(piece)
                 return type == slider || type == Piece.QUEEN

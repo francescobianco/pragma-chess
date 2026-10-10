@@ -197,6 +197,12 @@ QStringList ExplainTicks::outcome(const MoveExplanation &explanation)
             lost << BoardState::squareName(square);
         lines << QStringLiteral("threatened ") + lost.join(QStringLiteral(", "));
     }
+    if (!explanation.cage.isEmpty()) {
+        QStringList cage;
+        for (int square : explanation.cage)
+            cage << BoardState::squareName(square);
+        lines << QStringLiteral("cage ") + cage.join(QStringLiteral(", "));
+    }
     lines << QStringLiteral("summary ") + explanation.summary;
     if (!explanation.playback.isEmpty())
         lines << QStringLiteral("playback ") + explanation.playback.join(QLatin1Char(' '));

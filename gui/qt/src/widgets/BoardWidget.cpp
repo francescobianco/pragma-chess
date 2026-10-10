@@ -155,8 +155,8 @@ void BoardWidget::setBoard(const BoardFrame &frame)
         m_kingMark = frame.kingMark;
         m_arrows.clear();
         m_lostPieces.clear();
-    m_threatenedPieces.clear();
         m_threatenedPieces.clear();
+        m_cage.clear();
         update();
         return;
     }
@@ -250,13 +250,14 @@ void BoardWidget::setLegalMoves(const QMultiHash<int, int> &moves)
 }
 
 void BoardWidget::setExplanation(const QList<BoardArrow> &arrows, const QList<int> &lostPieces,
-                                 const QList<int> &threatenedPieces)
+                                 const QList<int> &threatenedPieces, const QList<int> &cage)
 {
-    if (m_arrows == arrows && m_lostPieces == lostPieces && m_threatenedPieces == threatenedPieces)
+    if (m_arrows == arrows && m_lostPieces == lostPieces && m_threatenedPieces == threatenedPieces && m_cage == cage)
         return;
     m_arrows = arrows;
     m_lostPieces = lostPieces;
     m_threatenedPieces = threatenedPieces;
+    m_cage = cage;
     update();
 }
 
@@ -618,6 +619,45 @@ void BoardWidget::paintEvent(QPaintEvent *)
             painter.drawEllipse(squareRect(mark.from).adjusted(inset, inset, -inset, -inset));
         } else {
             paintArrow(painter, BoardArrow{mark.from, mark.to, BoardArrow::Kind::Idea, 0}, markColor(mark.color));
+        }
+    }
+    // The cage of a technical mate: the squares the losing king is confined
+    // to, tinted, and fenced where they meet the squares it may not enter.
+    if (!m_sequenceActive && !m_peeking && !m_cage.isEmpty()) {
+        const QColor fence = arrowColor(BoardArrow::Kind::Reply);
+        QColor tint = fence;
+        tint.setAlphaF(0.16);
+        QPen pen(fence, qMax(2.0, size * 0.05));
+        pen.setCapStyle(Qt::RoundCap);
+        painter.setPen(Qt::NoPen);
+        for (int square : m_cage)
+            painter.fillRect(squareRect(square), tint);
+        painter.setPen(pen);
+        for (int square : m_cage) {
+            const QRectF rect = squareRect(square);
+            const int file = square % 8;
+            const int rank = square / 8;
+            // An edge of the region: the neighbour across it is no square of the cage.
+            const auto open = [&](int df, int dr) {
+                const int f = file + df;
+                const int r = rank + dr;
+                return f >= 0 && f < 8 && r >= 0 && r < 8 && m_cage.contains(r * 8 + f);
+            };
+            // Seen from Black, the next file is to the left and the next rank below.
+            const bool flipped = m_flipped;
+            const qreal left = rect.left(), right = rect.right(), top = rect.top(), bottom = rect.bottom();
+            const bool upOpen = flipped ? open(0, -1) : open(0, 1);
+            const bool downOpen = flipped ? open(0, 1) : open(0, -1);
+            const bool rightOpen = flipped ? open(-1, 0) : open(1, 0);
+            const bool leftOpen = flipped ? open(1, 0) : open(-1, 0);
+            if (!upOpen)
+                painter.drawLine(QPointF(left, top), QPointF(right, top));
+            if (!downOpen)
+                painter.drawLine(QPointF(left, bottom), QPointF(right, bottom));
+            if (!rightOpen)
+                painter.drawLine(QPointF(right, top), QPointF(right, bottom));
+            if (!leftOpen)
+                painter.drawLine(QPointF(left, top), QPointF(left, bottom));
         }
     }
     // Arrows belong to the position the sequence started from.

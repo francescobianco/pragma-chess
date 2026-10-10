@@ -133,6 +133,7 @@ data class ExplainTicks(
             if (explanation.lostPieces.isNotEmpty()) lines += "lost " + explanation.lostPieces.joinToString(", ") { Square.name(it) }
             if (explanation.threatenedPieces.isNotEmpty())
                 lines += "threatened " + explanation.threatenedPieces.joinToString(", ") { Square.name(it) }
+            if (explanation.cage.isNotEmpty()) lines += "cage " + explanation.cage.joinToString(", ") { Square.name(it) }
             lines += "summary " + explanation.summary
             if (explanation.playback.isNotEmpty()) lines += "playback " + explanation.playback.joinToString(" ")
             return lines

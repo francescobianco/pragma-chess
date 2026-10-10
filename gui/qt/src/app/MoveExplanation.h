@@ -53,6 +53,9 @@ struct MoveExplanation {
     QList<int> lostPieces;
     /// Squares of pieces attacked along the line that do not fall (a dashed ring).
     QList<int> threatenedPieces;
+    /// Squares the losing king is confined to, in a mate that is technique
+    /// (EXPLAIN.smart's Cage): drawn as a region.
+    QList<int> cage;
     /// Plain-text summary, e.g. "Blunder (+0.3 → −2.9). Black wins a knight: 14…Bxf2+ 15.Kxf2 Ng4+".
     QString summary;
     /// Moves (UCI) to play on the board, from the position shown, to demonstrate

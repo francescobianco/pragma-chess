@@ -582,6 +582,13 @@ playback; against a king with nothing but pawns it is said as technique
 ("The plan: the king comes to help", "the queen drives the king to the
 edge"), otherwise as an attack ("The attack: 15.Qxc3 d5 16.exd6 f6
 17.Rxf6"). usesLiveAnalysisHints's mate in 14 is no longer played (its
-attack is said). Recorded: user-feedback.ticks (1.Qg4). Still to do: the
-cage — the squares the defending king is confined to — drawn for the
-queen and rook endings.
+attack is said). Recorded: user-feedback.ticks (1.Qg4).
+
+Then the cage: `KingCage` floods from the losing king through the squares
+it could step to — not its own pieces', not one the winner controls
+(`ATTACKED`, a new chess function of both clients: the king taken off, so
+the queen's line runs on behind it) — and, when it is at most CAGE_SQUARES
+(30), each square is a `CAGE`, drawn as one tinted region fenced where it
+meets the squares the king may not enter. After 1.Qg4 the king of e5 has
+20: above the fourth rank, left of the g-file, behind f5-e6-d7-c8 (e6 and
+d7 holes in it).

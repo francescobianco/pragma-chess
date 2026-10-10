@@ -751,5 +751,6 @@ tick depth 140 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 
 tick depth 141 mate 8 pv e5d6 e1d2 d6e7 d2c3 e7d6 c3d4 d6e7 d4e5 e7f7 g4h5 f7g7 e5e6 g7g8 e6f6 g8f8 h5f7
 expect verdict good
 expect arrows e1d2 idea 1, d2c3 idea 2, c3d4 idea 3
+expect cage e5, d5, d6, f6, c5, c6, c7, e7, f7, b5, b6, b7, b8, d8, e8, f8, a5, a6, a7, a8
 expect summary Good move (M8). White mates in 8. The plan: the king comes to help.
 end

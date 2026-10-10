@@ -287,7 +287,7 @@ bool ChessPosition::hasKings() const
     return kingSquare(Side::White) >= 0 && kingSquare(Side::Black) >= 0;
 }
 
-bool ChessPosition::isAttacked(int square, Side by) const
+bool ChessPosition::isAttacked(int square, Side by, int transparent) const
 {
     if (square < 0)
         return false; // No king to attack: a diagram.
@@ -312,7 +312,7 @@ bool ChessPosition::isAttacked(int square, Side by) const
             for (int target = offset(square, directions[d][0], directions[d][1]); target >= 0;
                  target = offset(target, directions[d][0], directions[d][1])) {
                 const Piece piece = m_squares[target];
-                if (piece.isNull())
+                if (piece.isNull() || target == transparent)
                     continue;
                 if (piece.side == by && (piece.type == slider || piece.type == PieceType::Queen))
                     return true;

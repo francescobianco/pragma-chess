@@ -143,7 +143,11 @@ QJsonObject explanationJson(const MoveExplanation &explanation)
     QJsonArray threatened;
     for (int square : explanation.threatenedPieces)
         threatened.append(BoardState::squareName(square));
+    QJsonArray cage;
+    for (int square : explanation.cage)
+        cage.append(BoardState::squareName(square));
     return {{QStringLiteral("verdict"), verdictName(explanation.verdict)},
+            {QStringLiteral("cage"), cage},
             {QStringLiteral("summary"), explanation.summary},
             {QStringLiteral("arrows"), arrows},
             {QStringLiteral("lost"), lost},

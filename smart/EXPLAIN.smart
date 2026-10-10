@@ -23,6 +23,8 @@
 '     CAPTURED(p, move)               the piece the move takes (en passant too), or 0
 '     PIECE(p, square)                the piece on a square (0 to 63, a1 to h8), or 0
 '     SIDEAT(p, square)               the side of the piece on a square, or 0
+'     ATTACKED(p, square, side)       whether `side` controls the square, the other
+'                                     side's king taken off (could it step there?)
 '     COUNT(p, side, piece)           how many of that piece the side has
 '     LINETEXT(p, moves, plies)       "14…Bxf2+ 15.Kxf2 Ng4+": at most `plies` moves
 '     MOVES(p)                        the legal moves, in UCI, in no particular order
@@ -49,6 +51,7 @@
 '     SAY text                        text added to the summary
 '     VERDICT name                    the move's verdict (TUTOR.smart's names)
 '     PLAYBACK moves                  moves to play on the board: a forced mate
+'     CAGE square                     a square of the cage the losing king is confined to
 '     NOTE text                       how the explanation was reached (--trace)
 '
 ' Entry functions: Start and Tick, as the engine searches (below), and
@@ -72,6 +75,9 @@ CONST MATE_IN_SIGHT = 3
 CONST MATE_SUFFERED = 4
 CONST MATE_COMBINATION = 6
 CONST TECHNIQUE_MOVES = 3
+' The cage of a technical mate is drawn when the losing king can reach at
+' most CAGE_SQUARES squares: more, and it is no cage yet.
+CONST CAGE_SQUARES = 30
 ' Realizations longer than this are drawn focused on their decisive moves:
 ' a long sequence of arrows says nothing at a glance.
 CONST FOCUS_ABOVE = 3
@@ -756,6 +762,37 @@ FUNCTION MateShown(line, side, mateIn)
     RETURN FALSE
 END FUNCTION
 
+' The squares the king of `side` can reach in `position` by king steps
+' without entering a square the other side controls (ATTACKED: the king
+' taken off) or one of its own pieces: the cage the other side has built
+' around it, its own square first. [] when it has no king.
+FUNCTION KingCage(position, side)
+    home = KingOf(position, side)
+    IF home < 0 THEN RETURN []
+    seen = REPEAT(FALSE, 64)
+    seen[home] = TRUE
+    region = [home]
+    i = 0
+    WHILE i < LEN(region)
+        square = region[i]
+        FOR df = -1 TO 1
+            FOR dr = -1 TO 1
+                f = FileOf(square) + df
+                r = RankOf(square) + dr
+                IF f >= 0 AND f <= 7 AND r >= 0 AND r <= 7 THEN
+                    n = r * 8 + f
+                    IF NOT seen[n] THEN
+                        seen[n] = TRUE
+                        IF SIDEAT(position, n) <> side AND NOT ATTACKED(position, n, -side) THEN region = region + [n]
+                    END IF
+                END IF
+            NEXT
+        NEXT
+        i = i + 1
+    WEND
+    RETURN region
+END FUNCTION
+
 ' A mate too far to be shown move by move: the first TECHNIQUE_MOVES moves
 ' of `side` from ply `first` of `line` drawn alone, as its plan. Against a
 ' king with nothing but pawns it is technique, and said so (the queen drives
@@ -790,6 +827,14 @@ FUNCTION ShowTechnique(line, first, side, kind)
         IF COUNT(start, defender, piece) > 0 THEN bare = FALSE
     NEXT
     IF NOT bare THEN RETURN " " + TEXT("The attack: %1.", LINETEXT(start, SLICE(line[0], first, last - first), last - first))
+    ' The cage the winning side has built: where the losing king can still go.
+    fence = KingCage(start, defender)
+    NOTE "  the cage of the king: " + STR(LEN(fence)) + " squares"
+    IF LEN(fence) <= CAGE_SQUARES THEN
+        FOR i = 0 TO LEN(fence) - 1
+            CAGE fence[i]
+        NEXT
+    END IF
     IF withKing AND other <> 0 THEN RETURN " " + TEXT("The plan: %1 drives the king to the edge, the king comes to help.", PieceName(other))
     IF withKing THEN RETURN " " + TEXT("The plan: the king comes to help.")
     RETURN " " + TEXT("The plan: %1 drives the king to the edge.", PieceName(other))

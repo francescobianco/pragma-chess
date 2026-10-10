@@ -109,7 +109,9 @@ public:
     bool isCheckmate() const;
     bool isStalemate() const;
 
-    bool isAttacked(int square, Side by) const;
+    /// Whether `by` attacks `square`; lines pass through `transparent` (a
+    /// square taken as empty: the king that would step there, -1 for none).
+    bool isAttacked(int square, Side by, int transparent = -1) const;
     /// Squares of the pieces of `side` attacking `square`.
     QList<int> attackers(int square, Side side) const;
 

@@ -263,6 +263,14 @@ void define(SmartInterpreter &smart, Output &output)
         expect("PIECE", args, 2);
         return SmartValue(int(positionArgument("PIECE", args, 0).at(squareArgument("PIECE", args, 1)).type));
     });
+    smart.define(QStringLiteral("ATTACKED"), [](const std::vector<SmartValue> &args) {
+        // The other side's king taken off: whether a king could step there.
+        expect("ATTACKED", args, 3);
+        const ChessPosition &position = positionArgument("ATTACKED", args, 0);
+        const Side by = sideArgument("ATTACKED", args, 2);
+        const int king = position.kingSquare(by == Side::White ? Side::Black : Side::White);
+        return SmartValue(position.isAttacked(squareArgument("ATTACKED", args, 1), by, king) ? 1 : 0);
+    });
     smart.define(QStringLiteral("SIDEAT"), [](const std::vector<SmartValue> &args) {
         expect("SIDEAT", args, 2);
         const Piece piece = positionArgument("SIDEAT", args, 0).at(squareArgument("SIDEAT", args, 1));
@@ -365,6 +373,11 @@ void define(SmartInterpreter &smart, Output &output)
     smart.define(QStringLiteral("THREATENED"), [&output](const std::vector<SmartValue> &args) {
         expect("THREATENED", args, 1);
         output.explanation.threatenedPieces << squareArgument("THREATENED", args, 0);
+        return SmartValue();
+    });
+    smart.define(QStringLiteral("CAGE"), [&output](const std::vector<SmartValue> &args) {
+        expect("CAGE", args, 1);
+        output.explanation.cage << squareArgument("CAGE", args, 0);
         return SmartValue();
     });
     smart.define(QStringLiteral("PLAYBACK"), [&output](const std::vector<SmartValue> &args) {

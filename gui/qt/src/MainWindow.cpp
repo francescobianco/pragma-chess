@@ -302,7 +302,8 @@ MainWindow::MainWindow(QWidget *parent)
                                 .filePath(QStringLiteral("explain-evaluations.txt")));
     connect(m_explainer, &Explainer::explanationChanged, this, [this](const MoveExplanation &explanation) {
         m_explanation = explanation;
-        m_board->setExplanation(explanation.arrows, explanation.lostPieces, explanation.threatenedPieces);
+        m_board->setExplanation(explanation.arrows, explanation.lostPieces, explanation.threatenedPieces,
+                                explanation.cage);
         // A forced mate is shown by playing it; the board returns when Explain is turned off.
         // The same mate found again at a deeper search keeps playing, it does not start over.
         const bool samePlayback = explanation.playback == m_explanationPlayback;

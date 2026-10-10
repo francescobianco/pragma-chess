@@ -46,6 +46,7 @@ object SmartChess {
         val arrows = ArrayList<BoardArrow>()
         val lostPieces = ArrayList<Int>()
         val threatenedPieces = ArrayList<Int>()
+        val cage = ArrayList<Int>()
         val summary = StringBuilder()
         var playback: List<String> = emptyList()
         val notes = ArrayList<String>()
@@ -55,13 +56,14 @@ object SmartChess {
             arrows.clear()
             lostPieces.clear()
             threatenedPieces.clear()
+            cage.clear()
             summary.setLength(0)
             playback = emptyList()
             notes.clear()
         }
 
         fun explanation() = MoveExplanation(verdict, arrows.toList(), lostPieces.toList(), summary.toString(), playback,
-            notes.toList(), threatenedPieces = threatenedPieces.toList())
+            notes.toList(), threatenedPieces = threatenedPieces.toList(), cage = cage.toList())
     }
 
     fun side(side: Side): SmartValue = SmartValue.of(if (side == Side.White) 1 else -1)
@@ -219,6 +221,14 @@ object SmartChess {
             expectArguments("PIECE", args, 2)
             SmartValue.of(Piece.type(positionArgument("PIECE", args, 0).pieceAt(squareArgument("PIECE", args, 1))))
         }
+        smart.define("ATTACKED") { args ->
+            // The other side's king taken off: whether a king could step there.
+            expectArguments("ATTACKED", args, 3)
+            val position = positionArgument("ATTACKED", args, 0)
+            val by = sideArgument("ATTACKED", args, 2)
+            val king = position.kingSquare(by.opponent)
+            SmartValue.of(if (position.isAttacked(squareArgument("ATTACKED", args, 1), by, king)) 1 else 0)
+        }
         smart.define("SIDEAT") { args ->
             expectArguments("SIDEAT", args, 2)
             val piece = positionArgument("SIDEAT", args, 0).pieceAt(squareArgument("SIDEAT", args, 1))
@@ -296,6 +306,11 @@ object SmartChess {
         smart.define("LOST") { args ->
             expectArguments("LOST", args, 1)
             output.lostPieces += squareArgument("LOST", args, 0)
+            SmartValue.None
+        }
+        smart.define("CAGE") { args ->
+            expectArguments("CAGE", args, 1)
+            output.cage += squareArgument("CAGE", args, 0)
             SmartValue.None
         }
         smart.define("THREATENED") { args ->

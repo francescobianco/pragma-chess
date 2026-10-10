@@ -245,6 +245,11 @@ playing a move turns it off, and the user asks again at the next move.
   technique (`ShowTechnique`): the mate is said and the first moves of the
   side that mates drawn as its plan ("The plan: the king comes to help"),
   an attack's first moves said where the defender still has pieces.
+  Against a bare king the cage is drawn too (`KingCage`: the squares the
+  king reaches without entering one the winner controls — SMART's
+  `ATTACKED`, the king taken off —, at most `CAGE_SQUARES`; command `CAGE`,
+  `MoveExplanation::cage`, a tinted, fenced region on the board, `cage` in
+  records and in the API's explanation).
 - `widgets/BoardWidget` only paints `BoardArrow`s and lost-piece rings, and
   plays `BoardFrame` sequences (a forced mate from `MoveExplanation::playback`)
   with a red frame, restoring the position on `stopSequence()`.

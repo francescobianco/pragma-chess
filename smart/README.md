@@ -175,7 +175,10 @@ engine's evaluations — and the commands that collect what a program shows
 (arrows, texts) belong to the clients; `EXPLAIN.smart` and `TUTOR.smart` say
 at their top which ones they use. Among the commands, `LOST square` rings a
 piece that falls and `THREATENED square` rings, dashed, a piece attacked
-that does not. `VIEWER()` says who asked — the side
+that does not; `CAGE square` is a square of the region a losing king is
+confined to, drawn as one fenced area. `ATTACKED(p, square, side)` says
+whether `side` controls a square with the other side's king taken off the
+board — whether that king could step there. `VIEWER()` says who asked — the side
 the user plays, or sees from below —, so that a program can draw the other
 side's plan as theirs rather than as a good idea. Texts a program says are English and
 written whole (`"%1 mates in %2: %3."`): each client translates them with

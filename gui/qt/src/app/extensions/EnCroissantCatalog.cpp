@@ -66,19 +66,20 @@ QList<Extension> engines(const QByteArray &json, const QString &system, bool bmi
     return found;
 }
 
-QList<Extension> databases(const QByteArray &json, Extension::Kind kind)
+QList<Extension> databases(const QByteArray &json, bool puzzles)
 {
     QList<Extension> found;
     for (const QJsonValue &value : QJsonDocument::fromJson(json).array()) {
         const QJsonObject entry = value.toObject();
         Extension database;
-        database.kind = kind;
+        database.kind = Extension::Kind::Database;
+        database.puzzles = puzzles;
         database.name = entry.value(QStringLiteral("title")).toString();
         database.id = slug(database.name);
         database.description = entry.value(QStringLiteral("description")).toString();
         database.downloadUrl = entry.value(QStringLiteral("downloadLink")).toString();
         database.downloadSize = entry.value(QStringLiteral("storage_size")).toInteger();
-        database.count = entry.value(kind == Extension::Kind::Puzzles ? QStringLiteral("puzzle_count")
+        database.count = entry.value(puzzles ? QStringLiteral("puzzle_count")
                                                                      : QStringLiteral("game_count")).toInteger();
         database.author = QUrl(database.downloadUrl).host();
         database.unavailable = Text::tr("In En Croissant's own format, which Pragma Chess does not read yet; "

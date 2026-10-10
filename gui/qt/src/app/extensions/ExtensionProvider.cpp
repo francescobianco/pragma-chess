@@ -53,9 +53,9 @@ void EnCroissantProvider::fetch()
     get(EnCroissantCatalog::enginesUrl(system, bmi2),
         [this, system, bmi2](const QByteArray &json) { m_engines = EnCroissantCatalog::engines(json, system, bmi2); });
     get(EnCroissantCatalog::databasesUrl(), [this](const QByteArray &json) {
-        m_databases = EnCroissantCatalog::databases(json, Extension::Kind::Database);
+        m_databases = EnCroissantCatalog::databases(json);
     });
     get(EnCroissantCatalog::puzzlesUrl(), [this](const QByteArray &json) {
-        m_puzzles = EnCroissantCatalog::databases(json, Extension::Kind::Puzzles);
+        m_puzzles = EnCroissantCatalog::databases(json, true);
     });
 }

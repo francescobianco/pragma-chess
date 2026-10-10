@@ -7,7 +7,8 @@
 /// Installing only puts files where Pragma Chess looks and configures them
 /// (an engine joins Manage Engines): nothing of the system is touched.
 struct Extension {
-    enum class Kind { Engine, Database, Puzzles };
+    /// Puzzles are a database too (of type Puzzles and Training): `puzzles` says so.
+    enum class Kind { Engine, Database };
 
     /// Stable within its provider ("stockfish-19-linux-bmi2").
     QString id;
@@ -21,8 +22,9 @@ struct Extension {
     QString executable;
     qint64 downloadSize = 0;
     int elo = 0;
-    /// For a database, its games or puzzles.
+    /// For a database, its games or, when `puzzles`, its puzzles.
     qint64 count = 0;
+    bool puzzles = false;
     /// Who made it and on what terms, as far as the provider says.
     QString author;
     QString license;

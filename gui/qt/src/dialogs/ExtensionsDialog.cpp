@@ -50,7 +50,7 @@ public:
         QFont bold = option.font;
         bold.setBold(true);
         const int text = QFontMetrics(bold).height() + QFontMetrics(option.font).height() + 2;
-        return {option.rect.width(), qMax(kLogo, text) + 2 * kPadding};
+        return {kLogo + 2 * kPadding, qMax(kLogo, text) + 2 * kPadding};
     }
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
@@ -110,7 +110,6 @@ QString kindName(Extension::Kind kind)
     switch (kind) {
     case Extension::Kind::Engine: return ExtensionsDialog::tr("Engine");
     case Extension::Kind::Database: return ExtensionsDialog::tr("Database");
-    case Extension::Kind::Puzzles: return ExtensionsDialog::tr("Puzzles");
     }
     return {};
 }
@@ -162,6 +161,9 @@ ExtensionsDialog::ExtensionsDialog(std::function<QString(const InstalledExtensio
     m_providerList = new QListWidget;
     m_providerList->setItemDelegate(new ProviderDelegate(m_providerList));
     m_providerList->setSpacing(2);
+    // The rows take the list's width: names and sites are cut with "…", never scrolled.
+    m_providerList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_providerList->setResizeMode(QListView::Adjust);
     for (ExtensionProvider *provider : std::as_const(m_providers)) {
         auto *item = new QListWidgetItem(provider->name(), m_providerList);
         item->setData(kHostRole, QUrl(provider->homepage()).host());
@@ -185,7 +187,6 @@ ExtensionsDialog::ExtensionsDialog(std::function<QString(const InstalledExtensio
     m_kind->addItem(tr("All"), -1);
     m_kind->addItem(tr("Engines"), int(Extension::Kind::Engine));
     m_kind->addItem(tr("Databases"), int(Extension::Kind::Database));
-    m_kind->addItem(tr("Puzzles"), int(Extension::Kind::Puzzles));
     filters->addWidget(m_search, 1);
     filters->addWidget(m_kind);
     middle->addLayout(filters);
@@ -227,7 +228,15 @@ ExtensionsDialog::ExtensionsDialog(std::function<QString(const InstalledExtensio
     noteFont.setItalic(true);
     m_note->setFont(noteFont);
     right->addWidget(m_note);
-    right->addStretch(1);
+    // The buttons right under what the extension is; how the download goes under them.
+    auto *buttons = new QHBoxLayout;
+    m_install = new QPushButton(tr("Install"));
+    m_remove = new QPushButton(tr("Remove"));
+    buttons->addWidget(m_install);
+    buttons->addWidget(m_remove);
+    buttons->addStretch(1);
+    right->addSpacing(4);
+    right->addLayout(buttons);
     m_progress = new QProgressBar;
     m_progress->setTextVisible(false);
     m_progress->hide();
@@ -235,13 +244,7 @@ ExtensionsDialog::ExtensionsDialog(std::function<QString(const InstalledExtensio
     m_status = new QLabel;
     m_status->setWordWrap(true);
     right->addWidget(m_status);
-    auto *buttons = new QHBoxLayout;
-    m_install = new QPushButton(tr("Install"));
-    m_remove = new QPushButton(tr("Remove"));
-    buttons->addWidget(m_install);
-    buttons->addWidget(m_remove);
-    buttons->addStretch(1);
-    right->addLayout(buttons);
+    right->addStretch(1);
 
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 3);
@@ -456,7 +459,7 @@ void ExtensionsDialog::showExtension()
     if (chosen->elo > 0)
         facts << tr("Elo about %1").arg(chosen->elo);
     if (chosen->count > 0)
-        facts << (chosen->kind == Extension::Kind::Puzzles ? tr("%1 puzzles") : tr("%1 games")).arg(QLocale().toString(chosen->count));
+        facts << (chosen->puzzles ? tr("%1 puzzles") : tr("%1 games")).arg(QLocale().toString(chosen->count));
     if (chosen->downloadSize > 0)
         facts << tr("Download: %1").arg(sizeText(chosen->downloadSize));
     if (!chosen->downloadUrl.isEmpty())

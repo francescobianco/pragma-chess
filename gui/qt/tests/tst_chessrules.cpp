@@ -4398,7 +4398,7 @@ END FUNCTION
             {QStringLiteral("title"), QStringLiteral("MillionBase")}, {QStringLiteral("game_count"), 3451068},
             {QStringLiteral("storage_size"), 779833344},
             {QStringLiteral("downloadLink"), QStringLiteral("https:/" "/db.encroissant.org/mb-3.db3")}}}).toJson();
-        const QList<Extension> listed = EnCroissantCatalog::databases(databases, Extension::Kind::Database);
+        const QList<Extension> listed = EnCroissantCatalog::databases(databases);
         QCOMPARE(listed.size(), 1);
         QCOMPARE(listed.first().count, 3451068);
         QVERIFY(!listed.first().installable()); // Its format is not read yet.

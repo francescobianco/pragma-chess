@@ -1047,10 +1047,6 @@ Il Nero ha catturato: %2</translation>
         <translation>Database</translation>
     </message>
     <message>
-        <source>Puzzles</source>
-        <translation>Problemi</translation>
-    </message>
-    <message>
         <source>Manage Extensions</source>
         <translation>Gestione estensioni</translation>
     </message>

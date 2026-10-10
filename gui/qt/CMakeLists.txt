@@ -645,6 +645,8 @@ endif()
 # Tested without a display.
 if(TARGET Qt6::Test)
     qt_add_executable(tst_chessrules tests/tst_chessrules.cpp
+        src/app/ClassicGames.cpp
+        src/app/ClassicGames.h
         src/app/DatabaseMerge.cpp
         src/app/DatabaseMerge.h
         src/app/DistributedUpdate.cpp
@@ -666,6 +668,9 @@ if(TARGET Qt6::Test)
         PRAGMA_HELP_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/help"
         PRAGMA_CLASSICS_PGN="${CMAKE_CURRENT_SOURCE_DIR}/resources/classics/classic-games.pgn"
         PRAGMA_PROJECTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/projects")
+    # The famous games as the application has them (classicGames reads them there).
+    qt_add_resources(tst_chessrules classics PREFIX /classics BASE resources/classics
+        FILES resources/classics/classic-games.pgn)
     target_compile_options(tst_chessrules PRIVATE ${PRAGMA_WARNINGS})
     set_target_properties(tst_chessrules PROPERTIES MACOSX_BUNDLE OFF WIN32_EXECUTABLE OFF)
     add_test(NAME chessrules COMMAND tst_chessrules)

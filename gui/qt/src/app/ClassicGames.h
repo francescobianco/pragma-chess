@@ -4,5 +4,7 @@
 
 #include <QList>
 
-/// A few famous games used to seed the first database a user gets.
+/// The famous games of Classic Games, the first database a user gets: the
+/// first Botvinnik – Capablanca, AVRO 1938, the others shuffled (not by
+/// year), always in the same order.
 QList<GameRecord> classicGames();

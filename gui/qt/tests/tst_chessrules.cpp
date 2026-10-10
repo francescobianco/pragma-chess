@@ -8,6 +8,7 @@
 #include "app/ChessPosition.h"
 #include "app/DatabaseDedupe.h"
 #include "app/DatabaseMerge.h"
+#include "app/ClassicGames.h"
 #include "app/DistributedUpdate.h"
 #include "app/StandInNames.h"
 #include "app/DatabaseMigrations.h"
@@ -624,6 +625,16 @@ private Q_SLOTS:
 
     void readsTheClassicGames()
     {
+        // The first one is Botvinnik – Capablanca, AVRO 1938; the others not by year.
+        const QList<GameRecord> classics = classicGames();
+        QVERIFY(classics.size() > 20);
+        QVERIFY(classics.first().white.startsWith(QLatin1String("Botvinnik")));
+        QVERIFY(classics.first().black.startsWith(QLatin1String("Capablanca")));
+        bool byYear = true;
+        for (qsizetype i = 2; i < classics.size(); ++i)
+            byYear = byYear && classics.at(i - 1).date <= classics.at(i).date;
+        QVERIFY(!byYear);
+
         // The famous games we distribute: every one read whole, every move
         // legal, and the ones that end in mate end in mate.
         QFile file(QStringLiteral(PRAGMA_CLASSICS_PGN));

@@ -24,6 +24,29 @@ GameRecord makeGame(const char *white, const char *black, const char *event, con
     return g;
 }
 
+/// The order the games are created in, so numbered in the list: first
+/// Botvinnik – Capablanca, AVRO 1938, the passage from the classical game to
+/// the methodical one of the twentieth century; then the others shuffled,
+/// not by year, for the filters to find them by. The shuffle is fixed and
+/// our own (std::shuffle differs between standard libraries): the same on
+/// every computer.
+QList<GameRecord> inShownOrder(QList<GameRecord> games)
+{
+    QList<GameRecord> first;
+    for (qsizetype i = 0; i < games.size(); ++i) {
+        if (games.at(i).white.startsWith(QLatin1String("Botvinnik")) && games.at(i).black.startsWith(QLatin1String("Capablanca"))) {
+            first << games.takeAt(i);
+            break;
+        }
+    }
+    quint32 state = 1938; // A linear congruential generator, seeded with the year of AVRO.
+    for (qsizetype i = games.size() - 1; i > 0; --i) {
+        state = state * 1664525u + 1013904223u;
+        games.swapItemsAt(i, qsizetype((state >> 8) % quint32(i + 1)));
+    }
+    return first + games;
+}
+
 } // namespace
 
 QList<GameRecord> classicGames()
@@ -84,5 +107,5 @@ QList<GameRecord> classicGames()
                 games << *game;
         }
     }
-    return games;
+    return inShownOrder(games);
 }

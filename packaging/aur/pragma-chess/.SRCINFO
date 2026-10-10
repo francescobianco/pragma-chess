@@ -1,0 +1,22 @@
+pkgbase = pragma-chess
+	pkgdesc = Chess database for studying, training and playing, with Explain
+	pkgver = 0.3.0
+	pkgrel = 1
+	url = https://yafb.net/pragma-chess/
+	arch = x86_64
+	arch = aarch64
+	license = MIT
+	makedepends = cmake
+	makedepends = ninja
+	makedepends = git
+	makedepends = qt6-tools
+	depends = qt6-base
+	depends = qt6-svg
+	depends = yaml-cpp
+	depends = openssl
+	depends = stockfish
+	depends = hicolor-icon-theme
+	source = pragma-chess-0.3.0.tar.gz::https://github.com/francescobianco/pragma-chess/archive/refs/tags/v0.3.0.tar.gz
+	sha256sums = a7c32e5affbb249becad324ba098e36b9ae0a374fa68446d5713c8f09e95751c
+
+pkgname = pragma-chess

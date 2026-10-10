@@ -1,0 +1,30 @@
+# Maintainer: Francesco Bianco <info.francescobianco@gmail.com>
+pkgname=pragma-chess
+pkgver=0.3.0
+pkgrel=1
+pkgdesc="Chess database for studying, training and playing, with Explain"
+arch=('x86_64' 'aarch64')
+url="https://yafb.net/pragma-chess/"
+license=('MIT')
+depends=('qt6-base' 'qt6-svg' 'yaml-cpp' 'openssl' 'stockfish' 'hicolor-icon-theme')
+makedepends=('cmake' 'ninja' 'git' 'qt6-tools')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/francescobianco/pragma-chess/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('a7c32e5affbb249becad324ba098e36b9ae0a374fa68446d5713c8f09e95751c')
+
+build() {
+    # WebRTC and the keys of Phone Link and the lobby (libdatachannel,
+    # libsecp256k1) and the QR codes are fetched by CMake when missing.
+    cmake -S "$pkgname-$pkgver" -B build -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DPRAGMA_VERSION="$pkgver"
+    cmake --build build --target pragma-chess
+}
+
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    # The engine Pragma Chess offers first is Arch's Stockfish.
+    install -d "$pkgdir/usr/lib/pragma-chess/engines"
+    ln -s /usr/bin/stockfish "$pkgdir/usr/lib/pragma-chess/engines/stockfish"
+    install -Dm644 "$pkgname-$pkgver/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

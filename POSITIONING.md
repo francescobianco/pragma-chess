@@ -23,13 +23,13 @@ Dati raccolti il 2026-10-10; le azioni che ne vengono vanno in
 
 | | En Croissant | Pragma Chess |
 |---|---|---|
-| Stelle su GitHub | 1 933 | 2 |
+| Stelle su GitHub | 1 933 | 3 (2026-10-11) |
 | Fork | 328 | 0 |
 | Contributori | 75 | 1 |
 | Issue aperte | 198 | 0 |
 | Membri Discord | 1 427 (148 online) | — |
-| Scaricamenti, tutte le release | circa 210 000 installer (1,77 milioni di file contando l'aggiornamento automatico) | 76 |
-| Installazioni vive (stima) | il file dell'aggiornamento automatico (`latest.json`) è stato letto 109 000 volte per la sola 0.15.1 | — |
+| Scaricamenti, tutte le release | circa 210 000 installer (1,77 milioni di file contando l'aggiornamento automatico) | 143 (0.1.0: 66, 0.2.0: 31, 0.3.0: 46) |
+| Installazioni vive (stima) | il file dell'aggiornamento automatico (`latest.json`) è stato letto 109 000 volte per la sola 0.15.1 | `version.json` letto 4 volte (2026-10-11): conterà davvero dalla 0.4.0, la prima che lo chiede |
 | Ultima release, per sistema | Windows 68%, macOS 13%, Linux 19% (deb 1 544, AppImage 1 201, rpm 426) | Windows 25, Android 16, macOS 2, Linux 2 |
 | AlternativeTo | 9 "mi piace", 4,8/5, 10 alternative — **Pragma Chess è già elencato tra queste** | online, alternativa a 7 programmi |
 
@@ -155,14 +155,22 @@ Quello che ha funzionato per lui, adattato a noi:
 | Orma | Stato |
 |---|---|
 | 1. Post in inglese sul blog di lichess | ✅ scritto (`packaging/announcements/lichess-blog-en.md`) · ☐ da pubblicare (account lichess) |
-| 2. Thread su TalkChess | ☐ da scrivere e pubblicare (account TalkChess) |
+| 2. Thread su TalkChess | ✅ scritto (`packaging/announcements/talkchess.md`) · ☐ da pubblicare dopo la 0.4.0 (account TalkChess) |
 | 3. Una comunità | ✅ Discussions con post di benvenuto ([#2](https://github.com/francescobianco/pragma-chess/discussions/2)), collegate da README, sito e app (Aiuto ▸ Domande e idee…) · ☐ Discord, se lo vuoi |
-| 4. Installazione con un clic di motori e database | ✅ motori: Aiuto ▸ Gestione estensioni, con il registro di En Croissant come provider · ☐ database (formato e licenze, [docs/tech/downloads.md](docs/tech/downloads.md)) |
+| 4. Installazione con un clic di motori e database | ✅ motori: Aiuto ▸ Gestione estensioni, con il registro di En Croissant come provider · ☐ database: elencati (i problemi tra i database), non ancora installabili — sono nel formato di En Croissant (formato e licenze, [docs/tech/downloads.md](docs/tech/downloads.md)) |
 | 5. Aggiornamento automatico | ✅ Aiuto ▸ Cerca aggiornamenti…, una volta al giorno all'avvio; `version.json` in ogni release (già allegato alla 0.3.0) conta le copie in uso |
 | 6. Pacchetti | ✅ AUR scritto (`packaging/aur/`) · ☐ provato su Arch e pubblicato (account AUR) · ☐ Flathub (serve `flatpak-builder`) · ☐ Softpedia, LinuxLinks |
 | 7. Guida sul sito | ✅ <https://yafb.net/pragma-chess/en/guide/> e `it/guide/` |
 | 8. Pagina per le donazioni | ☐ servono i tuoi conti (GitHub Sponsors, Buy Me a Coffee) |
-| 9. Show HN | ☐ dopo la prossima release (account Hacker News) |
+| 9. Show HN | ✅ titolo e primo commento scritti (`packaging/announcements/show-hn.md`) · ☐ da pubblicare dopo la 0.4.0 (account Hacker News) |
+
+**Il passo che sblocca il resto è la 0.4.0.** Blog di lichess in inglese,
+TalkChess e Show HN sono pronti, ma parlano di cose (freechess.org, database
+grandi, il grafico, le estensioni, l'aggiornamento automatico) che chi
+scarica oggi la 0.3.0 non trova. La lezione di En Croissant è che conta un
+post solo, nel posto giusto, quando c'è qualcosa da mostrare: prima la
+release, poi i post, uno per posto, distanziati di qualche giorno (lichess,
+poi TalkChess, poi Show HN) per poter rispondere a tutti.
 
 ## Fonti
 

@@ -89,14 +89,14 @@ to the place. Dates and links go here.
 | **r/chess** | Allows software posts with "I made this"; post with the Explain screenshot, weekend | ☐ |
 | **r/chessbeginners**, **r/TournamentChess** | Training with the tutor; the latter is where club players are | ☐ |
 | **chess.com forums** — Chess Software | Factual post, the chess.com import is relevant there | ☐ |
-| **TalkChess** (talkchess.com) — General Topics | The computer chess forum: GUI makers and engine authors read it. Technical post: UCI, Polyglot, PGN, Explain's method | ☐ |
+| **TalkChess** (talkchess.com) — General Topics | The computer chess forum: GUI makers and engine authors read it, and En Croissant was launched there. The thread is written, `packaging/announcements/talkchess.md` (UCI, Polyglot, the database, Explain's method); post it after 0.4.0 | ✅ written 2026-10-11 · ☐ posted |
 | **Chess Stack Exchange** | Not for announcements; answer questions where Pragma Chess is a legitimate answer | — |
 
 ### Free software and Linux
 
 | Place | Notes | Status |
 |---|---|---|
-| **Hacker News** — "Show HN: Pragma Chess – open source chess database with Explain" | Tuesday–Thursday, morning US time; be present for comments; link the site | ☐ |
+| **Hacker News** — "Show HN: Pragma Chess – open-source chess database that explains the engine" | Tuesday–Thursday, morning US time; be present for comments; link the site. Title and first comment in `packaging/announcements/show-hn.md`; after 0.4.0 | ✅ written 2026-10-11 · ☐ posted |
 | **r/opensource**, **r/linux**, **r/linux_gaming**? (no: it is not a game) — r/opensource first | Self-promotion rules: one post, flair "Promotional" where asked | ☐ |
 | **Lobste.rs** | Needs an invite; tag `show`, `c++` | ☐ |
 | **Mastodon** (fosstodon.org or mastodon.social) | #chess #opensource #qt #linux, with screenshot and video; also the #ItalianMastodon chess folk | ☐ |
@@ -128,10 +128,12 @@ to the place. Dates and links go here.
    README ✅, awesome-list PRs ✅, winget PR ✅, Flatpak manifest ✅,
    recording ✅, AlternativeTo ✅; still open: social preview, English blog
    post, Flathub build and submission.
-2. **Week 2 (now, from 2026-10-11)**: issue #1 answered ✅; release 0.4.0
-   (freechess.org, large databases, the Engine panel's graph: much to tell
-   since 0.3.0), then the posts with something new to show — Show HN,
-   r/chess, lichess forum, TalkChess, Mastodon; Flathub submission.
+2. **Week 2 (now, from 2026-10-11)**: issue #1 answered ✅; TalkChess and
+   Show HN written ✅; release 0.4.0 (freechess.org, large databases, the
+   Engine panel's graph, Manage Extensions, the update check: much to tell
+   since 0.3.0), then the posts with something new to show — lichess blog
+   (EN), TalkChess, Show HN, r/chess, lichess forum, Mastodon — with the
+   short messages moved to 0.4.0; Flathub submission.
 3. **Week 3**: Italian blogs and groups; FSI note; Linux Day; Qt forum;
    freechess.org's list of interfaces.
 4. **Each release**: release notes from the CHANGELOG, a line on Mastodon
@@ -148,6 +150,12 @@ people, clubs in Supporters. Write the numbers here once a month.
 | Date | Stars | Forks | Visits, 14 days (unique) | Clones, 14 days (unique) | Downloads | Issues from others | Clubs |
 |---|---|---|---|---|---|---|---|
 | 2026-10-10 | 2 | 0 | 209 (23) | 2 360 (650, mostly bots and mirrors) | 0.3.0: 45 (Windows 25, Android 16, macOS 2, Linux 2) · 0.2.0: 31 | 1 | 1 |
+| 2026-10-11 | 3 | 0 | 209 (23) | 2 360 (650) | 0.3.0: 46 (Windows 25, Android 16, macOS 2, Linux 2, `version.json` 4: its first reads) · 0.2.0: 31 · 0.1.0: 66 | 1 | 1 |
+
+Referrers (14 days): github.com 33 (14), build.opensuse.org 7 (3), yafb.net 5
+(3), Bing and Google 1 each. Nothing public about Pragma Chess on the openSUSE
+Build Service (2026-10-11): someone may be packaging it in a `home:` project —
+if they show up, thank them and point them to `packaging/linux/`.
 
 ## Messages
 
@@ -203,14 +211,13 @@ people, clubs in Supporters. Write the numbers here once a month.
 
 ### Show HN title and first comment
 
-Title: *Show HN: Pragma Chess – open source chess database that explains the
-engine's evaluation*
-
-First comment: who I am, why (clubs need a free ChessBase-like tool that
-does less and explains more), how Explain works (searches before and after
-the move, replays the engine's line to where the evaluation becomes
-concrete — material won once exchanges are over, or a mate), what is next
-(large databases, Flathub), and a request for feedback on Windows and macOS.
+Written in full in `packaging/announcements/show-hn.md`: the title, *Show
+HN: Pragma Chess – open-source chess database that explains the engine*,
+and the first comment — who I am, why (clubs need a free ChessBase-like tool
+that does less and explains more), how Explain works (fed by the live
+analysis, compares the searches before and after the move, replays the
+engine's line to where the evaluation becomes concrete), the large databases,
+and a request for feedback on Windows and macOS.
 
 ### Awesome-list line
 
@@ -248,3 +255,4 @@ books and lichess.org/freechess.org play; Windows, macOS, Linux.`
 | 2026-10-10 | Issue #1 | https://github.com/francescobianco/pragma-chess/issues/1#issuecomment-6102469020 | qrcodegen from the system's packages: done, answered, closed |
 | 2026-10-10 | Social preview, lichess blog EN, chessprogramming.org | packaging/assets/social-preview.png, packaging/announcements/ | ready to upload and paste |
 | 2026-10-11 | Following En Croissant (POSITIONING.md) | https://github.com/francescobianco/pragma-chess/discussions/2 | guide on the site, update check with version.json, Discussions welcome, community links in README and Help |
+| 2026-10-11 | Round of the plan | — | winget still waits for a moderator (checks green since 10-05), mbiesiad PR without review; 3 stars; build.opensuse.org among the referrers; TalkChess thread and Show HN written (`packaging/announcements/`) |

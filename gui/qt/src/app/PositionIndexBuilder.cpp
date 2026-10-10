@@ -1,5 +1,6 @@
 #include "PositionIndexBuilder.h"
 
+#include <QElapsedTimer>
 #include <QThread>
 
 PositionIndexBuilder::PositionIndexBuilder(QObject *parent)
@@ -23,14 +24,19 @@ void PositionIndexBuilder::build(const QList<GameLine> &games)
     const quint64 generation = m_generation;
     auto cancelled = std::make_shared<std::atomic_bool>(false);
     auto result = std::make_shared<std::shared_ptr<const PositionIndex>>();
-    QThread *thread = QThread::create([games, cancelled, result] {
+    auto ms = std::make_shared<qint64>(0);
+    QThread *thread = QThread::create([games, cancelled, result, ms] {
+        QElapsedTimer clock;
+        clock.start();
         *result = std::make_shared<const PositionIndex>(PositionIndex::build(games, cancelled.get()));
+        *ms = clock.elapsed();
     });
-    connect(thread, &QThread::finished, this, [this, thread, generation, cancelled, result] {
+    connect(thread, &QThread::finished, this, [this, thread, generation, cancelled, result, ms] {
         m_workers.removeIf([thread](const Worker &worker) { return worker.thread == thread; });
         thread->deleteLater();
         if (generation == m_generation && !cancelled->load()) {
             m_index = *result;
+            m_lastBuildMs = *ms;
             Q_EMIT indexChanged();
         }
     });

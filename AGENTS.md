@@ -349,6 +349,19 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
 - `POST /api/clocks {"white": ms, "black": ms, "running": "white"|"black"}`
   shows the online clocks without a game (`{"hide": true}` hides them) and
   answers with the Engine panel's picture.
+- `POST /api/convert {"pgn", "pdb"}` starts Tools ▸ Convert ▸ PGN to
+  Pragma Database (the window opens) and `GET /api/convert` says how far
+  it is (games, bytes, games a second, error), `GET /api/convert/picture`
+  the window as a PNG. `POST /api/category
+  {"kind": "all"|"position"|"variant"}` filters the games list as the
+  tree's Board ▸ Position and Variant. `GET /api/profile` the open
+  database's games, the position index (ready, entries) and how long the
+  work took last time in ms — `openFile` (reading the headers),
+  `showDatabase` (list and tree), `readMoves` (`gameLines()`),
+  `buildIndex`, `countPosition`/`countVariant` (the tree's counts, at
+  every move), `findGames`/`filterList` (a filter of the list) — and the
+  process's memory (`VmRSS`/`VmHWM`, Linux). Profile a Release build: a
+  Debug one is several times slower.
 - `GET /api/engines` the engines of this computer with their Computing
   Power (level, share of the machine, threads used), the cores, whether the
   system can cap a process (`canCap`), and the engine's process: pid, CPU
@@ -401,6 +414,22 @@ modal, so it stays open while the user tries things.
   with. Qt is credited there with its logo, its version and the LGPL, and
   its own notice is the About Qt… button of the dialog: there is no separate
   About Qt entry in the menu.
+
+## Tools
+
+The Tools menu holds what works on files rather than on the game on the
+board. Tools ▸ Convert ▸ PGN to Pragma Database… (`dialogs/ConvertPgnDialog`,
+not modal) runs `app/convert/PgnConversion` on a worker thread: the file read
+in pieces of 4 MB and cut into games as it comes (`PgnSplitter`, the same cut
+as `PgnFile::scan`, unit-tested against it), each batch of 4000 read with
+`PgnFile::read` on every core but one and written by `SqliteGameWriter`
+(one transaction a batch, no journal, no game kept in memory) under a
+hidden name, `.<name>.pdb.converting`, renamed only when complete. Games
+without moves are skipped and counted. `convertsPgnFiles` covers it. It is
+also how large databases are tried: the lichess open database
+(database.lichess.org, monthly files from 121 332 games in 2013-01 up to
+tens of millions) is the stress corpus, kept outside the repository
+(`~/.cache/pragma-chess-stress`), never distributed.
 
 ## Welcome
 

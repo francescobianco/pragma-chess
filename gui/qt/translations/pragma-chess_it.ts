@@ -509,6 +509,100 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>ConvertPgnDialog</name>
+    <message>
+        <source>PGN to Pragma Database</source>
+        <translation>Da PGN a database Pragma</translation>
+    </message>
+    <message>
+        <source>Makes a Pragma database of the games of a PGN file, however large. The PGN file is not changed.</source>
+        <translation>Crea un database Pragma con le partite di un file PGN, grande quanto si vuole. Il file PGN non viene modificato.</translation>
+    </message>
+    <message>
+        <source>Browse…</source>
+        <translation>Sfoglia…</translation>
+    </message>
+    <message>
+        <source>PGN file:</source>
+        <translation>File PGN:</translation>
+    </message>
+    <message>
+        <source>Database:</source>
+        <translation>Database:</translation>
+    </message>
+    <message>
+        <source>Open Database</source>
+        <translation>Apri database</translation>
+    </message>
+    <message>
+        <source>Convert</source>
+        <translation>Converti</translation>
+    </message>
+    <message>
+        <source>PGN File</source>
+        <translation>File PGN</translation>
+    </message>
+    <message>
+        <source>PGN files (*.pgn);;All files (*)</source>
+        <translation>File PGN (*.pgn);;Tutti i file (*)</translation>
+    </message>
+    <message>
+        <source>New Database</source>
+        <translation>Nuovo database</translation>
+    </message>
+    <message>
+        <source>Pragma Chess databases (*.pdb)</source>
+        <translation>Database Pragma Chess (*.pdb)</translation>
+    </message>
+    <message>
+        <source>The PGN file was not found.</source>
+        <translation>Il file PGN non è stato trovato.</translation>
+    </message>
+    <message>
+        <source>“%1” already exists: choose another name.</source>
+        <translation>«%1» esiste già: scegli un altro nome.</translation>
+    </message>
+    <message>
+        <source>Converting…</source>
+        <translation>Conversione in corso…</translation>
+    </message>
+    <message>
+        <source>%1 games · %2 of %3 MB read · %4 games a second</source>
+        <translation>%1 partite · %2 di %3 MB letti · %4 partite al secondo</translation>
+    </message>
+    <message>
+        <source>Done: %1 games in %2 seconds.</source>
+        <translation>Fatto: %1 partite in %2 secondi.</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n entry(ies) of the file could not be read as a game.</source>
+        <translation>
+            <numerusform>%n voce del file non si è potuta leggere come partita.</numerusform>
+            <numerusform>%n voci del file non si sono potute leggere come partite.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Cancelled: no database was made.</source>
+        <translation>Annullata: nessun database è stato creato.</translation>
+    </message>
+    <message>
+        <source>The conversion failed: %1</source>
+        <translation>La conversione non è riuscita: %1</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Annulla</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Chiudi</translation>
+    </message>
+    <message>
+        <source>Cancelling…</source>
+        <translation>Annullamento…</translation>
+    </message>
+</context>
+<context>
     <name>DatabaseSettingsDialog</name>
     <message>
         <source>Database Settings</source>
@@ -3432,6 +3526,14 @@ non è su questo computer.</translation>
         <source>Your move</source>
         <translation>Tocca a te</translation>
     </message>
+    <message>
+        <source>&amp;Convert</source>
+        <translation>&amp;Converti</translation>
+    </message>
+    <message>
+        <source>&amp;PGN to Pragma Database…</source>
+        <translation>Da &amp;PGN a database Pragma…</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>
@@ -4384,6 +4486,21 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>&lt;p&gt;This key is who you are in the lobby: it signs your moves.&lt;/p&gt;&lt;p&gt;For security it is not synced with your other settings and stays on this computer only. To play as yourself from another computer, copy it here and paste it into the same field there: you have to carry it yourself.&lt;/p&gt;&lt;p&gt;Anyone who has it can play as you, so keep it to yourself.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Questa chiave è chi sei nella lobby: firma le tue mosse.&lt;/p&gt;&lt;p&gt;Per sicurezza non viene sincronizzata con le altre impostazioni e resta solo su questo computer. Per giocare come te da un altro computer, copiala qui e incollala nello stesso campo laggiù: devi portartela tu.&lt;/p&gt;&lt;p&gt;Chi ce l&apos;ha può giocare al posto tuo, quindi tienila per te.&lt;/p&gt;</translation>
+    </message>
+</context>
+<context>
+    <name>PgnConversion</name>
+    <message>
+        <source>Could not read “%1”: %2</source>
+        <translation>Impossibile leggere “%1”: %2</translation>
+    </message>
+    <message>
+        <source>A file named “%1” already exists.</source>
+        <translation>Esiste già un file chiamato “%1”.</translation>
+    </message>
+    <message>
+        <source>Could not name the database “%1”.</source>
+        <translation>Impossibile dare al database il nome «%1».</translation>
     </message>
 </context>
 <context>

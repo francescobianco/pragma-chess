@@ -27,6 +27,8 @@ public:
 
     /// The last index built, or null before the first build is ready.
     const PositionIndex *index() const { return m_index.get(); }
+    /// How long the last index delivered took to build, in milliseconds.
+    qint64 lastBuildMs() const { return m_lastBuildMs; }
 
 Q_SIGNALS:
     /// The index changed: built, or dropped for a new build or clear().
@@ -37,6 +39,7 @@ private:
 
     std::shared_ptr<const PositionIndex> m_index;
     quint64 m_generation = 0;
+    qint64 m_lastBuildMs = 0;
     struct Worker {
         QThread *thread = nullptr;
         std::shared_ptr<std::atomic_bool> cancelled;

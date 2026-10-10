@@ -36,7 +36,7 @@ public:
     QString name() const override;
     QString location() const override { return m_path; }
     qint64 gameCount() const override { return m_headers.size(); }
-    GameRecord header(qint64 index) const override { return m_headers.at(index); }
+    const GameRecord &header(qint64 index) const override { return m_headers.at(index); }
     std::optional<GameRecord> loadGame(qint64 index) const override;
     QList<GameLine> gameLines() const override;
     qint64 addGame(const GameRecord &game, QString *errorMessage) override;
@@ -74,4 +74,26 @@ private:
     QList<GameRecord> m_headers;
     PlayerRoles m_roles;
     DatabaseProperties m_properties;
+};
+
+/// Writes many games into a new database file, fast: one connection and one
+/// transaction per batch, no game kept in memory, no journal (the file is
+/// new: what a failure leaves is thrown away). What Tools ▸ Convert uses.
+class SqliteGameWriter {
+public:
+    ~SqliteGameWriter();
+
+    /// Creates the database file `path` (which must not exist), empty.
+    static std::unique_ptr<SqliteGameWriter> create(const QString &path, QString *errorMessage);
+
+    /// Appends `games`, all or none.
+    bool add(const QList<GameRecord> &games, QString *errorMessage);
+    /// Ends the writing: the file is complete and can be opened.
+    bool finish(QString *errorMessage);
+
+private:
+    SqliteGameWriter() = default;
+
+    struct Private;
+    std::unique_ptr<Private> d;
 };

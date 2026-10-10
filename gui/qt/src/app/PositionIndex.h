@@ -27,6 +27,8 @@ public:
     static PositionIndex build(const QList<GameLine> &games, const std::atomic_bool *cancelled = nullptr);
 
     int gameCount() const { return m_gameCount; }
+    /// Positions and lines held, a pair each: what the index weighs.
+    qsizetype entryCount() const { return qsizetype(m_positions.size() + m_lines.size()); }
 
     /// How the games reaching a position ended (the Database column of the Opening Tree).
     struct Stats {

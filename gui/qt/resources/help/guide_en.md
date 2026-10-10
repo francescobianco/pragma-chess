@@ -227,6 +227,12 @@ The **Trash** node, last in the tree, shows the trashed games: **Recent**, throw
 
 Deleting does not shrink the file yet. **Database ▸ Database Settings… ▸ Optimize Database** removes the deleted games for good and compacts the file. Until then nothing is lost.
 
+# Converting a PGN file {#convert}
+
+**Tools ▸ Convert ▸ PGN to Pragma Database…** makes a new database of the games of a PGN file, however large: choose the **PGN file** and where the **Database** goes (the Databases folder, named after the file, unless you choose another place with **Browse…**), then **Convert**. The file is read a piece at a time and its games on every core of the computer but one; the window says how many games are in and how fast it goes, and you can go on working meanwhile.
+
+The PGN file is not changed, and nothing is connected to it: to keep a database and a PGN file in step, use **Database ▸ Connect Source… ▸ PGN file** instead. Entries of the file that are not a game with moves are left out, and the window says how many. **Cancel** stops and leaves no database behind; once it is done, **Open Database** opens it.
+
 # Projects {#projects}
 
 A project is what you are looking at: the database, the game and the move, the side the board is seen from, the engine, the panels and whether you are training. The title bar shows its name — the file's, or the one given in **File ▸ Project Information…** — with an asterisk when it has changes not saved, and, once the project has chapters, the chapter open (it goes when the project is back without chapters): *Openings* - The Italian - Pragma Chess*.

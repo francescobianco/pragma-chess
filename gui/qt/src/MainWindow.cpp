@@ -21,6 +21,7 @@
 #include "dialogs/HelpDialog.h"
 #include "dialogs/DrawersDialog.h"
 #include "dialogs/LobbyDialog.h"
+#include "dialogs/ConvertPgnDialog.h"
 #include "app/lobby/LobbyPlans.h"
 #ifdef PRAGMA_HAS_PHONE_LINK
 #include "app/lobby/net/LobbyIdentity.h"
@@ -97,6 +98,7 @@
 #include <QCheckBox>
 #include <QClipboard>
 #include <QCryptographicHash>
+#include <QElapsedTimer>
 #include <QSet>
 #include <QDataStream>
 #include <QActionGroup>
@@ -1088,7 +1090,9 @@ void MainWindow::createMenus()
     database->addAction(m_saveDatabaseAction);
     database->addAction(m_saveDatabaseAsAction);
 
-    menuBar()->addMenu(tr("&Tools"))->setEnabled(false);
+    QMenu *tools = menuBar()->addMenu(tr("&Tools"));
+    QMenu *convert = tools->addMenu(tr("&Convert"));
+    convert->addAction(tr("&PGN to Pragma Database…"), this, &MainWindow::showConvertPgn);
 
     QMenu *options = menuBar()->addMenu(tr("&Options"));
     // How this computer reaches the others: the phone, the server.
@@ -1545,18 +1549,27 @@ void MainWindow::rebuildPositionIndex()
     m_positionIndexTimer->stop();
     // Games were added or changed: the sources that write them out follow.
     m_sourceSync->scheduleWrite();
-    if (m_database)
-        m_positionIndex->build(m_database->gameLines());
-    else
+    if (m_database) {
+        QElapsedTimer clock;
+        clock.start();
+        const QList<GameLine> lines = m_database->gameLines();
+        m_profile.insert(QStringLiteral("readMoves"), clock.elapsed());
+        m_positionIndex->build(lines);
+    } else
         m_positionIndex->clear();
     updateBoardFilters();
 }
 
 void MainWindow::updateBoardFilters()
 {
+    QElapsedTimer clock;
+    clock.start();
     if (const PositionIndex *index = m_positionIndex->index()) {
-        m_databaseTree->setBoardCounts(index->countWithPosition(m_session->position()),
-                                       index->countWithLine(m_session->initialPosition(), m_session->movesToHere()));
+        const int position = index->countWithPosition(m_session->position());
+        m_profile.insert(QStringLiteral("countPosition"), clock.restart());
+        const int variant = index->countWithLine(m_session->initialPosition(), m_session->movesToHere());
+        m_profile.insert(QStringLiteral("countVariant"), clock.restart());
+        m_databaseTree->setBoardCounts(position, variant);
     } else {
         m_databaseTree->setBoardCounts(-1, -1);
     }
@@ -2352,6 +2365,8 @@ void MainWindow::updateGameCount()
 void MainWindow::showCategory(const GameCategory &category)
 {
     using Kind = GameCategory::Kind;
+    QElapsedTimer clock;
+    clock.start();
     m_category = category;
     m_filterSource = category.kind == Kind::Source ? category.sourceId : 0;
     GameFilterProxyModel::Predicate predicate;
@@ -2434,8 +2449,10 @@ void MainWindow::showCategory(const GameCategory &category)
         }
         break;
     }
+    m_profile.insert(QStringLiteral("findGames"), clock.restart());
     m_gameListProxy->setPredicate(predicate, state);
     updateGameCount();
+    m_profile.insert(QStringLiteral("filterList"), clock.elapsed());
 }
 
 void MainWindow::newDatabase()
@@ -2509,13 +2526,17 @@ bool MainWindow::openDatabaseFile(const QString &path)
         return true;
 
     QString error;
+    QElapsedTimer clock;
+    clock.start();
     std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(path, &error);
     if (!database) {
         QMessageBox::warning(this, tr("Open Database"),
                              tr("Could not open the database: %1").arg(error));
         return false;
     }
+    m_profile.insert(QStringLiteral("openFile"), clock.restart());
     setDatabase(std::move(database));
+    m_profile.insert(QStringLiteral("showDatabase"), clock.elapsed());
     if (keepOnlineGame())
         return true;
     // The chapter goes on: its first game is opened only into an empty one.
@@ -5602,6 +5623,20 @@ void MainWindow::showLobby()
     m_lobbyDialog->show();
     m_lobbyDialog->raise();
     m_lobbyDialog->activateWindow();
+}
+
+void MainWindow::showConvertPgn()
+{
+    if (!m_convertPgnDialog) {
+        m_convertPgnDialog = new ConvertPgnDialog(this);
+        connect(m_convertPgnDialog, &ConvertPgnDialog::openRequested, this, [this](const QString &path) {
+            m_convertPgnDialog->close();
+            openDatabaseFile(path);
+        });
+    }
+    m_convertPgnDialog->show();
+    m_convertPgnDialog->raise();
+    m_convertPgnDialog->activateWindow();
 }
 
 void MainWindow::restoreSession()

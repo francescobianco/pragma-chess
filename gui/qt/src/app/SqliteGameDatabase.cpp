@@ -1096,3 +1096,74 @@ int SqliteGameDatabase::optimize(QString *errorMessage)
         return -1;
     return removed;
 }
+
+struct SqliteGameWriter::Private {
+    QString connectionName;
+    std::unique_ptr<GameInserter> inserter;
+};
+
+SqliteGameWriter::~SqliteGameWriter()
+{
+    if (!d)
+        return;
+    d->inserter.reset();
+    {
+        QSqlDatabase db = QSqlDatabase::database(d->connectionName, false);
+        db.close();
+    }
+    QSqlDatabase::removeDatabase(d->connectionName);
+}
+
+std::unique_ptr<SqliteGameWriter> SqliteGameWriter::create(const QString &path, QString *errorMessage)
+{
+    // The schema and the lineage as every new database has them.
+    if (!SqliteGameDatabase::create(path, {}, errorMessage))
+        return nullptr;
+    std::unique_ptr<SqliteGameWriter> writer(new SqliteGameWriter);
+    writer->d = std::make_unique<Private>();
+    writer->d->connectionName = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), writer->d->connectionName);
+    db.setDatabaseName(QFileInfo(path).absoluteFilePath());
+    if (!db.open()) {
+        setError(errorMessage, db.lastError().text());
+        return nullptr;
+    }
+    QSqlQuery query(db);
+    query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
+    query.exec(QStringLiteral("PRAGMA synchronous = OFF"));
+    query.exec(QStringLiteral("PRAGMA cache_size = -65536")); // 64 MB.
+    writer->d->inserter = std::make_unique<GameInserter>(db);
+    return writer;
+}
+
+bool SqliteGameWriter::add(const QList<GameRecord> &games, QString *errorMessage)
+{
+    QSqlDatabase db = QSqlDatabase::database(d->connectionName, false);
+    db.transaction();
+    for (const GameRecord &game : games) {
+        if (d->inserter->insert(game) == 0) {
+            setError(errorMessage, d->inserter->errorText());
+            db.rollback();
+            return false;
+        }
+    }
+    if (!db.commit()) {
+        setError(errorMessage, db.lastError().text());
+        db.rollback();
+        return false;
+    }
+    return true;
+}
+
+bool SqliteGameWriter::finish(QString *errorMessage)
+{
+    QSqlDatabase db = QSqlDatabase::database(d->connectionName, false);
+    QSqlQuery query(db);
+    // The journal as every database has it.
+    if (!query.exec(QStringLiteral("PRAGMA journal_mode = DELETE"))) {
+        setError(errorMessage, query.lastError().text());
+        return false;
+    }
+    return true;
+}
+

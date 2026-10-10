@@ -28,8 +28,11 @@ void GameFilterProxyModel::changeFilter(const std::function<void()> &change)
     change();
     endFilterChange(Direction::Rows);
 #else
+    // Not invalidateFilter(): it takes the rows out range by range, and the
+    // view pays for each — seconds when a filter leaves half of 100 000 games.
+    // invalidate() maps the rows again at once and keeps the selection.
     change();
-    invalidateFilter();
+    invalidate();
 #endif
 }
 
@@ -37,6 +40,6 @@ bool GameFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &) 
 {
     if (!m_database || sourceRow >= m_database->gameCount())
         return true;
-    const GameRecord header = m_database->header(sourceRow);
+    const GameRecord &header = m_database->header(sourceRow);
     return header.state == m_state && (!m_predicate || m_predicate(header));
 }

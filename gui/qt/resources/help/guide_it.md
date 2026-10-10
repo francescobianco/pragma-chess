@@ -227,6 +227,12 @@ Il nodo **Cestino**, ultimo dell'albero, mostra le partite cestinate: **Recenti*
 
 Eliminare non rimpicciolisce ancora il file. **Database ▸ Impostazioni database… ▸ Ottimizza database** toglie per sempre le partite eliminate e compatta il file. Fino ad allora non si perde niente.
 
+# Convertire un file PGN {#convert}
+
+**Strumenti ▸ Converti ▸ Da PGN a database Pragma…** crea un nuovo database con le partite di un file PGN, grande quanto si vuole: scegli il **File PGN** e dove va il **Database** (la cartella Database, col nome del file, a meno che tu non scelga un altro posto con **Sfoglia…**), poi **Converti**. Il file viene letto un pezzo alla volta e le sue partite su tutti i core del computer tranne uno; la finestra dice quante partite sono entrate e a che velocità, e intanto puoi continuare a lavorare.
+
+Il file PGN non viene modificato, e nulla resta collegato a esso: per tenere allineati un database e un file PGN usa invece **Database ▸ Collega sorgente… ▸ File PGN**. Le voci del file che non sono una partita con delle mosse vengono lasciate fuori, e la finestra dice quante. **Annulla** si ferma e non lascia nessun database; finito, **Apri database** lo apre.
+
 # Progetti {#projects}
 
 Un progetto è quello che stai guardando: il database, la partita e la mossa, il lato da cui vedi la scacchiera, il motore, i pannelli e se ti stai allenando. La barra del titolo ne mostra il nome — quello del file, o quello dato in **File ▸ Informazioni progetto…** — con un asterisco quando ha modifiche non salvate, e, quando il progetto ha dei capitoli, il capitolo aperto (sparisce quando il progetto torna senza capitoli): *Aperture* - L'Italiana - Pragma Chess*.

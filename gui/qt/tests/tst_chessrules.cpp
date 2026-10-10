@@ -54,6 +54,8 @@
 #include "app/smart/SmartPrograms.h"
 #include "app/smart/SmartScript.h"
 #include "app/sources/PgnFile.h"
+#include "app/convert/PgnConversion.h"
+#include "app/convert/PgnSplitter.h"
 #include "app/sources/PgnFileFetch.h"
 #include "app/sources/PgnFilePlan.h"
 #include "app/sync/FolderSync.h"
@@ -4176,6 +4178,62 @@ END FUNCTION
         QCOMPARE(next.value("b").hash, QStringLiteral("b2"));
         QVERIFY(next.contains("g") && next.value("g").hash.isEmpty());
         QCOMPARE(baseFromJson(baseToJson(next)).value("d").hash, next.value("d").hash);
+    }
+
+    void convertsPgnFiles()
+    {
+        // A comment before the first tags stays with them; the last game has no newline.
+        const QByteArray pgn = "% exported\n\n"
+                               "[Event \"One\"]\n[White \"A\"]\n[Black \"B\"]\n[Result \"1-0\"]\n\n"
+                               "1. e4 e5 2. Qh5 Nc6 3. Bc4 Nf6 4. Qxf7# 1-0\n\n"
+                               "[Event \"Two\"]\n[Result \"*\"]\n\n1. d4 d5\n2. c4 *\n\n"
+                               "[Event \"Empty\"]\n[Result \"*\"]\n\n*\n\n"
+                               "[Event \"Three\"]\n[Result \"1/2-1/2\"]\n\n1. Nf3 Nf6 1/2-1/2";
+        // Fed a byte at a time, the splitter cuts as the scan of the whole file.
+        PgnSplitter splitter;
+        QList<QByteArray> games;
+        for (const char c : pgn)
+            games += splitter.feed(QByteArray(1, c));
+        games += splitter.finish();
+        const QList<PgnFile::Entry> entries = PgnFile::scan(pgn);
+        QCOMPARE(games.size(), entries.size());
+        for (qsizetype i = 0; i < games.size(); ++i)
+            QCOMPARE(games.at(i), pgn.mid(entries.at(i).offset, entries.at(i).length));
+
+        QTemporaryDir dir;
+        const QString pgnPath = dir.filePath(QStringLiteral("games.pgn"));
+        const QString pdbPath = dir.filePath(QStringLiteral("games.pdb"));
+        QFile file(pgnPath);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write(pgn);
+        file.close();
+        int calls = 0;
+        const PgnConversion::Result result = PgnConversion::run(
+            pgnPath, pdbPath, [&calls](const PgnConversion::Progress &) { ++calls; }, nullptr);
+        QVERIFY2(result.ok, qPrintable(result.error));
+        QCOMPARE(result.progress.games, 3);
+        QCOMPARE(result.progress.skipped, 1); // The game without moves.
+        QCOMPARE(result.progress.bytesRead, pgn.size());
+        QVERIFY(calls > 0);
+        QVERIFY(!QFileInfo::exists(dir.filePath(QStringLiteral(".games.pdb.converting"))));
+        QString error;
+        std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(pdbPath, &error);
+        QVERIFY2(database, qPrintable(error));
+        QCOMPARE(database->gameCount(), 3);
+        QCOMPARE(database->header(0).event, QStringLiteral("One"));
+        QCOMPARE(database->loadGame(0)->moves.size(), 7);
+        QCOMPARE(database->header(2).result, QStringLiteral("1/2-1/2"));
+        QVERIFY(!database->properties().id.isEmpty());
+        database.reset();
+
+        // Never over a file that is there; a cancel leaves nothing.
+        QVERIFY(!PgnConversion::run(pgnPath, pdbPath, {}, nullptr).ok);
+        const std::atomic_bool cancel{true};
+        const QString other = dir.filePath(QStringLiteral("other.pdb"));
+        const PgnConversion::Result cancelled = PgnConversion::run(pgnPath, other, {}, &cancel);
+        QVERIFY(cancelled.cancelled);
+        QVERIFY(!QFileInfo::exists(other));
+        QVERIFY(!QFileInfo::exists(dir.filePath(QStringLiteral(".other.pdb.converting"))));
     }
 
     void syncsPgnFilesBothWays()

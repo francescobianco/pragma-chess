@@ -37,7 +37,8 @@ public:
     }
 
     /// Header information for the game at `index` (0 <= index < gameCount()).
-    virtual GameRecord header(qint64 index) const = 0;
+    /// A reference into the database: valid until the database changes.
+    virtual const GameRecord &header(qint64 index) const = 0;
 
     /// Full game including moves.
     virtual std::optional<GameRecord> loadGame(qint64 index) const = 0;

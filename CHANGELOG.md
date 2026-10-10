@@ -8,6 +8,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Tools ▸ Convert ▸ PGN to Pragma Database…**, the first of the tools:
+  a PGN file of any size becomes a new database, read a piece at a time on
+  every core but one, while you go on working.
 - The logo has a rich version, with chess pieces on its squares, shown in
   the welcome window; the application's icon keeps the plain
   board, which reads better when small.

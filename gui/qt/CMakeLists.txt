@@ -248,6 +248,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/sources/LichessSignIn.h
     src/app/sources/PgnFile.cpp
     src/app/sources/PgnFile.h
+    src/app/convert/PgnSplitter.cpp
+    src/app/convert/PgnSplitter.h
     src/app/sources/PgnFileFetch.cpp
     src/app/sources/PgnFileFetch.h
     src/app/sources/PgnFilePlan.cpp
@@ -402,6 +404,8 @@ qt_add_executable(pragma-chess
     src/dialogs/PositionSetupDialog.h
     src/dialogs/SyncDialog.cpp
     src/dialogs/SyncDialog.h
+    src/dialogs/ConvertPgnDialog.cpp
+    src/dialogs/ConvertPgnDialog.h
     src/dialogs/ManageSyncFilesDialog.cpp
     src/dialogs/ManageSyncFilesDialog.h
     src/dialogs/SourceSettingsWidget.cpp
@@ -427,6 +431,8 @@ qt_add_executable(pragma-chess
     src/app/DatabaseMigrations.h
     src/app/SqliteGameDatabase.cpp
     src/app/SqliteGameDatabase.h
+    src/app/convert/PgnConversion.cpp
+    src/app/convert/PgnConversion.h
     src/app/UserFolders.cpp
     src/app/UserFolders.h
     src/platform/WindowChrome.cpp
@@ -659,6 +665,8 @@ if(TARGET Qt6::Test)
         src/app/DatabaseMigrations.h
         src/app/SqliteGameDatabase.cpp
         src/app/SqliteGameDatabase.h
+        src/app/convert/PgnConversion.cpp
+        src/app/convert/PgnConversion.h
         src/app/UserFolders.cpp
         src/app/UserFolders.h
         src/app/Drawers.cpp

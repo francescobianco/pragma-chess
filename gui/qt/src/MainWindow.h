@@ -47,6 +47,7 @@ class GameSession;
 class HelpDialog;
 class WelcomeDialog;
 class LobbyDialog;
+class ConvertPgnDialog;
 class LobbyNetwork;
 class MoveTreeView;
 class BookPanel;
@@ -487,6 +488,8 @@ private:
     void showGuide();
     void showWelcome();
     void showLobby();
+    /// Tools ▸ Convert ▸ PGN to Pragma Database….
+    void showConvertPgn();
     /// The lobby's Play: the game `white` plays against `black` in room
     /// `roomId` on the board, after asking about a game on the board that
     /// is not saved, seen from the user's side, in Lobby Mode.
@@ -746,6 +749,12 @@ private:
     bool m_welcomeShown = false; ///< At startup, once: the first showEvent.
     /// Game ▸ Enter the Lobby…: one window, kept with its rooms while the application runs.
     LobbyDialog *m_lobbyDialog = nullptr;
+    /// Tools ▸ Convert ▸ PGN to Pragma Database…: one window, not modal, so a long conversion goes on beside the board.
+    ConvertPgnDialog *m_convertPgnDialog = nullptr;
+    /// How long the work on large databases took, last time, in milliseconds
+    /// (opening, the games' moves, the board's counts and filters): what the
+    /// development API's /api/profile reports.
+    QHash<QString, qint64> m_profile;
     /// The lobby of Game ▸ Enter the Lobby…, on the network (LobbyNode).
     LobbyService *m_lobbyService = nullptr;
     /// Its ledger on the network: the relays and the peers (LobbyNetwork).

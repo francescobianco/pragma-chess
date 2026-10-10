@@ -118,7 +118,11 @@ QString decode(const QByteArray &bytes)
 
 std::optional<GameRecord> read(const QByteArray &entry, QString *errorMessage)
 {
-    const QString text = decode(entry);
+    QString text = decode(entry);
+    // A line starting with "%" is PGN's escape: for other programs, not a move.
+    static const QRegularExpression escape(QStringLiteral(R"(^%[^\n]*)"), QRegularExpression::MultilineOption);
+    if (text.startsWith(QLatin1Char('%')) || text.contains(QLatin1String("\n%")))
+        text.remove(escape);
     const std::optional<Pgn::ParsedLine> line = Pgn::parseLine(text, QString(), errorMessage);
     if (!line)
         return std::nullopt;

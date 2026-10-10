@@ -18,6 +18,9 @@
 #include "dialogs/DrawersDialog.h"
 #include "dialogs/WelcomeDialog.h"
 #include "dialogs/LobbyDialog.h"
+#include "dialogs/ConvertPgnDialog.h"
+#include "app/PositionIndexBuilder.h"
+#include "widgets/DatabaseTreeWidget.h"
 #include "models/GameFilterProxyModel.h"
 #include "app/Drawers.h"
 #include "app/PersonalSettings.h"
@@ -579,6 +582,99 @@ void DesktopApi::addRoutes()
             return LocalHttpServer::error(400, QStringLiteral("expected {\"on\": true or false}"));
         w->peekAtEngineLine(body->value(QStringLiteral("on")).toBool());
         return json(state());
+    });
+    // Tools ▸ Convert ▸ PGN to Pragma Database…: POST starts converting, GET
+    // says how far it is.
+    const auto conversion = [w]() {
+        if (!w->m_convertPgnDialog)
+            return QJsonObject{{QStringLiteral("running"), false}, {QStringLiteral("finished"), false}};
+        const ConvertPgnDialog::Status status = w->m_convertPgnDialog->status();
+        const PgnConversion::Progress &progress = status.progress;
+        return QJsonObject{
+            {QStringLiteral("running"), status.running},
+            {QStringLiteral("finished"), status.finished},
+            {QStringLiteral("ok"), status.result.ok},
+            {QStringLiteral("cancelled"), status.result.cancelled},
+            {QStringLiteral("error"), status.result.error},
+            {QStringLiteral("pgn"), status.pgnPath},
+            {QStringLiteral("pdb"), status.pdbPath},
+            {QStringLiteral("bytesRead"), progress.bytesRead},
+            {QStringLiteral("totalBytes"), progress.totalBytes},
+            {QStringLiteral("games"), progress.games},
+            {QStringLiteral("skipped"), progress.skipped},
+            {QStringLiteral("elapsedMs"), progress.elapsedMs},
+            {QStringLiteral("gamesPerSecond"), progress.elapsedMs > 0 ? double(progress.games) * 1000 / progress.elapsedMs : 0.0},
+        };
+    };
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/convert"), [w, conversion](const Request &request) {
+        const std::optional<QJsonObject> body = bodyOf(request);
+        if (!body || !body->value(QStringLiteral("pgn")).isString())
+            return LocalHttpServer::error(400, QStringLiteral("expected {\"pgn\": \"…/games.pgn\", \"pdb\": \"…/games.pdb\"}"));
+        w->showConvertPgn();
+        w->m_convertPgnDialog->setPaths(body->value(QStringLiteral("pgn")).toString(),
+                                        body->value(QStringLiteral("pdb")).toString());
+        if (!w->m_convertPgnDialog->start())
+            return LocalHttpServer::error(409, QStringLiteral("cannot start: a conversion is running, the PGN is missing or the database exists"));
+        return json(conversion());
+    });
+    m_server->route(QStringLiteral("GET"), QStringLiteral("/api/convert"), [conversion](const Request &) {
+        return json(conversion());
+    });
+    m_server->route(QStringLiteral("GET"), QStringLiteral("/api/convert/picture"), [w](const Request &) {
+        w->showConvertPgn();
+        QByteArray png;
+        QBuffer buffer(&png);
+        buffer.open(QIODevice::WriteOnly);
+        w->m_convertPgnDialog->grab().save(&buffer, "PNG");
+        return Response{200, "image/png", png};
+    });
+    // The board's filters of the games list, as the tree's Board ▸ Position
+    // and Variant (or All Games): what the profile's findGames and filterList time.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/category"), [w, state](const Request &request) {
+        const std::optional<QJsonObject> body = bodyOf(request);
+        const QString kind = body ? body->value(QStringLiteral("kind")).toString() : QString();
+        GameCategory category;
+        if (kind == QLatin1String("position"))
+            category.kind = GameCategory::Kind::Position;
+        else if (kind == QLatin1String("variant"))
+            category.kind = GameCategory::Kind::Variant;
+        else if (kind != QLatin1String("all"))
+            return LocalHttpServer::error(400, QStringLiteral("expected {\"kind\": \"all\", \"position\" or \"variant\"}"));
+        w->showCategory(category);
+        QJsonObject answer = state();
+        answer.insert(QStringLiteral("listed"), w->m_gameListProxy->rowCount());
+        return json(answer);
+    });
+    // How long the work on the open database took, last time, and the memory.
+    m_server->route(QStringLiteral("GET"), QStringLiteral("/api/profile"), [w](const Request &) {
+        QJsonObject times;
+        for (auto it = w->m_profile.cbegin(); it != w->m_profile.cend(); ++it)
+            times.insert(it.key(), it.value());
+        QJsonObject index{{QStringLiteral("ready"), w->m_positionIndex->index() != nullptr}};
+        if (const PositionIndex *built = w->m_positionIndex->index()) {
+            times.insert(QStringLiteral("buildIndex"), w->m_positionIndex->lastBuildMs());
+            index.insert(QStringLiteral("games"), built->gameCount());
+            index.insert(QStringLiteral("entries"), qint64(built->entryCount()));
+        }
+        QJsonObject memory;
+        QFile status(QStringLiteral("/proc/self/status")); // Linux; empty elsewhere.
+        if (status.open(QIODevice::ReadOnly)) {
+            for (const QByteArray &line : status.readAll().split('\n')) {
+                for (const char *key : {"VmRSS", "VmHWM"}) {
+                    if (line.startsWith(key))
+                        memory.insert(QLatin1String(key) + QStringLiteral("Mb"),
+                                      line.mid(qstrlen(key) + 1).trimmed().split(' ').value(0).toLongLong() / 1024);
+                }
+            }
+        }
+        return json(QJsonObject{
+            {QStringLiteral("database"), w->m_database ? w->m_database->location() : QString()},
+            {QStringLiteral("games"), w->m_database ? w->m_database->gameCount() : 0},
+            {QStringLiteral("listed"), w->m_gameListProxy->rowCount()},
+            {QStringLiteral("ms"), times},
+            {QStringLiteral("index"), index},
+            {QStringLiteral("memory"), memory},
+        });
     });
     // The board's easter egg (its right-click menu's Learn More…): the pieces fall.
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/drop"), [w, state](const Request &) {

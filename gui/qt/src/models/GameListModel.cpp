@@ -107,7 +107,7 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
         const Side side = index.column() == White ? Side::White : Side::Black;
         if (m_me.isEmpty() && !m_training)
             return {};
-        const GameRecord game = m_database->header(index.row());
+        const GameRecord &game = m_database->header(index.row());
         const QString &own = side == Side::White ? game.white : game.black;
         const bool trainee = m_training && StandInNames::isUnnamed(own) && side == StandInNames::traineeSide(game);
         if (!trainee && !m_me.contains(own))
@@ -121,7 +121,7 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
         return {};
 
     // TODO: cache headers once databases hold millions of games.
-    const GameRecord game = m_database->header(index.row());
+    const GameRecord &game = m_database->header(index.row());
     const auto elo = [](int value) { return value > 0 ? QVariant(value) : QVariant(); };
     switch (index.column()) {
     case Number: return game.id;

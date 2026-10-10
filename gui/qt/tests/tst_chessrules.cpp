@@ -4756,6 +4756,42 @@ END FUNCTION
         QVERIFY(!Project().toYaml().contains(QLatin1String("lineage")));
     }
 
+    void declaresTheLanguageOfAProject()
+    {
+        // In one language, the language is a declaration: choosing another
+        // relabels the same words, it does not translate them.
+        LocalizedText text(QStringLiteral("it"), QStringLiteral("Finali di torre"));
+        text.relabel(QStringLiteral("it"), QStringLiteral("en"));
+        QVERIFY(!text.has(QStringLiteral("it")));
+        QCOMPARE(text.exact(QStringLiteral("en")), QStringLiteral("Finali di torre"));
+        text.relabel(QStringLiteral("it"), QStringLiteral("en")); // Nothing in Italian: nothing moves.
+        QCOMPARE(text.texts().size(), 1);
+
+        ChapterBook book;
+        Chapter first = book.chapters.first();
+        first.title = LocalizedText(QStringLiteral("it"), QStringLiteral("La regola del quadrato"));
+        book.setChapters({first}, 0);
+        Paragraph paragraph;
+        paragraph.text = LocalizedText(QStringLiteral("it"), QStringLiteral("Il re entra nel quadrato."));
+        book.chapters.first().games.first().paragraphs << paragraph;
+        QCOMPARE(book.mainLanguage(QStringLiteral("en")), QStringLiteral("it"));
+        book.relabel(QStringLiteral("it"), QStringLiteral("en"));
+        QCOMPARE(book.language, QStringLiteral("en"));
+        QCOMPARE(book.chapters.first().title.exact(QStringLiteral("en")), QStringLiteral("La regola del quadrato"));
+        QCOMPARE(book.chapters.first().games.first().paragraphs.first().text.exact(QStringLiteral("en")),
+                 QStringLiteral("Il re entra nel quadrato."));
+        QCOMPARE(ChapterBook().mainLanguage(QStringLiteral("it")), QStringLiteral("it")); // No texts: the fallback.
+
+        // The project keeps the language it declares.
+        Project project;
+        project.language = QStringLiteral("it");
+        QString error;
+        const std::optional<Project> read = Project::fromYaml(project.toYaml(), QDir(), &error);
+        QVERIFY2(read, qPrintable(error));
+        QCOMPARE(read->language, QStringLiteral("it"));
+        QVERIFY(Project::fromYaml(Project().toYaml(), QDir(), &error)->language.isEmpty());
+    }
+
     void localizesProjectTexts()
     {
         // Shown in the language asked for, else in English, else in another one.

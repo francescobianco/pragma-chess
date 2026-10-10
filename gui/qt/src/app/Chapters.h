@@ -105,6 +105,14 @@ public:
     ChapterGame &game() { return chapter().games[chapter().currentGame]; }
     const ChapterGame &game() const { return chapter().games.at(chapter().currentGame); }
 
+    /// Every text of the chapters — titles, paragraphs — written in `from`
+    /// is declared `to` instead (LocalizedText::relabel), and `language`
+    /// becomes `to`: a project in one language that declares another.
+    void relabel(const QString &from, const QString &to);
+    /// The language most of the chapters' texts are written in; `fallback`
+    /// when they have none (a project written before it declared one).
+    QString mainLanguage(const QString &fallback) const;
+
     /// "Chapter 3": the name a new chapter gets.
     static QString defaultTitle(int number);
 

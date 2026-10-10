@@ -118,6 +118,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- A project in one language **declares** its language in Project
+  Information: its texts are written in it whatever the interface's, and
+  declaring another relabels them; a multilingual project chooses there the
+  language worked in. A new project takes the interface's language.
 - File ▸ Project Settings… is now **Project Information…**: it opens
   locked, and **Edit**, with its padlock, unlocks the fields; what each one
   means is in a balloon behind its **?**.

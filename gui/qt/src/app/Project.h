@@ -30,6 +30,12 @@ struct Project {
     /// Project Information; otherwise they are shown and written in the
     /// interface's. Written `multilingual: true`, only when on.
     bool multilingual = false;
+    /// The language a project in one language declares it is written in
+    /// (Project Information's Language of the texts), where its texts are
+    /// written whatever the interface's; a multilingual one opens in the
+    /// interface's. Written `language:`; empty when the file has none (made
+    /// before it was declared: the language most of its texts are in, then).
+    QString language;
     /// Read-only: a flag against changes made without thinking, not a lock —
     /// unticked in Project Information, the project is changed as any other. The
     /// projects we distribute come with it. Written `read-only: true`, only

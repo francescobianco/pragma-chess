@@ -31,8 +31,7 @@ QWidget *withHelp(QWidget *field, const QString &help, QWidget *parent)
 } // namespace
 
 ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const QString &filePath, const QString &fileName,
-                                     bool multilingual, const QString &language, const QString &interfaceLanguage,
-                                     bool readOnly, QWidget *parent)
+                                     bool multilingual, const QString &language, bool readOnly, QWidget *parent)
     : QDialog(parent)
     , m_name(new QLineEdit(name.text(language), this))
     , m_multilingual(new QCheckBox(tr("&Multilingual project"), this))
@@ -40,7 +39,6 @@ ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const QString &f
     , m_language(new QComboBox(this))
     , m_edit(new QPushButton(this))
     , m_buttons(new QDialogButtonBox(this))
-    , m_interfaceLanguage(interfaceLanguage)
     , m_names(name)
     , m_shown(language)
 {
@@ -81,9 +79,11 @@ ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const QString &f
                           this));
     form->addRow(tr("&Language of the texts:"),
                  withHelp(m_language,
-                          tr("<p>The language the project's texts are shown and written in.</p>"
-                             "<p>A project opens in the language of the interface; one that is not multilingual "
-                             "stays in it.</p>"),
+                          tr("<p>In a project in one language, the language it is written in: what it "
+                             "declares, and where its texts go, whatever the language of the interface. Choosing "
+                             "another declares the same texts in it; they are not translated.</p>"
+                             "<p>In a multilingual project, the language you work in: its texts are shown and "
+                             "written in it. It opens in the language of the interface.</p>"),
                           this));
 
     // The flags, apart: how the project behaves, under what it is.
@@ -103,11 +103,6 @@ ProjectInfoDialog::ProjectInfoDialog(const LocalizedText &name, const QString &f
                                  "come read-only.</p>"),
                               this));
 
-    connect(m_multilingual, &QCheckBox::toggled, this, [this](bool on) {
-        m_language->setEnabled(m_unlocked && on);
-        if (!on) // Back to the language of the interface.
-            m_language->setCurrentIndex(qMax(0, m_language->findData(m_interfaceLanguage)));
-    });
     connect(m_language, &QComboBox::currentIndexChanged, this, &ProjectInfoDialog::showLanguage);
 
     // Changing the project's information is the exception: unlocked by hand.
@@ -144,7 +139,7 @@ void ProjectInfoDialog::setUnlocked(bool unlocked)
     m_name->setReadOnly(!unlocked);
     m_name->setClearButtonEnabled(unlocked);
     m_multilingual->setEnabled(unlocked);
-    m_language->setEnabled(unlocked && m_multilingual->isChecked());
+    m_language->setEnabled(unlocked); // A declaration, or the language worked in: always there.
     m_readOnly->setEnabled(unlocked);
     m_edit->setText(unlocked ? tr("Editing") : tr("&Edit"));
     m_edit->setIcon(SymbolicIcons::icon(unlocked ? QStringLiteral("pragma-unlocked") : QStringLiteral("pragma-locked")));
@@ -181,6 +176,11 @@ QString ProjectInfoDialog::language() const
 void ProjectInfoDialog::showLanguage()
 {
     m_names = name();
+    if (!m_multilingual->isChecked()) {
+        // A declaration: the name stays as it is, now said to be in that language.
+        m_shown = language();
+        return;
+    }
     m_shown = language();
     m_name->setText(m_names.text(m_shown));
 }

@@ -30,6 +30,10 @@ public:
     bool has(const QString &language) const { return m_texts.contains(language); }
     /// Writes the text of `language`; an empty one takes that language away.
     void set(const QString &language, const QString &text);
+    /// The text of `from` becomes `to`'s, and `from` has none: the same words,
+    /// declared in another language (a project in one language declaring
+    /// another). Nothing happens when `from` has no text.
+    void relabel(const QString &from, const QString &to);
     /// No text in any language.
     bool isEmpty() const { return m_texts.isEmpty(); }
     /// The texts by language, the languages in order.

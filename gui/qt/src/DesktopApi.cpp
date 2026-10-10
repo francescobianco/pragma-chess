@@ -355,7 +355,7 @@ void DesktopApi::addRoutes()
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/project-info"), [w](const Request &request) {
         const QJsonObject body = bodyOf(request).value_or(QJsonObject());
         ProjectInfoDialog dialog(w->m_projectName, w->m_projectPath, QStringLiteral("Untitled"), w->m_multilingual,
-                                 w->m_chapters.language, MainWindow::contentLanguage(), w->m_projectReadOnly, w);
+                                 w->m_chapters.language, w->m_projectReadOnly, w);
         if (body.value(QStringLiteral("unlocked")).toBool()) {
             // Edit, the one checkable button; checked, it replaces the dialog's
             // other buttons, so the list is not walked any further.

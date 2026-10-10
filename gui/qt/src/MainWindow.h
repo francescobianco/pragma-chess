@@ -544,6 +544,9 @@ private:
     /// The project's texts are in several languages: the one shown and
     /// written (m_chapters.language) is chosen in Project Information.
     bool m_multilingual = false;
+    /// The language a project in one language declares (Project::language):
+    /// its texts are written in it, whatever the interface's.
+    QString m_projectLanguage;
     /// The project is read-only (Project Information): nothing in it changes,
     /// and it is not saved (projectEditable, writeProject).
     bool m_projectReadOnly = false;

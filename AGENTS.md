@@ -925,10 +925,16 @@ a chapter always has a game. In other tools this is a study or a chess book.
   project's name, the chapters' titles and the paragraphs (`Paragraph::text`,
   `Chapter::title`, `Project::name`) are a `LocalizedText`, a text per
   language (`LocalizedText::languages()`: en, it), the structure one for
-  all. `ChapterBook::language` is the one shown and written: the
-  interface's when a project opens (`MainWindow::contentLanguage`); another
-  can be chosen in Project Information only when the project is flagged
-  Multilingual project (`Project::multilingual`, `multilingual: true`). A
+  all. `ChapterBook::language` is the one shown and written. A project in
+  one language declares its language (`Project::language`, `language:`,
+  `MainWindow::m_projectLanguage`; a new project takes the interface's, a
+  file without it the language most of its texts are in,
+  `ChapterBook::mainLanguage`): its texts are shown and written in it, and
+  declaring another in Project Information relabels them
+  (`ChapterBook::relabel`, `LocalizedText::relabel`: the same words, not
+  translated). A multilingual one (`Project::multilingual`, `multilingual:
+  true`) opens in the interface's (`MainWindow::contentLanguage`), and the
+  same field chooses the language worked in. A
   text missing in it is shown in English, then in another language that has
   it; a text shown from another language and left unchanged is not written
   as a translation. Emptying a paragraph removes it in every language.

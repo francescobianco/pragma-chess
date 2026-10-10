@@ -37,6 +37,13 @@ QString LocalizedText::text(const QString &language) const
     return m_texts.isEmpty() ? QString() : m_texts.first();
 }
 
+void LocalizedText::relabel(const QString &from, const QString &to)
+{
+    if (from == to || !m_texts.contains(from))
+        return;
+    m_texts.insert(to, m_texts.take(from));
+}
+
 void LocalizedText::set(const QString &language, const QString &text)
 {
     if (text.isEmpty())

@@ -26,18 +26,18 @@ class ProjectInfoDialog : public QDialog {
 public:
     /// `filePath` is the project's file, absolute (empty for a project never
     /// saved), shown read-only; `fileName` is what the title bar shows without
-    /// a name; `language` the language the texts are written in now,
-    /// `interfaceLanguage` the one a project that is not multilingual is written in.
+    /// a name; `language` the language the texts are written in now — in a
+    /// project in one language, the one it declares.
     ProjectInfoDialog(const LocalizedText &name, const QString &filePath, const QString &fileName, bool multilingual,
-                      const QString &language, const QString &interfaceLanguage, bool readOnly,
-                      QWidget *parent = nullptr);
+                      const QString &language, bool readOnly, QWidget *parent = nullptr);
 
     /// The name, with what was written in each language.
     LocalizedText name() const;
     bool isMultilingual() const;
     /// The project is protected from changes made without thinking.
     bool isReadOnly() const;
-    /// The language the project's texts are shown and written in from now on.
+    /// In one language, the language the project declares; multilingual, the
+    /// one its texts are shown and written in from now on.
     QString language() const;
 
 private:
@@ -52,7 +52,6 @@ private:
     QComboBox *m_language;
     QPushButton *m_edit;
     QDialogButtonBox *m_buttons;
-    QString m_interfaceLanguage;
     LocalizedText m_names;
     /// The language the name field shows.
     QString m_shown;

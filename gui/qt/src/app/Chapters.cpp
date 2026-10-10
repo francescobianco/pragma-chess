@@ -278,3 +278,42 @@ void ChapterBook::removeParagraph(int game, int index)
     paragraphs.removeAt(index);
     settleAfterRemoval();
 }
+
+void ChapterBook::relabel(const QString &from, const QString &to)
+{
+    for (Chapter &chapter : chapters) {
+        chapter.title.relabel(from, to);
+        for (ChapterGame &game : chapter.games) {
+            for (Paragraph &paragraph : game.paragraphs)
+                paragraph.text.relabel(from, to);
+        }
+    }
+    language = to;
+}
+
+QString ChapterBook::mainLanguage(const QString &fallback) const
+{
+    QMap<QString, int> counts;
+    const auto count = [&counts](const LocalizedText &text) {
+        for (auto it = text.texts().cbegin(); it != text.texts().cend(); ++it)
+            ++counts[it.key()];
+    };
+    for (const Chapter &chapter : chapters) {
+        // The title of the chapter that holds a project without chapters is the default one, not the user's.
+        if (hasChapters())
+            count(chapter.title);
+        for (const ChapterGame &game : chapter.games) {
+            for (const Paragraph &paragraph : game.paragraphs)
+                count(paragraph.text);
+        }
+    }
+    QString best = fallback;
+    int most = 0;
+    for (auto it = counts.cbegin(); it != counts.cend(); ++it) {
+        if (it.value() > most) {
+            most = it.value();
+            best = it.key();
+        }
+    }
+    return best;
+}

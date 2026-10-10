@@ -4678,10 +4678,6 @@ Le %n partite già importate restano nel database.</numerusform>
         <translation>&amp;Lingua dei testi:</translation>
     </message>
     <message>
-        <source>&lt;p&gt;The language the project&apos;s texts are shown and written in.&lt;/p&gt;&lt;p&gt;A project opens in the language of the interface; one that is not multilingual stays in it.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;La lingua in cui si vedono e si scrivono i testi del progetto.&lt;/p&gt;&lt;p&gt;Un progetto si apre nella lingua dell&apos;interfaccia; uno che non è multilingua resta in quella.&lt;/p&gt;</translation>
-    </message>
-    <message>
         <source>&lt;p&gt;Keeps the project from changes made without thinking: its chapters, titles, paragraphs, comments and variations cannot be changed, and it is not saved. The board can still be explored.&lt;/p&gt;&lt;p&gt;Untick it to change the project. The projects distributed with Pragma Chess come read-only.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Protegge il progetto da modifiche fatte senza pensarci: i suoi capitoli, titoli, paragrafi, commenti e varianti non si possono cambiare, e non viene salvato. La scacchiera si può comunque esplorare.&lt;/p&gt;&lt;p&gt;Togli la spunta per modificare il progetto. I progetti distribuiti con Pragma Chess arrivano in sola lettura.&lt;/p&gt;</translation>
     </message>
@@ -4700,6 +4696,10 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>&lt;p&gt;A multilingual project has its name, titles, subtitles and paragraphs in several languages, its chapters and games the same in all.&lt;/p&gt;&lt;p&gt;They are shown and written in the Language of the texts chosen above. A text not written in it is shown in English, or in another language that has it.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Un progetto multilingua ha il nome, i titoli, i sottotitoli e i paragrafi in più lingue, con gli stessi capitoli e le stesse partite in tutte.&lt;/p&gt;&lt;p&gt;Si vedono e si scrivono nella Lingua dei testi scelta sopra. Un testo non ancora scritto in quella lingua si vede in inglese, o in un&apos;altra lingua che lo ha.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;In a project in one language, the language it is written in: what it declares, and where its texts go, whatever the language of the interface. Choosing another declares the same texts in it; they are not translated.&lt;/p&gt;&lt;p&gt;In a multilingual project, the language you work in: its texts are shown and written in it. It opens in the language of the interface.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;In un progetto in una sola lingua, la lingua in cui è scritto: quella che dichiara, e in cui finiscono i suoi testi, qualunque sia la lingua dell&apos;interfaccia. Sceglierne un&apos;altra dichiara gli stessi testi in quella; non vengono tradotti.&lt;/p&gt;&lt;p&gt;In un progetto multilingua, la lingua in cui lavori: i suoi testi si vedono e si scrivono in quella. Si apre nella lingua dell&apos;interfaccia.&lt;/p&gt;</translation>
     </message>
 </context>
 <context>

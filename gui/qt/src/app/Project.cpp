@@ -223,6 +223,8 @@ QString Project::toYaml(const QDir &baseDir) const
     writeLocalized(out, "name", name);
     if (multilingual)
         out << YAML::Key << "multilingual" << YAML::Value << true;
+    if (!language.isEmpty())
+        out << YAML::Key << "language" << YAML::Value << toStd(language);
     if (readOnly)
         out << YAML::Key << "read-only" << YAML::Value << true;
 
@@ -349,6 +351,7 @@ std::optional<Project> Project::fromYaml(const QString &yaml, const QDir &baseDi
     Project env;
     env.name = readLocalized(root["name"], legacyLanguage);
     env.multilingual = valueOf<bool>(root["multilingual"], false);
+    env.language = fromNode(root["language"]);
     env.readOnly = valueOf<bool>(root["read-only"], false);
     const QString database = fromNode(root["database"]["path"]);
     if (!database.isEmpty())

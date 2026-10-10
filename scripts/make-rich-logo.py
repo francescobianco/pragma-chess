@@ -4,13 +4,13 @@
     scripts/make-rich-logo.py
 
 The logo (gui/qt/data/icons/pragma-chess.png) is a 4x4 board; the rich one
-puts pawns on seven of its squares so they draw a P — the left column, and
-the bowl in the three rows from the top:
+puts pawns on seven of its squares so they draw a P — the second column,
+and the bowl in the three rows from the top:
 
-    1100
-    1010
-    1100
-    1000
+    0110
+    0101
+    0110
+    0100
 
 each pawn centred on its whole square, the same for all — the grid
 commands, even where the frame covers part of the square — and the
@@ -28,7 +28,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageOps
 
 ICONS = Path(__file__).resolve().parent.parent / "gui" / "qt" / "data" / "icons"
-P = ["1100", "1010", "1100", "1000"]
+P = ["0110", "0101", "0110", "0100"]
 SCALE = 4  # Drawn four times larger, then reduced: smooth edges.
 
 # The board of the 300-pixel logo: the squares' edges (the frame covers

@@ -36,7 +36,7 @@ the downloads.
 | GitHub repository | Description, topics, homepage pointing at the site, releases with notes, README with the site and the claim | ✅ 2026-10-04 (homepage → site, README) |
 | GitHub social preview | The hero screenshot as the preview image (Settings ▸ Social preview; 1280×640, `site/assets/screenshots/hero.png` cropped) | ☐ needs the web UI |
 | GitHub Discussions | Turned on, with GitHub's categories (Announcements, General, Ideas, Polls, Q&A, Show and tell); linked from the site's Support section ("Questions and ideas") | ✅ on 2026-10-04 · ✅ site link 2026-10-10 |
-| GitHub issues | Every issue answered, with a thank-you; the first from a stranger: [#1](https://github.com/francescobianco/pragma-chess/issues/1) (2026-10-06, in Russian: qrcodegen from the system's packages) — done in the code 2026-10-10, the answer still to post | ☐ answer #1 |
+| GitHub issues | Every issue answered, with a thank-you; the first from a stranger: [#1](https://github.com/francescobianco/pragma-chess/issues/1) (2026-10-06, in Russian: qrcodegen from the system's packages) — done in the code and answered (in Russian and English), closed 2026-10-10 | ✅ #1 |
 | Releases | Each `vX.Y.Z` tag publishes installers and the CHANGELOG section as notes (CI) | ✅ since 0.2.0 |
 | lichess.org blog | "Vi presento Pragma Chess…" (IT) — write the English counterpart and a post per notable release | ✅ IT · ☐ EN |
 | Screen recording | 40 s, recorded in the headless session: the Opera game move by move, E on 14.Rd1, Explain's arrows (`site/assets/pragma-chess-explain.webm`, the hero of the site). A longer tour with Training and Play Online is still to make | ✅ clip 2026-10-04 · ☐ tour |
@@ -123,7 +123,7 @@ to the place. Dates and links go here.
    README ✅, awesome-list PRs ✅, winget PR ✅, Flatpak manifest ✅,
    recording ✅, AlternativeTo ✅; still open: social preview, English blog
    post, Flathub build and submission.
-2. **Week 2 (now, from 2026-10-11)**: answer issue #1; release 0.4.0
+2. **Week 2 (now, from 2026-10-11)**: issue #1 answered ✅; release 0.4.0
    (freechess.org, large databases, the Engine panel's graph: much to tell
    since 0.3.0), then the posts with something new to show — Show HN,
    r/chess, lichess forum, TalkChess, Mastodon; Flathub submission.
@@ -240,4 +240,4 @@ books and lichess.org/freechess.org play; Windows, macOS, Linux.`
 | 2026-10-05 | awesome-italia-opensource | https://github.com/italia-opensource/awesome-italia-opensource/pull/222 | merged |
 | 2026-10-10 | Round of the plan | — | statuses checked: winget waits for a moderator, mbiesiad PR without review, mersesarvari repository gone; numbers in "What to measure" |
 | 2026-10-10 | Web site | https://yafb.net/pragma-chess/ | Support links Discussions; Play online names freechess.org |
-| 2026-10-10 | Issue #1 | https://github.com/francescobianco/pragma-chess/issues/1 | qrcodegen from the system's packages: done, answer to post |
+| 2026-10-10 | Issue #1 | https://github.com/francescobianco/pragma-chess/issues/1#issuecomment-6102469020 | qrcodegen from the system's packages: done, answered, closed |

@@ -5375,6 +5375,16 @@ END FUNCTION
         QVERIFY(!Project().toYaml().contains(QLatin1String("lineage")));
     }
 
+    void namesLanguagesWithoutACountry()
+    {
+        // The language alone, as the Switch Language menu shows it: Qt's own
+        // native names say "español de España", "American English".
+        QCOMPARE(LocalizedText::nativeName(QStringLiteral("es")), QStringLiteral("Español"));
+        QCOMPARE(LocalizedText::nativeName(QStringLiteral("en")), QStringLiteral("English"));
+        QCOMPARE(LocalizedText::nativeName(QStringLiteral("it")), QStringLiteral("Italiano"));
+        QCOMPARE(LocalizedText::nativeName(QStringLiteral("pt_BR")), QStringLiteral("Portuguese"));
+    }
+
     void declaresTheLanguageOfAProject()
     {
         // In one language, the language is a declaration: choosing another

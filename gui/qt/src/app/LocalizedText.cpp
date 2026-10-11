@@ -1,5 +1,8 @@
 #include "LocalizedText.h"
 
+#include <QHash>
+#include <QLocale>
+
 const QStringList &LocalizedText::languages()
 {
     static const QStringList list{QStringLiteral("en"), QStringLiteral("it")};
@@ -14,11 +17,18 @@ QString LocalizedText::supported(const QString &code)
 
 QString LocalizedText::nativeName(const QString &language)
 {
-    if (language == QLatin1String("it"))
-        return QStringLiteral("Italiano");
-    if (language == QLatin1String("en"))
-        return QStringLiteral("English");
-    return language;
+    // The language's own name, and only the language: Qt's native names
+    // carry a country for some ("español de España", "American English").
+    static const QHash<QString, QString> names{
+        {QStringLiteral("en"), QStringLiteral("English")},
+        {QStringLiteral("it"), QStringLiteral("Italiano")},
+        {QStringLiteral("es"), QStringLiteral("Español")},
+    };
+    if (const auto found = names.constFind(language); found != names.cend())
+        return *found;
+    // A language not named here yet: its name in English, never a country.
+    const QLocale::Language known = QLocale(language).language();
+    return known == QLocale::C || known == QLocale::AnyLanguage ? language : QLocale::languageToString(known);
 }
 
 LocalizedText::LocalizedText(const QString &language, const QString &text)

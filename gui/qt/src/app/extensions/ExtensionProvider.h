@@ -6,7 +6,7 @@
 
 class QNetworkAccessManager;
 
-/// Where Help ▸ Manage Extensions finds extensions: a provider with its
+/// Where Tools ▸ Manage Extensions finds extensions: a provider with its
 /// catalog. En Croissant's registry is one; others can follow (a publisher
 /// whose engines and databases could be installed the same way).
 class ExtensionProvider : public QObject {

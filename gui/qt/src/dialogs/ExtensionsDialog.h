@@ -17,7 +17,7 @@ class QProgressBar;
 class QPushButton;
 class QTreeWidget;
 
-/// Help ▸ Manage Extensions…: on the left the providers, in the middle what
+/// Tools ▸ Manage Extensions…: on the left the providers, in the middle what
 /// the chosen one offers (searched and filtered by kind), on the right the
 /// chosen extension with Install and Remove. Installing puts the files in
 /// the extensions' folder (ExtensionInstaller) and configures them: an

@@ -406,7 +406,7 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   process's memory (`VmRSS`/`VmHWM`, Linux). Profile a Release build: a
   Debug one is several times slower.
 - `POST /api/extensions {"kind": "engine"|"database", "choose": "Stockfish", "install": true}`
-  opens Help ▸ Manage Extensions… (filtered as Install New Engine… or Install New Database…), chooses an extension (and installs it) and answers
+  opens Tools ▸ Manage Extensions… (filtered as Install New Engine… or Install New Database…), chooses an extension (and installs it) and answers
   with the window's picture.
 - `GET /api/engines` the engines of this computer with their Computing
   Power (level, share of the machine, threads used), the cores, whether the
@@ -487,7 +487,7 @@ up to date.
 
 ## Extensions
 
-Help ▸ Manage Extensions… (`dialogs/ExtensionsDialog`, not modal; Engine ▸
+Tools ▸ Manage Extensions… (`dialogs/ExtensionsDialog`, not modal; Engine ▸
 Install New Engine… and Database ▸ Install New Database… open it on En
 Croissant's registry filtered to that kind, `ExtensionsDialog::showOnly`): providers
 on the left, what the chosen one offers in the middle (search, filter by

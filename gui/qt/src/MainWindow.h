@@ -513,7 +513,7 @@ private:
     void showLobby();
     /// Tools ▸ Convert ▸ PGN to Pragma Database….
     void showConvertPgn();
-    /// Help ▸ Manage Extensions…: not modal, one window; with a kind, on En
+    /// Tools ▸ Manage Extensions…: not modal, one window; with a kind, on En
     /// Croissant's registry showing that kind only (Install New Engine…,
     /// Install New Database…).
     void showExtensions(std::optional<int> kind = std::nullopt);

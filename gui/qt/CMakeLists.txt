@@ -149,7 +149,7 @@ set(APP_ID "io.github.francescobianco.PragmaChess")
 
 # Chess rules, engine driver and "Explain" logic: Qt Core only, shared by the
 # desktop client, the command line tools and the tests.
-# Archives of the extensions (Help ▸ Manage Extensions: engines published as
+# Archives of the extensions (Tools ▸ Manage Extensions: engines published as
 # .zip and .tar.gz): miniz, the system's or fetched (its single-file release).
 find_package(miniz CONFIG QUIET)
 if(TARGET miniz::miniz)

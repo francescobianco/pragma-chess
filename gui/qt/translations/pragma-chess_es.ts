@@ -3906,16 +3906,8 @@ no está en este ordenador.</translation>
         <translation>&amp;Instalar nuevo motor…</translation>
     </message>
     <message>
-        <source>Engines to install with a click, in Help ▸ Manage Extensions</source>
-        <translation>Motores para instalar con un clic, en Ayuda ▸ Gestionar extensiones</translation>
-    </message>
-    <message>
         <source>&amp;Install New Database…</source>
         <translation>&amp;Instalar nueva base de datos…</translation>
-    </message>
-    <message>
-        <source>Databases to install with a click, in Help ▸ Manage Extensions</source>
-        <translation>Bases de datos para instalar con un clic, en Ayuda ▸ Gestionar extensiones</translation>
     </message>
     <message numerus="yes">
         <source>&amp;Move %n Games…</source>
@@ -3958,6 +3950,14 @@ no está en este ordenador.</translation>
             <numerusform>Conexión perdida: vuelvo a conectar con tu partida en %n segundo…</numerusform>
             <numerusform>Conexión perdida: vuelvo a conectar con tu partida en %n segundos…</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>Engines to install with a click, in Tools ▸ Manage Extensions</source>
+        <translation>Motores para instalar con un clic, en Herramientas ▸ Gestionar extensiones</translation>
+    </message>
+    <message>
+        <source>Databases to install with a click, in Tools ▸ Manage Extensions</source>
+        <translation>Bases de datos para instalar con un clic, en Herramientas ▸ Gestionar extensiones</translation>
     </message>
 </context>
 <context>

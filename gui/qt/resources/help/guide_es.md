@@ -304,7 +304,7 @@ Cuando eliminas una base de datos en el teléfono, el ordenador te pregunta en s
 
 # Extensiones {#extensions}
 
-**Ayuda ▸ Gestionar extensiones…** instala motores y bases de datos con un clic. A la izquierda están los **proveedores**, que los ofrecen; en el centro lo que ofrece el proveedor elegido, para buscar por nombre y filtrar por tipo; a la derecha el que eliges, con lo que es, cuánto ocupa, de dónde viene, e **Instalar** y **Quitar**.
+**Herramientas ▸ Gestionar extensiones…** instala motores y bases de datos con un clic. A la izquierda están los **proveedores**, que los ofrecen; en el centro lo que ofrece el proveedor elegido, para buscar por nombre y filtrar por tipo; a la derecha el que eliges, con lo que es, cuánto ocupa, de dónde viene, e **Instalar** y **Quitar**.
 
 Instalar lo descarga y lo pone en la carpeta propia de Pragma Chess, y un motor se une a **Motor ▸ Gestionar motores…** y **Motor ▸ Cambiar motor**, listo para usar: no se toca nada más de tu ordenador, y no se pide ninguna contraseña. **Quitar** lo vuelve a quitar, y si el motor estaba en uso, el incluido ocupa su lugar. Una versión más nueva ofrecida por el proveedor muestra **Actualizar**. **Motor ▸ Instalar nuevo motor…** y **Base de datos ▸ Instalar nueva base de datos…** abren la misma ventana en el registro de En Croissant, mostrando solo motores o solo bases de datos.
 

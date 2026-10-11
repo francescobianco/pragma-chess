@@ -773,7 +773,7 @@ void DesktopApi::addRoutes()
         answer.insert(QStringLiteral("listed"), w->m_gameListProxy->rowCount());
         return json(answer);
     });
-    // Help ▸ Manage Extensions…: opens it and answers with its picture.
+    // Tools ▸ Manage Extensions…: opens it and answers with its picture.
     // {"choose": "Stockfish", "install": true} chooses an extension (and installs it).
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/extensions"), [w](const Request &request) {
         const QJsonObject body = bodyOf(request).value_or(QJsonObject());

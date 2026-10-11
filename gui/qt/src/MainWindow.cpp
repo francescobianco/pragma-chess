@@ -1124,7 +1124,7 @@ void MainWindow::createMenus()
     rebuildEngineChoiceMenu();
     engine->addAction(tr("&Manage Engines…"), this, &MainWindow::manageEngines);
     engine->addAction(tr("&Install New Engine…"), this, [this] { showExtensions(int(Extension::Kind::Engine)); })
-        ->setToolTip(tr("Engines to install with a click, in Help ▸ Manage Extensions"));
+        ->setToolTip(tr("Engines to install with a click, in Tools ▸ Manage Extensions"));
     engine->addSeparator();
     // A wrong explanation as a case for pragma-explain --replay and smart/tests.
     QAction *copyTicks = engine->addAction(tr("&Copy Explain's Ticks"), this, [this] {
@@ -1143,7 +1143,7 @@ void MainWindow::createMenus()
     m_databasesMenu = database->addMenu(themeIcon("folder", QStyle::SP_DirIcon), tr("S&witch Database"));
     connect(m_databasesMenu, &QMenu::aboutToShow, this, &MainWindow::rebuildDatabasesMenu);
     database->addAction(tr("&Install New Database…"), this, [this] { showExtensions(int(Extension::Kind::Database)); })
-        ->setToolTip(tr("Databases to install with a click, in Help ▸ Manage Extensions"));
+        ->setToolTip(tr("Databases to install with a click, in Tools ▸ Manage Extensions"));
     database->setToolTipsVisible(true);
     database->addSeparator();
     database->addAction(m_connectSourceAction);
@@ -1157,6 +1157,9 @@ void MainWindow::createMenus()
     QMenu *tools = menuBar()->addMenu(tr("&Tools"));
     QMenu *convert = tools->addMenu(tr("&Convert"));
     convert->addAction(tr("&PGN to Pragma Database…"), this, &MainWindow::showConvertPgn);
+    tools->addSeparator();
+    tools->addAction(tr("Manage E&xtensions…"), this, [this] { showExtensions(); })
+        ->setToolTip(tr("Engines and databases from the providers, installed with a click"));
 
     QMenu *options = menuBar()->addMenu(tr("&Options"));
     // How this computer reaches the others: the phone, the server.
@@ -1191,8 +1194,6 @@ void MainWindow::createMenus()
     QMenu *help = menuBar()->addMenu(tr("&Help"));
     help->addAction(m_welcomeAction);
     help->addAction(m_guideAction);
-    help->addAction(tr("Manage E&xtensions…"), this, [this] { showExtensions(); })
-        ->setToolTip(tr("Engines and databases from the providers, installed with a click"));
     help->addSeparator();
     help->addAction(tr("&Questions and Ideas…"), this, [] {
         QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/francescobianco/pragma-chess/discussions")));

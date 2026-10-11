@@ -3906,16 +3906,8 @@ non è su questo computer.</translation>
         <translation>&amp;Installa nuovo motore…</translation>
     </message>
     <message>
-        <source>Engines to install with a click, in Help ▸ Manage Extensions</source>
-        <translation>Motori da installare con un clic, in Aiuto ▸ Gestione estensioni</translation>
-    </message>
-    <message>
         <source>&amp;Install New Database…</source>
         <translation>&amp;Installa nuovo database…</translation>
-    </message>
-    <message>
-        <source>Databases to install with a click, in Help ▸ Manage Extensions</source>
-        <translation>Database da installare con un clic, in Aiuto ▸ Gestione estensioni</translation>
     </message>
     <message numerus="yes">
         <source>&amp;Move %n Games…</source>
@@ -3958,6 +3950,14 @@ non è su questo computer.</translation>
             <numerusform>Collegamento perso: mi ricollego alla tua partita tra %n secondo…</numerusform>
             <numerusform>Collegamento perso: mi ricollego alla tua partita tra %n secondi…</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>Engines to install with a click, in Tools ▸ Manage Extensions</source>
+        <translation>Motori da installare con un clic, in Strumenti ▸ Gestione estensioni</translation>
+    </message>
+    <message>
+        <source>Databases to install with a click, in Tools ▸ Manage Extensions</source>
+        <translation>Database da installare con un clic, in Strumenti ▸ Gestione estensioni</translation>
     </message>
 </context>
 <context>

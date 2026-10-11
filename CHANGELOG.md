@@ -20,7 +20,7 @@ and the versions follow [Semantic Versioning](https://semver.org/).
   new one needs only its translation files (see CONTRIBUTING.md).
 - An **AppImage** for Linux: one file that runs on most distributions (Arch,
   openSUSE, Mint…) without installing, with Stockfish inside.
-- **Help ▸ Manage Extensions…** installs engines with a click — Stockfish,
+- **Tools ▸ Manage Extensions…** installs engines with a click — Stockfish,
   RubiChess, Komodo, Dragon, from their authors' own pages, for your system
   and processor — and adds them to Manage Engines; Remove takes them away.
   Nothing else of your computer is touched.

@@ -3,7 +3,7 @@
 #include <QList>
 #include <QString>
 
-/// A thing Help ▸ Manage Extensions can install: an engine, a database.
+/// A thing Tools ▸ Manage Extensions can install: an engine, a database.
 /// Installing only puts files where Pragma Chess looks and configures them
 /// (an engine joins Manage Engines): nothing of the system is touched.
 struct Extension {

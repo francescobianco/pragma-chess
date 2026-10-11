@@ -2,7 +2,7 @@
 
 #include <QString>
 
-/// The archives extensions come in (Help ▸ Manage Extensions): the engines'
+/// The archives extensions come in (Tools ▸ Manage Extensions): the engines'
 /// authors publish .zip, .tar and .tar.gz. Opened with miniz; nothing is
 /// written outside the folder given (an entry with "..", or an absolute one,
 /// is refused).

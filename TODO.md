@@ -8,6 +8,20 @@ AGENTS.md, nel CHANGELOG e nella storia di git.
 
 ## Da fare, in ordine di priorità
 
+### Prima della 0.4.0: tre test falliscono su Windows (11/10/2026)
+
+Il workflow di release lanciato a mano (run 38125433842, senza tag) passa su
+Linux, macOS, AppImage; su Windows `tst_chessrules` ha 3 fallimenti, comparsi
+dopo l'ultimo giro verde del 5/10 (da allora Windows non era più stato
+provato):
+- `readsTheClassicGames`: `game->moves.size() == sans` falso per Legall de
+  Kermeur – Saint Brie (fine riga CRLF del PGN? o `.gitattributes`);
+- `buildsTheIndexOnSeveralThreads`: `cut.resize(cut.size() - 5)` falso
+  (un file ancora mappato non si accorcia su Windows: chiudere la mappa prima);
+- `keepsTheProjectsDatabaseLineage`: `D:/somewhere/...` contro
+  `/somewhere/...` (un percorso assoluto senza lettera di unità nel test).
+Con questi la release non parte: `release` dipende da `windows`.
+
 ### Lasciato a metà l'8/10/2026 (progetti multilingua, lobby)
 
 - **Provare «Rook Endgames» dall'interfaccia**: `gui/qt/resources/projects/Rook

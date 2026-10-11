@@ -1,0 +1,82 @@
+#include "PlayStrength.h"
+
+#include <algorithm>
+#include <cmath>
+
+namespace PlayStrength {
+
+namespace {
+
+/// A mate counts as a large advantage, no larger than this: one move into
+/// or out of a mate does not swamp the average.
+constexpr int kBound = 1000;
+
+int bounded(const EngineEvaluation &evaluation, Side side)
+{
+    return std::clamp(evaluation.centipawnsFor(side), -kBound, kBound);
+}
+
+} // namespace
+
+double winChances(int centipawns)
+{
+    // Lichess's curve, fitted on its games.
+    return 50 + 50 * (2 / (1 + std::exp(-0.00368208 * centipawns)) - 1);
+}
+
+double moveAccuracy(double winBefore, double winAfter)
+{
+    const double lost = std::max(0.0, winBefore - winAfter);
+    return std::clamp(103.1668 * std::exp(-0.04354 * lost) - 3.1669, 0.0, 100.0);
+}
+
+int eloFromLoss(double averageLoss)
+{
+    // Provisional, to be calibrated on rated games: the shape of the fit
+    // often quoted for engine-judged games, Elo ≈ C · e^(−0.01 · ACPL), with
+    // C 2850 — a game without a loss is worth what the best players reach,
+    // not more (3100 put Morphy's Opera game at 2904).
+    return std::clamp(int(std::lround(2850 * std::exp(-0.01 * averageLoss))), 400, 2850);
+}
+
+int eloFromGame(double averageLoss, int moves)
+{
+    const double weight = double(moves) / (moves + kPriorMoves);
+    return int(std::lround(kAverageElo + (eloFromLoss(averageLoss) - kAverageElo) * weight));
+}
+
+Estimate estimate(const QList<std::optional<EngineEvaluation>> &evaluations, Side firstMover)
+{
+    struct Sums {
+        int moves = 0;
+        double loss = 0;
+        double accuracy = 0;
+    } white, black;
+    Side mover = firstMover;
+    for (qsizetype ply = 1; ply < evaluations.size(); ++ply, mover = mover == Side::White ? Side::Black : Side::White) {
+        const std::optional<EngineEvaluation> &before = evaluations.at(ply - 1);
+        const std::optional<EngineEvaluation> &after = evaluations.at(ply);
+        if (!before || !after)
+            continue;
+        const int was = bounded(*before, mover);
+        const int is = bounded(*after, mover);
+        Sums &sums = mover == Side::White ? white : black;
+        ++sums.moves;
+        sums.loss += std::max(0, was - is);
+        sums.accuracy += moveAccuracy(winChances(was), winChances(is));
+    }
+    const auto player = [](const Sums &sums) {
+        Player result;
+        result.moves = sums.moves;
+        if (sums.moves == 0)
+            return result;
+        result.averageLoss = sums.loss / sums.moves;
+        result.accuracy = sums.accuracy / sums.moves;
+        if (sums.moves >= kMinimumMoves)
+            result.elo = eloFromGame(result.averageLoss, sums.moves);
+        return result;
+    };
+    return Estimate{player(white), player(black)};
+}
+
+} // namespace PlayStrength

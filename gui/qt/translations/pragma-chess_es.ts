@@ -1013,6 +1013,41 @@ Las negras han capturado: %2</translation>
         <source>Click to show the score another way.</source>
         <translation>Haz clic para mostrar la puntuación de otra forma.</translation>
     </message>
+    <message>
+        <source>%1: no move judged</source>
+        <translation>%1: ninguna jugada evaluada</translation>
+    </message>
+    <message>
+        <source>≈%1</source>
+        <translation>≈%1</translation>
+    </message>
+    <message>
+        <source>too few moves for an estimate</source>
+        <translation>demasiado pocas jugadas para una estimación</translation>
+    </message>
+    <message numerus="yes">
+        <source>%1: %2 — average loss %3 centipawns, accuracy %4%, %n move(s)</source>
+        <translation>
+            <numerusform>%1: %2 — pérdida media %3 centipeones, precisión %4%, %n jugada</numerusform>
+            <numerusform>%1: %2 — pérdida media %3 centipeones, precisión %4%, %n jugadas</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Strength shown in this game, estimated from the engine&apos;s evaluation of every move:</source>
+        <translation>Fuerza mostrada en esta partida, estimada a partir de la evaluación del motor de cada jugada:</translation>
+    </message>
+    <message>
+        <source>White</source>
+        <translation>Blancas</translation>
+    </message>
+    <message>
+        <source>Black</source>
+        <translation>Negras</translation>
+    </message>
+    <message>
+        <source>From one game the estimate is rough: some hundreds of points either way.</source>
+        <translation>Con una sola partida la estimación es aproximada: unos cientos de puntos arriba o abajo.</translation>
+    </message>
 </context>
 <context>
     <name>Explainer</name>

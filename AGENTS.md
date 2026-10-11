@@ -214,6 +214,19 @@ playing a move turns it off, and the user asks again at the next move.
   click on a dot goes to that ply (`EnginePanel::coursePlyClicked`,
   `GameSession::goToPly`); the dot under the pointer lights up. Empty while
   playing online: nothing judges that game.
+- **The Evaluation of the Game** ("valutazione della partita",
+  `app/GameEvaluation`, core; not in the menus yet — read
+  [docs/tech/game-evaluation.md](docs/tech/game-evaluation.md)): every
+  position of a finished game searched by an engine process of its own, in
+  passes 8, 12, 16, 20, 24 (`nextStep`, pure), each result given to
+  `Explainer::setEvaluation`, so the course fills in; positions known as
+  deep are skipped (`setKnownDepth`). `MainWindow::evaluateGame` starts it
+  when an online game ends — never during one: `setOnlinePlay(true)` stops
+  it. From the evaluations `app/PlayStrength` (pure) estimates each side's
+  Elo (ACPL, bounded ±1000; 2850·e^(−0.01·ACPL), drawn towards 1500 by
+  moves/(moves+12); provisional, to calibrate on rated games), shown by
+  `EvaluationBox::setStrength` in the score's place while idle, two rows in
+  the board's order. `POST/GET /api/evaluation`.
 - The Engine panel shows the engine's whole line, and an eye beside Stop
   (`EnginePanel::peekHeld`): held down, the board shows the
   position at the end of the line, and follows it while the engine goes on
@@ -395,6 +408,8 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   `/api/database {"path"}` (opens a database file), `/api/game {"row"}`
   (opens the game on that row of the games list), `/api/move-games`
   (the list's Move…, see "Trash"); each answers with the state.
+  `POST /api/evaluation {"start"|"stop": true}` and `GET /api/evaluation`
+  (running, positions, completedDepth): the Evaluation of the Game.
 - `POST /api/lobby {"lobby": bool, "playNow": row, "room": row, "join": bool,
   "game": row, "play": bool}` opens Game ▸ Enter the Lobby…, does those steps in that
   order (back to the list, the Play Now of that row, enter the room on that row, take a seat, select

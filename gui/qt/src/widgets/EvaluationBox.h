@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/PlayStrength.h"
 #include "app/ScoreView.h"
 
 #include <QList>
@@ -36,6 +37,10 @@ public:
     void setCourse(const QList<std::optional<double>> &shares, int current);
     /// Whether White is at the top of the board.
     void setFlipped(bool flipped);
+    /// How each side played the game on the board (PlayStrength), shown in
+    /// the score's place while there is no evaluation: two rows, each with
+    /// the dot of its colour, in the order of the board. None hides it.
+    void setStrength(const std::optional<PlayStrength::Estimate> &strength);
 
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
@@ -66,9 +71,14 @@ private:
     /// The dot before the value, its unit (ScoreView::fromMover).
     qreal unitSize() const;
     void paintUnit(QPainter &painter, const QRectF &dot) const;
+    /// The estimated Elo of both sides in the score's section.
+    void paintStrength(QPainter &painter, int section) const;
+    void paintScore(QPainter &painter, int section) const;
+    void paintCourse(QPainter &painter, const QRectF &bounds, qreal radius, const QColor &edge) const;
     void updateToolTip();
 
     std::optional<EngineEvaluation> m_evaluation;
+    std::optional<PlayStrength::Estimate> m_strength;
     ScoreView::Kind m_view = ScoreView::Kind::Absolute;
     Side m_mover = Side::White;
     QString m_scoreTip;

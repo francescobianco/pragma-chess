@@ -8,6 +8,7 @@
 #include "dialogs/ProjectInfoDialog.h"
 
 #include "MainWindow.h"
+#include "app/GameEvaluation.h"
 #include "app/MoveGames.h"
 #include "app/UserFolders.h"
 #include "app/Explainer.h"
@@ -588,6 +589,23 @@ void DesktopApi::addRoutes()
             return LocalHttpServer::error(400, QStringLiteral("expected {\"row\": a row of the games list}"));
         w->openGame(index);
         return json(state());
+    });
+    // The Evaluation of the Game (not in the menus yet): {"start": true} on
+    // the game on the board, {"stop": true}; GET says how far it is.
+    const auto evaluation = [w]() {
+        return QJsonObject{{QStringLiteral("running"), w->m_gameEvaluation->isRunning()},
+                           {QStringLiteral("positions"), w->m_gameEvaluation->positionCount()},
+                           {QStringLiteral("completedDepth"), w->m_gameEvaluation->completedDepth()}};
+    };
+    m_server->route(QStringLiteral("GET"), QStringLiteral("/api/evaluation"),
+                    [evaluation](const Request &) { return json(evaluation()); });
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/evaluation"), [w, evaluation](const Request &request) {
+        const QJsonObject body = bodyOf(request).value_or(QJsonObject());
+        if (body.value(QStringLiteral("stop")).toBool())
+            w->m_gameEvaluation->stop();
+        else if (body.value(QStringLiteral("start")).toBool() && !w->evaluateGame())
+            return LocalHttpServer::error(409, QStringLiteral("the game on the board cannot be evaluated"));
+        return json(evaluation());
     });
     // The games list's Move… on rows of the list: {"rows": [0, 2], "dialog": true}
     // answers with the window's picture; {"rows", "to": a database's path} or

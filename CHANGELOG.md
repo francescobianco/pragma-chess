@@ -8,6 +8,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- When an online game ends, Pragma Chess **evaluates it move by move**:
+  the course beside the score is complete at once and grows more precise,
+  and the score's box shows **the strength each side showed**, an estimated
+  Elo for White and Black in the order of the board (rough from one game).
 - **Move Game…** in the games list's right-click menu takes the selected
   games to another database, or to a new one named there, and can open it
   when done; each game arrives whole before it leaves.

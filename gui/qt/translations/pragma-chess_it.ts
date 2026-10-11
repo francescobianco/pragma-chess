@@ -1013,6 +1013,41 @@ Il Nero ha catturato: %2</translation>
         <source>Click to show the score another way.</source>
         <translation>Clic per mostrare il punteggio in un altro modo.</translation>
     </message>
+    <message>
+        <source>%1: no move judged</source>
+        <translation>%1: nessuna mossa giudicata</translation>
+    </message>
+    <message>
+        <source>≈%1</source>
+        <translation>≈%1</translation>
+    </message>
+    <message>
+        <source>too few moves for an estimate</source>
+        <translation>troppe poche mosse per una stima</translation>
+    </message>
+    <message numerus="yes">
+        <source>%1: %2 — average loss %3 centipawns, accuracy %4%, %n move(s)</source>
+        <translation>
+            <numerusform>%1: %2 — perdita media %3 centesimi di pedone, precisione %4%, %n mossa</numerusform>
+            <numerusform>%1: %2 — perdita media %3 centesimi di pedone, precisione %4%, %n mosse</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Strength shown in this game, estimated from the engine&apos;s evaluation of every move:</source>
+        <translation>Forza mostrata in questa partita, stimata dalla valutazione del motore di ogni mossa:</translation>
+    </message>
+    <message>
+        <source>White</source>
+        <translation>Bianco</translation>
+    </message>
+    <message>
+        <source>Black</source>
+        <translation>Nero</translation>
+    </message>
+    <message>
+        <source>From one game the estimate is rough: some hundreds of points either way.</source>
+        <translation>Da una sola partita la stima è approssimativa: qualche centinaio di punti in più o in meno.</translation>
+    </message>
 </context>
 <context>
     <name>Explainer</name>

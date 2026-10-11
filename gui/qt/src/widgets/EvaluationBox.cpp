@@ -35,6 +35,13 @@ void EvaluationBox::setEvaluation(const std::optional<EngineEvaluation> &evaluat
     update();
 }
 
+void EvaluationBox::setStrength(const std::optional<PlayStrength::Estimate> &strength)
+{
+    m_strength = strength;
+    updateToolTip();
+    update();
+}
+
 void EvaluationBox::setView(ScoreView::Kind view)
 {
     if (m_view == view)
@@ -46,6 +53,25 @@ void EvaluationBox::setView(ScoreView::Kind view)
 
 void EvaluationBox::updateToolTip()
 {
+    if (!m_evaluation && m_strength) {
+        // Where the estimate comes from, side by side.
+        QStringList lines;
+        const auto line = [this](const QString &side, const PlayStrength::Player &player) {
+            if (player.moves == 0)
+                return tr("%1: no move judged").arg(side);
+            const QString elo = player.elo ? tr("≈%1").arg(*player.elo) : tr("too few moves for an estimate");
+            return tr("%1: %2 — average loss %3 centipawns, accuracy %4%, %n move(s)", nullptr, player.moves)
+                .arg(side, elo)
+                .arg(qRound(player.averageLoss))
+                .arg(qRound(player.accuracy));
+        };
+        lines << tr("Strength shown in this game, estimated from the engine's evaluation of every move:")
+              << line(tr("White"), m_strength->white) << line(tr("Black"), m_strength->black)
+              << QString() << tr("From one game the estimate is rough: some hundreds of points either way.");
+        m_scoreTip = lines.join(QLatin1Char('\n'));
+        setAccessibleDescription(lines.mid(1, 2).join(QLatin1String(", ")));
+        return;
+    }
     const Side bottom = m_mover;
     const QString shown = m_evaluation ? ScoreView::text(*m_evaluation, m_view, bottom) : QStringLiteral("–");
     setAccessibleDescription(shown + QLatin1String(", ") + ScoreView::label(m_view, bottom));
@@ -84,6 +110,14 @@ QFont scoreFont(const QFont &base)
 {
     QFont font = base;
     font.setPointSizeF(font.pointSizeF() * 1.8);
+    font.setBold(true);
+    return font;
+}
+
+QFont strengthFont(const QFont &base)
+{
+    QFont font = base;
+    font.setPointSizeF(font.pointSizeF() * 1.15);
     font.setBold(true);
     return font;
 }
@@ -181,6 +215,40 @@ qreal EvaluationBox::unitSize() const
     return qRound(QFontMetrics(scoreFont(font())).capHeight() * 0.8);
 }
 
+void EvaluationBox::paintStrength(QPainter &painter, int section) const
+{
+    // Two rows, the side at the top of the board first, as the pieces are:
+    // the dot of its colour, then its estimated Elo.
+    const QFont font = strengthFont(this->font());
+    const QFontMetrics metrics(font);
+    const qreal unit = unitSize() * 0.8;
+    const qreal gap = unit * 0.6;
+    const int rowHeight = metrics.height();
+    const int rowGap = rowHeight / 4;
+    int y = (height() - 2 * rowHeight - rowGap) / 2;
+    const Side top = m_flipped ? Side::White : Side::Black;
+    QColor edge = palette().color(QPalette::WindowText);
+    edge.setAlphaF(0.55);
+    painter.setFont(font);
+    for (const Side side : {top, top == Side::White ? Side::Black : Side::White}) {
+        const PlayStrength::Player &player = side == Side::White ? m_strength->white : m_strength->black;
+        const QString value = player.elo ? tr("≈%1").arg(*player.elo) : QStringLiteral("–");
+        // The rows share one left edge, so the numbers stand in a column.
+        const qreal width = unit + gap + metrics.horizontalAdvance(tr("≈%1").arg(8888));
+        const qreal left = (section - width) / 2;
+        const QRectF dot(left, y + (rowHeight - unit) / 2.0, unit, unit);
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(side == Side::White ? kWhite : kBlack);
+        painter.drawEllipse(dot);
+        painter.setPen(QPen(edge, 1));
+        painter.setBrush(Qt::NoBrush);
+        painter.drawEllipse(dot.adjusted(0.5, 0.5, -0.5, -0.5));
+        painter.setPen(palette().color(QPalette::WindowText));
+        painter.drawText(QRectF(left + unit + gap, y, width, rowHeight), Qt::AlignLeft | Qt::AlignVCenter, value);
+        y += rowHeight + rowGap;
+    }
+}
+
 void EvaluationBox::paintUnit(QPainter &painter, const QRectF &dot) const
 {
     // The unit: White's view in both colours, the side to move's in its own.
@@ -245,6 +313,15 @@ void EvaluationBox::paintEvent(QPaintEvent *)
     // colours for White's view, the side to move's colour for its own —,
     // and the depth under it.
     const int section = sectionWidth();
+    if (!m_evaluation && m_strength)
+        paintStrength(painter, section);
+    else
+        paintScore(painter, section);
+    paintCourse(painter, bounds, radius, edge);
+}
+
+void EvaluationBox::paintScore(QPainter &painter, int section) const
+{
     const QFontMetrics scoreMetrics(scoreFont(font()));
     const QFontMetrics smallMetrics(depthFont(font()));
     const int textHeight = scoreMetrics.height() + smallMetrics.height();
@@ -271,6 +348,11 @@ void EvaluationBox::paintEvent(QPaintEvent *)
         painter.drawText(QRect(0, y, section, smallMetrics.height()), Qt::AlignCenter, tr("Depth %1").arg(m_evaluation->depth));
     }
 
+}
+
+void EvaluationBox::paintCourse(QPainter &painter, const QRectF &bounds, qreal radius, const QColor &edge) const
+{
+    const int section = sectionWidth();
     // The course of the game, clipped to the box's rounded right end.
     const QRectF graph = graphArea();
     QPainterPath box;

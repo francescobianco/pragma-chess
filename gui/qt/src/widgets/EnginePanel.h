@@ -60,6 +60,8 @@ public:
     ScoreView::Kind scoreView() const { return m_score->view(); }
     /// The game's course beside the score (EvaluationBox::setCourse).
     void setCourse(const QList<std::optional<double>> &shares, int current) { m_score->setCourse(shares, current); }
+    /// How each side played the game on the board, in the score's place when idle (EvaluationBox::setStrength).
+    void setStrength(const std::optional<PlayStrength::Estimate> &strength) { m_score->setStrength(strength); }
     /// Summary of the "Explain" command; empty hides it.
     void setExplanation(const QString &text);
     /// The opening the game is in and the chosen opening book; empty values show a dash.

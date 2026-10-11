@@ -10,6 +10,7 @@
 #include "app/OpeningNames.h"
 #include "app/DatabaseMerge.h"
 #include "app/DistributedUpdate.h"
+#include "app/GameEvaluation.h"
 #include "app/MoveGames.h"
 #include "app/StandInNames.h"
 #include "app/ShippedOpeningNames.h"
@@ -311,6 +312,17 @@ MainWindow::MainWindow(QWidget *parent)
         if (m_enginePanel->isPeeking())
             peekAtEngineLine(true);
     });
+    // The Evaluation of the Game feeds the same store: the course reads it.
+    m_gameEvaluation = new GameEvaluation(this);
+    m_gameEvaluation->setKnownDepth([this](const ChessPosition &position) {
+        const std::optional<EngineEvaluation> known = m_explainer->known(position);
+        return known ? known->depth : 0;
+    });
+    connect(m_gameEvaluation, &GameEvaluation::evaluated, this,
+            [this](int, const ChessPosition &position, const EngineEvaluation &evaluation) {
+                m_explainer->setEvaluation(position, evaluation);
+                updateCourse();
+            });
     // What the engine found about every position, kept across restarts.
     m_explainer->setStorage(QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation))
                                 .filePath(QStringLiteral("explain-evaluations.txt")));
@@ -4048,6 +4060,7 @@ void MainWindow::updateCourse()
     // Nothing that judges the game while it is played online, the
     // evaluations of its positions known from before included.
     QList<std::optional<double>> shares;
+    QList<std::optional<EngineEvaluation>> evaluations;
     if (!m_onlinePlay) {
         const int plies = m_session->plyCount();
         shares.reserve(plies + 1);
@@ -4058,9 +4071,37 @@ void MainWindow::updateCourse()
                 evaluation = MoveComment::evaluation(m_session->moveAt(ply).comment);
             // White's side 1, Black's 0, the balance half way: logarithmic in pawns.
             shares << (evaluation ? std::optional<double>(0.5 + 0.5 * ScoreView::courseHeight(*evaluation)) : std::nullopt);
+            evaluations << evaluation;
         }
     }
     m_enginePanel->setCourse(shares, m_session->ply());
+    // How each side played: once every position of the line is evaluated.
+    const bool whole = evaluations.size() > 1
+        && std::all_of(evaluations.cbegin(), evaluations.cend(), [](const auto &evaluation) { return evaluation.has_value(); });
+    m_enginePanel->setStrength(whole ? std::optional<PlayStrength::Estimate>(PlayStrength::estimate(
+                                           evaluations, m_session->positionAt(0).sideToMove()))
+                                     : std::nullopt);
+}
+
+bool MainWindow::evaluateGame()
+{
+    // The engine of the project, with its Computing Power, as the analysis has it.
+    const EngineProfile &profile = m_engines.resolve(m_engineId, m_engineName);
+    const int cores = QThread::idealThreadCount();
+    const EnginePower power = EnginePower::forLevel(profile.power, cores);
+    GameEvaluation::Engine engine;
+    engine.executable = EngineCatalog::executableFor(profile);
+    engine.threads = profile.threads > 0 ? profile.threads : power.threads;
+    engine.hashMb = profile.hashMb;
+    engine.lowPriority = power.lowPriority;
+    engine.cpuPercent = power.cpuPercent;
+    engine.quotaOfOneCore = power.quotaOfOneCore(cores);
+    // The main line, from where the game starts.
+    const GameRecord &game = m_session->game();
+    QStringList moves;
+    for (const MoveRecord &move : game.moves)
+        moves << move.uci;
+    return !moves.isEmpty() && m_gameEvaluation->start(engine, game.startFen, moves);
 }
 
 void MainWindow::updateExplainer()
@@ -4780,6 +4821,7 @@ void MainWindow::setOnlinePlay(bool on)
     }
     // Against cheating: nothing that thinks for the user runs while they play.
     if (on) {
+        m_gameEvaluation->stop(); // The last game's evaluation goes no further.
         m_trainingModeAction->setChecked(false);
         m_startEngineAction->setChecked(false);
         m_explainAction->setChecked(false);
@@ -4920,6 +4962,8 @@ void MainWindow::onlineGameFinished(const OnlineGame &game)
         m_online.reset();
         setOnlinePlay(false);
         m_enginePanel->setStatus(text);
+        // The game is over: its course is drawn, quickly, then deeper.
+        evaluateGame();
         // What was waiting for this game to end: a new game, online or not.
         if (std::function<void()> next = std::exchange(m_afterOnlineGame, {}))
             next();

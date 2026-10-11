@@ -215,6 +215,10 @@ qt_add_library(pragma-chess-core STATIC
     src/app/ExplainTicks.h
     src/app/Explainer.cpp
     src/app/Explainer.h
+    src/app/GameEvaluation.cpp
+    src/app/GameEvaluation.h
+    src/app/PlayStrength.cpp
+    src/app/PlayStrength.h
     src/app/ExplanationSearch.cpp
     src/app/ExplanationSearch.h
     src/app/GameIdentity.cpp

@@ -40,6 +40,7 @@ class CapturedPiecesWidget;
 class EnginePanel;
 class EvaluationBar;
 class Explainer;
+class GameEvaluation;
 class GameHeaderWidget;
 class UciEngine;
 class GameDatabase;
@@ -334,6 +335,11 @@ private:
     /// The game's course beside the Engine panel's score: the evaluation
     /// known after every move of the line on the board.
     void updateCourse();
+    /// The Evaluation of the Game (app/GameEvaluation) of the game on the
+    /// board: its every position evaluated in passes, each result kept with
+    /// the Explainer's evaluations, so the course fills in. Started when an
+    /// online game ends; not in the menus yet. False if it could not start.
+    bool evaluateGame();
 
     // Projects (.pch): the File menu saves and restores the whole environment.
     void newProject();
@@ -600,6 +606,8 @@ private:
     QHash<QString, QString> m_movedDatabases;
     UciEngine *m_engine;
     Explainer *m_explainer;
+    /// The Evaluation of the Game: a finished game's every position, for its course.
+    GameEvaluation *m_gameEvaluation;
     MoveTreeView *m_moveView;
     QTableView *m_gameView;
     DatabaseTreeWidget *m_databaseTree;

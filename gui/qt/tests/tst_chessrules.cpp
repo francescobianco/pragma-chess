@@ -10,7 +10,9 @@
 #include "app/DatabaseMerge.h"
 #include "app/ClassicGames.h"
 #include "app/DistributedUpdate.h"
+#include "app/GameEvaluation.h"
 #include "app/MoveGames.h"
+#include "app/PlayStrength.h"
 #include "app/StandInNames.h"
 #include "app/DatabaseMigrations.h"
 #include "app/DatabaseOutline.h"
@@ -5373,6 +5375,94 @@ END FUNCTION
         QCOMPARE(read->databasePath, project.databasePath);
         // A project without one writes none.
         QVERIFY(!Project().toYaml().contains(QLatin1String("lineage")));
+    }
+
+    void plansTheEvaluationOfAGame()
+    {
+        // The shallowest pass over the whole game first, in game order.
+        const QList<int> &depths = GameEvaluation::passDepths();
+        QVERIFY(depths.size() >= 2 && depths.first() < depths.last());
+        std::optional<GameEvaluation::Step> step = GameEvaluation::nextStep({0, 0, 0});
+        QVERIFY(step);
+        QCOMPARE(step->ply, 0);
+        QCOMPARE(step->depth, depths.first());
+        step = GameEvaluation::nextStep({depths.first(), 0, depths.last()});
+        QCOMPARE(step->ply, 1); // The end, a mate, is known for good.
+        QCOMPARE(step->depth, depths.first());
+        // A pass done: the next deeper one starts again from the beginning.
+        step = GameEvaluation::nextStep({depths.first(), depths.first(), depths.last()});
+        QCOMPARE(step->ply, 0);
+        QCOMPARE(step->depth, depths.at(1));
+        // A search that went deeper than asked counts for the passes it covers.
+        step = GameEvaluation::nextStep({depths.at(2), depths.first(), depths.last()});
+        QCOMPARE(step->ply, 1);
+        QCOMPARE(step->depth, depths.at(1));
+        QVERIFY(!GameEvaluation::nextStep({depths.last(), depths.last()}));
+        QVERIFY(!GameEvaluation::nextStep({}));
+
+        // A position with no legal moves needs no engine.
+        ChessPosition mate = ChessPosition::startingPosition();
+        for (const char *uci : {"f2f3", "e7e5", "g2g4", "d8h4"})
+            mate.play(*mate.moveFromUci(QString::fromLatin1(uci)));
+        const std::optional<EngineEvaluation> mated = GameEvaluation::finalEvaluation(mate);
+        QVERIFY(mated && mated->isMate);
+        QCOMPARE(mated->mateIn, 0);
+        QCOMPARE(mated->mating, Side::Black);
+        const std::optional<ChessPosition> stalemate = ChessPosition::fromFen(QStringLiteral("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1"));
+        const std::optional<EngineEvaluation> drawn = GameEvaluation::finalEvaluation(*stalemate);
+        QVERIFY(drawn && !drawn->isMate);
+        QCOMPARE(drawn->centipawns, 0);
+        QVERIFY(!GameEvaluation::finalEvaluation(ChessPosition::startingPosition()));
+    }
+
+    void estimatesHowEachSidePlayed()
+    {
+        const auto cp = [](int centipawns) {
+            EngineEvaluation evaluation;
+            evaluation.centipawns = centipawns;
+            evaluation.depth = 20;
+            return std::optional<EngineEvaluation>(evaluation);
+        };
+        // White plays perfectly, Black loses 50 centipawns a move: 12 moves each.
+        QList<std::optional<EngineEvaluation>> evaluations{cp(0)};
+        int score = 0;
+        for (int move = 0; move < 12; ++move) {
+            evaluations << cp(score);      // White's move keeps the balance
+            score += 50;
+            evaluations << cp(score);      // Black's move gives 50 away
+        }
+        PlayStrength::Estimate estimate = PlayStrength::estimate(evaluations, Side::White);
+        QCOMPARE(estimate.white.moves, 12);
+        QCOMPARE(estimate.black.moves, 12);
+        QCOMPARE(estimate.white.averageLoss, 0.0);
+        QCOMPARE(estimate.black.averageLoss, 50.0);
+        QVERIFY(estimate.white.accuracy > 99);
+        QVERIFY(estimate.black.accuracy < estimate.white.accuracy);
+        QVERIFY(estimate.white.elo && estimate.black.elo);
+        QCOMPARE(*estimate.white.elo, PlayStrength::eloFromGame(0, 12));
+        QVERIFY(*estimate.white.elo > *estimate.black.elo);
+        QCOMPARE(*estimate.black.elo, PlayStrength::eloFromGame(50, 12));
+        // No game is worth more than the best players reach, and a short one
+        // stays nearer the average than a long one played as well.
+        QCOMPARE(PlayStrength::eloFromLoss(0), 2850);
+        QVERIFY(PlayStrength::eloFromGame(0, 12) < PlayStrength::eloFromGame(0, 60));
+        QVERIFY(PlayStrength::eloFromGame(0, 60) < PlayStrength::eloFromLoss(0));
+        QVERIFY(PlayStrength::eloFromGame(150, 12) > PlayStrength::eloFromLoss(150));
+
+        // A mate counts as a bounded advantage: one move into it is not a loss of thousands.
+        EngineEvaluation mate;
+        mate.isMate = true;
+        mate.mating = Side::Black;
+        mate.mateIn = 3;
+        estimate = PlayStrength::estimate({cp(0), std::optional<EngineEvaluation>(mate)}, Side::White);
+        QCOMPARE(estimate.white.averageLoss, 1000.0);
+        QVERIFY(!estimate.white.elo); // One move: too few for an estimate.
+        // Unknown positions are skipped, not counted as perfect.
+        estimate = PlayStrength::estimate({cp(0), std::nullopt, cp(0)}, Side::White);
+        QCOMPARE(estimate.white.moves + estimate.black.moves, 0);
+        // The curve falls as the loss grows, within its bounds.
+        QVERIFY(PlayStrength::eloFromLoss(20) > PlayStrength::eloFromLoss(60));
+        QCOMPARE(PlayStrength::eloFromLoss(10000), 400);
     }
 
     void namesLanguagesWithoutACountry()

@@ -1,10 +1,13 @@
 name: Distribution
 
 # Every Monday: where Pragma Chess stands (scripts/distribution-status.sh) in
-# the run's summary, and the day's numbers appended to distribution.csv on
-# the `stats` branch — GitHub keeps visits and clones 14 days only.
-# Visits, clones and referrers need the secret DISTRIBUTION_TOKEN (a token
-# that can read the repository's traffic); without it they are left out.
+# the run's summary, and the day's numbers appended to distribution.csv in
+# the private repository francescobianco/pragma-chess-stats — GitHub keeps
+# visits and clones 14 days only, and shows them to the owner only, so they
+# are kept apart from this public repository and its history.
+# The secret DISTRIBUTION_TOKEN reads this repository's traffic and writes
+# the stats repository (a fine-grained token: Administration read on
+# pragma-chess, Contents read and write on pragma-chess-stats).
 
 on:
   schedule:
@@ -12,27 +15,27 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   status:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: The numbers kept so far
+        uses: actions/checkout@v4
+        with:
+          repository: francescobianco/pragma-chess-stats
+          token: ${{ secrets.DISTRIBUTION_TOKEN }}
+          path: stats
       - name: Where we stand
         env:
           GH_TOKEN: ${{ secrets.DISTRIBUTION_TOKEN || github.token }}
+        run: scripts/distribution-status.sh --csv stats/distribution.csv | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the numbers
+        working-directory: stats
         run: |
-          git fetch origin stats:stats 2>/dev/null && git show stats:distribution.csv > distribution.csv 2>/dev/null || true
-          scripts/distribution-status.sh --csv distribution.csv | tee -a "$GITHUB_STEP_SUMMARY"
-      - name: Keep the numbers on the stats branch
-        run: |
-          cp distribution.csv /tmp/distribution.csv
-          rm distribution.csv # The stats branch has its own: no untracked copy in the way.
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git show-ref --quiet refs/heads/stats; then git checkout -q stats
-          else git checkout -q --orphan stats && git rm -rq --cached . && git clean -fdq; fi
-          cp /tmp/distribution.csv distribution.csv
           git add distribution.csv
-          git commit -qm "Distribution, $(date -u +%F)" && git push -q origin stats
+          git commit -qm "Distribution, $(date -u +%F)" && git push -q

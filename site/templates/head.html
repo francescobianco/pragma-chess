@@ -4,7 +4,15 @@
 <meta name="description" content="{{page.description}}">
 <link rel="icon" href="{{root}}assets/favicon.png">
 <link rel="stylesheet" href="{{root}}assets/style.css">
+<link rel="canonical" href="{{page.url}}">
 {{#each languages}}<link rel="alternate" hreflang="{{code}}" href="{{href}}">
-{{/each}}<meta property="og:title" content="{{page.title}}">
+{{/each}}<link rel="alternate" hreflang="x-default" href="{{default_href}}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="{{page.url}}">
+<meta property="og:title" content="{{page.title}}">
 <meta property="og:description" content="{{page.description}}">
 <meta property="og:image" content="{{page.image}}">
+<meta name="twitter:card" content="summary_large_image">
+{{#if page.software}}<script type="application/ld+json">{{page.software}}</script>
+{{/if}}

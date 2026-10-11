@@ -88,6 +88,32 @@ Quattro cose che la prima lettura non diceva:
    resta suo. Per noi vale lo stesso: la cadenza delle release conta più dei
    contributori.
 
+### Terza lettura: chi lo consiglia (2026-10-11)
+
+Cercando su GitHub chi nomina En Croissant nei propri README, la maggior
+parte non sono elenchi: sono **autori di motori** che scrivono "usalo con
+una GUI come En Croissant, Cute Chess o Arena". E la strada passa da
+Stockfish: la home page di stockfishchess.org lo mostra tra le GUI e tra i
+"Trusted by" (accanto a lichess, chess.com e ChessBase), la pagina
+"Download and usage" della wiki di Stockfish lo mette per primo tra le GUI
+gratuite, e uno dei manutentori di Stockfish (Disservin) ha 8 commit in En
+Croissant. In più è negli elenchi delle tecnologie con cui è fatto
+(awesome-tauri) e qualcuno gli ha fatto i pacchetti Chocolatey e Scoop.
+
+Le alternative per noi, sulla stessa strada:
+
+- **La wiki di Stockfish**: la pagina delle GUI la scrivono gli autori stessi
+  (jose nel 2025, JFXChess nel 2026); la nostra voce è pronta.
+- **Gli elenchi della nostra tecnologia**: dove lui è in awesome-tauri, noi
+  andiamo in awesome-qt-qml; dove lui non è, nella lista delle app libere per
+  Mac (50 000 stelle), che ha Stockfish nei giochi.
+- **Gli autori di motori**: Gestione estensioni installa i loro motori con un
+  clic, e Spiega mostra cosa "pensa" un motore meglio di qualunque altra GUI:
+  un argomento per loro, da portare su TalkChess.
+- **Farsi trovare**: il sito era quasi invisibile ai motori di ricerca e alle
+  anteprime dei link; ora ha indirizzi assoluti, sitemap e la scheda
+  dell'applicazione.
+
 ## 4. Dove si trova
 
 | Canale | En Croissant | Pragma Chess |
@@ -201,6 +227,9 @@ Quello che ha funzionato per lui, adattato a noi:
 | 10. Il post il giorno della release, e correzioni subito dopo | ☐ 0.4.0 a fine ottobre: post su lichess lo stesso giorno, pronti a una 0.4.1 nei giorni seguenti (DISTRIBUTING.md, "Release day") |
 | 11. Le traduzioni aperte a tutti | ✅ una lingua nuova è solo il suo file (Opzioni ▸ Cambia lingua la trova da sé), istruzioni in `CONTRIBUTING.md`, modulo *Translation*, issue fissata [#4](https://github.com/francescobianco/pragma-chess/issues/4) con `good first issue` · ☐ i primi traduttori |
 | 12. Accogliere i contributori | ✅ `CONTRIBUTING.md`, moduli per le issue (qualcosa non va, **Spiega sbaglia** — nostro: ogni errore diventa un test —, traduzione), etichette, domande verso le Discussions; annuncio della 0.4.0 con tre modi di aiutare, [#3](https://github.com/francescobianco/pragma-chess/discussions/3) · ☐ `FUNDING.yml` con i tuoi conti (vedi 8) |
+| 13. Raccomandato da chi fa motori | ✅ voce per la wiki di Stockfish scritta (`packaging/announcements/stockfish-wiki.md`) · ☐ da inserire dal tuo account · più avanti la home di Stockfish |
+| 14. Gli elenchi della nostra tecnologia e dei nostri sistemi | ✅ PR a open-source-mac-os-apps [#1577](https://github.com/serhii-londar/open-source-mac-os-apps/pull/1577) e awesome-qt-qml [#64](https://github.com/mikalv/awesome-qt-qml/pull/64) · ☐ atamano/awesome-chess dal 17 ottobre (testo pronto) |
+| 15. Farsi trovare | ✅ sito con canonical, hreflang, Open Graph assoluti, SoftwareApplication, sitemap · ☐ sitemap in Google Search Console e Bing (tuo account) |
 
 **Il passo che sblocca il resto è la 0.4.0, a fine ottobre.** Blog di lichess in inglese,
 TalkChess e Show HN sono pronti, ma parlano di cose (freechess.org, database

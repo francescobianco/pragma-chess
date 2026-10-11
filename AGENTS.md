@@ -1893,7 +1893,12 @@ language's home through `{{home}}` (header, footer, `head.html`); the
 language links of a page point to the same page in the other language.
 The first article tells the rich logo (`the-logo`: its pictures made from
 the icons and `reading.png`, the knights' steps and the rook's x-ray drawn
-over it). GitHub Pages is
+over it). Every page carries its
+absolute address (`SITE_URL`: canonical, hreflang with x-default, Open
+Graph — a link shared elsewhere needs an absolute image), the home a
+schema.org `SoftwareApplication` (`software()`, the version from
+`PRAGMA_VERSION`), and `docs/sitemap.xml` lists every page with its
+languages (`located()`: a new kind of page goes through it). GitHub Pages is
 set to the `main` branch, folder `/docs`.
 
 ## Working agreements

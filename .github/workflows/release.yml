@@ -210,3 +210,29 @@ jobs:
             gh release create "$TAG" dist/* --title "Pragma Chess ${TAG#v}" \
               --notes-file notes.md --generate-notes $prerelease --verify-tag
           fi
+
+  # A pull request to winget-pkgs with the new version (DISTRIBUTING.md,
+  # winget). It needs a classic token with public_repo, as the secret
+  # WINGET_TOKEN, and the package already in winget-pkgs; until both, it
+  # says so and the release is not affected.
+  winget:
+    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-')
+    needs: [version, release]
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - name: Is there a token?
+        id: token
+        shell: bash
+        env:
+          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          if [ -n "$WINGET_TOKEN" ]; then echo "present=true" >> "$GITHUB_OUTPUT"
+          else echo "::notice::No WINGET_TOKEN secret: send the winget update by hand (packaging/winget/make-winget.sh)"; fi
+      - if: steps.token.outputs.present == 'true'
+        uses: vedantmgoyal9/winget-releaser@v2
+        with:
+          identifier: FrancescoBianco.PragmaChess
+          version: ${{ needs.version.outputs.version }}
+          installers-regex: '-[0-9.]+-windows-x64-setup\.exe$'  # the versioned name, not the latest one
+          token: ${{ secrets.WINGET_TOKEN }}

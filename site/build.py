@@ -27,6 +27,7 @@ import json
 import re
 import shutil
 from pathlib import Path
+from urllib.parse import urljoin
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT.parent / "docs"
@@ -34,6 +35,10 @@ GUIDES = ROOT.parent / "gui" / "qt" / "resources" / "help"
 LANGUAGES = ["en", "it"]
 DEFAULT_LANGUAGE = "en"
 REPO = "francescobianco/pragma-chess"
+# Where GitHub Pages serves docs/: search engines and link previews need
+# absolute addresses (og:image, canonical, hreflang, the sitemap).
+SITE_URL = "https://yafb.net/pragma-chess/"
+SITEMAP = []
 
 PARTIAL = re.compile(r"\{\{>\s*([\w-]+)\s*\}\}")
 EACH = re.compile(r"\{\{#each\s+([\w.]+)\s*\}\}(.*?)\{\{/each\}\}", re.S)
@@ -148,6 +153,62 @@ def languages_of(content, lang, path=""):
              "href": "../" * (path.count("/") + 1) + f"{code}/{path}"} for code in LANGUAGES]
 
 
+def version():
+    """The version being built, from the top-level CMakeLists.txt."""
+    text = (ROOT.parent / "CMakeLists.txt").read_text(encoding="utf-8")
+    return re.search(r"set\(PRAGMA_VERSION ([\d.]+)", text).group(1)
+
+
+def software(content, lang):
+    """What the home page is about, for search engines (schema.org)."""
+    return json.dumps({
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Pragma Chess",
+        "description": content["meta"]["description"],
+        "url": f"{SITE_URL}{lang}/",
+        "applicationCategory": "GameApplication",
+        "applicationSubCategory": "Chess database",
+        "operatingSystem": "Windows, macOS, Linux, Android",
+        "softwareVersion": version(),
+        "license": "https://opensource.org/licenses/MIT",
+        "isAccessibleForFree": True,
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"},
+        "downloadUrl": f"https://github.com/{REPO}/releases/latest",
+        "codeRepository": f"https://github.com/{REPO}",
+        "screenshot": f"{SITE_URL}assets/screenshots/explain.png",
+        "image": f"{SITE_URL}assets/screenshots/hero.png",
+        "inLanguage": LANGUAGES,
+        "author": {"@type": "Person", "name": "Francesco Bianco", "url": "https://github.com/francescobianco"},
+    }, ensure_ascii=False)
+
+
+def located(context, path):
+    """The context of the page at `path` (under docs/, "en/guide/"), with its
+    absolute address, image and language links, and the page in the sitemap."""
+    url = SITE_URL + path
+    page = {**context["page"], "url": url, "image": urljoin(url, context["page"]["image"])}
+    languages = [{**language, "href": urljoin(url, language["href"])} for language in context["languages"]]
+    default = next((language for language in languages if language["code"] == DEFAULT_LANGUAGE), None)
+    SITEMAP.append({"url": url, "alternates": languages})
+    return {**context, "page": page, "languages": languages, "default_href": default["href"] if default else url}
+
+
+def sitemap():
+    """docs/sitemap.xml: every page, with its versions in the other languages."""
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>',
+             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+             'xmlns:xhtml="http://www.w3.org/1999/xhtml">']
+    for entry in SITEMAP:
+        lines.append(f"  <url>\n    <loc>{html.escape(entry['url'])}</loc>")
+        for language in entry["alternates"]:
+            lines.append(f'    <xhtml:link rel="alternate" hreflang="{language["code"]}" '
+                         f'href="{html.escape(language["href"])}"/>')
+        lines.append("  </url>")
+    lines.append("</urlset>")
+    return "\n".join(lines) + "\n"
+
+
 def build():
     if OUT.exists():
         for child in OUT.iterdir():
@@ -155,6 +216,7 @@ def build():
             if child.name != "tech":
                 shutil.rmtree(child) if child.is_dir() else child.unlink()
     OUT.mkdir(parents=True, exist_ok=True)
+    SITEMAP.clear()
     (OUT / ".nojekyll").write_text("")
     shutil.copytree(ROOT / "assets", OUT / "assets")
 
@@ -176,7 +238,8 @@ def build():
             "languages": languages_of(content, lang),
         }
         (OUT / lang).mkdir(exist_ok=True)
-        (OUT / lang / "index.html").write_text(render(page, context), encoding="utf-8")
+        home = located({**context, "page": {**context["page"], "software": software(content, lang)}}, f"{lang}/")
+        (OUT / lang / "index.html").write_text(render(page, home), encoding="utf-8")
 
         # The blog: its list, then each article with its pictures.
         posts = articles(lang)
@@ -195,7 +258,8 @@ def build():
                           "image": "../../assets/screenshots/guide.png"},
                  "languages": languages_of(content, lang, "guide/")}
         (OUT / lang / "guide").mkdir(exist_ok=True)
-        (OUT / lang / "guide" / "index.html").write_text(render(guide_page, guide), encoding="utf-8")
+        (OUT / lang / "guide" / "index.html").write_text(render(guide_page, located(guide, f"{lang}/guide/")),
+                                                         encoding="utf-8")
         for index, topic in enumerate(topics):
             target = OUT / lang / "guide" / topic["id"]
             target.mkdir(exist_ok=True)
@@ -206,10 +270,12 @@ def build():
                             "page": {"title": f"{topic['title']} – {content['guide']['page_title']}",
                                      "description": topic["summary"], "image": "../../../assets/screenshots/guide.png"},
                             "languages": languages_of(content, lang, f"guide/{topic['id']}/")}
-            (target / "index.html").write_text(render(topic_page, page_context), encoding="utf-8")
+            (target / "index.html").write_text(
+                render(topic_page, located(page_context, f"{lang}/guide/{topic['id']}/")), encoding="utf-8")
 
         (OUT / lang / "blog").mkdir(exist_ok=True)
-        (OUT / lang / "blog" / "index.html").write_text(render(blog_page, blog), encoding="utf-8")
+        (OUT / lang / "blog" / "index.html").write_text(render(blog_page, located(blog, f"{lang}/blog/")),
+                                                        encoding="utf-8")
         for post in posts:
             target = OUT / lang / "blog" / post["slug"]
             shutil.copytree(post["folder"], target, ignore=shutil.ignore_patterns("*.html", "meta.json"))
@@ -220,7 +286,8 @@ def build():
                            {**language, "href": language["href"] if (post["folder"] / f"{language['code']}.html").exists()
                             else language["href"].removesuffix(post["slug"] + "/")}
                            for language in languages_of(content, lang, f"blog/{post['slug']}/")]}
-            (target / "index.html").write_text(render(post_page, article), encoding="utf-8")
+            (target / "index.html").write_text(
+                render(post_page, located(article, f"{lang}/blog/{post['slug']}/")), encoding="utf-8")
 
     redirect = (ROOT / "templates" / "redirect.html").read_text(encoding="utf-8")
     (OUT / "index.html").write_text(
@@ -229,6 +296,7 @@ def build():
     (OUT / "404.html").write_text(
         render(redirect, {"languages": json.dumps(LANGUAGES), "default": DEFAULT_LANGUAGE}), encoding="utf-8"
     )
+    (OUT / "sitemap.xml").write_text(sitemap(), encoding="utf-8")
     print(f"site written to {OUT}")
 
 

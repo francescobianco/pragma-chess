@@ -35,6 +35,8 @@
 #include <QPainter>
 #include <QAction>
 #include <QBuffer>
+#include <QLineEdit>
+#include <QComboBox>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -603,6 +605,12 @@ void DesktopApi::addRoutes()
         if (body.value(QStringLiteral("dialog")).toBool()) {
             MoveGamesDialog dialog(int(uids.size()), w->moveTargets(), UserFolders::databasesDir(),
                                    body.value(QStringLiteral("open")).toBool(), w);
+            // {"name": …}: New Database chosen and the name typed, as the user sees it.
+            if (body.contains(QStringLiteral("name"))) {
+                auto *target = dialog.findChild<QComboBox *>();
+                target->setCurrentIndex(target->count() - 1);
+                dialog.findChild<QLineEdit *>()->setText(body.value(QStringLiteral("name")).toString());
+            }
             dialog.show();
             QByteArray png;
             QBuffer buffer(&png);

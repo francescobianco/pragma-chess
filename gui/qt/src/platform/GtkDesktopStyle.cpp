@@ -15,6 +15,8 @@
 #include <QStyleFactory>
 #include <QStyleOption>
 
+#include <algorithm>
+
 namespace {
 
 /// The transparent margin around a menu that holds its shadow, and the
@@ -23,6 +25,20 @@ constexpr int kMenuShadow = 12;
 /// Set on a menu whose left shadow is cut short (see eventFilter): how much.
 constexpr const char *kShadowCutProperty = "pragmaMenuShadowCut";
 constexpr qreal kMenuRadius = 6;
+
+// Dialogs measured as Adwaita's: Fusion packs them tight, a field a slit
+// between labels. These are the one place their room is decided.
+constexpr int kDialogMargin = 18;          // around the contents of a dialog
+constexpr int kDialogHorizontalSpacing = 12;
+constexpr int kDialogVerticalSpacing = 8;
+constexpr int kDialogControlHeight = 34;   // fields, drop-downs, spin boxes, buttons
+constexpr int kDialogFieldPadding = 4;     // more room each side of a field's text
+
+/// Whether `widget` is in a dialog (QMessageBox and QWizard included).
+bool inDialog(const QWidget *widget)
+{
+    return widget && qobject_cast<const QDialog *>(widget->window());
+}
 
 /// A menu opened from an item of another menu that is on screen.
 bool isSubMenu(const QMenu *menu)
@@ -142,6 +158,21 @@ QSize GtkDesktopStyle::sizeFromContents(ContentsType type, const QStyleOption *o
                                         const QSize &size, const QWidget *widget) const
 {
     QSize result = QProxyStyle::sizeFromContents(type, option, size, widget);
+    if (inDialog(widget)) {
+        switch (type) {
+        case CT_LineEdit:
+            result.rwidth() += 2 * kDialogFieldPadding;
+            result.setHeight(std::max(result.height(), kDialogControlHeight));
+            return result;
+        case CT_ComboBox:
+        case CT_SpinBox:
+        case CT_PushButton:
+            result.setHeight(std::max(result.height(), kDialogControlHeight));
+            return result;
+        default:
+            break;
+        }
+    }
     if (type == CT_MenuBarItem && !result.isEmpty()) {
         // Fusion packs menu bar items tightly; GTK menu bars are more generous.
         result += QSize(8, 10);
@@ -157,6 +188,24 @@ QSize GtkDesktopStyle::sizeFromContents(ContentsType type, const QStyleOption *o
 int GtkDesktopStyle::pixelMetric(PixelMetric metric, const QStyleOption *option,
                                  const QWidget *widget) const
 {
+    if (inDialog(widget)) {
+        switch (metric) {
+        case PM_LayoutLeftMargin:
+        case PM_LayoutTopMargin:
+        case PM_LayoutRightMargin:
+        case PM_LayoutBottomMargin:
+            // The dialog's own layout; layouts inside it keep theirs.
+            if (widget->isWindow())
+                return kDialogMargin;
+            break;
+        case PM_LayoutHorizontalSpacing:
+            return kDialogHorizontalSpacing;
+        case PM_LayoutVerticalSpacing:
+            return kDialogVerticalSpacing;
+        default:
+            break;
+        }
+    }
     // Breathing room between the popup edge and its first/last item.
     if (metric == PM_MenuVMargin)
         return QProxyStyle::pixelMetric(metric, option, widget) + 4;
@@ -169,6 +218,15 @@ int GtkDesktopStyle::pixelMetric(PixelMetric metric, const QStyleOption *option,
             return QProxyStyle::pixelMetric(metric, option, widget) - kMenuShadow;
     }
     return QProxyStyle::pixelMetric(metric, option, widget);
+}
+
+QRect GtkDesktopStyle::subElementRect(SubElement element, const QStyleOption *option, const QWidget *widget) const
+{
+    QRect rect = QProxyStyle::subElementRect(element, option, widget);
+    // The text of a dialog's field does not touch its frame.
+    if (element == SE_LineEditContents && inDialog(widget))
+        rect.adjust(kDialogFieldPadding, 0, -kDialogFieldPadding, 0);
+    return rect;
 }
 
 void GtkDesktopStyle::drawControl(ControlElement element, const QStyleOption *option,

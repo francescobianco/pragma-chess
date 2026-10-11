@@ -7,7 +7,8 @@
 /// details that visibly clash with GTK applications: bevels and rules around
 /// the menu bar and toolbars, separator lines, dotted splitter grips and
 /// always-visible mnemonic underlines. It also gives the menu bar and
-/// drop-down menus GTK-like spacing.
+/// drop-down menus GTK-like spacing, and dialogs Adwaita's room: margins,
+/// spacing, and fields and buttons as tall as GNOME's (kDialog*).
 ///
 /// On Wayland nobody draws a shadow under a popup: GTK applications draw
 /// their own, and so does this style for menus, or they would lie flat on
@@ -31,6 +32,7 @@ public:
                            const QWidget *widget) const override;
     int pixelMetric(PixelMetric metric, const QStyleOption *option = nullptr,
                     const QWidget *widget = nullptr) const override;
+    QRect subElementRect(SubElement element, const QStyleOption *option, const QWidget *widget) const override;
     void drawControl(ControlElement element, const QStyleOption *option, QPainter *painter,
                      const QWidget *widget) const override;
     void drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter,

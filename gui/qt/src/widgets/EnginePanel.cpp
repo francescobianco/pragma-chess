@@ -11,6 +11,8 @@
 #include <QLabel>
 #include <QMouseEvent>
 #include <QPushButton>
+#include <QStyle>
+#include <QTimer>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -376,6 +378,8 @@ void EnginePanel::setBookName(const QString &name)
 
 void EnginePanel::setOnlineActions(bool shown, bool enabled, DrawOffer offer)
 {
+    if (shown && m_onlineActions->isHidden())
+        QTimer::singleShot(0, this, &EnginePanel::spaceClocks);
     m_onlineActions->setVisible(shown);
     m_draw->setText(offer == DrawOffer::Theirs ? tr("Accept Draw")
                     : offer == DrawOffer::Mine ? tr("Draw Offered")
@@ -387,8 +391,20 @@ void EnginePanel::setOnlineActions(bool shown, bool enabled, DrawOffer offer)
     m_resign->setEnabled(enabled);
 }
 
+void EnginePanel::spaceClocks()
+{
+    // The clocks as far apart as the two buttons under them, measured where
+    // the layout put them (it spaces buttons as the style says, not as a
+    // number it would give back).
+    if (m_clocks->isHidden() || m_onlineActions->isHidden())
+        return;
+    m_clocks->setSpacing(m_resign->geometry().left() - m_draw->geometry().right() - 1);
+}
+
 void EnginePanel::setClocks(bool shown, int whiteMs, int blackMs, std::optional<Side> running)
 {
+    if (shown && m_clocks->isHidden())
+        QTimer::singleShot(0, this, &EnginePanel::spaceClocks);
     m_clocks->setVisible(shown);
     if (shown)
         m_clocks->setClocks(whiteMs, blackMs, running);

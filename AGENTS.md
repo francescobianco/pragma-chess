@@ -1817,7 +1817,13 @@ through its telnet session.
   progress is remembered in QSettings (`online/activeGame`, `online/activeAccount`,
   per computer) from its start to its end: at startup `resumeOnlineGame`
   follows it again (`LichessBoardClient::resume`, the game stream sends the
-  whole game, or its end, again); a resume that fails forgets it. There is
+  whole game, or its end, again). A failure of the network — at startup or
+  in the middle of the game — is not the end: online play stays on and the
+  game is followed again after 5, 10, 20, then every 30 seconds
+  (`onlineFailed`, `m_reconnectAttempts`); only a failure for good
+  (`OnlineClient::failedForGood`: lichess answering 4xx) forgets it. The
+  Engine panel's title is the platform while playing online. Tried against a
+  stand-in server with `PRAGMA_LICHESS_URL=http://127.0.0.1:…`. There is
   no Stop Playing Online entry; Engine ▸ Online Play Mode, disabled while off (play starts from Game ▸ New Online Game…) and chosen while on,
   stops. The flag is not part of the project. Opening another database while it is
   on (`keepOnlineGame`: Switch Database, New Database, the sync opening the

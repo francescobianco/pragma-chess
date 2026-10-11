@@ -29,6 +29,10 @@ public:
     /// Whether a game in progress can be followed again after the
     /// application was closed (resume).
     virtual bool canResume() const { return false; }
+    /// Whether the last failure is for good — the platform said the game or
+    /// the account is not there — rather than the network: a game in progress
+    /// is followed again after a network failure, forgotten after this.
+    virtual bool failedForGood() const { return true; }
     /// Follows again a game already started (canResume()).
     virtual void resume(const QString &gameId) { Q_UNUSED(gameId) }
     virtual bool isSeeking() const = 0;

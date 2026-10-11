@@ -98,6 +98,8 @@ protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
+    /// The room between the clocks, from the buttons under them (setClocks, setOnlineActions).
+    void spaceClocks();
     ChessClocks *m_clocks;
     QWidget *m_onlineActions;
     QPushButton *m_draw;

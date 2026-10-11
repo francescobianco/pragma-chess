@@ -26,6 +26,9 @@ public:
     void setClocks(int whiteMs, int blackMs, std::optional<Side> running);
     /// Follows the board: the colour at its top comes first.
     void setFlipped(bool flipped);
+    /// The room between the two clocks: the panel gives the one between its
+    /// buttons under them, so faces and buttons line up.
+    void setSpacing(int spacing);
 
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
@@ -42,6 +45,7 @@ private:
     int m_ms[2] = {0, 0}; // By Side.
     std::optional<Side> m_running;
     bool m_flipped = false;
+    int m_spacing = 14;
     QElapsedTimer m_since;
     QTimer *m_tick;
 };

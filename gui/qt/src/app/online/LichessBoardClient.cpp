@@ -9,7 +9,10 @@
 
 namespace {
 
-const QString kBase = QStringLiteral("https://lichess.org");
+/// lichess.org, or the server PRAGMA_LICHESS_URL names: tried against a
+/// local stand-in, never on lichess by seeking (a stranger would accept).
+const QString kBase = qEnvironmentVariableIsSet("PRAGMA_LICHESS_URL") ? qEnvironmentVariable("PRAGMA_LICHESS_URL")
+                                                                     : QStringLiteral("https://lichess.org");
 
 } // namespace
 
@@ -144,10 +147,14 @@ void LichessBoardClient::openGameStream(const QString &gameId)
         QNetworkReply *reply = m_gameStream;
         m_gameStream = nullptr;
         reply->deleteLater();
+        // lichess answering 4xx (no such game, no access) is for good; the
+        // network failing, or the stream closing without an end, is not:
+        // the game goes on on lichess and can be followed again.
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        m_failedForGood = status >= 400 && status < 500;
         if (reply->error() != QNetworkReply::NoError && reply->error() != QNetworkReply::OperationCanceledError) {
             Q_EMIT failed(SourceFetch::httpError(reply, QStringLiteral("lichess.org")));
         } else if (!m_game.isOver()) {
-            // The stream closed without an end: the game is over for us.
             Q_EMIT failed(tr("The connection with lichess.org was lost."));
         }
         closeGame();

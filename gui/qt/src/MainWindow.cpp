@@ -4861,6 +4861,9 @@ void MainWindow::setOnlinePlay(bool on)
         return;
     m_onlinePlay = on;
     m_onlineModeAction->setChecked(on);
+    // The panel's title: the platform played on, in the engine's place.
+    m_enginePanel->setEngineName(on ? OnlineAccounts::platformName(m_onlineAccount.platform)
+                                    : m_engines.resolve(m_engineId, m_engineName).name);
     // The score and the course say nothing while playing: hidden, back when it ends.
     m_enginePanel->setScoreShown(!on);
     m_onlineModeAction->setEnabled(on);
@@ -4892,6 +4895,7 @@ void MainWindow::setOnlinePlay(bool on)
 
 void MainWindow::onlineGameStarted(const OnlineGame &game)
 {
+    m_reconnectAttempts = 0;
     // Remembered until the game ends, so a restart follows it again.
     m_resumingOnline = false;
     QSettings settings;
@@ -5028,8 +5032,22 @@ void MainWindow::onlineGameFinished(const OnlineGame &game)
 
 void MainWindow::onlineFailed(const QString &message)
 {
-    // A game that cannot be followed again is forgotten; one whose connection
-    // was lost while playing is kept, and the next start tries again.
+    // The network failed while a game goes on on the platform (or as it was
+    // followed again at startup): followed again in a while, the board and
+    // online play left as they are — it is still being played.
+    const bool gameKept = !QSettings().value(QLatin1String(kActiveGameKey)).toString().isEmpty();
+    if (m_online && m_online->canResume() && !m_online->failedForGood() && gameKept) {
+        m_resumingOnline = false;
+        const int seconds = std::min(30, 5 << std::min(m_reconnectAttempts++, 2)); // 5, 10, 20, then 30
+        m_enginePanel->setStatus(tr("Connection lost: reconnecting to your game in %n second(s)…", nullptr, seconds));
+        QTimer::singleShot(0, this, [this] { m_online.reset(); });
+        QTimer::singleShot(seconds * 1000, this, [this] {
+            if (!m_online && m_onlinePlay)
+                resumeOnlineGame();
+        });
+        return;
+    }
+    // A game that cannot be followed again is forgotten.
     if (m_resumingOnline) {
         m_resumingOnline = false;
         forgetActiveOnlineGame();

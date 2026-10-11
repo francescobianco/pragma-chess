@@ -615,6 +615,8 @@ private:
     /// analyses. By the game's uid, or its address while it has none.
     QHash<QString, PlayStrength::Estimate> m_frozenStrength;
     QString m_evaluatedGame;
+    /// Attempts to follow an online game again since its connection was lost.
+    int m_reconnectAttempts = 0;
     /// The Evaluation of the Game's progress in the Engine panel, by its time budget.
     QTimer *m_evaluationProgress;
     QElapsedTimer m_evaluationClock;

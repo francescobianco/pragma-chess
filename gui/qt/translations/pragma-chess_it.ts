@@ -3952,6 +3952,13 @@ non è su questo computer.</translation>
             <numerusform>%n partite spostate in %1</numerusform>
         </translation>
     </message>
+    <message numerus="yes">
+        <source>Connection lost: reconnecting to your game in %n second(s)…</source>
+        <translation>
+            <numerusform>Collegamento perso: mi ricollego alla tua partita tra %n secondo…</numerusform>
+            <numerusform>Collegamento perso: mi ricollego alla tua partita tra %n secondi…</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

@@ -20,6 +20,7 @@ public:
     void seek(const Seek &seek) override;
     void cancelSeek() override;
     bool canResume() const override { return true; }
+    bool failedForGood() const override { return m_failedForGood; }
     /// Follows again a game already started, e.g. after the application was
     /// closed during it: the stream sends the whole game (or its end) again.
     void resume(const QString &gameId) override;
@@ -48,6 +49,7 @@ private:
     void closeGame();
 
     QString m_token;
+    bool m_failedForGood = false;
     QNetworkAccessManager *m_network;
     QNetworkReply *m_events = nullptr;
     QNetworkReply *m_seek = nullptr;

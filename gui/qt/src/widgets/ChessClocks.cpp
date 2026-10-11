@@ -16,7 +16,6 @@ constexpr qreal kStroke = kDigitHeight * 0.115;
 constexpr qreal kGap = kDigitHeight * 0.14;   // Between two figures.
 constexpr qreal kNarrow = kDigitHeight * 0.22; // A colon's or a point's place.
 constexpr qreal kPadding = 12;
-constexpr qreal kSpacing = 14; // Between the two clocks.
 constexpr qreal kKing = kDigitHeight; // The king's square, as tall as the figures.
 
 QString clockText(int ms)
@@ -165,9 +164,18 @@ qreal ChessClocks::displayWidth() const
     return width + kKing + 3 * kPadding;
 }
 
+void ChessClocks::setSpacing(int spacing)
+{
+    if (m_spacing == spacing)
+        return;
+    m_spacing = spacing;
+    updateGeometry();
+    update();
+}
+
 QSize ChessClocks::sizeHint() const
 {
-    return {int(2 * displayWidth() + kSpacing) + 2, int(kDigitHeight + 2 * kPadding) + 2};
+    return {int(2 * displayWidth() + m_spacing) + 1, int(kDigitHeight + 2 * kPadding) + 2};
 }
 
 QSize ChessClocks::minimumSizeHint() const
@@ -190,7 +198,9 @@ void ChessClocks::paintEvent(QPaintEvent *)
     const Side first = m_flipped ? Side::White : Side::Black;
     const Side sides[2] = {first, first == Side::White ? Side::Black : Side::White};
     for (int i = 0; i < 2; ++i)
-        paintFace(painter, QRectF(1 + i * (width + kSpacing), 1, width, height() - 2), sides[i], remaining(sides[i]),
+        // From the very left, as the buttons under them start (one pixel in
+        // looked one pixel too far right).
+        paintFace(painter, QRectF(i * (width + m_spacing), 1, width, height() - 2), sides[i], remaining(sides[i]),
                   sides[i] == m_running);
 }
 

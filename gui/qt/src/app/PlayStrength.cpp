@@ -14,18 +14,21 @@ constexpr int kBound = 1000;
 /// A move under half a pawn of loss is a good one.
 constexpr int kGoodMove = 50;
 
+/// The least an easy move ahead counts: it never vanishes from the average.
+constexpr double kLeastEasyWeight = 0.3;
+
 /// How much a move counts in the average, from the advantage the mover had
 /// before it (the user's rule, 2026-10-11): ahead, a good move was easy and
-/// counts less — 1 / (1 + (advantage / 1 pawn)²) —, and a mistake was
-/// sloppiness and counts more — 1 + advantage / 10 pawns, up to twice. Level
-/// or behind, every move counts once. Not part of the calibration: a player
-/// never ahead is measured as the curve was fitted.
+/// counts less — 1 / (1 + (advantage / 1 pawn)²), never under 0.3 —, and a
+/// mistake was sloppiness and counts more — 1 + advantage / 10 pawns, up to
+/// twice. Level or behind, every move counts once. Not part of the
+/// calibration: a player never ahead is measured as the curve was fitted.
 double weight(int advantage, int loss)
 {
     if (advantage <= 0)
         return 1;
     if (loss < kGoodMove)
-        return 1 / (1 + std::pow(advantage / 100.0, 2));
+        return std::max(kLeastEasyWeight, 1 / (1 + std::pow(advantage / 100.0, 2)));
     return 1 + advantage / 1000.0;
 }
 
@@ -69,14 +72,9 @@ int eloFromGame(double averageLoss, int moves)
     return int(std::lround(kAverageElo + (elo - kAverageElo) * weight));
 }
 
-Estimate estimate(const QList<std::optional<EngineEvaluation>> &evaluations, Side firstMover)
+QList<JudgedMove> judgedMoves(const QList<std::optional<EngineEvaluation>> &evaluations, Side firstMover)
 {
-    struct Sums {
-        int moves = 0;
-        double weights = 0;
-        double loss = 0;
-        double accuracy = 0;
-    } white, black;
+    QList<JudgedMove> moves;
     Side mover = firstMover;
     for (qsizetype ply = 1; ply < evaluations.size(); ++ply, mover = mover == Side::White ? Side::Black : Side::White) {
         const std::optional<EngineEvaluation> &before = evaluations.at(ply - 1);
@@ -89,13 +87,26 @@ Estimate estimate(const QList<std::optional<EngineEvaluation>> &evaluations, Sid
         // (the bound), and an easy move in a won game says little.
         if ((was >= kBound && is >= kBound) || (was <= -kBound && is <= -kBound))
             continue;
-        Sums &sums = mover == Side::White ? white : black;
         const int loss = std::max(0, was - is);
-        const double counts = weight(was, loss);
+        moves.append({int(ply), mover, was, loss, weight(was, loss)});
+    }
+    return moves;
+}
+
+Estimate estimate(const QList<std::optional<EngineEvaluation>> &evaluations, Side firstMover)
+{
+    struct Sums {
+        int moves = 0;
+        double weights = 0;
+        double loss = 0;
+        double accuracy = 0;
+    } white, black;
+    for (const JudgedMove &move : judgedMoves(evaluations, firstMover)) {
+        Sums &sums = move.side == Side::White ? white : black;
         ++sums.moves;
-        sums.weights += counts;
-        sums.loss += counts * loss;
-        sums.accuracy += moveAccuracy(winChances(was), winChances(is));
+        sums.weights += move.weight;
+        sums.loss += move.weight * move.loss;
+        sums.accuracy += moveAccuracy(winChances(move.advantage), winChances(move.advantage - move.loss));
     }
     const auto player = [](const Sums &sums) {
         Player result;

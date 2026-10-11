@@ -72,7 +72,7 @@ them in the tooltip. Nothing is shown during an online game.
   judged.
 - **Moves weighed by the advantage they were played with** (the user's rule,
   2026-10-11): ahead, a good move (under half a pawn lost) was easy and
-  counts 1 / (1 + (advantage / 1 pawn)²); a mistake was sloppiness and counts
+  counts 1 / (1 + (advantage / 1 pawn)²), never under 0.3; a mistake was sloppiness and counts
   1 + advantage / 10 pawns, up to twice; level or behind, every move counts
   once. The average loss is the weighted one. It is not part of the
   calibration: tried with the curve fitted again on the weighted loss, it
@@ -117,6 +117,19 @@ players of ≈1440 typically lose: on lichess's scale that is where it
 belongs; the user's sense of the numbers is closer to FIDE's, which runs
 lower. A conversion to a FIDE-like scale would need data of players rated
 on both.
+
+Then a second game (the user Black, won in 40 moves, both sides leaving
+pieces en prise more than once: losses of 4, 3.6, 4.3, 7.1 and 7.7 pawns)
+came out level, the loser even above the winner (1000 against 990): easy
+moves ahead weighed as little as 0.02 and vanished from the winner's
+average, leaving their mistakes alone. "The punishments are exaggerated"
+(the user). Tried on both games, no setting without a floor satisfied
+both; with the easy moves never under 0.3: the first game ≈1580 / ≈1440,
+the second ≈1060 (the winner) / ≈1010 — low for both, since both gave
+pieces away. `GET /api/evaluation` lists every judged move with its
+advantage, loss and weight, which is how the weights were looked at. Two
+games are little to tune on: calibrating the rule itself would need many
+games judged by players.
 
 ## Calibration on rated games
 

@@ -10,6 +10,7 @@
 #include "MainWindow.h"
 #include "app/GameEvaluation.h"
 #include "app/MoveGames.h"
+#include "app/PlayStrength.h"
 #include "app/UserFolders.h"
 #include "app/Explainer.h"
 #include "app/GameSession.h"
@@ -593,9 +594,37 @@ void DesktopApi::addRoutes()
     // The Evaluation of the Game (not in the menus yet): {"start": true} on
     // the game on the board, {"stop": true}; GET says how far it is.
     const auto evaluation = [w]() {
+        // The game on the board as the strength estimate sees it: every move
+        // judged, with the advantage it was played with, its loss and weight.
+        QList<std::optional<EngineEvaluation>> evaluations;
+        for (int ply = 0; ply <= w->m_session->plyCount(); ++ply)
+            evaluations << w->m_explainer->known(w->m_session->positionAt(ply));
+        const Side first = w->m_session->positionAt(0).sideToMove();
+        QJsonArray moves;
+        for (const PlayStrength::JudgedMove &move : PlayStrength::judgedMoves(evaluations, first))
+            moves.append(QJsonObject{{QStringLiteral("ply"), move.ply},
+                                     {QStringLiteral("side"), move.side == Side::White ? QStringLiteral("white") : QStringLiteral("black")},
+                                     {QStringLiteral("advantage"), move.advantage},
+                                     {QStringLiteral("loss"), move.loss},
+                                     {QStringLiteral("weight"), move.weight}});
+        const PlayStrength::Estimate estimate = PlayStrength::estimate(evaluations, first);
+        const auto player = [](const PlayStrength::Player &p) {
+            return QJsonObject{{QStringLiteral("moves"), p.moves},
+                               {QStringLiteral("averageLoss"), p.averageLoss},
+                               {QStringLiteral("accuracy"), p.accuracy},
+                               {QStringLiteral("elo"), p.elo ? QJsonValue(*p.elo) : QJsonValue()}};
+        };
+        const auto frozen = w->m_frozenStrength.constFind(MainWindow::strengthKey(w->m_session->game()));
+        QJsonObject strength{{QStringLiteral("white"), player(estimate.white)},
+                             {QStringLiteral("black"), player(estimate.black)},
+                             {QStringLiteral("moves"), moves}};
+        if (frozen != w->m_frozenStrength.cend())
+            strength.insert(QStringLiteral("frozen"), QJsonObject{{QStringLiteral("white"), player(frozen->white)},
+                                                                  {QStringLiteral("black"), player(frozen->black)}});
         return QJsonObject{{QStringLiteral("running"), w->m_gameEvaluation->isRunning()},
                            {QStringLiteral("positions"), w->m_gameEvaluation->positionCount()},
-                           {QStringLiteral("completedDepth"), w->m_gameEvaluation->completedDepth()}};
+                           {QStringLiteral("completedDepth"), w->m_gameEvaluation->completedDepth()},
+                           {QStringLiteral("strength"), strength}};
     };
     m_server->route(QStringLiteral("GET"), QStringLiteral("/api/evaluation"),
                     [evaluation](const Request &) { return json(evaluation()); });

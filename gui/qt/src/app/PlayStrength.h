@@ -46,6 +46,19 @@ struct Estimate {
     Player black;
 };
 
+/// A move judged, as the estimate counts it.
+struct JudgedMove {
+    int ply = 0; ///< 1 the first move.
+    Side side = Side::White;
+    int advantage = 0; ///< The mover's, before the move, bounded.
+    int loss = 0;
+    double weight = 1;
+};
+
+/// The moves the estimate judges, with what each counts: the estimate's own
+/// input, there to be read (the development API) and checked.
+QList<JudgedMove> judgedMoves(const QList<std::optional<EngineEvaluation>> &evaluations, Side firstMover);
+
 /// The estimate from `evaluations`, one per position, 0 the start (none
 /// where unknown); `firstMover` moves from the start.
 Estimate estimate(const QList<std::optional<EngineEvaluation>> &evaluations, Side firstMover);

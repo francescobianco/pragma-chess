@@ -227,7 +227,7 @@ playing a move turns it off, and the user asks again at the next move.
   it. From the evaluations `app/PlayStrength` (pure) estimates each side's
   Elo (ACPL, bounded ±1000, moves in a decided position left out;
   each move weighed by the advantage it was played with — easy good moves
-  less, mistakes more —; 5189 − 849·ln(ACPL) from 100 to 2850, calibrated on 14 307 rated lichess
+  less, never under 0.3, mistakes more —; 5189 − 849·ln(ACPL) from 100 to 2850, calibrated on 14 307 rated lichess
   players' games by `scripts/calibrate-play-strength.py`, lichess's scale; an
   estimate above 1500 drawn down towards it by moves/(moves+12), one below
   left where its mistakes put it), shown by
@@ -415,7 +415,9 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   (opens the game on that row of the games list), `/api/move-games`
   (the list's Move…, see "Trash"); each answers with the state.
   `POST /api/evaluation {"start"|"stop": true}` and `GET /api/evaluation`
-  (running, positions, completedDepth): the Evaluation of the Game.
+  (running, positions, completedDepth, and the strength of the game on the
+  board: each side's estimate, the frozen one, every judged move with its
+  advantage, loss and weight): the Evaluation of the Game.
 - `POST /api/lobby {"lobby": bool, "playNow": row, "room": row, "join": bool,
   "game": row, "play": bool}` opens Game ▸ Enter the Lobby…, does those steps in that
   order (back to the list, the Play Now of that row, enter the room on that row, take a seat, select

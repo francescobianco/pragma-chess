@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
 
+# Files extracted from a download (miniz) carry the time of extraction, so a
+# new URL rebuilds what uses them (CMake 3.24 and later).
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
 # Release builds pass the version of their tag (see packaging/).
 set(PRAGMA_VERSION 0.3.0 CACHE STRING "Version of Pragma Chess being built")
 

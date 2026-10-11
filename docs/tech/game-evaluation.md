@@ -29,11 +29,13 @@ about a second, so the course is complete at once; each later pass refines
 it. Within a pass the positions go in game order; `nextStep` (pure,
 unit-tested) chooses the next one.
 
-- **One minute at most** (`kTimeBudgetMs`): then it stops where it is, and
+- **30 seconds at most** (`kTimeBudgetMs`; a minute until 2026-10-11, the
+  user: 30 seconds): then it stops where it is, and
   the strength of each side is computed once and kept for that game
   (`MainWindow::m_frozenStrength`, by uid or address, in memory): values
   that went on changing were not nice to watch (the user, 2026-10-11). At
-  Medium power a game of 38 positions is complete at depth 16 by then.
+  Medium power a game of 38 positions is complete at depth 16 by then
+  (measured again at 30 seconds, 2026-10-11).
 - A position with no legal moves is not searched: mate or stalemate is known
   (`finalEvaluation`), at the last depth, for good.
 - A position already known as deep is not searched again: `setKnownDepth`

@@ -218,9 +218,9 @@ playing a move turns it off, and the user asks again at the next move.
   `app/GameEvaluation`, core; not in the menus yet — read
   [docs/tech/game-evaluation.md](docs/tech/game-evaluation.md)): every
   position of a finished game searched by an engine process of its own, in
-  passes 8, 12, 16, 20, 24 (`nextStep`, pure) for one minute at most
+  passes 8, 12, 16, 20, 24 (`nextStep`, pure) for 30 seconds at most
   (`kTimeBudgetMs`; then each side's strength is frozen for that game,
-  `m_frozenStrength`; "Calculating… N%" left of the eye counts the minute,
+  `m_frozenStrength`; "Calculating… N%" left of the eye counts the 30 seconds,
   `EnginePanel::setEvaluationProgress`), each result given to
   `Explainer::setEvaluation`, so the course fills in; positions known as
   deep are skipped (`setKnownDepth`). `MainWindow::evaluateGame` starts it

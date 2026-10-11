@@ -30,7 +30,7 @@ public:
     static const QList<int> &passDepths();
     /// How long an evaluation may run: then it stops where it is, so its
     /// values (the course, the strength of each side) settle and stay.
-    static constexpr int kTimeBudgetMs = 60000;
+    static constexpr int kTimeBudgetMs = 30000;
 
     /// The order of the work, pure: given the depth known of each position
     /// (0 none), the next position to search and how deep, the shallowest

@@ -703,7 +703,11 @@ Compiler warnings are on (`-Wall -Wextra -Wpedantic`); don't introduce new ones.
   Fusion packs dialogs tight, so `GtkDesktopStyle` gives every `QDialog`
   Adwaita's measures in one place (`kDialog*`: 18 px around the contents,
   12/8 px between controls, fields, drop-downs, spin boxes and buttons 34 px
-  tall, a field's text off its frame); Windows and macOS keep their native
+  tall, a field's text off its frame, an icon-only tool button beside a field
+  34 px square). Spin boxes and those buttons get it in `polish()` too: the
+  main window's style sheet (its separators) reaches every dialog it opens,
+  and under a style sheet Qt sizes spin boxes without asking the style.
+  Windows and macOS keep their native
   styles. A new dialog uses plain layouts and sets no margins, spacings or
   heights of its own.
 - Qt SVG is optional: code guarded by `PRAGMA_HAS_SVG` must still build without it

@@ -3,9 +3,11 @@
 #include "WindowChrome.h"
 
 #include <QAction>
+#include <QAbstractSpinBox>
 #include <QByteArrayList>
 #include <QDialog>
 #include <QFileDialog>
+#include <QGroupBox>
 #include <QMainWindow>
 #include <QEvent>
 #include <QGuiApplication>
@@ -14,6 +16,7 @@
 #include <QPainterPath>
 #include <QStyleFactory>
 #include <QStyleOption>
+#include <QToolButton>
 
 #include <algorithm>
 
@@ -69,6 +72,24 @@ void GtkDesktopStyle::setMenuShadows(bool enabled)
 void GtkDesktopStyle::polish(QWidget *widget)
 {
     QProxyStyle::polish(widget);
+    if (inDialog(widget)) {
+        // Set on the widget, not only answered in sizeFromContents: under a
+        // style sheet (the main window's, which its dialogs inherit) Qt sizes
+        // spin boxes without asking the style.
+        if (qobject_cast<QAbstractSpinBox *>(widget))
+            widget->setMinimumHeight(std::max(widget->minimumHeight(), kDialogControlHeight));
+        // A button of an icon alone beside a field (show, copy) is as tall as
+        // the field, and square; one of a fixed size keeps it.
+        // Only one laid in a container: Qt's own tool buttons inside other
+        // controls (a field's clear button, a tab bar's arrows) keep theirs.
+        auto *tool = qobject_cast<QToolButton *>(widget);
+        const QWidget *parent = tool ? tool->parentWidget() : nullptr;
+        const bool inContainer = parent && (parent->isWindow() || parent->metaObject() == &QWidget::staticMetaObject
+                                            || qobject_cast<const QGroupBox *>(parent));
+        if (tool && inContainer && !tool->autoRaise() && tool->toolButtonStyle() == Qt::ToolButtonIconOnly
+            && tool->minimumSize() != tool->maximumSize())
+            tool->setMinimumSize(kDialogControlHeight, kDialogControlHeight);
+    }
     if (m_menuShadows && qobject_cast<QMenu *>(widget)) {
         widget->setAttribute(Qt::WA_TranslucentBackground);
         widget->installEventFilter(this);

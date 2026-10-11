@@ -6,7 +6,8 @@ QString ExplainTicks::evaluationText(const EngineEvaluation &evaluation)
 {
     QString text = QStringLiteral("depth %1 ").arg(evaluation.depth);
     if (evaluation.isMate)
-        text += QStringLiteral("mate %1").arg(evaluation.mating == Side::White ? evaluation.mateIn : -evaluation.mateIn);
+        // "-0": a mate on the board by Black keeps its side.
+        text += (evaluation.mating == Side::White ? QStringLiteral("mate %1") : QStringLiteral("mate -%1")).arg(evaluation.mateIn);
     else
         text += QStringLiteral("cp %1").arg(evaluation.centipawns);
     if (!evaluation.pv.isEmpty())
@@ -28,10 +29,11 @@ std::optional<EngineEvaluation> ExplainTicks::parseEvaluation(const QString &tex
             evaluation.centipawns = words.value(++i).toInt(&number);
             scored = true;
         } else if (word == QLatin1String("mate")) {
-            const int moves = words.value(++i).toInt(&number);
+            const QString value = words.value(++i);
+            const int moves = value.toInt(&number);
             evaluation.isMate = true;
             evaluation.mateIn = qAbs(moves);
-            evaluation.mating = moves < 0 ? Side::Black : Side::White;
+            evaluation.mating = value.startsWith(QLatin1Char('-')) ? Side::Black : Side::White;
             scored = true;
         } else if (word == QLatin1String("pv")) {
             evaluation.pv = words.mid(i + 1);

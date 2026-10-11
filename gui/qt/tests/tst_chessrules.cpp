@@ -783,6 +783,13 @@ private Q_SLOTS:
         QVERIFY2(again && again->size() == 1, qPrintable(error));
         QCOMPARE(again->first().toText(), record.toText());
         QCOMPARE(ExplainTicks::evaluationText(again->first().ticks.last()), QStringLiteral("depth 12 mate -3 pv d6e5"));
+        // A mate on the board by Black keeps its side: "mate -0".
+        EngineEvaluation mated = mate;
+        mated.mateIn = 0;
+        mated.pv.clear();
+        QCOMPARE(ExplainTicks::evaluationText(mated), QStringLiteral("depth 12 mate -0"));
+        const std::optional<EngineEvaluation> mateRead = ExplainTicks::parseEvaluation(QStringLiteral("depth 12 mate -0"));
+        QVERIFY(mateRead && mateRead->isMate && mateRead->mateIn == 0 && mateRead->mating == Side::Black);
         QVERIFY(!ExplainTicks::fromText(QStringLiteral("explain\nafter nonsense\nend\n"), &error));
         QCOMPARE(error, QStringLiteral("line 2: not a FEN: nonsense"));
 

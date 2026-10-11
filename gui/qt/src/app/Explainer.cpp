@@ -44,8 +44,12 @@ void Explainer::setStorage(const QString &path)
         const qsizetype tab = line.indexOf(QLatin1Char('\t'));
         if (tab <= 0 || m_evaluations.size() >= kMaxRememberedEvaluations)
             continue;
-        if (const std::optional<EngineEvaluation> evaluation = ExplainTicks::parseEvaluation(line.mid(tab + 1))) {
+        if (std::optional<EngineEvaluation> evaluation = ExplainTicks::parseEvaluation(line.mid(tab + 1))) {
             const QString key = line.left(tab);
+            // Written as "mate 0" before "-0" was: a mate on the board is the
+            // other side's, the one not to move (the key's second field).
+            if (evaluation->isMate && evaluation->mateIn == 0)
+                evaluation->mating = key.section(QLatin1Char(' '), 1, 1) == QLatin1String("w") ? Side::Black : Side::White;
             const auto known = m_evaluations.constFind(key);
             if (known == m_evaluations.cend() || known->depth < evaluation->depth)
                 m_evaluations.insert(key, *evaluation);

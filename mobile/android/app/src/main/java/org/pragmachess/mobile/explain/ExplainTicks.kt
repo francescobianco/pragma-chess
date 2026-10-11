@@ -48,9 +48,11 @@ data class ExplainTicks(
                         scored = true
                     }
                     "mate" -> {
-                        val moves = words.getOrNull(++i)?.toIntOrNull() ?: return null
+                        val value = words.getOrNull(++i) ?: return null
+                        val moves = value.toIntOrNull() ?: return null
+                        // "-0": a mate on the board by Black keeps its side.
                         evaluation = evaluation.copy(isMate = true, mateIn = abs(moves),
-                            mating = if (moves < 0) Side.Black else Side.White)
+                            mating = if (value.startsWith("-")) Side.Black else Side.White)
                         scored = true
                     }
                     "pv" -> {

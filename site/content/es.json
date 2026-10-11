@@ -1,0 +1,247 @@
+{
+  "language_names": {
+    "en": "English",
+    "it": "Italiano",
+    "es": "Español"
+  },
+  "meta": {
+    "title": "Pragma Chess — una base de datos de ajedrez de código abierto para estudiar, entrenar y jugar",
+    "description": "Pragma Chess guarda tus partidas en bases de datos y te deja estudiarlas con un motor, un libro de aperturas y tus notas; entrenar contra el motor con un tutor; jugar en línea. Ligero, sencillo, con lo que de verdad importa. Windows, macOS, Linux."
+  },
+  "nav": {
+    "menu": "Menú",
+    "features": "Funciones",
+    "screenshots": "Capturas",
+    "download": "Descargar",
+    "supporters": "Apoyos",
+    "support": "Ayuda",
+    "guide": "Guía",
+    "blog": "Blog"
+  },
+  "hero": {
+    "title": "Tu ajedrez, en un solo lugar.",
+    "lead": "Una base de datos de ajedrez de código abierto para estudiar, entrenar y jugar: ligera, sencilla, con lo que de verdad importa.",
+    "download": "Descargar",
+    "source": "Código fuente",
+    "note": "Gratis, con licencia MIT. Para Windows, macOS y Linux.",
+    "alt": "Pragma Chess explica por qué 14.Td1 gana la partida de la Ópera de Morphy: flechas en el tablero, la evaluación y la línea en el panel Motor",
+    "video_alt": "Cuarenta segundos de Pragma Chess: se recorre la partida de la Ópera de Morphy, se pulsa E en 14.Td1 y Explicar dibuja por qué gana",
+    "video_caption": "La partida de la Ópera de Morphy: pulsa E en 14.Td1 y Explicar te muestra por qué gana."
+  },
+  "features": {
+    "title": "Qué hace",
+    "lead": "Todo lo que un ajedrecista necesita para guardar, estudiar y mejorar, y nada que estorbe.",
+    "items": [
+      {
+        "icon": "♜",
+        "title": "Bases de datos de partidas",
+        "text": "Tus partidas en bases de datos .pdb: importa PGN, partidas de lichess.org y chess.com, torneos de torneionline.com y archivos de ChessBase. Busca por posición, variante, jugador, apertura, torneo y año."
+      },
+      {
+        "icon": "♞",
+        "title": "Explicar",
+        "text": "Pulsa E y el motor te muestra en el tablero por qué la última jugada es buena o mala: flechas rojas donde cae material, flechas azules para la respuesta que marca la diferencia, un mate forzado jugado entero."
+      },
+      {
+        "icon": "♝",
+        "title": "Variantes y notas",
+        "text": "Juega una jugada que no es la siguiente y se convierte en una variante, mostrada bajo la jugada que sustituye. Anota las jugadas con !, ?, ±, ∞… Todo se guarda con la partida y viaja en PGN."
+      },
+      {
+        "icon": "♛",
+        "title": "Entrenamiento con tutor",
+        "text": "Juega contra el motor, desde el libro de aperturas que tú ajustas. Cuando tu jugada es un error, el tutor detiene la partida y te deja deshacerla, explicarla o seguir."
+      },
+      {
+        "icon": "♚",
+        "title": "Juega en línea",
+        "text": "Conecta tu cuenta de lichess.org, o freechess.org incluso como invitado, y juega contra personas desde el mismo tablero. Mientras juegas, el motor, Explicar y el libro están apagados: eres tú contra tu rival."
+      },
+      {
+        "icon": "♟",
+        "title": "Libros de aperturas",
+        "text": "Libros Polyglot con tu repertorio y los pesos que elijas, para que el motor te entrene en las líneas que quieres. Nombres de aperturas en inglés e italiano."
+      },
+      {
+        "icon": "⟳",
+        "title": "Sincronización entre ordenadores",
+        "text": "Mantén tus bases de datos y proyectos iguales en todos tus ordenadores a través de una carpeta FTP, WebDAV o Git, y en el móvil con la app complementaria. Nunca se borra nada sin una fusión."
+      },
+      {
+        "icon": "☰",
+        "title": "Proyectos",
+        "text": "Base de datos, partida, jugada, paneles y motor forman un proyecto que vuelves a abrir tal como lo dejaste. Interfaz de escritorio nativa, en español, inglés e italiano."
+      }
+    ]
+  },
+  "screenshots": {
+    "title": "Capturas de pantalla",
+    "lead": "Pragma Chess en GNOME. Haz clic en una imagen para verla a tamaño completo.",
+    "close": "Cerrar",
+    "items": [
+      {
+        "file": "explain",
+        "caption": "Explicar: por qué 14.Td1 gana la partida de la Ópera"
+      },
+      {
+        "file": "main",
+        "caption": "Una partida de la base de datos en el tablero, con las jugadas y la lista de partidas"
+      },
+      {
+        "file": "tree",
+        "caption": "El Árbol de aperturas: las jugadas del libro con sus pesos y las aperturas a las que llevan"
+      },
+      {
+        "file": "online",
+        "caption": "Jugar en línea: conecta una plataforma, elige reloj y color, encuentra un rival"
+      },
+      {
+        "file": "guide",
+        "caption": "La guía, integrada, en tu idioma"
+      }
+    ]
+  },
+  "download": {
+    "title": "Descargar",
+    "lead": "Elige tu sistema. La última versión es la",
+    "note": "Cada versión trae Stockfish como motor predeterminado; funciona cualquier motor UCI.",
+    "all": "Todas las versiones y las anteriores →",
+    "formats_title": "Qué obtienes",
+    "platforms": [
+      {
+        "system": "windows",
+        "file": "PragmaChess-windows-x64-setup.exe",
+        "icon": "windows",
+        "name": "Windows",
+        "text": "Instalador para Windows 10 y 11, de 64 bits. En la página de versiones hay un .zip portátil.",
+        "label": "Descargar para Windows"
+      },
+      {
+        "system": "macos",
+        "file": "PragmaChess-macos-arm64.dmg",
+        "icon": "macos",
+        "name": "macOS",
+        "text": "Imagen de disco para Mac con Apple Silicon. Ábrela y arrastra Pragma Chess a Aplicaciones.",
+        "label": "Descargar para macOS"
+      },
+      {
+        "system": "linux-deb",
+        "file": "pragma-chess_amd64.deb",
+        "icon": "debian-ubuntu",
+        "name": "Linux (Debian, Ubuntu)",
+        "text": "Paquete .deb para Ubuntu 24.04 o posterior y Debian 13 o posterior.",
+        "label": "Descargar el .deb"
+      },
+      {
+        "system": "linux-rpm",
+        "file": "pragma-chess.x86_64.rpm",
+        "icon": "fedora",
+        "name": "Linux (Fedora)",
+        "text": "Paquete .rpm para Fedora y distribuciones compatibles.",
+        "label": "Descargar el .rpm"
+      },
+      {
+        "system": "android",
+        "file": "PragmaChess-android.apk",
+        "icon": "android",
+        "name": "Android",
+        "beta": "Beta",
+        "text": "La app para móviles Android 8 o posterior, en beta: enlázala con el cliente de escritorio para llevar contigo tus bases de datos y partidas. Pronto en la tienda oficial de aplicaciones.",
+        "label": "Descargar el APK"
+      }
+    ],
+    "formats": [
+      {
+        "name": "Bases de datos .pdb",
+        "text": "archivos SQLite que puedes copiar, compartir y abrir con otras herramientas; una base de datos por cada colección de partidas."
+      },
+      {
+        "name": "Proyectos .pch",
+        "text": "YAML legible con la base de datos, la partida, el motor y la disposición de los paneles."
+      },
+      {
+        "name": "PGN y Polyglot",
+        "text": "los formatos estándar para partidas y libros de aperturas, de entrada y de salida."
+      }
+    ]
+  },
+  "support": {
+    "title": "Ayuda y comunidad",
+    "lead": "Pragma Chess se hace a la vista de todos, con clubes de ajedrez y jugadores.",
+    "items": [
+      {
+        "title": "Guía",
+        "text": "La guía está integrada en la aplicación (Ayuda ▸ Guía de Pragma Chess, F1), con un campo de búsqueda, en español, inglés e italiano, y también aquí en el sitio.",
+        "link": "guide/",
+        "link_text": "Leer la guía"
+      },
+      {
+        "title": "Informar de un problema",
+        "text": "¿Algo va mal o falta algo? Abre una issue en GitHub contando qué hiciste y qué viste.",
+        "link": "https://github.com/francescobianco/pragma-chess/issues",
+        "link_text": "Issues en GitHub →"
+      },
+      {
+        "title": "Preguntas e ideas",
+        "text": "Pregunta cómo hacer algo, propón lo que falta, enseña lo que has hecho con él: las Discussions del proyecto en GitHub.",
+        "link": "https://github.com/francescobianco/pragma-chess/discussions",
+        "link_text": "Discussions"
+      },
+      {
+        "title": "Colabora",
+        "text": "El código tiene licencia MIT: C++ y Qt, tanto el cliente de escritorio como su motor de bases de datos. Las pull requests son bienvenidas.",
+        "link": "https://github.com/francescobianco/pragma-chess",
+        "link_text": "El repositorio →"
+      }
+    ]
+  },
+  "footer": {
+    "license": "Pragma Chess es software libre bajo la licencia MIT.",
+    "changelog": "Novedades",
+    "issues": "Issues",
+    "credits": "Hecho con Qt. Motor predeterminado: Stockfish (GPL v3). Nombres de aperturas de lichess-org/chess-openings (CC0). Piezas: Good Companion."
+  },
+  "supporters": {
+    "title": "Apoyos",
+    "lead": "Los clubes de ajedrez que apoyan Pragma Chess: lo usan, lo prueban y nos cuentan lo que necesitan.",
+    "clubs": [
+      {
+        "name": "ASD Circolo del Re – Castelvetrano Scacchi",
+        "logo": "circolo-del-re.png",
+        "url": "https://circolodelre.it"
+      }
+    ],
+    "join_title": "¿Quieres que tu club aparezca aquí?",
+    "join_text": "Presenta Pragma Chess a tus socios y luego cuéntanos cómo fue en nuestro grupo de WhatsApp, y mándanos allí tu logo.",
+    "join_button": "Unirse al grupo de WhatsApp",
+    "whatsapp": "https://chat.whatsapp.com/GHBDbRkejmYJ8Hev585ZCj"
+  },
+  "guide": {
+    "title": "Guía",
+    "page_title": "Guía – Pragma Chess",
+    "lead": "La guía de Pragma Chess, tal como la trae la aplicación (Ayuda ▸ Guía de Pragma Chess, F1): todos los temas, desde los primeros pasos hasta el juego en línea."
+  },
+  "blog": {
+    "title": "Blog",
+    "page_title": "Blog – Pragma Chess",
+    "lead": "Cómo se hace Pragma Chess: las ideas, las decisiones y los detalles que hay detrás.",
+    "back": "Todos los artículos",
+    "months": {
+      "format": "{day} de {month} de {year}",
+      "names": [
+        "enero",
+        "febrero",
+        "marzo",
+        "abril",
+        "mayo",
+        "junio",
+        "julio",
+        "agosto",
+        "septiembre",
+        "octubre",
+        "noviembre",
+        "diciembre"
+      ]
+    }
+  }
+}

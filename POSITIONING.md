@@ -230,6 +230,8 @@ Quello che ha funzionato per lui, adattato a noi:
 | 13. Raccomandato da chi fa motori | ✅ voce per la wiki di Stockfish scritta (`packaging/announcements/stockfish-wiki.md`); la wiki ora è chiusa ai soli collaboratori, quindi l'abbiamo chiesto nelle [Discussions di Stockfish #7219](https://github.com/official-stockfish/Stockfish/discussions/7219) · in attesa · più avanti la home di Stockfish |
 | 14. Gli elenchi della nostra tecnologia e dei nostri sistemi | ✅ PR a open-source-mac-os-apps [#1577](https://github.com/serhii-londar/open-source-mac-os-apps/pull/1577) e awesome-qt-qml [#64](https://github.com/mikalv/awesome-qt-qml/pull/64) · ☐ atamano/awesome-chess dal 17 ottobre (testo pronto) |
 | 15. Farsi trovare | ✅ sito con canonical, hreflang, Open Graph assoluti, SoftwareApplication, sitemap · ☐ sitemap in Google Search Console e Bing (tuo account) |
+| 16. Più lingue, come lui (16) | ✅ spagnolo: interfaccia, guida, sito, metadati Linux (scritto dall'agente, da rivedere da un madrelingua) · ☐ tedesco, francese, portoghese, russo — una per volta, ogni lingua un pubblico nuovo |
+| 17. Un file per ogni Linux | ✅ AppImage nella release (provata in CI: parte e analizza col suo Stockfish) · ☐ AppImageHub dopo la 0.4.0 · lui ha 1 201 scaricamenti dell'AppImage nell'ultima release |
 
 **Il passo che sblocca il resto è la 0.4.0, a fine ottobre.** Blog di lichess in inglese,
 TalkChess e Show HN sono pronti, ma parlano di cose (freechess.org, database

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Primeros pasos – Guía – Pragma Chess</title>
+<meta name="description" content="Pragma Chess guarda tus partidas en bases de datos y te permite estudiarlas en el tablero con un motor, un libro de aperturas y tus propias notas.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/es/guide/start/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/start/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/start/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/start/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/start/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/es/guide/start/">
+<meta property="og:title" content="Primeros pasos – Guía – Pragma Chess">
+<meta property="og:description" content="Pragma Chess guarda tus partidas en bases de datos y te permite estudiarlas en el tablero con un motor, un libro de aperturas y tus propias notas.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menú">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funciones</a>
+    <a href="../../#screenshots">Capturas</a>
+    <a href="../../#download">Descargar</a>
+    <a href="../../#supporters">Apoyos</a>
+    <a href="../../#support">Ayuda</a>
+    <a href="../../../es/guide/" class="current">Guía</a>
+    <a href="../../../es/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/start/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/start/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/start/" hreflang="es" class="current">Español</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guía</a></p>
+  <header>
+    <h1>Primeros pasos</h1>
+  </header>
+  <p>Pragma Chess guarda tus partidas en <strong>bases de datos</strong> y te permite estudiarlas en el tablero con un motor, un libro de aperturas y tus propias notas.</p>
+<p>En cada inicio se abre la <strong>ventana de bienvenida</strong> sobre la ventana principal: lo que Pragma Chess sabe hacer, y luego tus <strong>proyectos</strong> y tus <strong>bases de datos</strong>, leídos de sus carpetas (un archivo que añadas allí aparece). Haz clic en un proyecto para abrirlo, en una base de datos para abrirla en un proyecto nuevo, o en <strong>Nuevo proyecto</strong>. Marca <strong>No mostrar esta ventana al iniciar</strong> para empezar directamente; <strong>Ayuda ▸ Bienvenida…</strong> la vuelve a abrir cuando quieras.</p>
+<p>La ventana tiene el <strong>tablero</strong> en el centro y cuatro paneles a su alrededor:</p>
+<ul><li><strong>Partidas</strong>, abajo: el árbol de la base de datos abierta y la lista de sus partidas.</li><li><strong>Jugadas</strong>: las jugadas de la partida del tablero.</li><li><strong>Árbol de aperturas</strong>: las jugadas del libro de aperturas para la posición del tablero.</li><li><strong>Motor</strong>: la evaluación, la mejor línea y la apertura en la que está la partida.</li></ul>
+<p>La <strong>barra de herramientas</strong> tiene Sincronizar ahora, Guardar proyecto, Nueva partida, Nuevo entrenamiento, Nueva partida en línea, Entrar en el lobby (la copa de martini) y tres iconos para elegir el libro de aperturas, el motor y la base de datos en uso.</p>
+<p>Todo lo que ves — base de datos, partida, jugada, paneles — es un <strong>proyecto</strong>: vuelve tal como lo dejaste la próxima vez que inicies Pragma Chess.</p>
+<p>Tus archivos están en la carpeta Pragma dentro de tu carpeta de ajedrez (por ejemplo <code>Ajedrez/Pragma</code> en tu carpeta personal), con <code>Databases</code>, <code>Projects</code> y <code>Books</code>. El primer inicio pone allí una base de datos de partidas clásicas.</p>
+<p><strong>Opciones ▸ Ajustes personales…</strong> dice quién eres: tu nombre, tu año de nacimiento y tu ID FIDE. Tu nombre va en tu lado de una partida nueva, de una partida de Preparar posición (en el lado de abajo del tablero) y de una partida de entrenamiento (en el color que elegiste), a menos que la base de datos abierta ya te conozca: gana un jugador marcado como Yo con <strong>¿Quién es?</strong>. Hasta que des un nombre, Pragma Chess te da uno, el de un campeón con tres cifras, como <em>Spassky007</em>, distinto para cada uno, para que el lobby no se llene de jugadores con el mismo nombre: lo encuentras escrito aquí, para conservarlo o cambiarlo. <strong>Estilo del tablero</strong> elige juntos los colores de las casillas y las piezas: Pragma Classic (casillas marrones y las piezas de los libros de ajedrez), Lichess Alpha (el tablero verde y las piezas Alpha de lichess.org) o Classic Book (el diagrama de un libro de ajedrez impreso: papel antiguo, las casillas oscuras rayadas en tinta, un margen de papel alrededor de cada pieza que esté sobre ellas, y sin coordenadas); todos los tableros cambian en cuanto pulsas Aceptar. Estos ajustes se guardan en <code>.pragma-chess.conf</code>, un archivo YAML de tu carpeta Pragma, que la sincronización lleva a tus otros ordenadores aunque esté oculto; si se cambia en dos ordenadores a la vez, gana el más reciente.</p>
+<p><strong>Opciones ▸ Ajustes de carpetas…</strong> los pone en otro lugar de este ordenador: la propia carpeta Pragma, o solo las bases de datos, los proyectos, los libros o los nombres de aperturas. Deja una carpeta vacía para mantenerla en su lugar habitual. Los archivos que ya están allí no se mueven, y las carpetas nuevas se usan la próxima vez que inicies Pragma Chess. La sincronización mantiene iguales en tus otros ordenadores solo los archivos que están dentro de la carpeta Pragma.</p>
+<p>Una pregunta, una idea, algo que enseñar: <strong>Ayuda ▸ Preguntas e ideas…</strong> abre las Discussions del proyecto en GitHub. Algo que no funciona: <strong>Ayuda ▸ Informar de un problema…</strong>.</p>
+  <nav class="topic-steps">
+    
+    <a class="next" href="../databases/">Bases de datos →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess es software libre bajo la licencia MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novedades</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/start/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/start/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/start/" hreflang="es" class="current">Español</a></p>
+  <p class="credits">Hecho con Qt. Motor predeterminado: Stockfish (GPL v3). Nombres de aperturas de lichess-org/chess-openings (CC0). Piezas: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

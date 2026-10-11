@@ -1,7 +1,8 @@
 {
   "language_names": {
     "en": "English",
-    "it": "Italiano"
+    "it": "Italiano",
+    "es": "Español"
   },
   "meta": {
     "title": "Pragma Chess — un database scacchistico open source per studiare, allenarsi e giocare",
@@ -69,7 +70,7 @@
       {
         "icon": "☰",
         "title": "Progetti",
-        "text": "Database, partita, mossa, pannelli e motore sono un progetto che riapri come l'hai lasciato. Interfaccia desktop nativa, in italiano e inglese."
+        "text": "Database, partita, mossa, pannelli e motore sono un progetto che riapri come l'hai lasciato. Interfaccia desktop nativa, in italiano, inglese e spagnolo."
       }
     ]
   },
@@ -170,7 +171,7 @@
     "items": [
       {
         "title": "Guida",
-        "text": "La guida è dentro l’applicazione (Aiuto ▸ Guida di Pragma Chess, F1), con un campo di ricerca, in italiano e in inglese — e qui sul sito.",
+        "text": "La guida è dentro l’applicazione (Aiuto ▸ Guida di Pragma Chess, F1), con un campo di ricerca, in italiano, inglese e spagnolo — e qui sul sito.",
         "link": "guide/",
         "link_text": "Leggi la guida"
       },

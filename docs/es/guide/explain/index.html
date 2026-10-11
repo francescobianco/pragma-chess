@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explicar – Guía – Pragma Chess</title>
+<meta name="description" content="Explicar muestra en el tablero por qué la última jugada es buena o mala.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/es/guide/explain/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/explain/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/explain/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/explain/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/explain/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/es/guide/explain/">
+<meta property="og:title" content="Explicar – Guía – Pragma Chess">
+<meta property="og:description" content="Explicar muestra en el tablero por qué la última jugada es buena o mala.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menú">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funciones</a>
+    <a href="../../#screenshots">Capturas</a>
+    <a href="../../#download">Descargar</a>
+    <a href="../../#supporters">Apoyos</a>
+    <a href="../../#support">Ayuda</a>
+    <a href="../../../es/guide/" class="current">Guía</a>
+    <a href="../../../es/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/explain/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/explain/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/explain/" hreflang="es" class="current">Español</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guía</a></p>
+  <header>
+    <h1>Explicar</h1>
+  </header>
+  <p><strong>Explicar</strong> muestra en el tablero por qué la última jugada es buena o mala. Pulsa el botón entre las flechas bajo el tablero, o la tecla <strong>E</strong>.</p>
+<p>El motor mira la posición antes y después de la jugada y dibuja flechas:</p>
+<ul><li>flechas <strong>rojas</strong>: hay material a punto de caer, y las piezas que se pierden se rodean con un círculo;</li><li>flechas <strong>verdes</strong>: las ideas de tu bando, las jugadas que justifican la evaluación;</li><li>flechas <strong>azules</strong>: las jugadas del otro bando — la respuesta que marca la diferencia cuando todavía no se pierde nada, o su plan; <em>tu bando</em> es el que juegas en el entrenamiento, y si no el que está abajo en el tablero;</li><li>flechas <strong>rojas discontinuas</strong>: una amenaza, una pieza que queda atacada — "5.Dxf3 ataca la torre de a8", o la que tu jugada no ha atendido, "5…Dh4+ deja atacada la torre de a8: 7.Dxa8";</li><li>una flecha <strong>verde discontinua</strong>: la mejor jugada que tenías en su lugar. Cuando mueve la misma pieza que moviste — así que la casilla de la que sale está ahora vacía, porque esa pieza se fue a otro sitio —, la pieza se dibuja pequeña y tenue donde debería haber llegado.</li></ul>
+<p>Un mate forzado se reproduce en el tablero, dentro de un marco rojo. El panel Motor lo dice con palabras, por ejemplo “Error grave (+0.3 → −2.9). Las negras ganan un caballo”.</p>
+<p>Explicar lee el análisis que se está ejecutando en el panel Motor: la explicación aparece en cuanto el motor ha buscado a suficiente profundidad, y se afina a medida que profundiza — las flechas solo cambian cuando una línea nueva se mantiene durante un rato. La jugada se juzga respecto a la posición anterior: si esa posición nunca se analizó (llegaste directamente a la jugada, o volviste a abrir Pragma Chess en ella), el motor la mira primero, un momento, y luego sigue con la posición del tablero. Hasta la primera respuesta el borde del tablero respira; se vuelve azul cuando la explicación está lista. Explicar trata de una jugada: ir a otra jugada lo desactiva, y vuelves a pedirlo. Si lo cierras con Explicar activado, Pragma Chess se abre con él activado, en la misma jugada.</p>
+<p><strong>Editar ▸ Copiar ▸ Explicación</strong> copia el texto.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../moves/">← Jugadas y anotaciones</a>
+    <a class="next" href="../engine/">Motores →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess es software libre bajo la licencia MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novedades</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/explain/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/explain/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/explain/" hreflang="es" class="current">Español</a></p>
+  <p class="credits">Hecho con Qt. Motor predeterminado: Stockfish (GPL v3). Nombres de aperturas de lichess-org/chess-openings (CC0). Piezas: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

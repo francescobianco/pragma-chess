@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bases de datos – Guía – Pragma Chess</title>
+<meta name="description" content="Una base de datos es un archivo .pdb que contiene partidas.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/es/guide/databases/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/databases/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/databases/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/databases/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/databases/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/es/guide/databases/">
+<meta property="og:title" content="Bases de datos – Guía – Pragma Chess">
+<meta property="og:description" content="Una base de datos es un archivo .pdb que contiene partidas.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menú">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funciones</a>
+    <a href="../../#screenshots">Capturas</a>
+    <a href="../../#download">Descargar</a>
+    <a href="../../#supporters">Apoyos</a>
+    <a href="../../#support">Ayuda</a>
+    <a href="../../../es/guide/" class="current">Guía</a>
+    <a href="../../../es/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/databases/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/databases/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/databases/" hreflang="es" class="current">Español</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guía</a></p>
+  <header>
+    <h1>Bases de datos</h1>
+  </header>
+  <p>Una base de datos es un archivo <code>.pdb</code> que contiene partidas. Hay una base de datos abierta cada vez; su nombre está en la descripción emergente del icono de base de datos de la barra de herramientas. En tu gestor de archivos una base de datos tiene el icono de documento de tu sistema con una base de datos y un peón en la página; al abrirla se abre Pragma Chess con la base de datos en el proyecto que dejaste abierto.</p>
+<ul><li><strong>Base de datos ▸ Nueva base de datos…</strong> crea una vacía en la carpeta Databases.</li><li><strong>Base de datos ▸ Abrir base de datos…</strong> abre un archivo de cualquier lugar.</li><li><strong>Base de datos ▸ Cambiar base de datos</strong> muestra las bases de datos de la carpeta: elige una para abrirla. El icono de base de datos de la barra de herramientas despliega la misma lista.</li><li><strong>Base de datos ▸ Ajustes de la base de datos…</strong> (también desde el menú contextual de la base de datos, arriba del árbol) edita el nombre y la descripción, dice si la base de datos es una colección de partidas, un libro de aperturas o <strong>Problemas y entrenamiento</strong>, y tiene <strong>Optimizar base de datos</strong>. En una base de datos de Problemas y entrenamiento (como Endgame Training y Tactics Training) la lista de partidas no muestra las jugadas, para que la solución quede oculta, y una partida abierta desde ella empieza en <strong>Modo entrenamiento</strong>: el tablero se gira hacia el bando que mueve, que es el tuyo, y el motor juega con el otro. Cuando una partida no nombra a los jugadores, la lista y el tablero muestran tu nombre, el de <strong>Ajustes personales</strong>, en el bando que mueve y <em>Pragma Coach</em> en el otro: nombres provisionales, que no se escriben en la base de datos, y la lista también ordena por ellos. Del mismo modo, allí la columna Evento se llama <strong>Theme</strong> (tema) y muestra el tema de cada problema, el más significativo de los que le da lichess: <em>Ataque doble</em>, <em>Mate en 2</em>, <em>Final de torre</em>. Una base de datos con nombre se muestra con él, y el archivo entre paréntesis detrás — <em>Mis partidas (games.pdb)</em> — en <strong>Cambiar base de datos</strong> y arriba del árbol, donde el nombre va en negrita.</li><li><strong>Base de datos ▸ Guardar base de datos como…</strong> escribe una copia.</li><li><strong>Base de datos ▸ Cambiar base de datos ▸ Mostrar carpeta de bases de datos</strong> abre la carpeta en el gestor de archivos.</li></ul>
+<p>Los cambios en una base de datos se escriben a medida que los haces: no hay nada que guardar a mano.</p>
+<p>Pragma Chess incluye dos bases de datos para entrenar, añadidas a la carpeta Databases: <strong>Endgame Training</strong> — los finales teóricos clásicos (los mates elementales, la oposición, Lucena, Philidor…) con su objetivo, y más de dos mil problemas de finales — y <strong>Tactics Training</strong>, problemas de veinte temas, de fáciles a difíciles. Los problemas vienen de la base de datos de problemas de lichess.org (libre, CC0); cada uno empieza una vez que el rival ha movido, y te toca a ti encontrar la respuesta: juégalo en <strong>Modo entrenamiento</strong>, o recorre la solución jugada a jugada. Las encuentras en el árbol bajo <strong>Finales</strong> y <strong>Táctica</strong>. Una base de datos de entrenamiento que borres no se vuelve a añadir.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../start/">← Primeros pasos</a>
+    <a class="next" href="../games-list/">La lista de partidas →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess es software libre bajo la licencia MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novedades</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/databases/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/databases/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/databases/" hreflang="es" class="current">Español</a></p>
+  <p class="credits">Hecho con Qt. Motor predeterminado: Stockfish (GPL v3). Nombres de aperturas de lichess-org/chess-openings (CC0). Piezas: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

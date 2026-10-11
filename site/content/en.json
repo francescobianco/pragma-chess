@@ -1,7 +1,8 @@
 {
   "language_names": {
     "en": "English",
-    "it": "Italiano"
+    "it": "Italiano",
+    "es": "Español"
   },
   "meta": {
     "title": "Pragma Chess — an open source chess database for studying, training and playing",
@@ -69,7 +70,7 @@
       {
         "icon": "☰",
         "title": "Projects",
-        "text": "Database, game, move, panels and engine are a project you reopen as you left it. Native desktop interface, in English and Italian."
+        "text": "Database, game, move, panels and engine are a project you reopen as you left it. Native desktop interface, in English, Italian and Spanish."
       }
     ]
   },
@@ -170,7 +171,7 @@
     "items": [
       {
         "title": "Guide",
-        "text": "The guide is built into the application (Help ▸ Pragma Chess Guide, F1), with a search field, in English and Italian — and here on the site.",
+        "text": "The guide is built into the application (Help ▸ Pragma Chess Guide, F1), with a search field, in English, Italian and Spanish — and here on the site.",
         "link": "guide/",
         "link_text": "Read the guide"
       },

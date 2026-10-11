@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motores – Guía – Pragma Chess</title>
+<meta name="description" content="Motor ▸ Análisis (Ctrl+E) activa y desactiva el análisis de la posición del tablero.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/es/guide/engine/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/engine/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/engine/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/engine/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/engine/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/es/guide/engine/">
+<meta property="og:title" content="Motores – Guía – Pragma Chess">
+<meta property="og:description" content="Motor ▸ Análisis (Ctrl+E) activa y desactiva el análisis de la posición del tablero.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menú">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funciones</a>
+    <a href="../../#screenshots">Capturas</a>
+    <a href="../../#download">Descargar</a>
+    <a href="../../#supporters">Apoyos</a>
+    <a href="../../#support">Ayuda</a>
+    <a href="../../../es/guide/" class="current">Guía</a>
+    <a href="../../../es/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/engine/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/engine/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/engine/" hreflang="es" class="current">Español</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guía</a></p>
+  <header>
+    <h1>Motores</h1>
+  </header>
+  <p><strong>Motor ▸ Análisis</strong> (Ctrl+E) activa y desactiva el análisis de la posición del tablero. El panel Motor muestra la puntuación — siempre desde el lado de las blancas: positiva es buena para las blancas —, la profundidad y la mejor línea. La barra junto al tablero muestra la misma puntuación. Haz clic en la puntuación para mostrarla de otra forma, por turnos: absoluta (desde el lado de las blancas, como la da el motor), para el bando que mueve, las posibilidades del bando que mueve, y el juicio que imprime un libro de ajedrez (=, ⩲, ±, +− y sus opuestos, desde el lado de las blancas). El punto delante del valor es su unidad: mitad blanco y mitad negro para el lado de las blancas, el color del bando que mueve para el suyo; los símbolos del libro no llevan ninguno. Las posibilidades son la puntuación esperada en porcentaje: lo que ese bando se lleva de media de una posición así, contando 1 una victoria y ½ unas tablas — 50 % es igualdad, un peón de más alrededor de 59 %, tres peones alrededor de 75 % (la curva que usa lichess, y la barra junto al tablero). La descripción emergente da las cuatro a la vez; la elección se guarda con el proyecto. Junto a la puntuación, en el mismo recuadro, el curso de la partida: un punto por cada jugada cuya evaluación se conoce (lo que el motor encontró allí, o las evaluaciones de la propia partida, como las escribe lichess), unidos por una línea, sobre la línea central de una partida equilibrada. La altura crece con la ventaja, pero más despacio que ella: medio peón ya se nota, un peón está cerca de la mitad, dos están a menos del doble de distancia, diez y un mate llegan al borde. La ventaja de las blancas va hacia el lado de las blancas del tablero, como en la barra, así que el gráfico gira con el tablero; la jugada del tablero está marcada. Haz clic en un punto para ir a esa jugada. Veinte jugadas llenan el ancho; una partida más larga se comprime en él, nunca se desplaza.</p>
+<p><strong>Para ver adónde lleva la línea</strong>, mantén pulsado el ojo junto a Detener: mientras lo mantienes, el tablero muestra la posición al final de la línea del motor, como si se hubieran hecho todas sus jugadas, y sigue al motor: cuando el motor encuentra otra línea, el tablero pasa a donde termina la nueva. Suéltalo y vuelve tu posición. Sobre esa posición, flechas violetas muestran los planes que contiene la línea: cómo viajó una pieza para llegar allí (la ruta de un caballo, una torre que se eleva, la dama que cambia de flanco), el rey que marcha en un final, un peón que corre o que rompe. Una flecha que gira pasa por las casillas donde la pieza se detuvo. Los cambios y las jugadas forzadas por un jaque no son planes, así que una línea hecha solo de ellos no muestra flechas.</p>
+<p>Pragma Chess incluye Stockfish, y funciona con cualquier motor UCI.</p>
+<ul><li><strong>Motor ▸ Cambiar motor</strong> elige entre los motores de este ordenador. El icono de motor de la barra de herramientas despliega la misma lista.</li><li><strong>Motor ▸ Gestionar motores…</strong> añade, edita y quita motores. <strong>Detectar motores</strong> encuentra los que están instalados en el ordenador; <strong>Usar este motor</strong> cambia al seleccionado.</li><li><strong>Potencia de cálculo</strong>, en la misma ventana, es cuánto del ordenador puede usar el motor mientras analiza, desde <strong>Mínima</strong> (3 % del procesador) hasta <strong>Total</strong> (todo, sin límite); <strong>Media</strong>, 10 %, es donde empieza cada motor. El motor es igual de fuerte en cada nivel, solo más lento: recibe menos hilos, una prioridad más baja y, en Linux y Windows, un tope a su parte del procesador, así los ventiladores se quedan tranquilos y el resto del ordenador queda libre. Los <strong>hilos</strong>, si los fijas, mandan sobre los del nivel.</li></ul>
+<p>El motor en uso forma parte del proyecto.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../explain/">← Explicar</a>
+    <a class="next" href="../training/">Entrenamiento →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess es software libre bajo la licencia MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novedades</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/engine/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/engine/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/engine/" hreflang="es" class="current">Español</a></p>
+  <p class="credits">Hecho con Qt. Motor predeterminado: Stockfish (GPL v3). Nombres de aperturas de lichess-org/chess-openings (CC0). Piezas: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

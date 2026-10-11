@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sincronización – Guía – Pragma Chess</title>
+<meta name="description" content="La sincronización mantiene tu carpeta Pragma — bases de datos y proyectos — igual en varios ordenadores, a través de una carpeta en un servidor.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/es/guide/sync/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/sync/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/sync/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/sync/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/sync/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/es/guide/sync/">
+<meta property="og:title" content="Sincronización – Guía – Pragma Chess">
+<meta property="og:description" content="La sincronización mantiene tu carpeta Pragma — bases de datos y proyectos — igual en varios ordenadores, a través de una carpeta en un servidor.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menú">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funciones</a>
+    <a href="../../#screenshots">Capturas</a>
+    <a href="../../#download">Descargar</a>
+    <a href="../../#supporters">Apoyos</a>
+    <a href="../../#support">Ayuda</a>
+    <a href="../../../es/guide/" class="current">Guía</a>
+    <a href="../../../es/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/sync/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/sync/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/sync/" hreflang="es" class="current">Español</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guía</a></p>
+  <header>
+    <h1>Sincronización</h1>
+  </header>
+  <p>La sincronización mantiene tu carpeta Pragma — bases de datos y proyectos — igual en varios ordenadores, a través de una carpeta en un servidor.</p>
+<p><strong>Opciones ▸ Ajustes de sincronización…</strong> la configura: un servidor <strong>FTP</strong> (también con TLS), un servidor <strong>WebDAV</strong> o un <strong>Repositorio Git</strong>. <strong>Probar conexión</strong> lo comprueba.</p>
+<p><strong>Archivo ▸ Sincronizar ahora</strong> (Ctrl+Y, también el primer botón de la barra de herramientas) lo hace todo en orden: lee las fuentes, guarda el proyecto e intercambia los archivos con el servidor. <strong>Sincronizar antes de cerrar</strong> lo hace cada vez que sales.</p>
+<p>La sincronización no borra nada por sí sola: una base de datos que falta en un lado se copia allí, y una base de datos cambiada en dos ordenadores se fusiona partida a partida. Para deshacerte de una partida usa la papelera, que los demás ordenadores siguen.</p>
+<p>Cada ordenador recuerda lo que sincronizó por última vez en un archivo oculto de su carpeta Pragma, <code>.pragma-chess.mine</code>, que nunca va al servidor. Así puede distinguir un archivo que borraste a mano — en el gestor de archivos, por ejemplo — de uno que todavía tiene que recibir: en la siguiente sincronización pregunta si <strong>Eliminar en todas partes</strong>, <strong>Restaurar</strong> o <strong>Preguntarme más tarde</strong> (se vuelve a preguntar la próxima vez que inicies Pragma Chess). Eliminado en todas partes, el archivo se quita del servidor, y cada uno de los demás ordenadores mueve su copia a la papelera en su siguiente sincronización. Un archivo que alguien cambió entretanto en otro ordenador simplemente vuelve.</p>
+<p>Los archivos que pertenecen solo al servidor — el README y el LICENSE de un repositorio Git, por ejemplo — se indican en un archivo <strong><code>.pragmaignore</code></strong> en la raíz de la carpeta del servidor, uno por línea, escritos como en <code>.gitignore</code> (<code>*.tmp</code>, <code>Notes/</code>, <code># un comentario</code>). Se quedan en el servidor: nunca se copian a tus ordenadores, una copia que un ordenador recibió antes lo abandona en la siguiente sincronización (una que cambiaste allí se queda, pero ya no se sincroniza), y no se envía nada con ese nombre desde tus ordenadores.</p>
+<p><strong>Gestionar archivos…</strong>, en los Ajustes de sincronización, muestra los archivos de la carpeta del servidor. Selecciona algunos y pulsa <strong>Eliminar…</strong> para hacer limpieza: después de que confirmes, se eliminan de todos los dispositivos sincronizados, este ordenador incluido (a la papelera), así que dejan de viajar entre tus ordenadores.</p>
+<p>Con un repositorio Git cada sincronización que cambia archivos hace un commit, con el nombre de esos archivos ("Update Databases/Games.pdb; add Projects/Study.pch"): una sincronización que solo recibe, o no encuentra nada nuevo, deja el historial en paz.</p>
+<p><strong>Opciones ▸ Conectar app móvil…</strong> muestra un código para escanear con Pragma Chess en tu teléfono, que entonces guarda una copia de tus bases de datos.</p>
+<p>Cuando eliminas una base de datos en el teléfono, el ordenador te pregunta en su siguiente sincronización con el teléfono si eliminarla aquí también o conservarla: <strong>Conservarla</strong> la deja en el ordenador, <strong>Preguntarme más tarde</strong> vuelve a preguntar la próxima vez que inicies Pragma Chess, y <strong>Eliminar en todas partes…</strong> te avisa primero de que la base de datos se eliminará de todos los dispositivos sincronizados — va a la papelera en este ordenador, se quita de la carpeta de sincronización del servidor, y los demás ordenadores que se sincronizan con ella eliminan su copia. En cualquier caso el teléfono no la vuelve a recibir.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../chapters/">← Capítulos y párrafos</a>
+    <a class="next" href="../extensions/">Extensiones →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess es software libre bajo la licencia MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novedades</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/sync/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/sync/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/sync/" hreflang="es" class="current">Español</a></p>
+  <p class="credits">Hecho con Qt. Motor predeterminado: Stockfish (GPL v3). Nombres de aperturas de lichess-org/chess-openings (CC0). Piezas: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

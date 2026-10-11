@@ -5,6 +5,7 @@
   <name>Pragma Chess</name>
   <summary>Chess database for studying, training and playing</summary>
   <summary xml:lang="it">Database scacchistico per studiare, allenarsi e giocare</summary>
+  <summary xml:lang="es">Base de datos de ajedrez para estudiar, entrenar y jugar</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
   <developer id="io.github.francescobianco">
@@ -23,23 +24,37 @@
       rivedile sulla scacchiera, analizzale con Stockfish o qualunque motore UCI e
       lascia che Spiega mostri perché una mossa è buona o cattiva.
     </p>
+    <p xml:lang="es">
+      Una base de datos de ajedrez de código abierto para estudiar, entrenar y jugar:
+      ligera, sencilla, con lo que de verdad importa. Guarda tus partidas en bases de
+      datos, repásalas en el tablero, analízalas con Stockfish o cualquier motor UCI
+      y deja que Explicar muestre por qué una jugada es buena o mala.
+    </p>
     <ul>
       <li>Game databases with filters by opening, tournament, year and source</li>
       <li xml:lang="it">Database di partite con filtri per apertura, torneo, anno e fonte</li>
+      <li xml:lang="es">Bases de datos de partidas con filtros por apertura, torneo, año y fuente</li>
       <li>Games imported from PGN, lichess.org, chess.com, torneionline.com and ChessBase files</li>
       <li xml:lang="it">Partite importate da PGN, lichess.org, chess.com, torneionline.com e file ChessBase</li>
+      <li xml:lang="es">Partidas importadas de PGN, lichess.org, chess.com, torneionline.com y archivos de ChessBase</li>
       <li>Explain: arrows on the board for why the last move is good or bad</li>
       <li xml:lang="it">Spiega: frecce sulla scacchiera sul perché l'ultima mossa è buona o cattiva</li>
+      <li xml:lang="es">Explicar: flechas en el tablero que muestran por qué la última jugada es buena o mala</li>
       <li>Variations and annotations, saved with the game and written to PGN</li>
       <li xml:lang="it">Varianti e annotazioni, salvate con la partita e scritte nel PGN</li>
+      <li xml:lang="es">Variantes y anotaciones, guardadas con la partida y escritas en el PGN</li>
       <li>Training against the engine, from a tunable opening book, with a tutor that stops you on mistakes</li>
       <li xml:lang="it">Allenamento contro il motore, da un libro di aperture regolabile, con un tutor che ferma sugli errori</li>
+      <li xml:lang="es">Entrenamiento contra el motor, con un libro de aperturas ajustable y un tutor que te detiene ante los errores</li>
       <li>Online play on lichess.org from the same board</li>
       <li xml:lang="it">Gioco online su lichess.org dalla stessa scacchiera</li>
+      <li xml:lang="es">Juego en línea en lichess.org desde el mismo tablero</li>
       <li>Polyglot opening books with your repertoire, and named openings in English and Italian</li>
       <li xml:lang="it">Libri di aperture Polyglot con il tuo repertorio e nomi delle aperture in italiano e inglese</li>
+      <li xml:lang="es">Libros de aperturas Polyglot con tu repertorio, y nombres de aperturas en inglés e italiano</li>
       <li>Databases kept in sync across computers through FTP, WebDAV or Git</li>
       <li xml:lang="it">Database sincronizzati tra più computer tramite FTP, WebDAV o Git</li>
+      <li xml:lang="es">Bases de datos sincronizadas entre ordenadores mediante FTP, WebDAV o Git</li>
     </ul>
   </description>
   <launchable type="desktop-id">io.github.francescobianco.PragmaChess.desktop</launchable>
@@ -51,21 +66,25 @@
     <screenshot type="default">
       <caption>Explain: why 14.Rd1 wins the Opera game</caption>
       <caption xml:lang="it">Spiega: perché 14.Td1 vince la partita dell'Opera</caption>
+      <caption xml:lang="es">Explicar: por qué 14.Td1 gana la partida de la Ópera</caption>
       <image>https://yafb.net/pragma-chess/assets/screenshots/explain.png</image>
     </screenshot>
     <screenshot>
       <caption>A game of the database on the board, with the moves and the games list</caption>
       <caption xml:lang="it">Una partita del database sulla scacchiera, con le mosse e la lista delle partite</caption>
+      <caption xml:lang="es">Una partida de la base de datos en el tablero, con las jugadas y la lista de partidas</caption>
       <image>https://yafb.net/pragma-chess/assets/screenshots/main.png</image>
     </screenshot>
     <screenshot>
       <caption>The Opening Tree: book moves with their weights</caption>
       <caption xml:lang="it">L'Albero delle aperture: le mosse del libro con i pesi</caption>
+      <caption xml:lang="es">El árbol de aperturas: las jugadas del libro con sus pesos</caption>
       <image>https://yafb.net/pragma-chess/assets/screenshots/tree.png</image>
     </screenshot>
     <screenshot>
       <caption>Play Online: connect a platform and find an opponent</caption>
       <caption xml:lang="it">Gioca online: connetti una piattaforma e cerca un avversario</caption>
+      <caption xml:lang="es">Jugar en línea: conecta una plataforma y busca un rival</caption>
       <image>https://yafb.net/pragma-chess/assets/screenshots/online.png</image>
     </screenshot>
   </screenshots>

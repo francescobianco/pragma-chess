@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fuentes de partidas – Guía – Pragma Chess</title>
+<meta name="description" content="Una fuente trae tus partidas de un sitio web a la base de datos abierta y las mantiene al día.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/es/guide/sources/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/sources/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/sources/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/sources/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/sources/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/es/guide/sources/">
+<meta property="og:title" content="Fuentes de partidas – Guía – Pragma Chess">
+<meta property="og:description" content="Una fuente trae tus partidas de un sitio web a la base de datos abierta y las mantiene al día.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menú">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funciones</a>
+    <a href="../../#screenshots">Capturas</a>
+    <a href="../../#download">Descargar</a>
+    <a href="../../#supporters">Apoyos</a>
+    <a href="../../#support">Ayuda</a>
+    <a href="../../../es/guide/" class="current">Guía</a>
+    <a href="../../../es/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/sources/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/sources/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/sources/" hreflang="es" class="current">Español</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guía</a></p>
+  <header>
+    <h1>Fuentes de partidas</h1>
+  </header>
+  <p>Una fuente trae tus partidas de un sitio web a la base de datos abierta y las mantiene al día.</p>
+<p><strong>Base de datos ▸ Conectar fuente…</strong> añade una:</p>
+<ul><li><strong>lichess.org</strong>: las partidas públicas de la cuenta; iniciar sesión es opcional y las descarga más rápido;</li><li><strong>chess.com</strong>: tu nombre de usuario;</li><li><strong>torneionline.com</strong>: tu número FIDE o FSI, para las partidas de los torneos que jugaste.</li><li><strong>Archivos de ChessBase</strong>: una base de datos de ChessBase en este ordenador: el formato clásico (<code>.cbh</code> y sus archivos) o el de ChessBase 17 y posteriores (<code>.2cbh</code> y sus archivos). Elige el archivo <code>.cbh</code> o <code>.2cbh</code>: sus partidas se copian (desde un <code>.2cbh</code> con sus variantes, los comentarios en tu idioma cuando vienen en varios, los símbolos, las casillas de colores y las flechas y las evaluaciones del motor), los archivos se quedan donde están, y las partidas que se les añadan más tarde llegan en la siguiente sincronización. En otro ordenador el archivo no está: la sincronización lo dice y ofrece ignorar la fuente en ese ordenador; <em>Base de datos ▸ Gestionar fuentes… ▸ Editar…</em> vuelve a elegir el archivo, y <strong>Usar en este ordenador</strong> deja de ignorarla.</li><li><strong>Lichess Study</strong>: un estudio de lichess.org. Pega la dirección de su página (o de uno de sus capítulos) en <strong>Dirección del estudio</strong>: cada capítulo se convierte en una partida de la base de datos, con sus comentarios y variantes, y sus etiquetas <code>StudyName</code>, <code>ChapterName</code> y <code>ChapterURL</code> dicen qué estudio y qué capítulo es (los capítulos del estudio no son los capítulos de un proyecto). Un capítulo cambiado en lichess.org sustituye a su partida en la siguiente sincronización, a menos que la partida también haya cambiado aquí: entonces se conservan las dos. Un estudio público no necesita cuenta; para uno privado, <strong>Iniciar sesión con lichess.org…</strong> con una cuenta que pueda verlo. Un estudio puede ser público para mirarlo y aun así no poderse descargar: su autor elige quién puede exportarlo (<strong>Share &amp; export</strong> en los ajustes del estudio en lichess.org), y solo esas personas pueden conectarlo. Por ahora el estudio solo se lee: la escritura llegará.</li><li><strong>Archivo PGN</strong>: un archivo <code>.pgn</code> de este ordenador, sincronizado con la base de datos. Elígelo con <strong>Examinar…</strong>, o crea uno vacío con <strong>Nuevo archivo…</strong>, y luego la <strong>Dirección</strong>: <strong>Lectura y escritura</strong> (las partidas del archivo entran en la base de datos y las de la base de datos van al archivo, así que una partida añadida o cambiada en un lado llega al otro), <strong>Solo lectura</strong> (el archivo nunca se escribe) o <strong>Solo escritura</strong> (todas las partidas de la base de datos van al archivo; las demás partidas del archivo se quedan fuera de la base de datos). Una partida que guardas, cambias o anotas se escribe en el archivo unos segundos después. Nada de lo que se quita en un lado se quita en el otro, y una partida cambiada en ambos lados entre dos sincronizaciones se conserva dos veces. Pragma Chess marca cada partida que vincula a la base de datos con una etiqueta <code>PragmaUid</code>, y guarda un índice junto al archivo en un archivo oculto, para que un archivo que no ha cambiado no se vuelva a leer.</li></ul>
+<p>Las fuentes se leen cuando se abre la base de datos y cada veinte minutos. Una partida nunca se importa dos veces. <strong>Base de datos ▸ Gestionar fuentes…</strong> sincroniza una fuente ahora, la cambia, vuelve a iniciar sesión o la quita; las partidas ya importadas se quedan.</p>
+<p>El nodo <strong>Fuente</strong> del árbol muestra las partidas de cada fuente.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../opening-names/">← Nombres de aperturas</a>
+    <a class="next" href="../trash/">Papelera →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess es software libre bajo la licencia MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novedades</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/sources/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/sources/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/sources/" hreflang="es" class="current">Español</a></p>
+  <p class="credits">Hecho con Qt. Motor predeterminado: Stockfish (GPL v3). Nombres de aperturas de lichess-org/chess-openings (CC0). Piezas: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

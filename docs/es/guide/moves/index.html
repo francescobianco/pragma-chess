@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jugadas y anotaciones – Guía – Pragma Chess</title>
+<meta name="description" content="El panel Jugadas muestra la partida del tablero, con las piezas dibujadas como figuras.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/es/guide/moves/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/moves/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/moves/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/moves/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/moves/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/es/guide/moves/">
+<meta property="og:title" content="Jugadas y anotaciones – Guía – Pragma Chess">
+<meta property="og:description" content="El panel Jugadas muestra la partida del tablero, con las piezas dibujadas como figuras.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menú">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funciones</a>
+    <a href="../../#screenshots">Capturas</a>
+    <a href="../../#download">Descargar</a>
+    <a href="../../#supporters">Apoyos</a>
+    <a href="../../#support">Ayuda</a>
+    <a href="../../../es/guide/" class="current">Guía</a>
+    <a href="../../../es/blog/">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/moves/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/moves/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/moves/" hreflang="es" class="current">Español</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Guía</a></p>
+  <header>
+    <h1>Jugadas y anotaciones</h1>
+  </header>
+  <p>El panel Jugadas muestra la partida del tablero, con las piezas dibujadas como figuras. Haz clic en una jugada para ir a ella.</p>
+<p>La línea principal es una tabla, una jugada por celda: haz clic en la celda para ir a la jugada. Las <strong>variantes</strong> ocupan una fila propia bajo la jugada que sustituyen, más pequeñas, como texto; las variantes de una variante la siguen entre paréntesis. Haz clic en una jugada de una variante para seguir esa línea: las flechas avanzan entonces por ella, y hacer clic en una jugada de la línea principal te devuelve a ella. Al principio de una variante, jugar la jugada de la línea principal vuelve a la línea principal, y otra jugada empieza una variante hermana. Las variantes se guardan con la partida y viajan en el PGN que copias.</p>
+<p>Una partida escrita a mano puede tener una <strong>jugada nula</strong>, escrita <code>--</code>: el bando que mueve pasa, cuando no se conocía la jugada o para mostrar un plan (ChessBase y PGN la escriben así). Se muestra y se copia como <code>--</code>, las flechas pasan por ella como por cualquier otra jugada, y el motor analiza la posición que la sigue. Explicar no tiene nada que decir de una jugada nula; nunca se juega en el entrenamiento, en línea ni en el lobby.</p>
+<p>Haz clic derecho en una jugada para ver su menú:</p>
+<ul><li><strong>Copiar ▸ Copiar jugada</strong> y <strong>Copiar ▸ Copiar línea hasta aquí</strong> ponen en el portapapeles la jugada, o la partida hasta ella.</li><li><strong>Anotaciones</strong> muestra los símbolos con lo que significa cada uno.</li><li><strong>Variantes</strong>: en una jugada de una variante, <strong>Promover variante</strong> la convierte en la línea de la que cuelga (las jugadas que sustituía pasan a ser su variante, con las suyas) y <strong>Eliminar variante</strong> la quita; en cualquier jugada, <strong>Eliminar desde aquí</strong> la quita junto con las jugadas que la siguen en su línea, con sus variantes. Eliminar pregunta antes: no se puede deshacer.</li></ul>
+<p>Una jugada puede llevar un juicio sobre la jugada y una valoración de la posición:</p>
+<ul><li><code>!!</code> jugada brillante, <code>!</code> buena jugada, <code>!?</code> jugada interesante, <code>?!</code> jugada dudosa, <code>?</code> error, <code>??</code> error grave, <code>□</code> jugada única.</li><li><code>+−</code> las blancas están ganando, <code>±</code> las blancas están mejor, <code>⩲</code> las blancas están ligeramente mejor, <code>=</code> igualdad, <code>∞</code> posición incierta, <code>⩱</code> <code>∓</code> <code>−+</code> lo mismo para las negras.</li></ul>
+<p>Elige el símbolo que ya tiene una jugada para quitarlo, o <strong>Sin anotación</strong> para borrarlos todos. Las anotaciones se guardan con la partida en el acto y se escriben cuando copias la partida en PGN.</p>
+<p>Los <strong>comentarios</strong> — el texto entre las jugadas de una partida PGN o de un estudio de lichess — se muestran en cursiva: bajo su jugada en la línea principal, entre las jugadas en una variante. Las órdenes que los programas ponen en los comentarios (una evaluación <code>[%eval 0.18]</code>, un reloj, flechas) se conservan con la partida pero no se muestran. Los comentarios se guardan en la base de datos con la partida y se vuelven a escribir cuando la partida se escribe en PGN.</p>
+<p>Haz doble clic en un comentario para escribir en él, ahí mismo, como se escribe un párrafo (Esc, Ctrl+Enter o un clic en otro lugar terminan; si se vacía, desaparece). Haz clic derecho en una jugada para <strong>Añadir comentario</strong> o <strong>Editar comentario</strong>, y en un comentario para <strong>Editar comentario</strong> y <strong>Eliminar comentario</strong>. Las órdenes que contiene se quedan como estaban. Las jugadas escritas en un comentario — "4.d4 cxd4 era mejor", "luego Dg5" — son enlaces: haz clic en una y su línea se juega en el tablero como variante de la partida (o se toma la variante que ya es), y después se sigue con las flechas como cualquier otra. Una jugada con número empieza desde esa jugada de la línea; una sin número continúa desde el comentario, o sustituye a la jugada comentada. Los círculos y las flechas que un estudio de lichess dibuja en las casillas (<code>[%csl …]</code>, <code>[%cal …]</code> en el comentario) se dibujan en el tablero, en sus colores, mientras se muestra la posición de su comentario.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../board/">← El tablero</a>
+    <a class="next" href="../explain/">Explicar →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess es software libre bajo la licencia MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novedades</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/moves/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/moves/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/moves/" hreflang="es" class="current">Español</a></p>
+  <p class="credits">Hecho con Qt. Motor predeterminado: Stockfish (GPL v3). Nombres de aperturas de lichess-org/chess-openings (CC0). Piezas: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

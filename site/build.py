@@ -32,7 +32,7 @@ from urllib.parse import urljoin
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT.parent / "docs"
 GUIDES = ROOT.parent / "gui" / "qt" / "resources" / "help"
-LANGUAGES = ["en", "it"]
+LANGUAGES = ["en", "it", "es"]
 DEFAULT_LANGUAGE = "en"
 REPO = "francescobianco/pragma-chess"
 # Where GitHub Pages serves docs/: search engines and link previews need

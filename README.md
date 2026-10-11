@@ -3,7 +3,7 @@
 An open source chess database for studying, training and playing: light,
 simple, with what really matters. For Windows, macOS and Linux.
 
-**Web site: <https://yafb.net/pragma-chess/>** (English and Italian, with
+**Web site: <https://yafb.net/pragma-chess/>** (English, Italian and Spanish, with
 screenshots, downloads and [the guide](https://yafb.net/pragma-chess/en/guide/)) ·
 **[Discussions](https://github.com/francescobianco/pragma-chess/discussions)**
 for questions and ideas · **[Issues](https://github.com/francescobianco/pragma-chess/issues)**
@@ -143,8 +143,8 @@ collection; `pragma-book` builds and probes books on the command line.
 ### Language
 
 *Options ▸ Switch Language* chooses the language of the interface for your user
-account; it applies the next time Pragma Chess starts. English and Italian
-today: [your language is welcome](CONTRIBUTING.md#translating), and it takes
+account; it applies the next time Pragma Chess starts. English, Italian and
+Spanish today: [your language is welcome](CONTRIBUTING.md#translating), and it takes
 no code.
 
 ### Sync between computers

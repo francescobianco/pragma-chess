@@ -685,8 +685,8 @@ Compiler warnings are on (`-Wall -Wextra -Wpedantic`); don't introduce new ones.
   "Translating"; `LocalizedText::languages` and the site's `LANGUAGES` are
   still by hand).
   After changing texts, refresh them from `gui/qt` with
-  `/usr/lib/qt6/bin/lupdate -locations none -no-obsolete src tools -ts translations/pragma-chess_it.ts`
-  and translate the new `type="unfinished"` entries. Both tools come with
+  `/usr/lib/qt6/bin/lupdate -locations none -no-obsolete src tools -ts translations/pragma-chess_*.ts`
+  and translate the new `type="unfinished"` entries in every language (it, es). Both tools come with
   `qt6-tools-dev` and `qt6-l10n-tools` (`make deps`): without them CMake warns
   and the client is built in English only, whatever language is chosen. Qt's
   own texts (dialog buttons, standard dialogs) are embedded too

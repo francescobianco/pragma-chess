@@ -35,7 +35,7 @@ how it is tuned.
 
 ## Translating
 
-The interface is English and Italian today. A new language takes a few
+The interface is English, Italian and Spanish today. A new language takes a few
 files, and none of them is code. Open an issue with the *Translation* form
 first, so two people do not translate the same language.
 

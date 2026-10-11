@@ -323,8 +323,22 @@ MainWindow::MainWindow(QWidget *parent)
                 m_explainer->setEvaluation(position, evaluation);
                 updateCourse();
             });
+    // Its progress, by the time it may take: 100% when the time is up.
+    m_evaluationProgress = new QTimer(this);
+    m_evaluationProgress->setInterval(500);
+    connect(m_evaluationProgress, &QTimer::timeout, this, [this] {
+        if (!m_gameEvaluation->isRunning()) {
+            m_evaluationProgress->stop();
+            m_enginePanel->setEvaluationProgress(std::nullopt);
+            return;
+        }
+        const qint64 percent = m_evaluationClock.elapsed() * 100 / GameEvaluation::kTimeBudgetMs;
+        m_enginePanel->setEvaluationProgress(int(std::min<qint64>(percent, 100)));
+    });
     // Done, or out of time: the strength of each side is settled for good.
     connect(m_gameEvaluation, &GameEvaluation::finished, this, [this] {
+        m_evaluationProgress->stop();
+        m_enginePanel->setEvaluationProgress(std::nullopt);
         QList<std::optional<EngineEvaluation>> evaluations;
         for (const ChessPosition &position : m_gameEvaluation->positions())
             evaluations << m_explainer->known(position);
@@ -4120,7 +4134,12 @@ bool MainWindow::evaluateGame()
         moves << move.uci;
     m_evaluatedGame = strengthKey(game);
     m_frozenStrength.remove(m_evaluatedGame); // Evaluated again: settled again at the end.
-    return !moves.isEmpty() && m_gameEvaluation->start(engine, game.startFen, moves);
+    if (moves.isEmpty() || !m_gameEvaluation->start(engine, game.startFen, moves))
+        return false;
+    m_evaluationClock.start();
+    m_enginePanel->setEvaluationProgress(0);
+    m_evaluationProgress->start();
+    return true;
 }
 
 QString MainWindow::strengthKey(const GameRecord &game)
@@ -4838,6 +4857,8 @@ void MainWindow::setOnlinePlay(bool on)
         return;
     m_onlinePlay = on;
     m_onlineModeAction->setChecked(on);
+    // The score and the course say nothing while playing: hidden, back when it ends.
+    m_enginePanel->setScoreShown(!on);
     m_onlineModeAction->setEnabled(on);
     if (!on) {
         m_enginePanel->setClocks(false);
@@ -4846,6 +4867,8 @@ void MainWindow::setOnlinePlay(bool on)
     // Against cheating: nothing that thinks for the user runs while they play.
     if (on) {
         m_gameEvaluation->stop(); // The last game's evaluation goes no further.
+        m_evaluationProgress->stop();
+        m_enginePanel->setEvaluationProgress(std::nullopt);
         m_trainingModeAction->setChecked(false);
         m_startEngineAction->setChecked(false);
         m_explainAction->setChecked(false);

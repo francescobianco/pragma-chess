@@ -987,6 +987,10 @@ Il Nero ha catturato: %2</translation>
         <source>Stop</source>
         <translation>Ferma</translation>
     </message>
+    <message>
+        <source>Calculating… %1%</source>
+        <translation>Calcolo… %1%</translation>
+    </message>
 </context>
 <context>
     <name>EvaluationBar</name>

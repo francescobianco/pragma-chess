@@ -23,6 +23,7 @@
 #include <QDateTime>
 #include <QHash>
 #include <QSet>
+#include <QElapsedTimer>
 #include <QMainWindow>
 #include <QPointer>
 
@@ -614,6 +615,9 @@ private:
     /// analyses. By the game's uid, or its address while it has none.
     QHash<QString, PlayStrength::Estimate> m_frozenStrength;
     QString m_evaluatedGame;
+    /// The Evaluation of the Game's progress in the Engine panel, by its time budget.
+    QTimer *m_evaluationProgress;
+    QElapsedTimer m_evaluationClock;
     /// The key m_frozenStrength knows a game by.
     static QString strengthKey(const GameRecord &game);
     MoveTreeView *m_moveView;

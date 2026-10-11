@@ -220,7 +220,8 @@ playing a move turns it off, and the user asks again at the next move.
   position of a finished game searched by an engine process of its own, in
   passes 8, 12, 16, 20, 24 (`nextStep`, pure) for one minute at most
   (`kTimeBudgetMs`; then each side's strength is frozen for that game,
-  `m_frozenStrength`), each result given to
+  `m_frozenStrength`; "Calculating… N%" left of the eye counts the minute,
+  `EnginePanel::setEvaluationProgress`), each result given to
   `Explainer::setEvaluation`, so the course fills in; positions known as
   deep are skipped (`setKnownDepth`). `MainWindow::evaluateGame` starts it
   when an online game ends — never during one: `setOnlinePlay(true)` stops
@@ -232,7 +233,8 @@ playing a move turns it off, and the user asks again at the next move.
   estimate above 1500 drawn down towards it by moves/(moves+12), one below
   left where its mistakes put it), shown by
   `EvaluationBox::setStrength` in the score's place while idle, two rows in
-  the board's order. `POST/GET /api/evaluation`.
+  the board's order. The score's box is hidden while a game is played online
+  (`EnginePanel::setScoreShown`, `setOnlinePlay`) and back when it ends. `POST/GET /api/evaluation`.
 - The Engine panel shows the engine's whole line, and an eye beside Stop
   (`EnginePanel::peekHeld`): held down, the board shows the
   position at the end of the line, and follows it while the engine goes on

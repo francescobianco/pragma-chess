@@ -60,6 +60,10 @@ public:
     ScoreView::Kind scoreView() const { return m_score->view(); }
     /// The game's course beside the score (EvaluationBox::setCourse).
     void setCourse(const QList<std::optional<double>> &shares, int current) { m_score->setCourse(shares, current); }
+    /// The score and the course shown or not: hidden while a game is played online.
+    void setScoreShown(bool shown) { m_score->setVisible(shown); }
+    /// How far the Evaluation of the Game is, left of the eye: "Calculating… 40%"; none hides it.
+    void setEvaluationProgress(std::optional<int> percent);
     /// How each side played the game on the board, in the score's place when idle (EvaluationBox::setStrength).
     void setStrength(const std::optional<PlayStrength::Estimate> &strength) { m_score->setStrength(strength); }
     /// Summary of the "Explain" command; empty hides it.
@@ -109,6 +113,7 @@ private:
     QLabel *m_explanation;
     QLabel *m_line;
     QToolButton *m_peek;
+    QLabel *m_progress;
     QLabel *m_eco;
     QLabel *m_opening;
     QLabel *m_book;

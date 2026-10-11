@@ -34,6 +34,7 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     , m_explanation(new QLabel)
     , m_line(new QLabel)
     , m_peek(new QToolButton)
+    , m_progress(new QLabel)
     , m_eco(new QLabel)
     , m_opening(new QLabel)
     , m_book(new QLabel)
@@ -60,7 +61,11 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     // taking the focus let go after a moment.
     m_peek->setFocusPolicy(Qt::NoFocus);
     m_peek->installEventFilter(this);
+    // The Evaluation of the Game at work, quietly, beside the eye.
+    m_progress->setForegroundRole(QPalette::PlaceholderText);
+    m_progress->hide();
     header->addWidget(m_name, 1);
+    header->addWidget(m_progress);
     header->addWidget(m_peek);
     header->addWidget(toggle);
     layout->addLayout(header);
@@ -257,6 +262,13 @@ void EnginePanel::setExplanation(const QString &text)
 {
     m_explanation->setText(text);
     m_explanation->setVisible(!text.isEmpty());
+}
+
+void EnginePanel::setEvaluationProgress(std::optional<int> percent)
+{
+    m_progress->setVisible(percent.has_value());
+    if (percent)
+        m_progress->setText(tr("Calculating… %1%").arg(*percent));
 }
 
 void EnginePanel::setEvaluation(const std::optional<EngineEvaluation> &evaluation, const QString &line, Side mover)

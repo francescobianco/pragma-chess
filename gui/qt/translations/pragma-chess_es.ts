@@ -987,6 +987,10 @@ Las negras han capturado: %2</translation>
         <source>Stop</source>
         <translation>Detener</translation>
     </message>
+    <message>
+        <source>Calculating… %1%</source>
+        <translation>Calculando… %1%</translation>
+    </message>
 </context>
 <context>
     <name>EvaluationBar</name>

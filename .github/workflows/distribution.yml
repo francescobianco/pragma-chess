@@ -28,6 +28,7 @@ jobs:
       - name: Keep the numbers on the stats branch
         run: |
           cp distribution.csv /tmp/distribution.csv
+          rm distribution.csv # The stats branch has its own: no untracked copy in the way.
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if git show-ref --quiet refs/heads/stats; then git checkout -q stats

@@ -1,0 +1,37 @@
+name: Distribution
+
+# Every Monday: where Pragma Chess stands (scripts/distribution-status.sh) in
+# the run's summary, and the day's numbers appended to distribution.csv on
+# the `stats` branch — GitHub keeps visits and clones 14 days only.
+# Visits, clones and referrers need the secret DISTRIBUTION_TOKEN (a token
+# that can read the repository's traffic); without it they are left out.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Where we stand
+        env:
+          GH_TOKEN: ${{ secrets.DISTRIBUTION_TOKEN || github.token }}
+        run: |
+          git fetch origin stats:stats 2>/dev/null && git show stats:distribution.csv > distribution.csv 2>/dev/null || true
+          scripts/distribution-status.sh --csv distribution.csv | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the numbers on the stats branch
+        run: |
+          cp distribution.csv /tmp/distribution.csv
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git show-ref --quiet refs/heads/stats; then git checkout -q stats
+          else git checkout -q --orphan stats && git rm -rq --cached . && git clean -fdq; fi
+          cp /tmp/distribution.csv distribution.csv
+          git add distribution.csv
+          git commit -qm "Distribution, $(date -u +%F)" && git push -q origin stats

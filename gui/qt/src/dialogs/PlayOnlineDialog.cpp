@@ -9,6 +9,7 @@
 #include <QComboBox>
 #include <QDesktopServices>
 #include <QDialogButtonBox>
+#include <QFontMetrics>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -36,29 +37,29 @@ PlayOnlineDialog::PlayOnlineDialog(bool remembered, QWidget *parent)
     , m_remember(new QCheckBox(tr("Remember for this &session")))
 {
     setWindowTitle(tr("Play Online"));
-    // Room for several connections, each on a line that breathes.
-    setMinimumWidth(540);
+    // Room for five connections at least, each on a line that breathes.
     m_list->setSpacing(3);
+    m_list->setMinimumHeight(5 * (QFontMetrics(m_list->font()).height() + 2 * 3 + 6) + 2 * m_list->frameWidth());
     QSettings settings;
     m_accounts = OnlineAccounts::load(settings);
 
     auto *layout = new QVBoxLayout(this);
+    // The window never smaller than what it holds: the list keeps its five lines.
+    layout->setSizeConstraint(QLayout::SetMinimumSize);
 
     // The connections: each one a platform signed in to as some account.
     auto *accounts = new QGroupBox(tr("Platforms"));
     auto *accountsLayout = new QVBoxLayout(accounts);
-    // What the list is, and what playing online turns off, behind its "?".
-    accountsLayout->addWidget(
-        HelpButton::beside(m_list,
-                           QStringLiteral("<p>%1</p><p>%2</p>")
-                               .arg(tr("The platforms you are connected to, each with the account you play as. "
-                                       "They are yours on this computer: a project does not carry them."),
-                                    tr("While you play online the engine, Explain and the opening book are off: "
-                                       "it is you against your opponent.")),
-                           accounts, Qt::AlignTop),
-        1);
+    accountsLayout->addWidget(m_list, 1);
     auto *row = new QHBoxLayout;
     row->addWidget(m_connect);
+    // What the list is, and what playing online turns off, behind its "?".
+    row->addWidget(new HelpButton(QStringLiteral("<p>%1</p><p>%2</p>")
+                                      .arg(tr("The platforms you are connected to, each with the account you play "
+                                              "as. They are yours on this computer: a project does not carry them."),
+                                           tr("While you play online the engine, Explain and the opening book are "
+                                              "off: it is you against your opponent.")),
+                                  accounts));
     row->addStretch(1);
     row->addWidget(m_remove);
     accountsLayout->addLayout(row);

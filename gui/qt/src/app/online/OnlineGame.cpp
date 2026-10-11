@@ -23,6 +23,15 @@ QString OnlineGame::result() const
     return QStringLiteral("1/2-1/2");
 }
 
+bool OnlineGame::replacesUnfinished(const GameRecord &board, const GameRecord &arriving)
+{
+    if (!board.uid.isEmpty() || board.result != QLatin1String("*") || board.site.isEmpty())
+        return false;
+    const bool sameGame = board.site == arriving.site && board.white == arriving.white && board.black == arriving.black;
+    const bool aborted = board.moves.size() < 2;
+    return sameGame || aborted;
+}
+
 QString OnlineGame::endText() const
 {
     const bool whiteWon = winner == QLatin1String("white");

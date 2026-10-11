@@ -5481,6 +5481,41 @@ END FUNCTION
         QCOMPARE(estimate.white.moves, 2); // 3.(1500 → 1500) is a won game going on.
     }
 
+    void replacesWhatAnOnlineGameLeftUnfinished()
+    {
+        // The board after a restart in the middle of a lichess game: three
+        // moves, no result, never saved (the case of 2026-10-11, which became
+        // a chapter of two copies of one game).
+        GameRecord board;
+        board.white = QStringLiteral("viraajgoyal18");
+        board.black = QStringLiteral("francescobianco");
+        board.site = QStringLiteral("https://lichess.org/byIjmsUX");
+        board.result = QStringLiteral("*");
+        for (const char *uci : {"e2e4", "d7d5", "e4d5"})
+            board.moves << MoveRecord{QString(), QString::fromLatin1(uci)};
+        GameRecord arriving = board;
+        arriving.moves.clear();
+        QVERIFY(OnlineGame::replacesUnfinished(board, arriving)); // The same game, followed again.
+
+        GameRecord another = arriving;
+        another.site = QStringLiteral("https://lichess.org/zzzzzzzz");
+        QVERIFY(!OnlineGame::replacesUnfinished(board, another)); // A real game left unfinished is kept.
+        GameRecord aborted = board;
+        aborted.moves = {board.moves.first()};
+        QVERIFY(OnlineGame::replacesUnfinished(aborted, another)); // An aborted one is not.
+
+        GameRecord saved = board;
+        saved.uid = QStringLiteral("f493e7ff-bc66-5ee7-83d2-c9c7264a43c1");
+        QVERIFY(!OnlineGame::replacesUnfinished(saved, arriving));
+        GameRecord finished = board;
+        finished.result = QStringLiteral("1-0");
+        QVERIFY(!OnlineGame::replacesUnfinished(finished, arriving));
+        GameRecord analysis; // A game of the user's, no address: not an online trace.
+        analysis.result = QStringLiteral("*");
+        analysis.moves = {board.moves.first()};
+        QVERIFY(!OnlineGame::replacesUnfinished(analysis, another));
+    }
+
     void namesLanguagesWithoutACountry()
     {
         // The language alone, as the Switch Language menu shows it: Qt's own

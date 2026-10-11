@@ -1,5 +1,7 @@
 #pragma once
 
+#include "app/GameRecord.h"
+
 #include <QByteArray>
 #include <QString>
 #include <QStringList>
@@ -38,6 +40,14 @@ struct OnlineGame {
     QString result() const;
     /// What happened, for people: "Checkmate", "White resigned", …
     QString endText() const;
+
+    /// Whether `board`, the game on the board, is a trace an online game left
+    /// unfinished that `arriving` may take the place of: never saved, no
+    /// result, and either the same game followed again after a restart (same
+    /// address, same players) or one aborted (not a move each). A new online
+    /// game coming after it would have made the project a chapter by itself.
+    /// A real game left unfinished, moves played, is kept.
+    static bool replacesUnfinished(const GameRecord &board, const GameRecord &arriving);
 };
 
 /// The lines of lichess's Board API streams, parsed. Each stream is NDJSON:

@@ -967,7 +967,11 @@ a chapter always has a game. In other tools this is a study or a chess book.
   (`MainWindow::mayReplaceBoardGame`: Save to the open database, Don't
   Save, Cancel); only a game that was neither saved nor let go — a path
   that does not ask, an online game starting — is kept, the new one coming
-  after it and making the chapter (`keepsBoardGame`). `settle()` (called by
+  after it and making the chapter (`keepsBoardGame`). Not what an online
+  game left unfinished, which the online game arriving replaces
+  (`OnlineGame::replacesUnfinished`): the same game followed again after a
+  restart (same address and players), or one aborted (not a move each) —
+  a restart in the middle of a game made two copies of it a chapter. `settle()` (called by
   `syncChapterGame` and `chapterChanged`) makes it the first chapter as
   soon as something is put in it — a second game (a game break), a
   paragraph or a title, New Chapter. Deleting every chapter in Manage Chapters

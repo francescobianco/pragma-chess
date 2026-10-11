@@ -4862,6 +4862,11 @@ void MainWindow::onlineGameStarted(const OnlineGame &game)
     record.date = QDate::currentDate().toString(QStringLiteral("yyyy.MM.dd"));
     record.result = QStringLiteral("*");
     record.startFen = game.initialFen;
+    // What an online game left on the board unfinished — this one, followed
+    // again after a restart; one aborted — is not kept before it: it would
+    // make the project a chapter by itself.
+    if (OnlineGame::replacesUnfinished(m_session->game(), record))
+        m_replaceBoardGame = true;
     startGame(record);
     m_flipBoardAction->setChecked(!white);
     m_engineDock->show();

@@ -5,6 +5,7 @@
 #include "app/sources/SourceCredentials.h"
 #include "widgets/HelpButton.h"
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDesktopServices>
@@ -17,12 +18,60 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMenu>
+#include <QPainter>
 #include <QPushButton>
 #include <QSettings>
 #include <QSpinBox>
+#include <QStyledItemDelegate>
 #include <QUuid>
 #include <QVBoxLayout>
 
+
+namespace {
+
+constexpr int kPlatformRole = Qt::UserRole + 1;
+constexpr int kAccountRole = Qt::UserRole + 2;
+
+/// A connection in the list: the platform in bold on the left, the account
+/// it plays as on the right, quieter — two things, not one line of text.
+class ConnectionDelegate : public QStyledItemDelegate {
+public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        const QString platform = index.data(kPlatformRole).toString();
+        if (platform.isEmpty()) {
+            QStyledItemDelegate::paint(painter, option, index); // "No platform connected yet"
+            return;
+        }
+        QStyleOptionViewItem item = option;
+        initStyleOption(&item, index);
+        item.text.clear();
+        const QWidget *widget = option.widget;
+        QStyle *style = widget ? widget->style() : QApplication::style();
+        style->drawControl(QStyle::CE_ItemViewItem, &item, painter, widget);
+
+        const bool selected = option.state & QStyle::State_Selected;
+        const QRect text = option.rect.adjusted(8, 0, -10, 0);
+        painter->save();
+        QFont bold = option.font;
+        bold.setBold(true);
+        painter->setFont(bold);
+        painter->setPen(option.palette.color(selected ? QPalette::HighlightedText : QPalette::Text));
+        painter->drawText(text, Qt::AlignLeft | Qt::AlignVCenter, platform);
+        painter->setFont(option.font);
+        QColor account = option.palette.color(selected ? QPalette::HighlightedText : QPalette::PlaceholderText);
+        painter->setPen(account);
+        const int platformWidth = QFontMetrics(bold).horizontalAdvance(platform) + 24;
+        painter->drawText(text.adjusted(platformWidth, 0, 0, 0), Qt::AlignRight | Qt::AlignVCenter,
+                          QFontMetrics(option.font).elidedText(index.data(kAccountRole).toString(), Qt::ElideMiddle,
+                                                               text.width() - platformWidth));
+        painter->restore();
+    }
+};
+
+} // namespace
 
 PlayOnlineDialog::PlayOnlineDialog(bool remembered, QWidget *parent)
     : QDialog(parent)
@@ -39,6 +88,8 @@ PlayOnlineDialog::PlayOnlineDialog(bool remembered, QWidget *parent)
     setWindowTitle(tr("Play Online"));
     // Room for five connections at least, each on a line that breathes.
     m_list->setSpacing(3);
+    m_list->setItemDelegate(new ConnectionDelegate(m_list));
+    m_list->setMinimumWidth(560); // A generous window: names and accounts in full.
     m_list->setMinimumHeight(5 * (QFontMetrics(m_list->font()).height() + 2 * 3 + 6) + 2 * m_list->frameWidth());
     QSettings settings;
     m_accounts = OnlineAccounts::load(settings);
@@ -80,6 +131,11 @@ PlayOnlineDialog::PlayOnlineDialog(bool remembered, QWidget *parent)
     // A clock lichess refuses says so in a few words on its row; why, behind the "?".
     m_clockNote = new QLabel(tr("Too fast for lichess.org"));
     m_clockNote->setForegroundRole(QPalette::PlaceholderText);
+    // Its place is kept while it is hidden: the window is always wide enough
+    // for it, in any language, and never changes width when it appears.
+    QSizePolicy notePolicy = m_clockNote->sizePolicy();
+    notePolicy.setRetainSizeWhenHidden(true);
+    m_clockNote->setSizePolicy(notePolicy);
     m_clockNote->hide();
     auto *clock = new QHBoxLayout;
     clock->addWidget(m_minutes);
@@ -152,8 +208,11 @@ void PlayOnlineDialog::rebuildAccounts()
 {
     m_list->clear();
     for (const OnlineAccount &account : m_accounts.accounts()) {
+        // The text stays for accessibility and search; the delegate draws the two parts.
         auto *item = new QListWidgetItem(QStringLiteral("%1 — %2").arg(OnlineAccounts::platformName(account.platform), account.username));
         item->setData(Qt::UserRole, account.id);
+        item->setData(kPlatformRole, OnlineAccounts::platformName(account.platform));
+        item->setData(kAccountRole, account.username);
         m_list->addItem(item);
     }
     if (m_list->count() == 0) {

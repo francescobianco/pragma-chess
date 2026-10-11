@@ -729,7 +729,8 @@ Compiler warnings are on (`-Wall -Wextra -Wpedantic`); don't introduce new ones.
   Adwaita's measures in one place (`kDialog*`: 18 px around the contents,
   12/8 px between controls, fields, drop-downs, spin boxes and buttons 34 px
   tall, a field's text off its frame, an icon-only tool button beside a field
-  34 px square). Spin boxes and those buttons get it in `polish()` too: the
+  34 px square, a list's rows 8 px above and below their text — tables keep
+  their own). Spin boxes and those buttons get it in `polish()` too: the
   main window's style sheet (its separators) reaches every dialog it opens,
   and under a style sheet Qt sizes spin boxes without asking the style.
   Windows and macOS keep their native

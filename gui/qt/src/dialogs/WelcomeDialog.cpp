@@ -172,11 +172,10 @@ QListWidget *fileList()
     list->setIconSize(QSize(20, 20));
     list->setSpacing(2);
     list->setUniformItemSizes(true);
-    // Rows with room, as a launcher's: each is a thing to open.
+    // A launcher's rows, a little larger; their room is the style's (GtkDesktopStyle).
     QFont font = list->font();
     font.setPointSizeF(font.pointSizeF() * 1.05);
     list->setFont(font);
-    list->setStyleSheet(QStringLiteral("QListWidget::item { padding: 4px 6px; }"));
     list->setSelectionMode(QAbstractItemView::NoSelection);
     list->setMouseTracking(true); // The row under the pointer is highlighted: it is a menu.
     list->setCursor(Qt::PointingHandCursor);

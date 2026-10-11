@@ -8,6 +8,7 @@
 #include <QDialog>
 #include <QFileDialog>
 #include <QGroupBox>
+#include <QListView>
 #include <QMainWindow>
 #include <QEvent>
 #include <QGuiApplication>
@@ -36,6 +37,7 @@ constexpr int kDialogHorizontalSpacing = 12;
 constexpr int kDialogVerticalSpacing = 8;
 constexpr int kDialogControlHeight = 34;   // fields, drop-downs, spin boxes, buttons
 constexpr int kDialogFieldPadding = 4;     // more room each side of a field's text
+constexpr int kDialogRowPadding = 8;       // above and below the text of a list's row
 
 /// Whether `widget` is in a dialog (QMessageBox and QWizard included).
 bool inDialog(const QWidget *widget)
@@ -189,6 +191,11 @@ QSize GtkDesktopStyle::sizeFromContents(ContentsType type, const QStyleOption *o
         case CT_SpinBox:
         case CT_PushButton:
             result.setHeight(std::max(result.height(), kDialogControlHeight));
+            return result;
+        case CT_ItemViewItem:
+            // A list's rows breathe, as GNOME's do; tables keep their own rows.
+            if (qobject_cast<const QListView *>(widget))
+                result.rheight() += 2 * kDialogRowPadding;
             return result;
         default:
             break;

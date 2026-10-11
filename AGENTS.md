@@ -393,8 +393,8 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   `/api/peek` (the Engine panel's eye held) `{"on": bool}`,
   `/api/drop` (the board's easter egg: the pieces fall),
   `/api/database {"path"}` (opens a database file), `/api/game {"row"}`
-  (opens the game on that row of the games list); each answers with the
-  state.
+  (opens the game on that row of the games list), `/api/move-games`
+  (the list's Move…, see "Trash"); each answers with the state.
 - `POST /api/lobby {"lobby": bool, "playNow": row, "room": row, "join": bool,
   "game": row, "play": bool}` opens Game ▸ Enter the Lobby…, does those steps in that
   order (back to the list, the Play Now of that row, enter the room on that row, take a seat, select
@@ -1069,7 +1069,14 @@ a chapter always has a game. In other tools this is a study or a chess book.
 
 ## Trash
 
-Right-clicking a game of the list offers Move Game to Trash (the list
+Right-clicking a game of the list offers Move Game… (`dialogs/MoveGamesDialog`:
+another database of the Databases folder, or a new one named there, and
+"Open the database when done", QSettings `games/openAfterMove`; done by
+`app/MoveGames`, unit-tested: each game written there whole, with its uid
+unless that uid is in the other database's trash, before it leaves here as
+`Deleted` — a failure loses nothing; `POST /api/move-games {"rows",
+"to"|"name", "open"}`, or `"dialog": true` for the window's picture) and
+Move Game to Trash (the list
 selects several games with Shift/Ctrl, and the trash actions go to every
 selected game in the same state as the one clicked; Who Is This? only for
 one); the tree's last

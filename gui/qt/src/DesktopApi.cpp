@@ -8,6 +8,8 @@
 #include "dialogs/ProjectInfoDialog.h"
 
 #include "MainWindow.h"
+#include "app/MoveGames.h"
+#include "app/UserFolders.h"
 #include "app/Explainer.h"
 #include "app/GameSession.h"
 #include "app/Pgn.h"
@@ -583,6 +585,41 @@ void DesktopApi::addRoutes()
         if (!index.isValid())
             return LocalHttpServer::error(400, QStringLiteral("expected {\"row\": a row of the games list}"));
         w->openGame(index);
+        return json(state());
+    });
+    // The games list's Move… on rows of the list: {"rows": [0, 2], "dialog": true}
+    // answers with the window's picture; {"rows", "to": a database's path} or
+    // {"rows", "name": a new database's name}, with "open", moves them.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/move-games"), [w, state](const Request &request) {
+        const QJsonObject body = bodyOf(request).value_or(QJsonObject());
+        QStringList uids;
+        for (const QJsonValue &row : body.value(QStringLiteral("rows")).toArray()) {
+            const QModelIndex index = w->m_gameListProxy->index(row.toInt(-1), 0);
+            if (index.isValid())
+                uids << w->m_database->header(w->m_gameListProxy->mapToSource(index).row()).uid;
+        }
+        if (!w->m_database || uids.isEmpty())
+            return LocalHttpServer::error(400, QStringLiteral("expected {\"rows\": rows of the games list}"));
+        if (body.value(QStringLiteral("dialog")).toBool()) {
+            MoveGamesDialog dialog(int(uids.size()), w->moveTargets(), UserFolders::databasesDir(),
+                                   body.value(QStringLiteral("open")).toBool(), w);
+            dialog.show();
+            QByteArray png;
+            QBuffer buffer(&png);
+            buffer.open(QIODevice::WriteOnly);
+            dialog.grab().save(&buffer, "PNG");
+            return Response{200, "image/png", png};
+        }
+        QString path = body.value(QStringLiteral("to")).toString();
+        const bool create = path.isEmpty();
+        if (create) {
+            QString problem;
+            path = MoveGames::newDatabasePath(UserFolders::databasesDir(), body.value(QStringLiteral("name")).toString(),
+                                              &problem);
+            if (path.isEmpty())
+                return LocalHttpServer::error(400, problem);
+        }
+        w->moveGamesTo(uids, path, create, body.value(QStringLiteral("open")).toBool());
         return json(state());
     });
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/peek"), [w, state](const Request &request) {

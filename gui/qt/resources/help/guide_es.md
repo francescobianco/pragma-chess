@@ -51,6 +51,8 @@ Haz clic derecho en un jugador para decir **quién es**: tú, un amigo o un riva
 
 Haz clic derecho en una partida para moverla a la **papelera**.
 
+**Mover partida…**, en el mismo menú, lleva la partida a otra base de datos: una de tu carpeta Databases, o una nueva (elige **Nueva base de datos…** y ponle un nombre). Con varias partidas seleccionadas (Mayús o Ctrl y un clic) las mueve todas. Cada partida llega entera, con sus variantes y comentarios, y solo entonces sale de esta base de datos. Marca **Abrir la base de datos al terminar** para ir allí después.
+
 Para cambiar los jugadores, el evento, la fecha o el resultado de la partida del tablero, haz clic en el encabezado que hay sobre el tablero.
 
 # El árbol de la base de datos {#database-tree}

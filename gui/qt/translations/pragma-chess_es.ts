@@ -3874,6 +3874,41 @@ no está en este ordenador.</translation>
         <source>Databases to install with a click, in Help ▸ Manage Extensions</source>
         <translation>Bases de datos para instalar con un clic, en Ayuda ▸ Gestionar extensiones</translation>
     </message>
+    <message numerus="yes">
+        <source>&amp;Move %n Games…</source>
+        <translation>
+            <numerusform>&amp;Mover %n partida…</numerusform>
+            <numerusform>&amp;Mover %n partidas…</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>&amp;Move Game…</source>
+        <translation>&amp;Mover partida…</translation>
+    </message>
+    <message>
+        <source>Move Games</source>
+        <translation>Mover partidas</translation>
+    </message>
+    <message numerus="yes">
+        <source>The move stopped: %1
+
+%n game(s) moved; the others are still here.</source>
+        <translation>
+            <numerusform>El traslado se detuvo: %1
+
+%n partida trasladada; las demás siguen aquí.</numerusform>
+            <numerusform>El traslado se detuvo: %1
+
+%n partidas trasladadas; las demás siguen aquí.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n game(s) moved to %1</source>
+        <translation>
+            <numerusform>%n partida trasladada a %1</numerusform>
+            <numerusform>%n partidas trasladadas a %1</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>
@@ -4603,6 +4638,71 @@ Las %n partidas ya importadas permanecen en la base de datos.</numerusform>
     <message>
         <source>The attack: %1.</source>
         <translation>El ataque: %1.</translation>
+    </message>
+</context>
+<context>
+    <name>MoveGames</name>
+    <message>
+        <source>Could not read the game.</source>
+        <translation>No se pudo leer la partida.</translation>
+    </message>
+    <message>
+        <source>Give the new database a name.</source>
+        <translation>Ponle un nombre a la nueva base de datos.</translation>
+    </message>
+    <message>
+        <source>“%1” is not a valid name.</source>
+        <translation>“%1” no es un nombre válido.</translation>
+    </message>
+    <message>
+        <source>A database named “%1” already exists.</source>
+        <translation>Ya existe una base de datos llamada “%1”.</translation>
+    </message>
+</context>
+<context>
+    <name>MoveGamesDialog</name>
+    <message>
+        <source>Move Games</source>
+        <translation>Mover partidas</translation>
+    </message>
+    <message>
+        <source>Move Game</source>
+        <translation>Mover partida</translation>
+    </message>
+    <message numerus="yes">
+        <source>Move %n games to another database. They leave this one once they are there.</source>
+        <translation>
+            <numerusform>Mueve %n partida a otra base de datos. Sale de esta en cuanto llega allí.</numerusform>
+            <numerusform>Mueve %n partidas a otra base de datos. Salen de esta en cuanto llegan allí.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Move the game to another database. It leaves this one once it is there.</source>
+        <translation>Mueve la partida a otra base de datos. Sale de esta en cuanto llega allí.</translation>
+    </message>
+    <message>
+        <source>New Database…</source>
+        <translation>Nueva base de datos…</translation>
+    </message>
+    <message>
+        <source>&amp;To:</source>
+        <translation>&amp;A:</translation>
+    </message>
+    <message>
+        <source>Name of the new database</source>
+        <translation>Nombre de la nueva base de datos</translation>
+    </message>
+    <message>
+        <source>&amp;Name:</source>
+        <translation>&amp;Nombre:</translation>
+    </message>
+    <message>
+        <source>&amp;Open the database when done</source>
+        <translation>&amp;Abrir la base de datos al terminar</translation>
+    </message>
+    <message>
+        <source>Move</source>
+        <translation>Mover</translation>
     </message>
 </context>
 <context>

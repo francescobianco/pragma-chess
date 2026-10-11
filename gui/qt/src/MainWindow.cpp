@@ -10,6 +10,7 @@
 #include "app/OpeningNames.h"
 #include "app/DatabaseMerge.h"
 #include "app/DistributedUpdate.h"
+#include "app/MoveGames.h"
 #include "app/StandInNames.h"
 #include "app/ShippedOpeningNames.h"
 #include "DesktopApi.h"
@@ -37,6 +38,7 @@
 #include "dialogs/ManageEnginesDialog.h"
 #include "dialogs/ManageSourcesDialog.h"
 #include "dialogs/NewGameChoiceDialog.h"
+#include "dialogs/MoveGamesDialog.h"
 #include "dialogs/NewTrainingDialog.h"
 #include "dialogs/PositionSetupDialog.h"
 #include "dialogs/PersonalSettingsDialog.h"
@@ -1777,6 +1779,8 @@ void MainWindow::showGameListMenu(const QPoint &position)
         menu.addAction(count > 1 ? tr("&Delete %n Games…", nullptr, count) : tr("&Delete Game…"), this,
                        [this, uids] { deleteGames(uids); });
     } else {
+        menu.addAction(count > 1 ? tr("&Move %n Games…", nullptr, count) : tr("&Move Game…"), this,
+                       [this, uids] { moveGames(uids); });
         menu.addAction(count > 1 ? tr("Move %n Games to &Trash", nullptr, count) : tr("Move Game to &Trash"), this,
                        [this, uids] { setGameState(uids, GameState::Trashed); });
     }
@@ -2245,6 +2249,69 @@ void MainWindow::setGameState(const QStringList &uids, GameState state)
         statusBar()->showMessage(tr("%n game(s) deleted", nullptr, changed), 3000);
         break;
     }
+}
+
+QList<MoveGamesDialog::Database> MainWindow::moveTargets() const
+{
+    // The databases of the folder, as Switch Database lists them, but the open one.
+    QList<MoveGamesDialog::Database> databases;
+    const QFileInfoList files = QDir(UserFolders::databasesDir())
+                                    .entryInfoList({QStringLiteral("*.") + QLatin1String(UserFolders::databaseSuffix)},
+                                                   QDir::Files, QDir::Name);
+    for (const QFileInfo &file : files) {
+        const QString path = file.absoluteFilePath();
+        if (m_database && path == m_database->location())
+            continue;
+        databases.append({SqliteGameDatabase::readProperties(path).label(UiLanguage::effective(), path), path});
+    }
+    return databases;
+}
+
+void MainWindow::moveGames(const QStringList &uids)
+{
+    if (!m_database || uids.isEmpty())
+        return;
+    UserFolders::ensureDatabasesDir();
+    QSettings settings;
+    const QString openKey = QStringLiteral("games/openAfterMove");
+    MoveGamesDialog dialog(int(uids.size()), moveTargets(), UserFolders::databasesDir(),
+                           settings.value(openKey, false).toBool(), this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+    settings.setValue(openKey, dialog.openWhenDone());
+    moveGamesTo(uids, dialog.path(), dialog.isNew(), dialog.openWhenDone());
+}
+
+int MainWindow::moveGamesTo(const QStringList &uids, const QString &path, bool create, bool open)
+{
+    QString error;
+    std::unique_ptr<SqliteGameDatabase> target = create ? SqliteGameDatabase::create(path, {}, &error)
+                                                        : SqliteGameDatabase::open(path, &error);
+    if (!target) {
+        QMessageBox::warning(this, tr("Move Games"), tr("Could not open “%1”: %2").arg(QFileInfo(path).fileName(), error));
+        return 0;
+    }
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    const MoveGames::Result result = MoveGames::move(*m_database, uids, *target);
+    QApplication::restoreOverrideCursor();
+    const QString name = target->name();
+    target.reset(); // Closed before it may be opened as the database on screen.
+    const int left = result.moved + result.alreadyThere;
+    if (left > 0) {
+        showCategory(m_category); // The games leave the list they were in.
+        m_databaseTree->refresh();
+        m_positionIndexTimer->start();
+    }
+    if (!result.error.isEmpty()) {
+        QMessageBox::warning(this, tr("Move Games"),
+                             tr("The move stopped: %1\n\n%n game(s) moved; the others are still here.", nullptr, left)
+                                 .arg(result.error));
+        return left;
+    }
+    if (open)
+        openDatabaseFile(path);
+    statusBar()->showMessage(tr("%n game(s) moved to %1", nullptr, left).arg(name), 5000);
+    return left;
 }
 
 void MainWindow::deleteGames(const QStringList &uids)

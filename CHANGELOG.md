@@ -8,6 +8,9 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Move Game…** in the games list's right-click menu takes the selected
+  games to another database, or to a new one named there, and can open it
+  when done; each game arrives whole before it leaves.
 - **Pragma Chess speaks Spanish**: the interface, the guide and the web site.
   Options ▸ Switch Language lists it, as every language that will come: a
   new one needs only its translation files (see CONTRIBUTING.md).

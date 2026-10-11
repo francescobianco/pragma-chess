@@ -51,6 +51,8 @@ Right-click a player to say **who it is**: you, a friend or an opponent. The tre
 
 Right-click a game to move it to the **trash**.
 
+**Move Game…**, in the same menu, takes the game to another database: one of your Databases folder, or a new one (choose **New Database…** and give it a name). With several games selected (Shift or Ctrl and a click) it moves them all. Each game arrives whole, with its variations and comments, and only then leaves this database. Tick **Open the database when done** to go there afterwards.
+
 To change players, event, date or result of the game on the board, click the header above the board.
 
 # The database tree {#database-tree}

@@ -3874,6 +3874,41 @@ non è su questo computer.</translation>
         <source>Databases to install with a click, in Help ▸ Manage Extensions</source>
         <translation>Database da installare con un clic, in Aiuto ▸ Gestione estensioni</translation>
     </message>
+    <message numerus="yes">
+        <source>&amp;Move %n Games…</source>
+        <translation>
+            <numerusform>&amp;Sposta %n partita…</numerusform>
+            <numerusform>&amp;Sposta %n partite…</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>&amp;Move Game…</source>
+        <translation>&amp;Sposta partita…</translation>
+    </message>
+    <message>
+        <source>Move Games</source>
+        <translation>Sposta partite</translation>
+    </message>
+    <message numerus="yes">
+        <source>The move stopped: %1
+
+%n game(s) moved; the others are still here.</source>
+        <translation>
+            <numerusform>Lo spostamento si è fermato: %1
+
+%n partita spostata; le altre sono ancora qui.</numerusform>
+            <numerusform>Lo spostamento si è fermato: %1
+
+%n partite spostate; le altre sono ancora qui.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n game(s) moved to %1</source>
+        <translation>
+            <numerusform>%n partita spostata in %1</numerusform>
+            <numerusform>%n partite spostate in %1</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>
@@ -4603,6 +4638,71 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>The attack: %1.</source>
         <translation>L&apos;attacco: %1.</translation>
+    </message>
+</context>
+<context>
+    <name>MoveGames</name>
+    <message>
+        <source>Could not read the game.</source>
+        <translation>Impossibile leggere la partita.</translation>
+    </message>
+    <message>
+        <source>Give the new database a name.</source>
+        <translation>Dai un nome al nuovo database.</translation>
+    </message>
+    <message>
+        <source>“%1” is not a valid name.</source>
+        <translation>“%1” non è un nome valido.</translation>
+    </message>
+    <message>
+        <source>A database named “%1” already exists.</source>
+        <translation>Esiste già un database chiamato “%1”.</translation>
+    </message>
+</context>
+<context>
+    <name>MoveGamesDialog</name>
+    <message>
+        <source>Move Games</source>
+        <translation>Sposta partite</translation>
+    </message>
+    <message>
+        <source>Move Game</source>
+        <translation>Sposta partita</translation>
+    </message>
+    <message numerus="yes">
+        <source>Move %n games to another database. They leave this one once they are there.</source>
+        <translation>
+            <numerusform>Sposta %n partita in un altro database. Lascia questo quando è arrivata là.</numerusform>
+            <numerusform>Sposta %n partite in un altro database. Lasciano questo quando sono arrivate là.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Move the game to another database. It leaves this one once it is there.</source>
+        <translation>Sposta la partita in un altro database. Lascia questo quando è arrivata là.</translation>
+    </message>
+    <message>
+        <source>New Database…</source>
+        <translation>Nuovo database…</translation>
+    </message>
+    <message>
+        <source>&amp;To:</source>
+        <translation>&amp;In:</translation>
+    </message>
+    <message>
+        <source>Name of the new database</source>
+        <translation>Nome del nuovo database</translation>
+    </message>
+    <message>
+        <source>&amp;Name:</source>
+        <translation>&amp;Nome:</translation>
+    </message>
+    <message>
+        <source>&amp;Open the database when done</source>
+        <translation>&amp;Apri il database alla fine</translation>
+    </message>
+    <message>
+        <source>Move</source>
+        <translation>Sposta</translation>
     </message>
 </context>
 <context>

@@ -51,6 +51,8 @@ Clic destro su un giocatore per dire **chi è**: tu, un amico o un avversario. L
 
 Clic destro su una partita per metterla nel **cestino**.
 
+**Sposta partita…**, nello stesso menu, porta la partita in un altro database: uno della tua cartella Databases, o uno nuovo (scegli **Nuovo database…** e dagli un nome). Con più partite selezionate (Maiusc o Ctrl e un clic) le sposta tutte. Ogni partita arriva intera, con le varianti e i commenti, e solo allora lascia questo database. Spunta **Apri il database alla fine** per andarci dopo.
+
 Per cambiare giocatori, evento, data o risultato della partita sulla scacchiera, clicca l'intestazione sopra la scacchiera.
 
 # L'albero del database {#database-tree}

@@ -455,6 +455,8 @@ qt_add_executable(pragma-chess
     src/dialogs/HelpDialog.h
     src/dialogs/NewGameChoiceDialog.cpp
     src/dialogs/NewGameChoiceDialog.h
+    src/dialogs/MoveGamesDialog.cpp
+    src/dialogs/MoveGamesDialog.h
     src/dialogs/NewTrainingDialog.cpp
     src/dialogs/NewTrainingDialog.h
     src/dialogs/PersonalSettingsDialog.cpp
@@ -496,6 +498,8 @@ qt_add_executable(pragma-chess
     src/app/DatabaseMerge.h
     src/app/DistributedUpdate.cpp
     src/app/DistributedUpdate.h
+    src/app/MoveGames.cpp
+    src/app/MoveGames.h
     src/app/DatabaseMigrations.cpp
     src/app/DatabaseMigrations.h
     src/app/SqliteGameDatabase.cpp
@@ -736,6 +740,8 @@ if(TARGET Qt6::Test)
         src/app/DatabaseMerge.h
         src/app/DistributedUpdate.cpp
         src/app/DistributedUpdate.h
+        src/app/MoveGames.cpp
+        src/app/MoveGames.h
         src/app/DatabaseMigrations.cpp
         src/app/DatabaseMigrations.h
         src/app/SqliteGameDatabase.cpp

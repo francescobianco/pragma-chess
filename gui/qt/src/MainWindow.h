@@ -8,6 +8,7 @@
 #include "app/EngineEvaluation.h"
 #include "app/GameVariations.h"
 #include "app/online/OnlineClient.h"
+#include "dialogs/MoveGamesDialog.h"
 #include "app/online/OnlineAccount.h"
 #include "app/WorkspaceLayout.h"
 #include "app/PlayerRole.h"
@@ -177,6 +178,14 @@ private:
     void setPlayerRole(const QString &player, PlayerRole role);
     /// Index of the game with `uid` in the open database, -1 if it has none.
     qint64 gameIndexOf(const QString &uid) const;
+    /// The games list's Move…: asks where, then takes the games to another
+    /// database (MoveGames), a new one if asked, and opens it if asked.
+    void moveGames(const QStringList &uids);
+    /// Moves the games to the database at `path` (made first when `create`),
+    /// opening it after when `open`; returns how many left the open database.
+    int moveGamesTo(const QStringList &uids, const QString &path, bool create, bool open);
+    /// Where Move… may take games: the Databases folder's, but the open one.
+    QList<MoveGamesDialog::Database> moveTargets() const;
     /// Moves games to the trash, back to the lists, or out of the trash.
     void setGameState(const QStringList &uids, GameState state);
     /// Asks, then deletes games of the trash (GameState::Deleted).

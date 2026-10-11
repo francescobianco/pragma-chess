@@ -10,6 +10,7 @@
 #include "app/DatabaseMerge.h"
 #include "app/ClassicGames.h"
 #include "app/DistributedUpdate.h"
+#include "app/MoveGames.h"
 #include "app/StandInNames.h"
 #include "app/DatabaseMigrations.h"
 #include "app/DatabaseOutline.h"
@@ -5234,6 +5235,75 @@ END FUNCTION
         for (const QString &name : generated)
             QVERIFY2(shape.match(name).hasMatch(), qPrintable(name));
         QVERIFY(!StandInNames::isUnnamed(QStringLiteral("Tal")));
+    }
+
+    void movesGamesToAnotherDatabase()
+    {
+        const auto game = [](const char *white, const char *uid) {
+            GameRecord record;
+            record.white = QString::fromLatin1(white);
+            record.black = QStringLiteral("Black");
+            record.result = QStringLiteral("1-0");
+            record.uid = QString::fromLatin1(uid);
+            record.moves = {MoveRecord{QStringLiteral("e4"), QStringLiteral("e2e4")},
+                            MoveRecord{QStringLiteral("e5"), QStringLiteral("e7e5")}};
+            return record;
+        };
+        GameRecord annotated = game("Morphy", "morphy");
+        annotated.moves[0].comment = QStringLiteral("The best by test.");
+        Variation sicilian;
+        sicilian.atPly = 2;
+        sicilian.moves = {MoveRecord{QStringLiteral("c5"), QStringLiteral("c7c5")}};
+        annotated.variations = {sicilian};
+        annotated.tags = {{QStringLiteral("Annotator"), QStringLiteral("Me")}};
+
+        QTemporaryDir dir;
+        QString error;
+        const std::unique_ptr<SqliteGameDatabase> from = SqliteGameDatabase::create(
+            dir.filePath(QStringLiteral("From.pdb")),
+            {annotated, game("Anderssen", "anderssen"), game("Steinitz", "steinitz"), game("Lasker", "lasker")},
+            &error);
+        QVERIFY2(from, qPrintable(error));
+        // The other database already has Lasker, and Steinitz in its trash.
+        const std::unique_ptr<SqliteGameDatabase> to = SqliteGameDatabase::create(
+            dir.filePath(QStringLiteral("To.pdb")), {game("Lasker", "lasker"), game("Steinitz", "steinitz")}, &error);
+        QVERIFY2(to, qPrintable(error));
+        QVERIFY(to->setGameState(to->indexOfUid(QStringLiteral("steinitz")), GameState::Trashed, &error));
+
+        const MoveGames::Result result = MoveGames::move(
+            *from, {QStringLiteral("morphy"), QStringLiteral("steinitz"), QStringLiteral("lasker")}, *to);
+        QVERIFY2(result.error.isEmpty(), qPrintable(result.error));
+        QCOMPARE(result.moved, 2);
+        QCOMPARE(result.alreadyThere, 1);
+
+        // Gone from here, softly: deleted, not trashed, Anderssen untouched.
+        QCOMPARE(from->countGames(GameState::Live), qint64(1));
+        QCOMPARE(from->countGames(GameState::Deleted), qint64(3));
+        QCOMPARE(from->stateOf(from->indexOfUid(QStringLiteral("anderssen"))), GameState::Live);
+
+        // There whole, with its uid, comment, variation and tag.
+        const std::optional<GameRecord> moved = to->loadGame(to->indexOfUid(QStringLiteral("morphy")));
+        QVERIFY(moved);
+        QCOMPARE(moved->moves.first().comment, QStringLiteral("The best by test."));
+        QCOMPARE(moved->variations.size(), 1);
+        QCOMPARE(moved->variations.first().moves.first().san, QStringLiteral("c5"));
+        QCOMPARE(moved->tags, (QList<PgnTag>{{QStringLiteral("Annotator"), QStringLiteral("Me")}}));
+        // Lasker once; Steinitz arrives as a new game, the trashed one left as it was.
+        QCOMPARE(to->countGames(GameState::Live), qint64(3));
+        QCOMPARE(to->countGames(GameState::Trashed), qint64(1));
+        QCOMPARE(to->stateOf(to->indexOfUid(QStringLiteral("steinitz"))), GameState::Trashed);
+
+        // Moving again finds nothing live to move.
+        QCOMPARE(MoveGames::move(*from, {QStringLiteral("morphy")}, *to).moved, 0);
+
+        // A new database's name.
+        QString problem;
+        QCOMPARE(MoveGames::newDatabasePath(dir.path(), QStringLiteral(" Endgames "), &problem),
+                 QDir(dir.path()).filePath(QStringLiteral("Endgames.pdb")));
+        QVERIFY(MoveGames::newDatabasePath(dir.path(), QStringLiteral("To"), &problem).isEmpty());
+        QVERIFY(problem.contains(QStringLiteral("already exists")));
+        QVERIFY(MoveGames::newDatabasePath(dir.path(), QStringLiteral("a/b"), &problem).isEmpty());
+        QVERIFY(MoveGames::newDatabasePath(dir.path(), QStringLiteral("  "), &problem).isEmpty());
     }
 
     void migratesDistributedDatabasesWithoutReplacing()

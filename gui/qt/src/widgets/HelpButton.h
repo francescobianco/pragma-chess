@@ -17,8 +17,9 @@ public:
     ~HelpButton() override;
 
     /// `field` with its "?" at the end, in a row: what a form's row holds.
-    /// `alignment` places the "?" against a field taller than a line (top,
-    /// as the form's label is there).
+    /// `alignment` places the "?" against a field taller than a line: top,
+    /// where the form's label is — with Qt::AlignTop the "?" follows the
+    /// label of its form row, its middle on the label's middle line.
     static QWidget *beside(QWidget *field, const QString &help, QWidget *parent,
                            Qt::Alignment alignment = Qt::AlignVCenter);
 

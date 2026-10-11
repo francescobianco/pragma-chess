@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QEnterEvent>
+#include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
@@ -9,6 +10,8 @@
 #include <QScreen>
 #include <QTimer>
 #include <QVBoxLayout>
+
+#include <algorithm>
 
 namespace {
 
@@ -109,13 +112,80 @@ HelpButton::HelpButton(const QString &text, QWidget *parent)
     connect(this, &QToolButton::clicked, this, [this] { m_bubble ? hideBubble() : showBubble(); });
 }
 
+namespace {
+
+/// Keeps a "?" beside a tall field with its middle on the middle line of
+/// the form's label for that row, whatever the font: the label is placed by
+/// QFormLayout, so the "?" is moved down by a spacer each time the label or
+/// the row moves.
+class LabelFollower : public QObject {
+public:
+    LabelFollower(QWidget *row, QWidget *button, QSpacerItem *spacer)
+        : QObject(row), m_row(row), m_button(button), m_spacer(spacer)
+    {
+        row->installEventFilter(this);
+    }
+
+    bool eventFilter(QObject *watched, QEvent *event) override
+    {
+        const QEvent::Type type = event->type();
+        if (type == QEvent::Show || type == QEvent::Move || type == QEvent::Resize)
+            follow();
+        return QObject::eventFilter(watched, event);
+    }
+
+private:
+    void follow()
+    {
+        if (!m_label) {
+            // The form whose row this is, and that row's label.
+            QWidget *parent = m_row->parentWidget();
+            for (QFormLayout *form : parent ? parent->findChildren<QFormLayout *>() : QList<QFormLayout *>()) {
+                if (QWidget *label = form->labelForField(m_row)) {
+                    m_label = label;
+                    label->installEventFilter(this);
+                    break;
+                }
+            }
+            if (!m_label)
+                return;
+        }
+        // Label and row are siblings: the same coordinates.
+        const int offset = std::max(0, m_label->geometry().center().y() - m_row->y() - m_button->height() / 2);
+        if (offset == m_offset)
+            return;
+        m_offset = offset;
+        m_spacer->changeSize(0, offset, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        m_row->layout()->invalidate();
+    }
+
+    QWidget *m_row;
+    QWidget *m_button;
+    QSpacerItem *m_spacer;
+    QPointer<QWidget> m_label;
+    int m_offset = 0;
+};
+
+} // namespace
+
 QWidget *HelpButton::beside(QWidget *field, const QString &help, QWidget *parent, Qt::Alignment alignment)
 {
     auto *row = new QWidget(parent);
     auto *layout = new QHBoxLayout(row);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(field, 1);
-    layout->addWidget(new HelpButton(help, row), 0, alignment);
+    auto *button = new HelpButton(help, row);
+    if (alignment & Qt::AlignTop) {
+        auto *column = new QVBoxLayout;
+        auto *spacer = new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        column->addItem(spacer);
+        column->addWidget(button);
+        column->addStretch();
+        layout->addLayout(column);
+        new LabelFollower(row, button, spacer);
+    } else {
+        layout->addWidget(button, 0, alignment);
+    }
     return row;
 }
 

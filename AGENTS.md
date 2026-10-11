@@ -73,7 +73,7 @@ site/                  the site's sources: build.py (Python, no dependencies),
                        (the texts, one file per language), assets/ (style, script,
                        screenshots)
 packaging/             installers: windows/ (Inno Setup), macos/ (dmg), linux/
-                       (CPack .deb/.rpm), flatpak/ (Flathub manifest), winget/
+                       (CPack .deb/.rpm, build-appimage.sh: the AppImage), flatpak/ (Flathub manifest), winget/
                        (manifests for winget-pkgs), artwork; see packaging/README.md
 .github/workflows/release.yml  builds them all and publishes a release on a v* tag
 scripts/dev-watch.sh   rebuild + restart loop used by `make start`

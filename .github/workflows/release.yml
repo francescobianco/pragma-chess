@@ -53,6 +53,38 @@ jobs:
           path: dist/*.deb
           if-no-files-found: error
 
+  # One file for the distributions the .deb and .rpm do not reach (Arch,
+  # openSUSE, Mint…): packaging/linux/build-appimage.sh.
+  appimage:
+    needs: version
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential cmake ninja-build \
+            qt6-base-dev qt6-svg-dev libqt6sql6-sqlite qt6-tools-dev qt6-tools-dev-tools \
+            qt6-l10n-tools qt6-translations-l10n qt6-wayland libssl-dev pkg-config git file make patch \
+            libfuse2t64 squashfs-tools
+      - name: Build the AppImage
+        run: packaging/linux/build-appimage.sh "${{ needs.version.outputs.version }}"
+      - name: It starts and finds its engine
+        run: |
+          app=$(ls dist/*.AppImage)
+          export HOME=$(mktemp -d) QT_QPA_PLATFORM=offscreen PRAGMA_DEV_API=1 APPIMAGE_EXTRACT_AND_RUN=1
+          PRAGMA_CHESS_DIR=$HOME/Chess timeout 60 "$app" > run.log 2>&1 &
+          for i in $(seq 1 40); do curl -sf -m 2 http://127.0.0.1:7457/api/state -o /dev/null && break; sleep 1; done
+          curl -sf -X POST -d '{"on": true}' http://127.0.0.1:7457/api/analysis > /dev/null
+          sleep 8
+          curl -sf http://127.0.0.1:7457/api/state | tee state.json | head -c 600; echo
+          grep -q '"depth"' state.json || { cat run.log; exit 1; }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-appimage
+          path: dist/*.AppImage
+          if-no-files-found: error
+
   rpm:
     needs: version
     runs-on: ubuntu-latest
@@ -165,7 +197,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [version, deb, rpm, windows, macos]
+    needs: [version, deb, rpm, appimage, windows, macos]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -175,7 +207,7 @@ jobs:
         with:
           path: dist
           # The packages only: engine-windows is already inside the Windows ones.
-          pattern: "{linux-deb,linux-rpm,windows,macos}"
+          pattern: "{linux-deb,linux-rpm,linux-appimage,windows,macos}"
           merge-multiple: true
       - name: Stockfish source, shipped with the installers (GPL v3)
         run: scripts/build-stockfish.sh --source dist

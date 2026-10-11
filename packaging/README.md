@@ -10,6 +10,7 @@ scripts; they work the same on a machine of the right kind.
 | macOS disk image (Apple Silicon) | `macos/build.sh` | macOS, Qt 6, `brew install create-dmg` | `PragmaChess-<v>-macos-arm64.dmg` |
 | Debian / Ubuntu | `linux/build-packages.sh deb` | Ubuntu 24.04 (`make deps`) | `pragma-chess_<v>_amd64.deb` |
 | Fedora | `linux/build-packages.sh rpm` | Fedora, `qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel openssl-devel rpm-build` | `pragma-chess-<v>-1.<dist>.x86_64.rpm` |
+| Other Linux | `linux/build-appimage.sh` | Ubuntu 24.04 (`make deps`, `qt6-wayland`): linuxdeploy, pinned, copies the system's Qt inside; runs where glibc is 2.39 or newer. About 49 MB, most of it Qt's ICU data | `PragmaChess-<v>-linux-x86_64.AppImage` |
 | Flathub | `flatpak/` (manifest, see its README) | `flatpak-builder`, KDE 6.9 runtime | Flathub app `io.github.francescobianco.PragmaChess` |
 | winget | `winget/make-winget.sh <v>` (manifests, see its README) | `curl`, `gh` | PR to microsoft/winget-pkgs |
 

@@ -22,6 +22,7 @@ The latest version, always at these links:
 | macOS 12+ (Apple Silicon) | [Disk image](https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-macos-arm64.dmg) |
 | Ubuntu 24.04+ / Debian 13+ | [.deb](https://github.com/francescobianco/pragma-chess/releases/latest/download/pragma-chess_amd64.deb) |
 | Fedora | [.rpm](https://github.com/francescobianco/pragma-chess/releases/latest/download/pragma-chess.x86_64.rpm) |
+| Other Linux (x86-64, from 0.4.0) | [AppImage](https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-linux-x86_64.AppImage): make it executable and run it |
 | Android 8+ (beta) | [APK](https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-android.apk) |
 
 Every version, with files named after it, is on the

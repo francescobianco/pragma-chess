@@ -21,3 +21,4 @@ copy 'PragmaChess-*-windows-x64-portable.zip' PragmaChess-windows-x64-portable.z
 copy 'PragmaChess-*-macos-arm64.dmg'          PragmaChess-macos-arm64.dmg
 copy 'pragma-chess_*_amd64.deb'               pragma-chess_amd64.deb
 copy 'pragma-chess-*.x86_64.rpm'              pragma-chess.x86_64.rpm
+copy 'PragmaChess-*-linux-x86_64.AppImage'   PragmaChess-linux-x86_64.AppImage

@@ -60,20 +60,31 @@ them in the tooltip. Nothing is shown during an online game.
   the side that moved, each bounded to ±1000 centipawns (a mate counts as a
   large advantage, no larger: one move into a mate does not swamp the
   average). Average over the side's moves = ACPL.
+- **Moves in a decided position are not judged**: beyond the bound before
+  the move and on the same side of it after (still lost, still won). Lost
+  beyond the bound, a further blunder would not show and a weak player would
+  look perfect; won, the moves are easy. A move that changes the outcome is
+  judged.
 - **Accuracy**: lichess's, from the winning chances (`winChances`,
   `moveAccuracy`), averaged; shown in the tooltip, not used for the Elo yet.
 - **Elo**: `eloFromLoss` = 2850 · e^(−0.01 · ACPL), the shape of a fit often
-  quoted for engine-judged games, with a ceiling of 2850 (a game without
-  loss is worth what the best players reach, not more). Then
-  `eloFromGame` draws it towards an average player, 1500, by the number of
-  moves: weight = moves / (moves + 12). A miniature of forced moves against a
-  weak opponent says little, a long game speaks for itself. No estimate under
-  10 moves of a side.
+  quoted for engine-judged games, between 100 and 2850 (a game without loss
+  is worth what the best players reach, not more): ACPL 30 ≈ 2110, 60 ≈ 1560,
+  100 ≈ 1050, 120 ≈ 860, 150 ≈ 640, 200 ≈ 390. Then `eloFromGame` draws an
+  estimate **above** an average player (1500) down towards it by the number
+  of moves: weight = moves / (moves + 12) — a miniature of forced moves
+  against a weak opponent says little, a long game speaks for itself. One
+  below 1500 stays where it is: a few good moves may be easy ones, a few
+  blunders are blunders. No estimate under 8 judged moves of a side.
 
 History: the first curve had a ceiling of 3100 and no weighting, and put
 Morphy at 2904 in the Opera game — not credible (the user: "Carlsen is
 barely 2800"). With the ceiling and the weighting: Morphy ≈2180, the Duke
-and the Count ≈1543.
+and the Count ≈1543. Then the weighting drew weak players up to 1500 as
+well, and a lost position hid their further blunders: a player who gets
+nothing right must measure under 1000 (the user). Weighting only from above,
+decided moves left out, floor 100: Morphy ≈2131, the Duke and the Count
+≈1508; 1.5 pawns lost a move over 10 moves ≈640.
 
 ### Still to do: calibrate on rated games
 

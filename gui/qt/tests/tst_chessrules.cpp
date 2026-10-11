@@ -5447,7 +5447,7 @@ END FUNCTION
         QCOMPARE(PlayStrength::eloFromLoss(0), 2850);
         QVERIFY(PlayStrength::eloFromGame(0, 12) < PlayStrength::eloFromGame(0, 60));
         QVERIFY(PlayStrength::eloFromGame(0, 60) < PlayStrength::eloFromLoss(0));
-        QVERIFY(PlayStrength::eloFromGame(150, 12) > PlayStrength::eloFromLoss(150));
+        QCOMPARE(PlayStrength::eloFromGame(150, 12), PlayStrength::eloFromLoss(150)); // Only high estimates are drawn down.
 
         // A mate counts as a bounded advantage: one move into it is not a loss of thousands.
         EngineEvaluation mate;
@@ -5462,7 +5462,19 @@ END FUNCTION
         QCOMPARE(estimate.white.moves + estimate.black.moves, 0);
         // The curve falls as the loss grows, within its bounds.
         QVERIFY(PlayStrength::eloFromLoss(20) > PlayStrength::eloFromLoss(60));
-        QCOMPARE(PlayStrength::eloFromLoss(10000), 400);
+        QCOMPARE(PlayStrength::eloFromLoss(10000), 100);
+
+        // A weak player is measured weak, however short the game: 1.5 pawns a
+        // move over 10 moves is under 1000, not drawn up to the average.
+        QVERIFY(PlayStrength::eloFromGame(150, 10) < 1000);
+        QCOMPARE(PlayStrength::eloFromGame(150, 10), PlayStrength::eloFromLoss(150));
+        // Moves in a position already lost, and still lost after, are not
+        // judged: the bound would make them look perfect.
+        QList<std::optional<EngineEvaluation>> lost{cp(0), cp(0), cp(400), cp(400), cp(1500), cp(1500), cp(3000)};
+        estimate = PlayStrength::estimate(lost, Side::White);
+        QCOMPARE(estimate.black.moves, 2); // 1…(−400) and 2…(−1500, out of the bound): the third is decided.
+        QCOMPARE(estimate.black.averageLoss, 500.0);
+        QCOMPARE(estimate.white.moves, 2); // 3.(1500 → 1500) is a won game going on.
     }
 
     void namesLanguagesWithoutACountry()

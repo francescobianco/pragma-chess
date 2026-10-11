@@ -16,16 +16,20 @@
 namespace PlayStrength {
 
 /// The fewest moves of a side for an estimate of its play.
-inline constexpr int kMinimumMoves = 10;
+inline constexpr int kMinimumMoves = 8;
 /// Where an estimate starts from, with no moves seen: an average player.
 inline constexpr int kAverageElo = 1500;
-/// How many moves weigh as much as that starting point: a side's own play
-/// counts for moves / (moves + kPriorMoves) of the estimate, so a miniature
-/// of easy moves stays near the average and a long game speaks for itself.
+/// How many moves weigh as much as that starting point, for an estimate
+/// above it: a side's own play counts for moves / (moves + kPriorMoves), so a
+/// miniature of easy moves stays near the average and a long game speaks for
+/// itself. One below it stays where its mistakes put it: few good moves may
+/// be easy ones, few blunders are still blunders.
 inline constexpr int kPriorMoves = 12;
 
 struct Player {
-    /// The moves judged: those with an evaluation before and after.
+    /// The moves judged: those with an evaluation before and after, the
+    /// position not already decided (lost or won beyond the bound, and so
+    /// after the move too: a move that changes the outcome is judged).
     int moves = 0;
     /// Average centipawn loss (ACPL), evaluations bounded to ±1000.
     double averageLoss = 0;
@@ -46,8 +50,8 @@ Estimate estimate(const QList<std::optional<EngineEvaluation>> &evaluations, Sid
 
 /// The Elo the curve gives an average centipawn loss, however many moves.
 int eloFromLoss(double averageLoss);
-/// The estimate for a side: the curve's Elo drawn towards kAverageElo the
-/// fewer moves it rests on.
+/// The estimate for a side: the curve's Elo, drawn down towards kAverageElo
+/// the fewer moves it rests on when it is above it.
 int eloFromGame(double averageLoss, int moves);
 
 /// A move's accuracy, 0–100, from the mover's winning chances (0–100) before and after it.

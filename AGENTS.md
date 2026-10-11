@@ -223,8 +223,10 @@ playing a move turns it off, and the user asks again at the next move.
   deep are skipped (`setKnownDepth`). `MainWindow::evaluateGame` starts it
   when an online game ends — never during one: `setOnlinePlay(true)` stops
   it. From the evaluations `app/PlayStrength` (pure) estimates each side's
-  Elo (ACPL, bounded ±1000; 2850·e^(−0.01·ACPL), drawn towards 1500 by
-  moves/(moves+12); provisional, to calibrate on rated games), shown by
+  Elo (ACPL, bounded ±1000, moves in a decided position left out;
+  2850·e^(−0.01·ACPL) from 100 to 2850, an estimate above 1500 drawn down
+  towards it by moves/(moves+12), one below left where its mistakes put it;
+  provisional, to calibrate on rated games), shown by
   `EvaluationBox::setStrength` in the score's place while idle, two rows in
   the board's order. `POST/GET /api/evaluation`.
 - The Engine panel shows the engine's whole line, and an eye beside Stop

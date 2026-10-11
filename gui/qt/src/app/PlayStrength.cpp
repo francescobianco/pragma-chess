@@ -36,13 +36,16 @@ int eloFromLoss(double averageLoss)
     // often quoted for engine-judged games, Elo ≈ C · e^(−0.01 · ACPL), with
     // C 2850 — a game without a loss is worth what the best players reach,
     // not more (3100 put Morphy's Opera game at 2904).
-    return std::clamp(int(std::lround(2850 * std::exp(-0.01 * averageLoss))), 400, 2850);
+    return std::clamp(int(std::lround(2850 * std::exp(-0.01 * averageLoss))), 100, 2850);
 }
 
 int eloFromGame(double averageLoss, int moves)
 {
+    const int elo = eloFromLoss(averageLoss);
+    if (elo <= kAverageElo)
+        return elo;
     const double weight = double(moves) / (moves + kPriorMoves);
-    return int(std::lround(kAverageElo + (eloFromLoss(averageLoss) - kAverageElo) * weight));
+    return int(std::lround(kAverageElo + (elo - kAverageElo) * weight));
 }
 
 Estimate estimate(const QList<std::optional<EngineEvaluation>> &evaluations, Side firstMover)
@@ -60,6 +63,10 @@ Estimate estimate(const QList<std::optional<EngineEvaluation>> &evaluations, Sid
             continue;
         const int was = bounded(*before, mover);
         const int is = bounded(*after, mover);
+        // Decided before and after alike: a further mistake would not show
+        // (the bound), and an easy move in a won game says little.
+        if ((was >= kBound && is >= kBound) || (was <= -kBound && is <= -kBound))
+            continue;
         Sums &sums = mover == Side::White ? white : black;
         ++sums.moves;
         sums.loss += std::max(0, was - is);

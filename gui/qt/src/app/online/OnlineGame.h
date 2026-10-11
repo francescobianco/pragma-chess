@@ -54,6 +54,15 @@ struct OnlineGame {
 /// one JSON object a line, empty lines to keep the connection alive.
 namespace LichessBoard {
 
+/// Whether lichess plays this clock through the Board API, the way Pragma
+/// Chess plays: rapid or slower only — minutes plus 40 moves of increment at
+/// least 8 minutes (lila's isBoardCompatible: Speed ≥ Rapid). Bullet and
+/// blitz it refuses ("Invalid time control"): they are played on its site.
+bool acceptsClock(int minutes, int incrementSeconds);
+
+/// What lichess said refusing a request, from its JSON error body; empty if none.
+QString errorText(const QByteArray &body);
+
 /// The event stream (/api/stream/event): the id of a game that just started, if the line says so.
 std::optional<QString> gameStarted(const QByteArray &line);
 

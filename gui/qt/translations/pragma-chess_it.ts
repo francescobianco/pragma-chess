@@ -1766,6 +1766,10 @@ Il Nero ha catturato: %2</translation>
         <source>The connection with lichess.org was lost.</source>
         <translation>La connessione con lichess.org si è interrotta.</translation>
     </message>
+    <message>
+        <source>lichess.org refused the game: %1</source>
+        <translation>lichess.org ha rifiutato la partita: %1</translation>
+    </message>
 </context>
 <context>
     <name>LichessSignIn</name>
@@ -5163,6 +5167,14 @@ Le %n partite già importate restano nel database.</numerusform>
     <message>
         <source>Password:</source>
         <translation>Password:</translation>
+    </message>
+    <message>
+        <source>Too fast for lichess.org</source>
+        <translation>Troppo veloce per lichess.org</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;lichess.org lets apps such as Pragma Chess play rapid and slower games only: at least 8 minutes, counting 40 moves of increment — 10+0, 8+0, 10+5, 15+10. Bullet and blitz are played on its site.&lt;/p&gt;&lt;p&gt;freechess.org plays any clock.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;lichess.org permette alle app come Pragma Chess solo partite rapid e più lente: almeno 8 minuti, contando 40 mosse di incremento — 10+0, 8+0, 10+5, 15+10. Bullet e blitz si giocano sul suo sito.&lt;/p&gt;&lt;p&gt;freechess.org accetta qualunque cadenza.&lt;/p&gt;</translation>
     </message>
 </context>
 <context>

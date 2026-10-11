@@ -4719,6 +4719,10 @@ void MainWindow::playOnline(bool alwaysAsk)
         return;
     }
     OnlineClient::Seek seek;
+    // A clock remembered that lichess would refuse: the window says why.
+    if (m_rememberedOnline && m_onlineAccount.platform == QLatin1String(OnlineAccount::kLichess)
+        && !LichessBoard::acceptsClock(m_rememberedOnline->minutes, m_rememberedOnline->increment))
+        alwaysAsk = true;
     if (alwaysAsk || !m_rememberedOnline) {
         PlayOnlineDialog dialog(m_rememberedOnline.has_value(), this);
         if (dialog.exec() != QDialog::Accepted || dialog.account().id.isEmpty())

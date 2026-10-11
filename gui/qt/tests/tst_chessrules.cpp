@@ -5498,6 +5498,25 @@ END FUNCTION
         QCOMPARE(estimate.white.moves, 2); // 3.(1500 → 1500) is a won game going on.
     }
 
+    void knowsWhichClocksLichessPlays()
+    {
+        // Through the Board API, rapid and slower only: minutes + 40 moves of increment ≥ 8 minutes.
+        QVERIFY(!LichessBoard::acceptsClock(1, 0));
+        QVERIFY(!LichessBoard::acceptsClock(3, 2));
+        QVERIFY(!LichessBoard::acceptsClock(5, 0));
+        QVERIFY(LichessBoard::acceptsClock(8, 0));
+        QVERIFY(LichessBoard::acceptsClock(10, 0));
+        QVERIFY(!LichessBoard::acceptsClock(5, 3)); // 7 minutes: blitz for lichess
+        QVERIFY(LichessBoard::acceptsClock(10, 5));
+        QVERIFY(LichessBoard::acceptsClock(5, 5));  // 300 + 200 seconds
+        // A refusal's reason, in either of lichess's error shapes.
+        QCOMPARE(LichessBoard::errorText(R"({"error":{"global":["Invalid time control"]}})"),
+                 QStringLiteral("Invalid time control"));
+        QCOMPARE(LichessBoard::errorText(R"({"error":"Already playing too many games"})"),
+                 QStringLiteral("Already playing too many games"));
+        QVERIFY(LichessBoard::errorText("not json").isEmpty());
+    }
+
     void replacesWhatAnOnlineGameLeftUnfinished()
     {
         // The board after a restart in the middle of a lichess game: three

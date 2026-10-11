@@ -56,8 +56,13 @@ void LichessBoardClient::seek(const Seek &seek)
         // Closed by the server when a game starts (the event stream tells),
         // or by us; anything else is a refusal.
         if (reply->error() != QNetworkReply::NoError && reply->error() != QNetworkReply::OperationCanceledError
-            && !m_gameStream)
-            Q_EMIT failed(SourceFetch::httpError(reply, QStringLiteral("lichess.org")));
+            && !m_gameStream) {
+            // A refusal says why ("Invalid time control"): say it, not "could not reach".
+            const QString why = LichessBoard::errorText(reply->readAll());
+            const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            Q_EMIT failed(status == 400 && !why.isEmpty() ? tr("lichess.org refused the game: %1").arg(why)
+                                                           : SourceFetch::httpError(reply, QStringLiteral("lichess.org")));
+        }
     });
     Q_EMIT seeking();
 }

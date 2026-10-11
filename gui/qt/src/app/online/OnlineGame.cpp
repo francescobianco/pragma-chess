@@ -1,6 +1,7 @@
 #include "OnlineGame.h"
 
 #include <QCoreApplication>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 
@@ -57,6 +58,26 @@ QString OnlineGame::endText() const
 }
 
 namespace LichessBoard {
+
+bool acceptsClock(int minutes, int incrementSeconds)
+{
+    return minutes * 60 + 40 * incrementSeconds >= 480;
+}
+
+QString errorText(const QByteArray &body)
+{
+    // {"error": "…"} or {"error": {"global": ["…"]}}, as lichess's forms answer.
+    const QJsonValue error = QJsonDocument::fromJson(body).object().value(QStringLiteral("error"));
+    if (error.isString())
+        return error.toString();
+    QStringList texts;
+    const QJsonObject fields = error.toObject();
+    for (auto field = fields.begin(); field != fields.end(); ++field) {
+        for (const QJsonValue &text : field.value().toArray())
+            texts << text.toString();
+    }
+    return texts.join(QStringLiteral("; "));
+}
 
 namespace {
 

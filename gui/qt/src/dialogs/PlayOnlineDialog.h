@@ -50,6 +50,8 @@ private:
     QLabel *m_signInStatus;
     QSpinBox *m_minutes;
     QSpinBox *m_increment;
+    /// Why the clock cannot be played on the chosen platform (lichess: rapid and slower only).
+    QLabel *m_clockNote;
     QCheckBox *m_rated;
     QComboBox *m_color;
     QCheckBox *m_remember;

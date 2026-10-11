@@ -20,6 +20,7 @@
 #include "app/GameDatabase.h"
 #include "app/UciEngine.h"
 #include "dialogs/DrawersDialog.h"
+#include "dialogs/PlayOnlineDialog.h"
 #include "dialogs/WelcomeDialog.h"
 #include "dialogs/LobbyDialog.h"
 #include "dialogs/ConvertPgnDialog.h"
@@ -37,6 +38,8 @@
 #include <QPainter>
 #include <QAction>
 #include <QBuffer>
+#include <QSpinBox>
+#include <QListWidget>
 #include <QLineEdit>
 #include <QComboBox>
 #include <QJsonArray>
@@ -635,6 +638,27 @@ void DesktopApi::addRoutes()
         else if (body.value(QStringLiteral("start")).toBool() && !w->evaluateGame())
             return LocalHttpServer::error(409, QStringLiteral("the game on the board cannot be evaluated"));
         return json(evaluation());
+    });
+    // Game ▸ New Online Game…'s window, never a seek: {"minutes", "increment"}
+    // set on the clock of the first connection; answers with its picture.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/play-online"), [w](const Request &request) {
+        const QJsonObject body = bodyOf(request).value_or(QJsonObject());
+        PlayOnlineDialog dialog(false, w);
+        if (auto *list = dialog.findChild<QListWidget *>(); list && list->count() > 0)
+            list->setCurrentRow(0);
+        const QList<QSpinBox *> clock = dialog.findChildren<QSpinBox *>();
+        if (clock.size() >= 2) {
+            if (body.contains(QStringLiteral("minutes")))
+                clock.at(0)->setValue(body.value(QStringLiteral("minutes")).toInt());
+            if (body.contains(QStringLiteral("increment")))
+                clock.at(1)->setValue(body.value(QStringLiteral("increment")).toInt());
+        }
+        dialog.show();
+        QByteArray png;
+        QBuffer buffer(&png);
+        buffer.open(QIODevice::WriteOnly);
+        dialog.grab().save(&buffer, "PNG");
+        return Response{200, "image/png", png};
     });
     // The games list's Move… on rows of the list: {"rows": [0, 2], "dialog": true}
     // answers with the window's picture; {"rows", "to": a database's path} or

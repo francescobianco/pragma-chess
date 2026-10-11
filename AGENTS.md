@@ -1766,6 +1766,15 @@ through its telnet session.
   draw offers. `tst_chessrules::playsOnFreechess` plays a game against a
   scripted local server; never test on freechess.org by seeking: a stranger
   would accept.
+- **lichess plays rapid and slower only through the Board API** (lila's
+  `isBoardCompatible`: minutes + 40 × increment ≥ 8 minutes): a faster seek
+  is refused ("Invalid time control"). `LichessBoard::acceptsClock` (pure)
+  is the rule: the Play Online window says "Too fast for lichess.org" and
+  greys Find an Opponent, a remembered clock it refuses opens the window,
+  and a refusal reads lichess's own reason (`LichessBoard::errorText`).
+  `POST /api/play-online {"minutes", "increment"}` answers with the
+  window's picture, never seeking — never test by seeking: a stranger would
+  accept.
 - `app/online/LichessBoardClient` (core, Qt Network): `seek()` POSTs
   `/api/board/seek` (the request stays open while the seek lives) and
   follows `/api/stream/event` for the game's start, then

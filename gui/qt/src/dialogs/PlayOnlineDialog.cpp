@@ -1,7 +1,9 @@
 #include "PlayOnlineDialog.h"
 
+#include "app/online/OnlineGame.h"
 #include "app/sources/LichessSignIn.h"
 #include "app/sources/SourceCredentials.h"
+#include "widgets/HelpButton.h"
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -20,6 +22,7 @@
 #include <QUuid>
 #include <QVBoxLayout>
 
+
 PlayOnlineDialog::PlayOnlineDialog(bool remembered, QWidget *parent)
     : QDialog(parent)
     , m_list(new QListWidget)
@@ -33,6 +36,9 @@ PlayOnlineDialog::PlayOnlineDialog(bool remembered, QWidget *parent)
     , m_remember(new QCheckBox(tr("Remember for this &session")))
 {
     setWindowTitle(tr("Play Online"));
+    // Room for several connections, each on a line that breathes.
+    setMinimumWidth(540);
+    m_list->setSpacing(3);
     QSettings settings;
     m_accounts = OnlineAccounts::load(settings);
 
@@ -41,11 +47,16 @@ PlayOnlineDialog::PlayOnlineDialog(bool remembered, QWidget *parent)
     // The connections: each one a platform signed in to as some account.
     auto *accounts = new QGroupBox(tr("Platforms"));
     auto *accountsLayout = new QVBoxLayout(accounts);
-    auto *intro = new QLabel(tr("The platforms you are connected to, each with the account you play as. "
-                                "They are yours on this computer: a project does not carry them."));
-    intro->setWordWrap(true);
-    accountsLayout->addWidget(intro);
-    accountsLayout->addWidget(m_list, 1);
+    // What the list is, and what playing online turns off, behind its "?".
+    accountsLayout->addWidget(
+        HelpButton::beside(m_list,
+                           QStringLiteral("<p>%1</p><p>%2</p>")
+                               .arg(tr("The platforms you are connected to, each with the account you play as. "
+                                       "They are yours on this computer: a project does not carry them."),
+                                    tr("While you play online the engine, Explain and the opening book are off: "
+                                       "it is you against your opponent.")),
+                           accounts, Qt::AlignTop),
+        1);
     auto *row = new QHBoxLayout;
     row->addWidget(m_connect);
     row->addStretch(1);
@@ -65,11 +76,22 @@ PlayOnlineDialog::PlayOnlineDialog(bool remembered, QWidget *parent)
     m_increment->setRange(0, 180);
     m_increment->setSuffix(tr(" s"));
     m_increment->setValue(settings.value(QStringLiteral("online/increment"), 0).toInt());
+    // A clock lichess refuses says so in a few words on its row; why, behind the "?".
+    m_clockNote = new QLabel(tr("Too fast for lichess.org"));
+    m_clockNote->setForegroundRole(QPalette::PlaceholderText);
+    m_clockNote->hide();
     auto *clock = new QHBoxLayout;
     clock->addWidget(m_minutes);
     clock->addWidget(new QLabel(QStringLiteral("+")));
     clock->addWidget(m_increment);
+    clock->addSpacing(8);
+    clock->addWidget(m_clockNote);
     clock->addStretch(1);
+    clock->addWidget(new HelpButton(
+        tr("<p>lichess.org lets apps such as Pragma Chess play rapid and slower games only: at least 8 minutes, "
+           "counting 40 moves of increment — 10+0, 8+0, 10+5, 15+10. Bullet and blitz are played on its site.</p>"
+           "<p>freechess.org plays any clock.</p>"),
+        game));
     form->addRow(tr("Clock:"), clock);
     m_color->addItem(tr("Random"), QStringLiteral("random"));
     m_color->addItem(tr("White"), QStringLiteral("white"));
@@ -79,11 +101,6 @@ PlayOnlineDialog::PlayOnlineDialog(bool remembered, QWidget *parent)
     m_rated->setChecked(settings.value(QStringLiteral("online/rated"), false).toBool());
     form->addRow(QString(), m_rated);
     layout->addWidget(game);
-
-    auto *note = new QLabel(tr("While you play online the engine, Explain and the opening book are off: "
-                               "it is you against your opponent."));
-    note->setWordWrap(true);
-    layout->addWidget(note);
     m_remember->setToolTip(tr("The Play Online button of the toolbar looks for an opponent with these choices "
                               "without asking, until Pragma Chess is closed; the menu always asks"));
     m_remember->setChecked(remembered);
@@ -95,10 +112,14 @@ PlayOnlineDialog::PlayOnlineDialog(bool remembered, QWidget *parent)
     connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     layout->addWidget(buttons);
+    // Opened larger than it needs: the list of connections takes the room.
+    resize(sizeHint().expandedTo(QSize(560, 600)));
 
     connect(m_connect, &QPushButton::clicked, this, &PlayOnlineDialog::connectPlatform);
     connect(m_remove, &QPushButton::clicked, this, &PlayOnlineDialog::removeAccount);
     connect(m_list, &QListWidget::currentRowChanged, this, &PlayOnlineDialog::updateButtons);
+    connect(m_minutes, &QSpinBox::valueChanged, this, &PlayOnlineDialog::updateButtons);
+    connect(m_increment, &QSpinBox::valueChanged, this, &PlayOnlineDialog::updateButtons);
     connect(m_list, &QListWidget::itemDoubleClicked, this, [this] {
         if (m_play->isEnabled())
             accept();
@@ -166,8 +187,12 @@ OnlineClient::Seek PlayOnlineDialog::seek() const
 void PlayOnlineDialog::updateButtons()
 {
     const bool chosen = !account().id.isEmpty();
+    // lichess refuses bullet and blitz from apps: said here, not after the seek.
+    const bool refused = account().platform == QLatin1String(OnlineAccount::kLichess)
+                         && !LichessBoard::acceptsClock(m_minutes->value(), m_increment->value());
+    m_clockNote->setVisible(refused);
     m_remove->setEnabled(chosen);
-    m_play->setEnabled(chosen && !m_signIn);
+    m_play->setEnabled(chosen && !m_signIn && !refused);
     m_connect->setEnabled(!m_signIn);
 }
 

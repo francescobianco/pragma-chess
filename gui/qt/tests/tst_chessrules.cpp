@@ -5463,6 +5463,10 @@ END FUNCTION
         // The curve falls as the loss grows, within its bounds.
         QVERIFY(PlayStrength::eloFromLoss(20) > PlayStrength::eloFromLoss(60));
         QCOMPARE(PlayStrength::eloFromLoss(10000), 100);
+        // Calibrated on lichess's rated games: the typical loss of a band gives that band.
+        QVERIFY(qAbs(PlayStrength::eloFromLoss(113) - 1100) < 80);  // 1000–1199
+        QVERIFY(qAbs(PlayStrength::eloFromLoss(77) - 1500) < 80);   // 1400–1599
+        QVERIFY(qAbs(PlayStrength::eloFromLoss(51) - 1900) < 80);   // 1800–1999
 
         // A weak player is measured weak, however short the game: 1.5 pawns a
         // move over 10 moves is under 1000, not drawn up to the average.

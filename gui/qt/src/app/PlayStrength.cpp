@@ -32,11 +32,14 @@ double moveAccuracy(double winBefore, double winAfter)
 
 int eloFromLoss(double averageLoss)
 {
-    // Provisional, to be calibrated on rated games: the shape of the fit
-    // often quoted for engine-judged games, Elo ≈ C · e^(−0.01 · ACPL), with
-    // C 2850 — a game without a loss is worth what the best players reach,
-    // not more (3100 put Morphy's Opera game at 2904).
-    return std::clamp(int(std::lround(2850 * std::exp(-0.01 * averageLoss))), 100, 2850);
+    // Calibrated on 14 307 rated players' games of lichess (2013, rating
+    // 800–2343, the server's own [%eval]): the curve through the typical
+    // loss of each rating band, so a player who loses what 1100s lose is
+    // called 1100 (scripts/calibrate-play-strength.py,
+    // docs/tech/game-evaluation.md). Bounded from 100 to 2850: no game is
+    // worth more than the best players reach.
+    const double elo = 5189 - 849 * std::log(std::max(averageLoss, 1.0));
+    return std::clamp(int(std::lround(elo)), 100, 2850);
 }
 
 int eloFromGame(double averageLoss, int moves)

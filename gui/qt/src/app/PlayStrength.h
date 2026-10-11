@@ -10,9 +10,9 @@
 /// How well each side played a game, from the evaluation of every position
 /// (the Evaluation of the Game): the loss of each move against the
 /// evaluation before it, for the side that moved. The estimated Elo is a
-/// curve of the average loss, provisional until it is calibrated on rated
-/// games (docs/tech/game-evaluation.md); from one game it is rough, some
-/// hundreds of points either way.
+/// curve of the average loss calibrated on lichess's rated games, on
+/// lichess's scale (docs/tech/game-evaluation.md); from one game it is
+/// rough, some hundreds of points either way.
 namespace PlayStrength {
 
 /// The fewest moves of a side for an estimate of its play.

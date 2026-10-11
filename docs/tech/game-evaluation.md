@@ -67,10 +67,11 @@ them in the tooltip. Nothing is shown during an online game.
   judged.
 - **Accuracy**: lichess's, from the winning chances (`winChances`,
   `moveAccuracy`), averaged; shown in the tooltip, not used for the Elo yet.
-- **Elo**: `eloFromLoss` = 2850 · e^(−0.01 · ACPL), the shape of a fit often
-  quoted for engine-judged games, between 100 and 2850 (a game without loss
-  is worth what the best players reach, not more): ACPL 30 ≈ 2110, 60 ≈ 1560,
-  100 ≈ 1050, 120 ≈ 860, 150 ≈ 640, 200 ≈ 390. Then `eloFromGame` draws an
+- **Elo**: `eloFromLoss` = 5189 − 849 · ln(ACPL), between 100 and 2850 (a
+  game without loss is worth what the best players reach, not more):
+  calibrated on rated games, below. ACPL 30 ≈ 2300, 50 ≈ 1870, 70 ≈ 1580,
+  100 ≈ 1280, 150 ≈ 930, 200 ≈ 690, 300 ≈ 345 — **on lichess's scale**,
+  which runs above FIDE's for most players. Then `eloFromGame` draws an
   estimate **above** an average player (1500) down towards it by the number
   of moves: weight = moves / (moves + 12) — a miniature of forced moves
   against a weak opponent says little, a long game speaks for itself. One
@@ -86,14 +87,54 @@ nothing right must measure under 1000 (the user). Weighting only from above,
 decided moves left out, floor 100: Morphy ≈2131, the Duke and the Count
 ≈1508; 1.5 pawns lost a move over 10 moves ≈640.
 
-### Still to do: calibrate on rated games
+A game the user found "terrible" showed 1500 (2026-10-11): Black lost 41
+moves to a stronger player with 33 judged moves, most of them fine or easy,
+and seven mistakes, two of them blunders (Stockfish, depth 16): ACPL 70. By
+the old curve ≈1420. The question was whether that is right — so the curve
+was measured instead of guessed.
 
-The curve and the weight are reasonable, not measured. The scientific step
-is to fit them on games with known ratings: the lichess open database we
-use as the stress corpus (`docs/tech/large-databases.md`) has both players'
-ratings on every game. Evaluate a sample across the rating range at a fixed
-depth, then fit Elo against ACPL (or accuracy) and the number of moves, and
-replace `eloFromLoss`/`kPriorMoves` with the fit. The reference for a
-rigorous model is Ken Regan's Intrinsic Performance Rating, which also
-weighs how hard each position was (multi-PV); it would need several lines
-per position, not one.
+## Calibration on rated games
+
+`scripts/calibrate-play-strength.py` reads the stress corpus
+(`~/.cache/pragma-chess-stress`, lichess 2013), keeps the classical and rapid
+games the lichess server analysed — a `[%eval]` after every move, Stockfish
+— and measures each player as PlayStrength does. 2013-01 to 2013-12:
+**14 307 players' games, rating 803–2343**, in 14 s, no engine run.
+
+| Lichess rating | Players | Median ACPL | Mistakes (≥100) a move | Blunders (≥300) a move |
+|---|---|---|---|---|
+| 800–999 | 33 | 148 | 0.33 | 0.15 |
+| 1000–1199 | 369 | 113 | 0.29 | 0.13 |
+| 1200–1399 | 1 672 | 97 | 0.26 | 0.10 |
+| 1400–1599 | 4 356 | 77 | 0.20 | 0.08 |
+| 1600–1799 | 5 371 | 61 | 0.16 | 0.06 |
+| 1800–1999 | 2 142 | 51 | 0.14 | 0.04 |
+| 2000–2199 | 343 | 39 | 0.10 | 0.03 |
+| 2200–2399 | 21 | 21 | 0.05 | 0.01 |
+
+What it says:
+
+- **One game says little.** The correlation between one game's ACPL and the
+  player's rating is ≈0.36–0.40. A regression (rating from ACPL) therefore
+  draws every prediction towards the mean — every player 1500–1700 — and
+  weak play would never measure weak. Adding the rates of mistakes and
+  blunders (the user's idea: count the blunders) improves it only a little
+  (0.39 against 0.36): they carry the same information as the average loss.
+- **So the curve goes the other way**: through each band's typical loss
+  (fit 3 in the script), Elo = 5189 − 849·ln(ACPL). A player who loses what
+  1100s lose is called 1100, whatever one game's noise; its error on a
+  single game is large (mean absolute error ≈430), the estimate of a level,
+  not a measurement.
+- The user's game, ACPL 70, is what a lichess player of ≈1580 typically
+  shows: many sound moves and a few heavy mistakes is how 1500s lose. Under
+  1000 is a loss of ≈1.6 pawns a move and more — pieces left hanging move
+  after move.
+- The ratings are lichess's of 2013 (Glicko), the evaluations its server's
+  Stockfish of the time; the clients evaluate with today's engines, which
+  find more and lose less on the same moves. Repeat the calibration with a
+  recent month (lichess's files from 2017 on carry far more [%eval]) to
+  bring it up to date.
+
+Still open: weigh how hard each position was, as Ken Regan's Intrinsic
+Performance Rating does (multi-PV: the loss of a move against the spread of
+the good moves there); it needs several lines per position, not one.

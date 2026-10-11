@@ -224,9 +224,10 @@ playing a move turns it off, and the user asks again at the next move.
   when an online game ends — never during one: `setOnlinePlay(true)` stops
   it. From the evaluations `app/PlayStrength` (pure) estimates each side's
   Elo (ACPL, bounded ±1000, moves in a decided position left out;
-  2850·e^(−0.01·ACPL) from 100 to 2850, an estimate above 1500 drawn down
-  towards it by moves/(moves+12), one below left where its mistakes put it;
-  provisional, to calibrate on rated games), shown by
+  5189 − 849·ln(ACPL) from 100 to 2850, calibrated on 14 307 rated lichess
+  players' games by `scripts/calibrate-play-strength.py`, lichess's scale; an
+  estimate above 1500 drawn down towards it by moves/(moves+12), one below
+  left where its mistakes put it), shown by
   `EvaluationBox::setStrength` in the score's place while idle, two rows in
   the board's order. `POST/GET /api/evaluation`.
 - The Engine panel shows the engine's whole line, and an eye beside Stop

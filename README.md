@@ -1,4 +1,58 @@
-# Pragma Chess
+<p align="center">
+  <a href="https://yafb.net/pragma-chess/">
+    <img src="gui/qt/data/icons/pragma-chess-rich.png" alt="Pragma Chess" width="160">
+  </a>
+</p>
+
+<h1 align="center">Pragma Chess</h1>
+
+<p align="center">
+  <b>Your chess, in one place — and an engine that tells you <i>why</i>.</b><br>
+  A free, open source chess database for studying, training and playing.<br>
+  Press <kbd>E</kbd> on any move and the board shows why it is good or bad.
+</p>
+
+<p align="center">
+  <a href="https://github.com/francescobianco/pragma-chess/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/francescobianco/pragma-chess?label=release&color=2b6cb0"></a>
+  <a href="https://github.com/francescobianco/pragma-chess/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/francescobianco/pragma-chess/total?color=2f855a"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/francescobianco/pragma-chess?color=555"></a>
+  <a href="https://github.com/francescobianco/pragma-chess/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/francescobianco/pragma-chess?style=flat&color=d69e2e"></a>
+  <a href="https://github.com/francescobianco/pragma-chess/discussions"><img alt="Discussions" src="https://img.shields.io/github/discussions/francescobianco/pragma-chess?color=805ad5"></a>
+  <br>
+  <img alt="Windows" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D6?logo=windows&logoColor=white">
+  <img alt="macOS" src="https://img.shields.io/badge/macOS-Apple%20Silicon-000000?logo=apple&logoColor=white">
+  <img alt="Linux" src="https://img.shields.io/badge/Linux-deb%20%7C%20rpm%20%7C%20AppImage-FCC624?logo=linux&logoColor=black">
+  <img alt="Android" src="https://img.shields.io/badge/Android-beta-3DDC84?logo=android&logoColor=white">
+  <br>
+  <img alt="C++20" src="https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white">
+  <img alt="Qt 6" src="https://img.shields.io/badge/Qt-6-41CD52?logo=qt&logoColor=white">
+  <img alt="Stockfish" src="https://img.shields.io/badge/engine-Stockfish%20%2B%20any%20UCI-6b46c1">
+  <img alt="Languages" src="https://img.shields.io/badge/languages-English%20%C2%B7%20Italiano%20%C2%B7%20Espa%C3%B1ol-dd6b20">
+</p>
+
+<p align="center">
+  <a href="https://yafb.net/pragma-chess/"><b>Website</b></a> ·
+  <a href="https://github.com/francescobianco/pragma-chess/releases/latest"><b>Download</b></a> ·
+  <a href="https://yafb.net/pragma-chess/en/guide/"><b>Guide</b></a> ·
+  <a href="https://github.com/francescobianco/pragma-chess/discussions"><b>Discussions</b></a> ·
+  <a href="CONTRIBUTING.md"><b>Contribute</b></a>
+</p>
+
+<p align="center">
+  <a href="https://yafb.net/pragma-chess/"><img src="site/assets/screenshots/explain.png" alt="Explain on Morphy's Opera game: arrows on the board say why 14.Rd1 wins" width="860"></a>
+</p>
+
+| | |
+|---|---|
+| 🧠 **Explain** | The engine doesn't just score the move: arrows on the board show the material that falls and the reply that makes the difference. |
+| 📚 **A real database** | PGN, lichess.org, chess.com and ChessBase files; search by position on millions of games, in seconds. |
+| 🎯 **Train with a tutor** | Play the engine from your own opening book; a tutor stops you on mistakes and offers to take back or explain. |
+| 🌐 **Play online** | lichess.org and freechess.org from the same board — engine off, clocks on, and an estimated Elo for both sides when the game ends. |
+| 🔁 **Everywhere** | Native on Windows, macOS and Linux, with an Android companion; sync your folder over FTP, WebDAV or Git. |
+
+---
+
+## TL;DR
 
 An open source chess database for studying, training and playing: light,
 simple, with what really matters. For Windows, macOS and Linux.

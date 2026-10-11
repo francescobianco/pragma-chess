@@ -52,6 +52,10 @@ public:
     /// A line of an analysis of `position`, which need not be on the board:
     /// the position before the move, searched so that the move can be judged.
     void setEvaluation(const ChessPosition &position, const EngineEvaluation &evaluation);
+    /// The evaluation of `position` from now on, deeper or not than the one
+    /// known: another engine's (the Evaluation of the Game run again after a
+    /// change of engine), which is not to be mixed with the old one's.
+    void replaceEvaluation(const ChessPosition &position, const EngineEvaluation &evaluation);
     /// The position before the move explained, when it has no evaluation as
     /// deep as `depth` yet: the client searches it first (one engine, one
     /// position after the other), or the move cannot be judged.

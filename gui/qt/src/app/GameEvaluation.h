@@ -67,7 +67,9 @@ public:
     /// Starts evaluating the game from `startFen` (standard position when
     /// empty) through `uciMoves`; a running evaluation stops first. False
     /// when the engine cannot start or the game cannot be replayed.
-    bool start(const Engine &engine, const QString &startFen, const QStringList &uciMoves);
+    /// `fresh`: every position searched again, whatever is known of it
+    /// (setKnownDepth is not asked) — another engine's turn.
+    bool start(const Engine &engine, const QString &startFen, const QStringList &uciMoves, bool fresh = false);
     void stop();
     bool isRunning() const { return m_running; }
     /// The positions of the game evaluated, ply 0 the start.

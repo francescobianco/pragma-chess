@@ -121,6 +121,12 @@ void Explainer::setEvaluation(const ChessPosition &position, const EngineEvaluat
         tick();
 }
 
+void Explainer::replaceEvaluation(const ChessPosition &position, const EngineEvaluation &evaluation)
+{
+    m_evaluations.remove(position.positionKey());
+    setEvaluation(position, evaluation);
+}
+
 std::optional<EngineEvaluation> Explainer::known(const ChessPosition &position) const
 {
     const auto found = m_evaluations.constFind(position.positionKey());

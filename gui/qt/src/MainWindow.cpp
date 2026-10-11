@@ -320,7 +320,10 @@ MainWindow::MainWindow(QWidget *parent)
     });
     connect(m_gameEvaluation, &GameEvaluation::evaluated, this,
             [this](int, const ChessPosition &position, const EngineEvaluation &evaluation) {
-                m_explainer->setEvaluation(position, evaluation);
+                if (m_evaluationReplaces)
+                    m_explainer->replaceEvaluation(position, evaluation);
+                else
+                    m_explainer->setEvaluation(position, evaluation);
                 updateCourse();
             });
     // Its progress, by the time it may take: 100% when the time is up.
@@ -3996,6 +3999,12 @@ void MainWindow::selectEngine(const QString &id)
     m_engine->shutdown();
     if (analyzing)
         m_startEngineAction->setChecked(true);
+    // A game evaluated with the old engine is evaluated again with this one,
+    // from the start: one engine's figures in its course and its Elo.
+    if (!m_onlinePlay && profile.id != m_evaluationEngine
+        && (m_frozenStrength.contains(strengthKey(m_session->game()))
+            || (m_gameEvaluation->isRunning() && m_evaluatedGame == strengthKey(m_session->game()))))
+        evaluateGame(true);
     scheduleSaveSession();
 }
 
@@ -4114,7 +4123,7 @@ void MainWindow::updateCourse()
                                          : std::nullopt);
 }
 
-bool MainWindow::evaluateGame()
+bool MainWindow::evaluateGame(bool fresh)
 {
     // The engine of the project, with its Computing Power, as the analysis has it.
     const EngineProfile &profile = m_engines.resolve(m_engineId, m_engineName);
@@ -4134,7 +4143,9 @@ bool MainWindow::evaluateGame()
         moves << move.uci;
     m_evaluatedGame = strengthKey(game);
     m_frozenStrength.remove(m_evaluatedGame); // Evaluated again: settled again at the end.
-    if (moves.isEmpty() || !m_gameEvaluation->start(engine, game.startFen, moves))
+    m_evaluationReplaces = fresh;
+    m_evaluationEngine = profile.id;
+    if (moves.isEmpty() || !m_gameEvaluation->start(engine, game.startFen, moves, fresh))
         return false;
     m_evaluationClock.start();
     m_enginePanel->setEvaluationProgress(0);
@@ -4144,7 +4155,16 @@ bool MainWindow::evaluateGame()
 
 QString MainWindow::strengthKey(const GameRecord &game)
 {
-    return !game.uid.isEmpty() ? game.uid : game.site;
+    // Stored, its uid; online, its address; otherwise what it is: its moves.
+    if (!game.uid.isEmpty())
+        return game.uid;
+    if (!game.site.isEmpty())
+        return game.site;
+    QCryptographicHash moves(QCryptographicHash::Sha1);
+    moves.addData(game.startFen.toUtf8());
+    for (const MoveRecord &move : game.moves)
+        moves.addData(move.uci.toUtf8());
+    return QString::fromLatin1(moves.result().toHex());
 }
 
 void MainWindow::updateExplainer()

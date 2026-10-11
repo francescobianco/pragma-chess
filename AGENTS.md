@@ -223,7 +223,14 @@ playing a move turns it off, and the user asks again at the next move.
   `m_frozenStrength`; "Calculating… N%" left of the eye counts the 30 seconds,
   `EnginePanel::setEvaluationProgress`), each result given to
   `Explainer::setEvaluation`, so the course fills in; positions known as
-  deep are skipped (`setKnownDepth`). `MainWindow::evaluateGame` starts it
+  deep are skipped (`setKnownDepth`). Choosing another engine
+  (`selectEngine`) evaluates the game on the board again from the start
+  when it was evaluated with another one (`m_evaluationEngine`;
+  `evaluateGame(true)`: no known depth skipped, each result in place of the
+  old engine's, `Explainer::replaceEvaluation`), so course and Elo are one
+  engine's; a change of Computing Power is not another engine.
+  `m_frozenStrength` knows a game by its uid, its address, or the SHA-1 of
+  its moves. `POST /api/engines {"id", "use": true}` chooses an engine. `MainWindow::evaluateGame` starts it
   when an online game ends — never during one: `setOnlinePlay(true)` stops
   it. From the evaluations `app/PlayStrength` (pure) estimates each side's
   Elo (ACPL, bounded ±1000, moves in a decided position left out;

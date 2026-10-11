@@ -58,7 +58,7 @@ GameEvaluation::~GameEvaluation()
     stop();
 }
 
-bool GameEvaluation::start(const Engine &engine, const QString &startFen, const QStringList &uciMoves)
+bool GameEvaluation::start(const Engine &engine, const QString &startFen, const QStringList &uciMoves, bool fresh)
 {
     stop();
     std::optional<ChessPosition> position = startFen.isEmpty()
@@ -77,7 +77,7 @@ bool GameEvaluation::start(const Engine &engine, const QString &startFen, const 
         m_positions << *position;
     }
     m_depths = QList<int>(m_positions.size(), 0);
-    if (m_knownDepth) {
+    if (m_knownDepth && !fresh) {
         for (qsizetype ply = 0; ply < m_positions.size(); ++ply)
             m_depths[ply] = m_knownDepth(m_positions.at(ply));
     }

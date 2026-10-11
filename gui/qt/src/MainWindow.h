@@ -341,7 +341,9 @@ private:
     /// board: its every position evaluated in passes, each result kept with
     /// the Explainer's evaluations, so the course fills in. Started when an
     /// online game ends; not in the menus yet. False if it could not start.
-    bool evaluateGame();
+    /// `fresh`: with the engine just chosen, every position searched again and
+    /// its result in place of the old engine's (a change of engine).
+    bool evaluateGame(bool fresh = false);
 
     // Projects (.pch): the File menu saves and restores the whole environment.
     void newProject();
@@ -612,9 +614,13 @@ private:
     GameEvaluation *m_gameEvaluation;
     /// The strength of each side of the games evaluated, as it stood when
     /// their evaluation ended: shown as it is, not moving with later
-    /// analyses. By the game's uid, or its address while it has none.
+    /// analyses. By the game's uid, its address, or else its moves.
     QHash<QString, PlayStrength::Estimate> m_frozenStrength;
     QString m_evaluatedGame;
+    /// The evaluation running replaces what was known (another engine's).
+    bool m_evaluationReplaces = false;
+    /// The engine the game evaluated last was evaluated with.
+    QString m_evaluationEngine;
     /// Attempts to follow an online game again since its connection was lost.
     int m_reconnectAttempts = 0;
     /// The Evaluation of the Game's progress in the Engine panel, by its time budget.

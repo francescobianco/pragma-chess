@@ -566,7 +566,9 @@ void DesktopApi::addRoutes()
             QSettings settings;
             w->m_engines.save(settings);
         }
-        if (id == inUse) {
+        if (body->value(QStringLiteral("use")).toBool()) {
+            w->selectEngine(id); // As Use This Engine, or Engine ▸ Switch Engine.
+        } else if (id == inUse) {
             w->m_engineId.clear(); // Restarts it, as Manage Engines does.
             w->selectEngine(id);
         }

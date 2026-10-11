@@ -38,6 +38,12 @@ unit-tested) chooses the next one.
   (measured again at 30 seconds, 2026-10-11).
 - A position with no legal moves is not searched: mate or stalemate is known
   (`finalEvaluation`), at the last depth, for good.
+- **Another engine, another evaluation**: choosing another engine with a
+  game evaluated on the board evaluates it again from the start, each
+  result replacing the old engine's (`Explainer::replaceEvaluation`) — one
+  engine's figures in the course and the Elo. Tried: Opera game, bundled
+  Stockfish 18 ≈2250 / ≈1588, then the system's Stockfish ≈2231 / ≈1595; a
+  change of Computing Power does not start it.
 - A position already known as deep is not searched again: `setKnownDepth`
   reads the Explainer's store, so a game evaluated before resumes where it
   stopped.

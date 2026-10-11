@@ -31,12 +31,21 @@ namespace {
 
 constexpr int kPlatformRole = Qt::UserRole + 1;
 constexpr int kAccountRole = Qt::UserRole + 2;
+/// Room above and below each connection's text.
+constexpr int kRowPadding = 8;
 
 /// A connection in the list: the platform in bold on the left, the account
 /// it plays as on the right, quieter — two things, not one line of text.
 class ConnectionDelegate : public QStyledItemDelegate {
 public:
     using QStyledItemDelegate::QStyledItemDelegate;
+
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        QSize size = QStyledItemDelegate::sizeHint(option, index);
+        size.setHeight(QFontMetrics(option.font).height() + 2 * kRowPadding);
+        return size;
+    }
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
     {
@@ -90,7 +99,8 @@ PlayOnlineDialog::PlayOnlineDialog(bool remembered, QWidget *parent)
     m_list->setSpacing(3);
     m_list->setItemDelegate(new ConnectionDelegate(m_list));
     m_list->setMinimumWidth(560); // A generous window: names and accounts in full.
-    m_list->setMinimumHeight(5 * (QFontMetrics(m_list->font()).height() + 2 * 3 + 6) + 2 * m_list->frameWidth());
+    m_list->setMinimumHeight(5 * (QFontMetrics(m_list->font()).height() + 2 * kRowPadding + 2 * 3)
+                             + 2 * m_list->frameWidth() + 4);
     QSettings settings;
     m_accounts = OnlineAccounts::load(settings);
 

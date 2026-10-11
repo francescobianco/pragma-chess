@@ -5463,6 +5463,23 @@ END FUNCTION
         // The curve falls as the loss grows, within its bounds.
         QVERIFY(PlayStrength::eloFromLoss(20) > PlayStrength::eloFromLoss(60));
         QCOMPARE(PlayStrength::eloFromLoss(10000), 100);
+        // Ahead, an easy good move counts less and a mistake more (the user's
+        // rule): a player who took the lead and then played loosely is not
+        // flattered by the easy moves that followed.
+        QList<std::optional<EngineEvaluation>> ahead{cp(0)};
+        for (int move = 0; move < 10; ++move)
+            ahead << cp(300) << cp(300); // White's moves at +3, none losing: easy
+        ahead << cp(200);                // White's mistake of a pawn at +3
+        const PlayStrength::Player loose = PlayStrength::estimate(ahead, Side::White).white;
+        QVERIFY(loose.averageLoss > 100.0 / loose.moves); // More than the plain average.
+        QList<std::optional<EngineEvaluation>> level{cp(0)};
+        for (int move = 0; move < 10; ++move)
+            level << cp(0) << cp(0);
+        level << cp(-100);               // the same mistake, level
+        const PlayStrength::Player even = PlayStrength::estimate(level, Side::White).white;
+        QCOMPARE(even.averageLoss, 100.0 / even.moves); // Level: every move counts once.
+        QVERIFY(loose.averageLoss > even.averageLoss);
+
         // Calibrated on lichess's rated games: the typical loss of a band gives that band.
         QVERIFY(qAbs(PlayStrength::eloFromLoss(113) - 1100) < 80);  // 1000–1199
         QVERIFY(qAbs(PlayStrength::eloFromLoss(77) - 1500) < 80);   // 1400–1599

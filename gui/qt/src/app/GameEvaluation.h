@@ -11,13 +11,15 @@
 #include <functional>
 #include <optional>
 
+class QTimer;
 class UciEngine;
 
 /// The Evaluation of the Game ("valutazione della partita"): every position
 /// of a finished game evaluated by the engine, so the course of the game can
 /// be drawn whole. It works in passes: a quick one over the whole game
 /// first, so the course is complete at once, then deeper ones, each
-/// refining it (passDepths()). It drives an engine process of its own, never
+/// refining it (passDepths()), for at most kTimeBudgetMs. It drives an
+/// engine process of its own, never
 /// the live analysis, and only on a game that is over — never while a game
 /// is played online (docs/tech/game-evaluation.md).
 class GameEvaluation : public QObject {
@@ -26,6 +28,9 @@ class GameEvaluation : public QObject {
 public:
     /// The depth of each pass, shallow to deep.
     static const QList<int> &passDepths();
+    /// How long an evaluation may run: then it stops where it is, so its
+    /// values (the course, the strength of each side) settle and stay.
+    static constexpr int kTimeBudgetMs = 60000;
 
     /// The order of the work, pure: given the depth known of each position
     /// (0 none), the next position to search and how deep, the shallowest
@@ -67,6 +72,7 @@ public:
     bool isRunning() const { return m_running; }
     /// The positions of the game evaluated, ply 0 the start.
     int positionCount() const { return int(m_positions.size()); }
+    const QList<ChessPosition> &positions() const { return m_positions; }
     /// The depth reached by every position so far (the pass completed).
     int completedDepth() const;
 
@@ -84,6 +90,7 @@ private:
     void searchDone();
 
     UciEngine *m_engine = nullptr;
+    QTimer *m_budget = nullptr;
     bool m_running = false;
     QString m_startFen;
     QStringList m_moves;

@@ -31,7 +31,9 @@ struct Player {
     /// position not already decided (lost or won beyond the bound, and so
     /// after the move too: a move that changes the outcome is judged).
     int moves = 0;
-    /// Average centipawn loss (ACPL), evaluations bounded to ±1000.
+    /// Average centipawn loss (ACPL), evaluations bounded to ±1000, each move
+    /// weighed by the advantage it was played with (easy good moves less,
+    /// mistakes more: PlayStrength.cpp, weight()).
     double averageLoss = 0;
     /// Mean accuracy, 0–100, from the loss in winning chances (as lichess counts it).
     double accuracy = 0;

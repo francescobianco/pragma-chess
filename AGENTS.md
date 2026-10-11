@@ -218,13 +218,16 @@ playing a move turns it off, and the user asks again at the next move.
   `app/GameEvaluation`, core; not in the menus yet — read
   [docs/tech/game-evaluation.md](docs/tech/game-evaluation.md)): every
   position of a finished game searched by an engine process of its own, in
-  passes 8, 12, 16, 20, 24 (`nextStep`, pure), each result given to
+  passes 8, 12, 16, 20, 24 (`nextStep`, pure) for one minute at most
+  (`kTimeBudgetMs`; then each side's strength is frozen for that game,
+  `m_frozenStrength`), each result given to
   `Explainer::setEvaluation`, so the course fills in; positions known as
   deep are skipped (`setKnownDepth`). `MainWindow::evaluateGame` starts it
   when an online game ends — never during one: `setOnlinePlay(true)` stops
   it. From the evaluations `app/PlayStrength` (pure) estimates each side's
   Elo (ACPL, bounded ±1000, moves in a decided position left out;
-  5189 − 849·ln(ACPL) from 100 to 2850, calibrated on 14 307 rated lichess
+  each move weighed by the advantage it was played with — easy good moves
+  less, mistakes more —; 5189 − 849·ln(ACPL) from 100 to 2850, calibrated on 14 307 rated lichess
   players' games by `scripts/calibrate-play-strength.py`, lichess's scale; an
   estimate above 1500 drawn down towards it by moves/(moves+12), one below
   left where its mistakes put it), shown by

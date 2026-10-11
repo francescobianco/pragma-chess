@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/PlayStrength.h"
 #include "app/Project.h"
 #include "app/StandInNames.h"
 #include "app/GraphicsSettings.h"
@@ -608,6 +609,13 @@ private:
     Explainer *m_explainer;
     /// The Evaluation of the Game: a finished game's every position, for its course.
     GameEvaluation *m_gameEvaluation;
+    /// The strength of each side of the games evaluated, as it stood when
+    /// their evaluation ended: shown as it is, not moving with later
+    /// analyses. By the game's uid, or its address while it has none.
+    QHash<QString, PlayStrength::Estimate> m_frozenStrength;
+    QString m_evaluatedGame;
+    /// The key m_frozenStrength knows a game by.
+    static QString strengthKey(const GameRecord &game);
     MoveTreeView *m_moveView;
     QTableView *m_gameView;
     DatabaseTreeWidget *m_databaseTree;

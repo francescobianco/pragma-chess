@@ -323,6 +323,18 @@ MainWindow::MainWindow(QWidget *parent)
                 m_explainer->setEvaluation(position, evaluation);
                 updateCourse();
             });
+    // Done, or out of time: the strength of each side is settled for good.
+    connect(m_gameEvaluation, &GameEvaluation::finished, this, [this] {
+        QList<std::optional<EngineEvaluation>> evaluations;
+        for (const ChessPosition &position : m_gameEvaluation->positions())
+            evaluations << m_explainer->known(position);
+        const bool whole = evaluations.size() > 1
+            && std::all_of(evaluations.cbegin(), evaluations.cend(), [](const auto &known) { return known.has_value(); });
+        if (whole && !m_evaluatedGame.isEmpty())
+            m_frozenStrength.insert(m_evaluatedGame,
+                                    PlayStrength::estimate(evaluations, m_gameEvaluation->positions().constFirst().sideToMove()));
+        updateCourse();
+    });
     // What the engine found about every position, kept across restarts.
     m_explainer->setStorage(QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation))
                                 .filePath(QStringLiteral("explain-evaluations.txt")));
@@ -4078,9 +4090,14 @@ void MainWindow::updateCourse()
     // How each side played: once every position of the line is evaluated.
     const bool whole = evaluations.size() > 1
         && std::all_of(evaluations.cbegin(), evaluations.cend(), [](const auto &evaluation) { return evaluation.has_value(); });
-    m_enginePanel->setStrength(whole ? std::optional<PlayStrength::Estimate>(PlayStrength::estimate(
-                                           evaluations, m_session->positionAt(0).sideToMove()))
-                                     : std::nullopt);
+    // A game whose evaluation ended shows what it settled on.
+    const auto frozen = m_onlinePlay ? m_frozenStrength.cend() : m_frozenStrength.constFind(strengthKey(m_session->game()));
+    if (frozen != m_frozenStrength.cend())
+        m_enginePanel->setStrength(*frozen);
+    else
+        m_enginePanel->setStrength(whole ? std::optional<PlayStrength::Estimate>(PlayStrength::estimate(
+                                               evaluations, m_session->positionAt(0).sideToMove()))
+                                         : std::nullopt);
 }
 
 bool MainWindow::evaluateGame()
@@ -4101,7 +4118,14 @@ bool MainWindow::evaluateGame()
     QStringList moves;
     for (const MoveRecord &move : game.moves)
         moves << move.uci;
+    m_evaluatedGame = strengthKey(game);
+    m_frozenStrength.remove(m_evaluatedGame); // Evaluated again: settled again at the end.
     return !moves.isEmpty() && m_gameEvaluation->start(engine, game.startFen, moves);
+}
+
+QString MainWindow::strengthKey(const GameRecord &game)
+{
+    return !game.uid.isEmpty() ? game.uid : game.site;
 }
 
 void MainWindow::updateExplainer()

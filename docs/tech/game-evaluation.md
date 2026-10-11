@@ -29,6 +29,11 @@ about a second, so the course is complete at once; each later pass refines
 it. Within a pass the positions go in game order; `nextStep` (pure,
 unit-tested) chooses the next one.
 
+- **One minute at most** (`kTimeBudgetMs`): then it stops where it is, and
+  the strength of each side is computed once and kept for that game
+  (`MainWindow::m_frozenStrength`, by uid or address, in memory): values
+  that went on changing were not nice to watch (the user, 2026-10-11). At
+  Medium power a game of 38 positions is complete at depth 16 by then.
 - A position with no legal moves is not searched: mate or stalemate is known
   (`finalEvaluation`), at the last depth, for good.
 - A position already known as deep is not searched again: `setKnownDepth`
@@ -65,6 +70,16 @@ them in the tooltip. Nothing is shown during an online game.
   beyond the bound, a further blunder would not show and a weak player would
   look perfect; won, the moves are easy. A move that changes the outcome is
   judged.
+- **Moves weighed by the advantage they were played with** (the user's rule,
+  2026-10-11): ahead, a good move (under half a pawn lost) was easy and
+  counts 1 / (1 + (advantage / 1 pawn)²); a mistake was sloppiness and counts
+  1 + advantage / 10 pawns, up to twice; level or behind, every move counts
+  once. The average loss is the weighted one. It is not part of the
+  calibration: tried with the curve fitted again on the weighted loss, it
+  predicted ratings worse (correlation 0.36 → 0.26–0.31) and raised everyone
+  who was never ahead, the loser above the winner. So the curve stays
+  fitted on the plain loss, and the rule only judges the play of whoever
+  took the lead.
 - **Accuracy**: lichess's, from the winning chances (`winChances`,
   `moveAccuracy`), averaged; shown in the tooltip, not used for the Elo yet.
 - **Elo**: `eloFromLoss` = 5189 − 849 · ln(ACPL), between 100 and 2850 (a
@@ -92,6 +107,16 @@ moves to a stronger player with 33 judged moves, most of them fine or easy,
 and seven mistakes, two of them blunders (Stockfish, depth 16): ACPL 70. By
 the old curve ≈1420. The question was whether that is right — so the curve
 was measured instead of guessed.
+
+The user's won game of 2026-10-11 (19 moves, the queen won at move 13):
+plain, the user ≈1950 and the opponent ≈1440 — the easy moves after the
+lead made the average loss small. With the weighting, the user ≈1530 (their
+own judgement: "not more than 1550") and the opponent ≈1440 (their judgement:
+1200). The opponent's average loss, 0.83 pawns a move, is what lichess
+players of ≈1440 typically lose: on lichess's scale that is where it
+belongs; the user's sense of the numbers is closer to FIDE's, which runs
+lower. A conversion to a FIDE-like scale would need data of players rated
+on both.
 
 ## Calibration on rated games
 

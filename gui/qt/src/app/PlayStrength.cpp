@@ -11,6 +11,24 @@ namespace {
 /// or out of a mate does not swamp the average.
 constexpr int kBound = 1000;
 
+/// A move under half a pawn of loss is a good one.
+constexpr int kGoodMove = 50;
+
+/// How much a move counts in the average, from the advantage the mover had
+/// before it (the user's rule, 2026-10-11): ahead, a good move was easy and
+/// counts less — 1 / (1 + (advantage / 1 pawn)²) —, and a mistake was
+/// sloppiness and counts more — 1 + advantage / 10 pawns, up to twice. Level
+/// or behind, every move counts once. Not part of the calibration: a player
+/// never ahead is measured as the curve was fitted.
+double weight(int advantage, int loss)
+{
+    if (advantage <= 0)
+        return 1;
+    if (loss < kGoodMove)
+        return 1 / (1 + std::pow(advantage / 100.0, 2));
+    return 1 + advantage / 1000.0;
+}
+
 int bounded(const EngineEvaluation &evaluation, Side side)
 {
     return std::clamp(evaluation.centipawnsFor(side), -kBound, kBound);
@@ -55,6 +73,7 @@ Estimate estimate(const QList<std::optional<EngineEvaluation>> &evaluations, Sid
 {
     struct Sums {
         int moves = 0;
+        double weights = 0;
         double loss = 0;
         double accuracy = 0;
     } white, black;
@@ -71,8 +90,11 @@ Estimate estimate(const QList<std::optional<EngineEvaluation>> &evaluations, Sid
         if ((was >= kBound && is >= kBound) || (was <= -kBound && is <= -kBound))
             continue;
         Sums &sums = mover == Side::White ? white : black;
+        const int loss = std::max(0, was - is);
+        const double counts = weight(was, loss);
         ++sums.moves;
-        sums.loss += std::max(0, was - is);
+        sums.weights += counts;
+        sums.loss += counts * loss;
         sums.accuracy += moveAccuracy(winChances(was), winChances(is));
     }
     const auto player = [](const Sums &sums) {
@@ -80,7 +102,7 @@ Estimate estimate(const QList<std::optional<EngineEvaluation>> &evaluations, Sid
         result.moves = sums.moves;
         if (sums.moves == 0)
             return result;
-        result.averageLoss = sums.loss / sums.moves;
+        result.averageLoss = sums.loss / sums.weights;
         result.accuracy = sums.accuracy / sums.moves;
         if (sums.moves >= kMinimumMoves)
             result.elo = eloFromGame(result.averageLoss, sums.moves);

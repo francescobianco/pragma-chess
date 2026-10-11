@@ -2,6 +2,8 @@
 
 #include "app/UciEngine.h"
 
+#include <QTimer>
+
 #include <algorithm>
 
 const QList<int> &GameEvaluation::passDepths()
@@ -38,7 +40,17 @@ std::optional<EngineEvaluation> GameEvaluation::finalEvaluation(const ChessPosit
 
 GameEvaluation::GameEvaluation(QObject *parent)
     : QObject(parent)
+    , m_budget(new QTimer(this))
 {
+    // Out of time: what is known by then is what the game gets.
+    m_budget->setSingleShot(true);
+    m_budget->setInterval(kTimeBudgetMs);
+    connect(m_budget, &QTimer::timeout, this, [this] {
+        if (!m_running)
+            return;
+        stop();
+        Q_EMIT finished();
+    });
 }
 
 GameEvaluation::~GameEvaluation()
@@ -96,6 +108,7 @@ bool GameEvaluation::start(const Engine &engine, const QString &startFen, const 
         return false;
     }
     m_running = true;
+    m_budget->start();
     searchNext();
     return true;
 }
@@ -103,6 +116,7 @@ bool GameEvaluation::start(const Engine &engine, const QString &startFen, const 
 void GameEvaluation::stop()
 {
     m_running = false;
+    m_budget->stop();
     m_step.reset();
     if (m_engine) {
         m_engine->disconnect(this);

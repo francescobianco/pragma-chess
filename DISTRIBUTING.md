@@ -108,6 +108,7 @@ to the place. Dates and links go here.
 |---|---|---|
 | **Hacker News** — "Show HN: Pragma Chess – open-source chess database that explains the engine" | Tuesday–Thursday, morning US time; be present for comments; link the site. Title and first comment in `packaging/announcements/show-hn.md`; after 0.4.0 | ✅ written 2026-10-11 · ☐ posted |
 | **r/opensource**, **r/linux**, **r/linux_gaming**? (no: it is not a game) — r/opensource first | Self-promotion rules: one post, flair "Promotional" where asked | ☐ |
+| **CoderLegion** (coderlegion.com, the user's account `yafb`: 3 posts, 173 reads, 6 followers in October 2026) | A small developers' community: groups Open Source (1.6k members) and C/C++ Community (287); its Launches are almost all AI and web tools, so a native C++/Qt app stands out, and in the Open Source group a call for contributors gets the most reactions. Self-promotion allowed when relevant. Three pieces a week apart, each shared to Open Source and C/C++: the Launch, the article on calibrating the Elo estimate on 14,307 rated games, the call for translators — written in `packaging/announcements/coderlegion.md`. Worth it for contributors and links, not for chess players | ✅ written 2026-10-11 · ☐ posted (your account) |
 | **Lobste.rs** | Needs an invite; tag `show`, `c++` | ☐ |
 | **Mastodon** (fosstodon.org or mastodon.social) | #chess #opensource #qt #linux, with screenshot and video; also the #ItalianMastodon chess folk | ☐ |
 | **Qt community** — forum.qt.io Showcase, r/QtFramework | A Qt 6 Widgets application with a native GNOME/Wayland frame is of interest there | ☐ |
@@ -282,6 +283,7 @@ books and lichess.org/freechess.org play; Windows, macOS, Linux.`
 | 2026-10-10 | Issue #1 | https://github.com/francescobianco/pragma-chess/issues/1#issuecomment-6102469020 | qrcodegen from the system's packages: done, answered, closed |
 | 2026-10-10 | Social preview, lichess blog EN, chessprogramming.org | packaging/assets/social-preview.png, packaging/announcements/ | ready to upload and paste |
 | 2026-10-11 | Following En Croissant (POSITIONING.md) | https://github.com/francescobianco/pragma-chess/discussions/2 | guide on the site, update check with version.json, Discussions welcome, community links in README and Help |
+| 2026-10-11 | CoderLegion | packaging/announcements/coderlegion.md | studied (groups, launches, rules); Launch, article and call for contributors written |
 | 2026-10-11 | Issue #4, the first translator | https://github.com/francescobianco/pragma-chess/issues/4#issuecomment-6112095489 | Wait-Again, a beginner, takes Chinese: answered with Git/PR, Qt Linguist and Markdown to start from; 简体中文 and 繁體中文 named in Switch Language |
 | 2026-10-11 | Stockfish's wiki | https://github.com/official-stockfish/Stockfish/discussions/7219 | the wiki is closed to outsiders: asked the maintainers, with the row ready |
 | 2026-10-11 | open-source-mac-os-apps | https://github.com/serhii-londar/open-source-mac-os-apps/pull/1577 | PR, Games |

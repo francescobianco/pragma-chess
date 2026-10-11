@@ -23,6 +23,9 @@ QString LocalizedText::nativeName(const QString &language)
         {QStringLiteral("en"), QStringLiteral("English")},
         {QStringLiteral("it"), QStringLiteral("Italiano")},
         {QStringLiteral("es"), QStringLiteral("Español")},
+        {QStringLiteral("zh_CN"), QStringLiteral("简体中文")},
+        {QStringLiteral("zh_TW"), QStringLiteral("繁體中文")},
+        {QStringLiteral("zh"), QStringLiteral("中文")},
     };
     if (const auto found = names.constFind(language); found != names.cend())
         return *found;

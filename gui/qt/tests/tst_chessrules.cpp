@@ -5560,6 +5560,7 @@ END FUNCTION
         QCOMPARE(LocalizedText::nativeName(QStringLiteral("en")), QStringLiteral("English"));
         QCOMPARE(LocalizedText::nativeName(QStringLiteral("it")), QStringLiteral("Italiano"));
         QCOMPARE(LocalizedText::nativeName(QStringLiteral("pt_BR")), QStringLiteral("Portuguese"));
+        QCOMPARE(LocalizedText::nativeName(QStringLiteral("zh_CN")), QStringLiteral("简体中文"));
     }
 
     void declaresTheLanguageOfAProject()

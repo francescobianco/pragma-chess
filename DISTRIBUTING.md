@@ -282,6 +282,7 @@ books and lichess.org/freechess.org play; Windows, macOS, Linux.`
 | 2026-10-10 | Issue #1 | https://github.com/francescobianco/pragma-chess/issues/1#issuecomment-6102469020 | qrcodegen from the system's packages: done, answered, closed |
 | 2026-10-10 | Social preview, lichess blog EN, chessprogramming.org | packaging/assets/social-preview.png, packaging/announcements/ | ready to upload and paste |
 | 2026-10-11 | Following En Croissant (POSITIONING.md) | https://github.com/francescobianco/pragma-chess/discussions/2 | guide on the site, update check with version.json, Discussions welcome, community links in README and Help |
+| 2026-10-11 | Issue #4, the first translator | https://github.com/francescobianco/pragma-chess/issues/4#issuecomment-6112095489 | Wait-Again, a beginner, takes Chinese: answered with Git/PR, Qt Linguist and Markdown to start from; 简体中文 and 繁體中文 named in Switch Language |
 | 2026-10-11 | Stockfish's wiki | https://github.com/official-stockfish/Stockfish/discussions/7219 | the wiki is closed to outsiders: asked the maintainers, with the row ready |
 | 2026-10-11 | open-source-mac-os-apps | https://github.com/serhii-londar/open-source-mac-os-apps/pull/1577 | PR, Games |
 | 2026-10-11 | awesome-qt-qml | https://github.com/mikalv/awesome-qt-qml/pull/64 | PR, Software |

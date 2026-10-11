@@ -85,9 +85,11 @@ bool MoveGamesDialog::openWhenDone() const
 
 void MoveGamesDialog::updateNewName()
 {
-    // The name is asked only for a new database.
-    m_nameLabel->setVisible(isNew());
-    m_name->setVisible(isNew());
+    // The name is asked only for a new database. Its row stays in place,
+    // disabled otherwise: a row coming and going would change the window's
+    // height, and squeeze the others in a window already sized.
+    m_nameLabel->setEnabled(isNew());
+    m_name->setEnabled(isNew());
     m_problem->hide();
     if (isNew())
         m_name->setFocus();
@@ -101,6 +103,7 @@ void MoveGamesDialog::accept()
         if (m_path.isEmpty()) {
             m_problem->setText(problem);
             m_problem->show();
+            adjustSize(); // The window grows by the message, nothing is squeezed.
             m_name->setFocus();
             return;
         }

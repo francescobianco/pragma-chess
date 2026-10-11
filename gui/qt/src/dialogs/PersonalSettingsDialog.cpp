@@ -141,9 +141,14 @@ PersonalSettingsDialog::PersonalSettingsDialog(const PersonalSettings &settings,
         copy->setToolTip(tr("Copy"));
         copy->setAccessibleName(tr("Copy"));
         connect(copy, &QToolButton::clicked, this, [this] { QGuiApplication::clipboard()->setText(m_lobbyKey->text()); });
-        keyRow->addWidget(m_lobbyKey, 1);
-        keyRow->addWidget(show);
-        keyRow->addWidget(copy);
+        // The key and its two buttons are one group, close together, as GTK
+        // links such controls; the help keeps the usual distance.
+        auto *key = new QHBoxLayout;
+        key->setSpacing(4);
+        key->addWidget(m_lobbyKey, 1);
+        key->addWidget(show);
+        key->addWidget(copy);
+        keyRow->addLayout(key, 1);
         keyRow->addWidget(new HelpButton(tr("<p>This key is who you are in the lobby: it signs your moves.</p>"
                                             "<p>For security it is not synced with your other settings and stays on "
                                             "this computer only. To play as yourself from another computer, copy it "

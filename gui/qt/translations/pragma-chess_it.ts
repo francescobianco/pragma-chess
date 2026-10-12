@@ -3975,8 +3975,8 @@ non è su questo computer.</translation>
         <translation>Database da installare con un clic, in Strumenti ▸ Gestione estensioni</translation>
     </message>
     <message>
-        <source>&lt;p&gt;&lt;b&gt;Perhaps this move calls for a word of explanation?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Explain is here for that. Press the glowing button, and the board tells the story of the move: the plans of both sides, where a mistake let something slip away, what would have been stronger. Ask it move after move and you will start seeing it yourself — the plans, the mistakes, the game as a whole. That is how one&apos;s play, and one&apos;s eye, grow.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;&lt;b&gt;Forse questa mossa richiede un chiarimento?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Spiega è qui per questo. Premi il bottone illuminato, e la scacchiera racconta la mossa: i piani delle due parti, dove un errore ha lasciato sfuggire qualcosa, cosa sarebbe stato più forte. Chiediglielo mossa dopo mossa e comincerai a vederlo da solo: i piani, gli errori, la partita nel suo insieme. È così che crescono il proprio gioco e il proprio sguardo.&lt;/p&gt;</translation>
+        <source>&lt;p&gt;&lt;b&gt;Perhaps this move calls for a word of explanation?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Press the glowing button: the board tells the story of the move, the plans of both sides, the mistakes, what would have been better. Ask it move after move: that is how you will improve.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;&lt;b&gt;Forse questa mossa richiede un chiarimento?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Premi il bottone illuminato: la scacchiera racconta la mossa, i piani delle due parti, gli errori, cosa sarebbe stato meglio. Chiediglielo mossa dopo mossa: in questo modo potrai migliorare.&lt;/p&gt;</translation>
     </message>
 </context>
 <context>

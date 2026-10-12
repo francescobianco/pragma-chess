@@ -3975,8 +3975,8 @@ no está en este ordenador.</translation>
         <translation>Bases de datos para instalar con un clic, en Herramientas ▸ Gestionar extensiones</translation>
     </message>
     <message>
-        <source>&lt;p&gt;&lt;b&gt;Perhaps this move calls for a word of explanation?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Explain is here for that. Press the glowing button, and the board tells the story of the move: the plans of both sides, where a mistake let something slip away, what would have been stronger. Ask it move after move and you will start seeing it yourself — the plans, the mistakes, the game as a whole. That is how one&apos;s play, and one&apos;s eye, grow.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;&lt;b&gt;¿Quizá esta jugada merece una explicación?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Explicar está aquí para eso. Pulsa el botón iluminado, y el tablero cuenta la jugada: los planes de ambos bandos, dónde un error dejó escapar algo, qué habría sido más fuerte. Pregúntaselo jugada tras jugada y empezarás a verlo por ti mismo: los planes, los errores, la partida en su conjunto. Así crecen el propio juego y la propia mirada.&lt;/p&gt;</translation>
+        <source>&lt;p&gt;&lt;b&gt;Perhaps this move calls for a word of explanation?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Press the glowing button: the board tells the story of the move, the plans of both sides, the mistakes, what would have been better. Ask it move after move: that is how you will improve.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;&lt;b&gt;¿Quizá esta jugada merece una explicación?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Pulsa el botón iluminado: el tablero cuenta la jugada, los planes de ambos bandos, los errores, qué habría sido mejor. Pregúntaselo jugada tras jugada: así podrás mejorar.&lt;/p&gt;</translation>
     </message>
 </context>
 <context>

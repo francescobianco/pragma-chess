@@ -41,6 +41,7 @@ private:
 
     QPointer<QWidget> m_anchor;
     QPointer<QWidget> m_glow; ///< The halo over the control, a child of the window like the balloon.
+    QPointer<QWidget> m_previousFocus; ///< Who had the focus before the balloon: it goes back there.
     QLabel *m_label;
     QCheckBox *m_dontShow;
     QPushButton *m_ok;

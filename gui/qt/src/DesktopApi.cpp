@@ -31,6 +31,7 @@
 #include "app/Drawers.h"
 #include "app/PersonalSettings.h"
 #include "widgets/BoardWidget.h"
+#include "widgets/DiscoveryBalloon.h"
 #include "widgets/EnginePanel.h"
 
 #include <QApplication>
@@ -462,8 +463,9 @@ void DesktopApi::addRoutes()
         return Response{200, "image/png", png};
     });
     // The discovery of features: {"feature": "explain"} with {"show": true} presents
-    // its balloon whatever was presented before, {"close": true} closes it, {"dismiss":
-    // true} is "Don't show this again", {"reset": true} forgets that and what this run
+    // its balloon whatever was presented before, {"close": true} closes it, {"ok": true}
+    // presses its OK as a click would (the focus taken first), {"dismiss": true} is
+    // "Don't show this again", {"reset": true} forgets that and what this run
     // presented; answers with its state.
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/discovery"), [w](const Request &request) {
         const QJsonObject body = bodyOf(request).value_or(QJsonObject());
@@ -484,6 +486,12 @@ void DesktopApi::addRoutes()
         }
         if (body.value(QStringLiteral("close")).toBool())
             w->closeDiscoveryBalloon();
+        if (body.value(QStringLiteral("ok")).toBool() && w->m_discoveryBalloon) {
+            if (auto *ok = w->m_discoveryBalloon->findChild<QPushButton *>()) {
+                ok->setFocus(Qt::MouseFocusReason);
+                ok->click();
+            }
+        }
         if (body.value(QStringLiteral("show")).toBool())
             w->presentDiscovery(*feature, true);
         return json(QJsonObject{{QStringLiteral("feature"), FeatureDiscovery::name(*feature)},

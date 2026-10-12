@@ -327,8 +327,12 @@ training (its tutor offers Explain), not online, not while Explain is on.
 A new feature is a `Feature` with its name, its text and anchor in
 `presentDiscovery`, its signs where they are seen, and its paragraph in
 the guide's "Discovering features". `POST /api/discovery {"feature":
-"explain", "show": true, "close": true, "reset": true}` answers with its
-state (dismissed, presented, shown); the balloon is in `/api/screenshot`.
+"explain", "show": true, "ok": true, "close": true, "dismiss": true,
+"reset": true}` answers with its state (dismissed, presented, shown);
+`ok` presses the balloon's OK as a click would, the focus taken first; the
+balloon is in `/api/screenshot`. Closing gives the focus back to the
+widget that had it: a widget hidden while it holds the focus hands it on
+as Tab would, and the board, next in line, drew its keyboard ring.
 
 ## SMART
 

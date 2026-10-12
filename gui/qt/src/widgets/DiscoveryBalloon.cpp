@@ -74,6 +74,7 @@ DiscoveryBalloon::DiscoveryBalloon(const QString &text, QWidget *anchor)
     : QWidget(anchor->window())
     , m_anchor(anchor)
     , m_glow(new AnchorGlow(anchor->window()))
+    , m_previousFocus(QApplication::focusWidget())
     , m_label(new QLabel(text, this))
     , m_dontShow(new QCheckBox(tr("Don't show this again"), this))
     , m_ok(new QPushButton(tr("OK"), this))
@@ -203,6 +204,16 @@ void DiscoveryBalloon::paintEvent(QPaintEvent *)
 
 void DiscoveryBalloon::closeEvent(QCloseEvent *event)
 {
+    // The focus goes back where it was, not on along the chain: a widget
+    // hidden while it holds the focus hands it to the next one as Tab would,
+    // and the board, next in line, draws its keyboard ring for a focus it
+    // was never given by hand.
+    if (QWidget *focused = QApplication::focusWidget(); focused && isAncestorOf(focused)) {
+        if (m_previousFocus && m_previousFocus->isVisible() && !isAncestorOf(m_previousFocus))
+            m_previousFocus->setFocus(Qt::OtherFocusReason);
+        else
+            focused->clearFocus();
+    }
     // The halo goes with the balloon, now: the widget itself is deleted later.
     if (m_glow) {
         m_glow->hide();

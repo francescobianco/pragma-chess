@@ -17,6 +17,7 @@ constexpr int kRadius = 8;
 constexpr int kTextWidth = 320; // A width that reads: about sixty characters.
 constexpr int kPadding = 12;
 constexpr int kGap = 2;         // Between the control and the tip.
+constexpr int kShadow = 12;     // The transparent margin around the balloon that holds its shadow.
 
 } // namespace
 
@@ -79,7 +80,9 @@ bool DiscoveryBalloon::eventFilter(QObject *watched, QEvent *event)
     return QWidget::eventFilter(watched, event);
 }
 
-/// Under the control, its tip up; above it, tip down, where the window has no room under.
+/// Above the control, its tip down, over the board: where the eyes of
+/// someone who just moved are. Under it, tip up, only where the window has
+/// no room above. The widget is the balloon with its shadow's margin around.
 void DiscoveryBalloon::place()
 {
     QWidget *top = window();
@@ -87,15 +90,16 @@ void DiscoveryBalloon::place()
         return;
     const QRect control(m_anchor->mapTo(top, QPoint(0, 0)), m_anchor->size());
     const QRect room = top->contentsRect();
-    m_layout->setContentsMargins(kPadding, kPadding + kTip, kPadding, kPadding);
+    const int side = kShadow + kPadding;
+    m_layout->setContentsMargins(side, side, side, side + kTip);
     adjustSize();
-    m_below = control.bottom() + kGap + height() <= room.bottom();
-    if (!m_below) {
-        m_layout->setContentsMargins(kPadding, kPadding, kPadding, kPadding + kTip);
+    m_below = control.top() - kGap - (height() - kShadow) < room.top();
+    if (m_below) {
+        m_layout->setContentsMargins(side, side + kTip, side, side);
         adjustSize();
     }
-    const int x = qBound(room.left() + 4, control.center().x() - width() / 2, room.right() - width() - 4);
-    const int y = m_below ? control.bottom() + kGap : control.top() - kGap - height();
+    const int x = qBound(room.left() + 4 - kShadow, control.center().x() - width() / 2, room.right() - width() + kShadow - 4);
+    const int y = m_below ? control.bottom() + kGap - kShadow : control.top() - kGap - height() + kShadow;
     move(x, y);
     m_tipX = control.center().x() - x;
     raise();
@@ -105,8 +109,17 @@ void DiscoveryBalloon::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    const QRectF box =
-        QRectF(rect()).adjusted(0.5, m_below ? kTip + 0.5 : 0.5, -0.5, m_below ? -0.5 : -kTip - 0.5);
+    const QRectF box = QRectF(rect()).adjusted(kShadow + 0.5, kShadow + (m_below ? kTip : 0) + 0.5, -kShadow - 0.5,
+                                               -kShadow - (m_below ? 0 : kTip) - 0.5);
+    // The shadow, as the menus have it: darker near the balloon, fading out
+    // across the margin and a little lower, as light from above casts it.
+    painter.setPen(Qt::NoPen);
+    for (int spread = kShadow; spread >= 1; --spread) {
+        const qreal fade = 1.0 - qreal(spread) / kShadow;
+        painter.setBrush(QColor(0, 0, 0, qRound(2.5 + 12 * fade * fade)));
+        painter.drawRoundedRect(box.adjusted(-spread, -spread + 2, spread, spread + 1), kRadius + spread,
+                                kRadius + spread);
+    }
     QPainterPath path;
     path.addRoundedRect(box, kRadius, kRadius);
     QPainterPath tip;

@@ -10,12 +10,13 @@ class QVBoxLayout;
 
 /// A balloon pointing at a control of the window to say what it does, the
 /// first time the program thinks it would help (FeatureDiscovery): rich
-/// text, "Don't show this again" and OK. A child of the top-level window,
-/// over everything in it — no window of its own, which a Wayland compositor
-/// places where it likes —, under the control with its tip up, or above it
-/// where there is no room under, and following the control when the window
-/// is laid out again. Closed by OK or from outside (`close()`), it says
-/// whether the user asked not to see it again.
+/// text, "Don't show this again" and OK, in its shadow. A child of the
+/// top-level window, over everything in it — no window of its own, which a
+/// Wayland compositor places where it likes —, above the control with its
+/// tip down, over the board where the eyes are (under it where there is no
+/// room above), and following the control when the window is laid out
+/// again. Closed by OK or from outside (`close()`), it says whether the
+/// user asked not to see it again.
 class DiscoveryBalloon : public QWidget {
     Q_OBJECT
 

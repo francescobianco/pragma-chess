@@ -3975,8 +3975,8 @@ no está en este ordenador.</translation>
         <translation>Bases de datos para instalar con un clic, en Herramientas ▸ Gestionar extensiones</translation>
     </message>
     <message>
-        <source>&lt;p&gt;&lt;b&gt;Was that move a good idea?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Press &lt;b&gt;Explain&lt;/b&gt;, the bulb between the arrows (or the &lt;b&gt;E&lt;/b&gt; key): the board shows why the engine likes the last move or not, with arrows for the threats, the refutation and the better move.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;&lt;b&gt;¿Era buena idea esa jugada?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Pulsa &lt;b&gt;Explicar&lt;/b&gt;, la bombilla entre las flechas (o la tecla &lt;b&gt;E&lt;/b&gt;): el tablero muestra por qué al motor le gusta o no la última jugada, con flechas para las amenazas, la refutación y la mejor jugada.&lt;/p&gt;</translation>
+        <source>&lt;p&gt;&lt;b&gt;Was that move a good idea?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Explain is here to tell you. Press the bulb between the arrows, or the &lt;b&gt;E&lt;/b&gt; key, and the board tells the story of the move: the plans of both sides, where a mistake let something slip away, what would have been stronger. Ask it move after move and you will start seeing it yourself — the plans, the mistakes, the game as a whole. That is how one&apos;s play, and one&apos;s eye, grow.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;&lt;b&gt;¿Era buena idea esa jugada?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Explicar está aquí para decírtelo. Pulsa la bombilla entre las flechas, o la tecla &lt;b&gt;E&lt;/b&gt;, y el tablero cuenta la jugada: los planes de ambos bandos, dónde un error dejó escapar algo, qué habría sido más fuerte. Pregúntaselo jugada tras jugada y empezarás a verlo por ti mismo: los planes, los errores, la partida en su conjunto. Así crecen el propio juego y la propia mirada.&lt;/p&gt;</translation>
     </message>
 </context>
 <context>

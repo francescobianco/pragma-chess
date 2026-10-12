@@ -305,9 +305,10 @@ playing a move turns it off, and the user asks again at the next move.
 The program points its features out to someone trying it, never at
 random: `app/FeatureDiscovery` (core, pure, unit-tested) says when, and
 `widgets/DiscoveryBalloon` is the balloon — rich text, "Don't show this
-again", OK — a child of the main window placed under the control it points
-at (above it when there is no room), following it through layouts; no
-window of its own, which Wayland would place where it likes. A feature is
+again", OK, in the menus' shadow — a child of the main window placed above
+the control it points at, over the board where the eyes are (under it when
+there is no room above), following it through layouts; no window of its
+own, which Wayland would place where it likes. A feature is
 presented at most once per run (`markPresented`; using it does not count:
 a user who pressed Explain once still gets the balloon at the next sign),
 and never again once dismissed,

@@ -203,6 +203,11 @@ void DiscoveryBalloon::paintEvent(QPaintEvent *)
 
 void DiscoveryBalloon::closeEvent(QCloseEvent *event)
 {
+    // The halo goes with the balloon, now: the widget itself is deleted later.
+    if (m_glow) {
+        m_glow->hide();
+        m_glow->deleteLater();
+    }
     if (!m_closedSaid) {
         m_closedSaid = true;
         Q_EMIT closed(dontShowAgain());

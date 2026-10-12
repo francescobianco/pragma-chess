@@ -38,7 +38,7 @@ It is below the star threshold, so I submit it as a **Hidden Gem**:
 - **Quality evidence.** MIT licensed; a unit-test suite (perft counts, PGN,
   the explanation logic replayed from recorded engine output); a public
   method for the explanation:
-  https://github.com/francescobianco/pragma-chess/blob/main/docs/tech/explain-tuning.md
+  https://github.com/francescobianco/pragma-chess/blob/main/tech/explain-tuning.md
   and measurements on databases of up to 2.3 million games:
-  https://github.com/francescobianco/pragma-chess/blob/main/docs/tech/large-databases.md
+  https://github.com/francescobianco/pragma-chess/blob/main/tech/large-databases.md
 - Listed on AlternativeTo: https://alternativeto.net/software/pragma-chess/about/

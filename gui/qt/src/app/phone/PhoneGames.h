@@ -11,7 +11,7 @@
 
 class GameDatabase;
 
-/// Games sent by the phone with a "put" (docs/phone-link.md): how they are
+/// Games sent by the phone with a "put" (tech/phone-link.md): how they are
 /// read from JSON and stored, once, in a database.
 namespace PhoneGames {
 

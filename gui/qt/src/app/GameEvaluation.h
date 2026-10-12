@@ -21,7 +21,7 @@ class UciEngine;
 /// refining it (passDepths()), for at most kTimeBudgetMs. It drives an
 /// engine process of its own, never
 /// the live analysis, and only on a game that is over — never while a game
-/// is played online (docs/tech/game-evaluation.md).
+/// is played online (tech/game-evaluation.md).
 class GameEvaluation : public QObject {
     Q_OBJECT
 

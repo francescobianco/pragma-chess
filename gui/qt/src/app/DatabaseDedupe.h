@@ -8,7 +8,7 @@
 /// Finds the database files that are one database under two files (a
 /// duplicate made by a sync, a copy kept aside, a conflict copy), and says
 /// which file keeps it. Pure and unit-tested; the same rule as the phone's
-/// `Dedupe` (docs/phone-link.md, "Duplicates"), so every device keeps the
+/// `Dedupe` (tech/phone-link.md, "Duplicates"), so every device keeps the
 /// same lineage.
 namespace DatabaseDedupe {
 

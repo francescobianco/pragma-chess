@@ -5,7 +5,7 @@ import java.util.Base64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
-/** NIP-44 version 2: the encryption of the signaling messages (see docs/phone-link.md). */
+/** NIP-44 version 2: the encryption of the signaling messages (see tech/phone-link.md). */
 object Nip44 {
     class DecryptionException(message: String) : Exception(message)
 

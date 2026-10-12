@@ -166,7 +166,7 @@ stesso spirito: è la distribuzione a installarlo, non il programma.
   offrirli.
 - **Database**: la sua scelta (convertire una volta, ospitare i file pronti)
   si adatta bene a noi: abbiamo il convertitore e ora i database grandi
-  reggono (docs/tech/large-databases.md). Restano da decidere le **licenze**
+  reggono (tech/large-databases.md). Restano da decidere le **licenze**
   di ciascuna raccolta (Lumbra's GigaBase, Caissabase, MillionBase hanno
   condizioni diverse: verificare che la ridistribuzione sia permessa), e
   l'**ospitalità**: le release di GitHub accettano file fino a 2 GB (Lumbra's

@@ -6,7 +6,7 @@ computer on the phone, reads them offline, and is a place to enter games
 Without a computer it has one local database, "My Games" ("Le mie partite"),
 and more can be created.
 
-The protocol with the computer is [docs/phone-link.md](../../docs/tech/phone-link.md):
+The protocol with the computer is [tech/phone-link.md](../../tech/phone-link.md):
 pairing by QR code (Options ▸ Connect Mobile App… on the computer), signaling
 over public Nostr relays, files and games over a WebRTC data channel.
 
@@ -89,12 +89,12 @@ Kotlin 2.2, Jetpack Compose with Material 3, AGP 8.13. Packages under
 
 A database deleted on the phone is remembered by lineage (`AppStore`,
 table `deleted`): it is never downloaded again, and each computer that lists
-it is told once with `deleted` (docs/phone-link.md), so that computer asks its
+it is told once with `deleted` (tech/phone-link.md), so that computer asks its
 user whether to delete it on every synced device or keep it.
 
 All databases live in one folder of the app's private files,
 `databases/local/`: the phone and every paired computer form one corpus
-(docs/phone-link.md, "One corpus"), and the phone carries what it learnt from
+(tech/phone-link.md, "One corpus"), and the phone carries what it learnt from
 one computer to the others. The per-computer folders of older versions are
 moved in on startup.
 

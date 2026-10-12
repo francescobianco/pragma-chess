@@ -5,7 +5,7 @@
 #include <QByteArray>
 
 /// The catalogs En Croissant publishes on its site and its application reads
-/// (docs/tech/downloads.md): engines, as links to their authors' own
+/// (tech/downloads.md): engines, as links to their authors' own
 /// downloads, and databases it converted into its own format. Pure,
 /// unit-tested with the catalogs as served.
 namespace EnCroissantCatalog {

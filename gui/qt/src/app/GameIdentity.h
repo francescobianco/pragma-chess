@@ -6,7 +6,7 @@
 #include <QUuid>
 
 /// Universal ids of games and databases, shared by every copy of a database
-/// on every device (docs/phone-link.md, "One corpus: reconciliation").
+/// on every device (tech/phone-link.md, "One corpus: reconciliation").
 namespace GameIdentity {
 
 /// Namespace of the content-derived (version 5) game uids.

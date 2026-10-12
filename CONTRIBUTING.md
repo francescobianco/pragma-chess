@@ -30,7 +30,7 @@ silly, open an issue with the *Explain is wrong* form and give:
    no engine, and keep it as a test (`smart/tests/`).
 
 The logic is written in a small language, `smart/EXPLAIN.smart`, the same
-on desktop, command line and phone; `docs/tech/explain-tuning.md` tells
+on desktop, command line and phone; `tech/explain-tuning.md` tells
 how it is tuned.
 
 ## Translating

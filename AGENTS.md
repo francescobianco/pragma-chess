@@ -65,9 +65,10 @@ gui/qt/
   resources/credits/   logos of the supporting clubs, shown in About
   translations/        interface translations (.ts), built with Qt Linguist tools
 docs/                  the web site, as GitHub Pages serves it (generated: do not
-                       edit; `make site`), and docs/tech/ the design and tuning
-                       notes (explain-tuning.md, phone-link.md, large-databases.md,
-                       downloads.md)
+                       edit; `make site`)
+tech/                  the design and tuning notes, apart from the site:
+                       explain-tuning.md, phone-link.md, large-databases.md,
+                       game-evaluation.md, lobby-network.md, downloads.md
 site/                  the site's sources: build.py (Python, no dependencies),
                        templates/ (composable HTML partials), content/<lang>.json
                        (the texts, one file per language), assets/ (style, script,
@@ -82,7 +83,7 @@ scripts/make-rich-logo.py  draws the rich logo (pieces on its board) on it: prag
 scripts/make-figurine-font.py  builds resources/fonts/pragma-figurine.otf from SkakNew
 scripts/install-dev-desktop.sh  user menu entry + icons for the build (Wayland dock icon)
 scripts/pragma-api.sh  calls the development API of a client started by make start
-scripts/stress-databases.sh  measures large databases (docs/tech/large-databases.md)
+scripts/stress-databases.sh  measures large databases (tech/large-databases.md)
 ```
 
 ## Current state (keep in mind)
@@ -216,7 +217,7 @@ playing a move turns it off, and the user asks again at the next move.
   playing online: nothing judges that game.
 - **The Evaluation of the Game** ("valutazione della partita",
   `app/GameEvaluation`, core; not in the menus yet — read
-  [docs/tech/game-evaluation.md](docs/tech/game-evaluation.md)): every
+  [tech/game-evaluation.md](tech/game-evaluation.md)): every
   position of a finished game searched by an engine process of its own, in
   passes 8, 12, 16, 20, 24 (`nextStep`, pure) for 30 seconds at most
   (`kTimeBudgetMs`; then each side's strength is frozen for that game,
@@ -296,7 +297,7 @@ playing a move turns it off, and the user asks again at the next move.
   with a red frame, restoring the position on `stopSequence()`.
 - `tools/explain` builds `pragma-explain`, the same explanation on the command
   line with a trace. **Tuning happens there**: read
-  [docs/explain-tuning.md](docs/tech/explain-tuning.md) first, and log feedback
+  [tech/explain-tuning.md](tech/explain-tuning.md) first, and log feedback
   and decisions in it. Enrich the explanation, don't replace what works.
 
 ## Discovery
@@ -507,7 +508,7 @@ also how large databases are tried: the lichess open database
 (database.lichess.org, monthly files from 121 332 games in 2013-01 up to
 tens of millions) is the stress corpus, kept outside the repository
 (`~/.cache/pragma-chess-stress`), never distributed. The method and every
-measurement are in [docs/tech/large-databases.md](docs/tech/large-databases.md):
+measurement are in [tech/large-databases.md](tech/large-databases.md):
 add a dated section there after a change meant to make large databases faster,
 measured with `scripts/stress-databases.sh`, and keep its summary and plans
 up to date.
@@ -520,7 +521,7 @@ Croissant's registry filtered to that kind, `ExtensionsDialog::showOnly`): provi
 on the left, what the chosen one offers in the middle (search, filter by
 kind), the chosen extension on the right with Install, Update and Remove.
 **Installing only places files and configures them**: no package manager,
-no password, nothing of the system touched (docs/tech/downloads.md says why
+no password, nothing of the system touched (tech/downloads.md says why
 not apt-get). `app/extensions/`, core:
 - `Extension` (what is offered: kind, version, download, executable inside
   the archive, why it cannot be installed yet) and `ThisComputer` (system,
@@ -816,7 +817,7 @@ Compiler warnings are on (`-Wall -Wextra -Wpedantic`); don't introduce new ones.
   (`type`: `games`, `opening-book` or `training`) and a description, edited in Database ▸
   Database Settings… and stored in the file so they travel with it.
   Version 5 made every database and game universally identifiable, so copies
-  on several devices are one corpus (docs/phone-link.md, "One corpus"):
+  on several devices are one corpus (tech/phone-link.md, "One corpus"):
   `properties` row `id` (the database's lineage, fixed for the databases we
   ship, see `GameIdentity`), `games.uid` (UUIDv5 of the content when the game
   is created, never changed) and `games.modified` (set on every change).
@@ -1169,7 +1170,7 @@ deleted games for good, drops the names only they used and compacts the file
   returns the live ones, `countGames(state)` counts).
 - The state lives apart from the game, with its own revision, and is merged
   between copies before the games (`GameStates::incomingChanges`, newer wins;
-  `DatabaseMerge`, docs/phone-link.md "The trash"). Purging leaves the row of
+  `DatabaseMerge`, tech/phone-link.md "The trash"). Purging leaves the row of
   the state behind as a tombstone: without it the folder sync, which never
   deletes, would bring the game back from another device.
   `tst_chessrules::trashAndPurgeReachOtherCopies` covers it; keep it passing.
@@ -1869,7 +1870,7 @@ through its telnet session.
 Game ▸ Enter the Lobby… (`dialogs/LobbyDialog`, not modal) is IDEA.md's
 asynchronous tournaments on a peer-to-peer network: a replicated ledger of
 signed events, shared the way eMule shares a file. **Read
-[docs/tech/lobby-network.md](docs/tech/lobby-network.md) before changing
+[tech/lobby-network.md](tech/lobby-network.md) before changing
 it**: the rules of the ledger are a protocol every client must apply alike.
 
 - **Model** (`app/lobby/`, core, pure, unit-tested): `Lobby` (rooms, the
@@ -1964,9 +1965,8 @@ club that wants to be listed — add a club to `supporters.clubs` in every
 language under `docs/<lang>/`; the root `index.html` (and `404.html`) sends
 the browser to its language by `navigator.languages`, falling back to
 English, with relative paths so the site works under
-`/pragma-chess/` on GitHub Pages. **Edit `site/`, never `docs/`** (except
-`docs/tech/`, the notes, which the build leaves alone), then run `make site`
-and commit both. A new text goes in every `content/<lang>.json`. The
+`/pragma-chess/` on GitHub Pages. **Edit `site/`, never `docs/`**, then run `make site`
+and commit both (the build empties `docs/` and writes it whole). A new text goes in every `content/<lang>.json`. The
 download section links the latest release; `assets/site.js` fills version,
 asset names and direct links from GitHub's API when it can, and highlights
 the visitor's own system. Screenshots are taken in the headless GNOME

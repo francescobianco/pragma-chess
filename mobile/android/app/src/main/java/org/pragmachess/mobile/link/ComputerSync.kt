@@ -44,7 +44,7 @@ data class SyncResult(
 }
 
 /**
- * One sync with a paired computer (docs/phone-link.md, "One corpus"): Nostr
+ * One sync with a paired computer (tech/phone-link.md, "One corpus"): Nostr
  * signaling, the WebRTC data channel, then the two copies of every database
  * reconciled by lineage — the computer's changed files pulled and merged, the
  * games it lacks put, and the files the put changed pulled again. Whatever
@@ -180,7 +180,7 @@ class ComputerSync(
 
     /**
      * Tells the computer, once, which of its databases the user deleted on the
-     * phone (docs/phone-link.md, "A database deleted on the phone"): the
+     * phone (tech/phone-link.md, "A database deleted on the phone"): the
      * computer asks its own user whether to delete it everywhere or keep it.
      * A computer that does not know the message answers with an error, and is
      * told again at the next sync.

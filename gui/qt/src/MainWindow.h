@@ -471,7 +471,7 @@ private:
     /// deleted from every synced device, restored, or asked again next time.
     void askAboutFilesDeletedByHand(const QStringList &paths);
     // Options ▸ Connect Mobile App: the Android app copies the databases
-    // (docs/phone-link.md) and sends back the games played on the phone.
+    // (tech/phone-link.md) and sends back the games played on the phone.
     void createPhoneLink();
     void openConnectMobileDialog();
     /// A phone deleted databases this computer has: asks, one at a time,

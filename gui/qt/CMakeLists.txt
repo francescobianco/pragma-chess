@@ -21,7 +21,7 @@ if(NOT yaml-cpp_FOUND)
     FetchContent_MakeAvailable(yaml-cpp)
 endif()
 
-# Phone Link (docs/phone-link.md): WebRTC and the WebSocket client for Nostr
+# Phone Link (tech/phone-link.md): WebRTC and the WebSocket client for Nostr
 # relays from libdatachannel, BIP-340 keys from libsecp256k1, QR codes from
 # nayuki's qrcodegen. System packages are preferred; otherwise they are
 # fetched and linked statically. Without them the client builds without it.
@@ -391,7 +391,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 target_compile_options(pragma-chess-core PRIVATE ${PRAGMA_WARNINGS})
 
-# Phone Link (docs/phone-link.md): Nostr signaling, WebRTC and the file
+# Phone Link (tech/phone-link.md): Nostr signaling, WebRTC and the file
 # protocol; linked by the desktop client, pragma-phone and the tests.
 if(PRAGMA_HAS_PHONE_LINK)
     qt_add_library(pragma-phone-link STATIC
@@ -721,7 +721,7 @@ set_target_properties(pragma-chess PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/data/Info.plist.in
 )
 
-# Command line "Explain", for tuning it on real lines (see docs/explain-tuning.md).
+# Command line "Explain", for tuning it on real lines (see tech/explain-tuning.md).
 qt_add_executable(pragma-explain tools/explain/main.cpp)
 target_link_libraries(pragma-explain PRIVATE pragma-chess-core)
 target_compile_options(pragma-explain PRIVATE ${PRAGMA_WARNINGS})

@@ -66,7 +66,7 @@ struct GameRecord {
     QString linePreview;
     /// Empty means the standard starting position.
     QString startFen;
-    /// Universal id of the game (docs/phone-link.md, "Identity"): the same in
+    /// Universal id of the game (tech/phone-link.md, "Identity"): the same in
     /// every copy of the database, made from the content when the game is
     /// created and never changed. Empty until the game is stored.
     QString uid;

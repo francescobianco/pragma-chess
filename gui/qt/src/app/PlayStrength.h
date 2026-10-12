@@ -11,7 +11,7 @@
 /// (the Evaluation of the Game): the loss of each move against the
 /// evaluation before it, for the side that moved. The estimated Elo is a
 /// curve of the average loss calibrated on lichess's rated games, on
-/// lichess's scale (docs/tech/game-evaluation.md); from one game it is
+/// lichess's scale (tech/game-evaluation.md); from one game it is
 /// rough, some hundreds of points either way.
 namespace PlayStrength {
 

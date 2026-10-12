@@ -1,4 +1,4 @@
-// pragma-phone: Phone Link on the command line (docs/phone-link.md).
+// pragma-phone: Phone Link on the command line (tech/phone-link.md).
 //
 // As the phone, with the link shown by Options ▸ Connect Mobile App…:
 //

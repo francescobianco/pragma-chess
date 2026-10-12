@@ -5,7 +5,7 @@
 #include <QList>
 #include <QString>
 
-/// How two copies of a database are merged, game by game (docs/phone-link.md,
+/// How two copies of a database are merged, game by game (tech/phone-link.md,
 /// "Merging two copies of a database"). Pure: the caller applies the plan.
 namespace Reconcile {
 

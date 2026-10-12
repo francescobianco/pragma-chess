@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Measures Pragma Chess on large databases (docs/tech/large-databases.md).
+# Measures Pragma Chess on large databases (tech/large-databases.md).
 #
 #   scripts/stress-databases.sh download 2013-01 2013-02 …   lichess months, into the corpus folder
 #   scripts/stress-databases.sh join step5 2013-01 … 2013-10   one PGN of several months

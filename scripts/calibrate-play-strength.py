@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Calibrates the estimated Elo of app/PlayStrength on rated games.
 
-Reads lichess PGN files (the stress corpus, docs/tech/large-databases.md),
+Reads lichess PGN files (the stress corpus, tech/large-databases.md),
 keeps the games the lichess server analysed — a [%eval] after every move —
 and, for each player of each game, the same measures PlayStrength takes:
 the loss of each move for the side that moved, evaluations bounded to
 ±1000 centipawns, moves in a decided position left out. Then fits the
 player's rating against those measures and prints the fit, its error, and
-the table by rating band. docs/tech/game-evaluation.md tells what it found.
+the table by rating band. tech/game-evaluation.md tells what it found.
 
     scripts/calibrate-play-strength.py ~/.cache/pragma-chess-stress/lichess_db_standard_rated_2013-0*.pgn
 """

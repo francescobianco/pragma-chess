@@ -211,10 +211,7 @@ def sitemap():
 
 def build():
     if OUT.exists():
-        for child in OUT.iterdir():
-            # The design notes under docs/tech stay; the generated site is rebuilt around them.
-            if child.name != "tech":
-                shutil.rmtree(child) if child.is_dir() else child.unlink()
+        shutil.rmtree(OUT)  # Generated whole: nothing else lives in docs/.
     OUT.mkdir(parents=True, exist_ok=True)
     SITEMAP.clear()
     (OUT / ".nojekyll").write_text("")

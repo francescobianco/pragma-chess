@@ -147,7 +147,7 @@ Qt/C++ rimarrebbe principalmente responsabile della GUI.
 > di comando (`pragma-explain`, `pragma-book`) e dai test. Il workspace Rust
 > (`core/`, `cli/`), mai completato né collegato, è stato tolto. Le idee che
 > seguono su CLI, indici e ricerca restano valide: le misure e i piani per i
-> database grandi sono in [docs/tech/large-databases.md](docs/tech/large-databases.md).
+> database grandi sono in [tech/large-databases.md](tech/large-databases.md).
 
 ---
 

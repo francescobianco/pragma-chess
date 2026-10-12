@@ -11,7 +11,7 @@
 /// sat in one, played a move, resigned —, signed by them. On the wire it is
 /// a Nostr event (NIP-01) of kind LobbyLedger::kKind whose content is the
 /// JSON of `content`; its id is the hash of what it says, so any peer can
-/// hand it on and every peer can check it (docs/tech/lobby-network.md).
+/// hand it on and every peer can check it (tech/lobby-network.md).
 struct LedgerEvent {
     QString id;
     /// The author's public key (hex): who did it.

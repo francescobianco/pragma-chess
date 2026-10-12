@@ -7,7 +7,7 @@ import java.util.UUID
 
 /**
  * Universal ids of games and databases, the same on every device
- * (docs/phone-link.md, "One corpus: reconciliation"); the desktop's
+ * (tech/phone-link.md, "One corpus: reconciliation"); the desktop's
  * GameIdentity computes exactly the same values.
  */
 object GameIdentity {

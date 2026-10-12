@@ -14,7 +14,7 @@ import org.pragmachess.mobile.smart.SmartValue
 // verdict smart/TUTOR.smart's), the SMART programs the desktop and
 // pragma-explain run too, so the phone explains a move as they do. This file
 // only holds the types and feeds the programs; tuning happens in the
-// programs (docs/tech/explain-tuning.md).
+// programs (tech/explain-tuning.md).
 
 /** An arrow drawn on the board to explain a line. */
 data class BoardArrow(

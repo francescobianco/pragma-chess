@@ -2,7 +2,7 @@ package org.pragmachess.mobile.data
 
 /**
  * How two copies of a database are merged, game by game, by uid
- * (docs/phone-link.md, "Merging two copies of a database"). Pure: the caller
+ * (tech/phone-link.md, "Merging two copies of a database"). Pure: the caller
  * applies the plan.
  */
 object Reconciler {

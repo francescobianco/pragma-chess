@@ -8,7 +8,7 @@
 
 /// The link shown as a QR code by File ▸ Phone Access…: who the computer is
 /// (its Nostr public key and name), where to find it (relays) and the one-time
-/// secret that lets a new phone pair (see docs/phone-link.md).
+/// secret that lets a new phone pair (see tech/phone-link.md).
 ///
 ///     pragma-chess://pair?k=<pubkey hex>&s=<secret hex>&n=<name>&r=<relay>&r=…
 struct PairingLink {

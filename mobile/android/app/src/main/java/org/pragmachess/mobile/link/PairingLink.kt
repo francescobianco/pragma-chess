@@ -4,7 +4,7 @@ import org.pragmachess.mobile.crypto.Hex
 import java.net.URI
 import java.net.URLDecoder
 
-/** The pairing link a computer shows as a QR code (docs/phone-link.md). */
+/** The pairing link a computer shows as a QR code (tech/phone-link.md). */
 data class PairingLink(val pubkey: String, val secret: String, val name: String, val relays: List<String>) {
     companion object {
         val DEFAULT_RELAYS = listOf("wss://relay.damus.io", "wss://nos.lol", "wss://relay.primal.net")

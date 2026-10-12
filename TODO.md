@@ -158,7 +158,7 @@ probabilità di vittoria su scala 0–100. Lichess (0.1/0.2/0.3 su scala −1..1
 corrisponde a 5/10/15. Esempio: 1.e4 e5 2.f4 exf4 3.a4 passa da −0.5 a −2.1,
 13,7 punti: per noi "imprecisione", per lichess "errore". L'utente si
 aspettava "errore". Non è stato cambiato perché tocca tutti i verdetti dello
-Spiega, tarato in `docs/tech/explain-tuning.md` (test con verdetti attesi in
+Spiega, tarato in `tech/explain-tuning.md` (test con verdetti attesi in
 `tst_chessrules.cpp` e nei casi di `smart/tests/`). Il tutor intanto si ferma
 anche sulle imprecisioni. Se l'utente dice di allineare a lichess: cambiare le
 tre soglie, rifare la taratura sui casi del documento, aggiornare la guida.

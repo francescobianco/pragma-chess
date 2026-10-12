@@ -15,7 +15,7 @@ class QTimer;
 class WebRtcPeer;
 
 /// The lobby's ledger on the network, replicated the way eMule shares a
-/// file (docs/tech/lobby-network.md): every node keeps the whole ledger of
+/// file (tech/lobby-network.md): every node keeps the whole ledger of
 /// the live games and gives other nodes the events they lack.
 ///
 /// - The relays (Nostr, NIP-01) are a source that is always there: every

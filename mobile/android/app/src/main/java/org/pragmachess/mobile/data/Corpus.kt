@@ -11,7 +11,7 @@ data class CorpusEntry(
 )
 
 /**
- * Every database of the phone as one corpus (docs/phone-link.md, "One corpus"):
+ * Every database of the phone as one corpus (tech/phone-link.md, "One corpus"):
  * each file has a lineage and an origin.
  */
 class Corpus(private val library: Library, private val store: AppStore) {

@@ -91,7 +91,7 @@ What I learned fixing it:
 The code is C++ (`app/PlayStrength`, pure functions with unit tests) and the
 calibration script is in `scripts/calibrate-play-strength.py`:
 https://github.com/francescobianco/pragma-chess — the whole story, with the
-mistakes, is in `docs/tech/game-evaluation.md`. I'd love to hear how you'd
+mistakes, is in `tech/game-evaluation.md`. I'd love to hear how you'd
 model it better — the next step would be weighing how hard each position was,
 as Ken Regan's Intrinsic Performance Rating does.
 

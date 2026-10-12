@@ -16,7 +16,7 @@ enum class DatabaseType { GameCollection, OpeningBook, Training };
 /// sync and to the phone.
 struct DatabaseProperties {
     /// Universal id: copies of the same database on any device share it,
-    /// whatever the file is called (docs/phone-link.md, "Identity"). Empty
+    /// whatever the file is called (tech/phone-link.md, "Identity"). Empty
     /// for files made before version 5 until they are first synced.
     QString id;
     DatabaseType type = DatabaseType::GameCollection;

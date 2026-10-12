@@ -39,7 +39,7 @@ data class GameRecord(
 ) {
     val plyCount: Int get() = movesUci.split(' ').count { it.isNotBlank() }
 
-    /** The game object of the file protocol (docs/phone-link.md). */
+    /** The game object of the file protocol (tech/phone-link.md). */
     fun toJson(): JSONObject = JSONObject()
         .put("uid", uid ?: "")
         .put("modified", modified)

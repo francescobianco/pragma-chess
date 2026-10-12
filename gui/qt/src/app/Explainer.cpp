@@ -178,7 +178,7 @@ void Explainer::record(const ExplanationInput &input)
 {
     // The ticks of every move explained are kept (Engine ▸ Copy Explain's
     // Ticks); with PRAGMA_EXPLAIN_RECORD=<folder> they are also written
-    // there, to replay with pragma-explain --replay (docs/tech/explain-tuning.md).
+    // there, to replay with pragma-explain --replay (tech/explain-tuning.md).
     const QString folder = qEnvironmentVariable("PRAGMA_EXPLAIN_RECORD");
     const QString key = (input.before ? input.before->positionKey() : QString()) + QLatin1Char('|')
         + input.after.positionKey();

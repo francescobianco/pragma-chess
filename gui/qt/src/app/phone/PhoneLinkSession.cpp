@@ -120,7 +120,7 @@ void PhoneLinkSession::handle(const QJsonObject &request)
 
 void PhoneLinkSession::handlePut(const QJsonObject &request)
 {
-    // Addressed by lineage (docs/phone-link.md, "The sync, from the phone");
+    // Addressed by lineage (tech/phone-link.md, "The sync, from the phone");
     // a put with only a name is from a phone that predates it.
     QString name = request.value(QStringLiteral("name")).toString();
     const QString lineageText = request.value(QStringLiteral("db")).toString().trimmed();
@@ -196,7 +196,7 @@ void PhoneLinkSession::handlePut(const QJsonObject &request)
 
 void PhoneLinkSession::handleDeleted(const QJsonObject &request)
 {
-    // The phone's user deleted a database (docs/phone-link.md, "A database
+    // The phone's user deleted a database (tech/phone-link.md, "A database
     // deleted on the phone"): the user here is asked later, so the answer
     // only says the request was recorded.
     const QUuid lineage = QUuid::fromString(request.value(QStringLiteral("db")).toString().trimmed());

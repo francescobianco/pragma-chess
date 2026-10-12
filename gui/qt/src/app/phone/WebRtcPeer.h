@@ -12,7 +12,7 @@ class PeerConnection;
 } // namespace rtc
 
 /// One WebRTC peer connection with the single data channel "pragma" of
-/// Phone Link (docs/phone-link.md), without trickle ICE: the description is
+/// Phone Link (tech/phone-link.md), without trickle ICE: the description is
 /// ready once gathering has finished and is exchanged whole.
 ///
 /// libdatachannel calls back on its own threads; every callback is handed to

@@ -16,7 +16,7 @@ class NostrRelayPool;
 class PhoneGameStore;
 class PhoneLinkSession;
 
-/// The computer's side of Phone Link (docs/phone-link.md): answers the
+/// The computer's side of Phone Link (tech/phone-link.md): answers the
 /// WebRTC offers of paired phones found on Nostr relays, serves them the
 /// databases of the Databases folder and stores the games they send.
 ///
@@ -37,7 +37,7 @@ public:
     };
 
     /// A phone said its user deleted a database this computer has
-    /// (docs/phone-link.md, "A database deleted on the phone"): kept until
+    /// (tech/phone-link.md, "A database deleted on the phone"): kept until
     /// the user here says whether it goes from this computer too.
     struct DeletionRequest {
         QString lineage;

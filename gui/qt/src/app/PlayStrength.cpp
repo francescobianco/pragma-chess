@@ -57,7 +57,7 @@ int eloFromLoss(double averageLoss)
     // 800–2343, the server's own [%eval]): the curve through the typical
     // loss of each rating band, so a player who loses what 1100s lose is
     // called 1100 (scripts/calibrate-play-strength.py,
-    // docs/tech/game-evaluation.md). Bounded from 100 to 2850: no game is
+    // tech/game-evaluation.md). Bounded from 100 to 2850: no game is
     // worth more than the best players reach.
     const double elo = 5189 - 849 * std::log(std::max(averageLoss, 1.0));
     return std::clamp(int(std::lround(elo)), 100, 2850);

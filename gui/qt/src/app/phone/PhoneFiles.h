@@ -33,7 +33,7 @@ public:
         QJsonObject toJson() const;
     };
 
-    /// Where a put addressed to a lineage goes (docs/phone-link.md, "The sync,
+    /// Where a put addressed to a lineage goes (tech/phone-link.md, "The sync,
     /// from the phone"): the file with that id; else `name` if that file has
     /// no id yet or does not exist; else "name (phone name).pdb" (numbered if
     /// needed), a new file.

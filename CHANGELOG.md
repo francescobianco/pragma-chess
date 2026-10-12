@@ -8,6 +8,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Pragma Chess points out Explain** to someone trying it: a balloon on
+  the button, after a move on the board that looks like a trial — one the
+  engine judges an error, or one off the moves the Opening Tree offers.
+  Once per run at most; "Don't show this again" puts it away for good.
 - When an online game ends, Pragma Chess **evaluates it move by move**:
   the course beside the score is complete at once and grows more precise,
   and the score's box shows **the strength each side showed**, an estimated

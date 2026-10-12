@@ -164,6 +164,11 @@ else()
     add_library(pragma-miniz STATIC ${miniz_SOURCE_DIR}/miniz.c)
     target_include_directories(pragma-miniz SYSTEM PUBLIC ${miniz_SOURCE_DIR})
     set_target_properties(pragma-miniz PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    # glibc declares fopen64 and friends only when asked: without them miniz
+    # falls back to fopen and says so with a note at every compile.
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        target_compile_definitions(pragma-miniz PRIVATE _LARGEFILE64_SOURCE)
+    endif()
     set(PRAGMA_MINIZ pragma-miniz)
 endif()
 
@@ -257,6 +262,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/HelpGuide.h
     src/app/TrainingTutor.cpp
     src/app/TrainingTutor.h
+    src/app/FeatureDiscovery.cpp
+    src/app/FeatureDiscovery.h
     src/app/PlayerRole.cpp
     src/app/PlayerRole.h
     src/app/PolyglotBook.cpp
@@ -576,6 +583,8 @@ qt_add_executable(pragma-chess
     src/widgets/GlyphMenuAction.cpp
     src/widgets/HelpButton.cpp
     src/widgets/HelpButton.h
+    src/widgets/DiscoveryBalloon.cpp
+    src/widgets/DiscoveryBalloon.h
     src/widgets/ChessClocks.cpp
     src/widgets/ChessClocks.h
     src/widgets/StoreBadge.cpp
@@ -609,7 +618,10 @@ list(APPEND APP_ICON_FILES data/icons/pragma-chess-rich.png)
 # Interface translations, loaded by UiLanguage from :/i18n.
 file(GLOB PRAGMA_TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/translations/pragma-chess_*.ts)
 if(TARGET Qt6::lrelease AND PRAGMA_TS_FILES)
-    qt_add_translations(pragma-chess TS_FILES ${PRAGMA_TS_FILES} RESOURCE_PREFIX /i18n)
+    # -silent: lrelease would otherwise report every .qm it writes, at every
+    # build of the translations (lupdate still says what is unfinished).
+    qt_add_translations(pragma-chess TS_FILES ${PRAGMA_TS_FILES} RESOURCE_PREFIX /i18n
+        LRELEASE_OPTIONS -silent)
 elseif(PRAGMA_TS_FILES)
     # A warning, not a status line: the build works and nothing else says why
     # the interface ignores the language chosen in Options.

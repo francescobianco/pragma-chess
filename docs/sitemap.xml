@@ -55,6 +55,12 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/explain/"/>
   </url>
   <url>
+    <loc>https://yafb.net/pragma-chess/en/guide/discovery/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/discovery/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/discovery/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/discovery/"/>
+  </url>
+  <url>
     <loc>https://yafb.net/pragma-chess/en/guide/engine/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/engine/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/engine/"/>
@@ -211,6 +217,12 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/explain/"/>
   </url>
   <url>
+    <loc>https://yafb.net/pragma-chess/it/guide/discovery/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/discovery/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/discovery/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/discovery/"/>
+  </url>
+  <url>
     <loc>https://yafb.net/pragma-chess/it/guide/engine/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/engine/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/engine/"/>
@@ -365,6 +377,12 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/explain/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/explain/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/explain/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/es/guide/discovery/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/discovery/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/discovery/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/discovery/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/engine/</loc>

@@ -28,6 +28,7 @@
 #include "app/GameSession.h"
 #include "app/GameState.h"
 #include "app/GameVariations.h"
+#include "app/FeatureDiscovery.h"
 #include "app/HelpGuide.h"
 #include "app/MoveAnnotation.h"
 #include "app/MoveComment.h"
@@ -1790,6 +1791,54 @@ QString writeChessBaseFixture(const QString &dir)
             }
         }
         QCOMPARE(shipped("it").search(QStringLiteral("cestino")).first().topic, english.indexOf(QStringLiteral("trash")));
+    }
+
+    void discoversFeatures()
+    {
+        using Feature = FeatureDiscovery::Feature;
+        // Once per run, never again once dismissed; a reset brings it back.
+        FeatureDiscovery discovery;
+        QVERIFY(discovery.shouldPresent(Feature::Explain));
+        discovery.markPresented(Feature::Explain);
+        QVERIFY(!discovery.shouldPresent(Feature::Explain));
+        QVERIFY(!discovery.isDismissed(Feature::Explain));
+        FeatureDiscovery nextRun({Feature::Explain});
+        QVERIFY(nextRun.isDismissed(Feature::Explain));
+        QVERIFY(!nextRun.shouldPresent(Feature::Explain));
+        nextRun.undismiss(Feature::Explain);
+        QVERIFY(nextRun.shouldPresent(Feature::Explain));
+        QCOMPARE(FeatureDiscovery::name(Feature::Explain), QStringLiteral("explain"));
+        QVERIFY(FeatureDiscovery::fromName(QStringLiteral("explain")) == Feature::Explain);
+        QVERIFY(!FeatureDiscovery::fromName(QStringLiteral("tutor")));
+
+        // Leaving the book: a move the book does not offer, where it offers some.
+        const ChessPosition start = ChessPosition::startingPosition();
+        const ChessMove e4 = *start.moveFromUci(QStringLiteral("e2e4"));
+        const ChessMove a4 = *start.moveFromUci(QStringLiteral("a2a4"));
+        PolyglotBook::Move bookMove;
+        bookMove.move = e4;
+        bookMove.weight = 10;
+        QVERIFY(FeatureDiscovery::leavesBook({bookMove}, a4));
+        QVERIFY(!FeatureDiscovery::leavesBook({bookMove}, e4));
+        QVERIFY(!FeatureDiscovery::leavesBook({}, a4)); // Nothing known, nothing left.
+
+        // An error by the engine's evaluations, as the tutor judges it; too shallow, no judgement.
+        const auto eval = [](int centipawns, int depth) {
+            EngineEvaluation evaluation;
+            evaluation.centipawns = centipawns;
+            evaluation.depth = depth;
+            return evaluation;
+        };
+        QVERIFY(FeatureDiscovery::looksWrong(eval(30, 8), eval(-450, 12), start, a4));
+        QVERIFY(!FeatureDiscovery::looksWrong(eval(30, 8), eval(10, 12), start, a4));
+        QVERIFY(!FeatureDiscovery::looksWrong(eval(30, 7), eval(-450, 12), start, a4));
+        QVERIFY(!FeatureDiscovery::looksWrong(eval(30, 8), eval(-450, 11), start, a4));
+        // Black's error turns the sign.
+        ChessPosition afterE4 = start;
+        afterE4.play(e4);
+        const ChessMove f5 = *afterE4.moveFromUci(QStringLiteral("f7f5"));
+        QVERIFY(FeatureDiscovery::looksWrong(eval(-30, 8), eval(450, 12), afterE4, f5));
+        QVERIFY(!FeatureDiscovery::looksWrong(eval(-30, 8), eval(-40, 12), afterE4, f5));
     }
 
     void tutorJudgesTrainingMoves()

@@ -299,6 +299,33 @@ playing a move turns it off, and the user asks again at the next move.
   [docs/explain-tuning.md](docs/tech/explain-tuning.md) first, and log feedback
   and decisions in it. Enrich the explanation, don't replace what works.
 
+## Discovery
+
+The program points its features out to someone trying it, never at
+random: `app/FeatureDiscovery` (core, pure, unit-tested) says when, and
+`widgets/DiscoveryBalloon` is the balloon — rich text, "Don't show this
+again", OK — a child of the main window placed under the control it points
+at (above it when there is no room), following it through layouts; no
+window of its own, which Wayland would place where it likes. A feature is
+presented at most once per run (`markPresented`; using it does not count:
+a user who pressed Explain once still gets the balloon at the next sign),
+and never again once dismissed,
+QSettings `discovery/<name>/dismissed`, per computer like the welcome's box
+(`MainWindow::discoverySettingsKey`). `MainWindow::presentDiscovery` shows
+it, and `noticeUserMove` (called by `playUserMove` on each path that plays
+the move) reads the signs for Explain: a move off the moves the book offers
+for the position it was played in (`leavesBook`), or one the engine judges
+an error as the tutor would (`looksWrong`, `TrainingTutor::judge` on the
+evaluation of the position before, `Explainer::known`, and of the one
+after: known already, or the next line of the analysis deep enough,
+`m_discoveryWatch`, dropped when the board leaves that position). Not in
+training (its tutor offers Explain), not online, not while Explain is on.
+A new feature is a `Feature` with its name, its text and anchor in
+`presentDiscovery`, its signs where they are seen, and its paragraph in
+the guide's "Discovering features". `POST /api/discovery {"feature":
+"explain", "show": true, "close": true, "reset": true}` answers with its
+state (dismissed, presented, shown); the balloon is in `/api/screenshot`.
+
 ## SMART
 
 The chess judgement of Explain and of the tutor is moving out of C++ and

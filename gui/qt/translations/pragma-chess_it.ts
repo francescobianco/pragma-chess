@@ -822,6 +822,21 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>DiscoveryBalloon</name>
+    <message>
+        <source>Don&apos;t show this again</source>
+        <translation>Non mostrarlo più</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>OK</translation>
+    </message>
+    <message>
+        <source>Tip</source>
+        <translation>Suggerimento</translation>
+    </message>
+</context>
+<context>
     <name>Drawers</name>
     <message>
         <source>Every drawer needs a name.</source>
@@ -3958,6 +3973,10 @@ non è su questo computer.</translation>
     <message>
         <source>Databases to install with a click, in Tools ▸ Manage Extensions</source>
         <translation>Database da installare con un clic, in Strumenti ▸ Gestione estensioni</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;&lt;b&gt;Was that move a good idea?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Press &lt;b&gt;Explain&lt;/b&gt;, the bulb between the arrows (or the &lt;b&gt;E&lt;/b&gt; key): the board shows why the engine likes the last move or not, with arrows for the threats, the refutation and the better move.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;&lt;b&gt;Quella mossa era una buona idea?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Premi &lt;b&gt;Spiega&lt;/b&gt;, la lampadina tra le frecce (o il tasto &lt;b&gt;E&lt;/b&gt;): la scacchiera mostra perché l&apos;ultima mossa piace o no al motore, con le frecce delle minacce, della confutazione e della mossa migliore.&lt;/p&gt;</translation>
     </message>
 </context>
 <context>

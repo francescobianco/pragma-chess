@@ -23,6 +23,9 @@ constexpr int kMinimumSideColumn = 20;
 constexpr int kTrailingSpace = 10;
 /// Room between the navigation and what sits at the ends of its row.
 constexpr int kControlsGap = 8;
+/// The icons of the game controls: 20 was small under a large board, 28
+/// too much, 24 still a little.
+constexpr int kControlIconSize = 22;
 
 int sideColumnWidth(int boardSide)
 {
@@ -40,7 +43,7 @@ QToolButton *controlButton(QAction *action)
     auto *button = new QToolButton;
     button->setDefaultAction(action);
     button->setAutoRaise(true);
-    button->setIconSize(QSize(20, 20));
+    button->setIconSize(QSize(kControlIconSize, kControlIconSize));
     button->setFocusPolicy(Qt::NoFocus);
     return button;
 }
@@ -77,9 +80,13 @@ BoardPanel::BoardPanel(BoardWidget *board, EvaluationBar *evaluationBar, GameHea
     layout->setHorizontalSpacing(0);
 
     auto *navigation = new QHBoxLayout;
-    navigation->setSpacing(2);
-    for (QAction *action : {actions.first, actions.previous, actions.explain, actions.next, actions.last})
-        navigation->addWidget(controlButton(action));
+    navigation->setSpacing(3);
+    for (QAction *action : {actions.first, actions.previous, actions.explain, actions.next, actions.last}) {
+        QToolButton *button = controlButton(action);
+        if (action == actions.explain)
+            m_explainButton = button;
+        navigation->addWidget(button);
+    }
 
     layout->addWidget(capturedPieces, 0, 0, Qt::AlignLeft | Qt::AlignVCenter);
     layout->addLayout(navigation, 0, 1, Qt::AlignCenter);

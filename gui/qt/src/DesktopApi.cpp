@@ -293,7 +293,10 @@ void DesktopApi::addRoutes()
         const std::optional<ChessMove> move = w->m_session->position().moveFromUci(uci);
         if (!move)
             return LocalHttpServer::error(400, QStringLiteral("not a legal move here: \"%1\" (expected {\"uci\": \"e2e4\"})").arg(uci));
+        const ChessPosition before = w->m_session->position();
+        const int plyBefore = w->m_session->ply();
         w->playMove(*move);
+        w->noticeUserMove(before, plyBefore, *move); // The user's move, for the discovery of Explain.
         return json(state());
     });
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/line"), [w, state](const Request &request) {
@@ -457,6 +460,36 @@ void DesktopApi::addRoutes()
         buffer.open(QIODevice::WriteOnly);
         w->m_welcomeDialog->grab().save(&buffer, "PNG");
         return Response{200, "image/png", png};
+    });
+    // The discovery of features: {"feature": "explain"} with {"show": true} presents
+    // its balloon whatever was presented before, {"close": true} closes it, {"dismiss":
+    // true} is "Don't show this again", {"reset": true} forgets that and what this run
+    // presented; answers with its state.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/discovery"), [w](const Request &request) {
+        const QJsonObject body = bodyOf(request).value_or(QJsonObject());
+        const std::optional<FeatureDiscovery::Feature> feature =
+            FeatureDiscovery::fromName(body.value(QStringLiteral("feature")).toString(QStringLiteral("explain")));
+        if (!feature)
+            return LocalHttpServer::error(400, QStringLiteral("unknown feature (expected {\"feature\": \"explain\"})"));
+        if (body.value(QStringLiteral("dismiss")).toBool()) {
+            w->m_discovery.dismiss(*feature);
+            QSettings settings;
+            settings.setValue(MainWindow::discoverySettingsKey(*feature), true);
+        }
+        if (body.value(QStringLiteral("reset")).toBool()) {
+            w->m_discovery.undismiss(*feature);
+            w->m_discovery.clearPresented(*feature);
+            QSettings settings;
+            settings.remove(MainWindow::discoverySettingsKey(*feature));
+        }
+        if (body.value(QStringLiteral("close")).toBool())
+            w->closeDiscoveryBalloon();
+        if (body.value(QStringLiteral("show")).toBool())
+            w->presentDiscovery(*feature, true);
+        return json(QJsonObject{{QStringLiteral("feature"), FeatureDiscovery::name(*feature)},
+                                {QStringLiteral("dismissed"), w->m_discovery.isDismissed(*feature)},
+                                {QStringLiteral("presented"), w->m_discovery.wasPresented(*feature)},
+                                {QStringLiteral("shown"), !w->m_discoveryBalloon.isNull()}});
     });
     // Lobby Mode's sends: {"plan": true} the plan prepared on the board, else the move.
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/lobby/send"), [w](const Request &request) {

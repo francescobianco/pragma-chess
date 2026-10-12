@@ -822,6 +822,21 @@ Las negras han capturado: %2</translation>
     </message>
 </context>
 <context>
+    <name>DiscoveryBalloon</name>
+    <message>
+        <source>Don&apos;t show this again</source>
+        <translation>No volver a mostrar esto</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>Aceptar</translation>
+    </message>
+    <message>
+        <source>Tip</source>
+        <translation>Consejo</translation>
+    </message>
+</context>
+<context>
     <name>Drawers</name>
     <message>
         <source>Every drawer needs a name.</source>
@@ -3958,6 +3973,10 @@ no está en este ordenador.</translation>
     <message>
         <source>Databases to install with a click, in Tools ▸ Manage Extensions</source>
         <translation>Bases de datos para instalar con un clic, en Herramientas ▸ Gestionar extensiones</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;&lt;b&gt;Was that move a good idea?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Press &lt;b&gt;Explain&lt;/b&gt;, the bulb between the arrows (or the &lt;b&gt;E&lt;/b&gt; key): the board shows why the engine likes the last move or not, with arrows for the threats, the refutation and the better move.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;&lt;b&gt;¿Era buena idea esa jugada?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Pulsa &lt;b&gt;Explicar&lt;/b&gt;, la bombilla entre las flechas (o la tecla &lt;b&gt;E&lt;/b&gt;): el tablero muestra por qué al motor le gusta o no la última jugada, con flechas para las amenazas, la refutación y la mejor jugada.&lt;/p&gt;</translation>
     </message>
 </context>
 <context>

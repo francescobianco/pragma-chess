@@ -39,6 +39,9 @@ public:
     /// Captured pieces under the board, at the left of the controls, instead of beside it.
     void setCapturedPiecesBelow(bool below);
 
+    /// The Explain button of the controls: what a balloon pointing it out anchors to.
+    QToolButton *explainButton() const { return m_explainButton; }
+
     /// Width at which the board fills the panel for the given height.
     int widthForHeight(int height) const;
 
@@ -60,6 +63,7 @@ private:
     QWidget *m_controls;
     QGridLayout *m_controlsLayout = nullptr;
     QToolButton *m_flipButton = nullptr;
+    QToolButton *m_explainButton = nullptr;
     /// Gives the two side columns of the controls the same width, so the
     /// navigation stays under the middle of the board.
     void balanceControls();

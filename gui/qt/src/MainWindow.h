@@ -7,6 +7,7 @@
 #include "app/Chapters.h"
 #include "app/EngineCatalog.h"
 #include "app/EngineEvaluation.h"
+#include "app/FeatureDiscovery.h"
 #include "app/GameVariations.h"
 #include "app/online/OnlineClient.h"
 #include "dialogs/MoveGamesDialog.h"
@@ -37,6 +38,7 @@ class BoardWidget;
 class GameFilterProxyModel;
 class QSplitter;
 class BoardPanel;
+class DiscoveryBalloon;
 class BoardSideColumn;
 class CapturedPiecesWidget;
 class EnginePanel;
@@ -510,6 +512,16 @@ private:
     /// Help ▸ Pragma Chess Guide (F1).
     void showGuide();
     void showWelcome();
+    /// Points a feature out with a balloon on its control (FeatureDiscovery:
+    /// once per run, never once the user asked so); `force` shows it anyway (the API).
+    void presentDiscovery(FeatureDiscovery::Feature feature, bool force = false);
+    void closeDiscoveryBalloon();
+    /// A move the user made on the board or in the Opening Tree, from
+    /// `before` at `plyBefore`: a sign for the discovery of Explain, now or
+    /// once the engine has looked at the position it made.
+    void noticeUserMove(const ChessPosition &before, int plyBefore, const ChessMove &move);
+    /// QSettings: "Don't show this again" for the feature, per computer as the welcome's box.
+    static QString discoverySettingsKey(FeatureDiscovery::Feature feature);
     void showLobby();
     /// Tools ▸ Convert ▸ PGN to Pragma Database….
     void showConvertPgn();
@@ -795,6 +807,18 @@ private:
     HelpDialog *m_guideDialog = nullptr;
     QAction *m_welcomeAction;
     QPointer<WelcomeDialog> m_welcomeDialog;
+    /// What was pointed out in this run and what never will be again (discoverySettingsKey).
+    FeatureDiscovery m_discovery;
+    QPointer<DiscoveryBalloon> m_discoveryBalloon;
+    /// A move of the user's waiting for the engine's view of the position it
+    /// made, to say whether it looks like an error (noticeUserMove).
+    struct DiscoveryWatch {
+        bool pending = false;
+        QString afterFen;
+        ChessPosition start;
+        ChessMove played;
+        EngineEvaluation before;
+    } m_discoveryWatch;
     bool m_welcomeShown = false; ///< At startup, once: the first showEvent.
     /// Game ▸ Enter the Lobby…: one window, kept with its rooms while the application runs.
     LobbyDialog *m_lobbyDialog = nullptr;

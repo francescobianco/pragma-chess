@@ -84,6 +84,7 @@
 #include "platform/SymbolicIcons.h"
 #include "platform/WindowChrome.h"
 #include "widgets/BoardPanel.h"
+#include "widgets/DiscoveryBalloon.h"
 #include "widgets/BookPanel.h"
 #include "widgets/PaddedHeaderView.h"
 #include "widgets/PaddedItemDelegate.h"
@@ -225,6 +226,16 @@ MainWindow::MainWindow(QWidget *parent)
     m_boardPanel = new BoardPanel(m_board, m_evaluationBar, m_gameHeader, m_capturedPieces, m_boardSideColumn,
                                   {m_firstMoveAction, m_previousMoveAction, m_explainAction,
                                    m_nextMoveAction, m_lastMoveAction, m_flipBoardAction});
+    {
+        // The features the user asked never to see pointed out again.
+        QSettings settings;
+        QList<FeatureDiscovery::Feature> dismissed;
+        for (FeatureDiscovery::Feature feature : FeatureDiscovery::all()) {
+            if (settings.value(discoverySettingsKey(feature), false).toBool())
+                dismissed << feature;
+        }
+        m_discovery = FeatureDiscovery(dismissed);
+    }
     applyGraphicsSettings(GraphicsSettings::load());
     setCentralWidget(new CentralArea(m_boardPanel, m_sidebar));
     createDocks();
@@ -293,6 +304,16 @@ MainWindow::MainWindow(QWidget *parent)
             return;
         }
         m_lastEvaluation = evaluation;
+        // A move of the user's the discovery of Explain waits to judge, once
+        // the engine has looked deep enough at the position it made — the one
+        // on the board still, or the user went elsewhere and it is dropped.
+        if (m_discoveryWatch.pending && evaluation.depth >= FeatureDiscovery::kMinDepthAfter) {
+            m_discoveryWatch.pending = false;
+            if (m_session->position().fen() == m_discoveryWatch.afterFen
+                && FeatureDiscovery::looksWrong(m_discoveryWatch.before, evaluation, m_discoveryWatch.start,
+                                                m_discoveryWatch.played))
+                presentDiscovery(FeatureDiscovery::Feature::Explain);
+        }
         // While the user thinks in training, the analysis of their position
         // is what the tutor will judge their move against.
         if (m_trainingModeAction->isChecked() && !m_trainingThinking && !m_tutorReply && !isEngineTurn()) {
@@ -4053,6 +4074,7 @@ void MainWindow::analyzeCurrentPosition()
 void MainWindow::setExplainEnabled(bool enabled)
 {
     if (enabled) {
+        closeDiscoveryBalloon(); // A balloon pointing Explain out has done its job.
         // Explaining starts the engine if it is off.
         m_startEngineAction->setChecked(true);
         if (!m_engine->isRunning()) {
@@ -5328,12 +5350,15 @@ void MainWindow::playBoardMove(int from, int to, const QPoint &globalPosition)
 
 void MainWindow::playUserMove(const ChessMove &move)
 {
+    const ChessPosition before = m_session->position();
+    const int plyBefore = m_session->ply();
     // A move other than the one the game goes on with, in the middle of a
     // line: the user says whether it is a variation or replaces the rest.
     // Not while playing (training, online): the game goes on as it is.
     // Nor in Lobby Mode: another move of the opponent's is another case of the plan.
     if (m_onlinePlay || m_trainingModeAction->isChecked() || m_lobbyGame || !m_session->wouldBranch(move)) {
         playMove(move);
+        noticeUserMove(before, plyBefore, move);
         return;
     }
     const bool atBranch = !m_session->path().isEmpty() && m_session->ply() == m_session->branchPly();
@@ -5351,6 +5376,7 @@ void MainWindow::playUserMove(const ChessMove &move)
     box.exec();
     if (box.clickedButton() == variation) {
         playMove(move);
+        noticeUserMove(before, plyBefore, move);
     } else if (box.clickedButton() == replace) {
         if (!m_session->replaceLine(move))
             return;
@@ -5358,6 +5384,7 @@ void MainWindow::playUserMove(const ChessMove &move)
         QString error;
         if (!storeOpenGame(&error))
             statusBar()->showMessage(tr("The move could not be saved in the database: %1").arg(error), 8000);
+        noticeUserMove(before, plyBefore, move);
     }
     // Cancel: nothing was played, the board never moved the piece.
 }
@@ -5585,6 +5612,81 @@ void MainWindow::showWelcome()
     m_welcomeDialog->show();
     m_welcomeDialog->raise();
     m_welcomeDialog->activateWindow();
+}
+
+QString MainWindow::discoverySettingsKey(FeatureDiscovery::Feature feature)
+{
+    return QStringLiteral("discovery/%1/dismissed").arg(FeatureDiscovery::name(feature));
+}
+
+void MainWindow::presentDiscovery(FeatureDiscovery::Feature feature, bool force)
+{
+    // Not while Explain is on: whoever turned it on knows it.
+    if (!force && (!m_discovery.shouldPresent(feature) || m_explainAction->isChecked()))
+        return;
+    m_discoveryWatch.pending = false;
+    closeDiscoveryBalloon();
+    m_discovery.markPresented(feature);
+    QString text;
+    QWidget *anchor = nullptr;
+    switch (feature) {
+    case FeatureDiscovery::Feature::Explain:
+        text = tr("<p><b>Was that move a good idea?</b></p><p>Press <b>Explain</b>, the bulb between the "
+                  "arrows (or the <b>E</b> key): the board shows why the engine likes the last move or not, "
+                  "with arrows for the threats, the refutation and the better move.</p>");
+        anchor = m_boardPanel->explainButton();
+        break;
+    }
+    if (!anchor)
+        return;
+    m_discoveryBalloon = new DiscoveryBalloon(text, anchor);
+    connect(m_discoveryBalloon, &DiscoveryBalloon::closed, this, [this, feature](bool dontShowAgain) {
+        if (!dontShowAgain)
+            return;
+        m_discovery.dismiss(feature);
+        QSettings settings;
+        settings.setValue(discoverySettingsKey(feature), true);
+    });
+    m_discoveryBalloon->show();
+}
+
+void MainWindow::closeDiscoveryBalloon()
+{
+    if (m_discoveryBalloon)
+        m_discoveryBalloon->close(); // Deleted on close, a little later.
+    m_discoveryBalloon = nullptr;
+}
+
+void MainWindow::noticeUserMove(const ChessPosition &before, int plyBefore, const ChessMove &move)
+{
+    // Not while playing online (nothing may help there) nor in training,
+    // whose tutor offers Explain itself; and only a move really played.
+    if (m_onlinePlay || m_trainingModeAction->isChecked())
+        return;
+    if (m_session->ply() != plyBefore + 1 || m_session->lastMove() != move)
+        return;
+    m_discoveryWatch.pending = false;
+    if (!m_discovery.shouldPresent(FeatureDiscovery::Feature::Explain))
+        return;
+    // Off the moves the Opening Tree offered: out of the openings the book knows.
+    if (m_book && FeatureDiscovery::leavesBook(m_book->moves(before), move)) {
+        presentDiscovery(FeatureDiscovery::Feature::Explain);
+        return;
+    }
+    // An error, by what the engine found about the position before and what
+    // it finds about the one after: known already, or coming from the analysis.
+    const std::optional<EngineEvaluation> known = m_explainer->known(before);
+    if (!known || known->depth < FeatureDiscovery::kMinDepthBefore)
+        return;
+    const ChessPosition &after = m_session->position();
+    const std::optional<EngineEvaluation> judged = m_explainer->known(after);
+    if (judged && judged->depth >= FeatureDiscovery::kMinDepthAfter) {
+        if (FeatureDiscovery::looksWrong(*known, *judged, before, move))
+            presentDiscovery(FeatureDiscovery::Feature::Explain);
+        return;
+    }
+    if (m_startEngineAction->isChecked())
+        m_discoveryWatch = {true, after.fen(), before, move, *known};
 }
 
 bool MainWindow::openDocument(const QString &path)

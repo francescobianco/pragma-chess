@@ -135,6 +135,12 @@ Explain reads the analysis running in the Engine panel: the explanation appears 
 
 **Edit ▸ Copy ▸ Explanation** copies the text.
 
+# Discovering features {#discovery}
+
+Pragma Chess points out what can help, when it can help: a balloon on the control, the first time. It appears **once per run** at most, and **Don't show this again** in the balloon puts it away for good.
+
+- **Explain** is pointed out after a move you make on the board that looks like a trial: one the engine judges an error — with the analysis on, or when it already knows both positions — or one off the moves the Opening Tree offers, out of the openings the book knows. Not in training, which has its tutor, nor while playing online, nor while Explain is already on.
+
 # Engines {#engine}
 
 **Engine ▸ Analysis** (Ctrl+E) turns on and off the analysis of the position on the board. The Engine panel shows the score — always from White's side: positive is good for White —, the depth and the best line. The bar beside the board shows the same score. Click the score to show it another way, in turn: absolute (from White's side, as the engine gives it), for the side to move, the side to move's chances, and the judgement a chess book prints (=, ⩲, ±, +− and their opposites, from White's side). The dot before the value is its unit: half white and half black for White's side, the colour of the side to move for its own; the book's symbols have none. The chances are the expected score in per cent: what that side brings home on average from such a position, a win counting 1 and a draw ½ — 50% is level, a pawn up about 59%, three pawns about 75% (the curve lichess uses, and the bar beside the board). The tooltip gives all four at once; the choice is saved with the project. Beside the score, in the same box, the course of the game: a dot for each move whose evaluation is known (what the engine found there, or the game's own evaluations, as lichess writes them), joined by a line, over the midline of a balanced game. The height grows with the advantage more slowly than it: half a pawn already shows, a pawn is close to half way, two are less than twice as far, ten and a mate reach the edge. White's advantage goes towards White's side of the board, as in the bar, so the graph turns with the board; the move on the board is marked. Click a dot to go to that move. Twenty moves fill the width; a longer game is squeezed into it, never scrolled.

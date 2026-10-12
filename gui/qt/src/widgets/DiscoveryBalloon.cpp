@@ -3,12 +3,19 @@
 #include <QApplication>
 #include <QCheckBox>
 #include <QCloseEvent>
+#include <QElapsedTimer>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPushButton>
+#include <QRadialGradient>
+#include <QTimer>
 #include <QVBoxLayout>
+
+#include <algorithm>
+#include <cmath>
+#include <numbers>
 
 namespace {
 
@@ -18,12 +25,55 @@ constexpr int kTextWidth = 320; // A width that reads: about sixty characters.
 constexpr int kPadding = 12;
 constexpr int kGap = 2;         // Between the control and the tip.
 constexpr int kShadow = 12;     // The transparent margin around the balloon that holds its shadow.
+constexpr int kGlow = 10;       // How far the glow reaches around the control.
+constexpr int kGlowPeriodMs = 1800;
+
+/// A halo breathing around the control the balloon points at, over it and
+/// letting the mouse through: the eye finds the button the text names.
+class AnchorGlow : public QWidget {
+public:
+    explicit AnchorGlow(QWidget *window)
+        : QWidget(window)
+    {
+        setAttribute(Qt::WA_TransparentForMouseEvents);
+        m_clock.start();
+        m_timer.setInterval(40);
+        connect(&m_timer, &QTimer::timeout, this, qOverload<>(&QWidget::update));
+        m_timer.start();
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        // In and out over the period, never quite off.
+        const qreal phase = (m_clock.elapsed() % kGlowPeriodMs) / qreal(kGlowPeriodMs);
+        const qreal breath = 0.4 + 0.6 * (0.5 - 0.5 * std::cos(phase * 2 * std::numbers::pi));
+        const QRectF control = QRectF(rect()).adjusted(kGlow, kGlow, -kGlow, -kGlow);
+        const qreal edge = std::max(control.width(), control.height()) / 2;
+        QRadialGradient gradient(control.center(), edge + kGlow);
+        QColor color = palette().color(QPalette::Highlight);
+        color.setAlphaF(0.12 * breath);
+        gradient.setColorAt(0, color);
+        color.setAlphaF(0.6 * breath);
+        gradient.setColorAt(edge / (edge + kGlow), color);
+        color.setAlphaF(0);
+        gradient.setColorAt(1, color);
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.fillRect(rect(), gradient);
+    }
+
+private:
+    QTimer m_timer;
+    QElapsedTimer m_clock;
+};
 
 } // namespace
 
 DiscoveryBalloon::DiscoveryBalloon(const QString &text, QWidget *anchor)
     : QWidget(anchor->window())
     , m_anchor(anchor)
+    , m_glow(new AnchorGlow(anchor->window()))
     , m_label(new QLabel(text, this))
     , m_dontShow(new QCheckBox(tr("Don't show this again"), this))
     , m_ok(new QPushButton(tr("OK"), this))
@@ -52,6 +102,12 @@ DiscoveryBalloon::DiscoveryBalloon(const QString &text, QWidget *anchor)
     for (QWidget *widget = anchor; widget; widget = widget->parentWidget())
         widget->installEventFilter(this);
     place();
+    m_glow->show();
+}
+
+DiscoveryBalloon::~DiscoveryBalloon()
+{
+    delete m_glow;
 }
 
 bool DiscoveryBalloon::dontShowAgain() const
@@ -102,6 +158,10 @@ void DiscoveryBalloon::place()
     const int y = m_below ? control.bottom() + kGap - kShadow : control.top() - kGap - height() + kShadow;
     move(x, y);
     m_tipX = control.center().x() - x;
+    if (m_glow) {
+        m_glow->setGeometry(control.adjusted(-kGlow, -kGlow, kGlow, kGlow));
+        m_glow->raise();
+    }
     raise();
 }
 

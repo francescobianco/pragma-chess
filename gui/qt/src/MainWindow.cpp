@@ -5631,11 +5631,11 @@ void MainWindow::presentDiscovery(FeatureDiscovery::Feature feature, bool force)
     QWidget *anchor = nullptr;
     switch (feature) {
     case FeatureDiscovery::Feature::Explain:
-        text = tr("<p><b>Was that move a good idea?</b></p><p>Explain is here to tell you. Press the bulb "
-                  "between the arrows, or the <b>E</b> key, and the board tells the story of the move: the "
-                  "plans of both sides, where a mistake let something slip away, what would have been "
-                  "stronger. Ask it move after move and you will start seeing it yourself — the plans, the "
-                  "mistakes, the game as a whole. That is how one's play, and one's eye, grow.</p>");
+        text = tr("<p><b>Perhaps this move calls for a word of explanation?</b></p><p>Explain is here for "
+                  "that. Press the glowing button, and the board tells the story of the move: the plans of "
+                  "both sides, where a mistake let something slip away, what would have been stronger. Ask "
+                  "it move after move and you will start seeing it yourself — the plans, the mistakes, the "
+                  "game as a whole. That is how one's play, and one's eye, grow.</p>");
         anchor = m_boardPanel->explainButton();
         break;
     }

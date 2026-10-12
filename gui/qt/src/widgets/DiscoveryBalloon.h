@@ -10,7 +10,8 @@ class QVBoxLayout;
 
 /// A balloon pointing at a control of the window to say what it does, the
 /// first time the program thinks it would help (FeatureDiscovery): rich
-/// text, "Don't show this again" and OK, in its shadow. A child of the
+/// text, "Don't show this again" and OK, in its shadow, the control glowing
+/// while it is up. A child of the
 /// top-level window, over everything in it — no window of its own, which a
 /// Wayland compositor places where it likes —, above the control with its
 /// tip down, over the board where the eyes are (under it where there is no
@@ -22,6 +23,7 @@ class DiscoveryBalloon : public QWidget {
 
 public:
     DiscoveryBalloon(const QString &text, QWidget *anchor);
+    ~DiscoveryBalloon() override;
 
     bool dontShowAgain() const;
 
@@ -38,6 +40,7 @@ private:
     void place();
 
     QPointer<QWidget> m_anchor;
+    QPointer<QWidget> m_glow; ///< The halo over the control, a child of the window like the balloon.
     QLabel *m_label;
     QCheckBox *m_dontShow;
     QPushButton *m_ok;

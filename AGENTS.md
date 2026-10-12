@@ -305,7 +305,9 @@ playing a move turns it off, and the user asks again at the next move.
 The program points its features out to someone trying it, never at
 random: `app/FeatureDiscovery` (core, pure, unit-tested) says when, and
 `widgets/DiscoveryBalloon` is the balloon — rich text, "Don't show this
-again", OK, in the menus' shadow — a child of the main window placed above
+again", OK, in the menus' shadow, a halo breathing around the control while
+it is up (`AnchorGlow`, over the button, transparent to the mouse) — a
+child of the main window placed above
 the control it points at, over the board where the eyes are (under it when
 there is no room above), following it through layouts; no window of its
 own, which Wayland would place where it likes. A feature is

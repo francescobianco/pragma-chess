@@ -13,7 +13,7 @@
     </message>
     <message>
         <source>Supported by</source>
-        <translation>Con el apoyo de</translation>
+        <translation>Con el respaldo de</translation>
     </message>
     <message>
         <source>Built with</source>
@@ -21,7 +21,7 @@
     </message>
     <message>
         <source>&lt;b&gt;Qt %1&lt;/b&gt;&lt;br&gt;The toolkit of the desktop client, used under the GNU Lesser General Public License version 3. &lt;a href=&quot;https://www.qt.io&quot;&gt;qt.io&lt;/a&gt;</source>
-        <translation>&lt;b&gt;Qt %1&lt;/b&gt;&lt;br&gt;El toolkit del cliente de escritorio, usado bajo la GNU Lesser General Public License versión 3. &lt;a href=&quot;https://www.qt.io&quot;&gt;qt.io&lt;/a&gt;</translation>
+        <translation>&lt;b&gt;Qt %1&lt;/b&gt;&lt;br&gt;El conjunto de herramientas de la aplicación de escritorio, distribuido bajo la Licencia Pública General Reducida de GNU, versión 3 (LGPLv3). &lt;a href=&quot;https://www.qt.io&quot;&gt;qt.io&lt;/a&gt;</translation>
     </message>
     <message>
         <source>About &amp;Qt…</source>
@@ -174,11 +174,11 @@ Las negras han capturado: %2</translation>
     </message>
     <message>
         <source>No book chosen: choose one from the Book menu</source>
-        <translation>Ningún libro elegido: elige uno en el menú Libro</translation>
+        <translation>No hay ningún libro de aperturas; elige uno en el menú Libro</translation>
     </message>
     <message>
         <source>The position is not in the book</source>
-        <translation>La posición no está en el libro</translation>
+        <translation>La posición no se encuentra en el libro</translation>
     </message>
     <message>
         <source>Remove from Repertoire</source>
@@ -190,7 +190,7 @@ Las negras han capturado: %2</translation>
     </message>
     <message>
         <source>In your repertoire: listed first whatever the weight</source>
-        <translation>En tu repertorio: aparece primero sea cual sea su peso</translation>
+        <translation>En tu repertorio, se muestra siempre en primer lugar, independientemente de su importancia</translation>
     </message>
     <message>
         <source>Database</source>

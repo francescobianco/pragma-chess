@@ -8,6 +8,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Pragma Chess speaks Chinese (simplified)**: the whole interface in
+  `zh_CN` — menus, dialogs, the board, Explain, the sources, the sync and
+  the lobby — to be read by a Chinese-speaking player; Options ▸ Switch
+  Language lists it (issue #4).
 - **Pragma Chess points out Explain** to someone trying it: a balloon on
   the button, after a move on the board that looks like a trial — one the
   engine judges an error, or one off the moves the Opening Tree offers.

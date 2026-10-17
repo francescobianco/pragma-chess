@@ -40,1220 +40,1222 @@
         <name>Archive</name>
         <message>
             <source>The archive cannot be read.</source>
-            <translation />
+            <translation>无法读取该压缩包。</translation>
         </message>
         <message>
             <source>The archive holds a file outside its folder: %1</source>
-            <translation />
+            <translation>压缩包中有一个文件位于其文件夹之外：%1</translation>
         </message>
         <message>
             <source>Could not extract %1.</source>
-            <translation />
+            <translation>无法解压 %1。</translation>
         </message>
         <message>
             <source>The archive is not gzip.</source>
-            <translation />
+            <translation>该压缩包不是 gzip 格式。</translation>
         </message>
         <message>
             <source>The archive is damaged.</source>
-            <translation />
+            <translation>压缩包已损坏。</translation>
         </message>
         <message>
             <source>The archive is cut short.</source>
-            <translation />
+            <translation>压缩包不完整。</translation>
         </message>
         <message>
             <source>Could not write %1.</source>
-            <translation />
+            <translation>无法写入 %1。</translation>
         </message>
         <message>
             <source>Could not make the folder %1.</source>
-            <translation />
+            <translation>无法创建文件夹 %1。</translation>
         </message>
     </context>
     <context>
         <name>BoardPanel</name>
         <message>
             <source>Game controls</source>
-            <translation />
+            <translation>对局控制</translation>
         </message>
     </context>
     <context>
         <name>BoardSideColumn</name>
         <message>
             <source>Turn and captured pieces</source>
-            <translation />
+            <translation>走子方与被吃的棋子</translation>
         </message>
         <message>
             <source>queen</source>
-            <translation />
+            <translation>后</translation>
         </message>
         <message>
             <source>rook</source>
-            <translation />
+            <translation>车</translation>
         </message>
         <message>
             <source>bishop</source>
-            <translation />
+            <translation>象</translation>
         </message>
         <message>
             <source>knight</source>
-            <translation />
+            <translation>马</translation>
         </message>
         <message>
             <source>pawn</source>
-            <translation />
+            <translation>兵</translation>
         </message>
         <message>
             <source>nothing</source>
-            <translation />
+            <translation>无</translation>
         </message>
         <message>
             <source>White to move</source>
-            <translation />
+            <translation>轮白方走</translation>
         </message>
         <message>
             <source>Black to move</source>
-            <translation />
+            <translation>轮黑方走</translation>
         </message>
         <message>
             <source>White has captured: %1
 Black has captured: %2</source>
-            <translation />
+            <translation>白方吃子：%1
+黑方吃子：%2</translation>
         </message>
     </context>
     <context>
         <name>BoardWidget</name>
         <message>
             <source>Chessboard</source>
-            <translation />
+            <translation>棋盘</translation>
         </message>
         <message>
             <source>About Pragma Chess Player 6…</source>
-            <translation />
+            <translation>关于 Pragma Chess Player 6…</translation>
         </message>
         <message>
             <source>Learn More…</source>
-            <translation />
+            <translation>了解更多…</translation>
         </message>
     </context>
     <context>
         <name>BookPanel</name>
         <message>
             <source>Move</source>
-            <translation />
+            <translation>着法</translation>
         </message>
         <message>
             <source>Opening</source>
-            <translation />
+            <translation>开局</translation>
         </message>
         <message>
             <source>Weight</source>
-            <translation />
+            <translation>权重</translation>
         </message>
         <message>
             <source>Book moves</source>
-            <translation />
+            <translation>开局库着法</translation>
         </message>
         <message>
             <source>Starting position</source>
-            <translation />
+            <translation>起始局面</translation>
         </message>
         <message>
             <source>Take back %1</source>
-            <translation />
+            <translation>收回 %1</translation>
         </message>
         <message>
             <source>Go back one move</source>
-            <translation />
+            <translation>后退一着</translation>
         </message>
         <message>
             <source>Play %1</source>
-            <translation />
+            <translation>走 %1</translation>
         </message>
         <message>
             <source>No book chosen: choose one from the Book menu</source>
-            <translation />
+            <translation>尚未选择开局库：请从“开局库”菜单中选择一个</translation>
         </message>
         <message>
             <source>The position is not in the book</source>
-            <translation />
+            <translation>该局面不在开局库中</translation>
         </message>
         <message>
             <source>Remove from Repertoire</source>
-            <translation />
+            <translation>从开局套路中移除</translation>
         </message>
         <message>
             <source>Add to Repertoire</source>
-            <translation />
+            <translation>加入开局套路</translation>
         </message>
         <message>
             <source>In your repertoire: listed first whatever the weight</source>
-            <translation />
+            <translation>已列入你的开局套路：无论权重大小都排在前面</translation>
         </message>
         <message>
             <source>Database</source>
-            <translation />
+            <translation>数据库</translation>
         </message>
         <message>
             <source>Games of the open database with the position after the move: how many, and how many White won, drew and Black won</source>
-            <translation />
+            <translation>已打开数据库中出现过该着法之后局面的对局：总数，以及白胜、和棋、黑胜各有多少</translation>
         </message>
         <message numerus="yes">
             <source>%n game(s): White won %1, %2 drawn, Black won %3</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>%n 盘对局：白胜 %1，和棋 %2，黑胜 %3</numerusform>
+                <numerusform>%n 盘对局：白胜 %1，和棋 %2，黑胜 %3</numerusform>
             </translation>
         </message>
         <message>
             <source>Adjust &amp;Weight</source>
-            <translation />
+            <translation>调整权重(&amp;W)</translation>
         </message>
         <message>
             <source>&amp;Zero Weight</source>
-            <translation />
+            <translation>权重归零(&amp;Z)</translation>
         </message>
         <message>
             <source>Takes the move's weight and gives it to the other moves, in proportion</source>
-            <translation />
+            <translation>取走该着法的权重，按比例分给其他着法</translation>
         </message>
         <message numerus="yes">
             <source>Moved up %n row(s)</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>上移了 %n 行</numerusform>
+                <numerusform>上移了 %n 行</numerusform>
             </translation>
         </message>
         <message numerus="yes">
             <source>Moved down %n row(s)</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>下移了 %n 行</numerusform>
+                <numerusform>下移了 %n 行</numerusform>
             </translation>
         </message>
         <message>
             <source>Stayed where it was</source>
-            <translation />
+            <translation>位置未变</translation>
         </message>
     </context>
     <context>
         <name>CapturedPiecesWidget</name>
         <message>
             <source>Captured pieces</source>
-            <translation />
+            <translation>被吃的棋子</translation>
         </message>
         <message>
             <source>queen</source>
-            <translation />
+            <translation>后</translation>
         </message>
         <message>
             <source>rook</source>
-            <translation />
+            <translation>车</translation>
         </message>
         <message>
             <source>bishop</source>
-            <translation />
+            <translation>象</translation>
         </message>
         <message>
             <source>knight</source>
-            <translation />
+            <translation>马</translation>
         </message>
         <message>
             <source>pawn</source>
-            <translation />
+            <translation>兵</translation>
         </message>
         <message>
             <source>nothing</source>
-            <translation />
+            <translation>无</translation>
         </message>
         <message>
             <source>White has captured: %1
 Black has captured: %2</source>
-            <translation />
+            <translation>白方吃子：%1
+黑方吃子：%2</translation>
         </message>
     </context>
     <context>
         <name>Cba2Decoder</name>
         <message>
             <source>The annotations run past their record.</source>
-            <translation />
+            <translation>评注超出了其记录范围。</translation>
         </message>
         <message>
             <source>Unknown annotation %1.</source>
-            <translation />
+            <translation>未知的评注 %1。</translation>
         </message>
     </context>
     <context>
         <name>Cbg2Decoder</name>
         <message>
             <source>Unexpected marker %1 among the moves.</source>
-            <translation />
+            <translation>着法中出现意外的标记 %1。</translation>
         </message>
         <message>
             <source>Unknown move word %1.</source>
-            <translation />
+            <translation>未知的着法字码 %1。</translation>
         </message>
         <message>
             <source>The moves of the game are not where its header says.</source>
-            <translation />
+            <translation>该对局的着法不在其头部所指的位置。</translation>
         </message>
         <message>
             <source>The move record is cut short.</source>
-            <translation />
+            <translation>着法记录不完整。</translation>
         </message>
         <message>
             <source>Games from a set-up position are not read yet.</source>
-            <translation />
+            <translation>尚不支持读取从设置局面开始的对局。</translation>
         </message>
         <message>
             <source>The move record does not start with its moves.</source>
-            <translation />
+            <translation>着法记录的开头不是其着法。</translation>
         </message>
     </context>
     <context>
         <name>CbgDecoder</name>
         <message>
             <source>The move record is cut short.</source>
-            <translation />
+            <translation>着法记录不完整。</translation>
         </message>
         <message>
             <source>The moves use an encoding Pragma Chess does not read (mode %1).</source>
-            <translation />
+            <translation>着法使用了 Pragma Chess 无法读取的编码（模式 %1）。</translation>
         </message>
         <message>
             <source>The start position is cut short.</source>
-            <translation />
+            <translation>起始局面不完整。</translation>
         </message>
         <message>
             <source>The start position cannot be read.</source>
-            <translation />
+            <translation>无法读取起始局面。</translation>
         </message>
         <message>
             <source>Unknown move code %1.</source>
-            <translation />
+            <translation>未知的着法代码 %1。</translation>
         </message>
         <message>
             <source>A two-byte move runs past the record.</source>
-            <translation />
+            <translation>一个双字节着法超出了记录末尾。</translation>
         </message>
         <message>
             <source>The king is missing.</source>
-            <translation />
+            <translation>缺少王。</translation>
         </message>
         <message>
             <source>Pawn %1 is gone.</source>
-            <translation />
+            <translation>兵 %1 已不存在。</translation>
         </message>
         <message>
             <source>There is no piece number %1 of that kind.</source>
-            <translation />
+            <translation>没有该类型的第 %1 号棋子。</translation>
         </message>
         <message>
             <source>Move %1: there is no piece on %2.</source>
-            <translation />
+            <translation>着法 %1：%2 上没有棋子。</translation>
         </message>
     </context>
     <context>
         <name>Chapters</name>
         <message>
             <source>Chapter %1</source>
-            <translation />
+            <translation>第 %1 章</translation>
         </message>
     </context>
     <context>
         <name>ChessBaseDatabase</name>
         <message>
             <source>Cannot read %1.</source>
-            <translation />
+            <translation>无法读取 %1。</translation>
         </message>
         <message>
             <source>%1 is not a ChessBase database.</source>
-            <translation />
+            <translation>%1 不是 ChessBase 数据库。</translation>
         </message>
         <message>
             <source>The moves file (.cbg) is missing beside %1.</source>
-            <translation />
+            <translation>%1 旁边缺少着法文件（.cbg）。</translation>
         </message>
         <message>
             <source>The moves file cannot be read.</source>
-            <translation />
+            <translation>无法读取该着法文件。</translation>
         </message>
         <message>
             <source>The start position is not valid: %1</source>
-            <translation />
+            <translation>起始局面无效：%1</translation>
         </message>
         <message>
             <source>Move %1 (%2) is not legal.</source>
-            <translation />
+            <translation>着法 %1（%2）不合法。</translation>
         </message>
         <message>
             <source>The moves file (.2cbg) is missing beside %1.</source>
-            <translation />
+            <translation>%1 旁边缺少着法文件（.2cbg）。</translation>
         </message>
         <message>
             <source>Chess960 games are not read yet.</source>
-            <translation />
+            <translation>尚不支持读取 Chess960 对局。</translation>
         </message>
     </context>
     <context>
         <name>ChessBaseFetch</name>
         <message>
             <source>The ChessBase database was not found at %1.</source>
-            <translation />
+            <translation>在 %1 未找到该 ChessBase 数据库。</translation>
         </message>
     </context>
     <context>
         <name>ConnectMobileDialog</name>
         <message>
             <source>No device is connected yet.</source>
-            <translation />
+            <translation>还没有连接任何设备。</translation>
         </message>
         <message>
             <source>Connect Mobile App</source>
-            <translation />
+            <translation>连接手机应用</translation>
         </message>
         <message>
             <source>Scan this code with Pragma Chess on your phone or tablet. It copies your databases to the device, and the games you play there come back to this computer.</source>
-            <translation />
+            <translation>用手机或平板上的 Pragma Chess 扫描这个二维码。它会把你的数据库复制到设备上，而你在那里下的对局会回到这台电脑。</translation>
         </message>
         <message>
             <source>The same link as the code, to paste on the phone</source>
-            <translation />
+            <translation>与二维码相同的链接，可粘贴到手机上使用</translation>
         </message>
         <message>
             <source>Copy</source>
-            <translation />
+            <translation>复制</translation>
         </message>
         <message>
             <source>Connected devices</source>
-            <translation />
+            <translation>已连接的设备</translation>
         </message>
         <message>
             <source>Name</source>
-            <translation />
+            <translation>名称</translation>
         </message>
         <message>
             <source>Paired</source>
-            <translation />
+            <translation>配对时间</translation>
         </message>
         <message>
             <source>Last Sync</source>
-            <translation />
+            <translation>上次同步</translation>
         </message>
         <message>
             <source>Never</source>
-            <translation />
+            <translation>从未</translation>
         </message>
         <message>
             <source>Disconnect</source>
-            <translation />
+            <translation>断开连接</translation>
         </message>
         <message>
             <source>Forget this device: it can no longer copy the databases</source>
-            <translation />
+            <translation>忘记此设备：它将无法再复制数据库</translation>
         </message>
         <message>
             <source>%1 is connected.</source>
-            <translation />
+            <translation>%1 已连接。</translation>
         </message>
         <message>
             <source>Relays: %1 of %2</source>
-            <translation />
+            <translation>中继：%1/%2</translation>
         </message>
         <message>
             <source>Pragma Chess for your phone</source>
-            <translation />
+            <translation>手机上的 Pragma Chess</translation>
         </message>
         <message>
             <source>For Android phones and tablets; it is coming to the stores. Install it, then scan the code below with it.</source>
-            <translation />
+            <translation>适用于 Android 手机和平板，即将上架各应用商店。安装后，用它扫描下方的二维码。</translation>
         </message>
         <message>
             <source>Download the APK for</source>
-            <translation />
+            <translation>下载 APK 用于</translation>
         </message>
         <message>
             <source>Coming soon on</source>
-            <translation />
+            <translation>即将登陆</translation>
         </message>
     </context>
     <context>
         <name>ConnectSourceWizard</name>
         <message>
             <source>Connect Source</source>
-            <translation />
+            <translation>连接数据源</translation>
         </message>
         <message>
             <source>Connect a Source to “%1”</source>
-            <translation />
+            <translation>将数据源连接到“%1”</translation>
         </message>
         <message>
             <source>Games from the source are added to this database and kept up to date in the background while it is open.</source>
-            <translation />
+            <translation>数据源中的对局会被添加到这个数据库，并在数据库打开期间于后台保持更新。</translation>
         </message>
         <message>
             <source>&amp;Source:</source>
-            <translation />
+            <translation>数据源(&amp;S)：</translation>
         </message>
         <message>
             <source>Source</source>
-            <translation />
+            <translation>数据源</translation>
         </message>
         <message>
             <source>Ready to Connect</source>
-            <translation />
+            <translation>可以连接了</translation>
         </message>
         <message>
             <source>%1 Player</source>
-            <translation />
+            <translation>%1 棋手</translation>
         </message>
         <message>
             <source>%1 Account</source>
-            <translation />
+            <translation>%1 账号</translation>
         </message>
         <message>
             <source>Which games to import into “%1”.</source>
-            <translation />
+            <translation>要将哪些对局导入“%1”。</translation>
         </message>
         <message>
             <source>rated games</source>
-            <translation />
+            <translation>计分对局</translation>
         </message>
         <message>
             <source>games</source>
-            <translation />
+            <translation>对局</translation>
         </message>
         <message>
             <source>%1 played since %2</source>
-            <translation />
+            <translation>自 %2 以来下的 %1</translation>
         </message>
         <message>
             <source>The %1 of &lt;b&gt;%2&lt;/b&gt; will be imported into &lt;b&gt;%3&lt;/b&gt;.&lt;br&gt;&lt;br&gt;The first import starts when you finish and runs in the background; new games keep arriving while the database is open. Sources can be removed or signed in again from Database ▸ Manage Sources.</source>
-            <translation />
+            <translation>&lt;b&gt;%2&lt;/b&gt; 的%1将被导入 &lt;b&gt;%3&lt;/b&gt;。&lt;br&gt;&lt;br&gt;首次导入在你完成后开始，并在后台运行；只要数据库处于打开状态，新的对局就会不断进来。可以在“数据库 ▸ 管理数据源”中移除数据源或重新登录。</translation>
         </message>
         <message>
             <source>Which study to keep in “%1”.</source>
-            <translation />
+            <translation>要在“%1”中保留哪个研习。</translation>
         </message>
         <message>
             <source>chapters</source>
-            <translation />
+            <translation>章节</translation>
         </message>
     </context>
     <context>
         <name>ConvertPgnDialog</name>
         <message>
             <source>PGN to Pragma Database</source>
-            <translation />
+            <translation>将 PGN 转换为 Pragma 数据库</translation>
         </message>
         <message>
             <source>Makes a Pragma database of the games of a PGN file, however large. The PGN file is not changed.</source>
-            <translation />
+            <translation>把一个 PGN 文件中的对局做成 Pragma 数据库，无论文件多大。PGN 文件本身不会被改动。</translation>
         </message>
         <message>
             <source>Browse…</source>
-            <translation />
+            <translation>浏览…</translation>
         </message>
         <message>
             <source>PGN file:</source>
-            <translation />
+            <translation>PGN 文件：</translation>
         </message>
         <message>
             <source>Database:</source>
-            <translation />
+            <translation>数据库：</translation>
         </message>
         <message>
             <source>Open Database</source>
-            <translation />
+            <translation>打开数据库</translation>
         </message>
         <message>
             <source>Convert</source>
-            <translation />
+            <translation>转换</translation>
         </message>
         <message>
             <source>PGN File</source>
-            <translation />
+            <translation>PGN 文件</translation>
         </message>
         <message>
             <source>PGN files (*.pgn);;All files (*)</source>
-            <translation />
+            <translation>PGN 文件 (*.pgn);;所有文件 (*)</translation>
         </message>
         <message>
             <source>New Database</source>
-            <translation />
+            <translation>新建数据库</translation>
         </message>
         <message>
             <source>Pragma Chess databases (*.pdb)</source>
-            <translation />
+            <translation>Pragma Chess 数据库 (*.pdb)</translation>
         </message>
         <message>
             <source>The PGN file was not found.</source>
-            <translation />
+            <translation>未找到该 PGN 文件。</translation>
         </message>
         <message>
             <source>“%1” already exists: choose another name.</source>
-            <translation />
+            <translation>“%1”已存在：请另取一个名称。</translation>
         </message>
         <message>
             <source>Converting…</source>
-            <translation />
+            <translation>正在转换…</translation>
         </message>
         <message>
             <source>%1 games · %2 of %3 MB read · %4 games a second</source>
-            <translation />
+            <translation>%1 盘对局 · 已读取 %3 MB 中的 %2 MB · 每秒 %4 盘</translation>
         </message>
         <message>
             <source>Done: %1 games in %2 seconds.</source>
-            <translation />
+            <translation>完成：%1 盘对局，用时 %2 秒。</translation>
         </message>
         <message numerus="yes">
             <source>%n entry(ies) of the file could not be read as a game.</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>文件中有 %n 条记录无法作为对局读取。</numerusform>
+                <numerusform>文件中有 %n 条记录无法作为对局读取。</numerusform>
             </translation>
         </message>
         <message>
             <source>Cancelled: no database was made.</source>
-            <translation />
+            <translation>已取消：未创建任何数据库。</translation>
         </message>
         <message>
             <source>The conversion failed: %1</source>
-            <translation />
+            <translation>转换失败：%1</translation>
         </message>
         <message>
             <source>Cancel</source>
-            <translation />
+            <translation>取消</translation>
         </message>
         <message>
             <source>Close</source>
-            <translation />
+            <translation>关闭</translation>
         </message>
         <message>
             <source>Cancelling…</source>
-            <translation />
+            <translation>正在取消…</translation>
         </message>
     </context>
     <context>
         <name>DatabaseSettingsDialog</name>
         <message>
             <source>Database Settings</source>
-            <translation />
+            <translation>数据库设置</translation>
         </message>
         <message>
             <source>Database:</source>
-            <translation />
+            <translation>数据库：</translation>
         </message>
         <message>
             <source>Game Collection</source>
-            <translation />
+            <translation>对局集合</translation>
         </message>
         <message>
             <source>Opening Book</source>
-            <translation />
+            <translation>开局库</translation>
         </message>
         <message>
             <source>Database &amp;type:</source>
-            <translation />
+            <translation>数据库类型(&amp;T)：</translation>
         </message>
         <message>
             <source>&amp;Description:</source>
-            <translation />
+            <translation>说明(&amp;D)：</translation>
         </message>
         <message>
             <source>Copies of this database on other computers and phones share this id, whatever the file is called, so their games are merged when syncing.</source>
-            <translation />
+            <translation>该数据库在其他电脑和手机上的副本共享这个标识，无论文件叫什么名字；这样同步时就能把它们的对局合并在一起。</translation>
         </message>
         <message>
             <source>Universal id:</source>
-            <translation />
+            <translation>通用标识：</translation>
         </message>
         <message>
             <source>The name shown for this database; empty to show the file name</source>
-            <translation />
+            <translation>该数据库显示的名称；留空则显示文件名</translation>
         </message>
         <message>
             <source>&amp;Name:</source>
-            <translation />
+            <translation>名称(&amp;N)：</translation>
         </message>
         <message>
             <source>%1: %2</source>
-            <translation />
+            <translation>%1：%2</translation>
         </message>
         <message>
             <source>Translations:</source>
-            <translation />
+            <translation>翻译：</translation>
         </message>
         <message>
             <source>&amp;Optimize Database</source>
-            <translation />
+            <translation>优化数据库(&amp;O)</translation>
         </message>
         <message>
             <source>Remove for good the games deleted from the trash and compact the file</source>
-            <translation />
+            <translation>彻底清除已从回收站中删除的对局，并压缩文件</translation>
         </message>
         <message>
             <source>Puzzles and Training</source>
-            <translation />
+            <translation>习题与训练</translation>
         </message>
         <message>
             <source>An opening book names openings and variations: each game is a line, Event is its name and ECO its code. Only opening books are offered in Options ▸ Opening Names. Puzzles and Training hides the moves in the games list, and a game opened from it is played in Training Mode by the side to move.</source>
-            <translation />
+            <translation>开局库为开局和变着命名：每盘对局是一条线路，Event 是它的名称，ECO 是它的代码。只有开局库会出现在“选项 ▸ 开局名称”中。“习题与训练”会隐藏对局列表中的着法，从这里打开的对局将以走子方的身份进入训练模式。</translation>
         </message>
     </context>
     <context>
         <name>DatabaseTreeWidget</name>
         <message>
             <source>Database</source>
-            <translation />
+            <translation>数据库</translation>
         </message>
         <message>
             <source>Me</source>
-            <translation />
+            <translation>我</translation>
         </message>
         <message>
             <source>ECO</source>
-            <translation />
+            <translation>ECO</translation>
         </message>
         <message>
             <source>S&amp;ync Now</source>
-            <translation />
+            <translation>立即同步(&amp;Y)</translation>
         </message>
         <message>
             <source>Connect &amp;Source…</source>
-            <translation />
+            <translation>连接数据源(&amp;S)…</translation>
         </message>
         <message>
             <source>&amp;Manage Sources…</source>
-            <translation />
+            <translation>管理数据源(&amp;M)…</translation>
         </message>
         <message>
             <source>Board</source>
-            <translation />
+            <translation>棋盘</translation>
         </message>
         <message>
             <source>Position</source>
-            <translation />
+            <translation>局面</translation>
         </message>
         <message>
             <source>Games in which the position on the board occurs, in any move order</source>
-            <translation />
+            <translation>出现过棋盘上当前局面的对局，不限着法顺序</translation>
         </message>
         <message>
             <source>Variant</source>
-            <translation />
+            <translation>着法顺序</translation>
         </message>
         <message>
             <source>Games that begin with exactly the moves played to reach the board</source>
-            <translation />
+            <translation>从开局起所走的着法与走到当前局面完全相同的对局</translation>
         </message>
         <message>
             <source>Trash</source>
-            <translation />
+            <translation>回收站</translation>
         </message>
         <message>
             <source>Games put in the trash: restore them, or delete them from here</source>
-            <translation />
+            <translation>放入回收站的对局：可以还原，也可以从这里删除</translation>
         </message>
         <message>
             <source>Recent</source>
-            <translation />
+            <translation>近期</translation>
         </message>
         <message numerus="yes">
             <source>Put in the trash in the last %n day(s)</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>最近 %n 天内放入回收站的</numerusform>
+                <numerusform>最近 %n 天内放入回收站的</numerusform>
             </translation>
         </message>
         <message>
             <source>Old</source>
-            <translation />
+            <translation>较早</translation>
         </message>
         <message numerus="yes">
             <source>In the trash for %n day(s) or more</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>在回收站中已存放 %n 天或更久</numerusform>
+                <numerusform>在回收站中已存放 %n 天或更久</numerusform>
             </translation>
         </message>
         <message>
             <source>Database &amp;Settings…</source>
-            <translation />
+            <translation>数据库设置(&amp;S)…</translation>
         </message>
         <message>
             <source>Time Control</source>
-            <translation />
+            <translation>时限</translation>
         </message>
         <message>
             <source>Friend</source>
-            <translation />
+            <translation>棋友</translation>
         </message>
         <message>
             <source>Opponent</source>
-            <translation />
+            <translation>对手</translation>
         </message>
         <message>
             <source>Tournament/Event</source>
-            <translation />
+            <translation>赛事/比赛</translation>
         </message>
         <message>
             <source>Year</source>
-            <translation />
+            <translation>年份</translation>
         </message>
         <message>
             <source>Study</source>
-            <translation />
+            <translation>研习</translation>
         </message>
         <message>
             <source>Source</source>
-            <translation />
+            <translation>数据源</translation>
         </message>
         <message>
             <source>Endgames</source>
-            <translation />
+            <translation>残局</translation>
         </message>
         <message>
             <source>Tactics</source>
-            <translation />
+            <translation>战术</translation>
         </message>
     </context>
     <context>
         <name>DiscoveryBalloon</name>
         <message>
             <source>Don't show this again</source>
-            <translation />
+            <translation>不再显示</translation>
         </message>
         <message>
             <source>OK</source>
-            <translation />
+            <translation>确定</translation>
         </message>
         <message>
             <source>Tip</source>
-            <translation />
+            <translation>提示</translation>
         </message>
     </context>
     <context>
         <name>Drawers</name>
         <message>
             <source>Every drawer needs a name.</source>
-            <translation />
+            <translation>每个抽屉都需要一个名字。</translation>
         </message>
         <message>
             <source>Two drawers are called "%1": each needs a name of its own.</source>
-            <translation />
+            <translation>有两个抽屉都叫“%1”：每个都需要自己的名字。</translation>
         </message>
     </context>
     <context>
         <name>DrawersDialog</name>
         <message>
             <source>Drawers</source>
-            <translation />
+            <translation>抽屉</translation>
         </message>
         <message>
             <source>Each drawer keeps something under a name — moves, a variation, a position, a note — to take it out again when you need it. The drawers are yours: they go with you to every synced computer.</source>
-            <translation />
+            <translation>每个抽屉都以一个名字保存一样东西——着法、变着、局面或笔记——需要时再取出来。这些抽屉属于你：它们会随你到每一台已同步的电脑。</translation>
         </message>
         <message>
             <source>&amp;New Drawer</source>
-            <translation />
+            <translation>新建抽屉(&amp;N)</translation>
         </message>
         <message>
             <source>&amp;Delete</source>
-            <translation />
+            <translation>删除(&amp;D)</translation>
         </message>
         <message>
             <source>The name you will call it by</source>
-            <translation />
+            <translation>你用来称呼它的名字</translation>
         </message>
         <message>
             <source>&amp;Name:</source>
-            <translation />
+            <translation>名称(&amp;N)：</translation>
         </message>
         <message>
             <source>Moves, a variation, a FEN position, a note…</source>
-            <translation />
+            <translation>着法、变着、FEN 局面、笔记…</translation>
         </message>
         <message>
             <source>&amp;Content:</source>
-            <translation />
+            <translation>内容(&amp;C)：</translation>
         </message>
         <message>
             <source>(no name)</source>
-            <translation />
+            <translation>（未命名）</translation>
         </message>
         <message>
             <source>No drawers yet: New Drawer makes the first.</source>
-            <translation />
+            <translation>还没有抽屉：用“新建抽屉”创建第一个。</translation>
         </message>
     </context>
     <context>
         <name>EnCroissantCatalog</name>
         <message>
             <source>In En Croissant's own format, which Pragma Chess does not read yet; its license is to be checked before it is offered.</source>
-            <translation />
+            <translation>采用 En Croissant 自己的格式，Pragma Chess 尚无法读取；在提供之前还需确认其许可协议。</translation>
         </message>
     </context>
     <context>
         <name>EnCroissantProvider</name>
         <message>
             <source>The registry of En Croissant, another free chess program: engines downloaded from their authors' own pages, and the databases it converted.</source>
-            <translation />
+            <translation>En Croissant（另一款自由国际象棋程序）的注册表：从其作者页面下载的引擎，以及它转换过的数据库。</translation>
         </message>
     </context>
     <context>
         <name>EnginePanel</name>
         <message>
             <source>Explanation</source>
-            <translation />
+            <translation>讲解</translation>
         </message>
         <message>
             <source>Opening</source>
-            <translation />
+            <translation>开局</translation>
         </message>
         <message>
             <source>Book</source>
-            <translation />
+            <translation>开局库</translation>
         </message>
         <message>
             <source>The best line is hidden: it is your move.</source>
-            <translation />
+            <translation>最佳着法线路已隐藏：该你走了。</translation>
         </message>
         <message>
             <source>Tutor</source>
-            <translation />
+            <translation>教练</translation>
         </message>
         <message>
             <source>Take Back</source>
-            <translation />
+            <translation>收回着法</translation>
         </message>
         <message>
             <source>Take the move back and play another one</source>
-            <translation />
+            <translation>收回这一着，另走一着</translation>
         </message>
         <message>
             <source>Ignore</source>
-            <translation />
+            <translation>忽略</translation>
         </message>
         <message>
             <source>Keep the move: the engine answers</source>
-            <translation />
+            <translation>保留这一着：由引擎应着</translation>
         </message>
         <message>
             <source>Hold: where the line ends</source>
-            <translation />
+            <translation>按住：前进到线路末端</translation>
         </message>
         <message>
             <source>Send Move</source>
-            <translation />
+            <translation>发送着法</translation>
         </message>
         <message>
             <source>Send Plan</source>
-            <translation />
+            <translation>发送预案</translation>
         </message>
         <message>
             <source>Lobby</source>
-            <translation />
+            <translation>大厅</translation>
         </message>
         <message>
             <source>Send your next move, the one after where the game stands</source>
-            <translation />
+            <translation>发送你的下一着，即对局当前进度之后的那一着</translation>
         </message>
         <message>
             <source>Send your move and the answers you prepared on the board to your opponent's replies: they are played at once when your opponent plays one of them</source>
-            <translation />
+            <translation>发送你这一着，以及你在棋盘上为对手应着准备好的应对：当对手走出其中之一时，会立即自动落子</translation>
         </message>
         <message>
             <source>Offer Draw</source>
-            <translation />
+            <translation>提和</translation>
         </message>
         <message>
             <source>Resign</source>
-            <translation />
+            <translation>认输</translation>
         </message>
         <message>
             <source>Accept Draw</source>
-            <translation />
+            <translation>接受和棋</translation>
         </message>
         <message>
             <source>Draw Offered</source>
-            <translation />
+            <translation>已提和</translation>
         </message>
         <message>
             <source>Your opponent offers a draw: accept it</source>
-            <translation />
+            <translation>对手提和：接受</translation>
         </message>
         <message>
             <source>Your offer waits for your opponent's answer</source>
-            <translation />
+            <translation>你的提和正等待对手回应</translation>
         </message>
         <message>
             <source>Offer your opponent a draw</source>
-            <translation />
+            <translation>向对手提和</translation>
         </message>
         <message>
             <source>Analyze</source>
-            <translation />
+            <translation>分析</translation>
         </message>
         <message>
             <source>Stop</source>
-            <translation />
+            <translation>停止</translation>
         </message>
         <message>
             <source>Calculating… %1%</source>
-            <translation />
+            <translation>正在计算… %1%</translation>
         </message>
     </context>
     <context>
         <name>EvaluationBar</name>
         <message>
             <source>Evaluation</source>
-            <translation />
+            <translation>评估</translation>
         </message>
         <message>
             <source>%1 (depth %2)</source>
-            <translation />
+            <translation>%1（深度 %2）</translation>
         </message>
     </context>
     <context>
         <name>EvaluationBox</name>
         <message>
             <source>Evaluation</source>
-            <translation />
+            <translation>评估</translation>
         </message>
         <message>
             <source>Depth %1</source>
-            <translation />
+            <translation>深度 %1</translation>
         </message>
         <message>
             <source>Click to show the score another way.</source>
-            <translation />
+            <translation>单击换一种方式显示分数。</translation>
         </message>
         <message>
             <source>%1: no move judged</source>
-            <translation />
+            <translation>%1：没有着法被评判</translation>
         </message>
         <message>
             <source>≈%1</source>
-            <translation />
+            <translation>≈%1</translation>
         </message>
         <message>
             <source>too few moves for an estimate</source>
-            <translation />
+            <translation>着法太少，无法估算</translation>
         </message>
         <message numerus="yes">
             <source>%1: %2 — average loss %3 centipawns, accuracy %4%, %n move(s)</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>%1：%2 — 平均损失 %3 厘兵，准确率 %4%，共 %n 着</numerusform>
+                <numerusform>%1：%2 — 平均损失 %3 厘兵，准确率 %4%，共 %n 着</numerusform>
             </translation>
         </message>
         <message>
             <source>Strength shown in this game, estimated from the engine's evaluation of every move:</source>
-            <translation />
+            <translation>本盘对局中表现出的棋力，由引擎对每一着的评估估算得出：</translation>
         </message>
         <message>
             <source>White</source>
-            <translation />
+            <translation>白方</translation>
         </message>
         <message>
             <source>Black</source>
-            <translation />
+            <translation>黑方</translation>
         </message>
         <message>
             <source>From one game the estimate is rough: some hundreds of points either way.</source>
-            <translation />
+            <translation>仅凭一盘对局得出的估算很粗略：上下可能相差几百个等级分。</translation>
         </message>
     </context>
     <context>
         <name>Explainer</name>
         <message>
             <source>Analyzing…</source>
-            <translation />
+            <translation>正在分析…</translation>
         </message>
     </context>
     <context>
         <name>ExtensionInstaller</name>
         <message>
             <source>The engine's program is not where its catalog says: %1</source>
-            <translation />
+            <translation>引擎程序不在目录所指的位置：%1</translation>
         </message>
         <message>
             <source>%1 is not an extension's folder.</source>
-            <translation />
+            <translation>%1 不是扩展的文件夹。</translation>
         </message>
         <message>
             <source>Could not remove %1.</source>
-            <translation />
+            <translation>无法移除 %1。</translation>
         </message>
     </context>
     <context>
         <name>ExtensionsDialog</name>
         <message>
             <source>Engine</source>
-            <translation />
+            <translation>引擎</translation>
         </message>
         <message>
             <source>Database</source>
-            <translation />
+            <translation>数据库</translation>
         </message>
         <message>
             <source>Manage Extensions</source>
-            <translation />
+            <translation>管理扩展</translation>
         </message>
         <message>
             <source>Providers</source>
-            <translation />
+            <translation>提供方</translation>
         </message>
         <message>
             <source>Extensions</source>
-            <translation />
+            <translation>扩展</translation>
         </message>
         <message>
             <source>Search</source>
-            <translation />
+            <translation>搜索</translation>
         </message>
         <message>
             <source>All</source>
-            <translation />
+            <translation>全部</translation>
         </message>
         <message>
             <source>Engines</source>
-            <translation />
+            <translation>引擎</translation>
         </message>
         <message>
             <source>Databases</source>
-            <translation />
+            <translation>数据库</translation>
         </message>
         <message>
             <source>Name</source>
-            <translation />
+            <translation>名称</translation>
         </message>
         <message>
             <source>Version</source>
-            <translation />
+            <translation>版本</translation>
         </message>
         <message>
             <source>Kind</source>
-            <translation />
+            <translation>类型</translation>
         </message>
         <message>
             <source>Installed</source>
-            <translation />
+            <translation>已安装</translation>
         </message>
         <message>
             <source>Details</source>
-            <translation />
+            <translation>详情</translation>
         </message>
         <message>
             <source>Install</source>
-            <translation />
+            <translation>安装</translation>
         </message>
         <message>
             <source>Remove</source>
-            <translation />
+            <translation>移除</translation>
         </message>
         <message>
             <source>The catalog could not be read: %1</source>
-            <translation />
+            <translation>无法读取目录：%1</translation>
         </message>
         <message>
             <source>Downloading… %1 of %2</source>
-            <translation />
+            <translation>正在下载… %1/%2</translation>
         </message>
         <message>
             <source>Downloading… %1</source>
-            <translation />
+            <translation>正在下载… %1</translation>
         </message>
         <message>
             <source>Installed.</source>
-            <translation />
+            <translation>已安装。</translation>
         </message>
         <message>
             <source>Installed: %1 is in Engine ▸ Switch Engine.</source>
-            <translation />
+            <translation>已安装：%1 位于“引擎 ▸ 切换引擎”。</translation>
         </message>
         <message>
             <source>Could not install: %1</source>
-            <translation />
+            <translation>无法安装：%1</translation>
         </message>
         <message>
             <source>Reading the catalog…</source>
-            <translation />
+            <translation>正在读取目录…</translation>
         </message>
         <message numerus="yes">
             <source>%n extension(s)</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>%n 个扩展</numerusform>
+                <numerusform>%n 个扩展</numerusform>
             </translation>
         </message>
         <message>
             <source>Elo about %1</source>
-            <translation />
+            <translation>等级分约 %1</translation>
         </message>
         <message>
             <source>%1 puzzles</source>
-            <translation />
+            <translation>%1 道习题</translation>
         </message>
         <message>
             <source>%1 games</source>
-            <translation />
+            <translation>%1 盘对局</translation>
         </message>
         <message>
             <source>Download: %1</source>
-            <translation />
+            <translation>下载量：%1</translation>
         </message>
         <message>
             <source>From &lt;a href="%1"&gt;%2&lt;/a&gt;</source>
-            <translation />
+            <translation>来自 &lt;a href="%1"&gt;%2&lt;/a&gt;</translation>
         </message>
         <message>
             <source>Installed: version %1</source>
-            <translation />
+            <translation>已安装：版本 %1</translation>
         </message>
         <message>
             <source>Update</source>
-            <translation />
+            <translation>更新</translation>
         </message>
         <message>
             <source>Downloading…</source>
-            <translation />
+            <translation>正在下载…</translation>
         </message>
         <message>
             <source>Could not remove: %1</source>
-            <translation />
+            <translation>无法移除：%1</translation>
         </message>
         <message>
             <source>Removed.</source>
-            <translation />
+            <translation>已移除。</translation>
         </message>
     </context>
     <context>
         <name>FicsClient</name>
         <message>
             <source>freechess.org: %1</source>
-            <translation />
+            <translation>freechess.org：%1</translation>
         </message>
         <message>
             <source>freechess.org asks for the password of %1.</source>
-            <translation />
+            <translation>freechess.org 要求输入 %1 的密码。</translation>
         </message>
         <message>
             <source>freechess.org refused the password of %1.</source>
-            <translation />
+            <translation>freechess.org 拒绝接受 %1 的密码。</translation>
         </message>
     </context>
     <context>
         <name>FileTypes</name>
         <message>
             <source>Pragma Chess Project</source>
-            <translation />
+            <translation>Pragma Chess 项目</translation>
         </message>
         <message>
             <source>Pragma Chess Database</source>
-            <translation />
+            <translation>Pragma Chess 数据库</translation>
         </message>
     </context>
     <context>
@@ -1307,168 +1309,168 @@ Black has captured: %2</source>
         <name>FolderSync</name>
         <message>
             <source>%1 is syncing; trying again later.</source>
-            <translation />
+            <translation>%1 正在同步；稍后重试。</translation>
         </message>
         <message>
             <source>Waiting for %1 to finish syncing…</source>
-            <translation />
+            <translation>正在等待 %1 完成同步…</translation>
         </message>
         <message>
             <source>Another device is syncing; trying again later.</source>
-            <translation />
+            <translation>另一台设备正在同步；稍后重试。</translation>
         </message>
         <message>
             <source>Comparing files…</source>
-            <translation />
+            <translation>正在比较文件…</translation>
         </message>
         <message>
             <source>Could not read “%1”.</source>
-            <translation />
+            <translation>无法读取“%1”。</translation>
         </message>
         <message>
             <source>Uploading %1…</source>
-            <translation />
+            <translation>正在上传 %1…</translation>
         </message>
         <message>
             <source>Downloading %1…</source>
-            <translation />
+            <translation>正在下载 %1…</translation>
         </message>
         <message>
             <source>Keeping both versions of %1…</source>
-            <translation />
+            <translation>保留 %1 的两个版本…</translation>
         </message>
         <message>
             <source>Another device keeps syncing; trying again later.</source>
-            <translation />
+            <translation>另一台设备一直在同步；稍后重试。</translation>
         </message>
         <message>
             <source>Could not merge %1: %2</source>
-            <translation />
+            <translation>无法合并 %1：%2</translation>
         </message>
         <message>
             <source>Removing %1, merged into another database…</source>
-            <translation />
+            <translation>正在移除 %1，它已并入另一个数据库…</translation>
         </message>
         <message>
             <source>Merging %1 into %2…</source>
-            <translation />
+            <translation>正在将 %1 并入 %2…</translation>
         </message>
         <message>
             <source>A sync is running; try again when it has finished.</source>
-            <translation />
+            <translation>有同步正在进行；请等它结束后再试。</translation>
         </message>
         <message>
             <source>“%1” is not in the synced folder.</source>
-            <translation />
+            <translation>“%1”不在同步文件夹中。</translation>
         </message>
         <message>
             <source>“%1” has no database id, so the other devices could not tell it apart.</source>
-            <translation />
+            <translation>“%1”没有数据库标识，其他设备无法将它区分开。</translation>
         </message>
         <message>
             <source>Could not delete “%1”.</source>
-            <translation />
+            <translation>无法删除“%1”。</translation>
         </message>
         <message>
             <source>Removing %1, deleted on another device…</source>
-            <translation />
+            <translation>正在移除 %1，它已在另一台设备上被删除…</translation>
         </message>
         <message>
             <source>Deleting %1, deleted on another device…</source>
-            <translation />
+            <translation>正在删除 %1，它已在另一台设备上被删除…</translation>
         </message>
         <message>
             <source>Could not delete %1.</source>
-            <translation />
+            <translation>无法删除 %1。</translation>
         </message>
         <message>
             <source>No server is set up.</source>
-            <translation />
+            <translation>尚未配置服务器。</translation>
         </message>
         <message>
             <source>Leaving %1 on the server only…</source>
-            <translation />
+            <translation>%1 只保留在服务器上…</translation>
         </message>
     </context>
     <context>
         <name>FolderSyncTask</name>
         <message>
             <source>Folder</source>
-            <translation />
+            <translation>文件夹</translation>
         </message>
     </context>
     <context>
         <name>FtpStore</name>
         <message>
             <source>The FTP server stopped answering.</source>
-            <translation />
+            <translation>FTP 服务器停止响应。</translation>
         </message>
         <message>
             <source>The FTP server closed the connection.</source>
-            <translation />
+            <translation>FTP 服务器关闭了连接。</translation>
         </message>
         <message>
             <source>Could not talk to the FTP server: %1</source>
-            <translation />
+            <translation>无法与 FTP 服务器通信：%1</translation>
         </message>
         <message>
             <source>The FTP server refused the user name or password.</source>
-            <translation />
+            <translation>FTP 服务器拒绝了用户名或密码。</translation>
         </message>
         <message>
             <source>Could not open a data connection: %1</source>
-            <translation />
+            <translation>无法建立数据连接：%1</translation>
         </message>
         <message>
             <source>The FTP server does not support passive mode (%1 %2).</source>
-            <translation />
+            <translation>FTP 服务器不支持被动模式（%1 %2）。</translation>
         </message>
         <message>
             <source>The file does not exist on the FTP server.</source>
-            <translation />
+            <translation>该文件在 FTP 服务器上不存在。</translation>
         </message>
         <message>
             <source>The FTP server could not send the file (%1 %2).</source>
-            <translation />
+            <translation>FTP 服务器无法发送该文件（%1 %2）。</translation>
         </message>
         <message>
             <source>The FTP server did not accept the file (%1 %2).</source>
-            <translation />
+            <translation>FTP 服务器不接受该文件（%1 %2）。</translation>
         </message>
         <message>
             <source>The FTP server could not store the file (%1 %2).</source>
-            <translation />
+            <translation>FTP 服务器无法保存该文件（%1 %2）。</translation>
         </message>
         <message>
             <source>The FTP server could not rename the file (%1 %2).</source>
-            <translation />
+            <translation>FTP 服务器无法重命名该文件（%1 %2）。</translation>
         </message>
         <message>
             <source>The FTP server could not delete the file (%1 %2).</source>
-            <translation />
+            <translation>FTP 服务器无法删除该文件（%1 %2）。</translation>
         </message>
     </context>
     <context>
         <name>GameHeaderWidget</name>
         <message>
             <source>Game information</source>
-            <translation />
+            <translation>对局信息</translation>
         </message>
         <message>
             <source>Click to edit the game information</source>
-            <translation />
+            <translation>单击编辑对局信息</translation>
         </message>
         <message>
             <source>Position</source>
-            <translation />
+            <translation>局面</translation>
         </message>
         <message>
             <source>vs</source>
-            <translation />
+            <translation>vs</translation>
         </message>
         <message>
             <source>Add year and tournament</source>
-            <translation />
+            <translation>添加年份和赛事</translation>
         </message>
     </context>
     <context>
@@ -1570,122 +1572,122 @@ Black has captured: %2</source>
         <name>GameListModel</name>
         <message>
             <source>#</source>
-            <translation />
+            <translation>#</translation>
         </message>
         <message>
             <source>White</source>
-            <translation />
+            <translation>白方</translation>
         </message>
         <message>
             <source>Elo</source>
-            <translation />
+            <translation>等级分</translation>
         </message>
         <message>
             <source>Black</source>
-            <translation />
+            <translation>黑方</translation>
         </message>
         <message>
             <source>Result</source>
-            <translation />
+            <translation>结果</translation>
         </message>
         <message>
             <source>Date</source>
-            <translation />
+            <translation>日期</translation>
         </message>
         <message>
             <source>Event</source>
-            <translation />
+            <translation>赛事</translation>
         </message>
         <message>
             <source>Site</source>
-            <translation />
+            <translation>地点</translation>
         </message>
         <message>
             <source>ECO</source>
-            <translation />
+            <translation>ECO</translation>
         </message>
         <message>
             <source>Moves</source>
-            <translation />
+            <translation>着法</translation>
         </message>
         <message>
             <source>Number</source>
-            <translation />
+            <translation>编号</translation>
         </message>
         <message>
             <source>White Elo</source>
-            <translation />
+            <translation>白方等级分</translation>
         </message>
         <message>
             <source>Black Elo</source>
-            <translation />
+            <translation>黑方等级分</translation>
         </message>
         <message>
             <source>Line</source>
-            <translation />
+            <translation>线路</translation>
         </message>
     </context>
     <context>
         <name>GitStore</name>
         <message>
             <source>Git is not installed.</source>
-            <translation />
+            <translation>未安装 Git。</translation>
         </message>
         <message>
             <source>Could not run Git: %1</source>
-            <translation />
+            <translation>无法运行 Git：%1</translation>
         </message>
         <message>
             <source>Git could not check out the branch</source>
-            <translation />
+            <translation>Git 无法切换到该分支</translation>
         </message>
         <message>
             <source>Git could not update the clone</source>
-            <translation />
+            <translation>Git 无法更新克隆</translation>
         </message>
         <message>
             <source>Git could not fetch the repository</source>
-            <translation />
+            <translation>Git 无法拉取该仓库</translation>
         </message>
         <message>
             <source>Git could not clone the repository</source>
-            <translation />
+            <translation>Git 无法克隆该仓库</translation>
         </message>
         <message>
             <source>Git could not add the files</source>
-            <translation />
+            <translation>Git 无法添加文件</translation>
         </message>
         <message>
             <source>Git could not commit</source>
-            <translation />
+            <translation>Git 无法提交</translation>
         </message>
         <message>
             <source>Git could not push</source>
-            <translation />
+            <translation>Git 无法推送</translation>
         </message>
         <message>
             <source>“%1” is not in the repository.</source>
-            <translation />
+            <translation>“%1”不在该仓库中。</translation>
         </message>
         <message>
             <source>Git could not remove %1</source>
-            <translation />
+            <translation>Git 无法移除 %1</translation>
         </message>
         <message>
             <source>Could not read “%1”: %2</source>
-            <translation />
+            <translation>无法读取“%1”：%2</translation>
         </message>
         <message>
             <source>Could not write “%1”: %2</source>
-            <translation />
+            <translation>无法写入“%1”：%2</translation>
         </message>
         <message>
             <source>Could not receive “%1”: %2</source>
-            <translation />
+            <translation>无法接收“%1”：%2</translation>
         </message>
         <message>
             <source>Could not send “%1”: %2</source>
-            <translation />
+            <translation>无法发送“%1”：%2</translation>
         </message>
     </context>
     <context>
@@ -1751,82 +1753,82 @@ Black has captured: %2</source>
         <name>HelpButton</name>
         <message>
             <source>Help</source>
-            <translation />
+            <translation>帮助</translation>
         </message>
     </context>
     <context>
         <name>HelpDialog</name>
         <message>
             <source>Pragma Chess Guide</source>
-            <translation />
+            <translation>Pragma Chess 指南</translation>
         </message>
         <message>
             <source>Search the guide</source>
-            <translation />
+            <translation>搜索指南</translation>
         </message>
         <message>
             <source>Topics</source>
-            <translation />
+            <translation>主题</translation>
         </message>
         <message>
             <source>No topic matches</source>
-            <translation />
+            <translation>没有匹配的主题</translation>
         </message>
     </context>
     <context>
         <name>LichessBoardClient</name>
         <message>
             <source>The connection with lichess.org was lost.</source>
-            <translation />
+            <translation>与 lichess.org 的连接已中断。</translation>
         </message>
         <message>
             <source>lichess.org refused the game: %1</source>
-            <translation />
+            <translation>lichess.org 拒绝对局：%1</translation>
         </message>
     </context>
     <context>
         <name>LichessSignIn</name>
         <message>
             <source>Signing in took too long.</source>
-            <translation />
+            <translation>登录耗时过长。</translation>
         </message>
         <message>
             <source>Signed in to lichess.org. You can close this page and return to Pragma Chess.</source>
-            <translation />
+            <translation>已登录 lichess.org。你可以关闭本页并返回 Pragma Chess。</translation>
         </message>
         <message>
             <source>Signing in to lichess.org did not succeed. Return to Pragma Chess and try again.</source>
-            <translation />
+            <translation>登录 lichess.org 未成功。请返回 Pragma Chess 再试一次。</translation>
         </message>
         <message>
             <source>lichess.org did not grant access.</source>
-            <translation />
+            <translation>lichess.org 未授予访问权限。</translation>
         </message>
     </context>
     <context>
         <name>LichessStudyFetch</name>
         <message>
             <source>The address of the lichess study is not valid.</source>
-            <translation />
+            <translation>lichess 研习的地址无效。</translation>
         </message>
         <message>
             <source>Could not save the games: %1</source>
-            <translation />
+            <translation>无法保存对局：%1</translation>
         </message>
         <message numerus="yes">
             <source>%n chapter(s) of the study could not be read.</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>该研习中有 %n 个章节无法读取。</numerusform>
+                <numerusform>该研习中有 %n 个章节无法读取。</numerusform>
             </translation>
         </message>
         <message>
             <source>lichess.org did not find the study.</source>
-            <translation />
+            <translation>lichess.org 未找到该研习。</translation>
         </message>
         <message>
             <source>lichess.org does not let this study be downloaded: it is private, or its author lets only its members export it (Share &amp; export).</source>
-            <translation />
+            <translation>lichess.org 不允许下载这个研习：它是私有的，或者作者只允许其成员导出（分享与导出）。</translation>
         </message>
     </context>
     <context>
@@ -2108,7 +2110,7 @@ Black has captured: %2</source>
         <name>LobbyPlans</name>
         <message>
             <source>Pragma Chess Lobby</source>
-            <translation />
+            <translation>Pragma Chess 大厅</translation>
         </message>
     </context>
     <context>
@@ -3981,455 +3983,459 @@ is not on this computer.</source>
         <name>ManageChaptersDialog</name>
         <message>
             <source>&amp;Delete…</source>
-            <translation />
+            <translation>删除(&amp;D)…</translation>
         </message>
         <message>
             <source>Move &amp;Up</source>
-            <translation />
+            <translation>上移(&amp;U)</translation>
         </message>
         <message>
             <source>Move D&amp;own</source>
-            <translation />
+            <translation>下移(&amp;O)</translation>
         </message>
         <message>
             <source>Manage Chapters</source>
-            <translation />
+            <translation>管理章节</translation>
         </message>
         <message numerus="yes">
             <source>%n game(s)</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>%n 盘对局</numerusform>
+                <numerusform>%n 盘对局</numerusform>
             </translation>
         </message>
         <message>
             <source>&amp;New</source>
-            <translation />
+            <translation>新建(&amp;N)</translation>
         </message>
         <message>
             <source>&amp;Rename</source>
-            <translation />
+            <translation>重命名(&amp;R)</translation>
         </message>
         <message>
             <source>Delete Chapter</source>
-            <translation />
+            <translation>删除章节</translation>
         </message>
         <message numerus="yes">
             <source>Delete the chapter “%1”, with its %n game(s) and its paragraphs? Games stored in a database stay there.</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>删除章节“%1”，连同其中的 %n 盘对局和段落吗？保存在数据库中的对局仍会保留在那里。</numerusform>
+                <numerusform>删除章节“%1”，连同其中的 %n 盘对局和段落吗？保存在数据库中的对局仍会保留在那里。</numerusform>
             </translation>
         </message>
         <message>
             <source>Drag a chapter to move it; double-click it to rename it.</source>
-            <translation />
+            <translation>拖动章节可调整顺序；双击可重命名。</translation>
         </message>
         <message>
             <source>(No Chapter)</source>
-            <translation />
+            <translation>（无章节）</translation>
         </message>
     </context>
     <context>
         <name>ManageEnginesDialog</name>
         <message>
             <source>Manage Engines</source>
-            <translation />
+            <translation>管理引擎</translation>
         </message>
         <message>
             <source>&amp;Add</source>
-            <translation />
+            <translation>添加(&amp;A)</translation>
         </message>
         <message>
             <source>&amp;Remove</source>
-            <translation />
+            <translation>移除(&amp;R)</translation>
         </message>
         <message>
             <source>&amp;Browse…</source>
-            <translation />
+            <translation>浏览(&amp;B)…</translation>
         </message>
         <message>
             <source>Automatic</source>
-            <translation />
+            <translation>自动</translation>
         </message>
         <message>
             <source> MB</source>
-            <translation />
+            <translation> MB</translation>
         </message>
         <message>
             <source>Engine default</source>
-            <translation />
+            <translation>引擎默认值</translation>
         </message>
         <message>
             <source>&amp;Name:</source>
-            <translation />
+            <translation>名称(&amp;N)：</translation>
         </message>
         <message>
             <source>&amp;Executable:</source>
-            <translation />
+            <translation>可执行文件(&amp;E)：</translation>
         </message>
         <message>
             <source>&amp;Threads:</source>
-            <translation />
+            <translation>线程(&amp;T)：</translation>
         </message>
         <message>
             <source>&amp;Hash:</source>
-            <translation />
+            <translation>哈希表(&amp;H)：</translation>
         </message>
         <message>
             <source>&amp;Detect Engines</source>
-            <translation />
+            <translation>检测引擎(&amp;D)</translation>
         </message>
         <message>
             <source>Look for UCI engines installed on this computer</source>
-            <translation />
+            <translation>在本机查找已安装的 UCI 引擎</translation>
         </message>
         <message>
             <source>%1 (included)</source>
-            <translation />
+            <translation>%1（内置）</translation>
         </message>
         <message>
             <source>Included with Pragma Chess.</source>
-            <translation />
+            <translation>Pragma Chess 自带。</translation>
         </message>
         <message>
             <source>This build does not include an engine: using the Stockfish installed on this computer.</source>
-            <translation />
+            <translation>此版本不含引擎：将使用本机已安装的 Stockfish。</translation>
         </message>
         <message>
             <source>This build does not include an engine and none was found on this computer.</source>
-            <translation />
+            <translation>此版本不含引擎，本机上也没有找到任何引擎。</translation>
         </message>
         <message>
             <source>The executable was not found.</source>
-            <translation />
+            <translation>未找到该可执行文件。</translation>
         </message>
         <message>
             <source>New Engine</source>
-            <translation />
+            <translation>新引擎</translation>
         </message>
         <message>
             <source>Choose Engine</source>
-            <translation />
+            <translation>选择引擎</translation>
         </message>
         <message>
             <source>Looking for engines…</source>
-            <translation />
+            <translation>正在查找引擎…</translation>
         </message>
         <message>
             <source>No new engines found.</source>
-            <translation />
+            <translation>未发现新引擎。</translation>
         </message>
         <message numerus="yes">
             <source>Found %n new engine(s).</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>发现 %n 个新引擎。</numerusform>
+                <numerusform>发现 %n 个新引擎。</numerusform>
             </translation>
         </message>
         <message>
             <source>&amp;Use This Engine</source>
-            <translation />
+            <translation>使用此引擎(&amp;U)</translation>
         </message>
         <message>
             <source>Analyze and train with this engine in the open project</source>
-            <translation />
+            <translation>在已打开的项目中用此引擎分析和训练</translation>
         </message>
         <message>
             <source>This is the engine in use.</source>
-            <translation />
+            <translation>这是正在使用的引擎。</translation>
         </message>
         <message>
             <source>%1 — in use</source>
-            <translation />
+            <translation>%1 — 使用中</translation>
         </message>
         <message>
             <source>Minimum: 3% of the processor</source>
-            <translation />
+            <translation>最低：处理器的 3%</translation>
         </message>
         <message>
             <source>Light: 6% of the processor</source>
-            <translation />
+            <translation>轻量：处理器的 6%</translation>
         </message>
         <message>
             <source>Medium: 10% of the processor</source>
-            <translation />
+            <translation>中等：处理器的 10%</translation>
         </message>
         <message>
             <source>High: 25% of the processor</source>
-            <translation />
+            <translation>高：处理器的 25%</translation>
         </message>
         <message>
             <source>Full: the whole processor, no limit</source>
-            <translation />
+            <translation>全速：整个处理器，无限制</translation>
         </message>
         <message>
             <source>Computing &amp;Power:</source>
-            <translation />
+            <translation>计算能力(&amp;P)：</translation>
         </message>
         <message>
             <source>Processor share while analyzing: just as strong, slower</source>
-            <translation />
+            <translation>分析时占用的处理器份额：棋力不减，只是更慢</translation>
         </message>
     </context>
     <context>
         <name>ManageSourcesDialog</name>
         <message>
             <source>S&amp;ync Now</source>
-            <translation />
+            <translation>立即同步(&amp;Y)</translation>
         </message>
         <message>
             <source>&amp;Edit…</source>
-            <translation />
+            <translation>编辑(&amp;E)…</translation>
         </message>
         <message>
             <source>Sign &amp;In Again…</source>
-            <translation />
+            <translation>重新登录(&amp;I)…</translation>
         </message>
         <message>
             <source>&amp;Remove…</source>
-            <translation />
+            <translation>移除(&amp;R)…</translation>
         </message>
         <message>
             <source>Sources of “%1”</source>
-            <translation />
+            <translation>“%1”的数据源</translation>
         </message>
         <message>
             <source>Source</source>
-            <translation />
+            <translation>数据源</translation>
         </message>
         <message>
             <source>Games</source>
-            <translation />
+            <translation>对局</translation>
         </message>
         <message>
             <source>Last Sync</source>
-            <translation />
+            <translation>上次同步</translation>
         </message>
         <message>
             <source>Status</source>
-            <translation />
+            <translation>状态</translation>
         </message>
         <message>
             <source>Sources</source>
-            <translation />
+            <translation>数据源</translation>
         </message>
         <message>
             <source>&amp;Connect Source…</source>
-            <translation />
+            <translation>连接数据源(&amp;C)…</translation>
         </message>
         <message>
             <source>Syncing…</source>
-            <translation />
+            <translation>正在同步…</translation>
         </message>
         <message>
             <source>Up to date</source>
-            <translation />
+            <translation>已是最新</translation>
         </message>
         <message>
             <source>Waiting for the first sync</source>
-            <translation />
+            <translation>等待首次同步</translation>
         </message>
         <message>
             <source>Not signed in</source>
-            <translation />
+            <translation>未登录</translation>
         </message>
         <message>
             <source>Never</source>
-            <translation />
+            <translation>从未</translation>
         </message>
         <message>
             <source>%1 does not need signing in.</source>
-            <translation />
+            <translation>%1 无需登录。</translation>
         </message>
         <message>
             <source>Edit Source</source>
-            <translation />
+            <translation>编辑数据源</translation>
         </message>
         <message>
             <source>Could not save the source: %1</source>
-            <translation />
+            <translation>无法保存数据源：%1</translation>
         </message>
         <message>
             <source>Remove Source</source>
-            <translation />
+            <translation>移除数据源</translation>
         </message>
         <message numerus="yes">
             <source>Remove “%1” from this database?
 
 The %n game(s) already imported stay in the database.</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>从该数据库中移除“%1”？
+
+已导入的 %n 盘对局仍会保留在数据库中。</numerusform>
+                <numerusform>从该数据库中移除“%1”？
+
+已导入的 %n 盘对局仍会保留在数据库中。</numerusform>
             </translation>
         </message>
         <message>
             <source>Could not remove the source: %1</source>
-            <translation />
+            <translation>无法移除数据源：%1</translation>
         </message>
         <message>
             <source>Ignored on this computer</source>
-            <translation />
+            <translation>在本机上已忽略</translation>
         </message>
         <message>
             <source>&amp;Use on This Computer</source>
-            <translation />
+            <translation>在本机上使用(&amp;U)</translation>
         </message>
         <message>
             <source>Stop ignoring this source on this computer and sync it</source>
-            <translation />
+            <translation>在本机上不再忽略此数据源，并开始同步</translation>
         </message>
     </context>
     <context>
         <name>ManageSyncFilesDialog</name>
         <message>
             <source>&amp;Delete…</source>
-            <translation />
+            <translation>删除(&amp;D)…</translation>
         </message>
         <message>
             <source>&amp;Refresh</source>
-            <translation />
+            <translation>刷新(&amp;R)</translation>
         </message>
         <message>
             <source>Manage Files</source>
-            <translation />
+            <translation>管理文件</translation>
         </message>
         <message>
             <source>The files in the sync folder on the server. A file deleted here is deleted from every synced device, this computer included.</source>
-            <translation />
+            <translation>服务器上同步文件夹中的文件。在此处删除的文件会从所有同步设备上删除，包括这台电脑。</translation>
         </message>
         <message>
             <source>File</source>
-            <translation />
+            <translation>文件</translation>
         </message>
         <message>
             <source>Size</source>
-            <translation />
+            <translation>大小</translation>
         </message>
         <message>
             <source>Modified</source>
-            <translation />
+            <translation>修改时间</translation>
         </message>
         <message>
             <source>Device</source>
-            <translation />
+            <translation>设备</translation>
         </message>
         <message>
             <source>The sync failed: %1</source>
-            <translation />
+            <translation>同步失败：%1</translation>
         </message>
         <message>
             <source>Waiting for the sync to finish…</source>
-            <translation />
+            <translation>正在等待同步完成…</translation>
         </message>
         <message>
             <source>Reading the folder on the server…</source>
-            <translation />
+            <translation>正在读取服务器上的文件夹…</translation>
         </message>
         <message>
             <source>The folder on the server is empty.</source>
-            <translation />
+            <translation>服务器上的文件夹为空。</translation>
         </message>
         <message numerus="yes">
             <source>%n file(s) on the server.</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>服务器上有 %n 个文件。</numerusform>
+                <numerusform>服务器上有 %n 个文件。</numerusform>
             </translation>
         </message>
         <message numerus="yes">
             <source>%n file(s)</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>%n 个文件</numerusform>
+                <numerusform>%n 个文件</numerusform>
             </translation>
         </message>
         <message>
             <source>Delete Files Everywhere?</source>
-            <translation />
+            <translation>在所有设备上删除文件？</translation>
         </message>
         <message>
             <source>Are you sure you want to delete %1 from every synced device?</source>
-            <translation />
+            <translation>确定要从所有同步设备上删除 %1 吗？</translation>
         </message>
         <message>
             <source>Delete</source>
-            <translation />
+            <translation>删除</translation>
         </message>
         <message>
             <source>Could Not Delete the Files</source>
-            <translation />
+            <translation>无法删除这些文件</translation>
         </message>
         <message>
             <source>Deleting…</source>
-            <translation />
+            <translation>正在删除…</translation>
         </message>
         <message>
             <source>What you delete is removed from the sync folder on the server and goes to the trash on this computer, and every other computer that syncs with it moves its copy to the trash at its next sync.</source>
-            <translation />
+            <translation>你删除的内容会从服务器的同步文件夹中移除，并进入这台电脑的回收站；其他与之同步的电脑在下一次同步时，也会把自己的副本移入回收站。</translation>
         </message>
     </context>
     <context>
         <name>MoveAnnotation</name>
         <message>
             <source>good move</source>
-            <translation />
+            <translation>好着</translation>
         </message>
         <message>
             <source>mistake</source>
-            <translation />
+            <translation>失误</translation>
         </message>
         <message>
             <source>brilliant move</source>
-            <translation />
+            <translation>妙着</translation>
         </message>
         <message>
             <source>blunder</source>
-            <translation />
+            <translation>漏着</translation>
         </message>
         <message>
             <source>interesting move</source>
-            <translation />
+            <translation>有趣的着法</translation>
         </message>
         <message>
             <source>dubious move</source>
-            <translation />
+            <translation>可疑的着法</translation>
         </message>
         <message>
             <source>only move</source>
-            <translation />
+            <translation>唯一着法</translation>
         </message>
         <message>
             <source>equal position</source>
-            <translation />
+            <translation>均势</translation>
         </message>
         <message>
             <source>unclear position</source>
-            <translation />
+            <translation>局面不明</translation>
         </message>
         <message>
             <source>White is slightly better</source>
-            <translation />
+            <translation>白方略占优</translation>
         </message>
         <message>
             <source>Black is slightly better</source>
-            <translation />
+            <translation>黑方略占优</translation>
         </message>
         <message>
             <source>White is better</source>
-            <translation />
+            <translation>白方占优</translation>
         </message>
         <message>
             <source>Black is better</source>
-            <translation />
+            <translation>黑方占优</translation>
         </message>
         <message>
             <source>White is winning</source>
-            <translation />
+            <translation>白方胜势</translation>
         </message>
         <message>
             <source>Black is winning</source>
-            <translation />
+            <translation>黑方胜势</translation>
         </message>
     </context>
     <context>
@@ -4707,612 +4713,612 @@ The %n game(s) already imported stay in the database.</source>
         <name>MoveGames</name>
         <message>
             <source>Could not read the game.</source>
-            <translation />
+            <translation>无法读取该对局。</translation>
         </message>
         <message>
             <source>Give the new database a name.</source>
-            <translation />
+            <translation>给新数据库起个名字。</translation>
         </message>
         <message>
             <source>“%1” is not a valid name.</source>
-            <translation />
+            <translation>“%1”不是有效的名称。</translation>
         </message>
         <message>
             <source>A database named “%1” already exists.</source>
-            <translation />
+            <translation>已存在名为“%1”的数据库。</translation>
         </message>
     </context>
     <context>
         <name>MoveGamesDialog</name>
         <message>
             <source>Move Games</source>
-            <translation />
+            <translation>移动对局</translation>
         </message>
         <message>
             <source>Move Game</source>
-            <translation />
+            <translation>移动对局</translation>
         </message>
         <message numerus="yes">
             <source>Move %n games to another database. They leave this one once they are there.</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>将 %n 盘对局移动到另一个数据库。一旦到达那里，它们就会从这个数据库中移走。</numerusform>
+                <numerusform>将 %n 盘对局移动到另一个数据库。一旦到达那里，它们就会从这个数据库中移走。</numerusform>
             </translation>
         </message>
         <message>
             <source>Move the game to another database. It leaves this one once it is there.</source>
-            <translation />
+            <translation>将这盘对局移动到另一个数据库。一旦到达那里，它就会从这个数据库中移走。</translation>
         </message>
         <message>
             <source>New Database…</source>
-            <translation />
+            <translation>新建数据库…</translation>
         </message>
         <message>
             <source>&amp;To:</source>
-            <translation />
+            <translation>目标(&amp;T)：</translation>
         </message>
         <message>
             <source>Name of the new database</source>
-            <translation />
+            <translation>新数据库的名称</translation>
         </message>
         <message>
             <source>&amp;Name:</source>
-            <translation />
+            <translation>名称(&amp;N)：</translation>
         </message>
         <message>
             <source>&amp;Open the database when done</source>
-            <translation />
+            <translation>完成后打开该数据库(&amp;O)</translation>
         </message>
         <message>
             <source>Move</source>
-            <translation />
+            <translation>移动</translation>
         </message>
     </context>
     <context>
         <name>MoveTreeView</name>
         <message>
             <source>White</source>
-            <translation />
+            <translation>白方</translation>
         </message>
         <message>
             <source>Black</source>
-            <translation />
+            <translation>黑方</translation>
         </message>
         <message>
             <source>Write here; Esc or a click elsewhere ends</source>
-            <translation />
+            <translation>在此输入；按 Esc 或单击别处结束</translation>
         </message>
     </context>
     <context>
         <name>NewGameChoiceDialog</name>
         <message>
             <source>New Game</source>
-            <translation />
+            <translation>新建对局</translation>
         </message>
         <message>
             <source>You are in online play mode. What kind of new game do you want?</source>
-            <translation />
+            <translation>你正处于在线对弈模式。想要新建哪一种对局？</translation>
         </message>
         <message>
             <source>Play a new game &amp;online</source>
-            <translation />
+            <translation>在线下新的一盘(&amp;O)</translation>
         </message>
         <message>
             <source>As New Online Game in the toolbar</source>
-            <translation />
+            <translation>与工具栏中的“新建在线对局”相同</translation>
         </message>
         <message>
             <source>&amp;Analyse a new game</source>
-            <translation />
+            <translation>分析一盘新对局(&amp;A)</translation>
         </message>
         <message>
             <source>Remember for this &amp;session</source>
-            <translation />
+            <translation>在本次会话中记住(&amp;S)</translation>
         </message>
         <message>
             <source>New Game goes on with this choice without asking, until Pragma Chess is closed.</source>
-            <translation />
+            <translation>“新建对局”将按此选择直接进行，不再询问，直到关闭 Pragma Chess。</translation>
         </message>
         <message>
             <source>Start</source>
-            <translation />
+            <translation>开始</translation>
         </message>
     </context>
     <context>
         <name>NewTrainingDialog</name>
         <message>
             <source>New Training</source>
-            <translation />
+            <translation>新建训练</translation>
         </message>
         <message>
             <source>Choose the colour you want to play. The engine plays the other side.</source>
-            <translation />
+            <translation>选择你要执的子色，另一方由引擎执子。</translation>
         </message>
         <message>
             <source>&amp;White</source>
-            <translation />
+            <translation>白方(&amp;W)</translation>
         </message>
         <message>
             <source>&amp;Black</source>
-            <translation />
+            <translation>黑方(&amp;B)</translation>
         </message>
         <message>
             <source>&amp;Random</source>
-            <translation />
+            <translation>随机(&amp;R)</translation>
         </message>
         <message>
             <source>Start</source>
-            <translation />
+            <translation>开始</translation>
         </message>
         <message>
             <source>Remember for this &amp;session</source>
-            <translation />
+            <translation>在本次会话中记住(&amp;S)</translation>
         </message>
         <message>
             <source>The New Training button of the toolbar starts with this choice without asking, until Pragma Chess is closed. Game ▸ New Training… always asks.</source>
-            <translation />
+            <translation>工具栏的“新建训练”按钮会按此选择直接开始，不再询问，直到关闭 Pragma Chess。“对局 ▸ 新建训练…”则每次都会询问。</translation>
         </message>
     </context>
     <context>
         <name>OnlineGame</name>
         <message>
             <source>White</source>
-            <translation />
+            <translation>白方</translation>
         </message>
         <message>
             <source>Black</source>
-            <translation />
+            <translation>黑方</translation>
         </message>
         <message>
             <source>Checkmate: %1 wins.</source>
-            <translation />
+            <translation>将杀：%1 胜。</translation>
         </message>
         <message>
             <source>%1 resigned.</source>
-            <translation />
+            <translation>%1 认输。</translation>
         </message>
         <message>
             <source>Time ran out: draw.</source>
-            <translation />
+            <translation>超时：和棋。</translation>
         </message>
         <message>
             <source>%1 ran out of time.</source>
-            <translation />
+            <translation>%1 超时。</translation>
         </message>
         <message>
             <source>Stalemate: draw.</source>
-            <translation />
+            <translation>逼和：和棋。</translation>
         </message>
         <message>
             <source>Draw.</source>
-            <translation />
+            <translation>和棋。</translation>
         </message>
         <message>
             <source>The game was aborted.</source>
-            <translation />
+            <translation>对局中止。</translation>
         </message>
         <message>
             <source>The game was ended by the platform.</source>
-            <translation />
+            <translation>对局被平台终止。</translation>
         </message>
         <message>
             <source>The game is over.</source>
-            <translation />
+            <translation>对局结束。</translation>
         </message>
         <message>
             <source>%1 wins.</source>
-            <translation />
+            <translation>%1 胜。</translation>
         </message>
     </context>
     <context>
         <name>PersonalSettingsDialog</name>
         <message>
             <source>Personal Settings</source>
-            <translation />
+            <translation>个人设置</translation>
         </message>
         <message>
             <source>As it should appear in your games, e.g. Rossi, Mario</source>
-            <translation />
+            <translation>在对局中显示的姓名，例如 张三</translation>
         </message>
         <message>
             <source>Digits only, e.g. 896489</source>
-            <translation />
+            <translation>仅填数字，例如 896489</translation>
         </message>
         <message>
             <source>My &amp;name:</source>
-            <translation />
+            <translation>我的姓名(&amp;N)：</translation>
         </message>
         <message>
             <source>Year of &amp;birth:</source>
-            <translation />
+            <translation>出生年份(&amp;B)：</translation>
         </message>
         <message>
             <source>&amp;FIDE ID:</source>
-            <translation />
+            <translation>FIDE ID(&amp;F)：</translation>
         </message>
         <message>
             <source>Board &amp;style:</source>
-            <translation />
+            <translation>棋盘样式(&amp;S)：</translation>
         </message>
         <message>
             <source>Show</source>
-            <translation />
+            <translation>显示</translation>
         </message>
         <message>
             <source>Hide</source>
-            <translation />
+            <translation>隐藏</translation>
         </message>
         <message>
             <source>Copy</source>
-            <translation />
+            <translation>复制</translation>
         </message>
         <message>
             <source>&amp;Lobby key:</source>
-            <translation />
+            <translation>大厅密钥(&amp;L)：</translation>
         </message>
         <message>
             <source>Lobby key</source>
-            <translation />
+            <translation>大厅密钥</translation>
         </message>
         <message>
             <source>Lobby Key</source>
-            <translation />
+            <translation>大厅密钥</translation>
         </message>
         <message>
             <source>A lobby key is 64 hexadecimal digits: paste it whole.</source>
-            <translation />
+            <translation>大厅密钥由 64 位十六进制数字组成：请完整粘贴。</translation>
         </message>
         <message>
             <source>This computer will be the player of the new key in the lobby. Its present key is replaced: if you have not copied it, you can no longer play as that player. Replace it?</source>
-            <translation />
+            <translation>这台电脑将成为大厅中新密钥所对应的棋手。当前密钥会被替换：如果你没有复制过它，之后就无法再以该棋手的身份对弈。是否替换？</translation>
         </message>
         <message>
             <source>Who you are and how you like your board: your name, year of birth and FIDE ID, and the style of the board. They are kept in your Pragma folder, and Sync carries them to your other computers — all but the lobby key, which stays on this one.</source>
-            <translation />
+            <translation>你是谁，以及你喜欢什么样的棋盘：姓名、出生年份、FIDE ID 和棋盘样式。它们保存在你的 Pragma 文件夹中，同步会把它们带到你的其他电脑上——大厅密钥除外，它只留在这台电脑。</translation>
         </message>
         <message>
             <source>&lt;p&gt;Your name as it should appear in your games: it goes on your side of new games and training games.&lt;/p&gt;&lt;p&gt;When the open database already knows you — a player marked as Me with Who Is This? — that one wins. Until you give a name, Pragma Chess gives you one, a champion's with three digits.&lt;/p&gt;</source>
-            <translation />
+            <translation>&lt;p&gt;你在对局中使用的姓名：新建对局和训练对局中都会显示在你这一方。&lt;/p&gt;&lt;p&gt;如果已打开的数据库已经认识你——用“这是谁？”标记为“我”的棋手——则以那个为准。在你填写姓名之前，Pragma Chess 会给你一个名字：一位冠军的姓氏加上三位数字。&lt;/p&gt;</translation>
         </message>
         <message>
             <source>&lt;p&gt;The year you were born, kept with your settings.&lt;/p&gt;&lt;p&gt;Optional: leave the dash if you would rather not give it.&lt;/p&gt;</source>
-            <translation />
+            <translation>&lt;p&gt;你的出生年份，与你的设置一起保存。&lt;/p&gt;&lt;p&gt;可选项：如果不想填写，保留短横线即可。&lt;/p&gt;</translation>
         </message>
         <message>
             <source>&lt;p&gt;Your number at FIDE, the world chess federation: the digits of your FIDE profile.&lt;/p&gt;&lt;p&gt;Optional.&lt;/p&gt;</source>
-            <translation />
+            <translation>&lt;p&gt;你在国际棋联（FIDE，世界国际象棋联合会）的编号：你 FIDE 个人资料中的那串数字。&lt;/p&gt;&lt;p&gt;可选项。&lt;/p&gt;</translation>
         </message>
         <message>
             <source>&lt;p&gt;The colours of the squares and the pieces, together: Pragma Classic, Lichess Alpha or Classic Book.&lt;/p&gt;&lt;p&gt;Every board changes as soon as you press OK, and on your other computers with Sync.&lt;/p&gt;</source>
-            <translation />
+            <translation>&lt;p&gt;棋格与棋子的配色方案，成套切换：Pragma Classic、Lichess Alpha 或 Classic Book。&lt;/p&gt;&lt;p&gt;按下“确定”后所有棋盘立即生效；开启同步后，你的其他电脑也会一并改变。&lt;/p&gt;</translation>
         </message>
         <message>
             <source>&lt;p&gt;This key is who you are in the lobby: it signs your moves.&lt;/p&gt;&lt;p&gt;For security it is not synced with your other settings and stays on this computer only. To play as yourself from another computer, copy it here and paste it into the same field there: you have to carry it yourself.&lt;/p&gt;&lt;p&gt;Anyone who has it can play as you, so keep it to yourself.&lt;/p&gt;</source>
-            <translation />
+            <translation>&lt;p&gt;这把密钥就是你在大厅中的身份：它为你的着法签名。&lt;/p&gt;&lt;p&gt;出于安全考虑，它不会与其他设置一起同步，只留在这台电脑上。若想从另一台电脑以你的身份对弈，请在此复制它，再粘贴到那台电脑的同一个输入框中：需要你自己带过去。&lt;/p&gt;&lt;p&gt;任何拿到它的人都能以你的身份对弈，所以请妥善保管。&lt;/p&gt;</translation>
         </message>
     </context>
     <context>
         <name>PgnConversion</name>
         <message>
             <source>Could not read “%1”: %2</source>
-            <translation />
+            <translation>无法读取“%1”：%2</translation>
         </message>
         <message>
             <source>A file named “%1” already exists.</source>
-            <translation />
+            <translation>已存在名为“%1”的文件。</translation>
         </message>
         <message>
             <source>Could not name the database “%1”.</source>
-            <translation />
+            <translation>无法将数据库命名为“%1”。</translation>
         </message>
     </context>
     <context>
         <name>PgnFileFetch</name>
         <message>
             <source>The PGN file was not found at %1.</source>
-            <translation />
+            <translation>在 %1 未找到该 PGN 文件。</translation>
         </message>
         <message>
             <source>Could not save the games: %1</source>
-            <translation />
+            <translation>无法保存对局：%1</translation>
         </message>
         <message numerus="yes">
             <source>%n game(s) of the file could not be read.</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>文件中有 %n 盘对局无法读取。</numerusform>
+                <numerusform>文件中有 %n 盘对局无法读取。</numerusform>
             </translation>
         </message>
         <message>
             <source>The PGN file changed while it was being synced; it is synced again next time.</source>
-            <translation />
+            <translation>同步过程中 PGN 文件发生了变化；下次会重新同步。</translation>
         </message>
         <message>
             <source>Could not write the PGN file: %1</source>
-            <translation />
+            <translation>无法写入 PGN 文件：%1</translation>
         </message>
     </context>
     <context>
         <name>PhoneLink</name>
         <message>
             <source>Phone</source>
-            <translation />
+            <translation>手机</translation>
         </message>
         <message>
             <source>Receiving games from %1…</source>
-            <translation />
+            <translation>正在从 %1 接收对局…</translation>
         </message>
         <message>
             <source>Sending %1 to %2…</source>
-            <translation />
+            <translation>正在将 %1 发送到 %2…</translation>
         </message>
     </context>
     <context>
         <name>PhoneLinkClient</name>
         <message>
             <source>The connection could not be established (NAT)</source>
-            <translation />
+            <translation>无法建立连接（NAT）</translation>
         </message>
         <message>
             <source>The computer did not answer</source>
-            <translation />
+            <translation>电脑没有响应</translation>
         </message>
         <message>
             <source>Invalid computer key</source>
-            <translation />
+            <translation>电脑密钥无效</translation>
         </message>
         <message>
             <source>The connection was closed</source>
-            <translation />
+            <translation>连接已关闭</translation>
         </message>
         <message>
             <source>The connection failed</source>
-            <translation />
+            <translation>连接失败</translation>
         </message>
         <message>
             <source>The computer refused the connection (%1)</source>
-            <translation />
+            <translation>电脑拒绝了连接（%1）</translation>
         </message>
         <message>
             <source>Invalid answer</source>
-            <translation />
+            <translation>响应无效</translation>
         </message>
     </context>
     <context>
         <name>PlayOnlineDialog</name>
         <message>
             <source>Rated game</source>
-            <translation />
+            <translation>计分对局</translation>
         </message>
         <message>
             <source>Play Online</source>
-            <translation />
+            <translation>在线对弈</translation>
         </message>
         <message>
             <source>Game</source>
-            <translation />
+            <translation>对局</translation>
         </message>
         <message>
             <source> min</source>
-            <translation />
+            <translation> 分钟</translation>
         </message>
         <message>
             <source> s</source>
-            <translation />
+            <translation> 秒</translation>
         </message>
         <message>
             <source>Clock:</source>
-            <translation />
+            <translation>时钟：</translation>
         </message>
         <message>
             <source>Random</source>
-            <translation />
+            <translation>随机</translation>
         </message>
         <message>
             <source>White</source>
-            <translation />
+            <translation>白方</translation>
         </message>
         <message>
             <source>Black</source>
-            <translation />
+            <translation>黑方</translation>
         </message>
         <message>
             <source>Play as:</source>
-            <translation />
+            <translation>执子：</translation>
         </message>
         <message>
             <source>While you play online the engine, Explain and the opening book are off: it is you against your opponent.</source>
-            <translation />
+            <translation>在线对弈时，引擎、讲解和开局库都会关闭：这是你与对手之间的对局。</translation>
         </message>
         <message>
             <source>Find an Opponent</source>
-            <translation />
+            <translation>寻找对手</translation>
         </message>
         <message>
             <source>Connect Platform…</source>
-            <translation />
+            <translation>连接平台…</translation>
         </message>
         <message>
             <source>Disconnect</source>
-            <translation />
+            <translation>断开连接</translation>
         </message>
         <message>
             <source>Platforms</source>
-            <translation />
+            <translation>平台</translation>
         </message>
         <message>
             <source>The platforms you are connected to, each with the account you play as. They are yours on this computer: a project does not carry them.</source>
-            <translation />
+            <translation>你已连接的平台，各显示你所用的账号。它们只属于这台电脑上的你：项目不会带走这些信息。</translation>
         </message>
         <message>
             <source>No platform connected yet: connect one to play.</source>
-            <translation />
+            <translation>尚未连接任何平台：请先连接一个再开始对弈。</translation>
         </message>
         <message>
             <source>Sign in to %1 in your browser to connect it…</source>
-            <translation />
+            <translation>在浏览器中登录 %1 即可连接…</translation>
         </message>
         <message>
             <source>Could not connect: %1</source>
-            <translation />
+            <translation>连接失败：%1</translation>
         </message>
         <message>
             <source>Connected to %1 as %2.</source>
-            <translation />
+            <translation>已连接到 %1，账号为 %2。</translation>
         </message>
         <message>
             <source>Remember for this &amp;session</source>
-            <translation />
+            <translation>在本次会话中记住(&amp;S)</translation>
         </message>
         <message>
             <source>The Play Online button of the toolbar looks for an opponent with these choices without asking, until Pragma Chess is closed; the menu always asks</source>
-            <translation />
+            <translation>工具栏的“在线对弈”按钮会按此处的选择直接寻找对手，不再询问，直到关闭 Pragma Chess；菜单则每次都会询问</translation>
         </message>
         <message>
             <source>Connect freechess.org</source>
-            <translation />
+            <translation>连接 freechess.org</translation>
         </message>
         <message>
             <source>The Free Internet Chess Server. Play as a guest, unrated games under a name the server gives, or as a player registered at freechess.org.</source>
-            <translation />
+            <translation>自由国际象棋服务器（Free Internet Chess Server）。可以以访客身份对弈，用服务器分配的昵称下不计分的对局；也可以用在 freechess.org 注册的账号对弈。</translation>
         </message>
         <message>
             <source>Play as a guest</source>
-            <translation />
+            <translation>以访客身份对弈</translation>
         </message>
         <message>
             <source>Name:</source>
-            <translation />
+            <translation>昵称：</translation>
         </message>
         <message>
             <source>Password:</source>
-            <translation />
+            <translation>密码：</translation>
         </message>
         <message>
             <source>Too fast for lichess.org</source>
-            <translation />
+            <translation>对 lichess.org 来说太快了</translation>
         </message>
         <message>
             <source>&lt;p&gt;lichess.org lets apps such as Pragma Chess play rapid and slower games only: at least 8 minutes, counting 40 moves of increment — 10+0, 8+0, 10+5, 15+10. Bullet and blitz are played on its site.&lt;/p&gt;&lt;p&gt;freechess.org plays any clock.&lt;/p&gt;</source>
-            <translation />
+            <translation>&lt;p&gt;lichess.org 只允许 Pragma Chess 这类应用下快速棋及更慢的对局：至少 8 分钟，按 40 步的加秒折算——10+0、8+0、10+5、15+10。超快棋和快棋请到其网站上进行。&lt;/p&gt;&lt;p&gt;freechess.org 则支持任意时钟设置。&lt;/p&gt;</translation>
         </message>
     </context>
     <context>
         <name>PositionSetup</name>
         <message>
             <source>White has no king.</source>
-            <translation />
+            <translation>白方没有王。</translation>
         </message>
         <message>
             <source>White has more than one king.</source>
-            <translation />
+            <translation>白方有一个以上的王。</translation>
         </message>
         <message>
             <source>Black has no king.</source>
-            <translation />
+            <translation>黑方没有王。</translation>
         </message>
         <message>
             <source>Black has more than one king.</source>
-            <translation />
+            <translation>黑方有一个以上的王。</translation>
         </message>
         <message>
             <source>A pawn cannot stand on the first or the last rank.</source>
-            <translation />
+            <translation>兵不能位于第一条或最后一条横线。</translation>
         </message>
         <message>
             <source>A side cannot have more than eight pawns.</source>
-            <translation />
+            <translation>一方不能有超过八个兵。</translation>
         </message>
         <message>
             <source>A side cannot have more than sixteen pieces.</source>
-            <translation />
+            <translation>一方不能有超过十六个棋子。</translation>
         </message>
         <message>
             <source>Black is in check, but it is White to move.</source>
-            <translation />
+            <translation>黑方被将军，但轮到白方走。</translation>
         </message>
         <message>
             <source>White is in check, but it is Black to move.</source>
-            <translation />
+            <translation>白方被将军，但轮到黑方走。</translation>
         </message>
     </context>
     <context>
         <name>PositionSetupDialog</name>
         <message>
             <source>Set Up Position</source>
-            <translation />
+            <translation>设置局面</translation>
         </message>
         <message>
             <source>Remove</source>
-            <translation />
+            <translation>移除</translation>
         </message>
         <message>
             <source>Side to move</source>
-            <translation />
+            <translation>走子方</translation>
         </message>
         <message>
             <source>&amp;White</source>
-            <translation />
+            <translation>白方(&amp;W)</translation>
         </message>
         <message>
             <source>Blac&amp;k</source>
-            <translation />
+            <translation>黑方(&amp;K)</translation>
         </message>
         <message>
             <source>Castling</source>
-            <translation />
+            <translation>王车易位</translation>
         </message>
         <message>
             <source>White O-O</source>
-            <translation />
+            <translation>白方 O-O</translation>
         </message>
         <message>
             <source>White O-O-O</source>
-            <translation />
+            <translation>白方 O-O-O</translation>
         </message>
         <message>
             <source>Black O-O</source>
-            <translation />
+            <translation>黑方 O-O</translation>
         </message>
         <message>
             <source>Black O-O-O</source>
-            <translation />
+            <translation>黑方 O-O-O</translation>
         </message>
         <message>
             <source>&amp;En passant:</source>
-            <translation />
+            <translation>吃过路兵(&amp;E)：</translation>
         </message>
         <message>
             <source>&amp;Move number:</source>
-            <translation />
+            <translation>回合数(&amp;M)：</translation>
         </message>
         <message>
             <source>&amp;Starting Position</source>
-            <translation />
+            <translation>初始局面(&amp;S)</translation>
         </message>
         <message>
             <source>&amp;Clear Board</source>
-            <translation />
+            <translation>清空棋盘(&amp;C)</translation>
         </message>
         <message>
             <source>&amp;Flip Board</source>
-            <translation />
+            <translation>翻转棋盘(&amp;F)</translation>
         </message>
         <message>
             <source>Type or paste a FEN to set up its position</source>
-            <translation />
+            <translation>输入或粘贴 FEN 以设置相应局面</translation>
         </message>
         <message>
             <source>FE&amp;N:</source>
-            <translation />
+            <translation>FEN(&amp;N)：</translation>
         </message>
         <message>
             <source>None</source>
-            <translation />
+            <translation>无</translation>
         </message>
         <message>
             <source>A click takes the piece off the square. A right click does it too.</source>
-            <translation />
+            <translation>单击可拿掉棋格上的棋子，右键也一样。</translation>
         </message>
     </context>
     <context>
@@ -5414,348 +5420,348 @@ The %n game(s) already imported stay in the database.</source>
         <name>QObject</name>
         <message>
             <source>Invalid FEN: %1</source>
-            <translation />
+            <translation>FEN 无效：%1</translation>
         </message>
         <message>
             <source>“%1” is not a legal move after %2</source>
-            <translation />
+            <translation>“%1”在 %2 之后不是合法着法</translation>
         </message>
         <message>
             <source>the start position</source>
-            <translation />
+            <translation>初始局面</translation>
         </message>
         <message>
             <source>Not a Polyglot opening book.</source>
-            <translation />
+            <translation>这不是 Polyglot 开局库。</translation>
         </message>
         <message>
             <source>Not a Pragma Chess project.</source>
-            <translation />
+            <translation>这不是 Pragma Chess 项目。</translation>
         </message>
         <message>
             <source>The project was created by a newer version of Pragma Chess.</source>
-            <translation />
+            <translation>该项目由更新版本的 Pragma Chess 创建。</translation>
         </message>
         <message>
             <source>Stockfish level %1</source>
-            <translation />
+            <translation>Stockfish 等级 %1</translation>
         </message>
         <message>
             <source>Anonymous</source>
-            <translation />
+            <translation>匿名</translation>
         </message>
         <message>
             <source>%1 refused access: sign in again.</source>
-            <translation />
+            <translation>%1 拒绝了访问：请重新登录。</translation>
         </message>
         <message>
             <source>%1 did not find the account or its games.</source>
-            <translation />
+            <translation>%1 未找到该账号或其对局。</translation>
         </message>
         <message>
             <source>%1 asked to slow down; syncing again later.</source>
-            <translation />
+            <translation>%1 要求放慢速度；稍后重新同步。</translation>
         </message>
         <message>
             <source>%1 is not available right now (%2).</source>
-            <translation />
+            <translation>%1 当前不可用（%2）。</translation>
         </message>
         <message>
             <source>Could not reach %1: %2</source>
-            <translation />
+            <translation>无法连接 %1：%2</translation>
         </message>
         <message>
             <source>A file named “%1” already exists.</source>
-            <translation />
+            <translation>已存在名为“%1”的文件。</translation>
         </message>
         <message>
             <source>“%1” does not exist.</source>
-            <translation />
+            <translation>“%1”不存在。</translation>
         </message>
         <message>
             <source>“%1” is not a Pragma Chess database.</source>
-            <translation />
+            <translation>“%1”不是 Pragma Chess 数据库。</translation>
         </message>
         <message>
             <source>Could not upgrade “%1”: %2</source>
-            <translation />
+            <translation>无法升级“%1”：%2</translation>
         </message>
         <message>
             <source>The game has no player name.</source>
-            <translation />
+            <translation>该对局没有对局者姓名。</translation>
         </message>
         <message>
             <source>Could not replace “%1”.</source>
-            <translation />
+            <translation>无法替换“%1”。</translation>
         </message>
         <message>
             <source>Could not write “%1”.</source>
-            <translation />
+            <translation>无法写入“%1”。</translation>
         </message>
         <message>
             <source>The game does not exist.</source>
-            <translation />
+            <translation>该对局不存在。</translation>
         </message>
         <message>
             <source>The FTP server refused (%1 %2).</source>
-            <translation />
+            <translation>FTP 服务器拒绝了请求（%1 %2）。</translation>
         </message>
         <message>
             <source>The remote %1 file is not valid.</source>
-            <translation />
+            <translation>远程的 %1 文件无效。</translation>
         </message>
         <message>
             <source>The remote folder was synced by a newer version of Pragma Chess.</source>
-            <translation />
+            <translation>远程文件夹由更新版本的 Pragma Chess 同步过。</translation>
         </message>
         <message>
             <source>Elo</source>
-            <translation />
+            <translation>等级分</translation>
         </message>
         <message>
             <source>Could not read a game of “%1”.</source>
-            <translation />
+            <translation>无法读取“%1”中的某盘对局。</translation>
         </message>
         <message>
             <source>No book is open.</source>
-            <translation />
+            <translation>没有打开任何开局库。</translation>
         </message>
         <message>
             <source>The move is not in the book.</source>
-            <translation />
+            <translation>该着法不在开局库中。</translation>
         </message>
         <message>
             <source>“%1” was created by a newer version of Pragma Chess: update Pragma Chess to open it.</source>
-            <translation />
+            <translation>“%1”由更新版本的 Pragma Chess 创建：请更新 Pragma Chess 后再打开。</translation>
         </message>
     </context>
     <context>
         <name>RoomName</name>
         <message>
             <source>%1's Gambit</source>
-            <translation />
+            <translation>%1 的弃兵局</translation>
         </message>
         <message>
             <source>%1's Fortress</source>
-            <translation />
+            <translation>%1 的堡垒</translation>
         </message>
         <message>
             <source>%1's Zugzwang</source>
-            <translation />
+            <translation>%1 的楚茨文格</translation>
         </message>
         <message>
             <source>%1's Fianchetto</source>
-            <translation />
+            <translation>%1 的侧翼象</translation>
         </message>
         <message>
             <source>%1's Outpost</source>
-            <translation />
+            <translation>%1 的前哨</translation>
         </message>
         <message>
             <source>%1's Pin</source>
-            <translation />
+            <translation>%1 的牵制</translation>
         </message>
         <message>
             <source>%1's Fork</source>
-            <translation />
+            <translation>%1 的击双</translation>
         </message>
         <message>
             <source>%1's Skewer</source>
-            <translation />
+            <translation>%1 的串击</translation>
         </message>
         <message>
             <source>%1's Battery</source>
-            <translation />
+            <translation>%1 的叠子</translation>
         </message>
         <message>
             <source>%1's Castle</source>
-            <translation />
+            <translation>%1 的易位</translation>
         </message>
         <message>
             <source>%1's Endgame</source>
-            <translation />
+            <translation>%1 的残局</translation>
         </message>
         <message>
             <source>%1's Opening</source>
-            <translation />
+            <translation>%1 的开局</translation>
         </message>
         <message>
             <source>%1's Combination</source>
-            <translation />
+            <translation>%1 的战术组合</translation>
         </message>
         <message>
             <source>%1's Sacrifice</source>
-            <translation />
+            <translation>%1 的弃子</translation>
         </message>
         <message>
             <source>%1's Attack</source>
-            <translation />
+            <translation>%1 的进攻</translation>
         </message>
         <message>
             <source>%1's Defence</source>
-            <translation />
+            <translation>%1 的防御</translation>
         </message>
         <message>
             <source>%1's Breakthrough</source>
-            <translation />
+            <translation>%1 的突破</translation>
         </message>
         <message>
             <source>%1's Blockade</source>
-            <translation />
+            <translation>%1 的封锁</translation>
         </message>
         <message>
             <source>%1's Tempo</source>
-            <translation />
+            <translation>%1 的先手</translation>
         </message>
         <message>
             <source>%1's Diagonal</source>
-            <translation />
+            <translation>%1 的斜线</translation>
         </message>
         <message>
             <source>%1's Open File</source>
-            <translation />
+            <translation>%1 的开放线</translation>
         </message>
         <message>
             <source>%1's Seventh Rank</source>
-            <translation />
+            <translation>%1 的第七横线</translation>
         </message>
         <message>
             <source>%1's Passed Pawn</source>
-            <translation />
+            <translation>%1 的通路兵</translation>
         </message>
         <message>
             <source>%1's Bishop Pair</source>
-            <translation />
+            <translation>%1 的双象</translation>
         </message>
         <message>
             <source>%1's Knight</source>
-            <translation />
+            <translation>%1 的马</translation>
         </message>
         <message>
             <source>%1's Rook</source>
-            <translation />
+            <translation>%1 的车</translation>
         </message>
         <message>
             <source>%1's Queen</source>
-            <translation />
+            <translation>%1 的后</translation>
         </message>
         <message>
             <source>%1's King March</source>
-            <translation />
+            <translation>%1 的王之进军</translation>
         </message>
         <message>
             <source>%1's Swindle</source>
-            <translation />
+            <translation>%1 的诈术</translation>
         </message>
         <message>
             <source>%1's Stalemate</source>
-            <translation />
+            <translation>%1 的逼和</translation>
         </message>
         <message>
             <source>%1's Mating Net</source>
-            <translation />
+            <translation>%1 的杀网</translation>
         </message>
         <message>
             <source>%1's Isolated Pawn</source>
-            <translation />
+            <translation>%1 的孤兵</translation>
         </message>
         <message>
             <source>%1's Novelty</source>
-            <translation />
+            <translation>%1 的新招</translation>
         </message>
         <message>
             <source>%1's Initiative</source>
-            <translation />
+            <translation>%1 的主动权</translation>
         </message>
         <message>
             <source>%1's Counterattack</source>
-            <translation />
+            <translation>%1 的反击</translation>
         </message>
         <message>
             <source>%1's Opposition</source>
-            <translation />
+            <translation>%1 的对王</translation>
         </message>
         <message>
             <source>%1's Exchange</source>
-            <translation />
+            <translation>%1 的兑换</translation>
         </message>
         <message>
             <source>%1's Desperado</source>
-            <translation />
+            <translation>%1 的拼命子</translation>
         </message>
         <message>
             <source>%1's Windmill</source>
-            <translation />
+            <translation>%1 的风车</translation>
         </message>
         <message>
             <source>%1's Brilliancy</source>
-            <translation />
+            <translation>%1 的妙着</translation>
         </message>
     </context>
     <context>
         <name>ScoreView</name>
         <message>
             <source>Absolute</source>
-            <translation />
+            <translation>绝对值</translation>
         </message>
         <message>
             <source>For White</source>
-            <translation />
+            <translation>以白方为准</translation>
         </message>
         <message>
             <source>For Black</source>
-            <translation />
+            <translation>以黑方为准</translation>
         </message>
         <message>
             <source>White's chances</source>
-            <translation />
+            <translation>白方胜率</translation>
         </message>
         <message>
             <source>Black's chances</source>
-            <translation />
+            <translation>黑方胜率</translation>
         </message>
         <message>
             <source>Judgement</source>
-            <translation />
+            <translation>判断</translation>
         </message>
     </context>
     <context>
         <name>SourceCatalog</name>
         <message>
             <source>Games played on chess.com by an account, from its public archives.</source>
-            <translation />
+            <translation>某个账号在 chess.com 上下过的对局，来自其公开存档。</translation>
         </message>
         <message>
             <source>Tournament games of a player rated in Italy, by FIDE or FSI ID: players, round and result, without moves.</source>
-            <translation />
+            <translation>在意大利有等级分的棋手的比赛对局，按 FIDE 或 FSI ID 查询：包含对局双方、轮次和结果，不含着法。</translation>
         </message>
         <message>
             <source>Phone · %1</source>
-            <translation />
+            <translation>手机 · %1</translation>
         </message>
         <message>
             <source>ChessBase files</source>
-            <translation />
+            <translation>ChessBase 文件</translation>
         </message>
         <message>
             <source>Public games played on lichess.org by an account. Signing in to lichess.org is optional: it downloads them faster.</source>
-            <translation />
+            <translation>某个账号在 lichess.org 上的公开对局。登录 lichess.org 是可选的：登录后下载更快。</translation>
         </message>
         <message>
             <source>PGN file</source>
-            <translation />
+            <translation>PGN 文件</translation>
         </message>
         <message>
             <source>A PGN file on this computer, kept in step with the database: its games come into the database, the database's games go into the file, or both.</source>
-            <translation />
+            <translation>本机上的一个 PGN 文件，与数据库保持同步：它的对局进入数据库，数据库中的对局写入文件，或两者都做。</translation>
         </message>
         <message>
             <source>The chapters of a study on lichess.org, from the address of its page: each chapter a game, with its comments and variations. A public study needs no account; a private one, signing in.</source>
-            <translation />
+            <translation>lichess.org 上一个研习的章节，通过其页面地址获取：每个章节是一盘对局，带有评注和变着。公开研习无需账号；私有研习需要登录。</translation>
         </message>
         <message>
             <source>The games of a ChessBase database (.cbh or .2cbh, and its files) on this computer. The file stays where it is; games added to it later are picked up.</source>
-            <translation />
+            <translation>本机上某个 ChessBase 数据库（.cbh 或 .2cbh 及其附属文件）中的对局。文件保持在原处；之后新增的对局也会被收录。</translation>
         </message>
     </context>
     <context>
@@ -6045,225 +6051,225 @@ The %n game(s) already imported stay in the database.</source>
         <name>SourceSync</name>
         <message>
             <source>Syncing %1…</source>
-            <translation />
+            <translation>正在同步 %1…</translation>
         </message>
         <message>
             <source>Could not save the games: %1</source>
-            <translation />
+            <translation>无法保存对局：%1</translation>
         </message>
         <message numerus="yes">
             <source>Syncing %1… %n new game(s)</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>正在同步 %1… 新增 %n 盘对局</numerusform>
+                <numerusform>正在同步 %1… 新增 %n 盘对局</numerusform>
             </translation>
         </message>
         <message>
             <source>The ChessBase database was not found at %1.</source>
-            <translation />
+            <translation>在 %1 未找到该 ChessBase 数据库。</translation>
         </message>
         <message>
             <source>The PGN file was not found at %1.</source>
-            <translation />
+            <translation>在 %1 未找到该 PGN 文件。</translation>
         </message>
     </context>
     <context>
         <name>SourceSyncTask</name>
         <message>
             <source>Sources</source>
-            <translation />
+            <translation>数据源</translation>
         </message>
     </context>
     <context>
         <name>SyncDialog</name>
         <message>
             <source>Use TLS (FTPS)</source>
-            <translation />
+            <translation>使用 TLS（FTPS）</translation>
         </message>
         <message>
             <source>&amp;Password:</source>
-            <translation />
+            <translation>密码(&amp;W)：</translation>
         </message>
         <message>
             <source>Sync &amp;before closing Pragma Chess</source>
-            <translation />
+            <translation>关闭 Pragma Chess 前先同步(&amp;Y)</translation>
         </message>
         <message>
             <source>&amp;Test Connection</source>
-            <translation />
+            <translation>测试连接(&amp;T)</translation>
         </message>
         <message>
             <source>S&amp;ync Now</source>
-            <translation />
+            <translation>立即同步(&amp;S)</translation>
         </message>
         <message>
             <source>Keep the databases and projects of &lt;b&gt;%1&lt;/b&gt; the same on every computer: set each one up with the same folder on a server.</source>
-            <translation />
+            <translation>让 &lt;b&gt;%1&lt;/b&gt; 的数据库和项目在每台电脑上都保持一致：为每台电脑指定服务器上的同一个文件夹。</translation>
         </message>
         <message>
             <source>Off</source>
-            <translation />
+            <translation>关闭</translation>
         </message>
         <message>
             <source>FTP</source>
-            <translation />
+            <translation>FTP</translation>
         </message>
         <message>
             <source>WebDAV</source>
-            <translation />
+            <translation>WebDAV</translation>
         </message>
         <message>
             <source>Git repository</source>
-            <translation />
+            <translation>Git 仓库</translation>
         </message>
         <message>
             <source>Port:</source>
-            <translation />
+            <translation>端口：</translation>
         </message>
         <message>
             <source>&amp;Server:</source>
-            <translation />
+            <translation>服务器(&amp;S)：</translation>
         </message>
         <message>
             <source>Folder on the server, e.g. Chess/Pragma</source>
-            <translation />
+            <translation>服务器上的文件夹，例如 Chess/Pragma</translation>
         </message>
         <message>
             <source>&amp;Folder:</source>
-            <translation />
+            <translation>文件夹(&amp;F)：</translation>
         </message>
         <message>
             <source>&amp;Address:</source>
-            <translation />
+            <translation>地址(&amp;A)：</translation>
         </message>
         <message>
             <source>&amp;Repository:</source>
-            <translation />
+            <translation>仓库(&amp;R)：</translation>
         </message>
         <message>
             <source>&amp;Branch:</source>
-            <translation />
+            <translation>分支(&amp;B)：</translation>
         </message>
         <message>
             <source>S&amp;ervice:</source>
-            <translation />
+            <translation>服务(&amp;V)：</translation>
         </message>
         <message>
             <source>&amp;User:</source>
-            <translation />
+            <translation>用户(&amp;U)：</translation>
         </message>
         <message>
             <source>Closing the window syncs everything first, and waits for it</source>
-            <translation />
+            <translation>关闭窗口前会先同步全部内容，并等待同步结束</translation>
         </message>
         <message>
             <source>&amp;Token:</source>
-            <translation />
+            <translation>令牌(&amp;T)：</translation>
         </message>
         <message>
             <source>The files stay where they are: each sync copies them into a clone kept by Pragma Chess, commits and pushes. SSH repositories use your SSH keys; for HTTPS enter a user and an access token, or leave them empty to use Git's credential helper.</source>
-            <translation />
+            <translation>文件仍留在原处：每次同步都会把它们复制到 Pragma Chess 维护的一个克隆里，然后提交并推送。SSH 仓库使用你的 SSH 密钥；HTTPS 请填写用户名和访问令牌，也可以留空以使用 Git 的凭证助手。</translation>
         </message>
         <message>
             <source>Syncing…</source>
-            <translation />
+            <translation>正在同步…</translation>
         </message>
         <message>
             <source>The last sync failed: %1</source>
-            <translation />
+            <translation>上次同步失败：%1</translation>
         </message>
         <message>
             <source>Last synced %1.</source>
-            <translation />
+            <translation>上次同步于 %1。</translation>
         </message>
         <message>
             <source>Enter the server first.</source>
-            <translation />
+            <translation>请先填写服务器。</translation>
         </message>
         <message>
             <source>Connecting…</source>
-            <translation />
+            <translation>正在连接…</translation>
         </message>
         <message>
             <source>No answer from the server.</source>
-            <translation />
+            <translation>服务器没有响应。</translation>
         </message>
         <message>
             <source>Connected. The folder is not synced yet: this computer will fill it.</source>
-            <translation />
+            <translation>已连接。该文件夹尚未同步：将由这台电脑来填充。</translation>
         </message>
         <message numerus="yes">
             <source>Connected. The folder holds %n file(s), last synced by %1 on %2.</source>
             <translation>
-                <numerusform />
-                <numerusform />
+                <numerusform>已连接。该文件夹中有 %n 个文件，上次由 %1 于 %2 同步。</numerusform>
+                <numerusform>已连接。该文件夹中有 %n 个文件，上次由 %1 于 %2 同步。</numerusform>
             </translation>
         </message>
         <message>
             <source>&amp;Manage Files…</source>
-            <translation />
+            <translation>管理文件(&amp;M)…</translation>
         </message>
         <message>
             <source>Sync Settings</source>
-            <translation />
+            <translation>同步设置</translation>
         </message>
         <message>
             <source>The files on the server; delete the ones no device should have any more</source>
-            <translation />
+            <translation>服务器上的文件；删除不再需要保留在任何设备上的那些</translation>
         </message>
     </context>
     <context>
         <name>TimeControl</name>
         <message>
             <source>UltraBullet</source>
-            <translation />
+            <translation>超超快棋</translation>
         </message>
         <message>
             <source>Bullet</source>
-            <translation />
+            <translation>超快棋</translation>
         </message>
         <message>
             <source>Blitz</source>
-            <translation />
+            <translation>快棋</translation>
         </message>
         <message>
             <source>Rapid</source>
-            <translation />
+            <translation>快速棋</translation>
         </message>
         <message>
             <source>Classical</source>
-            <translation />
+            <translation>经典</translation>
         </message>
         <message>
             <source>Correspondence</source>
-            <translation />
+            <translation>通讯棋</translation>
         </message>
         <message>
             <source>No clock</source>
-            <translation />
+            <translation>无时钟</translation>
         </message>
         <message>
             <source>no clock</source>
-            <translation />
+            <translation>无时钟</translation>
         </message>
         <message>
             <source>1 day</source>
-            <translation />
+            <translation>1 天</translation>
         </message>
         <message>
             <source>%1 days</source>
-            <translation />
+            <translation>%1 天</translation>
         </message>
     </context>
     <context>
         <name>TorneiOnlineFetch</name>
         <message>
             <source>%1 has no player with %2 ID %3.</source>
-            <translation />
+            <translation>%1 上没有 %2 ID 为 %3 的棋手。</translation>
         </message>
         <message>
             <source>Could not read the tournaments of the player on %1.</source>
-            <translation />
+            <translation>无法读取 %1 上该棋手的赛事。</translation>
         </message>
     </context>
     <context>
@@ -6747,22 +6753,22 @@ The %n game(s) already imported stay in the database.</source>
         <name>UiLanguage</name>
         <message>
             <source>System Language</source>
-            <translation />
+            <translation>系统语言</translation>
         </message>
     </context>
     <context>
         <name>WebDavStore</name>
         <message>
             <source>The server refused the user name or password.</source>
-            <translation />
+            <translation>服务器拒绝了用户名或密码。</translation>
         </message>
         <message>
             <source>The server has no space left.</source>
-            <translation />
+            <translation>服务器已没有剩余空间。</translation>
         </message>
         <message>
             <source>The server answered %1 %2.</source>
-            <translation />
+            <translation>服务器返回 %1 %2。</translation>
         </message>
     </context>
     <context>

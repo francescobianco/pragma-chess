@@ -8,6 +8,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Pragma Chess speaks Russian**: the whole interface, with Russian's
+  three plural forms, the guide and the web site (issue #4).
 - **Pragma Chess speaks Chinese (simplified)**: the whole interface in
   `zh_CN` — menus, dialogs, the board, Explain, the sources, the sync and
   the lobby — to be read by a Chinese-speaking player; Options ▸ Switch
@@ -213,6 +215,10 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- A computer set to Chinese (China or Singapore) opens Pragma Chess in
+  Simplified Chinese by itself: the system's language was compared with
+  the translation's name without the country, `zh` with `zh_CN`, and
+  never matched. Taiwan's traditional script is not given it.
 - On a dark theme the boxes of checkboxes and radio buttons, in dialogs
   and in menus (Engine ▸ Training Mode…), have a light edge: it was black on
   dark grey, hard to see.

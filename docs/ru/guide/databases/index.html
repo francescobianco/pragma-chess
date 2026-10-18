@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Базы данных – Руководство – Pragma Chess</title>
+<meta name="description" content="База данных — файл .pdb с партиями.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/ru/guide/databases/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/databases/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/databases/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/databases/">
+<link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/databases/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/databases/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/ru/guide/databases/">
+<meta property="og:title" content="Базы данных – Руководство – Pragma Chess">
+<meta property="og:description" content="База данных — файл .pdb с партиями.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Меню">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Возможности</a>
+    <a href="../../#screenshots">Скриншоты</a>
+    <a href="../../#download">Скачать</a>
+    <a href="../../#supporters">Поддержка</a>
+    <a href="../../#support">Помощь</a>
+    <a href="../../../ru/guide/" class="current">Руководство</a>
+    <a href="../../../ru/blog/">Блог</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/databases/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/databases/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/databases/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/databases/" hreflang="ru" class="current">Русский</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Руководство</a></p>
+  <header>
+    <h1>Базы данных</h1>
+  </header>
+  <p>База данных — файл <code>.pdb</code> с партиями. Открыта одна база за раз; её имя — во всплывающей подсказке значка базы на панели. В файловом менеджере у базы системный значок документа с базой и пешкой на странице; открытие запускает Pragma Chess с этой базой в проекте, который вы оставили открытым.</p>
+<ul><li><strong>База данных ▸ Новая база данных…</strong> создаёт пустую в папке Databases.</li><li><strong>База данных ▸ Открыть базу…</strong> открывает файл откуда угодно.</li><li><strong>База данных ▸ Сменить базу</strong> перечисляет базы папки: выберите, чтобы открыть. Значок базы на панели раскрывает тот же список.</li><li><strong>База данных ▸ Параметры базы…</strong> (также из контекстного меню базы вверху дерева) правит имя и описание, указывает, сборник ли это партий, дебютная книга или <strong>Задачи и тренировка</strong>, и содержит <strong>Оптимизировать базу</strong>. В базе «Задачи и тренировка» (таковы Endgame Training и Tactics Training) список партий не показывает ходы, чтобы решение оставалось скрытым, а партия из неё открывается в <strong>режиме тренировки</strong>: доска поворачивается к стороне, которой ходить — вашей, — а движок играет за другую. Если у партии нет имён игроков, список и доска показывают ваше имя из <strong>Личных настроек</strong> на стороне хода и <em>Pragma Coach</em> на другой: подставные имена, в базу не пишутся, и сортировка списка тоже по ним. Так же столбец Event там называется <strong>Тема</strong> и показывает тему задачи — самую выразительную из тех, что даёт lichess: <em>Вилка</em>, <em>Мат в 2 хода</em>, <em>Ладейный эндшпиль</em>. База с именем показывается им, файл в скобках — <em>Мои партии (games.pdb)</em> — в <strong>Сменить базу</strong> и вверху дерева, где имя жирным.</li><li><strong>База данных ▸ Сохранить базу как…</strong> пишет копию.</li><li><strong>База данных ▸ Сменить базу ▸ Показать папку баз</strong> открывает папку в файловом менеджере.</li></ul>
+<p>Изменения базы записываются по ходу работы: сохранять вручную нечего.</p>
+<p>В комплекте Pragma Chess две базы для тренировки в папке Databases: <strong>Endgame Training</strong> — классические теоретические эндшпили (базовые маты, оппозиция, Лусена, Филидор…) с целью и более двух тысяч эндшпильных задач — и <strong>Tactics Training</strong>, задачи двадцати тем от лёгких к трудным. Задачи из базы задач lichess.org (свободно, CC0); каждая начинается после хода соперника — найдите ответ: сыграйте в <strong>режиме тренировки</strong> или пройдите решение. В дереве они под <strong>Эндшпили</strong> и <strong>Тактика</strong>. Удалённую тренировочную базу программа снова не добавит.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../start/">← Первые шаги</a>
+    <a class="next" href="../games-list/">Список партий →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess — свободное ПО под лицензией MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Что нового</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/databases/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/databases/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/databases/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/databases/" hreflang="ru" class="current">Русский</a></p>
+  <p class="credits">Сделано на Qt. Движок по умолчанию: Stockfish (GPL v3). Названия дебютов: lichess-org/chess-openings (CC0). Фигуры: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

@@ -34,6 +34,7 @@ Command line tools                  gui/qt/tools: pragma-explain, pragma-book
 CMakeLists.txt         top-level CMake, only adds gui/qt
 CHANGELOG.md           what changed in each version, for users (Keep a Changelog)
 CONTRIBUTING.md        how to help: wrong explanations, translations, code
+CLUBS.md               how a chess club gets into the credits, and the clubs that are
 DISTRIBUTING.md        how Pragma Chess is made known: channels, messages, log
 POSITIONING.md         where Pragma Chess stands among free chess programs (Italian)
 TODO.md                handoff: what is left to do, open decisions, formats decoded
@@ -579,7 +580,8 @@ from disk and followed with a `QFileSystemWatcher`, and New Project. A
 click opens: a project as File ▸ Open Project, a database in a new project
 (`newProject`, then `openDatabaseFile`). "Don't show this window at
 startup" is QSettings `welcome/showAtStartup`, per computer.
-`POST /api/welcome` opens it and answers with its picture.
+`POST /api/welcome` opens it and answers with its picture;
+`POST /api/about` answers with the About window's.
 
 ## Toolbar
 
@@ -1965,8 +1967,9 @@ it**: the rules of the ledger are a protocol every client must apply alike.
 the partials (`{{> header}}`, hero, features, screenshots, download, support,
 footer, and supporters: the clubs of the About window, each with its logo
 in `assets/supporters/`, and the invitation to the WhatsApp group for a
-club that wants to be listed — add a club to `supporters.clubs` in every
-`content/<lang>.json` and to `kSupporters` in `AboutDialog`) with
+club that wants to be listed, with a link to CLUBS.md — add a club to
+`supporters.clubs` in every `content/<lang>.json`, to `kSupporters` in
+`AboutDialog` and to the list at the end of CLUBS.md) with
 `{{placeholders}}`, `{{#each list}}…{{/each}}` and
 `{{#if value}}…{{/if}}` over the texts of `content/<lang>.json`, one page per
 language under `docs/<lang>/`; the root `index.html` (and `404.html`) sends

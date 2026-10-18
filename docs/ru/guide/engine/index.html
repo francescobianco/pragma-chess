@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Движки – Руководство – Pragma Chess</title>
+<meta name="description" content="Движок ▸ Анализ (Ctrl+E) включает и выключает анализ позиции на доске.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/ru/guide/engine/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/engine/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/engine/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/engine/">
+<link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/engine/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/engine/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/ru/guide/engine/">
+<meta property="og:title" content="Движки – Руководство – Pragma Chess">
+<meta property="og:description" content="Движок ▸ Анализ (Ctrl+E) включает и выключает анализ позиции на доске.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Меню">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Возможности</a>
+    <a href="../../#screenshots">Скриншоты</a>
+    <a href="../../#download">Скачать</a>
+    <a href="../../#supporters">Поддержка</a>
+    <a href="../../#support">Помощь</a>
+    <a href="../../../ru/guide/" class="current">Руководство</a>
+    <a href="../../../ru/blog/">Блог</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/engine/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/engine/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/engine/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/engine/" hreflang="ru" class="current">Русский</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Руководство</a></p>
+  <header>
+    <h1>Движки</h1>
+  </header>
+  <p><strong>Движок ▸ Анализ</strong> (Ctrl+E) включает и выключает анализ позиции на доске. Панель «Движок» показывает оценку — всегда со стороны белых: плюс хорошо для белых, — глубину и лучшую линию. Полоска у доски показывает ту же оценку. Щелчок по оценке переключает вид по кругу: абсолютная (со стороны белых, как даёт движок), за сторону хода, шансы стороны хода и суждение шахматной книги (=, ⩲, ±, +− и противоположности, со стороны белых). Точка перед значением — единица: наполовину белая и чёрная для стороны белых, цвет стороны хода для её; у книжных символов точки нет. Шансы — ожидаемый результат в процентах: что сторона в среднем уносит из такой позиции, победа 1 и ничья ½ — 50% равно, пешка вверх около 59%, три пешки около 75% (кривая lichess и полоска у доски). Всплывающая подсказка даёт все четыре сразу; выбор сохраняется с проектом. Рядом с оценкой в той же рамке — ход партии: точка за каждый ход с известной оценкой (что нашёл движок или собственные оценки партии, как пишет lichess), соединённые линией, над средней линией равной партии. Высота растёт с преимуществом медленнее него: полпешки уже видно, пешка близка к середине, две — меньше чем вдвое дальше, десять и мат достигают края. Преимущество белых идёт к стороне белых на доске, как у полоски, так что график поворачивается с доской; ход на доске отмечен. Щелчок по точке — к тому ходу. Двадцать ходов заполняют ширину; более длинная партия сжимается, без прокрутки.</p>
+<p><strong>Чтобы увидеть, куда ведёт линия</strong>, нажмите и удерживайте глаз рядом со «Стоп»: пока держите, доска показывает позицию в конце линии движка, как будто все его ходы сыграны, и следует за движком: когда он находит другую линию, доска переходит туда, где кончается новая. Отпустите — вернётся ваша позиция. Над этой позицией фиолетовые стрелки показывают планы линии: как фигура шла туда (маршрут коня, подъём ладьи, ферзь меняет фланг), король марширует в эндшпиле, пешка бежит или прорывается. Стрелка с поворотом проходит клетки, где фигура останавливалась. Размены и ходы, вынужденные шахом, — не планы, поэтому линия только из них стрелок не показывает.</p>
+<p>В комплекте Pragma Chess — Stockfish; работает любой UCI-движок.</p>
+<ul><li><strong>Движок ▸ Сменить движок</strong> выбирает среди движков этого компьютера. Значок движка на панели раскрывает тот же список.</li><li><strong>Движок ▸ Управление движками…</strong> добавляет, правит и удаляет движки. <strong>Найти движки</strong> ищет установленные на компьютере; <strong>Использовать этот движок</strong> переключается на выбранный.</li><li><strong>Вычислительная мощность</strong> в том же окне — сколько компьютера движок может использовать при анализе, от <strong>Минимум</strong> (3% процессора) до <strong>Полностью</strong> (весь, без ограничений); <strong>Средне</strong>, 10%, — старт каждого движка. Сила на каждом уровне та же, только медленнее: меньше потоков, ниже приоритет и на Linux и Windows — потолок доли процессора, чтобы вентиляторы были тише, а остальной компьютер свободен. <strong>Потоки</strong>, если заданы, побеждают уровень.</li></ul>
+<p>Используемый движок — часть проекта.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../discovery/">← Знакомство с возможностями</a>
+    <a class="next" href="../training/">Тренировка →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess — свободное ПО под лицензией MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Что нового</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/engine/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/engine/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/engine/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/engine/" hreflang="ru" class="current">Русский</a></p>
+  <p class="credits">Сделано на Qt. Движок по умолчанию: Stockfish (GPL v3). Названия дебютов: lichess-org/chess-openings (CC0). Фигуры: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

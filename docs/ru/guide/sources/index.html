@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Источники партий – Руководство – Pragma Chess</title>
+<meta name="description" content="Источник приносит партии с сайта в открытую базу и держит их актуальными.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/ru/guide/sources/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/sources/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/sources/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/sources/">
+<link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/sources/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/sources/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/ru/guide/sources/">
+<meta property="og:title" content="Источники партий – Руководство – Pragma Chess">
+<meta property="og:description" content="Источник приносит партии с сайта в открытую базу и держит их актуальными.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Меню">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Возможности</a>
+    <a href="../../#screenshots">Скриншоты</a>
+    <a href="../../#download">Скачать</a>
+    <a href="../../#supporters">Поддержка</a>
+    <a href="../../#support">Помощь</a>
+    <a href="../../../ru/guide/" class="current">Руководство</a>
+    <a href="../../../ru/blog/">Блог</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/sources/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/sources/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/sources/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/sources/" hreflang="ru" class="current">Русский</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Руководство</a></p>
+  <header>
+    <h1>Источники партий</h1>
+  </header>
+  <p>Источник приносит партии с сайта в открытую базу и держит их актуальными.</p>
+<p><strong>База данных ▸ Подключить источник…</strong> добавляет:</p>
+<ul><li><strong>lichess.org</strong>: открытые партии аккаунта; вход необязателен и ускоряет загрузку;</li><li><strong>chess.com</strong>: ваше имя пользователя;</li><li><strong>torneionline.com</strong>: номер FIDE или FSI для партий турниров, в которых вы играли.</li><li><strong>Файлы ChessBase</strong>: база ChessBase на этом компьютере: классический формат (<code>.cbh</code> и файлы) или ChessBase 17 и новее (<code>.2cbh</code> и файлы). Выберите <code>.cbh</code> или <code>.2cbh</code>: партии копируются (из <code>.2cbh</code> с вариантами, комментариями на вашем языке, когда их несколько, символами, цветными клетками и стрелками и оценками движка), файлы остаются на месте, добавленные позже приходят при следующей синхронизации. На другом компьютере файла нет: синхронизация так и говорит и предлагает игнорировать источник на том компьютере; <em>База данных ▸ Управление источниками… ▸ Изменить…</em> выбирает файл снова, а <strong>Использовать на этом компьютере</strong> перестаёт игнорировать.</li><li><strong>Исследование Lichess</strong>: исследование на lichess.org. Вставьте адрес страницы (или одной из глав) в <strong>Адрес исследования</strong>: каждая глава становится партией базы с комментариями и вариантами, теги <code>StudyName</code>, <code>ChapterName</code> и <code>ChapterURL</code> говорят, какое исследование и глава (главы исследования — не главы проекта). Глава, изменённая на lichess.org, заменяет свою партию при следующей синхронизации, если партия не менялась и здесь: тогда сохраняются обе. Открытому исследованию аккаунт не нужен; для закрытого — <strong>Войти через lichess.org…</strong> аккаунтом, который его видит. Исследование может быть открытым для просмотра и всё же не скачиваемым: автор выбирает, кто может экспортировать (<strong>Share &amp; export</strong> в настройках исследования на lichess.org), и только они могут подключить. Пока исследование только читается: запись в него ещё впереди.</li><li><strong>Файл PGN</strong>: файл <code>.pgn</code> на этом компьютере, синхронизируемый с базой. Выберите через <strong>Обзор…</strong> или создайте пустой через <strong>Новый файл…</strong>, затем <strong>Направление</strong>: <strong>Чтение и запись</strong> (партии файла входят в базу и партии базы — в файл, так что добавленная или изменённая с любой стороны доходит до другой), <strong>Только чтение</strong> (файл никогда не пишется) или <strong>Только запись</strong> (каждая партия базы идёт в файл; остальные партии файла в базу не входят). Сохранённая, изменённая или аннотированная партия пишется в файл через несколько секунд. Удалённое с одной стороны не удаляется с другой, а изменённое с обеих между двумя синхронизациями сохраняется дважды. Pragma Chess помечает связанные с базой партии тегом <code>PragmaUid</code> и ведёт индекс рядом в скрытом файле, так что неизменившийся файл не читается снова.</li></ul>
+<p>Источники читаются при открытии базы и каждые двадцать минут. Партия не импортируется дважды. <strong>База данных ▸ Управление источниками…</strong> синхронизирует источник сейчас, меняет его, входит снова или удаляет; уже импортированные партии остаются.</p>
+<p>Узел <strong>Источник</strong> дерева перечисляет партии каждого источника.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../opening-names/">← Названия дебютов</a>
+    <a class="next" href="../trash/">Корзина →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess — свободное ПО под лицензией MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Что нового</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/sources/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/sources/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/sources/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/sources/" hreflang="ru" class="current">Русский</a></p>
+  <p class="credits">Сделано на Qt. Движок по умолчанию: Stockfish (GPL v3). Названия дебютов: lichess-org/chess-openings (CC0). Фигуры: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

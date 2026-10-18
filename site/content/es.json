@@ -2,7 +2,8 @@
   "language_names": {
     "en": "English",
     "it": "Italiano",
-    "es": "Español"
+    "es": "Español",
+    "ru": "Русский"
   },
   "meta": {
     "title": "Pragma Chess — una base de datos de ajedrez de código abierto para estudiar, entrenar y jugar",
@@ -213,6 +214,7 @@
     ],
     "join_title": "¿Quieres que tu club aparezca aquí?",
     "join_text": "Presenta Pragma Chess a tus socios y luego cuéntanos cómo fue en nuestro grupo de WhatsApp, y mándanos allí tu logo.",
+    "join_more": "Cómo funciona",
     "join_button": "Unirse al grupo de WhatsApp",
     "whatsapp": "https://chat.whatsapp.com/GHBDbRkejmYJ8Hev585ZCj"
   },

@@ -5,479 +5,776 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/start/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/start/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/start/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/start/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/start/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/databases/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/databases/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/databases/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/databases/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/databases/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/games-list/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/games-list/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/games-list/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/games-list/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/games-list/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/database-tree/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/database-tree/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/database-tree/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/database-tree/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/database-tree/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/board/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/board/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/board/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/board/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/board/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/moves/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/moves/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/moves/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/moves/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/moves/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/explain/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/explain/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/explain/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/explain/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/explain/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/discovery/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/discovery/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/discovery/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/discovery/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/discovery/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/engine/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/engine/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/engine/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/engine/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/engine/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/training/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/training/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/training/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/training/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/training/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/online/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/online/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/online/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/online/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/online/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/books/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/books/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/books/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/books/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/books/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/opening-names/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/opening-names/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/opening-names/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/opening-names/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/opening-names/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/sources/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/sources/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/sources/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/sources/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/sources/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/trash/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/trash/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/trash/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/trash/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/trash/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/convert/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/convert/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/convert/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/convert/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/convert/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/projects/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/projects/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/projects/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/projects/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/projects/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/chapters/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/chapters/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/chapters/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/chapters/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/chapters/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/sync/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/sync/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/sync/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/sync/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/sync/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/extensions/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/extensions/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/extensions/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/extensions/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/extensions/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/updates/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/updates/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/updates/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/updates/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/updates/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/language/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/language/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/language/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/language/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/language/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/guide/shortcuts/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/shortcuts/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/shortcuts/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/shortcuts/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/shortcuts/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/blog/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/en/blog/three-languages-in-a-week/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/three-languages-in-a-week/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/three-languages-in-a-week/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/three-languages-in-a-week/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/three-languages-in-a-week/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/en/blog/the-logo/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/the-logo/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/the-logo/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/the-logo/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/start/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/start/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/start/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/start/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/start/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/databases/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/databases/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/databases/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/databases/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/databases/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/games-list/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/games-list/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/games-list/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/games-list/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/games-list/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/database-tree/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/database-tree/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/database-tree/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/database-tree/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/database-tree/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/board/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/board/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/board/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/board/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/board/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/moves/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/moves/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/moves/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/moves/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/moves/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/explain/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/explain/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/explain/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/explain/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/explain/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/discovery/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/discovery/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/discovery/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/discovery/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/discovery/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/engine/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/engine/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/engine/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/engine/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/engine/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/training/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/training/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/training/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/training/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/training/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/online/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/online/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/online/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/online/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/online/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/books/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/books/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/books/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/books/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/books/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/opening-names/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/opening-names/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/opening-names/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/opening-names/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/opening-names/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/sources/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/sources/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/sources/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/sources/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/sources/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/trash/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/trash/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/trash/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/trash/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/trash/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/convert/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/convert/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/convert/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/convert/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/convert/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/projects/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/projects/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/projects/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/projects/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/projects/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/chapters/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/chapters/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/chapters/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/chapters/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/chapters/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/sync/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/sync/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/sync/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/sync/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/sync/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/extensions/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/extensions/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/extensions/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/extensions/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/extensions/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/updates/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/updates/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/updates/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/updates/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/updates/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/language/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/language/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/language/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/language/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/language/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/guide/shortcuts/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/shortcuts/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/shortcuts/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/shortcuts/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/shortcuts/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/blog/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/it/blog/three-languages-in-a-week/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/three-languages-in-a-week/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/three-languages-in-a-week/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/three-languages-in-a-week/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/three-languages-in-a-week/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/blog/the-logo/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/the-logo/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/the-logo/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/the-logo/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/start/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/start/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/start/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/start/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/start/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/databases/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/databases/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/databases/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/databases/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/databases/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/games-list/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/games-list/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/games-list/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/games-list/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/games-list/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/database-tree/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/database-tree/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/database-tree/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/database-tree/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/database-tree/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/board/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/board/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/board/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/board/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/board/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/moves/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/moves/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/moves/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/moves/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/moves/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/explain/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/explain/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/explain/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/explain/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/explain/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/discovery/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/discovery/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/discovery/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/discovery/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/discovery/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/engine/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/engine/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/engine/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/engine/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/engine/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/training/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/training/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/training/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/training/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/training/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/online/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/online/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/online/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/online/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/online/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/books/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/books/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/books/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/books/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/books/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/opening-names/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/opening-names/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/opening-names/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/opening-names/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/opening-names/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/sources/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/sources/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/sources/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/sources/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/sources/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/trash/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/trash/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/trash/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/trash/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/trash/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/convert/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/convert/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/convert/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/convert/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/convert/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/projects/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/projects/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/projects/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/projects/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/projects/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/chapters/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/chapters/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/chapters/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/chapters/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/chapters/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/sync/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/sync/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/sync/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/sync/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/sync/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/extensions/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/extensions/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/extensions/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/extensions/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/extensions/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/updates/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/updates/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/updates/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/updates/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/updates/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/language/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/language/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/language/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/language/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/language/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/guide/shortcuts/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/shortcuts/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/shortcuts/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/shortcuts/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/shortcuts/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/es/blog/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/es/blog/three-languages-in-a-week/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/three-languages-in-a-week/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/three-languages-in-a-week/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/three-languages-in-a-week/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/three-languages-in-a-week/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/es/blog/the-logo/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/the-logo/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/the-logo/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/the-logo/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/start/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/start/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/start/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/start/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/start/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/databases/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/databases/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/databases/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/databases/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/databases/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/games-list/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/games-list/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/games-list/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/games-list/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/games-list/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/database-tree/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/database-tree/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/database-tree/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/database-tree/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/database-tree/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/board/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/board/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/board/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/board/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/board/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/moves/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/moves/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/moves/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/moves/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/moves/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/explain/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/explain/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/explain/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/explain/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/explain/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/discovery/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/discovery/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/discovery/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/discovery/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/discovery/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/engine/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/engine/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/engine/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/engine/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/engine/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/training/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/training/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/training/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/training/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/training/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/online/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/online/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/online/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/online/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/online/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/books/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/books/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/books/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/books/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/books/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/opening-names/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/opening-names/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/opening-names/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/opening-names/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/opening-names/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/sources/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/sources/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/sources/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/sources/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/sources/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/trash/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/trash/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/trash/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/trash/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/trash/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/convert/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/convert/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/convert/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/convert/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/convert/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/projects/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/projects/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/projects/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/projects/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/projects/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/chapters/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/chapters/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/chapters/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/chapters/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/chapters/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/sync/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/sync/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/sync/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/sync/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/sync/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/extensions/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/extensions/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/extensions/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/extensions/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/extensions/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/updates/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/updates/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/updates/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/updates/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/updates/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/language/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/language/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/language/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/language/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/language/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/guide/shortcuts/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/shortcuts/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/shortcuts/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/shortcuts/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/shortcuts/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/blog/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/blog/three-languages-in-a-week/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/three-languages-in-a-week/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/three-languages-in-a-week/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/three-languages-in-a-week/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/three-languages-in-a-week/"/>
   </url>
 </urlset>

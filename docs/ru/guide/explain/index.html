@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Объяснить – Руководство – Pragma Chess</title>
+<meta name="description" content="Объяснить показывает на доске, почему последний ход хорош или плох.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/ru/guide/explain/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/explain/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/explain/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/explain/">
+<link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/explain/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/explain/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/ru/guide/explain/">
+<meta property="og:title" content="Объяснить – Руководство – Pragma Chess">
+<meta property="og:description" content="Объяснить показывает на доске, почему последний ход хорош или плох.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Меню">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Возможности</a>
+    <a href="../../#screenshots">Скриншоты</a>
+    <a href="../../#download">Скачать</a>
+    <a href="../../#supporters">Поддержка</a>
+    <a href="../../#support">Помощь</a>
+    <a href="../../../ru/guide/" class="current">Руководство</a>
+    <a href="../../../ru/blog/">Блог</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/explain/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/explain/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/explain/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/explain/" hreflang="ru" class="current">Русский</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Руководство</a></p>
+  <header>
+    <h1>Объяснить</h1>
+  </header>
+  <p><strong>Объяснить</strong> показывает на доске, почему последний ход хорош или плох. Нажмите кнопку между стрелками под доской или клавишу <strong>E</strong>.</p>
+<p>Движок смотрит позицию до и после хода и рисует стрелки:</p>
+<ul><li><strong>красные</strong>: материал вот-вот упадёт, теряемые фигуры обведены;</li><li><strong>зелёные</strong>: идеи вашей стороны, ходы, делающие оценку;</li><li><strong>синие</strong>: ходы другой стороны — ответ, который решает, когда ещё ничего не потеряно, или её план; <em>ваша сторона</em> — та, за которую вы играете на тренировке, иначе та, что внизу доски;</li><li><strong>пунктирные красные</strong>: угроза, фигура под боем — «5.Фxf3 нападает на ладью на a8», или та, на которую ваш ход не ответил, «5…Фh4+ оставляет ладью на a8 под боем: 7.Фxa8»;</li><li><strong>пунктирная зелёная</strong>: лучший ход, который у вас был. Когда он ходит той же фигурой, что вы — клетка ухода пуста, фигура ушла иначе — фигура рисуется мелко и бледно там, куда ей следовало встать.</li></ul>
+<p>Вынужденный мат разыгрывается на доске в красной рамке. Панель «Движок» говорит словами, например «Грубый зевок (+0.3 → −2.9). Чёрные выигрывают коня».</p>
+<p>«Объяснить» читает анализ на панели «Движок»: объяснение появляется, когда движок достаточно углубился, и уточняется глубже — стрелки меняются, только когда новая линия держится какое-то время. Ход судят относительно позиции до него: если её ещё не анализировали (пришли сразу к ходу или снова открыли Pragma Chess на нём), движок сначала смотрит её мгновение, затем продолжает с позиции на доске. До первого ответа рамка доски «дышит»; становится синей, когда объяснение есть. «Объяснить» — про один ход: переход к другому выключает его, спросите снова. Закрытый с включённым «Объяснить» Pragma Chess открывается с ним на том же ходе.</p>
+<p><strong>Правка ▸ Копировать ▸ Объяснение</strong> копирует текст.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../moves/">← Ходы и аннотации</a>
+    <a class="next" href="../discovery/">Знакомство с возможностями →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess — свободное ПО под лицензией MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Что нового</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/explain/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/explain/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/explain/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/explain/" hreflang="ru" class="current">Русский</a></p>
+  <p class="credits">Сделано на Qt. Движок по умолчанию: Stockfish (GPL v3). Названия дебютов: lichess-org/chess-openings (CC0). Фигуры: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

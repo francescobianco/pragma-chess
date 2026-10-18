@@ -2,7 +2,8 @@
   "language_names": {
     "en": "English",
     "it": "Italiano",
-    "es": "Español"
+    "es": "Español",
+    "ru": "Русский"
   },
   "meta": {
     "title": "Pragma Chess — an open source chess database for studying, training and playing",
@@ -213,6 +214,7 @@
     ],
     "join_title": "Would you like your club to appear here?",
     "join_text": "Introduce Pragma Chess to your members, then tell us how it went in our WhatsApp group and send us your logo there.",
+    "join_more": "How it works",
     "join_button": "Join the WhatsApp group",
     "whatsapp": "https://chat.whatsapp.com/GHBDbRkejmYJ8Hev585ZCj"
   },

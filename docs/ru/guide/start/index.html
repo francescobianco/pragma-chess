@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Первые шаги – Руководство – Pragma Chess</title>
+<meta name="description" content="Pragma Chess хранит ваши партии в базах данных и позволяет изучать их на доске с движком, дебютной книгой и собственными заметками.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/ru/guide/start/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/start/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/start/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/start/">
+<link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/start/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/start/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/ru/guide/start/">
+<meta property="og:title" content="Первые шаги – Руководство – Pragma Chess">
+<meta property="og:description" content="Pragma Chess хранит ваши партии в базах данных и позволяет изучать их на доске с движком, дебютной книгой и собственными заметками.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Меню">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Возможности</a>
+    <a href="../../#screenshots">Скриншоты</a>
+    <a href="../../#download">Скачать</a>
+    <a href="../../#supporters">Поддержка</a>
+    <a href="../../#support">Помощь</a>
+    <a href="../../../ru/guide/" class="current">Руководство</a>
+    <a href="../../../ru/blog/">Блог</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/start/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/start/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/start/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/start/" hreflang="ru" class="current">Русский</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Руководство</a></p>
+  <header>
+    <h1>Первые шаги</h1>
+  </header>
+  <p>Pragma Chess хранит ваши партии в <strong>базах данных</strong> и позволяет изучать их на доске с движком, дебютной книгой и собственными заметками.</p>
+<p>При каждом запуске над главным окном открывается <strong>окно приветствия</strong>: что умеет Pragma Chess, затем ваши <strong>проекты</strong> и <strong>базы данных</strong>, прочитанные из своих папок (файл, который вы туда положите, появится). Щёлкните проект, чтобы открыть его, базу — чтобы открыть в новом проекте, или <strong>Новый проект</strong>. Отметьте <strong>Не показывать это окно при запуске</strong>, чтобы сразу перейти к работе; <strong>Справка ▸ Приветствие…</strong> открывает его снова в любой момент.</p>
+<p>В окне <strong>доска</strong> посередине и четыре панели вокруг:</p>
+<ul><li><strong>Партии</strong> внизу: дерево открытой базы и список её партий.</li><li><strong>Ходы</strong>: ходы партии на доске.</li><li><strong>Дерево дебютов</strong>: ходы дебютной книги для позиции на доске.</li><li><strong>Движок</strong>: оценка, лучшая линия и дебют, в котором находится партия.</li></ul>
+<p>На <strong>панели инструментов</strong> — «Синхронизировать», «Сохранить проект», «Новая партия», «Новая тренировка», «Новая онлайн-партия», «Войти в лобби» (бокал мартини) и три значка для выбора дебютной книги, движка и используемой базы.</p>
+<p>Всё, что вы видите — база, партия, ход, панели — это <strong>проект</strong>: при следующем запуске Pragma Chess он вернётся таким, каким вы его оставили.</p>
+<p>Файлы лежат в папке Pragma внутри вашей шахматной папки (например <code>Chess/Pragma</code> в домашнем каталоге), с <code>Databases</code>, <code>Projects</code> и <code>Books</code>. При первом запуске туда помещается база классических партий.</p>
+<p><strong>Параметры ▸ Личные настройки…</strong> говорят, кто вы: имя, год рождения и FIDE ID. Имя ставится на вашей стороне новой партии, партии из «Расставить позицию» (на стороне внизу доски) и тренировочной партии (на выбранном цвете), если только открытая база уже не знает вас — побеждает игрок, отмеченный как «Я» через <strong>Кто это?</strong>. Пока вы не задали имя, Pragma Chess даёт своё: имя чемпиона с тремя цифрами, вроде <em>Spassky007</em>, у каждого своё, чтобы лобби не заполнялось одинаковыми именами: оно написано здесь — оставьте или смените. <strong>Стиль доски</strong> выбирает цвета клеток и фигуры вместе: Pragma Classic (коричневые клетки и фигуры шахматных книг), Lichess Alpha (зелёная доска и фигуры Alpha с lichess.org) или Classic Book (диаграмма печатной книги: старая бумага, тёмные клетки в штриховке, поле бумаги вокруг каждой фигуры, без координат); все доски меняются сразу после OK. Эти настройки хранятся в <code>.pragma-chess.conf</code>, YAML-файле в папке Pragma, который синхронизация переносит на другие компьютеры, хотя файл скрыт; при изменении на двух компьютерах сразу побеждает более новый.</p>
+<p><strong>Параметры ▸ Параметры папок…</strong> размещает их в другом месте на этом компьютере: саму папку Pragma или только базы, проекты, книги или названия дебютов. Оставьте папку пустой, чтобы сохранить обычное расположение. Уже лежащие файлы не перемещаются; новые папки используются при следующем запуске Pragma Chess. Синхронизация выравнивает на других компьютерах только то, что внутри папки Pragma.</p>
+<p>Вопрос, идея, чем поделиться: <strong>Справка ▸ Вопросы и идеи…</strong> открывает Discussions проекта на GitHub. Что-то сломалось: <strong>Справка ▸ Сообщить о проблеме…</strong>.</p>
+  <nav class="topic-steps">
+    
+    <a class="next" href="../databases/">Базы данных →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess — свободное ПО под лицензией MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Что нового</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/start/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/start/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/start/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/start/" hreflang="ru" class="current">Русский</a></p>
+  <p class="credits">Сделано на Qt. Движок по умолчанию: Stockfish (GPL v3). Названия дебютов: lichess-org/chess-openings (CC0). Фигуры: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

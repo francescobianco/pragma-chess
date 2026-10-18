@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Дебютные книги – Руководство – Pragma Chess</title>
+<meta name="description" content="Дебютная книга — файл Polyglot .bin: известные в каждой позиции ходы, у каждого вес.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/ru/guide/books/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/books/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/books/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/books/">
+<link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/books/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/books/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/ru/guide/books/">
+<meta property="og:title" content="Дебютные книги – Руководство – Pragma Chess">
+<meta property="og:description" content="Дебютная книга — файл Polyglot .bin: известные в каждой позиции ходы, у каждого вес.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Меню">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Возможности</a>
+    <a href="../../#screenshots">Скриншоты</a>
+    <a href="../../#download">Скачать</a>
+    <a href="../../#supporters">Поддержка</a>
+    <a href="../../#support">Помощь</a>
+    <a href="../../../ru/guide/" class="current">Руководство</a>
+    <a href="../../../ru/blog/">Блог</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/books/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/books/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/books/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/books/" hreflang="ru" class="current">Русский</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Руководство</a></p>
+  <header>
+    <h1>Дебютные книги</h1>
+  </header>
+  <p>Дебютная книга — файл Polyglot <code>.bin</code>: известные в каждой позиции ходы, у каждого вес. Значок книги на панели раскрывает книги папки Books.</p>
+<ul><li><strong>Книга ▸ Новая книга…</strong> и <strong>Книга ▸ Открыть книгу…</strong> создают книгу или открывают откуда угодно.</li><li><strong>Книга ▸ Сменить книгу</strong> перечисляет книги папки: выберите, чтобы использовать, или <strong>Без книги</strong>, чтобы работать без неё. <strong>Показать папку книг</strong> в конце открывает папку в файловом менеджере.</li></ul>
+<p>Панель <strong>Дерево дебютов</strong> для позиции на доске показывает каждый ход книги с долей веса, названием дебюта, куда он ведёт, и как шли партии открытой базы после него (партии, затем победы белых / ничьи / победы чёрных). Щелчок по ходу играет его; первая строка берёт последний ход назад.</p>
+<p><strong>Ваш репертуар</strong>: правый щелчок по ходу «Дерева дебютов» и <strong>Добавить в репертуар</strong>. Ходы репертуара перечислены первыми, жирным. Метка хранится в файле книги; другие программы её игнорируют.</p>
+<p><strong>Веса</strong>: в том же меню <strong>Изменить вес</strong> с +5%, +10%, +25%, +50%, +100%, то же вниз и <strong>Обнулить вес</strong>. Процент — от собственной доли хода, сумма позиции всегда 100%: что ход приобретает, другие отдают пропорционально тому, что имеют — тяжёлые больше всего, — а что теряет, возвращается им так же. Ход на 0% или меньше 1% не может вырасти процентом от себя, поэтому увеличение сначала берёт 1% у других и растёт оттуда; уменьшение хода на 0% ничего не делает. «Обнулить вес» отдаёт всю долю хода другим ходам, у которых есть вес. Изменения пишутся в используемую книгу. Список сортируется снова, изменённый ход на мгновение вспыхивает и отмечается слева от веса ↑ если вырос, ↓ если упал, = если остался; метка держится, пока вы не уйдёте с позиции.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../online/">← Игра онлайн</a>
+    <a class="next" href="../opening-names/">Названия дебютов →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess — свободное ПО под лицензией MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Что нового</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/books/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/books/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/books/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/books/" hreflang="ru" class="current">Русский</a></p>
+  <p class="credits">Сделано на Qt. Движок по умолчанию: Stockfish (GPL v3). Названия дебютов: lichess-org/chess-openings (CC0). Фигуры: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+---
+title: Tres idiomas nuevos en una semana
+summary: Pedimos ayuda para traducir Pragma Chess y en una semana habla español, ruso y chino simplificado. Gracias a quienes lo hicieron posible.
+---
+<figure class="post-figure post-figure-wide">
+  <img src="welcome-zh.png" alt="La ventana de bienvenida de Pragma Chess en chino simplificado" width="1100" height="680">
+  <figcaption>La ventana de bienvenida, en chino simplificado.</figcaption>
+</figure>
+
+<p>La noche del 10 de octubre abrimos una issue en GitHub con un título sencillo: <a href="https://github.com/francescobianco/pragma-chess/issues/4">Traduce Pragma Chess a tu idioma</a>. Pragma Chess hablaba inglés e italiano. Esperábamos que alguien respondiera en unos meses. Una semana después habla cinco idiomas, y no esperábamos que ocurriera tan rápido.</p>
+
+<h2>El español, leído por un hablante nativo</h2>
+
+<p>La primera versión en español llegó al día siguiente de la issue, escrita por nosotros. Una traducción hecha por quien no habla el idioma a diario siempre tiene algo rígido, y <strong>Zeta</strong> (<a href="https://github.com/zetachess">@zetachess</a>) la leyó con el oído de quien la habla desde siempre y la hizo sonar natural: la licencia de Qt, los mensajes del libro de aperturas, el repertorio. Pequeños cambios, de los que solo nota quien habla la lengua.</p>
+
+<h2>El ruso, completo</h2>
+
+<figure class="post-figure post-figure-wide">
+  <img src="welcome-ru.png" alt="La ventana de bienvenida de Pragma Chess en ruso" width="1100" height="680">
+  <figcaption>La ventana de bienvenida, en ruso.</figcaption>
+</figure>
+
+<p><strong>mrvi0</strong> (<a href="https://github.com/mrvi0">@mrvi0</a>) escribió «me encargo del ruso» y pocos días después lo envió todo: cada texto de la interfaz, con las tres formas de plural que necesita el ruso (1 партия, 2 партии, 5 партий), la guía entera y este sitio web. <em>Explicar</em>, nuestra función principal, es «Объяснить», la misma palabra en todas partes.</p>
+
+<h2>El chino simplificado, y una buena pregunta</h2>
+
+<p><strong>Wait-Again</strong> (<a href="https://github.com/Wait-Again">@Wait-Again</a>) empezó con una pregunta antes de escribir una sola línea: ¿el idioma debe llamarse <code>zh_CN</code> o <code>zh</code>? Con <code>zh_CN</code> también se traducirían los botones de Qt (Aceptar, Cancelar), pero quizá el programa no elegiría el chino por sí solo en un sistema chino. La duda era acertada: el programa comparaba solo el idioma, <code>zh</code>, con el nombre del archivo, <code>zh_CN</code>, y nunca lo encontraba. Ya está corregido: Pragma Chess busca primero la traducción del país y después una del mismo idioma con la misma escritura, así que un ordenador en China o Singapur recibe el chino simplificado, y uno en Taiwán, que escribe con caracteres tradicionales, no lo recibe por error. Luego llegó la traducción: más de 1600 textos, la interfaz entera, con 讲解 para <em>Explicar</em>.</p>
+
+<h2>Gracias</h2>
+
+<p>Traducir un programa es un trabajo largo y cuidadoso, hecho para personas a las que nunca conocerás: un jugador en Moscú, en Madrid o en Shanghái que abre Pragma Chess y lo encuentra en su idioma. A Zeta, mrvi0 y Wait-Again: gracias, de verdad.</p>
+
+<p>Dos invitaciones, para ellos y para quien lee. Si formas parte de un club de ajedrez, háblale a tu club de Pragma Chess: es gratuito, de código abierto, y ahora habla un idioma más. Un club que apoya el proyecto aparece en los créditos del programa y de este sitio, con su logotipo; <a href="https://github.com/francescobianco/pragma-chess/blob/main/CLUBS.md">CLUBS.md</a> explica cómo. Y si tu idioma todavía falta, la <a href="https://github.com/francescobianco/pragma-chess/issues/4">issue #4</a> está abierta.</p>

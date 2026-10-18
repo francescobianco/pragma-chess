@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pragma Chess — открытая шахматная база данных для изучения, тренировки и игры</title>
+<meta name="description" content="Pragma Chess хранит партии в базах данных и позволяет изучать их с движком, дебютной книгой и заметками; тренироваться против движка с тренером; играть онлайн. Лёгкий, простой, с тем, что действительно нужно. Windows, macOS, Linux.">
+<link rel="icon" href="../assets/favicon.png">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/ru/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/">
+<link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/ru/">
+<meta property="og:title" content="Pragma Chess — открытая шахматная база данных для изучения, тренировки и игры">
+<meta property="og:description" content="Pragma Chess хранит партии в базах данных и позволяет изучать их с движком, дебютной книгой и заметками; тренироваться против движка с тренером; играть онлайн. Лёгкий, простой, с тем, что действительно нужно. Windows, macOS, Linux.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/hero.png">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Pragma Chess", "description": "Pragma Chess хранит партии в базах данных и позволяет изучать их с движком, дебютной книгой и заметками; тренироваться против движка с тренером; играть онлайн. Лёгкий, простой, с тем, что действительно нужно. Windows, macOS, Linux.", "url": "https://yafb.net/pragma-chess/ru/", "applicationCategory": "GameApplication", "applicationSubCategory": "Chess database", "operatingSystem": "Windows, macOS, Linux, Android", "softwareVersion": "0.3.0", "license": "https://opensource.org/licenses/MIT", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}, "downloadUrl": "https://github.com/francescobianco/pragma-chess/releases/latest", "codeRepository": "https://github.com/francescobianco/pragma-chess", "screenshot": "https://yafb.net/pragma-chess/assets/screenshots/explain.png", "image": "https://yafb.net/pragma-chess/assets/screenshots/hero.png", "inLanguage": ["en", "it", "es", "ru"], "author": {"@type": "Person", "name": "Francesco Bianco", "url": "https://github.com/francescobianco"}}</script>
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#top"><img src="../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Меню">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="#features">Возможности</a>
+    <a href="#screenshots">Скриншоты</a>
+    <a href="#download">Скачать</a>
+    <a href="#supporters">Поддержка</a>
+    <a href="#support">Помощь</a>
+    <a href="../ru/guide/">Руководство</a>
+    <a href="../ru/blog/">Блог</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/" hreflang="ru" class="current">Русский</a></span>
+  </nav>
+</header>
+
+<main>
+<section class="hero" id="top">
+  <div class="hero-text">
+    <h1>Ваши шахматы — в одном месте.</h1>
+    <p class="lead">Открытая шахматная база данных для изучения, тренировки и игры: лёгкая, простая, с тем, что действительно нужно.</p>
+    <p class="actions">
+      <a class="button primary" href="#download">Скачать</a>
+      <a class="button" href="https://github.com/francescobianco/pragma-chess" rel="noopener">Исходный код</a>
+    </p>
+    <p class="hero-note">Бесплатно, лицензия MIT. Для Windows, macOS и Linux.</p>
+  </div>
+  <figure class="hero-shot">
+    <video src="../assets/pragma-chess-explain.webm" poster="../assets/screenshots/hero.png" width="1280" height="768"
+           autoplay muted loop playsinline preload="metadata" aria-label="Сорок секунд Pragma Chess: просмотр партии Морфи в опере и нажатие E на 14.Лd1 — «Объяснить» рисует, почему ход выигрывает"></video>
+    <figcaption>Партия Морфи в опере: нажмите E на 14.Лd1 — «Объяснить» покажет, почему ход выигрывает.</figcaption>
+  </figure>
+</section>
+
+<section class="features" id="features">
+  <h2>Что умеет</h2>
+  <p class="section-lead">Всё, что нужно шахматисту, чтобы хранить, изучать и расти — и ничего лишнего.</p>
+  <div class="grid">
+    <article class="card">
+      <div class="icon" aria-hidden="true">♜</div>
+      <h3>Базы партий</h3>
+      <p>Ваши партии в базах .pdb: импорт PGN, партий lichess.org и chess.com, турниров torneionline.com и файлов ChessBase. Поиск по позиции, варианту, игроку, дебюту, турниру и году.</p>
+    </article>
+    <article class="card">
+      <div class="icon" aria-hidden="true">♞</div>
+      <h3>Объяснить</h3>
+      <p>Нажмите E — движок покажет на доске, почему последний ход хорош или плох: красные стрелки, где падает материал, синие — ответ, который решает, вынужденный мат разыгрывается целиком.</p>
+    </article>
+    <article class="card">
+      <div class="icon" aria-hidden="true">♝</div>
+      <h3>Варианты и заметки</h3>
+      <p>Ход, который не следующий, становится вариантом под заменяемым ходом. Аннотируйте ходы !, ?, ±, ∞… Всё сохраняется с партией и уезжает в PGN.</p>
+    </article>
+    <article class="card">
+      <div class="icon" aria-hidden="true">♛</div>
+      <h3>Тренировка с тренером</h3>
+      <p>Играйте против движка из дебютной книги, которую настраиваете. Когда ход ошибочен, тренер останавливает партию и даёт взять назад, объяснить или продолжить.</p>
+    </article>
+    <article class="card">
+      <div class="icon" aria-hidden="true">♚</div>
+      <h3>Игра онлайн</h3>
+      <p>Подключите аккаунт lichess.org или freechess.org даже гостем и играйте с людьми с той же доски. Пока играете, движок, «Объяснить» и книга выключены: вы против соперника.</p>
+    </article>
+    <article class="card">
+      <div class="icon" aria-hidden="true">♟</div>
+      <h3>Дебютные книги</h3>
+      <p>Книги Polyglot с вашим репертуаром и весами, которые вы задаёте, чтобы движок тренировал вас на нужных линиях. Названия дебютов на английском и итальянском.</p>
+    </article>
+    <article class="card">
+      <div class="icon" aria-hidden="true">⟳</div>
+      <h3>Синхронизация между компьютерами</h3>
+      <p>Держите базы и проекты одинаковыми на каждом компьютере через папку FTP, WebDAV или Git и на телефоне с приложением-компаньоном. Ничего не удаляется без слияния.</p>
+    </article>
+    <article class="card">
+      <div class="icon" aria-hidden="true">☰</div>
+      <h3>Проекты</h3>
+      <p>База, партия, ход, панели и движок — проект, который открывается таким, каким вы его оставили. Нативное окно, на английском, итальянском, испанском и русском.</p>
+    </article>
+    
+  </div>
+</section>
+
+<section class="screenshots" id="screenshots">
+  <h2>Скриншоты</h2>
+  <p class="section-lead">Pragma Chess на GNOME. Щёлкните картинку, чтобы увидеть в полный размер.</p>
+  <div class="gallery">
+    <a class="shot" href="../assets/screenshots/explain.png" data-caption="Объяснить: почему 14.Лd1 выигрывает партию в опере">
+      <img src="../assets/screenshots/explain-thumb.png" alt="Объяснить: почему 14.Лd1 выигрывает партию в опере" loading="lazy" width="720" height="438">
+      <span>Объяснить: почему 14.Лd1 выигрывает партию в опере</span>
+    </a>
+    <a class="shot" href="../assets/screenshots/main.png" data-caption="Партия базы на доске, с ходами и списком партий">
+      <img src="../assets/screenshots/main-thumb.png" alt="Партия базы на доске, с ходами и списком партий" loading="lazy" width="720" height="438">
+      <span>Партия базы на доске, с ходами и списком партий</span>
+    </a>
+    <a class="shot" href="../assets/screenshots/tree.png" data-caption="Дерево дебютов: ходы книги с весами и дебютами, куда они ведут">
+      <img src="../assets/screenshots/tree-thumb.png" alt="Дерево дебютов: ходы книги с весами и дебютами, куда они ведут" loading="lazy" width="720" height="438">
+      <span>Дерево дебютов: ходы книги с весами и дебютами, куда они ведут</span>
+    </a>
+    <a class="shot" href="../assets/screenshots/online.png" data-caption="Играть онлайн: подключить платформу, выбрать часы и цвет, найти соперника">
+      <img src="../assets/screenshots/online-thumb.png" alt="Играть онлайн: подключить платформу, выбрать часы и цвет, найти соперника" loading="lazy" width="720" height="438">
+      <span>Играть онлайн: подключить платформу, выбрать часы и цвет, найти соперника</span>
+    </a>
+    <a class="shot" href="../assets/screenshots/guide.png" data-caption="Встроенное руководство на вашем языке">
+      <img src="../assets/screenshots/guide-thumb.png" alt="Встроенное руководство на вашем языке" loading="lazy" width="720" height="438">
+      <span>Встроенное руководство на вашем языке</span>
+    </a>
+    
+  </div>
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="close" type="button" aria-label="Закрыть">×</button>
+    <img src="" alt="">
+    <p></p>
+  </div>
+</section>
+
+<section class="download" id="download">
+  <h2>Скачать</h2>
+  <p class="section-lead">Выберите систему. Последний выпуск — <span id="release-version" class="version"></span></p>
+  <div class="platforms">
+    <article class="platform" data-system="windows" data-file="PragmaChess-windows-x64-setup.exe">
+      <div class="icon" aria-hidden="true"><img src="../assets/logos/windows.svg" alt="" height="32"></div>
+      <h3>Windows</h3>
+      <p>Установщик для Windows 10 и 11, 64-bit. Портативный .zip — на странице выпусков.</p>
+      <a class="button primary asset" href="https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-windows-x64-setup.exe" rel="noopener">Скачать для Windows</a>
+      <small class="asset-name">PragmaChess-windows-x64-setup.exe</small>
+    </article>
+    <article class="platform" data-system="macos" data-file="PragmaChess-macos-arm64.dmg">
+      <div class="icon" aria-hidden="true"><img src="../assets/logos/macos.svg" alt="" height="32"></div>
+      <h3>macOS</h3>
+      <p>Образ диска для Mac на Apple Silicon. Откройте и перетащите Pragma Chess в Applications.</p>
+      <a class="button primary asset" href="https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-macos-arm64.dmg" rel="noopener">Скачать для macOS</a>
+      <small class="asset-name">PragmaChess-macos-arm64.dmg</small>
+    </article>
+    <article class="platform" data-system="linux-deb" data-file="pragma-chess_amd64.deb">
+      <div class="icon" aria-hidden="true"><img src="../assets/logos/debian-ubuntu.svg" alt="" height="32"></div>
+      <h3>Linux (Debian, Ubuntu)</h3>
+      <p>Пакет .deb для Ubuntu 24.04 и новее и Debian 13 и новее.</p>
+      <a class="button primary asset" href="https://github.com/francescobianco/pragma-chess/releases/latest/download/pragma-chess_amd64.deb" rel="noopener">Скачать .deb</a>
+      <small class="asset-name">pragma-chess_amd64.deb</small>
+    </article>
+    <article class="platform" data-system="linux-rpm" data-file="pragma-chess.x86_64.rpm">
+      <div class="icon" aria-hidden="true"><img src="../assets/logos/fedora.svg" alt="" height="32"></div>
+      <h3>Linux (Fedora)</h3>
+      <p>Пакет .rpm для Fedora и совместимых дистрибутивов.</p>
+      <a class="button primary asset" href="https://github.com/francescobianco/pragma-chess/releases/latest/download/pragma-chess.x86_64.rpm" rel="noopener">Скачать .rpm</a>
+      <small class="asset-name">pragma-chess.x86_64.rpm</small>
+    </article>
+    <article class="platform" data-system="android" data-file="PragmaChess-android.apk">
+      <div class="icon" aria-hidden="true"><img src="../assets/logos/android.svg" alt="" height="32"></div>
+      <h3>Android <span class="badge">Бета</span></h3>
+      <p>Приложение для телефонов Android 8 и новее, в бете: свяжите с настольным клиентом, чтобы носить базы и партии. Скоро в официальном магазине.</p>
+      <a class="button primary asset" href="https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-android.apk" rel="noopener">Скачать APK</a>
+      <small class="asset-name">PragmaChess-android.apk</small>
+    </article>
+    
+  </div>
+  <p class="download-note">В каждом выпуске Stockfish как движок по умолчанию; подходит любой UCI-движок. <a href="https://github.com/francescobianco/pragma-chess/releases/latest" rel="noopener">Все выпуски и старые версии →</a></p>
+  <div class="formats">
+    <h3>Что вы получаете</h3>
+    <ul>
+      <li><strong>Базы .pdb</strong> — Файлы SQLite: копируйте, делитесь и открывайте другими средствами; одна база на сборник партий.</li>
+      <li><strong>Проекты .pch</strong> — читаемый YAML с базой, партией, движком и расположением панелей.</li>
+      <li><strong>PGN и Polyglot</strong> — стандартные форматы партий и дебютных книг — туда и обратно.</li>
+      
+    </ul>
+  </div>
+</section>
+
+<section class="supporters" id="supporters">
+  <h2>Поддержка</h2>
+  <p class="section-lead">Шахматные клубы, которые поддерживают Pragma Chess: пользуются, тестируют и говорят, что им нужно.</p>
+  <div class="clubs-grid">
+    <a class="club" href="https://circolodelre.it" rel="noopener">
+      <img src="../assets/supporters/circolo-del-re.png" alt="ASD Circolo del Re – Castelvetrano Scacchi" loading="lazy" width="120" height="120">
+      <span>ASD Circolo del Re – Castelvetrano Scacchi</span>
+    </a>
+    
+  </div>
+  <div class="join">
+    <div class="join-text">
+      <h3>Хотите, чтобы ваш клуб был здесь?</h3>
+      <p>Покажите Pragma Chess участникам, расскажите, как прошло, в нашей группе WhatsApp и пришлите туда логотип. <a href="https://github.com/francescobianco/pragma-chess/blob/main/CLUBS.md">Как это устроено</a></p>
+    </div>
+    <a class="button primary" href="https://chat.whatsapp.com/GHBDbRkejmYJ8Hev585ZCj" rel="noopener">Вступить в группу WhatsApp</a>
+  </div>
+</section>
+
+<section class="support" id="support">
+  <h2>Поддержка и сообщество</h2>
+  <p class="section-lead">Pragma Chess делается открыто, вместе с шахматными клубами и игроками.</p>
+  <div class="grid">
+    <article class="card">
+      <h3>Руководство</h3>
+      <p>Руководство встроено в приложение (Справка ▸ Руководство Pragma Chess, F1), с полем поиска, на английском, итальянском, испанском и русском — и здесь на сайте.</p>
+      <a href="guide/" rel="noopener">Читать руководство</a>
+    </article>
+    <article class="card">
+      <h3>Сообщить о проблеме</h3>
+      <p>Что-то не так или не хватает? Откройте issue на GitHub: что делали и что увидели.</p>
+      <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues на GitHub →</a>
+    </article>
+    <article class="card">
+      <h3>Вопросы и идеи</h3>
+      <p>Спросите, как сделать что-то, предложите, чего не хватает, покажите, что сделали: Discussions проекта на GitHub.</p>
+      <a href="https://github.com/francescobianco/pragma-chess/discussions" rel="noopener">Discussions</a>
+    </article>
+    <article class="card">
+      <h3>Участвовать</h3>
+      <p>Код под лицензией MIT: C++ и Qt, настольный клиент и его движок базы. Pull request'ы приветствуются.</p>
+      <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">Репозиторий →</a>
+    </article>
+    
+  </div>
+</section>
+
+</main>
+<footer class="bottom">
+  <p>Pragma Chess — свободное ПО под лицензией MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Что нового</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/" hreflang="ru" class="current">Русский</a></p>
+  <p class="credits">Сделано на Qt. Движок по умолчанию: Stockfish (GPL v3). Названия дебютов: lichess-org/chess-openings (CC0). Фигуры: Good Companion.</p>
+</footer>
+
+<script src="../assets/site.js"></script>
+</body>
+</html>

@@ -197,6 +197,7 @@ section > .download-note, section > .formats, section > .clubs { max-width: var(
 }
 .join h3 { margin: 0 0 0.4rem; color: #fff; }
 .join p { margin: 0; color: rgba(255, 255, 255, 0.85); }
+.join p a { color: #fff; text-decoration: underline; }
 .join .button.primary { background: #fff; border-color: #fff; color: var(--wood-dark); white-space: nowrap; }
 .join .button.primary:hover { background: var(--paper); }
 @media (max-width: 860px) {
@@ -230,6 +231,7 @@ section > .download-note, section > .formats, section > .clubs { max-width: var(
 .post-back { font-size: 0.95rem; }
 .post-figure { margin: 2rem auto; max-width: 300px; text-align: center; }
 .post-figure-large { max-width: 420px; }
+.post-figure-wide { max-width: 100%; }
 .post-figure img { margin: 0 auto; }
 .post-figure figcaption { color: var(--ink-soft); font-size: 0.9rem; margin-top: 0.6rem; }
 .nav a.current { color: var(--blue); }

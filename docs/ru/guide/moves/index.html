@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ходы и аннотации – Руководство – Pragma Chess</title>
+<meta name="description" content="Панель «Ходы» перечисляет партию на доске с фигурками.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/ru/guide/moves/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/guide/moves/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/guide/moves/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/guide/moves/">
+<link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/guide/moves/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/guide/moves/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/ru/guide/moves/">
+<meta property="og:title" content="Ходы и аннотации – Руководство – Pragma Chess">
+<meta property="og:description" content="Панель «Ходы» перечисляет партию на доске с фигурками.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/assets/screenshots/guide.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Меню">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Возможности</a>
+    <a href="../../#screenshots">Скриншоты</a>
+    <a href="../../#download">Скачать</a>
+    <a href="../../#supporters">Поддержка</a>
+    <a href="../../#support">Помощь</a>
+    <a href="../../../ru/guide/" class="current">Руководство</a>
+    <a href="../../../ru/blog/">Блог</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/guide/moves/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/moves/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/moves/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/moves/" hreflang="ru" class="current">Русский</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post guide-topic">
+  <p class="post-back"><a href="../">← Руководство</a></p>
+  <header>
+    <h1>Ходы и аннотации</h1>
+  </header>
+  <p>Панель «Ходы» перечисляет партию на доске с фигурками. Щелчок по ходу переходит туда.</p>
+<p>Главная линия — таблица, ход в ячейке: щелчок по ячейке — к ходу. <strong>Варианты</strong> занимают свою строку под заменяемым ходом, мельче, текстом; варианты вариантов — в скобках. Щелчок по ходу варианта ведёт по этой линии: стрелки идут по ней, щелчок по ходу главной линии возвращает. В начале варианта ход главной линии снова берёт главную, другой ход начинает сестринский вариант. Варианты сохраняются с партией и уезжают в копируемом PGN.</p>
+<p>В партии, записанной вручную, может быть <strong>нулевой ход</strong> <code>--</code>: сторона пропускает ход, когда ход неизвестен или чтобы показать план (так пишут ChessBase и PGN). Показывается и копируется как <code>--</code>, стрелки проходят через него как через любой ход, движок анализирует позицию после него. «Объяснить» о нулевом ходе молчит; в тренировке, онлайн и в лобби он не играется.</p>
+<p>Правый щелчок по ходу — меню:</p>
+<ul><li><strong>Копировать ▸ Копировать ход</strong> и <strong>Копировать ▸ Копировать линию досюда</strong> кладут ход или партию до него в буфер.</li><li><strong>Аннотации</strong> перечисляет символы и смысл каждого.</li><li><strong>Варианты</strong>: на ходе варианта <strong>Повысить вариант</strong> делает его линией, к которой он прикреплён (заменённые ходы становятся его вариантом со своими), <strong>Удалить вариант</strong> убирает его; на любом ходе <strong>Удалить отсюда</strong> убирает его и последующие на линии с их вариантами. Перед удалением спрашивают: отменить нельзя.</li></ul>
+<p>У хода может быть одно суждение о ходе и одна оценка позиции:</p>
+<ul><li><code>!!</code> блестящий ход, <code>!</code> хороший ход, <code>!?</code> интересный ход, <code>?!</code> сомнительный ход, <code>?</code> ошибка, <code>??</code> грубый зевок, <code>□</code> единственный ход.</li><li><code>+−</code> белые выигрывают, <code>±</code> у белых лучше, <code>⩲</code> у белых чуть лучше, <code>=</code> равно, <code>∞</code> неясно, <code>⩱</code> <code>∓</code> <code>−+</code> то же для чёрных.</li></ul>
+<p>Выберите уже стоящий символ, чтобы снять его, или <strong>Без аннотации</strong>, чтобы очистить все. Аннотации сохраняются с партией сразу и пишутся при копировании как PGN.</p>
+<p><strong>Комментарии</strong> — текст между ходами партии PGN или исследования lichess — показываются курсивом: под своим ходом в главной линии, между ходами в варианте. Команды программ в комментариях (оценка <code>[%eval 0.18]</code>, часы, стрелки) хранятся с партией, но не показываются. Комментарии сохраняются в базе с партией и пишутся обратно при записи как PGN.</p>
+<p>Двойной щелчок по комментарию — правка на месте, как абзац (Esc, Ctrl+Enter или щелчок в другом месте завершает; опустевший исчезает). Правый щелчок по ходу — <strong>Добавить комментарий</strong> или <strong>Изменить комментарий</strong>, по комментарию — <strong>Изменить комментарий</strong> и <strong>Удалить комментарий</strong>. Команды в нём остаются. Ходы, написанные в комментарии — «4.d4 cxd4 было лучше», «затем Фg5» — ссылки: щелчок играет линию на доске как вариант партии (или берёт уже существующий), затем стрелки ведут по ней. Нумерованный ход начинается с этого хода линии; без номера — продолжается от комментария или заменяет комментируемый ход. Круги и стрелки исследования lichess на клетках (<code>[%csl …]</code>, <code>[%cal …]</code> в комментарии) рисуются на доске в своих цветах, пока показана позиция их комментария.</p>
+  <nav class="topic-steps">
+    <a class="previous" href="../board/">← Доска</a>
+    <a class="next" href="../explain/">Объяснить →</a>
+  </nav>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess — свободное ПО под лицензией MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Что нового</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/guide/moves/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/guide/moves/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/guide/moves/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/guide/moves/" hreflang="ru" class="current">Русский</a></p>
+  <p class="credits">Сделано на Qt. Движок по умолчанию: Stockfish (GPL v3). Названия дебютов: lichess-org/chess-openings (CC0). Фигуры: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

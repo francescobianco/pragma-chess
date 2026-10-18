@@ -59,12 +59,19 @@ QString effective()
         return code;
     // uiLanguages() honors LANGUAGE / LC_MESSAGES.
     const QStringList languages = QLocale::system().uiLanguages();
-    const QString system = QLocale(languages.isEmpty() ? QLocale::system().name() : languages.first())
-                               .name()
-                               .section(QLatin1Char('_'), 0, 0);
-    for (const Language &language : available()) {
-        if (language.code == system)
-            return system;
+    const QLocale system(languages.isEmpty() ? QLocale::system().name() : languages.first());
+    // A translation for the very country first (zh_CN), else one of the
+    // language in the same script: zh_CN serves Singapore, not Taiwan.
+    const QList<Language> translations = available();
+    for (const Language &language : translations) {
+        if (language.code == system.name())
+            return language.code;
+    }
+    for (const Language &language : translations) {
+        const QLocale locale(language.code);
+        if (!language.code.isEmpty() && locale.language() == system.language()
+            && locale.script() == system.script())
+            return language.code;
     }
     return QStringLiteral("en");
 }

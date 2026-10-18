@@ -22,6 +22,7 @@
 #include "dialogs/DrawersDialog.h"
 #include "dialogs/PlayOnlineDialog.h"
 #include "dialogs/WelcomeDialog.h"
+#include "dialogs/AboutDialog.h"
 #include "dialogs/LobbyDialog.h"
 #include "dialogs/ConvertPgnDialog.h"
 #include "dialogs/ExtensionsDialog.h"
@@ -444,6 +445,18 @@ void DesktopApi::addRoutes()
         lobbyKey = LobbyIdentity::secretText();
 #endif
         PersonalSettingsDialog dialog(shown, lobbyKey, w);
+        dialog.show();
+        dialog.adjustSize();
+        QApplication::processEvents();
+        QByteArray png;
+        QBuffer buffer(&png);
+        buffer.open(QIODevice::WriteOnly);
+        dialog.grab().save(&buffer, "PNG");
+        return Response{200, "image/png", png};
+    });
+    // Help ▸ About Pragma Chess: the window's picture, as it opens.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/about"), [w](const Request &) {
+        AboutDialog dialog(QString::fromLatin1(APP_VERSION), w);
         dialog.show();
         dialog.adjustSize();
         QApplication::processEvents();

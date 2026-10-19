@@ -258,6 +258,9 @@ playing a move turns it off, and the user asks again at the next move.
   took the focus. A held press does reach Qt on X11 with a mouse — measured
   on 2026-10-06, press and release 5.8 s apart, the eye enabled throughout —
   so hold is the gesture; there is no double click.
+- At the Engine panel's bottom right, over the opening and the book, the
+  AI's button: square and framed as the eye, the sparkles drawn in code
+  (`pragma-ai`), `EnginePanel::aiRequested`. What it does is still to come.
 - **INSIGHT** (`smart/INSIGHT.smart`, `app/LineInsight`): over the end of
   the line the eye shows, violet `Plan` arrows for the plans the line holds.
   The program replays the PV only (no search, no `MOVES`), follows each

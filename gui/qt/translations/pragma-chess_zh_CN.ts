@@ -1006,6 +1006,10 @@ Black has captured: %2</source>
             <source>Calculating… %1%</source>
             <translation>正在计算… %1%</translation>
         </message>
+        <message>
+            <source>AI</source>
+            <translation>AI</translation>
+        </message>
     </context>
     <context>
         <name>EvaluationBar</name>

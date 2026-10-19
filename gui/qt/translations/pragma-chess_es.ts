@@ -1006,6 +1006,10 @@ Las negras han capturado: %2</translation>
         <source>Calculating… %1%</source>
         <translation>Calculando… %1%</translation>
     </message>
+    <message>
+        <source>AI</source>
+        <translation>IA</translation>
+    </message>
 </context>
 <context>
     <name>EvaluationBar</name>

@@ -36,6 +36,7 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     , m_explanation(new QLabel)
     , m_line(new QLabel)
     , m_peek(new QToolButton)
+    , m_ai(new QToolButton)
     , m_progress(new QLabel)
     , m_eco(new QLabel)
     , m_opening(new QLabel)
@@ -200,6 +201,21 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     connect(m_sendPlan, &QPushButton::clicked, this, &EnginePanel::sendPlanRequested);
     m_lobby->hide();
     layout->addWidget(m_lobby);
+
+    // The AI's button, at the bottom right over the opening and the book,
+    // square and framed as the eye.
+    auto *ai = new QHBoxLayout;
+    ai->setContentsMargins(0, 0, 0, 0);
+    ai->addStretch();
+    m_ai->setFixedSize(toggle->height(), toggle->height());
+    m_ai->setIcon(SymbolicIcons::icon(QStringLiteral("pragma-ai")));
+    m_ai->setAutoRaise(false);
+    m_ai->setToolTip(tr("AI"));
+    m_ai->setAccessibleName(tr("AI"));
+    m_ai->setFocusPolicy(Qt::NoFocus);
+    connect(m_ai, &QToolButton::clicked, this, &EnginePanel::aiRequested);
+    ai->addWidget(m_ai);
+    layout->addLayout(ai);
 
     // The opening and the book stay at the bottom while the line above changes length.
     auto *separator = new QFrame;

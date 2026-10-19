@@ -1012,6 +1012,10 @@ Black has captured: %2</source>
         <source>Calculating… %1%</source>
         <translation>Расчёт… %1%</translation>
     </message>
+    <message>
+        <source>AI</source>
+        <translation>ИИ</translation>
+    </message>
 </context>
 <context>
     <name>EvaluationBar</name>

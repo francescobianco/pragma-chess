@@ -43,6 +43,7 @@ enum class Shape {
     Locked,
     Unlocked,
     EyeClosed,
+    Sparkles,
 };
 
 /// The square New Game and New Training share: a board, and a face as large.
@@ -423,6 +424,27 @@ void paintShape(QPainter *painter, Shape shape, const QColor &color)
         painter->drawEllipse(QPointF(8, 10.5), 0.6, 0.6); // The keyhole.
         break;
     }
+    case Shape::Sparkles: {
+        // The sparkles that say AI: a large four-pointed star, its sides
+        // drawn in, and two small ones beside it.
+        const auto sparkle = [&](QPointF center, qreal radius) {
+            const qreal waist = radius * 0.18;
+            QPainterPath star;
+            star.moveTo(center.x(), center.y() - radius);
+            star.quadTo(center.x() + waist, center.y() - waist, center.x() + radius, center.y());
+            star.quadTo(center.x() + waist, center.y() + waist, center.x(), center.y() + radius);
+            star.quadTo(center.x() - waist, center.y() + waist, center.x() - radius, center.y());
+            star.quadTo(center.x() - waist, center.y() - waist, center.x(), center.y() - radius);
+            star.closeSubpath();
+            painter->drawPath(star);
+        };
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(color);
+        sparkle(QPointF(6.5, 9.25), 5.75);
+        sparkle(QPointF(12.5, 3.5), 2.5);
+        sparkle(QPointF(13, 11.5), 1.75);
+        break;
+    }
     case Shape::About:
         painter->drawEllipse(QPointF(8, 8), 6, 6);
         painter->drawLine(QPointF(8, 7.25), QPointF(8, 11));
@@ -521,6 +543,7 @@ QIcon icon(const QString &name)
         {QStringLiteral("pragma-project"), Shape::Project},
         {QStringLiteral("pragma-locked"), Shape::Locked},
         {QStringLiteral("pragma-unlocked"), Shape::Unlocked},
+        {QStringLiteral("pragma-ai"), Shape::Sparkles},
     };
     const auto it = shapes.constFind(name);
     if (it == shapes.cend())

@@ -93,6 +93,8 @@ Q_SIGNALS:
     /// The eye is held down (true) or let go (false): the board shows the
     /// end of the best line meanwhile, and follows it as the engine changes it.
     void peekHeld(bool held);
+    /// The AI's button, with the sparkles, was clicked.
+    void aiRequested();
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -115,6 +117,7 @@ private:
     QLabel *m_explanation;
     QLabel *m_line;
     QToolButton *m_peek;
+    QToolButton *m_ai;
     QLabel *m_progress;
     QLabel *m_eco;
     QLabel *m_opening;

@@ -69,6 +69,15 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     m_progress->hide();
     header->addWidget(m_name, 1);
     header->addWidget(m_progress);
+    // The AI's button left of the eye, square and framed as it.
+    m_ai->setFixedSize(toggle->height(), toggle->height());
+    m_ai->setIcon(SymbolicIcons::icon(QStringLiteral("pragma-ai")));
+    m_ai->setAutoRaise(false);
+    m_ai->setToolTip(tr("AI"));
+    m_ai->setAccessibleName(tr("AI"));
+    m_ai->setFocusPolicy(Qt::NoFocus);
+    connect(m_ai, &QToolButton::clicked, this, &EnginePanel::aiRequested);
+    header->addWidget(m_ai);
     header->addWidget(m_peek);
     header->addWidget(toggle);
     layout->addLayout(header);
@@ -201,21 +210,6 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     connect(m_sendPlan, &QPushButton::clicked, this, &EnginePanel::sendPlanRequested);
     m_lobby->hide();
     layout->addWidget(m_lobby);
-
-    // The AI's button, at the bottom right over the opening and the book,
-    // square and framed as the eye.
-    auto *ai = new QHBoxLayout;
-    ai->setContentsMargins(0, 0, 0, 0);
-    ai->addStretch();
-    m_ai->setFixedSize(toggle->height(), toggle->height());
-    m_ai->setIcon(SymbolicIcons::icon(QStringLiteral("pragma-ai")));
-    m_ai->setAutoRaise(false);
-    m_ai->setToolTip(tr("AI"));
-    m_ai->setAccessibleName(tr("AI"));
-    m_ai->setFocusPolicy(Qt::NoFocus);
-    connect(m_ai, &QToolButton::clicked, this, &EnginePanel::aiRequested);
-    ai->addWidget(m_ai);
-    layout->addLayout(ai);
 
     // The opening and the book stay at the bottom while the line above changes length.
     auto *separator = new QFrame;

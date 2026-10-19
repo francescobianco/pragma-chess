@@ -258,8 +258,31 @@ playing a move turns it off, and the user asks again at the next move.
   took the focus. A held press does reach Qt on X11 with a mouse — measured
   on 2026-10-06, press and release 5.8 s apart, the eye enabled throughout —
   so hold is the gesture; there is no double click.
-- Left of the eye, the AI's button: square and framed as the eye, the sparkles drawn in code
-  (`pragma-ai`), `EnginePanel::aiRequested`. What it does is still to come.
+- **AI** (`app/ai/`, core; `widgets/AiMenu`, `widgets/AiChatView`): left
+  of the eye a square button with the sparkles (`pragma-ai`, drawn in code).
+  Not connected, a click drops down under it `AiMenu`, a menu whose one item
+  is a panel — OpenAI's logo large (`resources/ai`, their assets, unchanged:
+  README there) and under it the black **Sign in with ChatGPT** — with no
+  arrow on the button (an action or menu given to it would draw one).
+  Connected, the button is a switch (QSettings `ai/active`, per computer),
+  and while on the chat (`AiChatView`) fills the panel between the line,
+  kept to three rows, and the opening; a right click offers Sign Out of
+  ChatGPT. Sign in with ChatGPT is OpenAI's OAuth for open-source apps
+  (DevDay, 2026-09-29; developers.openai.com/siwc): the user's plan pays,
+  no API key. `ChatGptAuth` (pure, `signsInWithChatGpt`): the authorize
+  address (`dynamic_agent_client` and `agent_name_hint` the first time,
+  then the issued `oaiapp_…` id; `ext_agent_host_id` a `urn:uuid:` made once
+  per computer; the plan's scopes; PKCE; `http://127.0.0.1:1455/auth/callback`,
+  never `localhost`), the token response, the credentials in
+  AppLocalData's `chatgpt-auth.json`, owner-only, never synced.
+  `ChatGptSignIn` runs the browser flow as `LichessSignIn`.
+  `ChatGptResponses` (pure, `asksChatGpt`) and `ChatGptClient`: renew the
+  token before it expires (the refresh token rotates: `credentialsChanged`
+  hands it back to be kept), the model from `/v1/models`, the question to
+  `/v1/responses` streamed and not stored, with
+  `MainWindow::aiInstructions` (FEN, moves, the engine's evaluation and
+  line, the interface's language). A 401 or a refresh token refused is a
+  connection lost (`signedOut`): the tokens go, the button signs in again.
 - **INSIGHT** (`smart/INSIGHT.smart`, `app/LineInsight`): over the end of
   the line the eye shows, violet `Plan` arrows for the plans the line holds.
   The program replays the PV only (no search, no `MOVES`), follows each
@@ -425,6 +448,9 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   copies it); `GET /api/screenshot` the window as a PNG, taken
   from inside (`QWidget::grab`: no compositor permission needed — GNOME
   refuses screenshots to other programs).
+- `GET /api/ai` whether ChatGPT is connected (never a token) and the AI
+  on; `POST /api/ai {"ask": "…"}` a question in the chat, `{"panel": true}`
+  the sign-in panel's picture.
 - `POST /api/clocks {"white": ms, "black": ms, "running": "white"|"black",
   "draw": "mine"|"theirs", "scoreView": "absolute"|"for-bottom"|"chances"|"judgement"}`
   shows the online clocks and the buttons under them (and the score so)

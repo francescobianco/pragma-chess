@@ -37,6 +37,40 @@
     </message>
 </context>
 <context>
+    <name>AiChatView</name>
+    <message>
+        <source>AI chat</source>
+        <translation>Чат ИИ</translation>
+    </message>
+    <message>
+        <source>Ask ChatGPT about the position on the board.</source>
+        <translation>Спросите ChatGPT о позиции на доске.</translation>
+    </message>
+    <message>
+        <source>Ask ChatGPT…</source>
+        <translation>Спросить ChatGPT…</translation>
+    </message>
+</context>
+<context>
+    <name>AiMenu</name>
+    <message>
+        <source>Sign in with ChatGPT</source>
+        <translation>Войти через ChatGPT</translation>
+    </message>
+    <message>
+        <source>Signing in in the browser…</source>
+        <translation>Вход в браузере…</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
+    </message>
+    <message>
+        <source>ChatGPT</source>
+        <translation>ChatGPT</translation>
+    </message>
+</context>
+<context>
     <name>Archive</name>
     <message>
         <source>The archive cannot be read.</source>
@@ -364,6 +398,40 @@ Black has captured: %2</source>
     <message>
         <source>Chapter %1</source>
         <translation>Глава %1</translation>
+    </message>
+</context>
+<context>
+    <name>ChatGptClient</name>
+    <message>
+        <source>Your ChatGPT plan offers no model to Pragma Chess.</source>
+        <translation>Ваш тариф ChatGPT не предлагает Pragma Chess ни одной модели.</translation>
+    </message>
+    <message>
+        <source>Your ChatGPT plan has reached its usage limit: see Usage in ChatGPT&apos;s settings.</source>
+        <translation>Ваш тариф ChatGPT исчерпал лимит: см. «Использование» в настройках ChatGPT.</translation>
+    </message>
+</context>
+<context>
+    <name>ChatGptSignIn</name>
+    <message>
+        <source>Signing in took too long.</source>
+        <translation>Вход занял слишком много времени.</translation>
+    </message>
+    <message>
+        <source>Signed in with ChatGPT. You can close this page and return to Pragma Chess.</source>
+        <translation>Вход через ChatGPT выполнен. Можно закрыть эту страницу и вернуться в Pragma Chess.</translation>
+    </message>
+    <message>
+        <source>Signing in with ChatGPT did not succeed. Return to Pragma Chess and try again.</source>
+        <translation>Не удалось войти через ChatGPT. Вернитесь в Pragma Chess и попробуйте снова.</translation>
+    </message>
+    <message>
+        <source>ChatGPT did not grant access.</source>
+        <translation>ChatGPT не предоставил доступ.</translation>
+    </message>
+    <message>
+        <source>ChatGPT did not register Pragma Chess.</source>
+        <translation>ChatGPT не зарегистрировал Pragma Chess.</translation>
     </message>
 </context>
 <context>
@@ -1015,6 +1083,18 @@ Black has captured: %2</source>
     <message>
         <source>AI</source>
         <translation>ИИ</translation>
+    </message>
+    <message>
+        <source>AI: sign in with ChatGPT</source>
+        <translation>ИИ: войти через ChatGPT</translation>
+    </message>
+    <message>
+        <source>AI on: click to turn it off</source>
+        <translation>ИИ включён: щёлкните, чтобы выключить</translation>
+    </message>
+    <message>
+        <source>AI off: click to turn it on</source>
+        <translation>ИИ выключен: щёлкните, чтобы включить</translation>
     </message>
 </context>
 <context>
@@ -4023,6 +4103,14 @@ is not on this computer.</source>
     <message>
         <source>&lt;p&gt;&lt;b&gt;Perhaps this move calls for a word of explanation?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Press the glowing button: the board tells the story of the move, the plans of both sides, the mistakes, what would have been better. Ask it move after move: that is how you will improve.&lt;/p&gt;</source>
         <translation>&lt;p&gt;&lt;b&gt;Возможно, этому ходу стоит уделить слово объяснения?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Нажмите светящуюся кнопку: доска расскажет историю хода, планы обеих сторон, ошибки, что было бы лучше. Спрашивайте ход за ходом: так вы будете расти.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <source>Sign Out of ChatGPT</source>
+        <translation>Выйти из ChatGPT</translation>
+    </message>
+    <message>
+        <source>The connection to ChatGPT was lost: sign in again.</source>
+        <translation>Связь с ChatGPT потеряна: войдите снова.</translation>
     </message>
 </context>
 <context>

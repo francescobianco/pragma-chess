@@ -34,6 +34,8 @@
 #include "widgets/BoardWidget.h"
 #include "widgets/DiscoveryBalloon.h"
 #include "widgets/EnginePanel.h"
+#include "widgets/AiChatView.h"
+#include "widgets/AiMenu.h"
 
 #include <QApplication>
 #include <QPushButton>
@@ -364,6 +366,37 @@ void DesktopApi::addRoutes()
         return Response{200, "image/png", png};
     });
     // Edit ▸ Drawers… as it would open, drawn without being shown (it is modal): its picture.
+    // The AI button: whether ChatGPT is connected (never a token) and the AI on.
+    const auto aiState = [w] {
+        const ChatGptAuth::Credentials &credentials = w->m_aiMenu->credentials();
+        return QJsonObject{{QStringLiteral("signedIn"), credentials.isSignedIn()},
+                           {QStringLiteral("canUsePlan"), credentials.canUsePlan()},
+                           {QStringLiteral("email"), credentials.email},
+                           {QStringLiteral("name"), credentials.name},
+                           {QStringLiteral("registered"), !credentials.clientId.isEmpty()},
+                           {QStringLiteral("active"), w->m_aiActive}};
+    };
+    m_server->route(QStringLiteral("GET"), QStringLiteral("/api/ai"), [aiState](const Request &) {
+        return json(aiState());
+    });
+    // {"panel": true}: the picture of the sign-in that drops down while not connected.
+    m_server->route(QStringLiteral("POST"), QStringLiteral("/api/ai"), [w, aiState](const Request &request) {
+        const QJsonObject body = bodyOf(request).value_or(QJsonObject());
+        // {"ask": "…"}: a question written in the chat, as Enter sends it.
+        const QString question = body.value(QStringLiteral("ask")).toString();
+        if (!question.isEmpty())
+            Q_EMIT w->m_enginePanel->aiChat()->asked(question);
+        if (!body.value(QStringLiteral("panel")).toBool())
+            return json(aiState());
+        w->m_aiMenu->popup(w->mapToGlobal(QPoint(0, 0)));
+        QApplication::processEvents();
+        QByteArray png;
+        QBuffer buffer(&png);
+        buffer.open(QIODevice::WriteOnly);
+        w->m_aiMenu->grab().save(&buffer, "PNG");
+        w->m_aiMenu->close();
+        return Response{200, "image/png", png};
+    });
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/drawers"), [w](const Request &) {
         DrawersDialog dialog(Drawers::read(PersonalSettings::path()), w);
         dialog.adjustSize();

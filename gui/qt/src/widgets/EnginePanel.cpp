@@ -1,6 +1,7 @@
 #include "EnginePanel.h"
 
 #include "FigurineFont.h"
+#include "AiChatView.h"
 #include "EvaluationBox.h"
 #include "SectionButton.h"
 #include "platform/SymbolicIcons.h"
@@ -37,6 +38,7 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     , m_line(new QLabel)
     , m_peek(new QToolButton)
     , m_ai(new QToolButton)
+    , m_chat(new AiChatView)
     , m_progress(new QLabel)
     , m_eco(new QLabel)
     , m_opening(new QLabel)
@@ -73,10 +75,13 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     m_ai->setFixedSize(toggle->height(), toggle->height());
     m_ai->setIcon(SymbolicIcons::icon(QStringLiteral("pragma-ai")));
     m_ai->setAutoRaise(false);
-    m_ai->setToolTip(tr("AI"));
     m_ai->setAccessibleName(tr("AI"));
     m_ai->setFocusPolicy(Qt::NoFocus);
-    connect(m_ai, &QToolButton::clicked, this, &EnginePanel::aiRequested);
+    // What a click does is the window's: sign in, or turn the AI on and off (setAiState).
+    // Its right-click menu is the window's too (Sign Out): customContextMenuRequested.
+    m_ai->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_ai, &QToolButton::clicked, this, &EnginePanel::aiClicked);
+    setAiState(false, false);
     header->addWidget(m_ai);
     header->addWidget(m_peek);
     header->addWidget(toggle);
@@ -174,6 +179,11 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     m_line->installEventFilter(this);
     layout->addWidget(m_line, 1);
 
+    // The AI's chat, while it is on: all the room between the line and the
+    // opening, the line keeping a few rows (setAiState).
+    m_chat->hide();
+    layout->addWidget(m_chat, 1);
+
     // Lobby Mode, at the bottom of the panel over the opening and the book:
     // the two sends, large, then what the game waits for.
     auto *lobby = new QVBoxLayout(m_lobby);
@@ -243,6 +253,26 @@ EnginePanel::EnginePanel(QAction *analysisAction, QAction *explainAction, QWidge
     setEvaluation(std::nullopt);
     setOpening({});
     setBookName(QString());
+}
+
+void EnginePanel::setAiState(bool connected, bool active)
+{
+    // Connected, the button is a switch; otherwise it opens the sign-in.
+    m_ai->setCheckable(connected);
+    m_ai->setChecked(connected && active);
+    m_ai->setToolTip(!connected ? tr("AI: sign in with ChatGPT")
+                     : active   ? tr("AI on: click to turn it off")
+                                : tr("AI off: click to turn it on"));
+    const bool chat = connected && active;
+    m_chat->setVisible(chat);
+    if (chat) {
+        // Three rows of the line, as fitLine spaces them; the chat takes the rest.
+        constexpr int kLineHeight = 118; // Per cent, as fitLine's.
+        m_line->setFixedHeight(3 * m_line->fontMetrics().lineSpacing() * kLineHeight / 100);
+    } else {
+        m_line->setMinimumHeight(0);
+        m_line->setMaximumHeight(QWIDGETSIZE_MAX);
+    }
 }
 
 void EnginePanel::setEngineName(const QString &name)

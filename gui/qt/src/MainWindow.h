@@ -41,6 +41,8 @@ class BoardPanel;
 class DiscoveryBalloon;
 class BoardSideColumn;
 class CapturedPiecesWidget;
+class AiMenu;
+class ChatGptClient;
 class EnginePanel;
 class EvaluationBar;
 class Explainer;
@@ -399,6 +401,11 @@ private:
     void saveDatabase();
     void saveDatabaseAs();
     void rebuildDatabasesMenu();
+    /// The Engine panel's AI button: the sign-in while ChatGPT is not connected, then a switch.
+    void createAiButton();
+    void updateAiButton();
+    /// What ChatGPT is told of the board with each question of the chat.
+    QString aiInstructions() const;
     /// The databases of the Databases folder, the open one checked, into `menu`.
     void fillDatabaseChoices(QMenu *menu);
 
@@ -612,6 +619,11 @@ private:
     BoardSideColumn *m_boardSideColumn;
     BoardPanel *m_boardPanel = nullptr;
     EnginePanel *m_enginePanel;
+    /// The Engine panel's AI button's menu: signing in with ChatGPT.
+    AiMenu *m_aiMenu = nullptr;
+    ChatGptClient *m_aiClient = nullptr;
+    /// The AI turned on with its switch (QSettings ai/active, per computer, as the connection).
+    bool m_aiActive = true;
     BookPanel *m_bookPanel;
     std::unique_ptr<PolyglotBook> m_book;
     std::unique_ptr<OpeningNames> m_openingNames;

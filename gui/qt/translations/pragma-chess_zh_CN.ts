@@ -1010,6 +1010,18 @@ Black has captured: %2</source>
             <source>AI</source>
             <translation>AI</translation>
         </message>
+        <message>
+            <source>AI on: click to turn it off</source>
+            <translation>AI 已开启：点击关闭</translation>
+        </message>
+        <message>
+            <source>AI: sign in with ChatGPT</source>
+            <translation>AI：使用 ChatGPT 登录</translation>
+        </message>
+        <message>
+            <source>AI off: click to turn it on</source>
+            <translation>AI 已关闭：点击开启</translation>
+        </message>
     </context>
     <context>
         <name>EvaluationBar</name>
@@ -3982,6 +3994,14 @@ is not on this computer.</source>
             <source>&lt;p&gt;&lt;b&gt;Perhaps this move calls for a word of explanation?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Press the glowing button: the board tells the story of the move, the plans of both sides, the mistakes, what would have been better. Ask it move after move: that is how you will improve.&lt;/p&gt;</source>
             <translation>&lt;p&gt;&lt;b&gt;这一着是否需要讲解一下？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;按下那个发光的按钮：棋盘会讲述这一着的故事、双方的计划、出现的失误，以及更好的选择。一着一着地问下去，你就会进步。&lt;/p&gt;</translation>
         </message>
+        <message>
+            <source>Sign Out of ChatGPT</source>
+            <translation>退出 ChatGPT</translation>
+        </message>
+        <message>
+            <source>The connection to ChatGPT was lost: sign in again.</source>
+            <translation>与 ChatGPT 的连接已断开：请重新登录。</translation>
+        </message>
     </context>
     <context>
         <name>ManageChaptersDialog</name>
@@ -6864,6 +6884,74 @@ The %n game(s) already imported stay in the database.</source>
         <message>
             <source>No databases yet</source>
             <translation>还没有数据库</translation>
+        </message>
+    </context>
+    <context>
+        <name>AiChatView</name>
+        <message>
+            <source>Ask ChatGPT about the position on the board.</source>
+            <translation>向 ChatGPT 询问棋盘上的局面。</translation>
+        </message>
+        <message>
+            <source>Ask ChatGPT…</source>
+            <translation>询问 ChatGPT…</translation>
+        </message>
+        <message>
+            <source>AI chat</source>
+            <translation>AI 聊天</translation>
+        </message>
+    </context>
+    <context>
+        <name>AiMenu</name>
+        <message>
+            <source>Cancel</source>
+            <translation>取消</translation>
+        </message>
+        <message>
+            <source>Sign in with ChatGPT</source>
+            <translation>使用 ChatGPT 登录</translation>
+        </message>
+        <message>
+            <source>Signing in in the browser…</source>
+            <translation>正在浏览器中登录…</translation>
+        </message>
+        <message>
+            <source>ChatGPT</source>
+            <translation>ChatGPT</translation>
+        </message>
+    </context>
+    <context>
+        <name>ChatGptClient</name>
+        <message>
+            <source>Your ChatGPT plan offers no model to Pragma Chess.</source>
+            <translation>你的 ChatGPT 套餐没有为 Pragma Chess 提供任何模型。</translation>
+        </message>
+        <message>
+            <source>Your ChatGPT plan has reached its usage limit: see Usage in ChatGPT&apos;s settings.</source>
+            <translation>你的 ChatGPT 套餐已达到使用上限：请查看 ChatGPT 设置中的“用量”。</translation>
+        </message>
+    </context>
+    <context>
+        <name>ChatGptSignIn</name>
+        <message>
+            <source>ChatGPT did not grant access.</source>
+            <translation>ChatGPT 未授予访问权限。</translation>
+        </message>
+        <message>
+            <source>ChatGPT did not register Pragma Chess.</source>
+            <translation>ChatGPT 未注册 Pragma Chess。</translation>
+        </message>
+        <message>
+            <source>Signing in took too long.</source>
+            <translation>登录耗时过长。</translation>
+        </message>
+        <message>
+            <source>Signing in with ChatGPT did not succeed. Return to Pragma Chess and try again.</source>
+            <translation>使用 ChatGPT 登录未成功。请返回 Pragma Chess 并重试。</translation>
+        </message>
+        <message>
+            <source>Signed in with ChatGPT. You can close this page and return to Pragma Chess.</source>
+            <translation>已使用 ChatGPT 登录。你可以关闭此页面并返回 Pragma Chess。</translation>
         </message>
     </context>
 </TS>

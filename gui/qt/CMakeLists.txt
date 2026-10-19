@@ -332,6 +332,14 @@ qt_add_library(pragma-chess-core STATIC
     src/app/sources/SourceCatalog.h
     src/app/sources/SourceCredentials.cpp
     src/app/sources/SourceCredentials.h
+    src/app/ai/ChatGptAuth.cpp
+    src/app/ai/ChatGptAuth.h
+    src/app/ai/ChatGptSignIn.cpp
+    src/app/ai/ChatGptSignIn.h
+    src/app/ai/ChatGptClient.cpp
+    src/app/ai/ChatGptClient.h
+    src/app/ai/ChatGptResponses.cpp
+    src/app/ai/ChatGptResponses.h
     src/app/sources/SourceFetch.cpp
     src/app/sources/SourceFetch.h
     src/app/sources/SourceSync.cpp
@@ -568,6 +576,10 @@ qt_add_executable(pragma-chess
     src/widgets/DatabaseTreeWidget.cpp
     src/widgets/DatabaseTreeWidget.h
     src/widgets/CentralArea.h
+    src/widgets/AiChatView.cpp
+    src/widgets/AiChatView.h
+    src/widgets/AiMenu.cpp
+    src/widgets/AiMenu.h
     src/widgets/EnginePanel.cpp
     src/widgets/EnginePanel.h
     src/widgets/SectionButton.cpp
@@ -674,6 +686,9 @@ qt_add_resources(pragma-chess credits PREFIX /credits BASE resources/credits
 # SkakNew figurines for the move list (scripts/make-figurine-font.py).
 qt_add_resources(pragma-chess fonts PREFIX /fonts BASE resources/fonts
     FILES resources/fonts/pragma-figurine.otf resources/fonts/crimson-pro.ttf)
+# OpenAI's logo for Continue with ChatGPT, unchanged (resources/ai/README.md).
+qt_add_resources(pragma-chess ai PREFIX /ai BASE resources/ai
+    FILES resources/ai/chatgpt-logo-black.svg resources/ai/chatgpt-logo-white.svg)
 qt_add_resources(pragma-chess welcome PREFIX /welcome BASE resources/welcome
     FILES resources/welcome/chess-study.png)
 qt_add_resources(pragma-chess appicon PREFIX /icons BASE data/icons FILES ${APP_ICON_FILES})

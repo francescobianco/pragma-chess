@@ -153,6 +153,8 @@ Pragma Chess arriva con Stockfish, e funziona con qualunque motore UCI.
 - **Motore ▸ Gestisci motori…** aggiunge, modifica e rimuove motori. **Rileva motori** trova quelli installati sul computer; **Usa questo motore** passa a quello selezionato.
 - **Potenza di calcolo**, nella stessa finestra, è quanta parte del computer il motore può usare mentre analizza, da **Minima** (3% del processore) a **Piena** (tutto, senza limiti); **Media**, 10%, è quella da cui parte ogni motore. A ogni livello il motore è forte uguale, solo più lento: riceve meno thread, una priorità più bassa e, su Linux e Windows, un tetto alla sua parte del processore, così le ventole restano tranquille e il resto del computer libero. I **Thread**, se li imposti, valgono più del livello.
 
+**IA**: il pulsante con le stelline, a sinistra dell'occhio, apre una chat con ChatGPT sulla posizione in scacchiera, pagata dal tuo piano ChatGPT, senza chiave API. La prima volta apre **Accedi con ChatGPT**: il browser mostra la pagina di OpenAI e, fatto l'accesso, il pulsante diventa un interruttore che accende e spegne la chat. La chat occupa il pannello tra la linea del motore e l'apertura; ogni domanda parte con la posizione, le mosse che ci hanno portato e la valutazione del motore. Con il tasto destro sul pulsante c'è **Esci da ChatGPT**; se la connessione cade, il pulsante ti chiede di accedere di nuovo. L'accesso resta su questo computer e non viene mai sincronizzato.
+
 Il motore in uso fa parte del progetto.
 
 # Allenamento {#training}

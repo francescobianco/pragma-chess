@@ -37,6 +37,40 @@
     </message>
 </context>
 <context>
+    <name>AiChatView</name>
+    <message>
+        <source>AI chat</source>
+        <translation>Chat de IA</translation>
+    </message>
+    <message>
+        <source>Ask ChatGPT about the position on the board.</source>
+        <translation>Pregunta a ChatGPT sobre la posición del tablero.</translation>
+    </message>
+    <message>
+        <source>Ask ChatGPT…</source>
+        <translation>Pregunta a ChatGPT…</translation>
+    </message>
+</context>
+<context>
+    <name>AiMenu</name>
+    <message>
+        <source>Sign in with ChatGPT</source>
+        <translation>Iniciar sesión con ChatGPT</translation>
+    </message>
+    <message>
+        <source>Signing in in the browser…</source>
+        <translation>Iniciando sesión en el navegador…</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+    <message>
+        <source>ChatGPT</source>
+        <translation>ChatGPT</translation>
+    </message>
+</context>
+<context>
     <name>Archive</name>
     <message>
         <source>The archive cannot be read.</source>
@@ -361,6 +395,40 @@ Las negras han capturado: %2</translation>
     <message>
         <source>Chapter %1</source>
         <translation>Capítulo %1</translation>
+    </message>
+</context>
+<context>
+    <name>ChatGptClient</name>
+    <message>
+        <source>Your ChatGPT plan offers no model to Pragma Chess.</source>
+        <translation>Tu plan de ChatGPT no ofrece ningún modelo a Pragma Chess.</translation>
+    </message>
+    <message>
+        <source>Your ChatGPT plan has reached its usage limit: see Usage in ChatGPT&apos;s settings.</source>
+        <translation>Tu plan de ChatGPT ha alcanzado su límite de uso: consulta Uso en la configuración de ChatGPT.</translation>
+    </message>
+</context>
+<context>
+    <name>ChatGptSignIn</name>
+    <message>
+        <source>Signing in took too long.</source>
+        <translation>El inicio de sesión tardó demasiado.</translation>
+    </message>
+    <message>
+        <source>Signed in with ChatGPT. You can close this page and return to Pragma Chess.</source>
+        <translation>Sesión iniciada con ChatGPT. Puedes cerrar esta página y volver a Pragma Chess.</translation>
+    </message>
+    <message>
+        <source>Signing in with ChatGPT did not succeed. Return to Pragma Chess and try again.</source>
+        <translation>No se pudo iniciar sesión con ChatGPT. Vuelve a Pragma Chess e inténtalo de nuevo.</translation>
+    </message>
+    <message>
+        <source>ChatGPT did not grant access.</source>
+        <translation>ChatGPT no concedió el acceso.</translation>
+    </message>
+    <message>
+        <source>ChatGPT did not register Pragma Chess.</source>
+        <translation>ChatGPT no registró Pragma Chess.</translation>
     </message>
 </context>
 <context>
@@ -1009,6 +1077,18 @@ Las negras han capturado: %2</translation>
     <message>
         <source>AI</source>
         <translation>IA</translation>
+    </message>
+    <message>
+        <source>AI: sign in with ChatGPT</source>
+        <translation>IA: inicia sesión con ChatGPT</translation>
+    </message>
+    <message>
+        <source>AI on: click to turn it off</source>
+        <translation>IA activada: haz clic para desactivarla</translation>
+    </message>
+    <message>
+        <source>AI off: click to turn it on</source>
+        <translation>IA desactivada: haz clic para activarla</translation>
     </message>
 </context>
 <context>
@@ -3981,6 +4061,14 @@ no está en este ordenador.</translation>
     <message>
         <source>&lt;p&gt;&lt;b&gt;Perhaps this move calls for a word of explanation?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Press the glowing button: the board tells the story of the move, the plans of both sides, the mistakes, what would have been better. Ask it move after move: that is how you will improve.&lt;/p&gt;</source>
         <translation>&lt;p&gt;&lt;b&gt;¿Quizá esta jugada merece una explicación?&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Pulsa el botón iluminado: el tablero cuenta la jugada, los planes de ambos bandos, los errores, qué habría sido mejor. Pregúntaselo jugada tras jugada: así podrás mejorar.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <source>Sign Out of ChatGPT</source>
+        <translation>Cerrar sesión de ChatGPT</translation>
+    </message>
+    <message>
+        <source>The connection to ChatGPT was lost: sign in again.</source>
+        <translation>Se perdió la conexión con ChatGPT: inicia sesión de nuevo.</translation>
     </message>
 </context>
 <context>

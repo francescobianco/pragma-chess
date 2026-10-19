@@ -11,6 +11,7 @@
 
 class QAction;
 class QLabel;
+class AiChatView;
 class QPushButton;
 class QToolButton;
 
@@ -23,6 +24,13 @@ public:
     /// `explainAction` is the board's Explain, offered again by the tutor's alert.
     EnginePanel(QAction *analysisAction, QAction *explainAction, QWidget *parent = nullptr);
 
+    /// The AI's button, with the sparkles: a switch, on or off, while
+    /// ChatGPT is connected; a plain button that opens the sign-in otherwise.
+    void setAiState(bool connected, bool active);
+    /// The AI's button, for what drops down under it and its context menu.
+    QToolButton *aiButton() const { return m_ai; }
+    /// The AI's chat, shown while the AI is on.
+    AiChatView *aiChat() const { return m_chat; }
     void setEngineName(const QString &name);
     void setStatus(const QString &status);
     /// Score and depth, with the best line already written in SAN.
@@ -93,8 +101,8 @@ Q_SIGNALS:
     /// The eye is held down (true) or let go (false): the board shows the
     /// end of the best line meanwhile, and follows it as the engine changes it.
     void peekHeld(bool held);
-    /// The AI's button, with the sparkles, was clicked.
-    void aiRequested();
+    /// The AI's button was clicked (a switch already turned, when connected).
+    void aiClicked();
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -118,6 +126,7 @@ private:
     QLabel *m_line;
     QToolButton *m_peek;
     QToolButton *m_ai;
+    AiChatView *m_chat;
     QLabel *m_progress;
     QLabel *m_eco;
     QLabel *m_opening;

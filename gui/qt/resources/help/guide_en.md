@@ -153,6 +153,8 @@ Pragma Chess comes with Stockfish, and works with any UCI engine.
 - **Engine ▸ Manage Engines…** adds, edits and removes engines. **Detect Engines** finds the ones installed on the computer; **Use This Engine** switches to the selected one.
 - **Computing Power**, in the same window, is how much of the computer the engine may use while it analyzes, from **Minimum** (3% of the processor) to **Full** (all of it, no limit); **Medium**, 10%, is where every engine starts. The engine is just as strong at every level, only slower: it gets fewer threads, a lower priority and, on Linux and Windows, a cap on its share of the processor, so the fans stay quiet and the rest of the computer stays free. **Threads**, if you set them, win over the level's.
 
+**AI**: the button with the sparkles, left of the eye, opens a chat with ChatGPT about the position on the board, paid for by your own ChatGPT plan, with no API key. The first time it drops down **Sign in with ChatGPT**: the browser shows OpenAI's page, and once you have signed in the button becomes a switch that turns the chat on and off. The chat fills the panel between the engine's line and the opening; every question is sent with the position, the moves that led to it and the engine's evaluation. Right-click the button for **Sign Out of ChatGPT**; if the connection is lost, the button asks you to sign in again. The sign-in stays on this computer and is never synced.
+
 The engine in use is part of the project.
 
 # Training {#training}

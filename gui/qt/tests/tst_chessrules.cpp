@@ -53,6 +53,8 @@
 #include "app/sources/TorneiOnlineFetch.h"
 #include "app/sources/LichessFetch.h"
 #include "app/sources/LichessStudy.h"
+#include "app/ai/ChatGptAuth.h"
+#include "app/ai/ChatGptResponses.h"
 #include "app/api/LocalHttpServer.h"
 #include "app/smart/SmartInterpreter.h"
 #include "app/smart/SmartPrograms.h"
@@ -98,6 +100,7 @@
 #include <QSqlQuery>
 #include <QScopeGuard>
 #include <QTemporaryDir>
+#include <QUrlQuery>
 #include <QtEndian>
 
 #include <QTest>
@@ -1732,6 +1735,123 @@ QString writeChessBaseFixture(const QString &dir)
             names.insert(RoomName::englishText(seed));
         }
         QCOMPARE(names.size(), 200); // A new room never takes a name in use.
+    }
+
+    void signsInWithChatGpt()
+    {
+        ChatGptAuth::Credentials credentials = ChatGptAuth::load(QStringLiteral("/nonexistent/chatgpt-auth.json"));
+        QVERIFY(credentials.hostId.startsWith(QLatin1String("urn:uuid:")));
+        QVERIFY(!credentials.isSignedIn());
+
+        // A first sign-in registers the app by name.
+        const QUrl redirect(QStringLiteral("http://127.0.0.1:1455/auth/callback"));
+        QUrl url = ChatGptAuth::authorizeUrl(credentials, redirect, QStringLiteral("st"), QStringLiteral("no"),
+                                             "chal", QStringLiteral("Pragma Chess"));
+        QUrlQuery query(url);
+        QCOMPARE(url.host(), QStringLiteral("auth.openai.com"));
+        QCOMPARE(query.queryItemValue(QStringLiteral("client_id")), QStringLiteral("dynamic_agent_client"));
+        QCOMPARE(query.queryItemValue(QStringLiteral("agent_name_hint"), QUrl::FullyDecoded), QStringLiteral("Pragma Chess"));
+        QCOMPARE(query.queryItemValue(QStringLiteral("redirect_uri"), QUrl::FullyDecoded), redirect.toString());
+        QCOMPARE(query.queryItemValue(QStringLiteral("ext_agent_host_id"), QUrl::FullyDecoded), credentials.hostId);
+        QVERIFY(query.queryItemValue(QStringLiteral("scope"), QUrl::FullyDecoded).split(QLatin1Char(' '))
+                    .contains(QStringLiteral("chatgpt.tokens.use.direct")));
+        QCOMPARE(query.queryItemValue(QStringLiteral("code_challenge_method")), QStringLiteral("S256"));
+        QVERIFY(!query.hasQueryItem(QStringLiteral("id_token_hint")));
+
+        // The tokens, the scopes granted and the account named by the id token.
+        const QByteArray claims = QJsonDocument(QJsonObject{{QStringLiteral("email"), QStringLiteral("a@b.it")},
+                                                            {QStringLiteral("name"), QStringLiteral("Ada")}})
+                                      .toJson(QJsonDocument::Compact)
+                                      .toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+        const QString idToken = QStringLiteral("eyJhbGciOiJub25lIn0.") + QString::fromLatin1(claims) + QStringLiteral(".sig");
+        const QDateTime now(QDate(2026, 10, 19), QTime(12, 0), Qt::UTC);
+        credentials.clientId = QStringLiteral("oaiapp_1");
+        QVERIFY(ChatGptAuth::applyTokenResponse(credentials,
+                                                QJsonObject{{QStringLiteral("access_token"), QStringLiteral("at")},
+                                                            {QStringLiteral("refresh_token"), QStringLiteral("rt")},
+                                                            {QStringLiteral("id_token"), idToken},
+                                                            {QStringLiteral("expires_in"), 3600},
+                                                            {QStringLiteral("scope"), QStringLiteral("openid email offline_access resource.invoke chatgpt.tokens.use.direct")}},
+                                                now));
+        QVERIFY(credentials.isSignedIn());
+        QVERIFY(credentials.canUsePlan());
+        QCOMPARE(credentials.email, QStringLiteral("a@b.it"));
+        QCOMPARE(credentials.name, QStringLiteral("Ada"));
+        QCOMPARE(credentials.expiresAt, now.addSecs(3600));
+
+        // Kept owner-only, and read back whole.
+        QTemporaryDir dir;
+        const QString path = dir.filePath(QStringLiteral("chatgpt-auth.json"));
+        QVERIFY(ChatGptAuth::save(credentials, path));
+        QCOMPARE(QFile::permissions(path) & (QFile::ReadGroup | QFile::ReadOther | QFile::WriteGroup | QFile::WriteOther),
+                 QFile::Permissions());
+        ChatGptAuth::Credentials read = ChatGptAuth::load(path);
+        QCOMPARE(read.hostId, credentials.hostId);
+        QCOMPARE(read.refreshToken, QStringLiteral("rt"));
+        QCOMPARE(read.expiresAt, credentials.expiresAt);
+        QVERIFY(read.canUsePlan());
+
+        // Signing in again names the client and the account; signing out keeps them apart from the tokens.
+        url = ChatGptAuth::authorizeUrl(read, redirect, QStringLiteral("st"), QStringLiteral("no"), "chal",
+                                        QStringLiteral("Pragma Chess"));
+        query = QUrlQuery(url);
+        QCOMPARE(query.queryItemValue(QStringLiteral("client_id")), QStringLiteral("oaiapp_1"));
+        QVERIFY(!query.hasQueryItem(QStringLiteral("agent_name_hint")));
+        QCOMPARE(query.queryItemValue(QStringLiteral("id_token_hint"), QUrl::FullyDecoded), idToken);
+        read.signOut();
+        QVERIFY(!read.isSignedIn());
+        QCOMPARE(read.clientId, QStringLiteral("oaiapp_1"));
+        QVERIFY(!read.hostId.isEmpty());
+
+        // An error answers no token.
+        QString error;
+        QVERIFY(!ChatGptAuth::applyTokenResponse(read, QJsonObject{{QStringLiteral("error"), QStringLiteral("invalid_grant")}},
+                                                 now, &error));
+        QCOMPARE(error, QStringLiteral("invalid_grant"));
+    }
+
+    void asksChatGpt()
+    {
+        // Streamed, not stored, the conversation as roles.
+        const QJsonObject body = ChatGptResponses::requestBody(
+            QStringLiteral("gpt-x"), QStringLiteral("Be brief."),
+            {{true, QStringLiteral("Why Nf3?")}, {false, QStringLiteral("It develops.")}, {true, QStringLiteral("And e4?")}});
+        QCOMPARE(body.value(QStringLiteral("model")).toString(), QStringLiteral("gpt-x"));
+        QVERIFY(body.value(QStringLiteral("stream")).toBool());
+        QCOMPARE(body.value(QStringLiteral("store")).toBool(true), false);
+        const QJsonArray input = body.value(QStringLiteral("input")).toArray();
+        QCOMPARE(input.size(), 3);
+        QCOMPARE(input.at(1).toObject().value(QStringLiteral("role")).toString(), QStringLiteral("assistant"));
+
+        // The plan's listed model, by slug; a plain list by id.
+        QCOMPARE(ChatGptResponses::pickModel(QJsonDocument::fromJson(
+                     R"({"data":[{"slug":"hidden","visibility":"hide"},{"slug":"gpt-5","display_name":"GPT-5","visibility":"list"}]})")
+                                                 .object()),
+                 QStringLiteral("gpt-5"));
+        QCOMPARE(ChatGptResponses::pickModel(QJsonDocument::fromJson(R"({"data":[{"id":"gpt-4o"}]})").object()),
+                 QStringLiteral("gpt-4o"));
+        QVERIFY(ChatGptResponses::pickModel(QJsonObject()).isEmpty());
+
+        // The stream, cut anywhere.
+        ChatGptResponses::StreamReader reader;
+        const QByteArray stream = "event: response.output_text.delta\r\n"
+                                  "data: {\"type\":\"response.output_text.delta\",\"delta\":\"Con\"}\r\n\r\n"
+                                  "event: response.output_text.delta\n"
+                                  "data: {\"type\":\"response.output_text.delta\",\"delta\":\"trol\"}\n\n"
+                                  "data: {\"type\":\"response.completed\"}\n\n";
+        QList<ChatGptResponses::Event> events;
+        for (qsizetype at = 0; at < stream.size(); at += 7)
+            events += reader.feed(stream.mid(at, 7));
+        QCOMPARE(events.size(), 3);
+        QCOMPARE(events.at(0).text + events.at(1).text, QStringLiteral("Control"));
+        QCOMPARE(int(events.at(2).kind), int(ChatGptResponses::Event::Kind::Completed));
+        const QList<ChatGptResponses::Event> failed = ChatGptResponses::StreamReader().feed(
+            "data: {\"type\":\"response.failed\",\"response\":{\"error\":{\"code\":\"subscription_sharing_usage_limit_exceeded\",\"message\":\"Limit\"}}}\n\n");
+        QCOMPARE(failed.size(), 1);
+        QCOMPARE(int(failed.at(0).kind), int(ChatGptResponses::Event::Kind::Failed));
+        QCOMPARE(failed.at(0).code, QStringLiteral("subscription_sharing_usage_limit_exceeded"));
+        QVERIFY(ChatGptResponses::isSignedOut(QStringLiteral("refresh_token_reused")));
+        QVERIFY(!ChatGptResponses::isSignedOut(QStringLiteral("server_error")));
     }
 
     void readsAndSearchesTheGuide()

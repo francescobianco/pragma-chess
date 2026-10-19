@@ -83,6 +83,9 @@
 #include "platform/MoveSound.h"
 #include "platform/SymbolicIcons.h"
 #include "platform/WindowChrome.h"
+#include "widgets/AiChatView.h"
+#include "widgets/AiMenu.h"
+#include "app/ai/ChatGptClient.h"
 #include "widgets/BoardPanel.h"
 #include "widgets/DiscoveryBalloon.h"
 #include "widgets/BookPanel.h"
@@ -142,8 +145,8 @@
 #include <QTableView>
 #include <QThread>
 #include <QTimer>
-#include <QToolBar>
 #include <QToolButton>
+#include <QToolBar>
 #include <QUrl>
 #include <QVBoxLayout>
 
@@ -256,6 +259,7 @@ MainWindow::MainWindow(QWidget *parent)
         fillDatabaseChoices(databaseChoices);
     });
     m_databaseButton->setMenu(databaseChoices);
+    createAiButton();
     updateResourceButtons();
     createStatusBar();
     updateSeparatorStyle();
@@ -2900,6 +2904,106 @@ void MainWindow::saveDatabaseAs()
     m_session->setGame(game);
     m_session->goToPly(ply);
     statusBar()->showMessage(tr("Saved %1").arg(QDir::toNativeSeparators(path)), 5000);
+}
+
+void MainWindow::createAiButton()
+{
+    m_aiMenu = new AiMenu(this);
+    m_aiActive = QSettings().value(QStringLiteral("ai/active"), true).toBool();
+    QToolButton *button = m_enginePanel->aiButton();
+    // Connected, a right click offers to sign out (an action given to the
+    // button itself would make it a drop-down, with its arrow).
+    connect(button, &QWidget::customContextMenuRequested, this, [this, button](const QPoint &at) {
+        if (!m_aiMenu->isSignedIn())
+            return;
+        QMenu menu(this);
+        menu.addAction(tr("Sign Out of ChatGPT"), m_aiMenu, &AiMenu::signOut);
+        menu.exec(button->mapToGlobal(at));
+    });
+    connect(m_enginePanel, &EnginePanel::aiClicked, this, [this, button] {
+        if (!m_aiMenu->isSignedIn()) {
+            // Not connected: the sign-in drops down under the button, as a drop-down list.
+            m_aiMenu->popup(button->mapToGlobal(QPoint(0, button->height())));
+            updateAiButton();
+            return;
+        }
+        m_aiActive = button->isChecked();
+        QSettings().setValue(QStringLiteral("ai/active"), m_aiActive);
+        updateAiButton();
+    });
+    connect(m_aiMenu, &AiMenu::accountChanged, this, [this] {
+        // Just connected, the AI is on.
+        if (m_aiMenu->isSignedIn()) {
+            m_aiActive = true;
+            QSettings().setValue(QStringLiteral("ai/active"), true);
+        }
+        updateAiButton();
+    });
+    // The chat asks ChatGPT about the board, one question at a time.
+    m_aiClient = new ChatGptClient(this);
+    AiChatView *chat = m_enginePanel->aiChat();
+    connect(chat, &AiChatView::asked, this, [this, chat](const QString &question) {
+        if (m_aiClient->isBusy())
+            return;
+        chat->addQuestion(question);
+        m_aiClient->setCredentials(m_aiMenu->credentials());
+        m_aiClient->ask(aiInstructions(), chat->turns());
+    });
+    connect(m_aiClient, &ChatGptClient::answerDelta, chat, &AiChatView::appendAnswer);
+    connect(m_aiClient, &ChatGptClient::answerCompleted, chat, &AiChatView::finishAnswer);
+    connect(m_aiClient, &ChatGptClient::failed, chat, &AiChatView::showError);
+    connect(m_aiClient, &ChatGptClient::credentialsChanged, m_aiMenu, &AiMenu::updateCredentials);
+    // The connection gone: the button goes back to signing in.
+    connect(m_aiClient, &ChatGptClient::signedOut, this, [this, chat] {
+        chat->showError(tr("The connection to ChatGPT was lost: sign in again."));
+        m_aiMenu->signOut();
+    });
+    connect(m_aiMenu, &AiMenu::accountChanged, this, [this, chat] {
+        if (!m_aiMenu->isSignedIn()) {
+            m_aiClient->cancel();
+            chat->clear();
+        }
+    });
+    updateAiButton();
+}
+
+QString MainWindow::aiInstructions() const
+{
+    // What ChatGPT is told of the board with every question: the position,
+    // the moves that led to it and what the engine thinks of it.
+    const ChessPosition &start = m_session->initialPosition();
+    QString moves;
+    int number = start.fullMoveNumber();
+    bool white = start.sideToMove() == Side::White;
+    for (int ply = 1; ply <= m_session->ply(); ++ply) {
+        if (white || ply == 1)
+            moves += QStringLiteral("%1.%2 ").arg(number).arg(white ? QString() : QStringLiteral(".."));
+        moves += m_session->moveAt(ply).san + QLatin1Char(' ');
+        if (!white)
+            ++number;
+        white = !white;
+    }
+    const QLocale language(UiLanguage::effective());
+    QString text = QStringLiteral(
+        "You are the chess assistant inside Pragma Chess, a chess database and analysis program. "
+        "The user is looking at the position on the board and asks about it: answer briefly and concretely, "
+        "as a strong coach would, in %1. Write moves in SAN.\n\n"
+        "Position (FEN): %2\n")
+                       .arg(QLocale::languageToString(language.language()), m_session->position().fen());
+    text += QStringLiteral("Starting position (FEN): %1\n").arg(start.fen());
+    text += QStringLiteral("Moves played to reach it: %1\n").arg(moves.isEmpty() ? QStringLiteral("none") : moves.trimmed());
+    if (m_startEngineAction->isChecked() && m_lastEvaluation.depth > 0) {
+        text += QStringLiteral("Engine %1 at depth %2: %3 (from White's point of view), best line %4\n")
+                    .arg(m_engineName)
+                    .arg(m_lastEvaluation.depth)
+                    .arg(m_lastEvaluation.text(), m_engineLine);
+    }
+    return text;
+}
+
+void MainWindow::updateAiButton()
+{
+    m_enginePanel->setAiState(m_aiMenu->isSignedIn(), m_aiActive);
 }
 
 void MainWindow::rebuildDatabasesMenu()

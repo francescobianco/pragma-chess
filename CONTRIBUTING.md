@@ -25,7 +25,7 @@ silly, open an issue with the *Explain is wrong* form and give:
 1. the moves (or a FEN) and the move explained — **Edit ▸ Copy ▸ Game as
    PGN** copies the game;
 2. what Explain showed (a screenshot is perfect) and what you would expect;
-3. if you can, **Engine ▸ Copy Explain's Ticks** right after: it copies what
+3. if you can, **Edit ▸ Copy ▸ Explain's Ticks** right after: it copies what
    the engine said to Explain, so we can replay exactly what you saw, with
    no engine, and keep it as a test (`smart/tests/`).
 

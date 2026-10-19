@@ -594,10 +594,11 @@ ticked, `m_rememberedOnline`, while the menu always asks), then Enter the Lobby 
 resources in use — book, engine, database
 (`m_bookButton`, `m_engineButton`, `m_databaseButton`). Each of these is an
 icon only (the user found the names in the toolbar ugly) that drops down the
-choice: the engine and database buttons share the menu bar's menus (Engine ▸
-Switch Engine, Database ▸ Switch Database), the book button has a menu of its own
-with only the books and No Book (`fillBookChoices`, shared with Book ▸
-Switch Book, which adds the folder; the Book menu is laid out as the
+choice, the one in use checked as in a group: the engine button shares the
+menu bar's Engine ▸ Switch Engine, the book and database buttons have a menu
+of their own with only the books and No Book (`fillBookChoices`) or the
+databases (`fillDatabaseChoices`), shared with Book ▸ Switch Book and
+Database ▸ Switch Database, which add the folder; the Book menu is laid out as the
 Database one: New Book…, Open Book…, then Switch Book); `updateResourceButtons()` puts the name of
 the one in use in the tooltip whenever one of them changes. Icons are drawn in `platform/SymbolicIcons` (`pragma-book`,
 `pragma-engine`, `pragma-database`).

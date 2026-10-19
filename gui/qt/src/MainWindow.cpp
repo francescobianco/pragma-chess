@@ -249,7 +249,13 @@ MainWindow::MainWindow(QWidget *parent)
     });
     m_bookButton->setMenu(bookChoices);
     m_engineButton->setMenu(m_engineChoiceMenu);
-    m_databaseButton->setMenu(m_databasesMenu);
+    // And the database's the databases alone.
+    auto *databaseChoices = new QMenu(this);
+    connect(databaseChoices, &QMenu::aboutToShow, this, [this, databaseChoices] {
+        databaseChoices->clear();
+        fillDatabaseChoices(databaseChoices);
+    });
+    m_databaseButton->setMenu(databaseChoices);
     updateResourceButtons();
     createStatusBar();
     updateSeparatorStyle();
@@ -2899,7 +2905,14 @@ void MainWindow::saveDatabaseAs()
 void MainWindow::rebuildDatabasesMenu()
 {
     m_databasesMenu->clear();
+    fillDatabaseChoices(m_databasesMenu);
+    m_databasesMenu->addSeparator();
+    m_databasesMenu->addAction(m_showDatabasesFolderAction);
+}
 
+void MainWindow::fillDatabaseChoices(QMenu *menu)
+{
+    auto *group = new QActionGroup(menu);
     const QDir folder(UserFolders::databasesDir());
     const QFileInfoList files = folder.entryInfoList(
         {QStringLiteral("*.") + QLatin1String(UserFolders::databaseSuffix)}, QDir::Files, QDir::Name);
@@ -2907,17 +2920,15 @@ void MainWindow::rebuildDatabasesMenu()
         // By the name given in Database Settings, with the file in brackets.
         const QString label = SqliteGameDatabase::readProperties(file.absoluteFilePath())
                                   .label(UiLanguage::effective(), file.absoluteFilePath());
-        QAction *action = m_databasesMenu->addAction(label);
+        QAction *action = menu->addAction(label);
         action->setCheckable(true);
+        action->setActionGroup(group);
         action->setChecked(m_database && m_database->location() == file.absoluteFilePath());
         const QString path = file.absoluteFilePath();
         connect(action, &QAction::triggered, this, [this, path] { openDatabaseFile(path); });
     }
     if (files.isEmpty())
-        m_databasesMenu->addAction(tr("No databases"))->setEnabled(false);
-
-    m_databasesMenu->addSeparator();
-    m_databasesMenu->addAction(m_showDatabasesFolderAction);
+        menu->addAction(tr("No databases"))->setEnabled(false);
 }
 
 void MainWindow::restoreBook()

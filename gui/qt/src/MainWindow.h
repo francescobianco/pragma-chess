@@ -399,6 +399,8 @@ private:
     void saveDatabase();
     void saveDatabaseAs();
     void rebuildDatabasesMenu();
+    /// The databases of the Databases folder, the open one checked, into `menu`.
+    void fillDatabaseChoices(QMenu *menu);
 
     // Opening books (Book menu, shown in the Opening Tree dock).
     /// Opens the book chosen last time; on first launch seeds and chooses the default one.

@@ -37,18 +37,148 @@
     </message>
 </context>
 <context>
+    <name>AiAssistant</name>
+    <message>
+        <source>The connection to ChatGPT was lost: sign in again.</source>
+        <translation>Se perdió la conexión con ChatGPT: inicia sesión de nuevo.</translation>
+    </message>
+    <message>
+        <source>The AI is off while you play online.</source>
+        <translation>La IA está desactivada mientras juegas en línea.</translation>
+    </message>
+    <message>
+        <source>The AI stopped: too many steps for one question.</source>
+        <translation>La IA se detuvo: demasiados pasos para una sola pregunta.</translation>
+    </message>
+    <message>
+        <source>Played %1</source>
+        <translation>Jugado %1</translation>
+    </message>
+    <message>
+        <source>The engine played %1</source>
+        <translation>El motor jugó %1</translation>
+    </message>
+    <message>
+        <source>New game</source>
+        <translation>Nueva partida</translation>
+    </message>
+    <message>
+        <source>Analysis</source>
+        <translation>Análisis</translation>
+    </message>
+    <message>
+        <source>Explain</source>
+        <translation>Explicar</translation>
+    </message>
+    <message>
+        <source>Board turned</source>
+        <translation>Tablero girado</translation>
+    </message>
+    <message>
+        <source>on</source>
+        <translation>activado</translation>
+    </message>
+    <message>
+        <source>off</source>
+        <translation>desactivado</translation>
+    </message>
+    <message>
+        <source>Opened %1</source>
+        <translation>Abierto %1</translation>
+    </message>
+    <message>
+        <source>Opened %1 – %2</source>
+        <translation>Abierta %1 – %2</translation>
+    </message>
+    <message>
+        <source>Listed the games with this position</source>
+        <translation>Listadas las partidas con esta posición</translation>
+    </message>
+</context>
+<context>
+    <name>AiAssistantDialog</name>
+    <message>
+        <source>Sign in with ChatGPT</source>
+        <translation>Iniciar sesión con ChatGPT</translation>
+    </message>
+    <message>
+        <source>Sign Out</source>
+        <translation>Cerrar sesión</translation>
+    </message>
+    <message>
+        <source>AI chat in the Engine panel</source>
+        <translation>Chat de IA en el panel Motor</translation>
+    </message>
+    <message>
+        <source>Configure AI Assistant</source>
+        <translation>Configurar asistente de IA</translation>
+    </message>
+    <message>
+        <source>Model:</source>
+        <translation>Modelo:</translation>
+    </message>
+    <message>
+        <source>Automatic (the first your plan offers)</source>
+        <translation>Automático (el primero que ofrece tu plan)</translation>
+    </message>
+    <message>
+        <source>%1 (not offered by your plan now)</source>
+        <translation>%1 (tu plan ya no lo ofrece)</translation>
+    </message>
+    <message>
+        <source>Your ChatGPT plan offers no model to Pragma Chess.</source>
+        <translation>Tu plan de ChatGPT no ofrece ningún modelo a Pragma Chess.</translation>
+    </message>
+    <message>
+        <source>Signing in in the browser…</source>
+        <translation>Iniciando sesión en el navegador…</translation>
+    </message>
+    <message>
+        <source>%1 (%2)</source>
+        <translation>%1 (%2)</translation>
+    </message>
+    <message>
+        <source>Signed in with ChatGPT.</source>
+        <translation>Sesión iniciada con ChatGPT.</translation>
+    </message>
+    <message>
+        <source>Signed in with ChatGPT as %1.</source>
+        <translation>Sesión iniciada con ChatGPT como %1.</translation>
+    </message>
+    <message>
+        <source>Your ChatGPT plan was not shared with Pragma Chess: sign out and in again to share it.</source>
+        <translation>Tu plan de ChatGPT no se compartió con Pragma Chess: cierra sesión y vuelve a entrar para compartirlo.</translation>
+    </message>
+    <message>
+        <source>Not signed in. Your ChatGPT plan pays for the AI&apos;s answers: no API key is needed.</source>
+        <translation>No has iniciado sesión. Tu plan de ChatGPT paga las respuestas de la IA: no hace falta clave de API.</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+    <message>
+        <source>Sign in to choose the model.</source>
+        <translation>Inicia sesión para elegir el modelo.</translation>
+    </message>
+    <message>
+        <source>Asking ChatGPT for your plan&apos;s models…</source>
+        <translation>Pidiendo a ChatGPT los modelos de tu plan…</translation>
+    </message>
+</context>
+<context>
     <name>AiChatView</name>
     <message>
         <source>AI chat</source>
         <translation>Chat de IA</translation>
     </message>
     <message>
-        <source>Ask ChatGPT about the position on the board.</source>
-        <translation>Pregunta a ChatGPT sobre la posición del tablero.</translation>
-    </message>
-    <message>
         <source>Ask ChatGPT…</source>
         <translation>Pregunta a ChatGPT…</translation>
+    </message>
+    <message>
+        <source>Ask ChatGPT about the position, or tell it what to do: &quot;play your move&quot;, &quot;find me a game of Fischer&apos;s&quot;.</source>
+        <translation>Pregunta a ChatGPT por la posición o dile qué hacer: «juega tu jugada», «búscame una partida de Fischer».</translation>
     </message>
 </context>
 <context>
@@ -406,6 +536,10 @@ Las negras han capturado: %2</translation>
     <message>
         <source>Your ChatGPT plan has reached its usage limit: see Usage in ChatGPT&apos;s settings.</source>
         <translation>Tu plan de ChatGPT ha alcanzado su límite de uso: consulta Uso en la configuración de ChatGPT.</translation>
+    </message>
+    <message>
+        <source>This ChatGPT account cannot share its plan with apps: only personal Plus and Pro plans can.</source>
+        <translation>Esta cuenta de ChatGPT no puede compartir su plan con aplicaciones: solo pueden los planes personales Plus y Pro.</translation>
     </message>
 </context>
 <context>
@@ -3889,10 +4023,6 @@ no está en este ordenador.</translation>
         <translation>Variantes</translation>
     </message>
     <message>
-        <source>&amp;Copy Explain&apos;s Ticks</source>
-        <translation>&amp;Copiar los ticks de Explicar</translation>
-    </message>
-    <message>
         <source>Explain has not explained a move yet</source>
         <translation>Explicar todavía no ha explicado ninguna jugada</translation>
     </message>
@@ -4067,8 +4197,12 @@ no está en este ordenador.</translation>
         <translation>Cerrar sesión de ChatGPT</translation>
     </message>
     <message>
-        <source>The connection to ChatGPT was lost: sign in again.</source>
-        <translation>Se perdió la conexión con ChatGPT: inicia sesión de nuevo.</translation>
+        <source>Explain&apos;s &amp;Ticks</source>
+        <translation>&amp;Ticks de Explicar</translation>
+    </message>
+    <message>
+        <source>Configure &amp;AI Assistant…</source>
+        <translation>Configurar &amp;asistente de IA…</translation>
     </message>
 </context>
 <context>

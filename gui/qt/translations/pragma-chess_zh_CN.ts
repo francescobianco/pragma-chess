@@ -3821,10 +3821,6 @@ is not on this computer.</source>
             <translation>变着</translation>
         </message>
         <message>
-            <source>&amp;Copy Explain's Ticks</source>
-            <translation>复制“讲解”的引擎原始输出(&amp;C)</translation>
-        </message>
-        <message>
             <source>Explain has not explained a move yet</source>
             <translation>“讲解”尚未讲解任何着法</translation>
         </message>
@@ -3999,8 +3995,12 @@ is not on this computer.</source>
             <translation>退出 ChatGPT</translation>
         </message>
         <message>
-            <source>The connection to ChatGPT was lost: sign in again.</source>
-            <translation>与 ChatGPT 的连接已断开：请重新登录。</translation>
+            <source>Configure &amp;AI Assistant…</source>
+            <translation>配置 AI 助手(&amp;A)…</translation>
+        </message>
+        <message>
+            <source>Explain&apos;s &amp;Ticks</source>
+            <translation>“讲解”的引擎原始输出(&amp;T)</translation>
         </message>
     </context>
     <context>
@@ -6889,16 +6889,16 @@ The %n game(s) already imported stay in the database.</source>
     <context>
         <name>AiChatView</name>
         <message>
-            <source>Ask ChatGPT about the position on the board.</source>
-            <translation>向 ChatGPT 询问棋盘上的局面。</translation>
-        </message>
-        <message>
             <source>Ask ChatGPT…</source>
             <translation>询问 ChatGPT…</translation>
         </message>
         <message>
             <source>AI chat</source>
             <translation>AI 聊天</translation>
+        </message>
+        <message>
+            <source>Ask ChatGPT about the position, or tell it what to do: &quot;play your move&quot;, &quot;find me a game of Fischer&apos;s&quot;.</source>
+            <translation>向 ChatGPT 询问局面，或告诉它要做什么：“你来走”、“帮我找一盘菲舍尔的对局”。</translation>
         </message>
     </context>
     <context>
@@ -6930,6 +6930,10 @@ The %n game(s) already imported stay in the database.</source>
             <source>Your ChatGPT plan has reached its usage limit: see Usage in ChatGPT&apos;s settings.</source>
             <translation>你的 ChatGPT 套餐已达到使用上限：请查看 ChatGPT 设置中的“用量”。</translation>
         </message>
+        <message>
+            <source>This ChatGPT account cannot share its plan with apps: only personal Plus and Pro plans can.</source>
+            <translation>此 ChatGPT 账户无法与应用共享其套餐：只有个人 Plus 和 Pro 套餐可以。</translation>
+        </message>
     </context>
     <context>
         <name>ChatGptSignIn</name>
@@ -6952,6 +6956,136 @@ The %n game(s) already imported stay in the database.</source>
         <message>
             <source>Signed in with ChatGPT. You can close this page and return to Pragma Chess.</source>
             <translation>已使用 ChatGPT 登录。你可以关闭此页面并返回 Pragma Chess。</translation>
+        </message>
+    </context>
+    <context>
+        <name>AiAssistant</name>
+        <message>
+            <source>Analysis</source>
+            <translation>分析</translation>
+        </message>
+        <message>
+            <source>Board turned</source>
+            <translation>棋盘翻转</translation>
+        </message>
+        <message>
+            <source>Explain</source>
+            <translation>讲解</translation>
+        </message>
+        <message>
+            <source>Listed the games with this position</source>
+            <translation>已列出包含此局面的对局</translation>
+        </message>
+        <message>
+            <source>New game</source>
+            <translation>新对局</translation>
+        </message>
+        <message>
+            <source>Opened %1</source>
+            <translation>已打开 %1</translation>
+        </message>
+        <message>
+            <source>Opened %1 – %2</source>
+            <translation>已打开 %1 – %2</translation>
+        </message>
+        <message>
+            <source>Played %1</source>
+            <translation>已走 %1</translation>
+        </message>
+        <message>
+            <source>The AI is off while you play online.</source>
+            <translation>在线对局时 AI 已关闭。</translation>
+        </message>
+        <message>
+            <source>The AI stopped: too many steps for one question.</source>
+            <translation>AI 已停止：一个问题的步骤太多。</translation>
+        </message>
+        <message>
+            <source>The connection to ChatGPT was lost: sign in again.</source>
+            <translation>与 ChatGPT 的连接已断开：请重新登录。</translation>
+        </message>
+        <message>
+            <source>The engine played %1</source>
+            <translation>引擎走了 %1</translation>
+        </message>
+        <message>
+            <source>off</source>
+            <translation>关</translation>
+        </message>
+        <message>
+            <source>on</source>
+            <translation>开</translation>
+        </message>
+    </context>
+    <context>
+        <name>AiAssistantDialog</name>
+        <message>
+            <source>%1 (%2)</source>
+            <translation>%1（%2）</translation>
+        </message>
+        <message>
+            <source>%1 (not offered by your plan now)</source>
+            <translation>%1（你的套餐目前不提供）</translation>
+        </message>
+        <message>
+            <source>AI chat in the Engine panel</source>
+            <translation>引擎面板中的 AI 聊天</translation>
+        </message>
+        <message>
+            <source>Asking ChatGPT for your plan&apos;s models…</source>
+            <translation>正在向 ChatGPT 查询你的套餐模型…</translation>
+        </message>
+        <message>
+            <source>Automatic (the first your plan offers)</source>
+            <translation>自动（你的套餐提供的第一个）</translation>
+        </message>
+        <message>
+            <source>Cancel</source>
+            <translation>取消</translation>
+        </message>
+        <message>
+            <source>Configure AI Assistant</source>
+            <translation>配置 AI 助手</translation>
+        </message>
+        <message>
+            <source>Model:</source>
+            <translation>模型：</translation>
+        </message>
+        <message>
+            <source>Not signed in. Your ChatGPT plan pays for the AI&apos;s answers: no API key is needed.</source>
+            <translation>未登录。AI 的回答由你的 ChatGPT 套餐支付：无需 API 密钥。</translation>
+        </message>
+        <message>
+            <source>Sign Out</source>
+            <translation>退出登录</translation>
+        </message>
+        <message>
+            <source>Sign in to choose the model.</source>
+            <translation>登录后选择模型。</translation>
+        </message>
+        <message>
+            <source>Sign in with ChatGPT</source>
+            <translation>使用 ChatGPT 登录</translation>
+        </message>
+        <message>
+            <source>Signed in with ChatGPT as %1.</source>
+            <translation>已作为 %1 使用 ChatGPT 登录。</translation>
+        </message>
+        <message>
+            <source>Signed in with ChatGPT.</source>
+            <translation>已使用 ChatGPT 登录。</translation>
+        </message>
+        <message>
+            <source>Signing in in the browser…</source>
+            <translation>正在浏览器中登录…</translation>
+        </message>
+        <message>
+            <source>Your ChatGPT plan offers no model to Pragma Chess.</source>
+            <translation>你的 ChatGPT 套餐没有为 Pragma Chess 提供任何模型。</translation>
+        </message>
+        <message>
+            <source>Your ChatGPT plan was not shared with Pragma Chess: sign out and in again to share it.</source>
+            <translation>你的 ChatGPT 套餐未与 Pragma Chess 共享：请退出并重新登录以共享。</translation>
         </message>
     </context>
 </TS>

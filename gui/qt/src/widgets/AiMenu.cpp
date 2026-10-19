@@ -15,26 +15,6 @@
 #include <QSvgRenderer>
 #endif
 
-namespace {
-
-/// OpenAI's logo, white or black, `side` pixels square at the screen's density.
-QPixmap chatGptLogo(bool white, int side, qreal ratio)
-{
-    QPixmap pixmap(QSize(side, side) * ratio);
-    pixmap.setDevicePixelRatio(ratio);
-    pixmap.fill(Qt::transparent);
-#ifdef PRAGMA_HAS_SVG
-    QSvgRenderer renderer(white ? QStringLiteral(":/ai/chatgpt-logo-white.svg")
-                                : QStringLiteral(":/ai/chatgpt-logo-black.svg"));
-    QPainter painter(&pixmap);
-    renderer.render(&painter, QRectF(0, 0, side, side));
-#else
-    Q_UNUSED(white)
-#endif
-    return pixmap;
-}
-
-} // namespace
 
 AiMenu::AiMenu(QWidget *parent)
     : QMenu(parent)
@@ -73,6 +53,9 @@ AiMenu::AiMenu(QWidget *parent)
     auto *item = new QWidgetAction(this);
     item->setDefaultWidget(panel);
     addAction(item);
+    // A click on the AI button while the panel is open only closes it: the
+    // press that closed it does not reach the button, which would open it again.
+    setAttribute(Qt::WA_NoMouseReplay);
     connect(this, &QMenu::aboutToShow, this, &AiMenu::updatePanel);
     updatePanel();
 }
@@ -80,7 +63,7 @@ AiMenu::AiMenu(QWidget *parent)
 void AiMenu::updatePanel()
 {
     const bool white = palette().color(QPalette::WindowText).lightness() > 128;
-    m_logo->setPixmap(chatGptLogo(white, 4 * fontMetrics().height(), devicePixelRatioF()));
+    m_logo->setPixmap(logo(white, 4 * fontMetrics().height(), devicePixelRatioF()));
     const bool waiting = m_signIn != nullptr;
     m_signInButton->setVisible(!waiting);
     m_status->setVisible(waiting);
@@ -112,6 +95,23 @@ void AiMenu::signIn()
     updatePanel();
     close(); // The browser comes forward; the panel says it waits when opened again.
     m_signIn->start(m_credentials);
+    Q_EMIT accountChanged();
+}
+
+QPixmap AiMenu::logo(bool white, int side, qreal ratio)
+{
+    QPixmap pixmap(QSize(side, side) * ratio);
+    pixmap.setDevicePixelRatio(ratio);
+    pixmap.fill(Qt::transparent);
+#ifdef PRAGMA_HAS_SVG
+    QSvgRenderer renderer(white ? QStringLiteral(":/ai/chatgpt-logo-white.svg")
+                                : QStringLiteral(":/ai/chatgpt-logo-black.svg"));
+    QPainter painter(&pixmap);
+    renderer.render(&painter, QRectF(0, 0, side, side));
+#else
+    Q_UNUSED(white)
+#endif
+    return pixmap;
 }
 
 void AiMenu::cancelSignIn()
@@ -122,6 +122,7 @@ void AiMenu::cancelSignIn()
     m_signIn->deleteLater();
     m_signIn = nullptr;
     updatePanel();
+    Q_EMIT accountChanged();
 }
 
 void AiMenu::updateCredentials(const ChatGptAuth::Credentials &credentials)

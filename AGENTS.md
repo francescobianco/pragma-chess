@@ -263,7 +263,13 @@ playing a move turns it off, and the user asks again at the next move.
   Not connected, a click drops down under it `AiMenu`, a menu whose one item
   is a panel — OpenAI's logo large (`resources/ai`, their assets, unchanged:
   README there) and under it the black **Sign in with ChatGPT** — with no
-  arrow on the button (an action or menu given to it would draw one).
+  arrow on the button (an action or menu given to it would draw one): its
+  left edge with the button's, or, without room on the window's right, its
+  right edge with the button's; a click on the button while it is open only
+  closes it (`Qt::WA_NoMouseReplay`). Engine ▸ Configure AI Assistant…
+  (`dialogs/AiAssistantDialog`) is the other face: sign in or out, the
+  model (`/v1/models`; QSettings `ai/model`, empty for the plan's first),
+  the chat on or off.
   Connected, the button is a switch (QSettings `ai/active`, per computer),
   and while on the chat (`AiChatView`) fills the panel between the line,
   kept to three rows, and the opening; a right click offers Sign Out of
@@ -278,11 +284,31 @@ playing a move turns it off, and the user asks again at the next move.
   `ChatGptSignIn` runs the browser flow as `LichessSignIn`.
   `ChatGptResponses` (pure, `asksChatGpt`) and `ChatGptClient`: renew the
   token before it expires (the refresh token rotates: `credentialsChanged`
-  hands it back to be kept), the model from `/v1/models`, the question to
-  `/v1/responses` streamed and not stored, with
-  `MainWindow::aiInstructions` (FEN, moves, the engine's evaluation and
-  line, the interface's language). A 401 or a refresh token refused is a
-  connection lost (`signedOut`): the tokens go, the button signs in again.
+  hands it back to be kept; a 401 renews it once before giving up), the
+  model from `/v1/models` (the plan answers `{"models": [{slug,
+  display_name, visibility, priority}]}`, not OpenAI's `data`; messages go
+  with typed content, `input_text`/`output_text`, as the user's working
+  Python client, openapi/gknowledge, sends them), the question to
+  `/v1/responses` streamed and not stored. A 401 or a refresh token
+  refused is a connection lost (`signedOut`): the tokens go, the button
+  signs in again.
+- **The chat drives the program** (`AiAssistant`, a friend of MainWindow
+  as DesktopApi): every request carries the conversation as items (not
+  stored: function calls go back without their ids, reasoning stays
+  behind, `ChatGptResponses::replayItem`), the instructions with the
+  program's state, and the functions — `get_state`, `play_moves`,
+  `engine_move` (`playEngineMove`, answered once the move is on the board),
+  `go_to`, `new_game`, `set_option` (analysis, Explain, the board turned),
+  `list_databases`, `open_database`, `search_games` (the briefs, every word
+  in the field), `open_game`, `games_with_position` (the tree's Board ▸
+  Position), `list_menu_commands` and `run_menu_command` (any command of
+  the menus by its path, triggered after the answer: a window may wait for
+  the user). The calls run on the window, their outputs go back, until
+  ChatGPT answers in words (at most 16 rounds a question); what was done
+  is said in italics in the chat (`AiChatView::addAction`). A command that
+  asks the user (a game not saved) waits for the answer, as from the menu.
+  Off while playing online, as the engine. A new function: its schema in
+  `AiAssistant::tools`, its work in `call`, a line here.
 - **INSIGHT** (`smart/INSIGHT.smart`, `app/LineInsight`): over the end of
   the line the eye shows, violet `Plan` arrows for the plans the line holds.
   The program replays the PV only (no search, no `MOVES`), follows each
@@ -399,7 +425,7 @@ fixed once, in SMART.
 - **Ticks are recorded and replayed** (`app/ExplainTicks`, pure: one record
   per move, text, with `expect` lines for what must be shown):
   `pragma-explain --record`/`--replay`/`--ticks`, the desktop client with
-  `PRAGMA_EXPLAIN_RECORD=<folder>` or Engine ▸ Copy Explain's Ticks (the
+  `PRAGMA_EXPLAIN_RECORD=<folder>` or Edit ▸ Copy ▸ Explain's Ticks (the
   move explained last, what was shown in comments: `Explainer::recordedTicks`). `smart/tests/*.ticks` are cases every
   client replays (`tst_chessrules::replaysRecordedTicks`, and the Android
   `SmartTest`).
@@ -444,13 +470,15 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   piece, lost pieces, summary, playback), the eye (`peek`: on, the plan
   arrows with `via`), the game's players, the database;
   `GET /api/explanation`; `GET /api/ticks` Explain's ticks of the move
-  explained last (a `.ticks` record, as Engine ▸ Copy Explain's Ticks
+  explained last (a `.ticks` record, as Edit ▸ Copy ▸ Explain's Ticks
   copies it); `GET /api/screenshot` the window as a PNG, taken
   from inside (`QWidget::grab`: no compositor permission needed — GNOME
   refuses screenshots to other programs).
 - `GET /api/ai` whether ChatGPT is connected (never a token) and the AI
-  on; `POST /api/ai {"ask": "…"}` a question in the chat, `{"panel": true}`
-  the sign-in panel's picture.
+  on; `POST /api/ai {"ask": "…"}` a question in the chat, `{"tool": name,
+  "arguments": {…}}` one of the AI's functions carried out (its output),
+  `{"panel": true}` the sign-in panel's picture, `{"dialog": true}`
+  Configure AI Assistant's.
 - `POST /api/clocks {"white": ms, "black": ms, "running": "white"|"black",
   "draw": "mine"|"theirs", "scoreView": "absolute"|"for-bottom"|"chances"|"judgement"}`
   shows the online clocks and the buttons under them (and the score so)

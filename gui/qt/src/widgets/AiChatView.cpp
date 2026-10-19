@@ -14,7 +14,10 @@ AiChatView::AiChatView(QWidget *parent)
     layout->setContentsMargins(0, 0, 0, 0);
     m_transcript->setOpenExternalLinks(true);
     m_transcript->setAccessibleName(tr("AI chat"));
-    m_transcript->setPlaceholderText(tr("Ask ChatGPT about the position on the board."));
+    m_transcript->setPlaceholderText(tr("Ask ChatGPT about the position, or tell it what to do: "
+                                        "\"play your move\", \"find me a game of Fischer's\"."));
+    // A few lines of the conversation at least, whatever else the panel shows.
+    m_transcript->setMinimumHeight(5 * m_transcript->fontMetrics().lineSpacing());
     layout->addWidget(m_transcript, 1);
     m_input->setPlaceholderText(tr("Ask ChatGPT…"));
     m_input->setClearButtonEnabled(true);
@@ -30,7 +33,7 @@ AiChatView::AiChatView(QWidget *parent)
 
 void AiChatView::addQuestion(const QString &text)
 {
-    m_turns << ChatGptResponses::Turn{true, text};
+    m_entries << Entry{Kind::Question, text};
     m_error.clear();
     m_waiting = true;
     render();
@@ -38,9 +41,15 @@ void AiChatView::addQuestion(const QString &text)
 
 void AiChatView::appendAnswer(const QString &text)
 {
-    if (m_turns.isEmpty() || m_turns.last().fromUser)
-        m_turns << ChatGptResponses::Turn{false, QString()};
-    m_turns.last().text += text;
+    if (m_entries.isEmpty() || m_entries.last().kind != Kind::Answer)
+        m_entries << Entry{Kind::Answer, QString()};
+    m_entries.last().text += text;
+    render();
+}
+
+void AiChatView::addAction(const QString &text)
+{
+    m_entries << Entry{Kind::Action, text};
     render();
 }
 
@@ -52,9 +61,14 @@ void AiChatView::finishAnswer()
 
 void AiChatView::showError(const QString &text)
 {
-    // A question left without an answer goes, so it is not sent again as history.
-    if (!m_turns.isEmpty() && m_turns.last().fromUser)
-        m_input->setText(m_turns.takeLast().text);
+    // The question goes back to the field, to be sent again.
+    for (qsizetype i = m_entries.size() - 1; i >= 0; --i) {
+        if (m_entries.at(i).kind == Kind::Question) {
+            if (m_input->text().isEmpty())
+                m_input->setText(m_entries.at(i).text);
+            break;
+        }
+    }
     m_error = text;
     m_waiting = false;
     render();
@@ -62,7 +76,7 @@ void AiChatView::showError(const QString &text)
 
 void AiChatView::clear()
 {
-    m_turns.clear();
+    m_entries.clear();
     m_error.clear();
     m_waiting = false;
     render();
@@ -70,18 +84,25 @@ void AiChatView::clear()
 
 void AiChatView::render()
 {
-    // The questions in bold, the answers as ChatGPT writes them (Markdown).
+    // The questions in bold, the answers as ChatGPT writes them (Markdown),
+    // what it did in italics.
     QString markdown;
-    for (const ChatGptResponses::Turn &turn : std::as_const(m_turns)) {
-        if (turn.fromUser) {
-            QString question = turn.text;
-            question.replace(QLatin1Char('\n'), QLatin1Char(' '));
-            markdown += QStringLiteral("**") + question.toHtmlEscaped() + QStringLiteral("**\n\n");
-        } else {
-            markdown += turn.text + QStringLiteral("\n\n");
+    for (const Entry &entry : std::as_const(m_entries)) {
+        QString text = entry.text;
+        switch (entry.kind) {
+        case Kind::Question:
+            markdown += QStringLiteral("**") + text.replace(QLatin1Char('\n'), QLatin1Char(' ')).toHtmlEscaped()
+                + QStringLiteral("**\n\n");
+            break;
+        case Kind::Answer:
+            markdown += text + QStringLiteral("\n\n");
+            break;
+        case Kind::Action:
+            markdown += QStringLiteral("*▸ ") + text.toHtmlEscaped() + QStringLiteral("*\n\n");
+            break;
         }
     }
-    if (m_waiting && (m_turns.isEmpty() || m_turns.last().fromUser))
+    if (m_waiting && (m_entries.isEmpty() || m_entries.last().kind != Kind::Answer))
         markdown += QStringLiteral("…\n\n");
     if (!m_error.isEmpty())
         markdown += QStringLiteral("*") + m_error.toHtmlEscaped() + QStringLiteral("*\n\n");

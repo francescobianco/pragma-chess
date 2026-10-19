@@ -446,6 +446,8 @@ endif()
 
 qt_add_executable(pragma-chess
     src/main.cpp
+    src/AiAssistant.cpp
+    src/AiAssistant.h
     src/DesktopApi.cpp
     src/DesktopApi.h
     src/MainWindow.cpp
@@ -468,6 +470,8 @@ qt_add_executable(pragma-chess
     src/dialogs/FolderSettingsDialog.h
     src/dialogs/DatabaseSettingsDialog.cpp
     src/dialogs/DatabaseSettingsDialog.h
+    src/dialogs/AiAssistantDialog.cpp
+    src/dialogs/AiAssistantDialog.h
     src/dialogs/AboutDialog.cpp
     src/dialogs/AboutDialog.h
     src/dialogs/HelpDialog.cpp

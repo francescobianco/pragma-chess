@@ -35,6 +35,9 @@
 #include "widgets/DiscoveryBalloon.h"
 #include "widgets/EnginePanel.h"
 #include "widgets/AiChatView.h"
+#include "AiAssistant.h"
+#include "dialogs/AiAssistantDialog.h"
+#include <QEventLoop>
 #include "widgets/AiMenu.h"
 
 #include <QApplication>
@@ -383,6 +386,34 @@ void DesktopApi::addRoutes()
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/ai"), [w, aiState](const Request &request) {
         const QJsonObject body = bodyOf(request).value_or(QJsonObject());
         // {"ask": "…"}: a question written in the chat, as Enter sends it.
+        // {"tool": "search_games", "arguments": {…}}: one of the AI's functions, its output.
+        const QString tool = body.value(QStringLiteral("tool")).toString();
+        if (!tool.isEmpty()) {
+            QJsonObject output;
+            bool finished = false;
+            QEventLoop loop;
+            w->m_aiAssistant->call(tool, body.value(QStringLiteral("arguments")).toObject(),
+                                   [&](const QJsonObject &result) {
+                                       output = result;
+                                       finished = true;
+                                       loop.quit();
+                                   });
+            if (!finished)
+                loop.exec();
+            return json(output);
+        }
+        // {"dialog": true}: Engine ▸ Configure AI Assistant…'s picture.
+        if (body.value(QStringLiteral("dialog")).toBool()) {
+            AiAssistantDialog dialog(w->m_aiMenu, w->m_aiActive, w);
+            dialog.adjustSize();
+            dialog.show();
+            QApplication::processEvents();
+            QByteArray png;
+            QBuffer buffer(&png);
+            buffer.open(QIODevice::WriteOnly);
+            dialog.grab().save(&buffer, "PNG");
+            return Response{200, "image/png", png};
+        }
         const QString question = body.value(QStringLiteral("ask")).toString();
         if (!question.isEmpty())
             Q_EMIT w->m_enginePanel->aiChat()->asked(question);

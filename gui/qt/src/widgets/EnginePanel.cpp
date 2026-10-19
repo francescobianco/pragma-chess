@@ -268,7 +268,8 @@ void EnginePanel::setAiState(bool connected, bool active)
     if (chat) {
         // Three rows of the line, as fitLine spaces them; the chat takes the rest.
         constexpr int kLineHeight = 118; // Per cent, as fitLine's.
-        m_line->setFixedHeight(3 * m_line->fontMetrics().lineSpacing() * kLineHeight / 100);
+        const int spacing = m_line->fontMetrics().lineSpacing();
+        m_line->setFixedHeight(3 * spacing * kLineHeight / 100 + spacing / 2);
     } else {
         m_line->setMinimumHeight(0);
         m_line->setMaximumHeight(QWIDGETSIZE_MAX);

@@ -42,7 +42,7 @@ class DiscoveryBalloon;
 class BoardSideColumn;
 class CapturedPiecesWidget;
 class AiMenu;
-class ChatGptClient;
+class AiAssistant;
 class EnginePanel;
 class EvaluationBar;
 class Explainer;
@@ -84,6 +84,7 @@ class DesktopApi;
 class MainWindow : public QMainWindow {
     Q_OBJECT
     friend class DesktopApi; // The development API reads and drives the window.
+    friend class AiAssistant; // So does the AI, through the chat.
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
@@ -404,8 +405,10 @@ private:
     /// The Engine panel's AI button: the sign-in while ChatGPT is not connected, then a switch.
     void createAiButton();
     void updateAiButton();
-    /// What ChatGPT is told of the board with each question of the chat.
-    QString aiInstructions() const;
+    /// The AI chat on or off, remembered on this computer.
+    void setAiActive(bool active);
+    /// Engine ▸ Configure AI Assistant…: account, model, the chat on or off.
+    void configureAiAssistant();
     /// The databases of the Databases folder, the open one checked, into `menu`.
     void fillDatabaseChoices(QMenu *menu);
 
@@ -621,7 +624,7 @@ private:
     EnginePanel *m_enginePanel;
     /// The Engine panel's AI button's menu: signing in with ChatGPT.
     AiMenu *m_aiMenu = nullptr;
-    ChatGptClient *m_aiClient = nullptr;
+    AiAssistant *m_aiAssistant = nullptr;
     /// The AI turned on with its switch (QSettings ai/active, per computer, as the connection).
     bool m_aiActive = true;
     BookPanel *m_bookPanel;

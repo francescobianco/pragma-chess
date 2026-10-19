@@ -37,18 +37,148 @@
     </message>
 </context>
 <context>
+    <name>AiAssistant</name>
+    <message>
+        <source>The connection to ChatGPT was lost: sign in again.</source>
+        <translation>Связь с ChatGPT потеряна: войдите снова.</translation>
+    </message>
+    <message>
+        <source>The AI is off while you play online.</source>
+        <translation>ИИ выключен, пока вы играете онлайн.</translation>
+    </message>
+    <message>
+        <source>The AI stopped: too many steps for one question.</source>
+        <translation>ИИ остановился: слишком много шагов для одного вопроса.</translation>
+    </message>
+    <message>
+        <source>Played %1</source>
+        <translation>Сыграно %1</translation>
+    </message>
+    <message>
+        <source>The engine played %1</source>
+        <translation>Движок сыграл %1</translation>
+    </message>
+    <message>
+        <source>New game</source>
+        <translation>Новая партия</translation>
+    </message>
+    <message>
+        <source>Analysis</source>
+        <translation>Анализ</translation>
+    </message>
+    <message>
+        <source>Explain</source>
+        <translation>Объяснить</translation>
+    </message>
+    <message>
+        <source>Board turned</source>
+        <translation>Доска перевёрнута</translation>
+    </message>
+    <message>
+        <source>on</source>
+        <translation>вкл.</translation>
+    </message>
+    <message>
+        <source>off</source>
+        <translation>выкл.</translation>
+    </message>
+    <message>
+        <source>Opened %1</source>
+        <translation>Открыто: %1</translation>
+    </message>
+    <message>
+        <source>Opened %1 – %2</source>
+        <translation>Открыта партия %1 – %2</translation>
+    </message>
+    <message>
+        <source>Listed the games with this position</source>
+        <translation>Показаны партии с этой позицией</translation>
+    </message>
+</context>
+<context>
+    <name>AiAssistantDialog</name>
+    <message>
+        <source>Sign in with ChatGPT</source>
+        <translation>Войти через ChatGPT</translation>
+    </message>
+    <message>
+        <source>Sign Out</source>
+        <translation>Выйти</translation>
+    </message>
+    <message>
+        <source>AI chat in the Engine panel</source>
+        <translation>Чат ИИ в панели «Движок»</translation>
+    </message>
+    <message>
+        <source>Configure AI Assistant</source>
+        <translation>Настройка ИИ-помощника</translation>
+    </message>
+    <message>
+        <source>Model:</source>
+        <translation>Модель:</translation>
+    </message>
+    <message>
+        <source>Automatic (the first your plan offers)</source>
+        <translation>Автоматически (первая из тарифа)</translation>
+    </message>
+    <message>
+        <source>%1 (not offered by your plan now)</source>
+        <translation>%1 (сейчас нет в вашем тарифе)</translation>
+    </message>
+    <message>
+        <source>Your ChatGPT plan offers no model to Pragma Chess.</source>
+        <translation>Ваш тариф ChatGPT не предлагает Pragma Chess ни одной модели.</translation>
+    </message>
+    <message>
+        <source>Signing in in the browser…</source>
+        <translation>Вход в браузере…</translation>
+    </message>
+    <message>
+        <source>%1 (%2)</source>
+        <translation>%1 (%2)</translation>
+    </message>
+    <message>
+        <source>Signed in with ChatGPT.</source>
+        <translation>Вход через ChatGPT выполнен.</translation>
+    </message>
+    <message>
+        <source>Signed in with ChatGPT as %1.</source>
+        <translation>Вход через ChatGPT выполнен: %1.</translation>
+    </message>
+    <message>
+        <source>Your ChatGPT plan was not shared with Pragma Chess: sign out and in again to share it.</source>
+        <translation>Ваш тариф ChatGPT не предоставлен Pragma Chess: выйдите и войдите снова, чтобы предоставить его.</translation>
+    </message>
+    <message>
+        <source>Not signed in. Your ChatGPT plan pays for the AI&apos;s answers: no API key is needed.</source>
+        <translation>Вход не выполнен. Ответы ИИ оплачивает ваш тариф ChatGPT: ключ API не нужен.</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
+    </message>
+    <message>
+        <source>Sign in to choose the model.</source>
+        <translation>Войдите, чтобы выбрать модель.</translation>
+    </message>
+    <message>
+        <source>Asking ChatGPT for your plan&apos;s models…</source>
+        <translation>Запрашиваю у ChatGPT модели вашего тарифа…</translation>
+    </message>
+</context>
+<context>
     <name>AiChatView</name>
     <message>
         <source>AI chat</source>
         <translation>Чат ИИ</translation>
     </message>
     <message>
-        <source>Ask ChatGPT about the position on the board.</source>
-        <translation>Спросите ChatGPT о позиции на доске.</translation>
-    </message>
-    <message>
         <source>Ask ChatGPT…</source>
         <translation>Спросить ChatGPT…</translation>
+    </message>
+    <message>
+        <source>Ask ChatGPT about the position, or tell it what to do: &quot;play your move&quot;, &quot;find me a game of Fischer&apos;s&quot;.</source>
+        <translation>Спросите ChatGPT о позиции или скажите, что сделать: «ходи сам», «найди партию Фишера».</translation>
     </message>
 </context>
 <context>
@@ -409,6 +539,10 @@ Black has captured: %2</source>
     <message>
         <source>Your ChatGPT plan has reached its usage limit: see Usage in ChatGPT&apos;s settings.</source>
         <translation>Ваш тариф ChatGPT исчерпал лимит: см. «Использование» в настройках ChatGPT.</translation>
+    </message>
+    <message>
+        <source>This ChatGPT account cannot share its plan with apps: only personal Plus and Pro plans can.</source>
+        <translation>Эта учётная запись ChatGPT не может делиться тарифом с приложениями: это могут только личные тарифы Plus и Pro.</translation>
     </message>
 </context>
 <context>
@@ -3925,10 +4059,6 @@ is not on this computer.</source>
         <translation>Варианты</translation>
     </message>
     <message>
-        <source>&amp;Copy Explain&apos;s Ticks</source>
-        <translation>&amp;Копировать тики «Объяснить»</translation>
-    </message>
-    <message>
         <source>Explain has not explained a move yet</source>
         <translation>«Объяснить» ещё не объяснял ход</translation>
     </message>
@@ -4109,8 +4239,12 @@ is not on this computer.</source>
         <translation>Выйти из ChatGPT</translation>
     </message>
     <message>
-        <source>The connection to ChatGPT was lost: sign in again.</source>
-        <translation>Связь с ChatGPT потеряна: войдите снова.</translation>
+        <source>Explain&apos;s &amp;Ticks</source>
+        <translation>&amp;Тики объяснения</translation>
+    </message>
+    <message>
+        <source>Configure &amp;AI Assistant…</source>
+        <translation>Настроить &amp;ИИ-помощника…</translation>
     </message>
 </context>
 <context>

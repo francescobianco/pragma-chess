@@ -83,9 +83,9 @@
 #include "platform/MoveSound.h"
 #include "platform/SymbolicIcons.h"
 #include "platform/WindowChrome.h"
-#include "widgets/AiChatView.h"
 #include "widgets/AiMenu.h"
-#include "app/ai/ChatGptClient.h"
+#include "AiAssistant.h"
+#include "dialogs/AiAssistantDialog.h"
 #include "widgets/BoardPanel.h"
 #include "widgets/DiscoveryBalloon.h"
 #include "widgets/BookPanel.h"
@@ -1081,6 +1081,16 @@ void MainWindow::createMenus()
     QAction *copyExplanation = copy->addAction(tr("E&xplanation"), this, [this] {
         copyText(m_explanationText, tr("Explanation copied"));
     });
+    // A wrong explanation as a case for pragma-explain --replay and smart/tests.
+    QAction *copyTicks = copy->addAction(tr("Explain's &Ticks"), this, [this] {
+        const QString ticks = m_explainer->recordedTicks();
+        if (ticks.isEmpty())
+            statusBar()->showMessage(tr("Explain has not explained a move yet"), 4000);
+        else
+            copyText(ticks, tr("Explain's ticks copied: paste them into a .ticks file to replay them"));
+    });
+    copyTicks->setToolTip(tr("Copy what the engine told Explain about the move, to replay it with pragma-explain --replay"));
+    copy->setToolTipsVisible(true);
     const auto updateCopyActions = [=, this] {
         const bool hasMoves = m_session->plyCount() > 0;
         copyMovesToHere->setEnabled(m_session->ply() > 0);
@@ -1157,16 +1167,8 @@ void MainWindow::createMenus()
     engine->addAction(tr("&Install New Engine…"), this, [this] { showExtensions(int(Extension::Kind::Engine)); })
         ->setToolTip(tr("Engines to install with a click, in Tools ▸ Manage Extensions"));
     engine->addSeparator();
-    // A wrong explanation as a case for pragma-explain --replay and smart/tests.
-    QAction *copyTicks = engine->addAction(tr("&Copy Explain's Ticks"), this, [this] {
-        const QString ticks = m_explainer->recordedTicks();
-        if (ticks.isEmpty())
-            statusBar()->showMessage(tr("Explain has not explained a move yet"), 4000);
-        else
-            copyText(ticks, tr("Explain's ticks copied: paste them into a .ticks file to replay them"));
-    });
-    copyTicks->setToolTip(tr("Copy what the engine told Explain about the move, to replay it with pragma-explain --replay"));
-    engine->setToolTipsVisible(true);
+    // The other face of the Engine panel's AI button.
+    engine->addAction(tr("Configure &AI Assistant…"), this, &MainWindow::configureAiAssistant);
 
     QMenu *database = menuBar()->addMenu(tr("&Database"));
     database->addAction(m_newDatabaseAction);
@@ -2922,14 +2924,21 @@ void MainWindow::createAiButton()
     });
     connect(m_enginePanel, &EnginePanel::aiClicked, this, [this, button] {
         if (!m_aiMenu->isSignedIn()) {
-            // Not connected: the sign-in drops down under the button, as a drop-down list.
-            m_aiMenu->popup(button->mapToGlobal(QPoint(0, button->height())));
+            // Not connected: the sign-in drops down under the button, its left
+            // edge with the button's; where the window has no room for it on
+            // the right, it opens towards the left, its right edge with the
+            // button's.
+            m_aiMenu->ensurePolished();
+            const int width = m_aiMenu->sizeHint().width();
+            QPoint at = button->mapToGlobal(QPoint(0, button->height()));
+            const int right = mapToGlobal(rect().topRight()).x();
+            if (at.x() + width > right)
+                at.setX(at.x() + button->width() - width);
+            m_aiMenu->popup(at);
             updateAiButton();
             return;
         }
-        m_aiActive = button->isChecked();
-        QSettings().setValue(QStringLiteral("ai/active"), m_aiActive);
-        updateAiButton();
+        setAiActive(button->isChecked());
     });
     connect(m_aiMenu, &AiMenu::accountChanged, this, [this] {
         // Just connected, the AI is on.
@@ -2939,66 +2948,23 @@ void MainWindow::createAiButton()
         }
         updateAiButton();
     });
-    // The chat asks ChatGPT about the board, one question at a time.
-    m_aiClient = new ChatGptClient(this);
-    AiChatView *chat = m_enginePanel->aiChat();
-    connect(chat, &AiChatView::asked, this, [this, chat](const QString &question) {
-        if (m_aiClient->isBusy())
-            return;
-        chat->addQuestion(question);
-        m_aiClient->setCredentials(m_aiMenu->credentials());
-        m_aiClient->ask(aiInstructions(), chat->turns());
-    });
-    connect(m_aiClient, &ChatGptClient::answerDelta, chat, &AiChatView::appendAnswer);
-    connect(m_aiClient, &ChatGptClient::answerCompleted, chat, &AiChatView::finishAnswer);
-    connect(m_aiClient, &ChatGptClient::failed, chat, &AiChatView::showError);
-    connect(m_aiClient, &ChatGptClient::credentialsChanged, m_aiMenu, &AiMenu::updateCredentials);
-    // The connection gone: the button goes back to signing in.
-    connect(m_aiClient, &ChatGptClient::signedOut, this, [this, chat] {
-        chat->showError(tr("The connection to ChatGPT was lost: sign in again."));
-        m_aiMenu->signOut();
-    });
-    connect(m_aiMenu, &AiMenu::accountChanged, this, [this, chat] {
-        if (!m_aiMenu->isSignedIn()) {
-            m_aiClient->cancel();
-            chat->clear();
-        }
-    });
+    // The chat drives the program through ChatGPT.
+    m_aiAssistant = new AiAssistant(this, m_enginePanel->aiChat(), m_aiMenu);
     updateAiButton();
 }
 
-QString MainWindow::aiInstructions() const
+void MainWindow::setAiActive(bool active)
 {
-    // What ChatGPT is told of the board with every question: the position,
-    // the moves that led to it and what the engine thinks of it.
-    const ChessPosition &start = m_session->initialPosition();
-    QString moves;
-    int number = start.fullMoveNumber();
-    bool white = start.sideToMove() == Side::White;
-    for (int ply = 1; ply <= m_session->ply(); ++ply) {
-        if (white || ply == 1)
-            moves += QStringLiteral("%1.%2 ").arg(number).arg(white ? QString() : QStringLiteral(".."));
-        moves += m_session->moveAt(ply).san + QLatin1Char(' ');
-        if (!white)
-            ++number;
-        white = !white;
-    }
-    const QLocale language(UiLanguage::effective());
-    QString text = QStringLiteral(
-        "You are the chess assistant inside Pragma Chess, a chess database and analysis program. "
-        "The user is looking at the position on the board and asks about it: answer briefly and concretely, "
-        "as a strong coach would, in %1. Write moves in SAN.\n\n"
-        "Position (FEN): %2\n")
-                       .arg(QLocale::languageToString(language.language()), m_session->position().fen());
-    text += QStringLiteral("Starting position (FEN): %1\n").arg(start.fen());
-    text += QStringLiteral("Moves played to reach it: %1\n").arg(moves.isEmpty() ? QStringLiteral("none") : moves.trimmed());
-    if (m_startEngineAction->isChecked() && m_lastEvaluation.depth > 0) {
-        text += QStringLiteral("Engine %1 at depth %2: %3 (from White's point of view), best line %4\n")
-                    .arg(m_engineName)
-                    .arg(m_lastEvaluation.depth)
-                    .arg(m_lastEvaluation.text(), m_engineLine);
-    }
-    return text;
+    m_aiActive = active;
+    QSettings().setValue(QStringLiteral("ai/active"), m_aiActive);
+    updateAiButton();
+}
+
+void MainWindow::configureAiAssistant()
+{
+    AiAssistantDialog dialog(m_aiMenu, m_aiActive, this);
+    connect(&dialog, &AiAssistantDialog::activeChanged, this, &MainWindow::setAiActive);
+    dialog.exec();
 }
 
 void MainWindow::updateAiButton()

@@ -32,12 +32,14 @@ ChatGptClient::ChatGptClient(QObject *parent)
 {
 }
 
-void ChatGptClient::ask(const QString &instructions, const QList<ChatGptResponses::Turn> &turns)
+void ChatGptClient::ask(const QString &instructions, const QJsonArray &input, const QJsonArray &tools)
 {
     if (isBusy())
         return;
     m_instructions = instructions;
-    m_turns = turns;
+    m_input = input;
+    m_tools = tools;
+    m_renewedAfterRefusal = false;
     m_preparing = true;
     withToken([this] { withModel([this] { send(); }); });
 }
@@ -104,8 +106,36 @@ void ChatGptClient::withToken(const std::function<void()> &then)
     });
 }
 
+void ChatGptClient::listModels()
+{
+    if (isBusy())
+        return;
+    m_preparing = true;
+    withToken([this] {
+        QNetworkReply *reply = m_network->get(apiRequest(QUrl(QString::fromLatin1(ChatGptResponses::kModelsUrl))));
+        connect(reply, &QNetworkReply::finished, this, [this, reply] {
+            reply->deleteLater();
+            if (!m_preparing)
+                return;
+            m_preparing = false;
+            const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            if (status == 401) {
+                Q_EMIT signedOut();
+                return;
+            }
+            if (reply->error() != QNetworkReply::NoError) {
+                Q_EMIT failed(SourceFetch::httpError(reply, QStringLiteral("ChatGPT")));
+                return;
+            }
+            Q_EMIT modelsListed(ChatGptResponses::listedModels(QJsonDocument::fromJson(reply->readAll()).object()));
+        });
+    });
+}
+
 void ChatGptClient::withModel(const std::function<void()> &then)
 {
+    if (!m_chosenModel.isEmpty())
+        m_model = m_chosenModel;
     if (!m_model.isEmpty()) {
         then();
         return;
@@ -136,10 +166,11 @@ void ChatGptClient::send()
     m_preparing = false;
     m_finished = false;
     m_reader = {};
+    m_items = {};
     QNetworkRequest request = apiRequest(QUrl(QString::fromLatin1(ChatGptResponses::kResponsesUrl)));
     request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
     request.setRawHeader("Accept", "text/event-stream");
-    const QJsonObject body = ChatGptResponses::requestBody(m_model, m_instructions, m_turns);
+    const QJsonObject body = ChatGptResponses::requestBody(m_model, m_instructions, m_input, m_tools);
     m_reply = m_network->post(request, QJsonDocument(body).toJson(QJsonDocument::Compact));
     QNetworkReply *reply = m_reply;
     connect(reply, &QNetworkReply::readyRead, this, [this, reply] {
@@ -150,9 +181,12 @@ void ChatGptClient::send()
             case ChatGptResponses::Event::Kind::Delta:
                 Q_EMIT answerDelta(event.text);
                 break;
+            case ChatGptResponses::Event::Kind::ItemDone:
+                m_items.append(event.item);
+                break;
             case ChatGptResponses::Event::Kind::Completed:
                 m_finished = true;
-                Q_EMIT answerCompleted();
+                Q_EMIT answerCompleted(m_items);
                 break;
             case ChatGptResponses::Event::Kind::Failed:
                 m_finished = true;
@@ -176,7 +210,20 @@ void ChatGptClient::send()
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         const QJsonObject error = QJsonDocument::fromJson(reply->readAll()).object().value(QStringLiteral("error")).toObject();
         if (status == 401) {
+            // Refused once, the token is renewed and the request sent again; refused twice, the connection is gone.
+            if (!m_renewedAfterRefusal && !m_credentials.refreshToken.isEmpty()) {
+                m_renewedAfterRefusal = true;
+                m_credentials.expiresAt = {};
+                m_preparing = true;
+                withToken([this] { send(); });
+                return;
+            }
             Q_EMIT signedOut();
+            return;
+        }
+        if (status == 403 && error.value(QStringLiteral("code")).toString()
+                                 == QLatin1String("subscription_sharing_user_not_eligible")) {
+            Q_EMIT failed(tr("This ChatGPT account cannot share its plan with apps: only personal Plus and Pro plans can."));
             return;
         }
         if (status == 429 && error.value(QStringLiteral("code")).toString()

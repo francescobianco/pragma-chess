@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QByteArray>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QList>
 #include <QString>
@@ -19,20 +20,46 @@ struct Turn {
     QString text;
 };
 
-/// The request: `instructions` say what the AI is for, `turns` the
-/// conversation so far, the last one the question.
-QJsonObject requestBody(const QString &model, const QString &instructions, const QList<Turn> &turns);
+/// A message as an item of the request's input.
+QJsonObject messageItem(const Turn &turn);
+/// What a tool answered to the call `callId`.
+QJsonObject toolOutputItem(const QString &callId, const QJsonObject &output);
+/// An item the answer brought, as it goes back into the next request's
+/// input: requests are not stored, so the conversation travels whole. A
+/// function call keeps its call id, name and arguments; a message becomes
+/// the assistant's text; reasoning stays behind (empty object).
+QJsonObject replayItem(const QJsonObject &item);
+/// The text of a message item, empty for other items.
+QString messageText(const QJsonObject &item);
 
-/// The model to ask among those the plan lists (`visibility` "list"; its
-/// `slug`, or the `id` of a plain model list), empty when there is none.
+/// The request: `instructions` say what the AI is for, `input` the
+/// conversation so far as items, `tools` the functions it may call.
+QJsonObject requestBody(const QString &model, const QString &instructions, const QJsonArray &input,
+                        const QJsonArray &tools = {});
+/// A function the AI may call, its parameters a JSON schema.
+QJsonObject functionTool(const QString &name, const QString &description, const QJsonObject &parameters);
+
+/// A model the plan offers: its id for requests, its name for people.
+struct Model {
+    QString slug;
+    QString name;
+};
+/// The models the plan lists (`models`: `visibility` "list", `slug`,
+/// `display_name`, best first by `priority`; or the `id`s of a plain
+/// OpenAI list, `data`).
+QList<Model> listedModels(const QJsonObject &models);
+
+/// The model to ask: the first listedModels gives, empty when there is none.
 QString pickModel(const QJsonObject &models);
 
 /// What the stream says.
 struct Event {
-    enum class Kind { Delta, Completed, Failed, Other };
+    enum class Kind { Delta, ItemDone, Completed, Failed, Other };
     Kind kind = Kind::Other;
     /// Delta: the text that came.
     QString text;
+    /// ItemDone: an item of the answer, whole (a message, a function call).
+    QJsonObject item;
     /// Failed: OpenAI's code ("subscription_sharing_usage_limit_exceeded") and message.
     QString code;
     QString message;

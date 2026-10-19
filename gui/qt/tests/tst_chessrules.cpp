@@ -1813,21 +1813,37 @@ QString writeChessBaseFixture(const QString &dir)
     void asksChatGpt()
     {
         // Streamed, not stored, the conversation as roles.
+        const QJsonArray conversation{ChatGptResponses::messageItem({true, QStringLiteral("Why Nf3?")}),
+                                      ChatGptResponses::messageItem({false, QStringLiteral("It develops.")}),
+                                      ChatGptResponses::messageItem({true, QStringLiteral("And e4?")})};
         const QJsonObject body = ChatGptResponses::requestBody(
-            QStringLiteral("gpt-x"), QStringLiteral("Be brief."),
-            {{true, QStringLiteral("Why Nf3?")}, {false, QStringLiteral("It develops.")}, {true, QStringLiteral("And e4?")}});
+            QStringLiteral("gpt-x"), QStringLiteral("Be brief."), conversation,
+            {ChatGptResponses::functionTool(QStringLiteral("get_state"), QStringLiteral("The board."), QJsonObject())});
+        QCOMPARE(body.value(QStringLiteral("tools")).toArray().first().toObject().value(QStringLiteral("name")).toString(),
+                 QStringLiteral("get_state"));
         QCOMPARE(body.value(QStringLiteral("model")).toString(), QStringLiteral("gpt-x"));
         QVERIFY(body.value(QStringLiteral("stream")).toBool());
         QCOMPARE(body.value(QStringLiteral("store")).toBool(true), false);
         const QJsonArray input = body.value(QStringLiteral("input")).toArray();
         QCOMPARE(input.size(), 3);
         QCOMPARE(input.at(1).toObject().value(QStringLiteral("role")).toString(), QStringLiteral("assistant"));
+        // The text typed as the plan takes it.
+        QCOMPARE(input.at(0).toObject().value(QStringLiteral("content")).toArray().first().toObject().value(QStringLiteral("type")).toString(),
+                 QStringLiteral("input_text"));
+        QCOMPARE(input.at(1).toObject().value(QStringLiteral("content")).toArray().first().toObject().value(QStringLiteral("type")).toString(),
+                 QStringLiteral("output_text"));
 
         // The plan's listed model, by slug; a plain list by id.
-        QCOMPARE(ChatGptResponses::pickModel(QJsonDocument::fromJson(
-                     R"({"data":[{"slug":"hidden","visibility":"hide"},{"slug":"gpt-5","display_name":"GPT-5","visibility":"list"}]})")
-                                                 .object()),
-                 QStringLiteral("gpt-5"));
+        // The plan's list: shown ones only, best first by priority.
+        const QJsonObject plan = QJsonDocument::fromJson(
+            R"({"models":[{"slug":"hidden","visibility":"hide","priority":0},
+                          {"slug":"gpt-5-mini","display_name":"GPT-5 mini","visibility":"list","priority":20},
+                          {"slug":"gpt-5","display_name":"GPT-5","visibility":"list","priority":10}]})").object();
+        const QList<ChatGptResponses::Model> models = ChatGptResponses::listedModels(plan);
+        QCOMPARE(models.size(), 2);
+        QCOMPARE(models.first().slug, QStringLiteral("gpt-5"));
+        QCOMPARE(models.last().name, QStringLiteral("GPT-5 mini"));
+        QCOMPARE(ChatGptResponses::pickModel(plan), QStringLiteral("gpt-5"));
         QCOMPARE(ChatGptResponses::pickModel(QJsonDocument::fromJson(R"({"data":[{"id":"gpt-4o"}]})").object()),
                  QStringLiteral("gpt-4o"));
         QVERIFY(ChatGptResponses::pickModel(QJsonObject()).isEmpty());
@@ -1850,6 +1866,25 @@ QString writeChessBaseFixture(const QString &dir)
         QCOMPARE(failed.size(), 1);
         QCOMPARE(int(failed.at(0).kind), int(ChatGptResponses::Event::Kind::Failed));
         QCOMPARE(failed.at(0).code, QStringLiteral("subscription_sharing_usage_limit_exceeded"));
+        // A function call comes whole with its item, goes back without its id; its output follows it.
+        const QList<ChatGptResponses::Event> call = ChatGptResponses::StreamReader().feed(
+            "data: {\"type\":\"response.output_item.done\",\"item\":{\"type\":\"function_call\",\"id\":\"fc_1\","
+            "\"call_id\":\"call_1\",\"name\":\"engine_move\",\"arguments\":\"{}\"}}\n\n");
+        QCOMPARE(call.size(), 1);
+        QCOMPARE(int(call.at(0).kind), int(ChatGptResponses::Event::Kind::ItemDone));
+        const QJsonObject replayed = ChatGptResponses::replayItem(call.at(0).item);
+        QCOMPARE(replayed.value(QStringLiteral("call_id")).toString(), QStringLiteral("call_1"));
+        QVERIFY(!replayed.contains(QStringLiteral("id")));
+        const QJsonObject output = ChatGptResponses::toolOutputItem(QStringLiteral("call_1"), QJsonObject{{QStringLiteral("played"), QStringLiteral("1.e4")}});
+        QCOMPARE(output.value(QStringLiteral("type")).toString(), QStringLiteral("function_call_output"));
+        QCOMPARE(QJsonDocument::fromJson(output.value(QStringLiteral("output")).toString().toUtf8()).object().value(QStringLiteral("played")).toString(),
+                 QStringLiteral("1.e4"));
+        // A message goes back as the assistant's text; reasoning stays behind.
+        const QJsonObject message{{QStringLiteral("type"), QStringLiteral("message")},
+                                  {QStringLiteral("content"), QJsonArray{QJsonObject{{QStringLiteral("type"), QStringLiteral("output_text")},
+                                                                                     {QStringLiteral("text"), QStringLiteral("Done.")}}}}};
+        QCOMPARE(ChatGptResponses::replayItem(message).value(QStringLiteral("role")).toString(), QStringLiteral("assistant"));
+        QVERIFY(ChatGptResponses::replayItem(QJsonObject{{QStringLiteral("type"), QStringLiteral("reasoning")}}).isEmpty());
         QVERIFY(ChatGptResponses::isSignedOut(QStringLiteral("refresh_token_reused")));
         QVERIFY(!ChatGptResponses::isSignedOut(QStringLiteral("server_error")));
     }

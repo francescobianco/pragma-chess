@@ -35,9 +35,9 @@ AiAssistantDialog::AiAssistantDialog(AiMenu *account, bool active, QWidget *pare
     setMinimumWidth(30 * fontMetrics().averageCharWidth() + 20 * fontMetrics().height());
     auto *layout = new QVBoxLayout(this);
 
-    // The account: OpenAI's logo, who is signed in, and the way in or out.
-    auto *accountRow = new QHBoxLayout;
-    accountRow->addWidget(m_logo, 0, Qt::AlignTop);
+    // The account: OpenAI's logo, who is signed in, and the way in or out,
+    // in the form's own grid, so the account lines up with the fields under it.
+    auto *form = new QFormLayout;
     auto *who = new QVBoxLayout;
     m_status->setWordWrap(true);
     m_status->setTextInteractionFlags(Qt::TextSelectableByMouse);
@@ -47,10 +47,8 @@ AiAssistantDialog::AiAssistantDialog(AiMenu *account, bool active, QWidget *pare
     buttons->addWidget(m_signOut);
     buttons->addStretch();
     who->addLayout(buttons);
-    accountRow->addLayout(who, 1);
-    layout->addLayout(accountRow);
+    form->addRow(m_logo, who);
 
-    auto *form = new QFormLayout;
     m_model->setMinimumContentsLength(24);
     form->addRow(tr("Model:"), m_model);
     m_modelStatus->setForegroundRole(QPalette::PlaceholderText);

@@ -110,6 +110,53 @@ ridistribuzione di un'opera derivata, e conta la licenza di ciascuna raccolta.
 | Caissabase | nessuna condizione trovata (il sito rifiuta l'accesso automatico) | da chiedere all'autore |
 | MillionBase, Ajedrez Data | nessuna condizione trovata | da chiedere |
 
+### Aggiornamento del 2026-10-22
+
+- **En Croissant** è GPL-3.0, ma la licenza copre il codice, non i dati. Il
+  catalogo `encroissant.org/databases` non dà né descrizione, né autore, né
+  licenza per nessuna voce. Convertire in `.db3` è un lavoro meccanico e non
+  crea diritti nuovi: chi prende i suoi file eredita le condizioni di ogni
+  raccolta, senza alcun permesso in più. Non c'è quindi niente da chiedere a
+  lui sui dati. Per la cortesia sì: scaricare dal suo R2 significa usare la
+  sua banda.
+- **Lumbra's GigaBase**: oggi il piè di pagina dice **CC BY-NC 4.0**, senza
+  più SA, "© 2024-2026 by Michael Jansen". Le dirette di lichess (CC BY-SA)
+  sono escluse dal database principale fino a dicembre 2023 "to avoid legal
+  disputes" e TWIC è stato tolto. Per l'uso commerciale si scrive a
+  business@lumbrasgigabase.com. Si può ridistribuire convertito, se lo si fa
+  senza fini commerciali e citando autore, licenza e modifiche. Pragma Chess
+  è gratuito e libero, quindi rientra. Il vincolo NC però passa a chi lo
+  riceve: va offerto come download separato, mai dentro gli installer.
+- **Caissabase**: non c'è una licenza. Il sito dice "Where I live facts are
+  not copyrightable, Chess moves played in a game are facts" e niente
+  commenti, perché quelli sì sono protetti. Le fonti sono MillionBase,
+  KingBase, tutto TWIC e pgnmentor. L'autore la pensa come noi, ma non dà un
+  permesso, e nel Regno Unito resta il diritto sulle banche dati. TWIC ha
+  rivendicato in passato diritti sulle partite che pubblica. Prima di
+  ospitarla va chiesto il permesso all'autore.
+- **Ajedrez Data** (Mario Lacunza, ajedrezdata.com): "The collection of Chess
+  games are not copyrighted, they are in the public domain" e "I've decided
+  to free up my databases". Non c'è una licenza formale. Le fonti sono
+  KingBase, TWIC e lichess. È il caso più vicino al via libera: basta un
+  permesso esplicito per email.
+- **MillionBase** (Ed Schröder, rebel13.nl): il sito non risponde (errore
+  526) e non si trovano condizioni. Va chiesto, e il contenuto è già quasi
+  tutto in Caissabase.
+- **Problemi di lichess**: CC0, liberi.
+
+**Conclusione.** Convertire nel nostro formato, sul computer dell'utente, un
+file che l'utente ha scaricato dalla fonte originale si può fare con tutte
+le raccolte: è quello che fa Strumenti ▸ Converti. Per ospitare i `.pdb`
+convertiti sui nostri server:
+
+- Lumbra's GigaBase: sì, con attribuzione, CC BY-NC 4.0 e download separato.
+- Problemi di lichess: sì, sono CC0.
+- Ajedrez Data, Caissabase e MillionBase: solo dopo un permesso scritto
+  dell'autore, da annotare qui.
+
+I `.db3` di En Croissant non vanno presi come fonte: sono di un'altra
+versione, non citano la licenza e stanno sulla banda di un altro.
+
 "Gratis da scaricare" non vuol dire "ridistribuibile". Le mosse di una partita
 sono fatti, ma in Europa una raccolta può essere protetta dal diritto *sui
 generis* sulle banche dati, e i commenti dal diritto d'autore.
@@ -185,6 +232,8 @@ stesso spirito: è la distribuzione a installarlo, non il programma.
   `src/components/engines/AddEngine.tsx`, `src/components/databases/AddDatabase.tsx`,
   `src-tauri/src/fs.rs` nel repository di En Croissant (ramo master, 2026-10-11)
 - Lumbra's GigaBase: <https://lumbrasgigabase.com/en/> (licenza nel testo e nel piè di pagina)
+- Caissabase: <http://caissabase.co.uk/>; Ajedrez Data: <https://www.ajedrezdata.com/>
+- La licenza di En Croissant: GitHub, `franciscoBSalgueiro/en-croissant`, GPL-3.0
 - Cataloghi: <https://encroissant.org/engines?os=linux&bmi2=true>,
   <https://encroissant.org/databases>, <https://encroissant.org/puzzle_databases>
 - I file: le intestazioni HTTP di `db.encroissant.org` (server Cloudflare,

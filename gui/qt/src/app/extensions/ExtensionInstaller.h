@@ -22,6 +22,9 @@ struct InstalledExtension {
     /// For an engine, its executable, and the id it has in Manage Engines.
     QString executable;
     QString engineId;
+    /// For a database, the `.pdb` it was converted into (the user's from then
+    /// on: removing the extension leaves it).
+    QString database;
 
     static QList<InstalledExtension> load(QSettings &settings);
     static void save(QSettings &settings, const QList<InstalledExtension> &installed);

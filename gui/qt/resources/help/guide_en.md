@@ -316,7 +316,9 @@ When you delete a database on the phone, the computer asks you at its next sync 
 
 Installing downloads it and puts it in Pragma Chess's own folder, and an engine joins **Engine ▸ Manage Engines…** and **Engine ▸ Switch Engine**, ready to use: nothing else of your computer is touched, and no password is asked. **Remove** takes it away again, and if the engine was in use, the bundled one takes its place. A newer version offered by the provider shows **Update**. **Engine ▸ Install New Engine…** and **Database ▸ Install New Database…** open the same window on En Croissant's registry, showing only engines or only databases.
 
-The first provider is the registry of En Croissant, another free chess program: its engines (Stockfish, RubiChess, Komodo, Dragon) are downloaded from their authors' own pages, for your system and processor. Its databases are listed but cannot be installed yet: they are in En Croissant's own format.
+The first provider is the registry of En Croissant, another free chess program: its engines (Stockfish, RubiChess, Komodo, Dragon) are downloaded from their authors' own pages, for your system and processor. Its databases of games (Lumbra's GigaBase, Caissabase, Ajedrez Data, MillionBase) are downloaded from En Croissant and converted into Pragma Chess's format on your computer, into your Databases folder, where **Database ▸ Switch Database** finds them; the file downloaded is then deleted. Converting millions of games takes some minutes. **Remove** leaves the database: it is yours now, so delete it from the folder if you no longer want it. Its puzzles cannot be installed yet.
+
+Pragma Chess does not redistribute software or data of others: it fetches them from the public and private vendors who publish them, on their own terms. So before every download, to install or to update, a window says where it comes from and where its terms can be read, and **Install** works only once you tick **I have read this and accept the terms of whoever distributes it**. Respecting those terms is up to you, and Pragma Chess gives no warranty about what vendors distribute.
 
 # Updates {#updates}
 

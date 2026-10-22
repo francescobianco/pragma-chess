@@ -236,7 +236,8 @@ bool extract(const QString &file, Kind kind, const QString &folder, QString *err
     case Kind::None: {
         const QString out = target(folder, plainName.isEmpty() ? QFileInfo(file).fileName() : plainName);
         QFile::remove(out);
-        if (out.isEmpty() || !QFile::copy(file, out)) {
+        // Moved when it can be (a database is gigabytes), else copied.
+        if (out.isEmpty() || (!QFile::rename(file, out) && !QFile::copy(file, out))) {
             setError(error, Text::tr("Could not write %1.").arg(out));
             return false;
         }

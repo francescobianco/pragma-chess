@@ -1095,8 +1095,31 @@ Las negras han capturado: %2</translation>
 <context>
     <name>EnCroissantCatalog</name>
     <message>
-        <source>In En Croissant&apos;s own format, which Pragma Chess does not read yet; its license is to be checked before it is offered.</source>
-        <translation>En el formato propio de En Croissant, que Pragma Chess aún no lee; hay que comprobar su licencia antes de ofrecerla.</translation>
+        <source>In a format of En Croissant&apos;s that Pragma Chess does not read yet.</source>
+        <translation>En un formato de En Croissant que Pragma Chess todavía no lee.</translation>
+    </message>
+</context>
+<context>
+    <name>EnCroissantConversion</name>
+    <message>
+        <source>A file named “%1” already exists.</source>
+        <translation>Ya existe un archivo llamado “%1”.</translation>
+    </message>
+    <message>
+        <source>Could not read “%1”: %2</source>
+        <translation>No se pudo leer “%1”: %2</translation>
+    </message>
+    <message>
+        <source>“%1” is not a database of En Croissant&apos;s.</source>
+        <translation>«%1» no es una base de datos de En Croissant.</translation>
+    </message>
+    <message>
+        <source>“%1” is not a database of En Croissant&apos;s: %2</source>
+        <translation>«%1» no es una base de datos de En Croissant: %2</translation>
+    </message>
+    <message>
+        <source>Could not name the database “%1”.</source>
+        <translation>No se pudo dar a la base de datos el nombre «%1».</translation>
     </message>
 </context>
 <context>
@@ -1294,6 +1317,53 @@ Las negras han capturado: %2</translation>
     </message>
 </context>
 <context>
+    <name>ExtensionDisclaimerDialog</name>
+    <message>
+        <source>Before Updating</source>
+        <translation>Antes de actualizar</translation>
+    </message>
+    <message>
+        <source>Before Installing</source>
+        <translation>Antes de instalar</translation>
+    </message>
+    <message>
+        <source>%1 is not distributed by Pragma Chess</source>
+        <translation>%1 no lo distribuye Pragma Chess</translation>
+    </message>
+    <message>
+        <source>It is downloaded directly from &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;, where %3 lists it, and installed on this computer only. Pragma Chess does not redistribute software or data of others: it relies on public and private vendors, who publish what they offer on their own terms.</source>
+        <translation>Se descarga directamente de &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;, donde lo lista %3, y se instala solo en este ordenador. Pragma Chess no redistribuye software ni datos de terceros: se apoya en proveedores públicos y privados, que publican lo que ofrecen en sus propias condiciones.</translation>
+    </message>
+    <message>
+        <source>Its vendor states no license here: read its terms on %1 before using it.</source>
+        <translation>Su proveedor no indica aquí ninguna licencia: lee sus condiciones en %1 antes de usarlo.</translation>
+    </message>
+    <message>
+        <source>Its terms: %1.</source>
+        <translation>Sus condiciones: %1.</translation>
+    </message>
+    <message>
+        <source>The database is converted into Pragma Chess&apos;s format on this computer, for your own use.</source>
+        <translation>La base de datos se convierte al formato de Pragma Chess en este ordenador, para tu propio uso.</translation>
+    </message>
+    <message>
+        <source>Respecting those terms is up to you. Pragma Chess does not check what vendors distribute and gives no warranty about it: you install it at your own risk.</source>
+        <translation>Respetar esas condiciones te corresponde a ti. Pragma Chess no comprueba lo que distribuyen los proveedores y no da ninguna garantía al respecto: lo instalas bajo tu propio riesgo.</translation>
+    </message>
+    <message>
+        <source>I have read this and accept the terms of whoever distributes it</source>
+        <translation>He leído esto y acepto las condiciones de quien lo distribuye</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Actualizar</translation>
+    </message>
+    <message>
+        <source>Install</source>
+        <translation>Instalar</translation>
+    </message>
+</context>
+<context>
     <name>ExtensionInstaller</name>
     <message>
         <source>The engine&apos;s program is not where its catalog says: %1</source>
@@ -1448,6 +1518,42 @@ Las negras han capturado: %2</translation>
     <message>
         <source>Removed.</source>
         <translation>Quitada.</translation>
+    </message>
+    <message>
+        <source>Its author&apos;s site: &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;</source>
+        <translation>El sitio de su autor: &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;</translation>
+    </message>
+    <message>
+        <source>Installed as %1</source>
+        <translation>Instalado como %1</translation>
+    </message>
+    <message>
+        <source>Could not install: nothing was downloaded.</source>
+        <translation>No se pudo instalar: no se descargó nada.</translation>
+    </message>
+    <message>
+        <source>Downloaded from %1 (listed by %2) and converted on this computer. Its vendor&apos;s terms apply.</source>
+        <translation>Descargado de %1 (listado por %2) y convertido en este ordenador. Se aplican las condiciones de su proveedor.</translation>
+    </message>
+    <message>
+        <source>Converting into Pragma Chess&apos;s format…</source>
+        <translation>Convirtiendo al formato de Pragma Chess…</translation>
+    </message>
+    <message>
+        <source>Converting… %1 of %2 games</source>
+        <translation>Convirtiendo… %1 de %2 partidas</translation>
+    </message>
+    <message>
+        <source>Cancelled: no database was made.</source>
+        <translation>Cancelado: no se creó ninguna base de datos.</translation>
+    </message>
+    <message>
+        <source>Installed: %1 games in %2, in Database ▸ Switch Database.</source>
+        <translation>Instalado: %1 partidas en %2, en Base de datos ▸ Cambiar base de datos.</translation>
+    </message>
+    <message>
+        <source>Removed. The database %1 stays in your Databases folder: delete it there if you no longer want it.</source>
+        <translation>Quitado. La base de datos %1 se queda en tu carpeta de bases de datos: bórrala allí si ya no la quieres.</translation>
     </message>
 </context>
 <context>

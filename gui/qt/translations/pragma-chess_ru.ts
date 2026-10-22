@@ -1101,8 +1101,31 @@ Black has captured: %2</source>
 <context>
     <name>EnCroissantCatalog</name>
     <message>
-        <source>In En Croissant&apos;s own format, which Pragma Chess does not read yet; its license is to be checked before it is offered.</source>
-        <translation>В собственном формате En Croissant, который Pragma Chess пока не читает; лицензию нужно проверить, прежде чем предлагать.</translation>
+        <source>In a format of En Croissant&apos;s that Pragma Chess does not read yet.</source>
+        <translation>В формате En Croissant, который Pragma Chess пока не читает.</translation>
+    </message>
+</context>
+<context>
+    <name>EnCroissantConversion</name>
+    <message>
+        <source>A file named “%1” already exists.</source>
+        <translation>Файл с именем «%1» уже существует.</translation>
+    </message>
+    <message>
+        <source>Could not read “%1”: %2</source>
+        <translation>Не удалось прочитать «%1»: %2</translation>
+    </message>
+    <message>
+        <source>“%1” is not a database of En Croissant&apos;s.</source>
+        <translation>«%1» — не база En Croissant.</translation>
+    </message>
+    <message>
+        <source>“%1” is not a database of En Croissant&apos;s: %2</source>
+        <translation>«%1» — не база En Croissant: %2</translation>
+    </message>
+    <message>
+        <source>Could not name the database “%1”.</source>
+        <translation>Не удалось назвать базу «%1».</translation>
     </message>
 </context>
 <context>
@@ -1301,6 +1324,53 @@ Black has captured: %2</source>
     </message>
 </context>
 <context>
+    <name>ExtensionDisclaimerDialog</name>
+    <message>
+        <source>Before Updating</source>
+        <translation>Перед обновлением</translation>
+    </message>
+    <message>
+        <source>Before Installing</source>
+        <translation>Перед установкой</translation>
+    </message>
+    <message>
+        <source>%1 is not distributed by Pragma Chess</source>
+        <translation>%1 не распространяется Pragma Chess</translation>
+    </message>
+    <message>
+        <source>It is downloaded directly from &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;, where %3 lists it, and installed on this computer only. Pragma Chess does not redistribute software or data of others: it relies on public and private vendors, who publish what they offer on their own terms.</source>
+        <translation>Скачивается напрямую с &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;, где его указывает %3, и ставится только на этот компьютер. Pragma Chess не распространяет чужие программы и данные: она опирается на публичных и частных поставщиков, которые публикуют своё на собственных условиях.</translation>
+    </message>
+    <message>
+        <source>Its vendor states no license here: read its terms on %1 before using it.</source>
+        <translation>Поставщик не указывает здесь лицензию: прочитайте условия на %1 перед использованием.</translation>
+    </message>
+    <message>
+        <source>Its terms: %1.</source>
+        <translation>Условия: %1.</translation>
+    </message>
+    <message>
+        <source>The database is converted into Pragma Chess&apos;s format on this computer, for your own use.</source>
+        <translation>База преобразуется в формат Pragma Chess на этом компьютере, для вашего собственного использования.</translation>
+    </message>
+    <message>
+        <source>Respecting those terms is up to you. Pragma Chess does not check what vendors distribute and gives no warranty about it: you install it at your own risk.</source>
+        <translation>Соблюдать эти условия — ваше дело. Pragma Chess не проверяет, что распространяют поставщики, и не даёт на это гарантий: вы устанавливаете на свой риск.</translation>
+    </message>
+    <message>
+        <source>I have read this and accept the terms of whoever distributes it</source>
+        <translation>Прочитано: принимаю условия того, кто это распространяет</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Обновить</translation>
+    </message>
+    <message>
+        <source>Install</source>
+        <translation>Установить</translation>
+    </message>
+</context>
+<context>
     <name>ExtensionInstaller</name>
     <message>
         <source>The engine&apos;s program is not where its catalog says: %1</source>
@@ -1456,6 +1526,42 @@ Black has captured: %2</source>
     <message>
         <source>Removed.</source>
         <translation>Удалено.</translation>
+    </message>
+    <message>
+        <source>Its author&apos;s site: &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;</source>
+        <translation>Сайт автора: &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;</translation>
+    </message>
+    <message>
+        <source>Installed as %1</source>
+        <translation>Установлено как %1</translation>
+    </message>
+    <message>
+        <source>Could not install: nothing was downloaded.</source>
+        <translation>Не удалось установить: ничего не скачано.</translation>
+    </message>
+    <message>
+        <source>Downloaded from %1 (listed by %2) and converted on this computer. Its vendor&apos;s terms apply.</source>
+        <translation>Скачано с %1 (указано %2) и преобразовано на этом компьютере. Действуют условия поставщика.</translation>
+    </message>
+    <message>
+        <source>Converting into Pragma Chess&apos;s format…</source>
+        <translation>Преобразование в формат Pragma Chess…</translation>
+    </message>
+    <message>
+        <source>Converting… %1 of %2 games</source>
+        <translation>Преобразование… %1 из %2 партий</translation>
+    </message>
+    <message>
+        <source>Cancelled: no database was made.</source>
+        <translation>Отменено: база не создана.</translation>
+    </message>
+    <message>
+        <source>Installed: %1 games in %2, in Database ▸ Switch Database.</source>
+        <translation>Установлено: %1 партий в %2, в База данных ▸ Сменить базу.</translation>
+    </message>
+    <message>
+        <source>Removed. The database %1 stays in your Databases folder: delete it there if you no longer want it.</source>
+        <translation>Удалено. База %1 остаётся в вашей папке баз: удалите её там, если она больше не нужна.</translation>
     </message>
 </context>
 <context>

@@ -497,9 +497,9 @@ routes; `scripts/pragma-api.sh METHOD PATH [JSON]` calls it with curl
   every move), `findGames`/`filterList` (a filter of the list) — and the
   process's memory (`VmRSS`/`VmHWM`, Linux). Profile a Release build: a
   Debug one is several times slower.
-- `POST /api/extensions {"kind": "engine"|"database", "choose": "Stockfish", "install": true}`
-  opens Tools ▸ Manage Extensions… (filtered as Install New Engine… or Install New Database…), chooses an extension (and installs it) and answers
-  with the window's picture.
+- `POST /api/extensions {"kind": "engine"|"database", "choose": "Stockfish", "install": true, "accept": true}`
+  opens Tools ▸ Manage Extensions… (filtered as Install New Engine… or Install New Database…), chooses an extension (and installs it, the disclaimer accepted) and answers
+  with the window's picture; `install` without `accept` answers with the disclaimer's.
 - `GET /api/engines` the engines of this computer with their Computing
   Power (level, share of the machine, threads used), the cores, whether the
   system can cap a process (`canCap`), and the engine's process: pid, CPU
@@ -595,8 +595,24 @@ not apt-get). `app/extensions/`, core:
   month, never shipped), its name in bold and its site under it; `EnCroissantProvider` reads En
   Croissant's catalogs (`EnCroissantCatalog`, pure, unit-tested): engines
   as links to their authors' downloads, for this system and processor; its
-  databases listed, not installable (its own SQLite format, licenses to
-  check). A new provider is a class beside it, added in the dialog.
+  databases of games installable: downloaded from it and converted on this
+  computer (below), its puzzles listed only. A new provider is a class
+  beside it, added in the dialog.
+- **Pragma Chess redistributes nothing of others'**: before every download,
+  install or update, `dialogs/ExtensionDisclaimerDialog` says it comes from
+  the vendor, on its terms (the author's site, `Extension::homepage`, where
+  known), and Install stays greyed until the user ticks that they read and
+  accept them. Keep it in front of every new way to download.
+- En Croissant's `.db3` (its SQLite: Games, Players, Events, Sites) is read
+  by `EnCroissantGames` (core, pure: a move is its index among the legal
+  moves in shakmaty 0.27's order, `orderedMoves`; 252–255 mark NAGs,
+  comments and variations, passed over) and `app/convert/EnCroissantConversion`
+  (as PgnConversion), into `<name>.pdb` of the Databases folder with its
+  provenance in the description; the download is deleted after.
+  `InstalledExtension::database` remembers the file, and Remove leaves it:
+  the database is the user's. `readsEnCroissantDatabases` covers it, and
+  converts a real file with `PRAGMA_ENCROISSANT_SAMPLE` (Ajedrez Data's
+  correspondence base: 1 524 027 games, none refused, ~3 minutes).
 - `ExtensionInstaller`: downloads to a file, opens it with `Archive` (zip,
   tar, tar.gz through miniz — the system's or fetched; nothing written
   outside the folder; unit-tested) into

@@ -1095,8 +1095,31 @@ Il Nero ha catturato: %2</translation>
 <context>
     <name>EnCroissantCatalog</name>
     <message>
-        <source>In En Croissant&apos;s own format, which Pragma Chess does not read yet; its license is to be checked before it is offered.</source>
-        <translation>Nel formato di En Croissant, che Pragma Chess non legge ancora; la sua licenza va verificata prima di offrirlo.</translation>
+        <source>In a format of En Croissant&apos;s that Pragma Chess does not read yet.</source>
+        <translation>In un formato di En Croissant che Pragma Chess non legge ancora.</translation>
+    </message>
+</context>
+<context>
+    <name>EnCroissantConversion</name>
+    <message>
+        <source>A file named “%1” already exists.</source>
+        <translation>Esiste già un file chiamato “%1”.</translation>
+    </message>
+    <message>
+        <source>Could not read “%1”: %2</source>
+        <translation>Impossibile leggere “%1”: %2</translation>
+    </message>
+    <message>
+        <source>“%1” is not a database of En Croissant&apos;s.</source>
+        <translation>«%1» non è un database di En Croissant.</translation>
+    </message>
+    <message>
+        <source>“%1” is not a database of En Croissant&apos;s: %2</source>
+        <translation>«%1» non è un database di En Croissant: %2</translation>
+    </message>
+    <message>
+        <source>Could not name the database “%1”.</source>
+        <translation>Impossibile dare al database il nome «%1».</translation>
     </message>
 </context>
 <context>
@@ -1294,6 +1317,53 @@ Il Nero ha catturato: %2</translation>
     </message>
 </context>
 <context>
+    <name>ExtensionDisclaimerDialog</name>
+    <message>
+        <source>Before Updating</source>
+        <translation>Prima di aggiornare</translation>
+    </message>
+    <message>
+        <source>Before Installing</source>
+        <translation>Prima di installare</translation>
+    </message>
+    <message>
+        <source>%1 is not distributed by Pragma Chess</source>
+        <translation>%1 non è distribuito da Pragma Chess</translation>
+    </message>
+    <message>
+        <source>It is downloaded directly from &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;, where %3 lists it, and installed on this computer only. Pragma Chess does not redistribute software or data of others: it relies on public and private vendors, who publish what they offer on their own terms.</source>
+        <translation>Si scarica direttamente da &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;, dove lo elenca %3, e si installa solo su questo computer. Pragma Chess non ridistribuisce software o dati di terzi: si appoggia a fornitori pubblici e privati, che pubblicano ciò che offrono alle loro condizioni.</translation>
+    </message>
+    <message>
+        <source>Its vendor states no license here: read its terms on %1 before using it.</source>
+        <translation>Il fornitore qui non indica una licenza: leggine le condizioni su %1 prima di usarlo.</translation>
+    </message>
+    <message>
+        <source>Its terms: %1.</source>
+        <translation>Le sue condizioni: %1.</translation>
+    </message>
+    <message>
+        <source>The database is converted into Pragma Chess&apos;s format on this computer, for your own use.</source>
+        <translation>Il database viene convertito nel formato di Pragma Chess su questo computer, per il tuo uso.</translation>
+    </message>
+    <message>
+        <source>Respecting those terms is up to you. Pragma Chess does not check what vendors distribute and gives no warranty about it: you install it at your own risk.</source>
+        <translation>Rispettare quelle condizioni spetta a te. Pragma Chess non controlla ciò che i fornitori distribuiscono e non dà garanzie al riguardo: lo installi a tuo rischio.</translation>
+    </message>
+    <message>
+        <source>I have read this and accept the terms of whoever distributes it</source>
+        <translation>Ho letto e accetto le condizioni di chi lo distribuisce</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Aggiorna</translation>
+    </message>
+    <message>
+        <source>Install</source>
+        <translation>Installa</translation>
+    </message>
+</context>
+<context>
     <name>ExtensionInstaller</name>
     <message>
         <source>The engine&apos;s program is not where its catalog says: %1</source>
@@ -1448,6 +1518,42 @@ Il Nero ha catturato: %2</translation>
     <message>
         <source>Removed.</source>
         <translation>Rimossa.</translation>
+    </message>
+    <message>
+        <source>Its author&apos;s site: &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;</source>
+        <translation>Il sito dell&apos;autore: &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;</translation>
+    </message>
+    <message>
+        <source>Installed as %1</source>
+        <translation>Installato come %1</translation>
+    </message>
+    <message>
+        <source>Could not install: nothing was downloaded.</source>
+        <translation>Impossibile installare: non è stato scaricato niente.</translation>
+    </message>
+    <message>
+        <source>Downloaded from %1 (listed by %2) and converted on this computer. Its vendor&apos;s terms apply.</source>
+        <translation>Scaricato da %1 (elencato da %2) e convertito su questo computer. Valgono le condizioni del fornitore.</translation>
+    </message>
+    <message>
+        <source>Converting into Pragma Chess&apos;s format…</source>
+        <translation>Conversione nel formato di Pragma Chess…</translation>
+    </message>
+    <message>
+        <source>Converting… %1 of %2 games</source>
+        <translation>Conversione… %1 di %2 partite</translation>
+    </message>
+    <message>
+        <source>Cancelled: no database was made.</source>
+        <translation>Annullata: nessun database è stato creato.</translation>
+    </message>
+    <message>
+        <source>Installed: %1 games in %2, in Database ▸ Switch Database.</source>
+        <translation>Installato: %1 partite in %2, in Database ▸ Cambia database.</translation>
+    </message>
+    <message>
+        <source>Removed. The database %1 stays in your Databases folder: delete it there if you no longer want it.</source>
+        <translation>Rimosso. Il database %1 resta nella tua cartella dei database: cancellalo da lì se non lo vuoi più.</translation>
     </message>
 </context>
 <context>

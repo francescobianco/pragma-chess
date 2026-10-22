@@ -16,8 +16,8 @@ QString puzzlesUrl();
 
 /// The engines of `system` with or without BMI2, newest first by name.
 QList<Extension> engines(const QByteArray &json, const QString &system, bool bmi2);
-/// Its databases (of puzzles when `puzzles`): listed, not installable — they
-/// are in En Croissant's own SQLite format, which Pragma Chess does not read yet.
+/// Its databases, in its own SQLite format, converted on this computer when
+/// installed; those of puzzles (`puzzles`) are listed, not installable yet.
 QList<Extension> databases(const QByteArray &json, bool puzzles = false);
 
 } // namespace EnCroissantCatalog

@@ -60,11 +60,13 @@
 #include "app/smart/SmartPrograms.h"
 #include "app/smart/SmartScript.h"
 #include "app/sources/PgnFile.h"
+#include "app/convert/EnCroissantConversion.h"
 #include "app/convert/PgnConversion.h"
 #include "app/ScoreView.h"
 #include "app/UpdateCheck.h"
 #include "app/extensions/Archive.h"
 #include "app/extensions/EnCroissantCatalog.h"
+#include "app/extensions/EnCroissantGames.h"
 #include "app/online/FicsClient.h"
 #include "app/online/FicsProtocol.h"
 #include "app/convert/PgnSplitter.h"
@@ -97,6 +99,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QSqlDatabase>
+#include <QSqlError>
 #include <QSqlQuery>
 #include <QScopeGuard>
 #include <QTemporaryDir>
@@ -4620,8 +4623,119 @@ END FUNCTION
         const QList<Extension> listed = EnCroissantCatalog::databases(databases);
         QCOMPARE(listed.size(), 1);
         QCOMPARE(listed.first().count, 3451068);
-        QVERIFY(!listed.first().installable()); // Its format is not read yet.
+        QVERIFY(listed.first().installable()); // Converted on this computer.
+        QVERIFY(!EnCroissantCatalog::databases(databases, true).first().installable()); // Puzzles: not yet.
         QVERIFY(EnCroissantCatalog::engines("not json", QStringLiteral("linux"), true).isEmpty());
+    }
+
+    void readsEnCroissantDatabases()
+    {
+        const auto uci = [](const QString &fen) {
+            QStringList moves;
+            for (const ChessMove &move : EnCroissantGames::orderedMoves(*ChessPosition::fromFen(fen)))
+                moves << move.uci();
+            return moves;
+        };
+        // shakmaty's order: en passant, pawns, pieces by origin and target, king, castling.
+        const QStringList castling = uci(QStringLiteral("r3k2r/8/8/3pP3/8/8/8/R3K2R w KQkq d6 0 1"));
+        QCOMPARE(castling.size(), 28);
+        QCOMPARE(castling.at(0), QStringLiteral("e5d6"));
+        QCOMPARE(castling.at(1), QStringLiteral("e5e6"));
+        QCOMPARE(castling.at(2), QStringLiteral("a1b1"));
+        QCOMPARE(castling.at(11), QStringLiteral("a1a8"));
+        QCOMPARE(castling.at(12), QStringLiteral("h1f1"));
+        QCOMPARE(castling.at(21), QStringLiteral("e1d1"));
+        QCOMPARE(castling.at(26), QStringLiteral("e1g1"));
+        QCOMPARE(castling.at(27), QStringLiteral("e1c1"));
+        // Captures towards the a-file, then the h-file, then steps; promotions Q, R, B, N.
+        const QStringList promotions = uci(QStringLiteral("r1r1k3/1P6/8/8/8/8/8/4K3 w - - 0 1"));
+        QCOMPARE(promotions.size(), 17);
+        QCOMPARE(promotions.mid(0, 4), (QStringList{"b7a8q", "b7a8r", "b7a8b", "b7a8n"}));
+        QCOMPARE(promotions.at(4), QStringLiteral("b7c8q"));
+        QCOMPARE(promotions.at(8), QStringLiteral("b7b8q"));
+        QCOMPARE(promotions.at(12), QStringLiteral("e1d1"));
+        // In check the king moves first.
+        QCOMPARE(uci(QStringLiteral("4k3/8/8/8/8/8/3q4/RN2K3 w - - 0 1")), (QStringList{"e1f1", "e1d2", "b1d2"}));
+        QCOMPARE(uci(QStringLiteral("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")).mid(16, 4),
+                 (QStringList{"b1a3", "b1c3", "g1f3", "g1h3"}));
+
+        // 1.e4, a variation (1.d4), a comment and a NAG passed over, 1…e6.
+        const QByteArray bytes = QByteArray::fromHex("0cff0bfefd02006869fc010031") + QByteArray(1, 0x04);
+        std::optional<QList<MoveRecord>> line = EnCroissantGames::mainLine(bytes, ChessPosition::startingPosition());
+        QVERIFY(line);
+        QCOMPARE(line->size(), 2);
+        QCOMPARE(line->at(0).san, QStringLiteral("e4"));
+        QCOMPARE(line->at(1).san, QStringLiteral("e6"));
+        QCOMPARE(line->at(1).uci, QStringLiteral("e7e6"));
+        QVERIFY(!EnCroissantGames::mainLine(QByteArray(1, char(40)), ChessPosition::startingPosition()));
+
+        // A database as En Croissant writes it (src-tauri/src/db/create.sql), converted.
+        QTemporaryDir dir;
+        const QString db3 = dir.filePath(QStringLiteral("small.db3"));
+        {
+            QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("encroissant"));
+            db.setDatabaseName(db3);
+            QVERIFY(db.open());
+            QSqlQuery query(db);
+            for (const char *sql : {
+                     "CREATE TABLE Events (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT UNIQUE)",
+                     "CREATE TABLE Sites (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT UNIQUE)",
+                     "CREATE TABLE Players (ID INTEGER PRIMARY KEY, Name TEXT UNIQUE, Elo INTEGER)",
+                     "CREATE TABLE Games (ID INTEGER PRIMARY KEY AUTOINCREMENT, EventID INTEGER, SiteID INTEGER,"
+                     " Date TEXT, UTCTime TEXT, Round INTEGER, WhiteID INTEGER, WhiteElo INTEGER, BlackID INTEGER,"
+                     " BlackElo INTEGER, WhiteMaterial INTEGER, BlackMaterial INTEGER, Result INTEGER,"
+                     " TimeControl TEXT, ECO TEXT, PlyCount INTEGER, FEN TEXT, Moves BLOB, PawnHome BLOB)",
+                     "INSERT INTO Players VALUES (0, 'Unknown', NULL), (1, 'Anna', 2100), (2, 'Bruno', 2000)",
+                     "INSERT INTO Events VALUES (0, 'Unknown'), (1, 'Open')",
+                     "INSERT INTO Sites VALUES (0, 'Unknown')",
+                     "INSERT INTO Games (EventID, SiteID, Date, Round, WhiteID, WhiteElo, BlackID, BlackElo, Result,"
+                     " ECO, Moves) VALUES (1, 0, '1995.04.17', '?', 1, 2100, 2, 2000, '1/2-1/2', 'C00', x'0c040b')",
+                     "INSERT INTO Games (EventID, SiteID, Date, WhiteID, BlackID, Result, Moves)"
+                     " VALUES (0, 0, '?\?\?\?.?\?.?\?', 2, 0, '*', x'')"})
+                QVERIFY2(query.exec(QString::fromLatin1(sql)), qPrintable(query.lastError().text()));
+            db.close();
+        }
+        QSqlDatabase::removeDatabase(QStringLiteral("encroissant"));
+        const QString pdb = dir.filePath(QStringLiteral("small.pdb"));
+        DatabaseProperties properties;
+        properties.name = QStringLiteral("Small");
+        properties.description = QStringLiteral("From En Croissant");
+        const EnCroissantConversion::Result result = EnCroissantConversion::run(db3, pdb, properties, {}, nullptr);
+        QVERIFY2(result.ok, qPrintable(result.error));
+        QCOMPARE(result.progress.total, 2);
+        QCOMPARE(result.progress.games, 1);
+        QCOMPARE(result.progress.skipped, 1); // No moves.
+        QString error;
+        std::unique_ptr<SqliteGameDatabase> database = SqliteGameDatabase::open(pdb, &error);
+        QVERIFY2(database, qPrintable(error));
+        QCOMPARE(database->gameCount(), 1);
+        QCOMPARE(database->properties().name, QStringLiteral("Small"));
+        QCOMPARE(database->properties().description, QStringLiteral("From En Croissant"));
+        QVERIFY(!database->properties().id.isEmpty());
+        const std::optional<GameRecord> loaded = database->loadGame(0);
+        QVERIFY(loaded);
+        const GameRecord &game = *loaded;
+        QCOMPARE(game.white, QStringLiteral("Anna"));
+        QCOMPARE(game.black, QStringLiteral("Bruno"));
+        QCOMPARE(game.event, QStringLiteral("Open"));
+        QCOMPARE(game.site, QString());
+        QCOMPARE(game.round, QString());
+        QCOMPARE(game.whiteElo, 2100);
+        QCOMPARE(game.result, QStringLiteral("1/2-1/2"));
+        QCOMPARE(game.moves.size(), 3);
+        QCOMPARE(game.moves.at(2).san, QStringLiteral("d4"));
+        QVERIFY(!EnCroissantConversion::run(db3, pdb, properties, {}, nullptr).ok); // It exists.
+
+        // A real database of En Croissant's, when one is at hand (its moves all read).
+        const QString sample = qEnvironmentVariable("PRAGMA_ENCROISSANT_SAMPLE");
+        if (sample.isEmpty())
+            return;
+        const QString converted = dir.filePath(QStringLiteral("sample.pdb"));
+        const EnCroissantConversion::Result real = EnCroissantConversion::run(sample, converted, {}, {}, nullptr);
+        QVERIFY2(real.ok, qPrintable(real.error));
+        qInfo() << "converted" << real.progress.games << "of" << real.progress.total << "games, skipped"
+                << real.progress.skipped << "in" << real.progress.elapsedMs << "ms";
+        QVERIFY(real.progress.skipped * 1000 < real.progress.total);
     }
 
     void tellsANewerVersion()

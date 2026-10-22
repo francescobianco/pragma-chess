@@ -1452,6 +1452,23 @@ bool SqliteGameWriter::add(const QList<GameRecord> &games, QString *errorMessage
     return true;
 }
 
+bool SqliteGameWriter::setProperties(const DatabaseProperties &properties, QString *errorMessage)
+{
+    QSqlDatabase db = QSqlDatabase::database(d->connectionName, false);
+    QSqlQuery query(db);
+    query.prepare(QStringLiteral("INSERT OR REPLACE INTO properties (key, value) VALUES (?, ?)"));
+    const QHash<QString, QString> values = properties.values();
+    for (auto it = values.cbegin(); it != values.cend(); ++it) {
+        query.addBindValue(it.key());
+        query.addBindValue(it.value().isNull() ? QStringLiteral("") : it.value()); // NOT NULL
+        if (!query.exec()) {
+            setError(errorMessage, query.lastError().text());
+            return false;
+        }
+    }
+    return true;
+}
+
 bool SqliteGameWriter::finish(QString *errorMessage)
 {
     QSqlDatabase db = QSqlDatabase::database(d->connectionName, false);

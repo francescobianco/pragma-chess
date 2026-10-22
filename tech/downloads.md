@@ -4,6 +4,21 @@
 > Croissant come primo provider: i motori si installano (scaricati dai loro
 > autori, aperti con miniz, configurati in Gestisci motori), i database sono
 > elencati ma non installabili. Vedi AGENTS.md, "Extensions".
+>
+> **Fatto (2026-10-22):** i database di partite del registro si installano:
+> scaricati da En Croissant e convertiti nel nostro formato **sul computer
+> dell'utente**; noi non ospitiamo né ridistribuiamo niente. Prima di ogni
+> download una finestra di scarico di responsabilità dice che Pragma Chess
+> non ridistribuisce software o dati di terzi e si appoggia a fornitori
+> pubblici e privati, e indica dove leggere le loro condizioni (il sito
+> dell'autore, dove è noto); Installa resta grigio finché l'utente non
+> spunta di averle lette e accettate. Il formato `.db3`: ogni mossa è un
+> byte, l'indice tra le mosse legali nell'ordine di shakmaty 0.27
+> (`EnCroissantGames`); su Ajedrez Data per corrispondenza (1 524 027
+> partite) nessuna è rifiutata, e delle partite finite con un matto (137 su
+> 5000 prese a caso) 136 hanno il risultato coerente. Il `.pdb` è più
+> grande del `.db3` (1,48 GB contro 328 MB): conta per il piano 4 di
+> large-databases.md.
 
 Studio del 2026-10-11 su come [En Croissant](https://github.com/franciscoBSalgueiro/en-croissant)
 offre "con un clic" motori e database (la sua funzione più citata dagli

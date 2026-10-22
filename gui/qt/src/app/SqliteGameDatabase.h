@@ -148,6 +148,9 @@ public:
 
     /// Appends `games`, all or none.
     bool add(const QList<GameRecord> &games, QString *errorMessage);
+    /// Stores `properties` (name, description…); the lineage the file was
+    /// made with stays when they have none.
+    bool setProperties(const DatabaseProperties &properties, QString *errorMessage);
     /// Ends the writing: the file is complete and can be opened.
     bool finish(QString *errorMessage);
 

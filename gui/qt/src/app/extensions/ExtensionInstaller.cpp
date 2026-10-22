@@ -25,6 +25,7 @@ QList<InstalledExtension> InstalledExtension::load(QSettings &settings)
         extension.folder = settings.value(QStringLiteral("folder")).toString();
         extension.executable = settings.value(QStringLiteral("executable")).toString();
         extension.engineId = settings.value(QStringLiteral("engineId")).toString();
+        extension.database = settings.value(QStringLiteral("database")).toString();
         installed << extension;
     }
     settings.endArray();
@@ -45,6 +46,7 @@ void InstalledExtension::save(QSettings &settings, const QList<InstalledExtensio
         settings.setValue(QStringLiteral("folder"), extension.folder);
         settings.setValue(QStringLiteral("executable"), extension.executable);
         settings.setValue(QStringLiteral("engineId"), extension.engineId);
+        settings.setValue(QStringLiteral("database"), extension.database);
     }
     settings.endArray();
 }

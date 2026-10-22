@@ -23,6 +23,23 @@ QString slug(const QString &text)
     return text.toLower().replace(other, QStringLiteral("-")).remove(QRegularExpression(QStringLiteral("^-|-$")));
 }
 
+/// The sites of the collections En Croissant converts, where their authors
+/// say on what terms (tech/downloads.md): its catalog names none.
+QString homepageOf(const QString &title)
+{
+    static const QList<std::pair<QString, QString>> sites{
+        {QStringLiteral("Lumbra"), QStringLiteral("https://lumbrasgigabase.com/en/")},
+        {QStringLiteral("Caissabase"), QStringLiteral("http://caissabase.co.uk/")},
+        {QStringLiteral("Ajedrez Data"), QStringLiteral("https://www.ajedrezdata.com/")},
+        {QStringLiteral("Lichess"), QStringLiteral("https://database.lichess.org/")},
+    };
+    for (const auto &[name, site] : sites) {
+        if (title.startsWith(name, Qt::CaseInsensitive))
+            return site;
+    }
+    return {};
+}
+
 } // namespace
 
 QString enginesUrl(const QString &system, bool bmi2)
@@ -82,8 +99,11 @@ QList<Extension> databases(const QByteArray &json, bool puzzles)
         database.count = entry.value(puzzles ? QStringLiteral("puzzle_count")
                                                                      : QStringLiteral("game_count")).toInteger();
         database.author = QUrl(database.downloadUrl).host();
-        database.unavailable = Text::tr("In En Croissant's own format, which Pragma Chess does not read yet; "
-                                        "its license is to be checked before it is offered.");
+        database.homepage = homepageOf(database.name);
+        // Its games are converted on this computer (EnCroissantConversion); its
+        // puzzles are in another format of En Croissant's, not read yet.
+        if (puzzles)
+            database.unavailable = Text::tr("In a format of En Croissant's that Pragma Chess does not read yet.");
         if (!database.name.isEmpty())
             found << database;
     }

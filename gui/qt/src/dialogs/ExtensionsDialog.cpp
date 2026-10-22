@@ -1,5 +1,8 @@
 #include "ExtensionsDialog.h"
 
+#include "ExtensionDisclaimerDialog.h"
+#include "app/UserFolders.h"
+#include "app/convert/EnCroissantConversion.h"
 #include "app/extensions/ExtensionProvider.h"
 #include "app/sources/SourceFetch.h"
 #include "widgets/PaddedHeaderView.h"
@@ -16,6 +19,7 @@
 #include <QPainterPath>
 #include <QStandardPaths>
 #include <QStyledItemDelegate>
+#include <QThread>
 
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -27,6 +31,7 @@
 #include <QLocale>
 #include <QProgressBar>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <QSettings>
 #include <QSplitter>
 #include <QTreeWidget>
@@ -279,6 +284,8 @@ ExtensionsDialog::ExtensionsDialog(std::function<QString(const InstalledExtensio
                                     : tr("Downloading… %1").arg(sizeText(received)));
     });
     connect(m_installer, &ExtensionInstaller::installed, this, [this](InstalledExtension done) {
+        if (m_installing.kind == Extension::Kind::Database)
+            return convert(done);
         m_progress->hide();
         if (!done.executable.isEmpty() && m_addEngine)
             done.engineId = m_addEngine(done);
@@ -347,23 +354,37 @@ void ExtensionsDialog::showOnly(const QString &provider, Extension::Kind kind)
     m_kind->setCurrentIndex(qMax(0, m_kind->findData(int(kind))));
 }
 
-bool ExtensionsDialog::choose(const QString &name, bool install)
+bool ExtensionsDialog::choose(const QString &name, bool install, bool accepted)
 {
     for (int i = 0; i < m_list->topLevelItemCount(); ++i) {
         if (m_list->topLevelItem(i)->text(0).startsWith(name, Qt::CaseInsensitive)) {
             m_list->setCurrentItem(m_list->topLevelItem(i));
             if (install && m_install->isEnabled())
-                this->install();
+                this->install(accepted);
             return true;
         }
     }
     return false;
 }
 
+QPixmap ExtensionsDialog::disclaimerPicture()
+{
+    const Extension *chosen = extension();
+    if (!chosen)
+        return {};
+    ExtensionDisclaimerDialog disclaimer(*chosen, provider()->name(), installedOf(provider()->id(), chosen->id), this);
+    disclaimer.adjustSize();
+    return disclaimer.grab();
+}
+
 void ExtensionsDialog::reject()
 {
     if (m_installer->isBusy())
         m_installer->cancel(); // Closing stops a download; nothing half is kept.
+    if (m_conversion) {
+        m_cancelConversion->store(true); // Nor half a database.
+        m_conversion->wait();
+    }
     QDialog::reject();
 }
 
@@ -426,7 +447,9 @@ void ExtensionsDialog::fillList()
             continue;
         const InstalledExtension *installed = installedOf(chosen->id(), each.id);
         auto *item = new QTreeWidgetItem(m_list, {each.name, each.version, kindName(each.kind),
-                                                  installed ? installed->version : QString()});
+                                                  !installed                     ? QString()
+                                                  : installed->version.isEmpty() ? QStringLiteral("✓")
+                                                                                 : installed->version});
         item->setData(0, kIndexRole, i);
         if (!each.installable())
             item->setForeground(0, palette().brush(QPalette::Disabled, QPalette::Text));
@@ -445,7 +468,7 @@ void ExtensionsDialog::showExtension()
 {
     const Extension *chosen = extension();
     const InstalledExtension *installed = chosen ? installedOf(provider()->id(), chosen->id) : nullptr;
-    const bool busy = m_installer->isBusy();
+    const bool busy = isBusy();
     if (!chosen) {
         m_title->clear();
         m_facts->clear();
@@ -464,7 +487,11 @@ void ExtensionsDialog::showExtension()
         facts << tr("Download: %1").arg(sizeText(chosen->downloadSize));
     if (!chosen->downloadUrl.isEmpty())
         facts << tr("From <a href=\"%1\">%2</a>").arg(chosen->downloadUrl.toHtmlEscaped(), QUrl(chosen->downloadUrl).host());
-    if (installed)
+    if (!chosen->homepage.isEmpty())
+        facts << tr("Its author's site: <a href=\"%1\">%2</a>").arg(chosen->homepage.toHtmlEscaped(), QUrl(chosen->homepage).host());
+    if (installed && !installed->database.isEmpty())
+        facts << tr("Installed as %1").arg(QDir::toNativeSeparators(installed->database).toHtmlEscaped());
+    else if (installed)
         facts << tr("Installed: version %1").arg(installed->version.toHtmlEscaped());
     if (!chosen->description.isEmpty())
         facts << chosen->description.toHtmlEscaped();
@@ -475,11 +502,23 @@ void ExtensionsDialog::showExtension()
     m_remove->setEnabled(!busy && installed);
 }
 
-void ExtensionsDialog::install()
+bool ExtensionsDialog::isBusy() const
+{
+    return m_installer->isBusy() || m_conversion;
+}
+
+void ExtensionsDialog::install(bool accepted)
 {
     const Extension *chosen = extension();
-    if (!chosen || m_installer->isBusy())
+    if (!chosen || isBusy())
         return;
+    const InstalledExtension *before = installedOf(provider()->id(), chosen->id);
+    if (!accepted && ExtensionDisclaimerDialog(*chosen, provider()->name(), before, this).exec() != QDialog::Accepted)
+        return;
+    chosen = extension(); // The catalog may have been read again meanwhile.
+    if (!chosen || isBusy())
+        return;
+    m_installing = *chosen;
     // An update replaces the engine in Manage Engines too.
     if (const InstalledExtension *old = installedOf(provider()->id(), chosen->id); old && !old->engineId.isEmpty() && m_removeEngine)
         m_removeEngine(old->engineId);
@@ -487,6 +526,73 @@ void ExtensionsDialog::install()
     m_progress->show();
     m_status->setText(tr("Downloading…"));
     m_installer->install(provider()->id(), *chosen);
+    showExtension();
+}
+
+void ExtensionsDialog::convert(InstalledExtension done)
+{
+    // The one file downloaded, in the extension's folder.
+    const QFileInfoList files = QDir(done.folder).entryInfoList(QDir::Files);
+    if (files.isEmpty()) {
+        m_progress->hide();
+        m_status->setText(tr("Could not install: nothing was downloaded."));
+        ExtensionInstaller::remove(done, nullptr);
+        return showExtension();
+    }
+    const QString db3 = files.first().absoluteFilePath();
+    // Its name, as the catalog gives it, made a file name; never over a file there.
+    QString base = m_installing.name;
+    base.replace(QRegularExpression(QStringLiteral(R"([\\/:*?"<>|])")), QStringLiteral("-"));
+    const QDir folder(UserFolders::databasesDir());
+    folder.mkpath(QStringLiteral("."));
+    QString pdb = folder.filePath(base + QStringLiteral(".pdb"));
+    for (int i = 2; QFileInfo::exists(pdb); ++i)
+        pdb = folder.filePath(QStringLiteral("%1 (%2).pdb").arg(base).arg(i));
+
+    DatabaseProperties properties;
+    properties.name = m_installing.name;
+    properties.description = tr("Downloaded from %1 (listed by %2) and converted on this computer. Its vendor's "
+                                "terms apply.")
+                                 .arg(m_installing.downloadUrl, provider() ? provider()->name() : done.provider);
+    m_progress->setRange(0, 0);
+    m_progress->show();
+    m_status->setText(tr("Converting into Pragma Chess's format…"));
+    m_cancelConversion = std::make_shared<std::atomic_bool>(false);
+    m_conversion = QThread::create([this, db3, pdb, properties, done, cancel = m_cancelConversion] {
+        const EnCroissantConversion::Result result = EnCroissantConversion::run(
+            db3, pdb, properties,
+            [this](const EnCroissantConversion::Progress &progress) {
+                QMetaObject::invokeMethod(this, [this, progress] {
+                    m_progress->setRange(0, progress.total > 0 ? 1000 : 0);
+                    if (progress.total > 0)
+                        m_progress->setValue(int(1000 * (progress.games + progress.skipped) / progress.total));
+                    m_status->setText(tr("Converting… %1 of %2 games")
+                                          .arg(QLocale().toString(progress.games), QLocale().toString(progress.total)));
+                }, Qt::QueuedConnection);
+            },
+            cancel.get());
+        QMetaObject::invokeMethod(this, [this, result, done, pdb]() mutable {
+            m_conversion->wait();
+            delete m_conversion;
+            m_conversion = nullptr;
+            m_progress->hide();
+            // What was downloaded goes: the database is in the Databases folder now.
+            ExtensionInstaller::remove(done, nullptr);
+            if (!result.ok) {
+                m_status->setText(result.cancelled ? tr("Cancelled: no database was made.")
+                                                   : tr("Could not install: %1").arg(result.error));
+                return showExtension();
+            }
+            done.database = pdb;
+            m_installed.removeIf([&done](const InstalledExtension &old) { return old.provider == done.provider && old.id == done.id; });
+            m_installed << done;
+            saveInstalled();
+            m_status->setText(tr("Installed: %1 games in %2, in Database ▸ Switch Database.")
+                                  .arg(QLocale().toString(result.progress.games), QFileInfo(pdb).fileName()));
+            fillList();
+        }, Qt::QueuedConnection);
+    });
+    m_conversion->start(QThread::LowPriority);
     showExtension();
 }
 
@@ -502,6 +608,10 @@ void ExtensionsDialog::remove()
     QString error;
     if (!ExtensionInstaller::remove(gone, &error))
         m_status->setText(tr("Could not remove: %1").arg(error));
+    else if (!gone.database.isEmpty() && QFileInfo::exists(gone.database))
+        // The database is the user's now: it may hold their changes.
+        m_status->setText(tr("Removed. The database %1 stays in your Databases folder: delete it there if you "
+                             "no longer want it.").arg(QFileInfo(gone.database).fileName()));
     else
         m_status->setText(tr("Removed."));
     m_installed.removeIf([&gone](const InstalledExtension &each) { return each.provider == gone.provider && each.id == gone.id; });

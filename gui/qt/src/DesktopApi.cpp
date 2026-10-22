@@ -892,7 +892,8 @@ void DesktopApi::addRoutes()
         return json(answer);
     });
     // Tools ▸ Manage Extensions…: opens it and answers with its picture.
-    // {"choose": "Stockfish", "install": true} chooses an extension (and installs it).
+    // {"choose": "Stockfish", "install": true, "accept": true} chooses an extension (and installs
+    // it, the disclaimer accepted); without "accept", the picture is the disclaimer's.
     m_server->route(QStringLiteral("POST"), QStringLiteral("/api/extensions"), [w](const Request &request) {
         const QJsonObject body = bodyOf(request).value_or(QJsonObject());
         // "kind": "engine" or "database", as Install New Engine… and Install New Database… open it.
@@ -901,14 +902,16 @@ void DesktopApi::addRoutes()
                           : kind == QLatin1String("database") ? std::optional<int>(int(Extension::Kind::Database))
                                                               : std::nullopt);
         QApplication::processEvents();
+        const bool install = body.value(QStringLiteral("install")).toBool();
+        const bool accept = body.value(QStringLiteral("accept")).toBool();
         if (body.contains(QStringLiteral("choose")))
-            w->m_extensionsDialog->choose(body.value(QStringLiteral("choose")).toString(),
-                                          body.value(QStringLiteral("install")).toBool());
+            w->m_extensionsDialog->choose(body.value(QStringLiteral("choose")).toString(), install && accept, true);
         QApplication::processEvents();
         QByteArray png;
         QBuffer buffer(&png);
         buffer.open(QIODevice::WriteOnly);
-        w->m_extensionsDialog->grab().save(&buffer, "PNG");
+        (install && !accept ? w->m_extensionsDialog->disclaimerPicture() : w->m_extensionsDialog->grab())
+            .save(&buffer, "PNG");
         return Response{200, "image/png", png};
     });
     // How long the work on the open database took, last time, and the memory.

@@ -14,7 +14,8 @@ enum class Kind { None, Zip, Tar, TarGz };
 Kind kindOf(const QString &name);
 
 /// Extracts `file` into `folder` (made if missing). A file that is no
-/// archive (Kind::None) is copied there under `plainName`.
+/// archive (Kind::None) is moved there under `plainName` (copied when it
+/// cannot be moved).
 bool extract(const QString &file, Kind kind, const QString &folder, QString *error,
              const QString &plainName = QString());
 

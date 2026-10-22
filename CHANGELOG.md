@@ -8,6 +8,15 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **The databases of En Croissant's registry can be installed**: Tools ▸
+  Manage Extensions downloads Lumbra's GigaBase, Caissabase, Ajedrez Data
+  or MillionBase and converts it into a Pragma database on your computer,
+  in your Databases folder.
+- **Before every download, Manage Extensions asks you to accept** that
+  Pragma Chess does not redistribute software or data of others: what you
+  install comes from its vendor, on its terms, which the window says where
+  to read.
+
 - **Pragma Chess speaks Russian**: the whole interface, with Russian's
   three plural forms, the guide and the web site (issue #4).
 - **Pragma Chess speaks Chinese (simplified)**: the whole interface in

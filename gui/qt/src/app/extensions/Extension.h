@@ -28,6 +28,8 @@ struct Extension {
     /// Who made it and on what terms, as far as the provider says.
     QString author;
     QString license;
+    /// Where its author publishes it and says on what terms, when known.
+    QString homepage;
     /// Why it cannot be installed (yet); empty when it can.
     QString unavailable;
 

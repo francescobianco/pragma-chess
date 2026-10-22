@@ -206,6 +206,8 @@ qt_add_library(pragma-chess-core STATIC
     src/app/extensions/Archive.h
     src/app/extensions/EnCroissantCatalog.cpp
     src/app/extensions/EnCroissantCatalog.h
+    src/app/extensions/EnCroissantGames.cpp
+    src/app/extensions/EnCroissantGames.h
     src/app/extensions/Extension.h
     src/app/extensions/ExtensionInstaller.cpp
     src/app/extensions/ExtensionInstaller.h
@@ -498,6 +500,8 @@ qt_add_executable(pragma-chess
     src/dialogs/SyncDialog.h
     src/dialogs/ConvertPgnDialog.cpp
     src/dialogs/ConvertPgnDialog.h
+    src/dialogs/ExtensionDisclaimerDialog.cpp
+    src/dialogs/ExtensionDisclaimerDialog.h
     src/dialogs/ExtensionsDialog.cpp
     src/dialogs/ExtensionsDialog.h
     src/dialogs/ManageSyncFilesDialog.cpp
@@ -529,6 +533,8 @@ qt_add_executable(pragma-chess
     src/app/SqliteGameDatabase.h
     src/app/convert/PgnConversion.cpp
     src/app/convert/PgnConversion.h
+    src/app/convert/EnCroissantConversion.cpp
+    src/app/convert/EnCroissantConversion.h
     src/app/UserFolders.cpp
     src/app/UserFolders.h
     src/platform/WindowChrome.cpp
@@ -783,6 +789,8 @@ if(TARGET Qt6::Test)
         src/app/SqliteGameDatabase.h
         src/app/convert/PgnConversion.cpp
         src/app/convert/PgnConversion.h
+        src/app/convert/EnCroissantConversion.cpp
+        src/app/convert/EnCroissantConversion.h
         src/app/UserFolders.cpp
         src/app/UserFolders.h
         src/app/Drawers.cpp

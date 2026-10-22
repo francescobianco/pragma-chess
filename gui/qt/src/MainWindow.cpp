@@ -1142,8 +1142,6 @@ void MainWindow::createMenus()
     game->addAction(m_previousMoveAction);
     game->addAction(m_nextMoveAction);
     game->addAction(m_lastMoveAction);
-    game->addSeparator();
-    game->addAction(m_explainAction);
 
     // As the Database menu: new and open on top, the books to switch to in a submenu.
     m_bookMenu = menuBar()->addMenu(tr("&Book"));

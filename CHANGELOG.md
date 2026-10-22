@@ -8,6 +8,11 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **The sync leaves large files out**: a file over 20 MB of the Pragma
+  folder stays on its computer and never goes to the server or comes from
+  it. Up to 100 MB a window says which files were left out; larger ones
+  are passed over in silence.
+
 - **The databases of En Croissant's registry can be installed**: Tools ▸
   Manage Extensions downloads Lumbra's GigaBase, Caissabase, Ajedrez Data
   or MillionBase and converts it into a Pragma database on your computer,

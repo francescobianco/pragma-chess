@@ -3275,6 +3275,90 @@ END FUNCTION
         QVERIFY(!QFile::exists(desktop.folder + QStringLiteral("/.pragmaignore")));
     }
 
+    void leavesLargeFilesOutOfTheSync()
+    {
+        const QString git = QStandardPaths::findExecutable(QStringLiteral("git"));
+        if (git.isEmpty())
+            QSKIP("git is not installed");
+
+        QTemporaryDir root;
+        QVERIFY(root.isValid());
+        const QDir base(root.path());
+        const QString origin = base.filePath(QStringLiteral("origin.git"));
+        QProcess init;
+        init.start(git, {QStringLiteral("init"), QStringLiteral("--bare"), QStringLiteral("--initial-branch=main"), origin});
+        QVERIFY(init.waitForFinished(30000));
+        QCOMPARE(init.exitCode(), 0);
+        const auto write = [](const QString &path, const QByteArray &data, qint64 size = -1) {
+            QDir().mkpath(QFileInfo(path).absolutePath());
+            QFile file(path);
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            file.write(data);
+            if (size >= 0)
+                QVERIFY(file.resize(size)); // Sparse: large on paper, nothing on disk.
+        };
+
+        struct Device {
+            std::unique_ptr<GitStore> store;
+            std::unique_ptr<FolderSync> sync;
+            QString folder;
+        };
+        const auto makeDevice = [&](const QString &name) {
+            Device device;
+            device.folder = base.filePath(name + QStringLiteral("/Pragma"));
+            QDir().mkpath(device.folder);
+            device.store = std::make_unique<GitStore>(origin, QStringLiteral("main"), QString(), QString(),
+                                                      base.filePath(name + QStringLiteral("/clone")), name);
+            device.sync = std::make_unique<FolderSync>(device.folder, QString(), name);
+            device.sync->setStore(device.store.get());
+            FolderSync::DatabaseHooks hooks;
+            hooks.discard = [](const QString &path) { return QFile::remove(path); };
+            device.sync->setDatabaseHooks(hooks);
+            return device;
+        };
+        // Each sync: no error, nothing deleted by hand; what it says is too large.
+        const auto syncOnce = [](Device &device) {
+            QSignalSpy finished(device.sync.get(), &FolderSync::finished);
+            QSignalSpy deleted(device.sync.get(), &FolderSync::deletedByHand);
+            QSignalSpy tooLarge(device.sync.get(), &FolderSync::filesTooLarge);
+            device.sync->sync();
+            [&] { QVERIFY(finished.wait(60000)); }();
+            [&] { QCOMPARE(finished.constFirst().at(0).toString(), QString()); }();
+            [&] { QCOMPARE(deleted.count(), 0); }();
+            return tooLarge.isEmpty() ? QStringList() : tooLarge.constFirst().at(0).value<QMap<QString, qint64>>().keys();
+        };
+
+        Device laptop = makeDevice(QStringLiteral("laptop"));
+        write(laptop.folder + QStringLiteral("/Databases/Games.pdb"), "games");
+        write(laptop.folder + QStringLiteral("/Databases/Big.pdb"), "big", FolderSync::kMaxFileSize + 1);
+        write(laptop.folder + QStringLiteral("/Databases/Huge.pdb"), "huge", FolderSync::kQuietFileSize + 1);
+        // Over the limit, not synced; up to the quiet size, said; over it, passed over.
+        QCOMPARE(syncOnce(laptop), QStringList{QStringLiteral("Databases/Big.pdb")});
+
+        Device desktop = makeDevice(QStringLiteral("desktop"));
+        QCOMPARE(syncOnce(desktop), QStringList());
+        QVERIFY(QFile::exists(desktop.folder + QStringLiteral("/Databases/Games.pdb")));
+        QVERIFY(!QFile::exists(desktop.folder + QStringLiteral("/Databases/Big.pdb")));
+        QVERIFY(!QFile::exists(desktop.folder + QStringLiteral("/Databases/Huge.pdb")));
+
+        // A file synced before that grows over the limit stays as it is on each
+        // side: neither deleted by hand, nor replaced by the server's copy.
+        write(laptop.folder + QStringLiteral("/Databases/Games.pdb"), "games, many more", FolderSync::kMaxFileSize + 2);
+        QCOMPARE(syncOnce(laptop), (QStringList{QStringLiteral("Databases/Big.pdb"), QStringLiteral("Databases/Games.pdb")}));
+        QCOMPARE(QFileInfo(laptop.folder + QStringLiteral("/Databases/Games.pdb")).size(), FolderSync::kMaxFileSize + 2);
+        syncOnce(desktop);
+        QFile games(desktop.folder + QStringLiteral("/Databases/Games.pdb"));
+        QVERIFY(games.open(QIODevice::ReadOnly));
+        QCOMPARE(games.readAll(), QByteArray("games"));
+
+        QProcess tree;
+        tree.setWorkingDirectory(origin);
+        tree.start(git, {QStringLiteral("ls-tree"), QStringLiteral("-r"), QStringLiteral("--name-only"), QStringLiteral("main")});
+        QVERIFY(tree.waitForFinished(30000));
+        const QString listing = QString::fromUtf8(tree.readAll());
+        QVERIFY2(!listing.contains(QLatin1String("Big.pdb")) && !listing.contains(QLatin1String("Huge.pdb")), qPrintable(listing));
+    }
+
     void reconcilesGitFoldersWithoutDeleting()
     {
         const QString git = QStandardPaths::findExecutable(QStringLiteral("git"));

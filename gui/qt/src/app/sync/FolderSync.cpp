@@ -548,6 +548,23 @@ void FolderSync::attempt(int round)
                 if (ignore.matches(path))
                     planned.files.remove(path);
         }
+        // Files too large to sync, here or on the server (written there by a
+        // version without the limit), are planned as if neither side had
+        // them, as ignored ones: never uploaded nor downloaded — a small
+        // older copy never comes over a large one —, and not "deleted by
+        // hand" either. The manifest keeps their entries as they are.
+        QMap<QString, qint64> tooLarge = m_tooLarge;
+        for (auto it = effective.files.cbegin(); it != effective.files.cend(); ++it)
+            if (it.value().size > kMaxFileSize && !tooLarge.contains(it.key()))
+                tooLarge.insert(it.key(), it.value().size);
+        m_tooLargeToSay.clear(); // A sync started over says them once.
+        for (auto it = tooLarge.cbegin(); it != tooLarge.cend(); ++it) {
+            local.remove(it.key());
+            base.remove(it.key());
+            planned.files.remove(it.key());
+            if (it.value() <= kQuietFileSize)
+                m_tooLargeToSay.insert(it.key(), it.value());
+        }
         run->actions = planSync(local, base, planned) + leaving;
         for (const SyncAction &action : std::as_const(run->actions)) {
             if (action.kind == SyncAction::Kind::DeletedHere)
@@ -559,7 +576,7 @@ void FolderSync::attempt(int round)
         // files stay out: their games are elsewhere; deleted ones too.
         for (const QString &path : m_store->listFiles()) {
             if (effective.files.contains(path) || effective.merged.contains(path) || effective.deleted.contains(path)
-                || run->local.contains(path) || ignore.matches(path))
+                || run->local.contains(path) || ignore.matches(path) || tooLarge.contains(path))
                 continue;
             run->actions << SyncAction{SyncAction::Kind::Download, path};
         }
@@ -569,7 +586,8 @@ void FolderSync::attempt(int round)
         run->updated = effective;
         run->base = m_base;
         for (const QString &path : m_base.keys())
-            if (ignore.matches(path) && !leaving.contains(SyncAction{SyncAction::Kind::KeptOnServer, path}))
+            if ((ignore.matches(path) && !leaving.contains(SyncAction{SyncAction::Kind::KeptOnServer, path}))
+                || tooLarge.contains(path))
                 run->base.remove(path); // Not synced any more: no base to keep.
         execute(run, 0);
     });
@@ -883,9 +901,12 @@ void FolderSync::finish(const QString &errorMessage, int changes)
         m_lastSync = QDateTime::currentDateTimeUtc();
     saveState();
     const QStringList deletedByHand = std::exchange(m_deletedByHand, {});
+    const QMap<QString, qint64> tooLarge = std::exchange(m_tooLargeToSay, {});
     Q_EMIT finished(errorMessage, changes);
     if (!deletedByHand.isEmpty())
         Q_EMIT this->deletedByHand(deletedByHand);
+    if (!tooLarge.isEmpty())
+        Q_EMIT filesTooLarge(tooLarge);
     if (m_again) {
         m_again = false;
         sync();
@@ -896,6 +917,7 @@ QMap<QString, LocalFileState> FolderSync::scanLocal()
 {
     QMap<QString, LocalFileState> files;
     QMap<QString, std::tuple<qint64, qint64, QString>> seen; // Forget hashes of files gone.
+    m_tooLarge.clear();
     // Hidden files too, for the personal settings: the others stay local.
     QDirIterator it(m_root, QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden, QDirIterator::Subdirectories);
     while (it.hasNext()) {
@@ -907,6 +929,11 @@ QMap<QString, LocalFileState> FolderSync::scanLocal()
             && (relative.split(QLatin1Char('/')).first().startsWith(QLatin1Char('.')) || !isSyncedName(info.fileName())))
             continue;
 
+        // Never synced: not even hashed (it may be gigabytes).
+        if (!personal && info.size() > kMaxFileSize) {
+            m_tooLarge.insert(relative, info.size());
+            continue;
+        }
         LocalFileState state;
         state.size = info.size();
         state.modified = info.lastModified();

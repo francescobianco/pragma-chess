@@ -4268,6 +4268,24 @@ is not on this computer.</source>
         <source>Explain&apos;s &amp;Ticks</source>
         <translation>“讲解”的引擎原始输出(&amp;T)</translation>
     </message>
+    <message>
+        <source>“%1” (%2)</source>
+        <translation>“%1”（%2）</translation>
+    </message>
+    <message>
+        <source>Files Too Large to Sync</source>
+        <translation>文件过大，无法同步</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n file(s) of the Pragma folder will not be synced: %1.</source>
+        <translation>
+            <numerusform>Pragma 文件夹中的 %n 个文件将不会同步：%1。</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The sync with the server leaves out every file larger than %1: it stays on the computer that has it, and the others do not receive it.</source>
+        <translation>与服务器的同步会跳过所有大于 %1 的文件：它们只留在所在的电脑上，其他电脑不会收到。</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

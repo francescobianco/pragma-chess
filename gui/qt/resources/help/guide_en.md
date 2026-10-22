@@ -302,6 +302,8 @@ Each computer remembers what it synced last in a hidden file of its Pragma folde
 
 Files that belong to the server alone — the README and LICENSE of a Git repository, say — are listed in a **`.pragmaignore`** file at the root of the folder on the server, one per line, written as in `.gitignore` (`*.tmp`, `Notes/`, `# a comment`). They stay on the server: they are never copied to your computers, a copy a computer received earlier leaves it at the next sync (one you changed there stays, but is no longer synced), and nothing of that name is sent from your computers.
 
+**Large files are not synced**: a file larger than 20 MB — a database of millions of games, say — stays on the computer that has it and is never sent to the server, nor brought from it. Up to 100 MB a window says which files were left out, once each time Pragma Chess runs; larger ones are passed over in silence.
+
 **Manage Files…**, in the Sync Settings, lists the files in the folder on the server. Select some and press **Delete…** to clean up: after you confirm, they are deleted from every synced device, this computer included (into the trash), so they stop travelling between your computers.
 
 With a Git repository each sync that changes files makes one commit, named after them ("Update Databases/Games.pdb; add Projects/Study.pch"): a sync that only receives, or finds nothing new, leaves the history alone.

@@ -4352,6 +4352,26 @@ is not on this computer.</source>
         <source>Configure &amp;AI Assistant…</source>
         <translation>Настроить &amp;ИИ-помощника…</translation>
     </message>
+    <message>
+        <source>“%1” (%2)</source>
+        <translation>«%1» (%2)</translation>
+    </message>
+    <message>
+        <source>Files Too Large to Sync</source>
+        <translation>Файлы слишком велики для синхронизации</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n file(s) of the Pragma folder will not be synced: %1.</source>
+        <translation>
+            <numerusform>%n файл папки Pragma не будет синхронизирован: %1.</numerusform>
+            <numerusform>%n файла папки Pragma не будут синхронизированы: %1.</numerusform>
+            <numerusform>%n файлов папки Pragma не будут синхронизированы: %1.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The sync with the server leaves out every file larger than %1: it stays on the computer that has it, and the others do not receive it.</source>
+        <translation>Синхронизация с сервером пропускает каждый файл больше %1: он остаётся на компьютере, где есть, а другие его не получают.</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

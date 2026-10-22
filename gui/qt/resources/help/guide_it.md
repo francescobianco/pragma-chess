@@ -302,6 +302,8 @@ Ogni computer ricorda cosa ha sincronizzato l'ultima volta in un file nascosto d
 
 I file che appartengono solo al server — il README e la LICENSE di un repository Git, per esempio — si elencano in un file **`.pragmaignore`** nella radice della cartella sul server, uno per riga, scritti come in `.gitignore` (`*.tmp`, `Appunti/`, `# un commento`). Restano sul server: non vengono mai copiati sui tuoi computer, la copia che un computer aveva già ricevuto se ne va alla sincronizzazione successiva (se l'avevi modificata lì resta, ma non viene più sincronizzata) e nessun file con quel nome parte dai tuoi computer.
 
+**I file grandi non si sincronizzano**: un file più grande di 20 MB — un database di milioni di partite, per esempio — resta sul computer che lo ha e non viene mai inviato al server né portato da lì. Fino a 100 MB una finestra dice quali file sono rimasti fuori, una volta per ogni avvio di Pragma Chess; quelli più grandi sono ignorati in silenzio.
+
 **Gestisci file…**, nelle Impostazioni di sincronizzazione, elenca i file della cartella sul server. Selezionane alcuni e premi **Elimina…** per fare pulizia: dopo la conferma vengono eliminati da tutti i dispositivi sincronizzati, compreso questo computer (nel cestino), e smettono di girare tra i tuoi computer.
 
 Con un repository Git ogni sincronizzazione che cambia dei file fa un commit, che porta il loro nome ("Update Databases/Games.pdb; add Projects/Study.pch"): una sincronizzazione che riceve soltanto, o non trova niente di nuovo, lascia la storia com'è.

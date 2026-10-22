@@ -85,6 +85,13 @@ public:
     /// nothing): the other devices drop their copy of that content too.
     void noteRemoved(const QString &absolutePath);
 
+    /// Files larger than this are never synced, in either direction: a
+    /// server is no place for a database of millions of games. Between it
+    /// and kQuietFileSize the user is told (filesTooLarge); larger ones are
+    /// passed over in silence.
+    static constexpr qint64 kMaxFileSize = 20 * 1024 * 1024;
+    static constexpr qint64 kQuietFileSize = 100 * 1024 * 1024;
+
     /// A file of the remote folder, for Manage Files; `size` is -1 when unknown.
     struct RemoteFile {
         QString path;
@@ -121,6 +128,10 @@ Q_SIGNALS:
     /// are everywhere until the user chooses deleteEverywhere() or
     /// restoreDeleted(); each sync reports them again until then.
     void deletedByHand(const QStringList &relativePaths);
+    /// Files (relative path → size) over kMaxFileSize and up to
+    /// kQuietFileSize, here or on the server, that the sync just left out.
+    /// Reported after every sync that found them.
+    void filesTooLarge(const QMap<QString, qint64> &files);
 
 private:
     struct Run;
@@ -165,6 +176,10 @@ private:
     QMap<QString, SyncMergeRecord> m_pendingMerges;
     /// Deletions made here that the remote manifest does not record yet, by path.
     QMap<QString, SyncDeletionRecord> m_pendingDeletions;
+    /// Over kMaxFileSize here (scanLocal), never hashed: path → size.
+    QMap<QString, qint64> m_tooLarge;
+    /// Left out by the sync being finished and to be said (reported by finish()).
+    QMap<QString, qint64> m_tooLargeToSay;
     /// Deleted by hand, found by the sync being finished (reported by finish()).
     QStringList m_deletedByHand;
     /// Content of the remote files of the last listRemote(), by path.

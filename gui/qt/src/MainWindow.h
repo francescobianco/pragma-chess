@@ -482,6 +482,8 @@ private:
     /// Files deleted by hand from the Pragma folder (FolderSync::deletedByHand):
     /// deleted from every synced device, restored, or asked again next time.
     void askAboutFilesDeletedByHand(const QStringList &paths);
+    /// Says which files the folder sync leaves out for their size (once a run each).
+    void tellFilesTooLarge(const QMap<QString, qint64> &files);
     // Options ▸ Connect Mobile App: the Android app copies the databases
     // (tech/phone-link.md) and sends back the games played on the phone.
     void createPhoneLink();
@@ -749,6 +751,8 @@ private:
     bool m_askingPhoneDeletions = false;
     /// Files deleted by hand the user said to ask about later: not again in this run.
     QSet<QString> m_postponedHandDeletions;
+    /// Files the user was told are too large to sync, in this run.
+    QSet<QString> m_toldTooLarge;
     bool m_askingHandDeletions = false;
     /// What Explain wants the border of the board to say; see updateBoardBorder().
     BoardBorder m_explainBorder = BoardBorder::Plain;

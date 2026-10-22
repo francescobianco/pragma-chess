@@ -1358,6 +1358,15 @@ the toolbar's first button (`m_syncNowAction`, Ctrl+Y).
   bringing them —, and a copy a device received and never changed leaves
   it (`SyncAction::KeptOnServer`, discarded: the server has it); one
   changed there stays, unsynced. `keepsIgnoredFilesOnTheServer` covers it.
+- **Files over 20 MB are never synced** (`FolderSync::kMaxFileSize`), in
+  either direction: `scanLocal` does not even hash them, and they are
+  planned as `.pragmaignore`'s, as if neither side had them — a file
+  synced before that grows past the limit is neither "deleted by hand" nor
+  replaced by the server's smaller copy; one on the server over the limit
+  (a version without it) is not downloaded. Up to `kQuietFileSize`
+  (100 MB) `FolderSync::filesTooLarge` reports them after the sync and
+  `MainWindow::tellFilesTooLarge` says so, once a run each; larger ones are
+  passed over in silence. `leavesLargeFilesOutOfTheSync` covers it.
 - `app/sync/SyncPipeline` runs the sync **in order**, one `SyncTask` at a
   time: `SourceSyncTask` (sources → database), a `SyncStepTask` for the
   project file, one for the session and one merging duplicate databases,

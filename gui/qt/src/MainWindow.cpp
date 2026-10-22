@@ -504,6 +504,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_folderSync, &FolderSync::deletedByHand, this, [this](const QStringList &paths) {
         QTimer::singleShot(0, this, [this, paths] { askAboutFilesDeletedByHand(paths); });
     });
+    connect(m_folderSync, &FolderSync::filesTooLarge, this, &MainWindow::tellFilesTooLarge);
     // A database the sync replaces is closed first and opened again after.
     connect(m_folderSync, &FolderSync::localFileAboutToChange, this, [this](const QString &path) {
         if (!m_database || QFileInfo(m_database->location()) != QFileInfo(path))
@@ -753,6 +754,28 @@ void MainWindow::askAboutPhoneDeletions()
         }
     }
 #endif
+}
+
+void MainWindow::tellFilesTooLarge(const QMap<QString, qint64> &files)
+{
+    QStringList names;
+    for (auto it = files.cbegin(); it != files.cend(); ++it) {
+        if (m_toldTooLarge.contains(it.key()))
+            continue;
+        m_toldTooLarge.insert(it.key());
+        names << tr("“%1” (%2)").arg(QDir::toNativeSeparators(it.key()), locale().formattedDataSize(it.value(), 1, QLocale::DataSizeTraditionalFormat));
+    }
+    if (names.isEmpty())
+        return;
+    auto *box = new QMessageBox(QMessageBox::Warning, tr("Files Too Large to Sync"),
+                                tr("%n file(s) of the Pragma folder will not be synced: %1.", nullptr, int(names.size()))
+                                    .arg(names.join(QStringLiteral(", "))),
+                                QMessageBox::Ok, this);
+    box->setInformativeText(tr("The sync with the server leaves out every file larger than %1: it stays on the "
+                               "computer that has it, and the others do not receive it.")
+                                .arg(locale().formattedDataSize(FolderSync::kMaxFileSize, 0, QLocale::DataSizeTraditionalFormat)));
+    box->setAttribute(Qt::WA_DeleteOnClose);
+    box->open();
 }
 
 void MainWindow::askAboutFilesDeletedByHand(const QStringList &paths)

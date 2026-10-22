@@ -4310,6 +4310,25 @@ non è su questo computer.</translation>
         <source>Configure &amp;AI Assistant…</source>
         <translation>Configura &amp;assistente IA…</translation>
     </message>
+    <message>
+        <source>“%1” (%2)</source>
+        <translation>«%1» (%2)</translation>
+    </message>
+    <message>
+        <source>Files Too Large to Sync</source>
+        <translation>File troppo grandi da sincronizzare</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n file(s) of the Pragma folder will not be synced: %1.</source>
+        <translation>
+            <numerusform>%n file della cartella Pragma non sarà sincronizzato: %1.</numerusform>
+            <numerusform>%n file della cartella Pragma non saranno sincronizzati: %1.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The sync with the server leaves out every file larger than %1: it stays on the computer that has it, and the others do not receive it.</source>
+        <translation>La sincronizzazione con il server lascia fuori ogni file più grande di %1: resta sul computer che lo ha, e gli altri non lo ricevono.</translation>
+    </message>
 </context>
 <context>
     <name>ManageChaptersDialog</name>

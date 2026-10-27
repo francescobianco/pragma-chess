@@ -116,6 +116,93 @@ Manager). macOS non ha un tetto per un altro processo: lì solo thread e
 priorità; se non basta, l'unica via è sospendere il processo a intermittenza
 (SIGSTOP/SIGCONT), scartata finché nessuno la chiede.
 
+### macOS firmato e notarizzato, con l'account del circolo (27/10/2026)
+
+L'utente vuole che su Mac l'app si apra senza "sviluppatore non
+identificato" né Privacy e sicurezza ▸ Apri comunque. **Il codice è già
+pronto**: `packaging/macos/build.sh` firma con Developer ID e hardened
+runtime (dall'interno: dylib, framework, `stockfish`, `pragma-explain`,
+`pragma-book`, poi il bundle), notarizza e "stapla" il `.dmg`, e
+`release.yml` importa il certificato. Mancano solo l'account Apple e i
+secret su GitHub (oggi ci sono solo `DISTRIBUTION_TOKEN` e `WINGET_TOKEN`:
+la release esce firmata ad hoc). Il Mac App Store no: vuole la sandbox
+(motori scaricati ed eseguiti, cartelle scelte, sync).
+
+**Il costo**: l'Apple Developer Program costa 99 USD/anno. Le versioni già
+notarizzate restano valide anche se non si rinnova (firma con timestamp).
+Apple esenta dalla quota i non profit *riconosciuti* che siano *persona
+giuridica*, senza app a pagamento ([fee
+waiver](https://developer.apple.com/support/membership-fee-waiver/); nessun
+elenco di paesi). **L'utente è il presidente dell'ASD Circolo del Re –
+Castelvetrano Scacchi**: l'account sarebbe del circolo, lui l'Account
+Holder, e macOS mostrerebbe il circolo come sviluppatore. Dubbi: il RAS è un
+registro sportivo, non "di beneficenza" (il RUNTS, APS/ETS, sarebbe più
+forte); molte ASD sono associazioni non riconosciute, senza personalità
+giuridica.
+
+Passi, dove l'utente è rimasto:
+1. Verificare: iscrizione al RAS, al RUNTS?, associazione riconosciuta?
+2. Apple ID del circolo, meglio `…@circolodelre.it`, con 2FA.
+3. D-U-N-S gratuito ([duns-lookup](https://developer.apple.com/enroll/duns-lookup/)),
+   nome e indirizzo esattamente come statuto e codice fiscale (1–2 settimane).
+4. Documenti: statuto, atto costitutivo, certificato RAS (e RUNTS), codice
+   fiscale, verbale di nomina del presidente.
+5. Chiedere prima ad Apple ([modulo](https://developer.apple.com/contact/membership-fee-waiver/)),
+   con la bozza sotto.
+6. Iscrizione come *Organization* con l'opzione fee waiver (Apple telefona
+   per verificare il potere di firma).
+7. Certificato *Developer ID Application* (Xcode ▸ Settings ▸ Accounts ▸
+   Manage Certificates), esportato in `.p12`; password per app su
+   account.apple.com; Team ID da developer.apple.com/account.
+8. Secret:
+   ```bash
+   gh secret set MACOS_CERTIFICATE < <(base64 -i DeveloperID.p12)
+   gh secret set MACOS_CERTIFICATE_PASSWORD
+   gh secret set MACOS_SIGN_IDENTITY --body "Developer ID Application: <nome> (TEAMID)"
+   gh secret set APPLE_ID --body "<apple id>"
+   gh secret set APPLE_TEAM_ID --body "TEAMID"
+   gh secret set APPLE_APP_PASSWORD
+   ```
+9. Prova in locale prima del tag: `build.sh` con le stesse variabili, poi
+   `spctl -a -vvv -t install dist/*.dmg` ("accepted, Notarized Developer
+   ID") e `xcrun stapler validate`; un rifiuto si legge con
+   `xcrun notarytool log <id>`. Aggiornare packaging/README.md e
+   DISTRIBUTING.md.
+
+Senza account: almeno spiegare bene il primo avvio su macOS nella pagina di
+download e nel README. Poi, notarizzata, un cask di Homebrew (che toglie i
+cask non firmati). Windows ha lo stesso problema (SmartScreen, installer
+non firmato): Azure Trusted Signing, ~10 $/mese.
+
+Bozza della domanda ad Apple (aggiungere il RUNTS se c'è):
+
+> **Subject:** Fee waiver eligibility – Italian non-profit amateur sports association
+>
+> Hello,
+>
+> I am the president and legal representative of **ASD Circolo del Re –
+> Castelvetrano Scacchi**, a non-profit amateur sports association
+> (*Associazione Sportiva Dilettantistica*) based in Italy. It is registered
+> in the Italian national register of amateur sports organizations (RAS,
+> Registro nazionale delle attività sportive dilettantistiche, kept by the
+> Department for Sport of the Italian Government) and is non-profit by law
+> (Legislative Decree 36/2021).
+>
+> We would like to enroll in the Apple Developer Program as an organization
+> to sign and notarize **Pragma Chess**, a free and open-source chess program
+> (https://github.com/francescobianco/pragma-chess) that our club supports
+> and uses for teaching. We do not sell any app, in-app purchase or digital
+> service.
+>
+> Before enrolling, could you confirm whether our association is eligible for
+> the membership fee waiver, and which documents you would need (statute,
+> certificate of registration in the RAS, tax code)?
+>
+> Thank you,
+> Francesco Bianco
+> President, ASD Circolo del Re – Castelvetrano Scacchi
+> https://circolodelre.it
+
 ### 0. Dopo la 0.3.0: quel che resta dei pacchetti
 
 - **Al prossimo rilascio, pulizia:** la release 0.3.0 ha quattro file

@@ -670,7 +670,9 @@ private Q_SLOTS:
             const std::optional<GameRecord> game = PgnFile::read(text, &error);
             QVERIFY2(game, qPrintable(error));
             // As many moves as the text has: none cut by an illegal one.
-            const QString moves = QString::fromUtf8(text).section(QStringLiteral("\n\n"), 1);
+            // Windows' checkout ends the lines with CRLF.
+            const QString moves = QString::fromUtf8(text).replace(QStringLiteral("\r\n"), QStringLiteral("\n"))
+                                      .section(QStringLiteral("\n\n"), 1);
             int sans = 0;
             for (const QString &word : moves.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts)) {
                 if (!word.endsWith(QLatin1Char('.')) && !word.contains(QLatin1Char('-')) ? true : word.startsWith(QLatin1String("O-O")))
@@ -1786,8 +1788,10 @@ QString writeChessBaseFixture(const QString &dir)
         QTemporaryDir dir;
         const QString path = dir.filePath(QStringLiteral("chatgpt-auth.json"));
         QVERIFY(ChatGptAuth::save(credentials, path));
+#ifndef Q_OS_WIN // NTFS has no group and others: Qt reports them as the owner.
         QCOMPARE(QFile::permissions(path) & (QFile::ReadGroup | QFile::ReadOther | QFile::WriteGroup | QFile::WriteOther),
                  QFile::Permissions());
+#endif
         ChatGptAuth::Credentials read = ChatGptAuth::load(path);
         QCOMPARE(read.hostId, credentials.hostId);
         QCOMPARE(read.refreshToken, QStringLiteral("rt"));

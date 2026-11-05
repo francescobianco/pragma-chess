@@ -4018,10 +4018,13 @@ END FUNCTION
         QCOMPARE(mapped->statsWithPosition(position), many.statsWithPosition(position));
         QCOMPARE(mapped->gamesWithLine(ChessPosition::startingPosition(), line),
                  many.gamesWithLine(ChessPosition::startingPosition(), line));
-        // A file cut short is not taken.
-        QFile cut(path);
+        // A file cut short is not taken. A copy is cut: Windows cannot
+        // shorten a file that is mapped.
+        const QString cutPath = dir.filePath(QStringLiteral("cut.pix"));
+        QVERIFY(QFile::copy(path, cutPath));
+        QFile cut(cutPath);
         QVERIFY(cut.resize(cut.size() - 5));
-        QVERIFY(!PositionIndex::load(path, "stamp 1"));
+        QVERIFY(!PositionIndex::load(cutPath, "stamp 1"));
     }
 
     void indexesPositionsAndLines()
@@ -5777,7 +5780,8 @@ END FUNCTION
     void keepsTheProjectsDatabaseLineage()
     {
         Project project;
-        project.databasePath = QStringLiteral("/somewhere/Databases/Endgames.pdb");
+        // Absolute on every system: "/somewhere" is "D:/somewhere" on Windows.
+        project.databasePath = QDir::cleanPath(QDir::rootPath() + QStringLiteral("somewhere/Databases/Endgames.pdb"));
         project.databaseLineage = GameIdentity::kEndgamesLineage;
         const QString yaml = project.toYaml();
         QVERIFY(yaml.contains(QLatin1String("lineage: ") + GameIdentity::kEndgamesLineage));

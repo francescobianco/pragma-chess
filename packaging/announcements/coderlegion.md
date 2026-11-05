@@ -41,7 +41,7 @@ What else is in it:
 - English, Italian, Spanish — and a Chinese translation just started by a
   first-time contributor.
 
-It's young (0.3.0, 0.4.0 coming at the end of October). Feedback, bug
+It's young (0.4.0, out on 5 November). Feedback, bug
 reports and contributors are very welcome — there are good first issues and
 a guide for translators in CONTRIBUTING.md.
 

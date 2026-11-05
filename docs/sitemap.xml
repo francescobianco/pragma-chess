@@ -183,6 +183,13 @@
     <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/"/>
   </url>
   <url>
+    <loc>https://yafb.net/pragma-chess/en/blog/version-0-4/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/version-0-4/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/version-0-4/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/version-0-4/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/version-0-4/"/>
+  </url>
+  <url>
     <loc>https://yafb.net/pragma-chess/en/blog/three-languages-in-a-week/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/three-languages-in-a-week/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/three-languages-in-a-week/"/>
@@ -377,6 +384,13 @@
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/it/blog/version-0-4/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/version-0-4/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/version-0-4/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/version-0-4/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/version-0-4/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/it/blog/three-languages-in-a-week/</loc>
@@ -575,6 +589,13 @@
     <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/"/>
   </url>
   <url>
+    <loc>https://yafb.net/pragma-chess/es/blog/version-0-4/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/version-0-4/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/version-0-4/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/version-0-4/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/version-0-4/"/>
+  </url>
+  <url>
     <loc>https://yafb.net/pragma-chess/es/blog/three-languages-in-a-week/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/three-languages-in-a-week/"/>
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/three-languages-in-a-week/"/>
@@ -769,6 +790,13 @@
     <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/"/>
+  </url>
+  <url>
+    <loc>https://yafb.net/pragma-chess/ru/blog/version-0-4/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/version-0-4/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/version-0-4/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/version-0-4/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/version-0-4/"/>
   </url>
   <url>
     <loc>https://yafb.net/pragma-chess/ru/blog/three-languages-in-a-week/</loc>

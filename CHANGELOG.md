@@ -6,6 +6,8 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-05
+
 ### Added
 
 - **The sync leaves large files out**: a file over 20 MB of the Pragma
@@ -225,7 +227,7 @@ and the versions follow [Semantic Versioning](https://semver.org/).
 - Titles and subtitles in the move list have less room under them.
 - The `.pdb` schema is now version 8 (the games' other PGN tags and their
   comments). A database opened by this version can no longer be opened by
-  0.3.0, nor by the Android app before 0.3.1.
+  0.3.0, nor by the Android app before 0.4.0.
 
 ### Fixed
 
@@ -639,7 +641,8 @@ First public release.
   as they happen on a real board.
 - **Language.** *Options ▸ Language* chooses the interface language.
 
-[Unreleased]: https://github.com/francescobianco/pragma-chess/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/francescobianco/pragma-chess/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/francescobianco/pragma-chess/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/francescobianco/pragma-chess/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/francescobianco/pragma-chess/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/francescobianco/pragma-chess/releases/tag/v0.1.0

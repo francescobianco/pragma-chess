@@ -7,7 +7,7 @@ if(POLICY CMP0135)
 endif()
 
 # Release builds pass the version of their tag (see packaging/).
-set(PRAGMA_VERSION 0.3.0 CACHE STRING "Version of Pragma Chess being built")
+set(PRAGMA_VERSION 0.4.0 CACHE STRING "Version of Pragma Chess being built")
 
 project(PragmaChess
     VERSION ${PRAGMA_VERSION}

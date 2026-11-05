@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pragma Chess 0.4: большие базы, freechess.org и сила сыгранной партии – Pragma Chess</title>
+<meta name="description" content="Месяц работы в одной версии: миллионы партий открываются за секунды, игра на freechess.org, каждая онлайн-партия оценивается ход за ходом с примерным Эло, движки и базы ставятся одним щелчком, и три новых языка.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/ru/blog/version-0-4/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/version-0-4/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/version-0-4/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/version-0-4/">
+<link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/version-0-4/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/blog/version-0-4/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/ru/blog/version-0-4/">
+<meta property="og:title" content="Pragma Chess 0.4: большие базы, freechess.org и сила сыгранной партии – Pragma Chess">
+<meta property="og:description" content="Месяц работы в одной версии: миллионы партий открываются за секунды, игра на freechess.org, каждая онлайн-партия оценивается ход за ходом с примерным Эло, движки и базы ставятся одним щелчком, и три новых языка.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/ru/blog/version-0-4/course.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Меню">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Возможности</a>
+    <a href="../../#screenshots">Скриншоты</a>
+    <a href="../../#download">Скачать</a>
+    <a href="../../#supporters">Поддержка</a>
+    <a href="../../#support">Помощь</a>
+    <a href="../../../ru/guide/">Руководство</a>
+    <a href="../../../ru/blog/" class="current">Блог</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/blog/version-0-4/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/blog/version-0-4/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/blog/version-0-4/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/blog/version-0-4/" hreflang="ru" class="current">Русский</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post">
+  <p class="post-back"><a href="../">← Блог</a></p>
+  <header>
+    <time datetime="2026-11-05">5 ноября 2026</time>
+    <h1>Pragma Chess 0.4: большие базы, freechess.org и сила сыгранной партии</h1>
+    <p class="post-lead">Месяц работы в одной версии: миллионы партий открываются за секунды, игра на freechess.org, каждая онлайн-партия оценивается ход за ходом с примерным Эло, движки и базы ставятся одним щелчком, и три новых языка.</p>
+  </header>
+  <figure class="post-figure post-figure-wide">
+  <img src="course.png" alt="Панель движка Pragma Chess с ходом партии и силой, которую показала каждая сторона" width="1280" height="820">
+  <figcaption>Ход партии рядом с оценкой и сила, которую показала каждая сторона.</figcaption>
+</figure>
+
+<p>Вышел Pragma Chess 0.4.0 для Windows, macOS и Linux, а также тестовое приложение для Android. Это месяц работы и более трёхсот изменений с версии 0.3.0; вот те, что вы заметите первыми. Полный список — в <a href="https://github.com/francescobianco/pragma-chess/releases/tag/v0.4.0">примечаниях к выпуску</a> (на английском).</p>
+
+<h2>Базы из миллионов партий</h2>
+
+<p>База из 1,26 миллиона партий теперь открывается за 3,5 секунды вместо 34 и занимает 0,6 ГБ памяти вместо 6,8. Поиск по позиции (Доска ▸ Позиция) готов сразу для базы, которую уже открывали, и строится на всех ядрах компьютера. Чтобы создать такую базу, есть первый инструмент нового меню «Инструменты»: <strong>Преобразовать ▸ PGN в базу Pragma</strong> — файл PGN любого размера читается по частям, пока вы продолжаете работать. А <strong>Инструменты ▸ Управление расширениями</strong> устанавливает большие базы из каталога En Croissant — Lumbra's GigaBase, Caissabase, MillionBase, — преобразуя их на вашем компьютере, и движки вроде Stockfish, RubiChess или Dragon со страниц их авторов. Перед каждой загрузкой программа говорит, откуда файл и на каких условиях.</p>
+
+<h2>Игра на freechess.org — и разбор того, как вы сыграли</h2>
+
+<p>Кроме lichess.org, Pragma Chess теперь играет на <strong>freechess.org</strong>, Free Internet Chess Server, под вашей учётной записью или гостем. Во время игры в панели движка стоят два больших цифровых часа, под ними — «Предложить ничью» и «Сдаться»; движок, «Объяснить» и дебютная книга выключены. Когда партия закончена, Pragma Chess оценивает её ход за ходом: рядом с оценкой появляется ход партии, а в окошке — <strong>сила, которую показала каждая сторона</strong>, примерное Эло белых и чёрных. Это грубая оценка по одной партии, но она откалибрована на партиях более чем четырнадцати тысяч игроков lichess с рейтингом.</p>
+
+<h2>Куда ведёт линия движка</h2>
+
+<p>Удерживайте глаз рядом с кнопкой «Стоп», и доска покажет позицию в конце линии движка, следуя за ней по мере углубления. Фиолетовые стрелки рисуют планы, заключённые в линии: маршрут коня, подъём ладьи, марш короля в эндшпиле, прорыв пешки. А «Объяснить» разыгрывает мат на доске только тогда, когда вы можете им воспользоваться; долгий спокойный мат, как ферзём против короля, — это техника, и «Объяснить» рисует план и клетку, в которой заперт проигрывающий король.</p>
+
+<h2>Для занятий</h2>
+
+<p>Окно приветствия открывает ваши проекты и базы одним щелчком. С программой приходят два новых проекта на английском и итальянском: <em>Pawn Endgames</em> (пешечные окончания) и <em>Fischer – Spassky 1972</em>, шестая партия матча в Рейкьявике с комментариями. Этюды (studies) lichess.org подключаются как источник, каждая глава — партия; базы ChessBase 17 читаются с вариантами и примечаниями; комментарии, контроль времени и все теги PGN сохраняются. Появился новый стиль доски, <em>Classic Book</em>, как диаграмма в печатной шахматной книге, и звук фигуры, поставленной на доску.</p>
+
+<h2>На пяти языках</h2>
+
+<p>Pragma Chess говорит также по-испански, по-русски и по-китайски (упрощённое письмо) — благодаря людям, <a href="../three-languages-in-a-week/">которых мы благодарили несколько недель назад</a>. У каждого движка есть <strong>вычислительная мощность</strong>, по умолчанию «Средне», чтобы вентиляторы не шумели во время анализа. Для Linux есть AppImage — один файл, который работает в большинстве дистрибутивов, а программа теперь ненавязчиво сообщает о выходе новой версии.</p>
+
+<h2>Попробуйте и расскажите нам</h2>
+
+<p>Скачайте его на <a href="../../#download">главной странице</a>. Базу, открытую версией 0.4.0, уже нельзя открыть в 0.3.0: обновите и приложение Android. Если что-то ломается или чего-то не хватает, пишите в <a href="https://github.com/francescobianco/pragma-chess/discussions">Обсуждениях</a> или откройте <a href="https://github.com/francescobianco/pragma-chess/issues">задачу</a>: первые найденные проблемы скоро будут исправлены в версии 0.4.1.</p>
+
+  <p class="post-back"><a href="../">← Все статьи</a></p>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess — свободное ПО под лицензией MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Что нового</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/blog/version-0-4/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/blog/version-0-4/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/blog/version-0-4/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/blog/version-0-4/" hreflang="ru" class="current">Русский</a></p>
+  <p class="credits">Сделано на Qt. Движок по умолчанию: Stockfish (GPL v3). Названия дебютов: lichess-org/chess-openings (CC0). Фигуры: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

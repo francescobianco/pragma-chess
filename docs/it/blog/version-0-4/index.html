@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pragma Chess 0.4: grandi database, freechess.org e la forza di una partita – Pragma Chess</title>
+<meta name="description" content="Un mese di lavoro in una versione: milioni di partite aperte in pochi secondi, il gioco su freechess.org, ogni partita online giudicata mossa per mossa con un Elo stimato, motori e database installati con un clic, e tre lingue nuove.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/it/blog/version-0-4/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/version-0-4/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/version-0-4/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/version-0-4/">
+<link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/version-0-4/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/blog/version-0-4/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/it/blog/version-0-4/">
+<meta property="og:title" content="Pragma Chess 0.4: grandi database, freechess.org e la forza di una partita – Pragma Chess">
+<meta property="og:description" content="Un mese di lavoro in una versione: milioni di partite aperte in pochi secondi, il gioco su freechess.org, ogni partita online giudicata mossa per mossa con un Elo stimato, motori e database installati con un clic, e tre lingue nuove.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/it/blog/version-0-4/course.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Funzioni</a>
+    <a href="../../#screenshots">Schermate</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Sostenitori</a>
+    <a href="../../#support">Supporto</a>
+    <a href="../../../it/guide/">Guida</a>
+    <a href="../../../it/blog/" class="current">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/blog/version-0-4/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/blog/version-0-4/" hreflang="it" class="current">Italiano</a><a href="https://yafb.net/pragma-chess/es/blog/version-0-4/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/blog/version-0-4/" hreflang="ru">Русский</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post">
+  <p class="post-back"><a href="../">← Blog</a></p>
+  <header>
+    <time datetime="2026-11-05">5 novembre 2026</time>
+    <h1>Pragma Chess 0.4: grandi database, freechess.org e la forza di una partita</h1>
+    <p class="post-lead">Un mese di lavoro in una versione: milioni di partite aperte in pochi secondi, il gioco su freechess.org, ogni partita online giudicata mossa per mossa con un Elo stimato, motori e database installati con un clic, e tre lingue nuove.</p>
+  </header>
+  <figure class="post-figure post-figure-wide">
+  <img src="course.png" alt="Il pannello del motore di Pragma Chess con l'andamento della partita e la forza mostrata da ciascun lato" width="1280" height="820">
+  <figcaption>L'andamento della partita accanto al punteggio, e la forza mostrata da ciascun lato.</figcaption>
+</figure>
+
+<p>È uscito Pragma Chess 0.4.0, per Windows, macOS e Linux, e come app Android in prova. È un mese di lavoro e più di trecento modifiche dalla 0.3.0; ecco quelle che noterete per prime. L'elenco completo è nelle <a href="https://github.com/francescobianco/pragma-chess/releases/tag/v0.4.0">note della versione</a>.</p>
+
+<h2>Database di milioni di partite</h2>
+
+<p>Un database di 1,26 milioni di partite ora si apre in 3,5 secondi invece di 34, in 0,6 GB di memoria invece di 6,8. La ricerca per posizione (Scacchiera ▸ Posizione) è pronta subito su un database già aperto prima, e si costruisce su tutti i core del computer. Per creare un database così c'è il primo strumento del nuovo menu Strumenti, <strong>Converti ▸ Da PGN a database Pragma</strong>: un file PGN di qualunque dimensione, letto un pezzo alla volta mentre continuate a lavorare. E <strong>Strumenti ▸ Gestione estensioni</strong> installa i grandi database del catalogo di En Croissant — Lumbra's GigaBase, Caissabase, MillionBase — convertiti sul vostro computer, e motori come Stockfish, RubiChess o Dragon, dalle pagine dei loro autori. Prima di ogni download dice da dove viene il file e a quali condizioni.</p>
+
+<h2>Giocare su freechess.org, e poi vedere come si è giocato</h2>
+
+<p>Oltre che su lichess.org, Pragma Chess ora gioca su <strong>freechess.org</strong>, il Free Internet Chess Server, con il vostro account o come ospiti. Mentre giocate, due grandi orologi digitali stanno nel pannello del motore, con Proponi patta e Abbandona sotto; motore, Spiega e libro sono spenti. A fine partita Pragma Chess la valuta mossa per mossa: accanto al punteggio compare l'andamento della partita, e il riquadro mostra <strong>la forza mostrata da ciascun lato</strong>, un Elo stimato per il Bianco e per il Nero. È approssimativo, da una partita sola, ma è tarato su più di quattordicimila giocatori di lichess con punteggio.</p>
+
+<h2>Dove porta la linea del motore</h2>
+
+<p>Tenete premuto l'occhio accanto a Ferma e la scacchiera mostra la posizione alla fine della linea del motore, seguendola mentre va più a fondo. Frecce viola disegnano i piani che la linea contiene: il percorso di un cavallo, una torre che sale, il re che marcia nel finale, un pedone che sfonda. Spiega, da parte sua, gioca un matto sulla scacchiera solo quando è uno che potete usare; un matto lungo e tranquillo, come donna contro re, è tecnica, e Spiega ne disegna il piano e la gabbia in cui è chiuso il re che perde.</p>
+
+<h2>Per studiare</h2>
+
+<p>Una finestra di benvenuto apre con un clic i vostri progetti e database. Con il programma arrivano due progetti nuovi, in italiano e in inglese: <em>Finali di pedone</em> e <em>Fischer – Spassky 1972</em>, la sesta partita di Reykjavik commentata. Gli studi di lichess.org si collegano come fonte, ogni capitolo una partita; i database di ChessBase 17 si leggono con varianti e annotazioni; commenti, cadenze di gioco e ogni tag PGN sono conservati. C'è un nuovo stile di scacchiera, <em>Classic Book</em>, come il diagramma di un libro di scacchi stampato, e il suono del pezzo posato sulla scacchiera.</p>
+
+<h2>In cinque lingue</h2>
+
+<p>Pragma Chess parla anche spagnolo, russo e cinese semplificato, grazie alle persone <a href="../three-languages-in-a-week/">che abbiamo ringraziato qualche settimana fa</a>. Ogni motore ha una <strong>Potenza di calcolo</strong>, Media per impostazione, così le ventole restano tranquille mentre analizza. Su Linux c'è un'AppImage, un solo file che funziona sulla maggior parte delle distribuzioni, e il programma ora dice con discrezione quando è uscita una versione nuova.</p>
+
+<h2>Provatelo, e diteci</h2>
+
+<p>Scaricatelo dalla <a href="../../#download">pagina principale</a>. Un database aperto dalla 0.4.0 non si apre più con la 0.3.0: aggiornate anche l'app Android. Se qualcosa si rompe, o manca, scrivete nelle <a href="https://github.com/francescobianco/pragma-chess/discussions">Discussioni</a> o aprite una <a href="https://github.com/francescobianco/pragma-chess/issues">segnalazione</a>: i primi problemi segnalati saranno corretti presto, in una 0.4.1.</p>
+
+  <p class="post-back"><a href="../">← Tutti gli articoli</a></p>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess è software libero con licenza MIT. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">Novità</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Segnalazioni</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/blog/version-0-4/" hreflang="en">English</a><a href="https://yafb.net/pragma-chess/it/blog/version-0-4/" hreflang="it" class="current">Italiano</a><a href="https://yafb.net/pragma-chess/es/blog/version-0-4/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/blog/version-0-4/" hreflang="ru">Русский</a></p>
+  <p class="credits">Costruito con Qt. Motore predefinito: Stockfish (GPL v3). Nomi delle aperture da lichess-org/chess-openings (CC0). Pezzi: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

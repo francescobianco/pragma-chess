@@ -32,18 +32,21 @@ with what really matters and nothing in the way.
 - **Play online** on lichess.org or on the Free Internet Chess Server
   (freechess.org, even as a guest), from the same board, with the engine and
   the book switched off while you play.
-- Variations, annotations, comments, Polyglot opening books, sync between
-  your computers, and the interface in English and Italian.
+- **See how you played**: when an online game ends, Pragma Chess evaluates
+  it move by move and shows the strength each side showed, an estimated Elo.
+- Variations, annotations, comments, Polyglot opening books, lichess studies
+  as a source, sync between your computers, and the interface in English,
+  Italian, Spanish, Russian and Simplified Chinese.
 
 ## How to install it
 
 - **Windows**: [download the installer](https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-windows-x64-setup.exe), open it and follow the steps; then start Pragma Chess from the Start menu.
 - **macOS** (Apple Silicon): [download the disk image](https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-macos-arm64.dmg) and drag Pragma Chess to Applications. If macOS says the developer cannot be identified, allow it in System Settings → Privacy & Security.
-- **Linux**: the [.deb](https://github.com/francescobianco/pragma-chess/releases/latest/download/pragma-chess_amd64.deb) for Ubuntu 24.04+ and Debian 13+, the [.rpm](https://github.com/francescobianco/pragma-chess/releases/latest/download/pragma-chess.x86_64.rpm) for Fedora.
+- **Linux**: the [.deb](https://github.com/francescobianco/pragma-chess/releases/latest/download/pragma-chess_amd64.deb) for Ubuntu 24.04+ and Debian 13+, the [.rpm](https://github.com/francescobianco/pragma-chess/releases/latest/download/pragma-chess.x86_64.rpm) for Fedora, the [AppImage](https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-linux-x86_64.AppImage) for any other distribution (make it executable and run it).
 - **Android** (beta): [download the APK](https://github.com/francescobianco/pragma-chess/releases/latest/download/PragmaChess-android.apk) and allow the installation when Android asks: the app is not on Google Play yet.
 
-Everything is on the site, in English and Italian:
-https://yafb.net/pragma-chess/
+Everything is on the site, with what is new in version 0.4.0:
+https://yafb.net/pragma-chess/en/blog/version-0-4/
 
 ## Free and open source
 

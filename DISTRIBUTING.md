@@ -18,8 +18,8 @@ the downloads.
 - **One post per place, then listen.** Reply to every comment and open an
   issue for every problem reported, with a thank-you. Never repost the same
   thing in the same place.
-- **Say what it is.** Version 0.3.0 (the next one will bring freechess.org
-  and large databases), Windows/macOS/Linux, MIT; the Android app is in
+- **Say what it is.** Version 0.4.0 (freechess.org, large databases, the
+  strength of a game, five languages), Windows/macOS/Linux, MIT; the Android app is in
   testing. No comparisons that talk down other programs; ChessBase,
   Scid and ChessX are mentioned only to place Pragma Chess among them.
 - **Show, do not claim.** Lead with the Opera-game screenshot of Explain and
@@ -219,7 +219,7 @@ if they show up, thank them and point them to `packaging/linux/`.
 > Site and downloads: https://yafb.net/pragma-chess/ — source:
 > https://github.com/francescobianco/pragma-chess
 >
-> It is version 0.3.0: I would love to hear what breaks and what you miss.
+> It is version 0.4.0: I would love to hear what breaks and what you miss.
 
 **IT**
 
@@ -234,12 +234,12 @@ if they show up, thank them and point them to `packaging/linux/`.
 > sugli errori, e giochi su lichess.org o freechess.org dalla stessa
 > scacchiera (motore e libro spenti mentre giochi). Varianti, annotazioni,
 > libri Polyglot, sincronizzazione tra computer, database di milioni di
-> partite. Tutto in italiano.
+> partite. In italiano, inglese, spagnolo, russo e cinese.
 >
 > Sito e download: https://yafb.net/pragma-chess/ — codice:
 > https://github.com/francescobianco/pragma-chess
 >
-> È la versione 0.3.0: mi interessa sapere cosa si rompe e cosa manca.
+> È la versione 0.4.0: mi interessa sapere cosa si rompe e cosa manca.
 
 ### Show HN title and first comment
 

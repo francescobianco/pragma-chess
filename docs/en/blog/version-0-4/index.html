@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pragma Chess 0.4: big databases, freechess.org, and the strength of a game – Pragma Chess</title>
+<meta name="description" content="A month of work in one release: millions of games opened in seconds, play on freechess.org, every online game judged move by move with an estimated Elo, engines and databases installed with a click, and three new languages.">
+<link rel="icon" href="../../../assets/favicon.png">
+<link rel="stylesheet" href="../../../assets/style.css">
+<link rel="canonical" href="https://yafb.net/pragma-chess/en/blog/version-0-4/">
+<link rel="alternate" hreflang="en" href="https://yafb.net/pragma-chess/en/blog/version-0-4/">
+<link rel="alternate" hreflang="it" href="https://yafb.net/pragma-chess/it/blog/version-0-4/">
+<link rel="alternate" hreflang="es" href="https://yafb.net/pragma-chess/es/blog/version-0-4/">
+<link rel="alternate" hreflang="ru" href="https://yafb.net/pragma-chess/ru/blog/version-0-4/">
+<link rel="alternate" hreflang="x-default" href="https://yafb.net/pragma-chess/en/blog/version-0-4/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pragma Chess">
+<meta property="og:url" content="https://yafb.net/pragma-chess/en/blog/version-0-4/">
+<meta property="og:title" content="Pragma Chess 0.4: big databases, freechess.org, and the strength of a game – Pragma Chess">
+<meta property="og:description" content="A month of work in one release: millions of games opened in seconds, play on freechess.org, every online game judged move by move with an estimated Elo, engines and databases installed with a click, and three new languages.">
+<meta property="og:image" content="https://yafb.net/pragma-chess/en/blog/version-0-4/course.png">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../../#top"><img src="../../../assets/logo.png" alt="" width="36" height="36"><span>Pragma Chess</span></a>
+  <input type="checkbox" id="menu" class="menu-toggle" aria-label="Menu">
+  <label for="menu" class="menu-button" aria-hidden="true"><span></span><span></span><span></span></label>
+  <nav class="nav">
+    <a href="../../#features">Features</a>
+    <a href="../../#screenshots">Screenshots</a>
+    <a href="../../#download">Download</a>
+    <a href="../../#supporters">Supporters</a>
+    <a href="../../#support">Support</a>
+    <a href="../../../en/guide/">Guide</a>
+    <a href="../../../en/blog/" class="current">Blog</a>
+    <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a>
+    <span class="languages"><a href="https://yafb.net/pragma-chess/en/blog/version-0-4/" hreflang="en" class="current">English</a><a href="https://yafb.net/pragma-chess/it/blog/version-0-4/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/blog/version-0-4/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/blog/version-0-4/" hreflang="ru">Русский</a></span>
+  </nav>
+</header>
+
+<main>
+<article class="post">
+  <p class="post-back"><a href="../">← Blog</a></p>
+  <header>
+    <time datetime="2026-11-05">November 5, 2026</time>
+    <h1>Pragma Chess 0.4: big databases, freechess.org, and the strength of a game</h1>
+    <p class="post-lead">A month of work in one release: millions of games opened in seconds, play on freechess.org, every online game judged move by move with an estimated Elo, engines and databases installed with a click, and three new languages.</p>
+  </header>
+  <figure class="post-figure post-figure-wide">
+  <img src="course.png" alt="The Engine panel of Pragma Chess with the course of the game and the strength each side showed" width="1280" height="820">
+  <figcaption>The course of the game beside the score, and the strength each side showed.</figcaption>
+</figure>
+
+<p>Pragma Chess 0.4.0 is out, for Windows, macOS and Linux, and as an Android app in testing. It is a month of work and more than three hundred changes since 0.3.0; here are the ones you will notice first. The complete list is in the <a href="https://github.com/francescobianco/pragma-chess/releases/tag/v0.4.0">release notes</a>.</p>
+
+<h2>Databases of millions of games</h2>
+
+<p>A database of 1.26 million games now opens in 3.5 seconds instead of 34, in 0.6 GB of memory instead of 6.8. The search by position (Board ▸ Position) is ready at once on a database opened before, and is built on every core of the computer. To make such a database there is the first tool of the new Tools menu, <strong>Convert ▸ PGN to Pragma Database</strong>: a PGN file of any size, read a piece at a time while you go on working. And <strong>Tools ▸ Manage Extensions</strong> installs the big databases of En Croissant's registry — Lumbra's GigaBase, Caissabase, MillionBase — converted on your computer, as well as engines such as Stockfish, RubiChess or Dragon, from their authors' own pages. Before every download it says where the file comes from and on whose terms.</p>
+
+<h2>Play on freechess.org, then see how you played</h2>
+
+<p>Besides lichess.org, Pragma Chess now plays on <strong>freechess.org</strong>, the Free Internet Chess Server, with your account or as a guest. While you play, two large digital clocks sit in the Engine panel, with Offer Draw and Resign under them; the engine, Explain and the book are off. When the game ends, Pragma Chess evaluates it move by move: the course of the game appears beside the score, and the box shows <strong>the strength each side showed</strong>, an estimated Elo for White and for Black. It is rough, from one game, but it is calibrated on more than fourteen thousand rated lichess players.</p>
+
+<h2>Where the engine's line leads</h2>
+
+<p>Hold the eye beside Stop and the board shows the position at the end of the engine's line, following it as it goes deeper. Violet arrows draw the plans the line holds: a knight's route, a rook lift, the king marching in an endgame, a pawn breaking through. Explain, for its part, plays a mate on the board only when it is one you can use; a long quiet mate, like queen against king, is technique, and Explain draws the plan and the cage the losing king is shut in.</p>
+
+<h2>To study</h2>
+
+<p>A welcome window opens your projects and databases with a click. Two new projects come with the program, in English and Italian: <em>Pawn Endgames</em> and <em>Fischer – Spassky 1972</em>, the sixth game of Reykjavik with comments. Studies on lichess.org can be connected as a source, each chapter a game; ChessBase 17 databases are read with their variations and annotations; comments, time controls and every PGN tag are kept. There is a new board style, <em>Classic Book</em>, like the diagram of a printed chess book, and the sound of a piece set down on the board.</p>
+
+<h2>In five languages</h2>
+
+<p>Pragma Chess speaks Spanish, Russian and Simplified Chinese too, thanks to the people <a href="../three-languages-in-a-week/">we thanked a few weeks ago</a>. Each engine has a <strong>Computing Power</strong>, Medium by default, so the fans stay quiet while it analyses. On Linux there is an AppImage, one file that runs on most distributions, and the program now says quietly when a newer version is out.</p>
+
+<h2>Try it, and tell us</h2>
+
+<p>Download it from the <a href="../../#download">home page</a>. A database opened by 0.4.0 can no longer be opened by 0.3.0: update the Android app too. If something breaks, or something is missing, write in the <a href="https://github.com/francescobianco/pragma-chess/discussions">Discussions</a> or open an <a href="https://github.com/francescobianco/pragma-chess/issues">issue</a>: the first problems you report will be fixed in a 0.4.1, soon.</p>
+
+  <p class="post-back"><a href="../">← All articles</a></p>
+</article>
+</main>
+<footer class="bottom">
+  <p>Pragma Chess is free software under the MIT License. · <a href="https://github.com/francescobianco/pragma-chess" rel="noopener">GitHub</a> · <a href="https://github.com/francescobianco/pragma-chess/blob/main/CHANGELOG.md" rel="noopener">What's new</a> · <a href="https://github.com/francescobianco/pragma-chess/issues" rel="noopener">Issues</a></p>
+  <p class="languages"><a href="https://yafb.net/pragma-chess/en/blog/version-0-4/" hreflang="en" class="current">English</a><a href="https://yafb.net/pragma-chess/it/blog/version-0-4/" hreflang="it">Italiano</a><a href="https://yafb.net/pragma-chess/es/blog/version-0-4/" hreflang="es">Español</a><a href="https://yafb.net/pragma-chess/ru/blog/version-0-4/" hreflang="ru">Русский</a></p>
+  <p class="credits">Built with Qt. Default engine: Stockfish (GPL v3). Opening names from lichess-org/chess-openings (CC0). Pieces: Good Companion.</p>
+</footer>
+
+<script src="../../../assets/site.js"></script>
+</body>
+</html>

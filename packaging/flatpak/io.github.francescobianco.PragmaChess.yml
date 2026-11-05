@@ -92,4 +92,4 @@ modules:
     sources:
       - type: git
         url: https://github.com/francescobianco/pragma-chess.git
-        tag: v0.3.0
+        tag: v0.4.0

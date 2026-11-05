@@ -1,0 +1,34 @@
+---
+title: Pragma Chess 0.4: grandes bases de datos, freechess.org y la fuerza de una partida
+summary: Un mes de trabajo en una versión: millones de partidas abiertas en segundos, juego en freechess.org, cada partida en línea juzgada jugada a jugada con un Elo estimado, motores y bases de datos instalados con un clic, y tres idiomas nuevos.
+---
+<figure class="post-figure post-figure-wide">
+  <img src="course.png" alt="El panel del motor de Pragma Chess con la evolución de la partida y la fuerza que mostró cada bando" width="1280" height="820">
+  <figcaption>La evolución de la partida junto a la puntuación, y la fuerza que mostró cada bando.</figcaption>
+</figure>
+
+<p>Ya está aquí Pragma Chess 0.4.0, para Windows, macOS y Linux, y como aplicación Android en pruebas. Es un mes de trabajo y más de trescientos cambios desde la 0.3.0; estos son los que notarás primero. La lista completa está en las <a href="https://github.com/francescobianco/pragma-chess/releases/tag/v0.4.0">notas de la versión</a> (en inglés).</p>
+
+<h2>Bases de datos de millones de partidas</h2>
+
+<p>Una base de datos de 1,26 millones de partidas se abre ahora en 3,5 segundos en lugar de 34, con 0,6 GB de memoria en lugar de 6,8. La búsqueda por posición (Tablero ▸ Posición) está lista al instante en una base abierta antes, y se construye con todos los núcleos del ordenador. Para crear una base así está la primera herramienta del nuevo menú Herramientas, <strong>Convertir ▸ De PGN a base de datos Pragma</strong>: un archivo PGN de cualquier tamaño, leído por partes mientras sigues trabajando. Y <strong>Herramientas ▸ Gestionar extensiones</strong> instala las grandes bases del catálogo de En Croissant — Lumbra's GigaBase, Caissabase, MillionBase —, convertidas en tu ordenador, y motores como Stockfish, RubiChess o Dragon, desde las páginas de sus autores. Antes de cada descarga dice de dónde viene el archivo y en qué condiciones.</p>
+
+<h2>Jugar en freechess.org, y luego ver cómo jugaste</h2>
+
+<p>Además de lichess.org, Pragma Chess juega ahora en <strong>freechess.org</strong>, el Free Internet Chess Server, con tu cuenta o como invitado. Mientras juegas, dos grandes relojes digitales ocupan el panel del motor, con Ofrecer tablas y Abandonar debajo; el motor, Explicar y el libro están apagados. Al terminar la partida, Pragma Chess la evalúa jugada a jugada: junto a la puntuación aparece la evolución de la partida, y el recuadro muestra <strong>la fuerza que mostró cada bando</strong>, un Elo estimado para las blancas y para las negras. Es aproximado, de una sola partida, pero está calibrado con más de catorce mil jugadores de lichess con rating.</p>
+
+<h2>Adónde lleva la línea del motor</h2>
+
+<p>Mantén pulsado el ojo junto a Detener y el tablero muestra la posición al final de la línea del motor, siguiéndola a medida que profundiza. Flechas violetas dibujan los planes que contiene: la ruta de un caballo, una torre que sube, el rey que marcha en el final, un peón que rompe. Explicar, por su parte, juega un mate en el tablero solo cuando es uno que puedes aprovechar; un mate largo y tranquilo, como dama contra rey, es técnica, y Explicar dibuja el plan y la jaula en la que queda encerrado el rey que pierde.</p>
+
+<h2>Para estudiar</h2>
+
+<p>Una ventana de bienvenida abre tus proyectos y bases de datos con un clic. Con el programa llegan dos proyectos nuevos, en inglés e italiano: <em>Pawn Endgames</em> y <em>Fischer – Spassky 1972</em>, la sexta partida de Reikiavik comentada. Los estudios de lichess.org se conectan como fuente, cada capítulo una partida; las bases de ChessBase 17 se leen con sus variantes y anotaciones; se conservan los comentarios, los ritmos de juego y todas las etiquetas PGN. Hay un estilo de tablero nuevo, <em>Classic Book</em>, como el diagrama de un libro de ajedrez impreso, y el sonido de la pieza al posarse en el tablero.</p>
+
+<h2>En cinco idiomas</h2>
+
+<p>Pragma Chess habla también español, ruso y chino simplificado, gracias a las personas <a href="../three-languages-in-a-week/">a las que dimos las gracias hace unas semanas</a>. Cada motor tiene una <strong>Potencia de cálculo</strong>, Media por defecto, para que los ventiladores sigan tranquilos mientras analiza. En Linux hay una AppImage, un solo archivo que funciona en la mayoría de las distribuciones, y el programa avisa con discreción cuando sale una versión nueva.</p>
+
+<h2>Pruébalo y cuéntanos</h2>
+
+<p>Descárgalo desde la <a href="../../#download">página principal</a>. Una base de datos abierta con la 0.4.0 ya no se puede abrir con la 0.3.0: actualiza también la aplicación Android. Si algo falla o echas algo en falta, escribe en las <a href="https://github.com/francescobianco/pragma-chess/discussions">Discusiones</a> o abre una <a href="https://github.com/francescobianco/pragma-chess/issues">incidencia</a>: los primeros problemas que nos cuentes se corregirán pronto, en una 0.4.1.</p>

@@ -44,11 +44,11 @@ the downloads.
 | Update check | Help ▸ Check for Updates… and once a day; each release's `version.json` (also attached to 0.3.0) counts the copies in use | ✅ 2026-10-11, in the next release |
 | GitHub issues | Every issue answered, with a thank-you; the first from a stranger: [#1](https://github.com/francescobianco/pragma-chess/issues/1) (2026-10-06, in Russian: qrcodegen from the system's packages) — done in the code and answered (in Russian and English), closed 2026-10-10 | ✅ #1 |
 | Releases | Each `vX.Y.Z` tag publishes installers and the CHANGELOG section as notes (CI) | ✅ since 0.2.0 |
-| Release announcements | `release.yml`'s `announce` job posts each release in the Discussions' Announcements with its CHANGELOG section (who follows the repository's discussions hears of it) | ✅ automated 2026-10-11, from 0.4.0 |
+| Release announcements | `release.yml`'s `announce` job posts each release in the Discussions' Announcements with its CHANGELOG section (who follows the repository's discussions hears of it) | ✅ automated 2026-10-11 · ✅ 0.4.0: [#24](https://github.com/francescobianco/pragma-chess/discussions/24) |
 | Weekly look at the distribution | `scripts/distribution-status.sh` (stars, downloads by system, update checks, visits and referrers, every request about Pragma Chess still open elsewhere); the *Distribution* workflow runs it every Monday, the summary in the run, the numbers appended to `distribution.csv` in the private repository [pragma-chess-stats](https://github.com/francescobianco/pragma-chess-stats) — GitHub forgets visits after 14 days and shows them to the owner only, so they are kept apart (a `stats` branch here until 2026-10-11). Visits need the secret `DISTRIBUTION_TOKEN` (a token that reads the traffic) | ✅ 2026-10-11 · ✅ secret set, traffic recorded |
 | Spanish | The interface (`pragma-chess_es.ts`, 1 573 texts), the guide (`guide_es.md`), the site (`/es/`, linked from every page and chosen by the browser's language) and the Linux metadata, written by the agent on 2026-10-11 and checked (lrelease, the guide test, the menu found by itself): to be read by a Spanish-speaking player — asked in #4. Still English: the names of the openings and of the databases we ship, and the blog article. Spanish chess: Spain, Latin America, r/ajedrez, Chess-Results' Spanish tournaments | ✅ 2026-10-11 · ☐ reviewed by a native speaker |
 | Contributors' directories | [Up for Grabs](https://up-for-grabs.net) PR [#6249](https://github.com/up-for-grabs/up-for-grabs.net/pull/6249) (its bot's checks pass), on the `good first issue` label: #4 translations, #5 a board style, #6 ChessBase samples; with #7 (ChessBase annotators, help wanted) and #8 (Computing Power on Windows, testing). goodfirstissue.dev asks 10 contributors: later | PR open 2026-10-11 |
-| lichess.org blog | "Vi presento Pragma Chess…" (IT); the English counterpart is written, `packaging/announcements/lichess-blog-en.md` (title, intro, text, the picture to use), to paste in a new post; then a post per notable release | ✅ IT · ✅ EN written 2026-10-10 · ☐ EN posted |
+| lichess.org blog | "Vi presento Pragma Chess…" (IT); the English counterpart is written, `packaging/announcements/lichess-blog-en.md` (title, intro, text, the picture to use), to paste in a new post; then a post per notable release | ✅ IT · ✅ EN 2026-10-18 (Explain) · ✅ [0.4.0](https://lichess.org/@/francescobianco/blog/pragma-chess-04-big-databases-freechessorg-and-the-strength-of-a-game/KIP8ZCmi) 2026-11-05 |
 | Screen recording | 40 s, recorded in the headless session: the Opera game move by move, E on 14.Rd1, Explain's arrows (`site/assets/pragma-chess-explain.webm`, the hero of the site). A longer tour with Training and Play Online is still to make | ✅ clip 2026-10-04 · ☐ tour |
 
 ## 2. Package channels
@@ -59,11 +59,11 @@ advert, and each needs a maintainer: us, until someone else steps in.
 | Channel | How | Status |
 |---|---|---|
 | **Flathub** (Linux) | Manifest written: `packaging/flatpak/` (KDE 6.9 runtime, yaml-cpp module, Stockfish binary, metainfo with screenshots and releases, validated with `appstreamcli`). To do: build it once with `flatpak-builder` on a machine that has it, then submit to <https://github.com/flathub/flathub> (`new-pr` branch). The most visited Linux "store": GNOME Software, KDE Discover, Flathub.org | ✅ manifest · ☐ build & submit |
-| **winget** (Windows) | `packaging/winget/make-winget.sh <version>` writes the manifests; 0.3.0 submitted as <https://github.com/microsoft/winget-pkgs/pull/446459> (CLA signed; on 2026-10-10 the checks pass and it waits for a community moderator's approval). Each release after that: `release.yml`'s `winget` job sends the PR itself (winget-releaser) once the repository has the secret `WINGET_TOKEN` (a classic token with `public_repo`); without it, it says so and the script is run by hand | ✅ PR open 2026-10-04 · waiting for a moderator · ✅ automated 2026-10-11 · ✅ secret set |
+| **winget** (Windows) | `packaging/winget/make-winget.sh <version>` writes the manifests; 0.3.0 submitted as <https://github.com/microsoft/winget-pkgs/pull/446459> (CLA signed; on 2026-10-10 the checks pass and it waits for a community moderator's approval). Each release after that: `release.yml`'s `winget` job sends the PR itself (winget-releaser) once the repository has the secret `WINGET_TOKEN` (a classic token with `public_repo`); without it, it says so and the script is run by hand | ✅ PR open 2026-10-04 · ✅ automated 2026-10-11 · ✅ secret set · on 2026-10-30 the bot asked for manifest 1.28.0 (`make-winget.sh` writes it now): the PR moved to 0.4.0 on 2026-11-05, waiting for a moderator. The `winget` job fails until the package is in winget-pkgs |
 | **Homebrew cask** (macOS) | `Homebrew/homebrew-cask` accepts new casks only from projects with ~75 stars/forks/watchers: wait for that, then `brew create --cask` on the `.dmg` (the app is signed in CI; notarization needed) | ☐ when notable |
-| **AUR** (Arch) | `packaging/aur/pragma-chess/` (PKGBUILD and .SRCINFO for 0.3.0: built from the tag against Arch's Qt, Arch's Stockfish as the bundled engine; how to publish in `packaging/aur/README.md`). En Croissant's three AUR packages were made by others: ours by us. Not tried on Arch yet (`makepkg -si`); publishing needs an AUR account with an SSH key | ✅ written 2026-10-11 · ☐ try and publish |
+| **AUR** (Arch) | `packaging/aur/pragma-chess/` (PKGBUILD and .SRCINFO for 0.4.0: built from the tag against Arch's Qt, Arch's Stockfish as the bundled engine; how to publish in `packaging/aur/README.md`). En Croissant's three AUR packages were made by others: ours by us. Not tried on Arch yet (`makepkg -si`); publishing needs an AUR account with an SSH key | ✅ written 2026-10-11 · ☐ try and publish |
 | **Chocolatey / Scoop** (Windows) | Scoop's buckets take well-known tools only (its criteria give 500 stars as the example); Chocolatey needs an account and an API key. En Croissant's are made by others (`brogers5/chocolatey-package-en-croissant`, a personal Scoop bucket): wait for that | ☐ when notable |
-| **AppImage** (any Linux) | `packaging/linux/build-appimage.sh`, built by `release.yml` and checked there (it starts, its own Stockfish analyses): one file for Arch, openSUSE, Mint… — En Croissant's AppImage has 1 201 downloads of its last release. 49 MB, most of it Qt's ICU data. Then **AppImageHub** (<https://github.com/AppImage/appimage.github.io>, a PR with the release's address) | ✅ 2026-10-11, from 0.4.0 · ☐ AppImageHub after 0.4.0 |
+| **AppImage** (any Linux) | `packaging/linux/build-appimage.sh`, built by `release.yml` and checked there (it starts, its own Stockfish analyses): one file for Arch, openSUSE, Mint… — En Croissant's AppImage has 1 201 downloads of its last release. 49 MB, most of it Qt's ICU data. Then **AppImageHub** (<https://github.com/AppImage/appimage.github.io>, a PR with the release's address) | ✅ 2026-10-11, in 0.4.0 · ☐ AppImageHub (0.4.0 is out) |
 | **Debian / Fedora repositories** | Later: an OBS (openSUSE Build Service) project gives `.deb`/`.rpm` repositories for many distributions from the same spec | ☐ |
 | **F-Droid** (Android) | When the app leaves testing: reproducible build from the tag, metadata in `fastlane/` | ☐ |
 
@@ -95,7 +95,7 @@ to the place. Dates and links go here.
 | Place | Notes | Status |
 |---|---|---|
 | **lichess.org forum** — General Chess Discussion / Lichess Feedback | Link the blog post; mention the lichess import and playing through the Board API | ☐ |
-| **freechess.org** — the FICS community (its web page lists interfaces; `help interfaces` on the server, and the admins who keep that list) | Once a release plays there: ask to be listed among the interfaces, factual, with the download link | ☐ after the next release |
+| **freechess.org** — the FICS community (its web page lists interfaces; `help interfaces` on the server, and the admins who keep that list) | Once a release plays there: ask to be listed among the interfaces, factual, with the download link | ☐ now: 0.4.0 plays there |
 | **r/chess** | Allows software posts with "I made this"; post with the Explain screenshot, weekend | ☐ |
 | **r/chessbeginners**, **r/TournamentChess** | Training with the tutor; the latter is where club players are | ☐ |
 | **chess.com forums** — Chess Software | Factual post, the chess.com import is relevant there | ☐ |
@@ -146,12 +146,12 @@ to the place. Dates and links go here.
    the Discussions ✅ ([#3](https://github.com/francescobianco/pragma-chess/discussions/3)).
    Italian blogs and groups, FSI note, Linux Day, Qt forum can go before
    the release: they speak of what 0.3.0 already does.
-3. **End of October: release day of 0.4.0** (below).
+3. **Release day of 0.4.0: 2026-11-05** ✅ (below).
 4. **Each release**: release notes from the CHANGELOG, a line on Mastodon
    and the lichess blog, the package channels updated (automate winget and
    Flathub from `release.yml`).
 
-### Release day (0.4.0, end of October)
+### Release day (0.4.0, 2026-11-05)
 
 What En Croissant did on 2024-02-10, the day that changed its course
 (POSITIONING.md, "Seconda lettura"): the release and the lichess post the
@@ -303,3 +303,8 @@ books and lichess.org/freechess.org play; Windows, macOS, Linux.`
 | 2026-10-11 | Discussions: 0.4.0 announced | https://github.com/francescobianco/pragma-chess/discussions/3 | what is coming at the end of October, three ways to help (EN/IT) |
 | 2026-10-11 | Issue #4, pinned | https://github.com/francescobianco/pragma-chess/issues/4 | "Translate Pragma Chess into your language": good first issue, help wanted |
 | 2026-10-11 | Round of the plan | — | winget still waits for a moderator (checks green since 10-05), mbiesiad PR without review; 3 stars; build.opensuse.org among the referrers; TalkChess thread and Show HN written (`packaging/announcements/`) |
+| 2026-11-05 | Release | https://github.com/francescobianco/pragma-chess/releases/tag/v0.4.0 | 0.4.0, with the Android APK; macOS moved to the macos-15 runner (macos-14 is gone) and four tests made to pass on Windows, the tag moved once before anything was published |
+| 2026-11-05 | Blog | https://yafb.net/pragma-chess/en/blog/version-0-4/ | the article on 0.4.0, EN/IT/ES/RU, the picture of the course and the strength of Botvinnik–Capablanca |
+| 2026-11-05 | lichess.org blog | https://lichess.org/@/francescobianco/blog/pragma-chess-04-big-databases-freechessorg-and-the-strength-of-a-game/KIP8ZCmi | the article, with the install links, comments on |
+| 2026-11-05 | Discussions | https://github.com/francescobianco/pragma-chess/discussions/24 · https://github.com/francescobianco/pragma-chess/discussions/3#discussioncomment-19426853 | the announcement by CI; the line in #3 |
+| 2026-11-05 | winget | https://github.com/microsoft/winget-pkgs/pull/446459 | moved to 0.4.0, manifest 1.28.0 as the bot asked |

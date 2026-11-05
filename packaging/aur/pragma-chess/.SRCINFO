@@ -17,6 +17,6 @@ pkgbase = pragma-chess
 	depends = stockfish
 	depends = hicolor-icon-theme
 	source = pragma-chess-0.4.0.tar.gz::https://github.com/francescobianco/pragma-chess/archive/refs/tags/v0.4.0.tar.gz
-	sha256sums = ea4bfaf97a8444bf07c9eab15279bc0afe9ddce49b9c4d74861d437d6dff7198
+	sha256sums = 5839f7d65dbe5c4742557546e2bb13eb4bbca471beb8f9e5c201b988648c4974
 
 pkgname = pragma-chess

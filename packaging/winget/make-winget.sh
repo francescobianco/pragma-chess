@@ -13,15 +13,15 @@ date="$(gh release view "v${version}" --json publishedAt -q '.publishedAt' 2>/de
 out="$here/$version"
 mkdir -p "$out"
 cat > "$out/FrancescoBianco.PragmaChess.yaml" <<YAML
-# yaml-language-server: \$schema=https://aka.ms/winget-manifest.version.1.6.0.schema.json
+# yaml-language-server: \$schema=https://aka.ms/winget-manifest.version.1.28.0.schema.json
 PackageIdentifier: FrancescoBianco.PragmaChess
 PackageVersion: ${version}
 DefaultLocale: en-US
 ManifestType: version
-ManifestVersion: 1.6.0
+ManifestVersion: 1.28.0
 YAML
 cat > "$out/FrancescoBianco.PragmaChess.installer.yaml" <<YAML
-# yaml-language-server: \$schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+# yaml-language-server: \$schema=https://aka.ms/winget-manifest.installer.1.28.0.schema.json
 PackageIdentifier: FrancescoBianco.PragmaChess
 PackageVersion: ${version}
 InstallerType: inno
@@ -38,10 +38,10 @@ Installers:
   InstallerUrl: ${url}
   InstallerSha256: ${sha}
 ManifestType: installer
-ManifestVersion: 1.6.0
+ManifestVersion: 1.28.0
 YAML
 cat > "$out/FrancescoBianco.PragmaChess.locale.en-US.yaml" <<YAML
-# yaml-language-server: \$schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+# yaml-language-server: \$schema=https://aka.ms/winget-manifest.defaultLocale.1.28.0.schema.json
 PackageIdentifier: FrancescoBianco.PragmaChess
 PackageVersion: ${version}
 PackageLocale: en-US
@@ -69,6 +69,6 @@ Tags:
 - qt
 ReleaseNotesUrl: https://github.com/francescobianco/pragma-chess/releases/tag/v${version}
 ManifestType: defaultLocale
-ManifestVersion: 1.6.0
+ManifestVersion: 1.28.0
 YAML
 echo "written $out"

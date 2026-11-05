@@ -156,7 +156,7 @@ jobs:
 
   macos:
     needs: version
-    runs-on: macos-14
+    runs-on: macos-15
     env:
       MACOS_SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
       APPLE_ID: ${{ secrets.APPLE_ID }}

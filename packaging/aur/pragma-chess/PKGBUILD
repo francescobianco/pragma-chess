@@ -1,6 +1,6 @@
 # Maintainer: Francesco Bianco <info.francescobianco@gmail.com>
 pkgname=pragma-chess
-pkgver=0.3.0
+pkgver=0.4.0
 pkgrel=1
 pkgdesc="Chess database for studying, training and playing, with Explain"
 arch=('x86_64' 'aarch64')
@@ -9,7 +9,7 @@ license=('MIT')
 depends=('qt6-base' 'qt6-svg' 'yaml-cpp' 'openssl' 'stockfish' 'hicolor-icon-theme')
 makedepends=('cmake' 'ninja' 'git' 'qt6-tools')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/francescobianco/pragma-chess/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('a7c32e5affbb249becad324ba098e36b9ae0a374fa68446d5713c8f09e95751c')
+sha256sums=('ea4bfaf97a8444bf07c9eab15279bc0afe9ddce49b9c4d74861d437d6dff7198')
 
 build() {
     # WebRTC and the keys of Phone Link and the lobby (libdatachannel,

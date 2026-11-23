@@ -51,8 +51,8 @@
 #include "app/phone/DatabaseFolderStore.h"
 #include "app/phone/PhoneLink.h"
 #include "dialogs/ConnectMobileDialog.h"
-#include "dialogs/WelcomeDialog.h"
 #endif
+#include "dialogs/WelcomeDialog.h"
 #include "app/Explainer.h"
 #include "app/LineInsight.h"
 #include "app/GameSession.h"

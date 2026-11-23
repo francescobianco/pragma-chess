@@ -47,7 +47,7 @@ platform_plugins=libqoffscreen.so
 [ -e "$qt_plugins/platforms/libqwayland-generic.so" ] && platform_plugins="libqwayland-generic.so;$platform_plugins"
 export EXTRA_PLATFORM_PLUGINS=$platform_plugins
 export APPIMAGE_EXTRACT_AND_RUN=1
-export LDAI_OUTPUT="PragmaChess-${version:-dev}-linux-x86_64.AppImage"
+export LDAI_OUTPUT="PragmaChess-${version:-dev}-x86_64.AppImage"
 # The bundled engine is a program of its own: its libraries come along too.
 (cd "$build" && "$tools/linuxdeploy-x86_64.AppImage" --appdir "$appdir" \
     --desktop-file "$appdir/usr/share/applications/$app_id.desktop" \

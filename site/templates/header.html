@@ -14,6 +14,6 @@
     <a href="{{root}}{{lang}}/guide/"{{#if in_guide}} class="current"{{/if}}>{{nav.guide}}</a>
     <a href="{{root}}{{lang}}/blog/"{{#if in_blog}} class="current"{{/if}}>{{nav.blog}}</a>
     <a href="{{repo_url}}" rel="noopener">GitHub</a>
-    <span class="languages">{{#each languages}}<a href="{{href}}" hreflang="{{code}}"{{#if current}} class="current"{{/if}}>{{name}}</a>{{/each}}</span>
+    <span class="languages">{{#each languages}}<a href="{{href}}" hreflang="{{code}}" lang="{{code}}" title="{{name}}"{{#if current}} class="current" aria-current="page"{{/if}}><img class="flag" src="{{root}}assets/flags/{{code}}.svg" alt="{{name}}" width="24" height="16"></a>{{/each}}</span>
   </nav>
 </header>

@@ -73,6 +73,10 @@ section > .download-note, section > .formats, section > .clubs { max-width: var(
 .nav .languages { display: flex; gap: 0.4rem; margin-left: 0.5rem; padding-left: 1rem; border-left: 1px solid var(--line); }
 .languages a { color: var(--ink-soft); font-size: 0.95rem; }
 .languages a.current { color: var(--ink); font-weight: 700; }
+.languages a { display: inline-flex; align-items: center; gap: 0.4rem; }
+.flag { display: block; width: 24px; height: 16px; object-fit: cover; border-radius: 2px; box-shadow: 0 0 0 1px var(--line); opacity: 0.55; transition: opacity 0.15s; }
+.languages a:hover .flag, .languages a.current .flag { opacity: 1; }
+.top .languages a.current .flag { box-shadow: 0 0 0 2px var(--blue); }
 .menu-toggle { display: none; }
 .menu-button { display: none; }
 

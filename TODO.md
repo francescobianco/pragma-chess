@@ -8,6 +8,21 @@ AGENTS.md, nel CHANGELOG e nella storia di git.
 
 ## Da fare, in ordine di priorità
 
+### AppImageHub: una 0.4.1 con l'AppImage su Ubuntu 22.04 (23/11/2026)
+
+La PR AppImage/appimage.github.io#11748 (aggiunge Pragma Chess al catalogo)
+è ferma sul test: l'AppImage della 0.4.0, fatta su Ubuntu 24.04, chiede glibc
+2.38, e il catalogo prova sulla LTS più vecchia ancora supportata (22.04,
+glibc 2.35). Il job `appimage` di `release.yml` ora la costruisce su 22.04
+(Qt 6.8 da qt.io, GCC 12 con libstdc++ statica, CMake da pip, solo il driver
+SQLite di Qt) e controlla che non usi simboli più nuovi; il nome non dice più
+"linux" (l'altra osservazione del catalogo). Provata in un container 22.04
+pulito il 23/11: parte e analizza (le serve solo `libopengl0`, che ogni
+desktop ha). Da fare: lanciare il workflow a mano per vederlo verde in CI,
+fare la 0.4.1, poi commentare `/retest` sulla PR. Il link vecchio
+`PragmaChess-linux-x86_64.AppImage` (annuncio lichess) smette di funzionare
+dalla 0.4.1.
+
 ### Prima della 0.4.0: tre test falliscono su Windows (11/10/2026)
 
 Il workflow di release lanciato a mano (run 38125433842, senza tag) passa su

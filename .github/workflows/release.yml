@@ -54,21 +54,49 @@ jobs:
           if-no-files-found: error
 
   # One file for the distributions the .deb and .rpm do not reach (Arch,
-  # openSUSE, Mint…): packaging/linux/build-appimage.sh.
+  # openSUSE, Mint…): packaging/linux/build-appimage.sh. Built on the oldest
+  # Ubuntu LTS still supported, as AppImageHub requires (it runs where glibc
+  # is at least as new as the build's), with Qt from qt.io — 22.04 has only
+  # Qt 6.2 —, GCC 12 (22.04's GCC 11 cannot build it) with its C++ library
+  # linked in, and a CMake from pip (3.28+ fetches the Phone Link's libraries).
   appimage:
     needs: version
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends build-essential cmake ninja-build \
-            qt6-base-dev qt6-svg-dev libqt6sql6-sqlite qt6-tools-dev qt6-tools-dev-tools \
-            qt6-l10n-tools qt6-translations-l10n qt6-wayland libssl-dev pkg-config git file make patch \
-            libfuse2t64 squashfs-tools
+          sudo apt-get install -y --no-install-recommends build-essential g++-12 ninja-build \
+            libssl-dev pkg-config git file make patch libfuse2 squashfs-tools \
+            libgl1-mesa-dev libxkbcommon-dev libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 \
+            libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 \
+            libxcb-xinerama0 libxcb-xkb1 libegl1 libwayland-cursor0 libwayland-egl1
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 --slave /usr/bin/g++ g++ /usr/bin/g++-12
+          sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-12 100
+          pip3 install "cmake>=3.28,<4"
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          modules: qtwayland
+          cache: true
+      - name: Only the SQLite driver of Qt, or linuxdeploy looks for the others' libraries
+        run: |
+          q=$QT_ROOT_DIR
+          ls "$q/plugins/sqldrivers" | grep -v '^libqsqlite.so$' | sed "s|^|$q/plugins/sqldrivers/|" | xargs -r rm
+          find "$q/lib/cmake/Qt6Sql" -name 'Qt6Q*DriverPlugin*.cmake' ! -name 'Qt6QSQLiteDriverPlugin*' -delete
       - name: Build the AppImage
-        run: packaging/linux/build-appimage.sh "${{ needs.version.outputs.version }}"
+        env:
+          LDFLAGS: -static-libstdc++ -static-libgcc
+        run: |
+          export QMAKE=$QT_ROOT_DIR/bin/qmake
+          packaging/linux/build-appimage.sh "${{ needs.version.outputs.version }}"
+      - name: Nothing newer than Ubuntu 22.04's glibc (2.35)
+        run: |
+          app=$(ls dist/*.AppImage)
+          (cd "$(mktemp -d)" && "$OLDPWD/$app" --appimage-extract > /dev/null && \
+            ! find squashfs-root -type f \( -name '*.so*' -o -perm -u+x \) -exec objdump -T {} \; 2>/dev/null \
+              | grep -oE 'GLIBC_2\.(3[6-9]|[4-9][0-9])|GLIBCXX_3\.4\.(3[1-9])' | sort -u | grep .)
       - name: It starts and finds its engine
         run: |
           app=$(ls dist/*.AppImage)

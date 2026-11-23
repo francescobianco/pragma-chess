@@ -3,7 +3,8 @@
 # distributions without installing, for those the .deb and .rpm do not reach
 # (Arch, openSUSE, Mint, …). Built against the Qt of the machine, which
 # linuxdeploy copies inside with the libraries it needs; it runs where the
-# C library is at least as new as the build machine's (CI: Ubuntu 24.04).
+# C library is at least as new as the build machine's (CI: Ubuntu 22.04,
+# with Qt from qt.io: see the appimage job of .github/workflows/release.yml).
 #
 #   packaging/linux/build-appimage.sh [version]
 #

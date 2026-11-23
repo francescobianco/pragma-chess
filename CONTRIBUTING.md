@@ -4,9 +4,11 @@ Thank you for wanting to help. There are many ways, and most need no code:
 
 - **Tell us what breaks**, or what you miss: an
   [issue](https://github.com/francescobianco/pragma-chess/issues/new/choose)
-  for a problem, the
+  for a problem, a
+  [feature request](https://github.com/francescobianco/pragma-chess/issues/new?template=feature.yml)
+  for what you would like it to do — Pragma Chess grows from them —, the
   [Discussions](https://github.com/francescobianco/pragma-chess/discussions)
-  for questions and ideas.
+  for questions.
 - **Tell us where Explain is wrong.** It is the heart of the program, and
   every wrong explanation you send becomes a test (see below).
 - **Translate** the interface and the guide into your language (see below).

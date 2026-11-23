@@ -9,6 +9,12 @@
     "title": "Pragma Chess — открытая шахматная база данных для изучения, тренировки и игры",
     "description": "Pragma Chess хранит партии в базах данных и позволяет изучать их с движком, дебютной книгой и заметками; тренироваться против движка с тренером; играть онлайн. Лёгкий, простой, с тем, что действительно нужно. Windows, macOS, Linux."
   },
+  "banner": {
+    "label": "✨ Что Pragma Chess должна уметь дальше?",
+    "text": "Расскажите, какой функции вам не хватает: так программа и растёт.",
+    "link": "Предложить функцию",
+    "url": "https://github.com/francescobianco/pragma-chess/issues/new?template=feature.yml"
+  },
   "nav": {
     "menu": "Меню",
     "features": "Возможности",
@@ -181,6 +187,12 @@
         "text": "Что-то не так или не хватает? Откройте issue на GitHub: что делали и что увидели.",
         "link": "https://github.com/francescobianco/pragma-chess/issues",
         "link_text": "Issues на GitHub →"
+      },
+      {
+        "title": "Предложить функцию",
+        "text": "Чего-то не хватает для занятий, тренировок или вашего клуба? Откройте issue с нужной функцией: Pragma Chess растёт из пожеланий шахматистов.",
+        "link": "https://github.com/francescobianco/pragma-chess/issues/new?template=feature.yml",
+        "link_text": "Предложить функцию →"
       },
       {
         "title": "Вопросы и идеи",

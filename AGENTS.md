@@ -2046,7 +2046,9 @@ it**: the rules of the ledger are a protocol every client must apply alike.
 ## Web site
 
 `site/build.py` writes `docs/` from `site/`: `templates/page.html` composes
-the partials (`{{> header}}`, hero, features, screenshots, download, support,
+the partials (`{{> header}}` — on every page, with the banner above it
+that asks for features, `banner` in the texts, linking the issue template
+`feature.yml` —, hero, features, screenshots, download, support,
 footer, and supporters: the clubs of the About window, each with its logo
 in `assets/supporters/`, and the invitation to the WhatsApp group for a
 club that wants to be listed, with a link to CLUBS.md — add a club to

@@ -52,6 +52,12 @@ section > .download-note, section > .formats, section > .clubs { max-width: var(
 .section-lead { color: var(--ink-soft); font-size: 1.1rem; margin-bottom: 2rem; }
 
 /* Header */
+.banner { background: var(--blue-dark); color: #fff; text-align: center; font-size: 0.95rem; }
+.banner a { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.35rem 0.6rem; padding: 0.5rem 1rem; color: inherit; }
+.banner a:hover { text-decoration: none; }
+.banner a:hover .banner-button { background: rgba(255, 255, 255, 0.3); }
+.banner-button { padding: 0.15rem 0.6rem; border-radius: 4px; background: rgba(255, 255, 255, 0.18); font-weight: 700; white-space: nowrap; }
+@media (max-width: 720px) { .banner-text { display: none; } }
 .top {
   position: sticky; top: 0; z-index: 10;
   display: flex; align-items: center; justify-content: space-between; gap: 1rem;

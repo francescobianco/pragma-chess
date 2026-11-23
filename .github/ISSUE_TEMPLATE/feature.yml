@@ -1,0 +1,28 @@
+name: A new feature
+description: Something you would like Pragma Chess to do.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you! Pragma Chess grows from what players ask for. Look first whether an
+        [issue](https://github.com/francescobianco/pragma-chess/issues?q=is%3Aissue+label%3Aenhancement)
+        already asks for it: then add a 👍 and what you would do with it. Write in English
+        or Italian — or your language, we will manage.
+  - type: textarea
+    id: what
+    attributes:
+      label: What you would like
+      description: What Pragma Chess should do, in your words. A sketch or a screenshot of another program helps.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What you would do with it
+      description: The study, the training, the game or the club work it would help.
+  - type: textarea
+    id: now
+    attributes:
+      label: How you do it today
+      description: In Pragma Chess or in another program, if you do.

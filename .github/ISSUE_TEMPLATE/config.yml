@@ -1,8 +1,8 @@
 blank_issues_enabled: true
 contact_links:
-  - name: Questions and ideas
+  - name: Questions
     url: https://github.com/francescobianco/pragma-chess/discussions
-    about: Ask how to do something, or propose an idea, in the Discussions.
+    about: Ask how to do something in the Discussions. A feature you would like is an issue: "A new feature".
   - name: The guide
     url: https://yafb.net/pragma-chess/en/guide/
     about: How each part of Pragma Chess works.

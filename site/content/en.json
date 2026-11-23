@@ -9,6 +9,12 @@
     "title": "Pragma Chess — an open source chess database for studying, training and playing",
     "description": "Pragma Chess keeps your games in databases and lets you study them with an engine, an opening book and your notes; train against the engine with a tutor; play online. Light, simple, with what really matters. Windows, macOS, Linux."
   },
+  "banner": {
+    "label": "✨ What should Pragma Chess do next?",
+    "text": "Tell us the feature you are missing: it is how the program grows.",
+    "link": "Ask for a feature",
+    "url": "https://github.com/francescobianco/pragma-chess/issues/new?template=feature.yml"
+  },
   "nav": {
     "menu": "Menu",
     "features": "Features",
@@ -181,6 +187,12 @@
         "text": "Something wrong, or missing? Open an issue on GitHub with what you did and what you saw.",
         "link": "https://github.com/francescobianco/pragma-chess/issues",
         "link_text": "Issues on GitHub →"
+      },
+      {
+        "title": "Ask for a feature",
+        "text": "Missing something for your study, your training or your club? Open an issue with the feature you would like: Pragma Chess grows from what players ask for.",
+        "link": "https://github.com/francescobianco/pragma-chess/issues/new?template=feature.yml",
+        "link_text": "Ask for a feature →"
       },
       {
         "title": "Questions and ideas",
